@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -59,15 +58,15 @@ public class PolicyWaiverResourceTest
 
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId), JsonHelpers.asJson(policyWaiver));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId), toJson(policyWaiver));
     assertResponseStatus(200, response);
-    policyWaiver = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver.class);
+    policyWaiver = fromJson(response, PolicyWaiver.class);
     assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
 
     // Get
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    AppliedWaivers policyWaivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    AppliedWaivers policyWaivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(policyWaivers);
     assertNotNull(policyWaivers.waiversByOwner);
     assertEquals(1, policyWaivers.waiversByOwner.size());
@@ -81,7 +80,7 @@ public class PolicyWaiverResourceTest
     // Get
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    policyWaivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    policyWaivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(policyWaivers);
     assertNotNull(policyWaivers.waiversByOwner);
     assertEquals(0, policyWaivers.waiversByOwner.size());
@@ -118,7 +117,7 @@ public class PolicyWaiverResourceTest
     Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
         + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    AppliedWaivers waivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    AppliedWaivers waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
     assertNotNull(waivers.waiversByOwner);
     assertEquals(1, waivers.waiversByOwner.size());
@@ -134,7 +133,7 @@ public class PolicyWaiverResourceTest
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
         + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    waivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
     assertNotNull(waivers.waiversByOwner);
     assertEquals(2, waivers.waiversByOwner.size());
@@ -153,7 +152,7 @@ public class PolicyWaiverResourceTest
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId())
         + "/component/12345678901234567890");
     assertResponseStatus(200, response);
-    waivers = JsonHelpers.fromJson(response.getResponseBody(), AppliedWaivers.class);
+    waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
     assertNotNull(waivers.waiversByOwner);
     assertEquals(1, waivers.waiversByOwner.size());
@@ -166,9 +165,9 @@ public class PolicyWaiverResourceTest
     Policy policy = tempEntity.newPolicy(ownerId1, "PolicyWaiverResourceTest");
     String policyId = policy.getId();
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), JsonHelpers.asJson(policyWaiver));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), toJson(policyWaiver));
     assertResponseStatus(200, response);
-    policyWaiver = JsonHelpers.fromJson(response.getResponseBody(), PolicyWaiver.class);
+    policyWaiver = fromJson(response, PolicyWaiver.class);
 
     response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + policyWaiver.getId());
     assertResponseStatus(404, response);
@@ -221,7 +220,7 @@ public class PolicyWaiverResourceTest
     Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/"
         + policy.getId());
     assertResponseStatus(200, response);
-    ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
+    ApplicableContext result = fromJson(response, ApplicableContext.class);
     assertApplicableContext(appPublicId, application.getName(), "application", result);
   }
 
@@ -237,7 +236,7 @@ public class PolicyWaiverResourceTest
     Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/"
         + policy.getId());
     assertResponseStatus(200, response);
-    ApplicableContext result = JsonHelpers.fromJson(response.getResponseBody(), ApplicableContext.class);
+    ApplicableContext result = fromJson(response, ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
     assertNotNull(result.getChildren());
     assertEquals(1, result.getChildren().size());
@@ -260,9 +259,9 @@ public class PolicyWaiverResourceTest
     policy.addConstraint(constraint);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
     Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
-        JsonHelpers.asJson(policy));
+        toJson(policy));
     assertResponseStatus(200, response);
-    policy = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    policy = fromJson(response, Policy.class);
     return policy;
   }
 }

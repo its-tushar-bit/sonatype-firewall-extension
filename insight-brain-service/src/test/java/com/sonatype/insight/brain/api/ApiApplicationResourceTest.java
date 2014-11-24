@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -96,15 +95,15 @@ public class ApiApplicationResourceTest
     ApiApplicationDTO applicationDTO = createApplicationDTO(null);
 
     // Test the post
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
     assertResponseStatus(200, response);
-    ApiApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the get
     response = AuthedRestAccess.get(getServiceURL() + "/" + applicationResult.id);
     assertResponseStatus(200, response);
-    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the update
@@ -114,9 +113,9 @@ public class ApiApplicationResourceTest
     applicationTagBDTO.tagId = tagB.getId();
     applicationDTO.applicationTags.clear();
     applicationDTO.applicationTags.add(applicationTagBDTO);
-    response = AuthedRestAccess.put(getServiceURL() + "/" + applicationResult.id, JsonHelpers.asJson(applicationDTO));
+    response = AuthedRestAccess.put(getServiceURL() + "/" + applicationResult.id, toJson(applicationDTO));
     assertResponseStatus(200, response);
-    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the delete
@@ -134,8 +133,7 @@ public class ApiApplicationResourceTest
 
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    ApiApplicationListDTO applicationListDTO = JsonHelpers
-        .fromJson(response.getResponseBody(), ApiApplicationListDTO.class);
+    ApiApplicationListDTO applicationListDTO = fromJson(response, ApiApplicationListDTO.class);
     assertThat(applicationListDTO, notNullValue());
     assertThat(applicationListDTO.applications, hasSize(numApps + 1));
   }
@@ -155,8 +153,7 @@ public class ApiApplicationResourceTest
 
     Response response = AuthedRestAccess.get(getServiceURL() + publicIds);
     assertResponseStatus(200, response);
-    ApiApplicationListDTO applicationListDTO = JsonHelpers
-        .fromJson(response.getResponseBody(), ApiApplicationListDTO.class);
+    ApiApplicationListDTO applicationListDTO = fromJson(response, ApiApplicationListDTO.class);
     assertThat(applicationListDTO, notNullValue());
     List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
     for (Application application : applications) {
@@ -171,7 +168,7 @@ public class ApiApplicationResourceTest
   public void testUpdateApplication_MismatchedIds() throws Exception {
     ApiApplicationDTO applicationDTO = createApplicationDTO("Junk");
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage,
@@ -187,9 +184,9 @@ public class ApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
     assertResponseStatus(200, response);
-    ApiApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
   }
 
@@ -200,9 +197,9 @@ public class ApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
     assertResponseStatus(200, response);
-    ApiApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApiApplicationDTO.class);
+    ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
   }
 
@@ -215,7 +212,7 @@ public class ApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage, is("Cannot change the parent organization of an application."));
@@ -229,7 +226,7 @@ public class ApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage, is("Cannot change public ID of existing application."));
@@ -259,7 +256,7 @@ public class ApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = app.getOrganizationId();
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), equalTo(app.getPublicId() + " is already used as an ID."));
   }
@@ -277,7 +274,7 @@ public class ApiApplicationResourceTest
     applicationDTO.contactUserName = userA.getUsername();
 
     // Test the post
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), equalTo("Application must not have an ID set on creation."));
   }
@@ -295,7 +292,7 @@ public class ApiApplicationResourceTest
     applicationDTO.contactUserName = contactUserName;
 
     // Test the post
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         equalTo("Application has a contactUserName=" + contactUserName + " that does not exist."));
@@ -311,7 +308,7 @@ public class ApiApplicationResourceTest
     application.setName("testAddApplication_exceedsLicense_id_new_name");
     application.setPublicId("testAddApplication_exceedsLicense_id_new_id");
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(application));
     assertResponseStatus(402, response);
     assertThat(response.getResponseBody(),
         equalTo("You have exceeded the licensed limit of " + appLimit + " applications."));
@@ -328,7 +325,7 @@ public class ApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = orgId;
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         equalTo("Application references an organization (ID=" + orgId + ") that does not exist."));
@@ -344,7 +341,7 @@ public class ApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = null;
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(applicationDTO));
+    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), equalTo("Application must have a parent organization."));
   }
@@ -366,8 +363,7 @@ public class ApiApplicationResourceTest
     final List<Role> appRoles = roleDAO.getApplicationRoles();
     assertThat(appRoles, hasSize(2));
 
-    ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO roleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
     assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
 
@@ -378,14 +374,13 @@ public class ApiApplicationResourceTest
         appRoles.get(0).getId()
     );
 
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     // Read for created data
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     final List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
@@ -422,8 +417,7 @@ public class ApiApplicationResourceTest
     final List<Role> appRoles = roleDAO.getApplicationRoles();
     assertThat(appRoles, hasSize(2));
 
-    ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO roleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
     assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
 
@@ -431,14 +425,13 @@ public class ApiApplicationResourceTest
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         appRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     // Read for created data
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
@@ -458,19 +451,19 @@ public class ApiApplicationResourceTest
     roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userA.getUsername())),
         appRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         appRoles.get(1).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
     assertResponseStatus(204, response);
 
     // Read for updated data
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(), ApiRoleMemberMappingListDTO.class);
+    returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
     assertThat(returnedRoleMemberMappingList, is(notNullValue()));
@@ -496,7 +489,7 @@ public class ApiApplicationResourceTest
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
 
-    ApiRoleListDTO appRoles = JsonHelpers.fromJson(response.getResponseBody(), ApiRoleListDTO.class);
+    ApiRoleListDTO appRoles = fromJson(response, ApiRoleListDTO.class);
     assertThat(appRoles, notNullValue());
     assertThat(appRoles.roles, hasSize(2));
 

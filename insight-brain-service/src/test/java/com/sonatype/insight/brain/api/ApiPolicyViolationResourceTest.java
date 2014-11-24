@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -49,7 +48,7 @@ public class ApiPolicyViolationResourceTest
     Response response = AuthedRestAccess.get(getServiceURL(policyIds));
 
     assertResponseStatus(200, response);
-    ApiApplicationViolationListDTO apiApplicationViolationListDTO = JsonHelpers.fromJson(response.getResponseBody(),
+    ApiApplicationViolationListDTO apiApplicationViolationListDTO = fromJson(response,
         ApiApplicationViolationListDTO.class);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));

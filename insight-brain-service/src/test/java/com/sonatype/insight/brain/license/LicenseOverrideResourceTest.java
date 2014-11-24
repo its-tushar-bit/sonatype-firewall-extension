@@ -30,7 +30,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -84,9 +83,9 @@ public class LicenseOverrideResourceTest
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
         "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        JsonHelpers.asJson(licenseOverride));
+        toJson(licenseOverride));
     assertResponseStatus(200, response);
-    licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
     assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
@@ -101,9 +100,9 @@ public class LicenseOverrideResourceTest
     licenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated");
     response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        JsonHelpers.asJson(licenseOverride));
+        toJson(licenseOverride));
     assertResponseStatus(200, response);
-    licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated",
         licenseOverride);
     assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
@@ -134,9 +133,9 @@ public class LicenseOverrideResourceTest
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
       "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        JsonHelpers.asJson(licenseOverride));
+        toJson(licenseOverride));
     assertResponseStatus(200, response);
-    licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
         licenseOverride);
     assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
@@ -152,9 +151,9 @@ public class LicenseOverrideResourceTest
       ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
       "My comment updated");
     response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        JsonHelpers.asJson(licenseOverride));
+        toJson(licenseOverride));
     assertResponseStatus(200, response);
-    licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated",
         licenseOverride);
     assertAuditLog(ownerId, user, where, false /* isDelete */, licenseOverride);
@@ -264,7 +263,7 @@ public class LicenseOverrideResourceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier));
     assertResponseStatus(200, response);
-    AppliedLicenseOverrides appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(),
+    AppliedLicenseOverrides appliedLicenseOverrides = fromJson(response,
         AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
     assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(2));
@@ -276,7 +275,7 @@ public class LicenseOverrideResourceTest
     // Verify the applied license overrides for the organization
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier));
     assertResponseStatus(200, response);
-    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
     assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(1));
     assertLicenseOverrideByOwner(orgId, orgName, "organization", false,
@@ -287,13 +286,13 @@ public class LicenseOverrideResourceTest
       componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
       "My comment");
     response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId),
-        JsonHelpers.asJson(appLicenseOverride));
-    appLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+        toJson(appLicenseOverride));
+    appLicenseOverride = fromJson(response, LicenseOverride.class);
 
     // Verify the applied license overrides for the application
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier));
     assertResponseStatus(200, response);
-    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
     assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(2));
     assertLicenseOverrideByOwner(appPublicId, appName, "application", true,
@@ -306,7 +305,7 @@ public class LicenseOverrideResourceTest
     // Verify the applied license overrides for the organization
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier));
     assertResponseStatus(200, response);
-    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
     assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(1));
     assertLicenseOverrideByOwner(orgId, orgName, "organization", false,
@@ -316,13 +315,13 @@ public class LicenseOverrideResourceTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
       "My comment");
-    response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), JsonHelpers.asJson(orgLicenseOverride));
-    orgLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), toJson(orgLicenseOverride));
+    orgLicenseOverride = fromJson(response, LicenseOverride.class);
 
     // Verify the applied license overrides for the application
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier));
     assertResponseStatus(200, response);
-    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
     assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(2));
     assertLicenseOverrideByOwner(appPublicId, appName, "application", true,
@@ -337,7 +336,7 @@ public class LicenseOverrideResourceTest
     // Verify the applied license overrides for the organization
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier));
     assertResponseStatus(200, response);
-    appliedLicenseOverrides = JsonHelpers.fromJson(response.getResponseBody(), AppliedLicenseOverrides.class);
+    appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
     assertThat(appliedLicenseOverrides.licenseOverridesByOwner, hasSize(1));
     assertLicenseOverrideByOwner(orgId, orgName, "organization", true,
@@ -371,9 +370,9 @@ public class LicenseOverrideResourceTest
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
       ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
       "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), JsonHelpers.asJson(licenseOverride));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), toJson(licenseOverride));
     assertResponseStatus(200, response);
-    licenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    licenseOverride = fromJson(response, LicenseOverride.class);
 
     response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + licenseOverride.getId());
     assertResponseStatus(404, response);
@@ -428,7 +427,7 @@ public class LicenseOverrideResourceTest
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, null /* componentIdentifier */,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     Response response = AuthedRestAccess.post(getServiceURL("application", appPublicId) + "?where=" + where,
-        JsonHelpers.asJson(licenseOverride));
+        toJson(licenseOverride));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("The component identifier cannot be null."));
   }

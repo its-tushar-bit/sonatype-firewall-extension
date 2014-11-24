@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,7 +21,7 @@ public class LicenseResourceTest
     Response response = AuthedRestAccess.get(getRestBaseUrl() + LicenseResource.SERVICE_PATH);
     assertResponseStatus(200, response);
 
-    License[] licenses = JsonHelpers.fromJson(response.getResponseBody(), License[].class);
+    License[] licenses = fromJson(response, License[].class);
     Assert.assertNotNull(licenses);
     Assert.assertNotEquals(licenses.length, 0);
   }

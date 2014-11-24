@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,7 +49,7 @@ public class ApiPolicyResourceTest
   public void testGetPolicies() throws Exception {
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    ApiPolicyListDTO apiPolicyListDTO = JsonHelpers.fromJson(response.getResponseBody(), ApiPolicyListDTO.class);
+    ApiPolicyListDTO apiPolicyListDTO = fromJson(response, ApiPolicyListDTO.class);
 
     assertThat(apiPolicyListDTO, notNullValue());
     assertThat(apiPolicyListDTO.policies, notNullValue());

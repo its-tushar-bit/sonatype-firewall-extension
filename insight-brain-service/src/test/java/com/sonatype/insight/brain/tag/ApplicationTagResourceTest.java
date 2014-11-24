@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
@@ -31,19 +30,19 @@ public class ApplicationTagResourceTest
     //Get
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    Tag[] tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
     //Add
     Tag tag = tempEntity.newTag(app.getOrganizationId(), "tag name");
-    response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
+    response = AuthedRestAccess.post(url, toJson(tag));
     assertResponseStatus(204, response);
 
     //Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -55,7 +54,7 @@ public class ApplicationTagResourceTest
     //Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
   }

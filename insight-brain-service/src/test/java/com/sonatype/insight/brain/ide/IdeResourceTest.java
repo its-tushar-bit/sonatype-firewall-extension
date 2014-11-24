@@ -48,7 +48,6 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 import static org.hamcrest.Matchers.is;
@@ -89,8 +88,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -125,8 +123,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
@@ -155,17 +152,16 @@ public class IdeResourceTest
     String serviceUrl = getScanEnhancedUrl(applicationPublicId, "abababababababababab");
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json");
-    Response response = AuthedRestAccess.post(serviceUrl, JsonHelpers.asJson(new ScannedComponent()));
+    Response response = AuthedRestAccess.post(serviceUrl, toJson(new ScannedComponent()));
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -197,17 +193,16 @@ public class IdeResourceTest
         null);
     String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
     setSaasResponseForURI(saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json");
-    Response response = AuthedRestAccess.post(serviceUrl, JsonHelpers.asJson(new ScannedComponent()));
+    Response response = AuthedRestAccess.post(serviceUrl, toJson(new ScannedComponent()));
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
@@ -239,8 +234,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -257,7 +251,7 @@ public class IdeResourceTest
       null /* comment */);
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -291,8 +285,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -309,7 +302,7 @@ public class IdeResourceTest
       null /* comment */);
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -343,8 +336,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -360,7 +352,7 @@ public class IdeResourceTest
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -375,7 +367,7 @@ public class IdeResourceTest
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -407,8 +399,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -441,8 +432,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNull(ideMatchedComponent.getAlerts());
   }
 
@@ -467,8 +457,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -511,8 +500,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -553,8 +541,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -570,7 +557,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -586,7 +573,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(), IdeMatchedComponent.class);
+    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -628,12 +615,11 @@ public class IdeResourceTest
     MatchedComponent saasResponse = new MatchedComponent();
     saasResponse.setHash(hash);
     saasResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
-    setSaasResponseForURI(saasUrl, JsonHelpers.asJson(saasResponse), 200);
+    setSaasResponseForURI(saasUrl, toJson(saasResponse), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent(groupId, artifactId, version, ideMatchedComponent);
@@ -683,8 +669,7 @@ public class IdeResourceTest
     setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = JsonHelpers.fromJson(response.getResponseBody(),
-        IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -702,7 +687,7 @@ public class IdeResourceTest
     setSaasResponseForURI("rest/ide/artifact/versions?groupId=gid&artifactId=aid", "[\"1.1\", \"2.0\"]", 200);
     Response response = AuthedRestAccess.get(getComponentVersionsUrl("gid", "aid"));
     assertResponseStatus(200, response);
-    String[] versions = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    String[] versions = fromJson(response, String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
   }
 
@@ -713,7 +698,7 @@ public class IdeResourceTest
         toQueryParam(componentIdentifier), "[\"1.1\", \"2.0\"]", 200);
     Response response = AuthedRestAccess.get(getComponentVersionsUrl(componentIdentifier));
     assertResponseStatus(200, response);
-    String[] versions = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    String[] versions = fromJson(response, String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
   }
 

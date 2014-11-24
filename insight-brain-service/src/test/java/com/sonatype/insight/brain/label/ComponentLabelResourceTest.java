@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +50,7 @@ public class ComponentLabelResourceTest
   public void testGetComponentLabels_AppLevel() throws Exception {
     Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash));
     assertResponseStatus(200, response);
-    AppliedLabels componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
+    AppliedLabels componentLabels = fromJson(response, AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(0));
@@ -61,7 +60,7 @@ public class ComponentLabelResourceTest
 
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash));
     assertResponseStatus(200, response);
-    componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
+    componentLabels = fromJson(response, AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(2));
@@ -86,7 +85,7 @@ public class ComponentLabelResourceTest
     Response response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash));
     assertResponseStatus(200, response);
-    AppliedLabels componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
+    AppliedLabels componentLabels = fromJson(response, AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(0));
@@ -96,7 +95,7 @@ public class ComponentLabelResourceTest
 
     response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash));
     assertResponseStatus(200, response);
-    componentLabels = JsonHelpers.fromJson(response.getResponseBody(), AppliedLabels.class);
+    componentLabels = fromJson(response, AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(1));
@@ -112,7 +111,7 @@ public class ComponentLabelResourceTest
   @Test
   public void testSetComponentLabel_AppLevel() throws Exception {
     Response response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash),
-        JsonHelpers.asJson(appLabel));
+        toJson(appLabel));
     assertResponseStatus(204, response);
 
     List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(app.getId(), componentHash);
@@ -127,7 +126,7 @@ public class ComponentLabelResourceTest
   @Test
   public void testSetComponentLabel_OrgLevel() throws Exception {
     Response response = AuthedRestAccess.post(
-        getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash), JsonHelpers.asJson(orgLabel));
+        getServiceURL(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash), toJson(orgLabel));
     assertResponseStatus(204, response);
 
     List<ComponentLabel> componentLabels = componentLabelDAO

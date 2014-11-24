@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
@@ -49,7 +48,7 @@ public class RepoManResourceTest
 
     assertResponseStatus(200, response);
 
-    ScanReceipt receipt = JsonHelpers.fromJson(response.getResponseBody(), ScanReceipt.class);
+    ScanReceipt receipt = fromJson(response, ScanReceipt.class);
     assertNotNull(receipt);
     assertEquals(scanReceipt.getScanId(), receipt.getScanId());
     assertEquals(scanReceipt.getTimeToReport(), receipt.getTimeToReport());

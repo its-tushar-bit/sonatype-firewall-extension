@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,7 +22,7 @@ public class ConditionValueTypeResourceTest
 
     final Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId));
     assertResponseStatus(200, response);
-    final Object[] conditionValueTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    final Object[] conditionValueTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(conditionValueTypes);
     Assert.assertTrue(conditionValueTypes.length > 0);
   }
@@ -34,7 +33,7 @@ public class ConditionValueTypeResourceTest
 
     final Response response = AuthedRestAccess.get(getServiceURL("organization", orgId));
     assertResponseStatus(200, response);
-    final Object[] conditionValueTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    final Object[] conditionValueTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(conditionValueTypes);
     Assert.assertTrue(conditionValueTypes.length > 0);
   }

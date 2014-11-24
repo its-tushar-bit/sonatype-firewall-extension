@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -105,7 +104,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -120,7 +119,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -136,7 +135,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd00000000000000000000"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -151,7 +150,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "tomcat", "*", "*"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(3));
@@ -170,7 +169,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "tomcat", "*", "*"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -188,7 +187,7 @@ public class SearchResourceTest
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", "*", "tomcat-util",
         "*"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -198,7 +197,7 @@ public class SearchResourceTest
   public void testSearchComponent_EchoCriteria() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "gid", "aid", "1"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -216,7 +215,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdf"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -228,7 +227,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd"));
     assertResponseStatus(200, response);
-    SearchResults results = JsonHelpers.fromJson(response.getResponseBody(), SearchResults.class);
+    SearchResults results = fromJson(response, SearchResults.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));

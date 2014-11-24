@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,8 +31,7 @@ public class ApplicationSummaryResourceTest
     Response response = AuthedRestAccess.get(getServicePath());
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = JsonHelpers.fromJson(response.getResponseBody(),
-        ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
     assertThat(applicationListDTO, notNullValue());
     assertThat(applicationListDTO.getApplicationSummaries(), hasSize(1));
     ApplicationSummary applicationDTO = applicationListDTO.getApplicationSummaries().get(0);

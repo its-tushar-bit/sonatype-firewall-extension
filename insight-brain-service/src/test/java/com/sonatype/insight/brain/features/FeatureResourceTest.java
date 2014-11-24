@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +26,7 @@ public class FeatureResourceTest
     // Get all features
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    String[] features = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    String[] features = fromJson(response, String[].class);
     Assert.assertNotNull(features);
     Assert.assertTrue(Arrays.asList(features).contains("policy"));
     Assert.assertTrue(Arrays.asList(features).contains("labels"));
@@ -40,7 +39,7 @@ public class FeatureResourceTest
     uninstallLicense();
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    String[] features = JsonHelpers.fromJson(response.getResponseBody(), String[].class);
+    String[] features = fromJson(response, String[].class);
     Assert.assertThat(features, is(notNullValue()));
     Assert.assertThat(features, is(emptyArray()));
   }

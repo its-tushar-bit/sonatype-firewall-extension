@@ -72,7 +72,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -271,7 +270,7 @@ public class ReportResourceTest
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
     response = AuthedRestAccess.post(getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH,
-        JsonHelpers.asJson(hashComponentIdentifier));
+        toJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
 
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
@@ -622,7 +621,7 @@ public class ReportResourceTest
     // Evaluate policy
     Response response = AuthedRestAccess.post(
         getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId)
-            + "?scanId=" + scanId, JsonHelpers.asJson(stage));
+            + "?scanId=" + scanId, toJson(stage));
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
@@ -662,7 +661,7 @@ public class ReportResourceTest
     FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
     response = AuthedRestAccess.post(
         getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId)
-            + "?scanId=" + scanId, JsonHelpers.asJson(stage));
+            + "?scanId=" + scanId, toJson(stage));
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
@@ -948,9 +947,9 @@ public class ReportResourceTest
       LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = AuthedRestAccess.post(
         getLicenseOverrideServiceURL(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()),
-        JsonHelpers.asJson(orgLicenseOverride));
+        toJson(orgLicenseOverride));
     assertResponseStatus(200, response);
-    orgLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    orgLicenseOverride = fromJson(response, LicenseOverride.class);
 
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);
@@ -982,9 +981,9 @@ public class ReportResourceTest
       COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
     response = AuthedRestAccess.post(getLicenseOverrideServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
-        JsonHelpers.asJson(appLicenseOverride));
+        toJson(appLicenseOverride));
     assertResponseStatus(200, response);
-    appLicenseOverride = JsonHelpers.fromJson(response.getResponseBody(), LicenseOverride.class);
+    appLicenseOverride = fromJson(response, LicenseOverride.class);
 
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
     assertResponseStatus(200, response);

@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,8 +35,7 @@ public class LicenseThreatGroupLicenseResourceTest
     // Get
     Response response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId, group.getId()));
     assertResponseStatus(200, response);
-    LicenseThreatGroupLicense[] licenseThreatGroupLicenses = JsonHelpers.fromJson(response.getResponseBody(),
-        LicenseThreatGroupLicense[].class);
+    LicenseThreatGroupLicense[] licenseThreatGroupLicenses = fromJson(response, LicenseThreatGroupLicense[].class);
     Assert.assertNotNull(licenseThreatGroupLicenses);
     Assert.assertEquals(0, licenseThreatGroupLicenses.length);
 
@@ -45,11 +43,11 @@ public class LicenseThreatGroupLicenseResourceTest
     Set<String> licenseIds = new LinkedHashSet<String>();
     licenseIds.add("GPL-2.0");
     licenseIds.add("Apache-2.0");
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId, group.getId()), JsonHelpers.asJson(licenseIds));
+    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId, group.getId()), toJson(licenseIds));
     assertResponseStatus(200, response);
 
     // Get
-    licenseThreatGroupLicenses = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroupLicense[].class);
+    licenseThreatGroupLicenses = fromJson(response, LicenseThreatGroupLicense[].class);
     Assert.assertNotNull(licenseThreatGroupLicenses);
     Assert.assertEquals(2, licenseThreatGroupLicenses.length);
     assertLicenseThreatGroupLicense(ownerId, group.getId(), "Apache-2.0", licenseThreatGroupLicenses[0]);

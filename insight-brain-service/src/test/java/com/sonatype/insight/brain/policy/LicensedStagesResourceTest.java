@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,7 +23,7 @@ public class LicensedStagesResourceTest
   public void testGetLicenseStages() throws Exception {
     Response response = RestAccess.get(getRestUrl(LicensedStagesResource.SERVICE_PATH));
     assertResponseStatus(200, response);
-    Stage[] stages = JsonHelpers.fromJson(response.getResponseBody(), Stage[].class);
+    Stage[] stages = fromJson(response, Stage[].class);
     // This rest call will return the stages in the following predefined order
     assertThat(stages.length, is(5));
     assertThat(stages[0].getStageTypeId(), is(StageTypes.DEVELOP.getId()));

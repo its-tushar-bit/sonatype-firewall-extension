@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -31,7 +30,7 @@ public class ComponentDetailResourceTest
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     Response response = AuthedRestAccess.get(getServiceURL() + "/applications?hash=" + hash);
     assertResponseStatus(200, response);
-    ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = fromJson(response,
         ApplicationComponentDetailsDTO[].class);
     assertThat(applicationComponentDetailsDTOs, notNullValue());
     assertThat(applicationComponentDetailsDTOs, arrayWithSize(1));
@@ -51,7 +50,7 @@ public class ComponentDetailResourceTest
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    ComponentDisplayName name = JsonHelpers.fromJson(response.getResponseBody(), ComponentDisplayName.class);
+    ComponentDisplayName name = fromJson(response, ComponentDisplayName.class);
     DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
   }
 

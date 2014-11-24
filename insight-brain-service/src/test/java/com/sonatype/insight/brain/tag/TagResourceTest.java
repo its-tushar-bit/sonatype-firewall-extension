@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
@@ -31,20 +30,20 @@ public class TagResourceTest
     // Get
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    Tag[] tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
     // Add
     Tag tag = new Tag(org.getId(), "Tag Name", "Tag description", Color.yellow);
-    response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
+    response = AuthedRestAccess.post(url, toJson(tag));
     assertResponseStatus(200, response);
-    assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
+    assertTag(tag, fromJson(response, Tag.class));
 
     // Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -52,14 +51,14 @@ public class TagResourceTest
     // Update
     tag = tags[0];
     tag.setName("Tag Updated Name");
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(tag));
+    response = AuthedRestAccess.put(url, toJson(tag));
     assertResponseStatus(200, response);
-    assertTag(tag, JsonHelpers.fromJson(response.getResponseBody(), Tag.class));
+    assertTag(tag, fromJson(response, Tag.class));
 
     // Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -71,7 +70,7 @@ public class TagResourceTest
     // Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
   }

@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.After;
 import org.junit.Test;
 
@@ -40,7 +39,7 @@ public class ProprietaryConfigResourceTest
   public void testGet_InitialConfig() throws Exception {
     Response response = AuthedRestAccess.get(getServiceUrl());
     assertResponseStatus(200, response);
-    ProprietaryConfig config = JsonHelpers.fromJson(response.getResponseBody(), ProprietaryConfig.class);
+    ProprietaryConfig config = fromJson(response, ProprietaryConfig.class);
     assertNotNull(config);
     assertEquals(0, config.getPackages().size());
   }
@@ -52,12 +51,12 @@ public class ProprietaryConfigResourceTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
     config.setRegexes(regexes);
-    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", JsonHelpers.asJson(config));
+    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", toJson(config));
     assertResponseStatus(204, response);
 
     response = AuthedRestAccess.get(getServiceUrl());
     assertResponseStatus(200, response);
-    config = JsonHelpers.fromJson(response.getResponseBody(), ProprietaryConfig.class);
+    config = fromJson(response, ProprietaryConfig.class);
     assertEquals(packages, config.getPackages());
   }
 
@@ -83,7 +82,7 @@ public class ProprietaryConfigResourceTest
       final String expectedMessage) throws Exception {
     ProprietaryConfig config = new ProprietaryConfig();
     config.setRegexes(regexes);
-    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", JsonHelpers.asJson(config));
+    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", toJson(config));
     assertResponseStatus(400, response);
     assertEquals(expectedMessage, response.getResponseBody());
   }

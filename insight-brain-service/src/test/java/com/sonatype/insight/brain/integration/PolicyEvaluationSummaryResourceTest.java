@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,8 +48,7 @@ public class PolicyEvaluationSummaryResourceTest
     Response response = AuthedRestAccess.get(getServiceURL(application.getId(), stage.getStageTypeId()));
     assertResponseStatus(200, response);
 
-    PolicyEvaluationSummary policyEvaluationSummary = JsonHelpers
-        .fromJson(response.getResponseBody(), PolicyEvaluationSummary.class);
+    PolicyEvaluationSummary policyEvaluationSummary = fromJson(response, PolicyEvaluationSummary.class);
 
     assertThat(policyEvaluationSummary, notNullValue());
     assertThat(policyEvaluationSummary.getReportUrl(),

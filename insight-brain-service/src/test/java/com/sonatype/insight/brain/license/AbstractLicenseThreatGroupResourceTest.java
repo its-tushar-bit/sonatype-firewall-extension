@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 
 abstract class AbstractLicenseThreatGroupResourceTest
@@ -33,9 +32,9 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setOwnerId(ownerId1);
     group.setName("AAA My group");
     group.setThreatLevel(4);
-    Response response = AuthedRestAccess.post(getServiceURL(ownerPublicId1), JsonHelpers.asJson(group));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerPublicId1), toJson(group));
     assertResponseStatus(200, response);
-    group = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    group = fromJson(response, LicenseThreatGroup.class);
 
     response = AuthedRestAccess.delete(getServiceURL(ownerPublicId2) + "/" + group.getId());
     assertResponseStatus(404, response);
@@ -44,7 +43,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     // Verify that the group was not deleted
     response = AuthedRestAccess.get(getServiceURL(ownerPublicId1));
     assertResponseStatus(200, response);
-    LicenseThreatGroup[] groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
+    LicenseThreatGroup[] groups = fromJson(response, LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(1, groups.length);
     assertLicenseThreatGroup(ownerId1, "AAA My group", 4, groups[0]);
@@ -84,7 +83,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     // Get all groups
     Response response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
-    LicenseThreatGroup[] groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
+    LicenseThreatGroup[] groups = fromJson(response, LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     int initialLicenseThreatGroupCount = groups.length;
 
@@ -93,30 +92,30 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setOwnerId(ownerId);
     group.setName("AAA My group");
     group.setThreatLevel(10);
-    response = AuthedRestAccess.post(getServiceURL(ownerPublicId), JsonHelpers.asJson(group));
+    response = AuthedRestAccess.post(getServiceURL(ownerPublicId), toJson(group));
     assertResponseStatus(200, response);
-    group = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    group = fromJson(response, LicenseThreatGroup.class);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, group);
 
     // Get all groups
     response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
-    groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
+    groups = fromJson(response, LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, groups[0]);
 
     // Update a group
     group.setName("AAA My updated group");
-    response = AuthedRestAccess.put(getServiceURL(ownerPublicId), JsonHelpers.asJson(group));
+    response = AuthedRestAccess.put(getServiceURL(ownerPublicId), toJson(group));
     assertResponseStatus(200, response);
-    group = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup.class);
+    group = fromJson(response, LicenseThreatGroup.class);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, group);
 
     // Get all groups
     response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
-    groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
+    groups = fromJson(response, LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
@@ -128,7 +127,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     // Get all groups
     response = AuthedRestAccess.get(getServiceURL(ownerPublicId));
     assertResponseStatus(200, response);
-    groups = JsonHelpers.fromJson(response.getResponseBody(), LicenseThreatGroup[].class);
+    groups = fromJson(response, LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(initialLicenseThreatGroupCount, groups.length);
   }
@@ -152,7 +151,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
   protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(String ownerId) throws Exception {
     Response response = AuthedRestAccess.get(getApplicableUrl(ownerId));
     assertResponseStatus(200, response);
-    return JsonHelpers.fromJson(response.getResponseBody(), ApplicableLicenseThreatGroups.class);
+    return fromJson(response, ApplicableLicenseThreatGroups.class);
   }
 
   protected void assertLicenseThreatGroupsByOwner(String ownerId, String ownerName, String ownerType,

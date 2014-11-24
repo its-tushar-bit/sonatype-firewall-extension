@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -50,7 +49,7 @@ public class DashboardResourceTest
         + DashboardResource.GET_NEWEST_RISKS_PATH));
 
     assertResponseStatus(200, response);
-    NewestRiskDTO[] dtos = JsonHelpers.fromJson(response.getResponseBody(), NewestRiskDTO[].class);
+    NewestRiskDTO[] dtos = fromJson(response, NewestRiskDTO[].class);
     assertThat(dtos, arrayWithSize(1));
   }
 
@@ -66,7 +65,7 @@ public class DashboardResourceTest
         + DashboardResource.GET_POLICY_SUMMARY_PATH));
 
     assertResponseStatus(200, response);
-    PolicySummaryDTO dto = JsonHelpers.fromJson(response.getResponseBody(), PolicySummaryDTO.class);
+    PolicySummaryDTO dto = fromJson(response, PolicySummaryDTO.class);
     assertThat(dto, notNullValue());
     assertThat(dto.weeklyDeltaNew, hasSize(12));
   }
@@ -83,7 +82,7 @@ public class DashboardResourceTest
     DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
 
     // Test the create
-    String body = JsonHelpers.asJson(dashboardFilterDTO);
+    String body = toJson(dashboardFilterDTO);
     response = AuthedRestAccess.put(getRestUrl(), body);
     assertResponseStatus(200, response);
 
@@ -92,8 +91,7 @@ public class DashboardResourceTest
     // Register to make sure the the filter is deleted after the test
     tempEntity.register(dashboardFilter);
 
-    DashboardFilterDTO returnedDashboardFilterDTO = JsonHelpers
-        .fromJson(response.getResponseBody(), DashboardFilterDTO.class);
+    DashboardFilterDTO returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
@@ -101,18 +99,18 @@ public class DashboardResourceTest
     dashboardFilterDTO = returnedDashboardFilterDTO;
     dashboardFilterDTO.minPolicyThreatLevel = 8;
     dashboardFilterDTO.maxPolicyThreatLevel = 20;
-    body = JsonHelpers.asJson(dashboardFilterDTO);
+    body = toJson(dashboardFilterDTO);
     response = AuthedRestAccess.put(getRestUrl(), body);
 
     assertResponseStatus(200, response);
-    returnedDashboardFilterDTO = JsonHelpers.fromJson(response.getResponseBody(), DashboardFilterDTO.class);
+    returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
     // Now test get
     response = AuthedRestAccess.get(getRestUrl());
     assertResponseStatus(200, response);
-    returnedDashboardFilterDTO = JsonHelpers.fromJson(response.getResponseBody(), DashboardFilterDTO.class);
+    returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 

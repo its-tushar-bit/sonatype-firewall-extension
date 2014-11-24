@@ -48,13 +48,11 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
-import static com.yammer.dropwizard.testing.JsonHelpers.asJson;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -83,7 +81,7 @@ public class PolicyResourceTest
   public void testAppImport_InsertFailure() throws Exception {
     String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
     Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId),
-        asJson(createPolicyExportResult()));
+        toJson(createPolicyExportResult()));
     //ensure that we cannot import to an App that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(),
@@ -93,7 +91,7 @@ public class PolicyResourceTest
   @Test
   public void testOrgImport_InsertFailure() throws Exception {
     String orgId = "PolicyResourceTest-testOrgImport_Insert";
-    Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), asJson(createPolicyExportResult()));
+    Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), toJson(createPolicyExportResult()));
     //ensure that we cannot import to an Org that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Cannot find organization with ID " + orgId + "."));
@@ -128,7 +126,7 @@ public class PolicyResourceTest
     // Export
     Response response = AuthedRestAccess.get(getServiceURL(APP, applicationPublicId) + "/export");
     assertResponseStatus(200, response);
-    PolicyExportResult policyExportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
+    PolicyExportResult policyExportResult = fromJson(response, PolicyExportResult.class);
     assertNotNull(policyExportResult);
     assertTrue(!policyExportResult.policies.isEmpty());
     assertTrue(!policyExportResult.labels.isEmpty());
@@ -145,9 +143,9 @@ public class PolicyResourceTest
 
     // Import
     response = AuthedRestAccess.put(getServiceURL(APP, applicationPublicId) + "/import",
-        asJson(policyExportResult));
+        toJson(policyExportResult));
     assertResponseStatus(200, response);
-    PolicyImportResult policyImportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyImportResult.class);
+    PolicyImportResult policyImportResult = fromJson(response, PolicyImportResult.class);
     assertNotNull(policyImportResult);
     Assert.assertEquals(application.getName(), policyImportResult.ownerName);
     assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + applicationPublicId));
@@ -174,7 +172,7 @@ public class PolicyResourceTest
     Assert.assertNotEquals(licenseThreatGroupLicense.getId(), licenseThreatGroupLicenses.get(0).getId());
     response = AuthedRestAccess.get(getServiceURL(APP, applicationPublicId));
     assertResponseStatus(200, response);
-    Policy[] policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
+    Policy[] policies = fromJson(response, Policy[].class);
     Assert.assertEquals(1, policies.length);
     Assert.assertEquals(policy.getName(), policies[0].getName());
     Assert.assertNotEquals(policy.getId(), policies[0].getId());
@@ -205,16 +203,16 @@ public class PolicyResourceTest
     constraint.setName("PolicyResourceTest new constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), asJson(policy));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), toJson(policy));
     assertResponseStatus(200, response);
-    final Policy policy1 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    final Policy policy1 = fromJson(response, Policy.class);
     assertNotNull(policy1.getId());
     Assert.assertEquals("PolicyResourceTest new policy", policy1.getName());
 
     // Get all policies
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerId));
     assertResponseStatus(200, response);
-    Policy[] policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
+    Policy[] policies = fromJson(response, Policy[].class);
     assertNotNull(policies);
     Assert.assertEquals(1, policies.length);
     Assert.assertEquals(policy1.getId(), policies[0].getId());
@@ -223,15 +221,15 @@ public class PolicyResourceTest
     // Update a policy
     policy = policies[0];
     policy.setName("PolicyResourceTest updated policy");
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), asJson(policy));
+    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), toJson(policy));
     assertResponseStatus(200, response);
-    final Policy policy2 = JsonHelpers.fromJson(response.getResponseBody(), Policy.class);
+    final Policy policy2 = fromJson(response, Policy.class);
     Assert.assertEquals("PolicyResourceTest updated policy", policy2.getName());
 
     // Get all policies
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerId));
     assertResponseStatus(200, response);
-    policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
+    policies = fromJson(response, Policy[].class);
     assertNotNull(policies);
     Assert.assertEquals(1, policies.length);
     Assert.assertEquals(policy2.getId(), policies[0].getId());
@@ -245,7 +243,7 @@ public class PolicyResourceTest
     // Get all policies
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerId));
     assertResponseStatus(200, response);
-    policies = JsonHelpers.fromJson(response.getResponseBody(), Policy[].class);
+    policies = fromJson(response, Policy[].class);
     assertNotNull(policies);
     Assert.assertEquals(0, policies.length);
   }
@@ -270,7 +268,7 @@ public class PolicyResourceTest
     constraint.setName("PolicyResourceTest new constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), asJson(policy));
+    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerId), toJson(policy));
     assertResponseStatus(400, response);
     Assert.assertEquals("The policy name is required.", response.getResponseBody());
   }
@@ -301,7 +299,7 @@ public class PolicyResourceTest
 
     // Update invalid policy
     policy.setName(null);
-    Response response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), asJson(policy));
+    Response response = AuthedRestAccess.put(getServiceURL(ownerType, ownerId), toJson(policy));
     assertResponseStatus(400, response);
     Assert.assertEquals("The policy name is required.", response.getResponseBody());
   }
@@ -328,7 +326,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the application
     Response response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
     assertResponseStatus(200, response);
-    ApplicablePolicies applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    ApplicablePolicies applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(appId, appName, "application", 0, applicablePolicies.policiesByOwner.get(0));
@@ -337,7 +335,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the organization
     response = AuthedRestAccess.get(getServiceURL(ORG, orgId) + "/applicable");
     assertResponseStatus(200, response);
-    applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
@@ -348,7 +346,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the application
     response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
     assertResponseStatus(200, response);
-    applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(appId, appName, "application", 1, applicablePolicies.policiesByOwner.get(0));
@@ -358,7 +356,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the organization
     response = AuthedRestAccess.get(getServiceURL(ORG, orgId) + "/applicable");
     assertResponseStatus(200, response);
-    applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
@@ -369,7 +367,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the application
     response = AuthedRestAccess.get(getServiceURL(APP, appPublicId) + "/applicable");
     assertResponseStatus(200, response);
-    applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(appId, appName, "application", 1, applicablePolicies.policiesByOwner.get(0));
@@ -380,7 +378,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the organization
     response = AuthedRestAccess.get(getServiceURL(ORG, orgId) + "/applicable");
     assertResponseStatus(200, response);
-    applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get(0));
@@ -407,7 +405,7 @@ public class PolicyResourceTest
     // Verify the applicable policies for the application
     Response response = AuthedRestAccess.get(getServiceURL(APP, app.getPublicId()) + "/applicable");
     assertResponseStatus(200, response);
-    ApplicablePolicies applicablePolicies = JsonHelpers.fromJson(response.getResponseBody(), ApplicablePolicies.class);
+    ApplicablePolicies applicablePolicies = fromJson(response, ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
     Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(app.getId(), app.getName(), "application", 0, applicablePolicies.policiesByOwner.get(0));
@@ -426,7 +424,7 @@ public class PolicyResourceTest
 
     // import a policy with no data to the org
     Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        asJson(createPolicyExportResult()));
+        toJson(createPolicyExportResult()));
     assertResponseStatus(200, response);
 
     //verify that we delete all data from the org
@@ -459,7 +457,7 @@ public class PolicyResourceTest
 
     // import a policy with no data to the app
     Response response = AuthedRestAccess.put(getServiceURL(APP, app.getPublicId()) + "/import",
-        asJson(createPolicyExportResult()));
+        toJson(createPolicyExportResult()));
     assertResponseStatus(200, response);
 
     // verify that org data is untouched
@@ -507,7 +505,7 @@ public class PolicyResourceTest
     PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
     policyExportResult.policyTags = Arrays.asList(policyTag);
     Response response = AuthedRestAccess.put(getServiceURL(ORG, org.getId()) + "/import",
-        asJson(policyExportResult));
+        toJson(policyExportResult));
     assertResponseStatus(200, response);
 
     // verify that org data is as expected
@@ -559,7 +557,7 @@ public class PolicyResourceTest
     PolicyTag policyTag = new PolicyTag("policyId", tag.getId());
     policyExportResult.policyTags = Arrays.asList(policyTag);
     Response response = AuthedRestAccess.put(getServiceURL(APP, app.getPublicId()) + "/import",
-        asJson(policyExportResult));
+        toJson(policyExportResult));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         is("Importing policies with applied tags to an application is not supported."));
@@ -629,7 +627,7 @@ public class PolicyResourceTest
     // Export
     Response response = AuthedRestAccess.get(getServiceURL(ORG, org.getId()) + "/export");
     assertResponseStatus(200, response);
-    PolicyExportResult policyExportResult = JsonHelpers.fromJson(response.getResponseBody(), PolicyExportResult.class);
+    PolicyExportResult policyExportResult = fromJson(response, PolicyExportResult.class);
     assertThat(policyExportResult, notNullValue());
     assertThat(policyExportResult.tags, notNullValue());
     assertThat(policyExportResult.tags, hasSize(3));

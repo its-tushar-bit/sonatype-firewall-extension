@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
@@ -33,15 +32,15 @@ public class PolicyTagResourceTest
     // Get
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    Tag[] tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
     // Add
     Tag tag = tempEntity.newTag(org.getId(), "tag name");
-    response = AuthedRestAccess.post(url, JsonHelpers.asJson(tag));
+    response = AuthedRestAccess.post(url, toJson(tag));
     assertResponseStatus(200, response);
-    Tag policyTag = JsonHelpers.fromJson(response.getResponseBody(), Tag.class);
+    Tag policyTag = fromJson(response, Tag.class);
     assertThat(policyTag, is(notNullValue()));
     assertThat(policyTag.getId(), is(notNullValue()));
     assertThat(policyTag.getId(), is(tag.getId()));
@@ -51,7 +50,7 @@ public class PolicyTagResourceTest
     // Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -65,7 +64,7 @@ public class PolicyTagResourceTest
     // Get
     response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
-    tags = JsonHelpers.fromJson(response.getResponseBody(), Tag[].class);
+    tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
   }

@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,7 +78,7 @@ public class MembershipMappingResourceTest
     // Initial state
     Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicableMembershipMappings applicable = fromJson(response,
         ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -102,13 +101,13 @@ public class MembershipMappingResourceTest
     // Create
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), appRoles.get(0).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, userB.getUsername()))));
+        toJson(Arrays.asList(newMember(MemberType.USER, userB.getUsername()))));
     assertResponseStatus(204, response);
 
     // Read for created data
     response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId()));
     assertResponseStatus(200, response);
-    applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    applicable = fromJson(response, ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -130,17 +129,17 @@ public class MembershipMappingResourceTest
     // Update
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(0).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, userA.getUsername()))));
+        toJson(Arrays.asList(newMember(MemberType.USER, userA.getUsername()))));
     assertResponseStatus(204, response);
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(1).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, userB.getUsername()))));
+        toJson(Arrays.asList(newMember(MemberType.USER, userB.getUsername()))));
     assertResponseStatus(204, response);
 
     // Read for updated data
     response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
     assertResponseStatus(200, response);
-    applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
     assertThat(applicable.membersByRole, hasSize(appRoles.size()));
@@ -204,7 +203,7 @@ public class MembershipMappingResourceTest
     // Create
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        JsonHelpers.asJson(
+        toJson(
             Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
                 newMember(MemberType.GROUP, "Alpha"))));
     assertResponseStatus(204, response);
@@ -212,7 +211,7 @@ public class MembershipMappingResourceTest
     // Read for created data
     response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -239,7 +238,7 @@ public class MembershipMappingResourceTest
     // Reset Initial State
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
+        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
     assertResponseStatus(204, response);
   }
 
@@ -252,13 +251,13 @@ public class MembershipMappingResourceTest
     // Create
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, userB.getUsername()))));
+        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, userB.getUsername()))));
     assertResponseStatus(204, response);
 
     // Read for created data
     response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -284,13 +283,13 @@ public class MembershipMappingResourceTest
     // Update
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
+        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
     assertResponseStatus(204, response);
 
     // Read for updated data
     response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
     assertResponseStatus(200, response);
-    applicable = JsonHelpers.fromJson(response.getResponseBody(), ApplicableMembershipMappings.class);
+    applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
     assertThat(applicable.membersByRole, hasSize(roles.size()));
@@ -311,14 +310,14 @@ public class MembershipMappingResourceTest
     // Reset Initial State
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        JsonHelpers.asJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
+        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
     assertResponseStatus(204, response);
   }
 
 
   private List<Role> testInitialGlobalState(Response response) throws IOException {
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicableMembershipMappings applicable = fromJson(response,
         ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));

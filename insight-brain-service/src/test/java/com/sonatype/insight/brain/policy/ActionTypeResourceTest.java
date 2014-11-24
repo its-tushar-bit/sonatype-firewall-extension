@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -20,7 +19,7 @@ public class ActionTypeResourceTest
   public void testGetActionTypes() throws Exception {
     final Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    final Object[] actionTypes = JsonHelpers.fromJson(response.getResponseBody(), Object[].class);
+    final Object[] actionTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(actionTypes);
     Assert.assertTrue(actionTypes.length > 0);
   }

@@ -23,7 +23,6 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,9 +37,9 @@ public class OrganizationResourceTest
     // Create
     Organization organization = new Organization("OrganizationResourceTest");
 
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(organization));
     assertResponseStatus(200, response);
-    organization = JsonHelpers.fromJson(response.getResponseBody(), Organization.class);
+    organization = fromJson(response, Organization.class);
     assertNotNull(organization);
     assertNotNull(organization.getId());
     assertEquals("OrganizationResourceTest", organization.getName());
@@ -49,7 +48,7 @@ public class OrganizationResourceTest
     // Get
     response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
-    Organization[] organizations = JsonHelpers.fromJson(response.getResponseBody(), Organization[].class);
+    Organization[] organizations = fromJson(response, Organization[].class);
     assertNotNull(organizations);
     assertEquals(1, organizations.length);
     organization = organizations[0];
@@ -102,9 +101,9 @@ public class OrganizationResourceTest
 
     // Update
     organization.setName("OrganizationResourceTest updated");
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(organization));
+    response = AuthedRestAccess.put(getServiceURL(), toJson(organization));
     assertResponseStatus(200, response);
-    organization = JsonHelpers.fromJson(response.getResponseBody(), Organization.class);
+    organization = fromJson(response, Organization.class);
     assertNotNull(organization);
     assertEquals(organizationId, organizationId);
     assertEquals("OrganizationResourceTest updated", organization.getName());
@@ -138,19 +137,19 @@ public class OrganizationResourceTest
     uninstallLicense();
     Organization organization = new Organization("OrganizationResourceTest");
 
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(organization));
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testUpdateOrganization_Unlicensed() throws Exception {
     Organization organization = new Organization("OrganizationResourceTest");
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(organization));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(organization));
     assertResponseStatus(200, response);
-    organization = JsonHelpers.fromJson(response.getResponseBody(), Organization.class);
+    organization = fromJson(response, Organization.class);
     tempEntity.register(organization);
     uninstallLicense();
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(organization));
+    response = AuthedRestAccess.put(getServiceURL(), toJson(organization));
     assertResponseStatus(402, response);
   }
 

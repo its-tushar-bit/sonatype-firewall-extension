@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -46,28 +45,28 @@ public class PolicyMonitoringResourceTest
     // Create
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
     Response response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId),
-        JsonHelpers.asJson(policyMonitoring));
+        toJson(policyMonitoring));
     assertResponseStatus(200, response);
-    policyMonitoring = JsonHelpers.fromJson(response.getResponseBody(), PolicyMonitoring.class);
+    policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
 
     // Get
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId));
     assertResponseStatus(200, response);
-    policyMonitoring = JsonHelpers.fromJson(response.getResponseBody(), PolicyMonitoring.class);
+    policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
 
     // Update
     policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_BUILD);
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId), JsonHelpers.asJson(policyMonitoring));
+    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId), toJson(policyMonitoring));
     assertResponseStatus(200, response);
-    policyMonitoring = JsonHelpers.fromJson(response.getResponseBody(), PolicyMonitoring.class);
+    policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
 
     // Get
     response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId));
     assertResponseStatus(200, response);
-    policyMonitoring = JsonHelpers.fromJson(response.getResponseBody(), PolicyMonitoring.class);
+    policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
 
     // Delete
@@ -117,7 +116,7 @@ public class PolicyMonitoringResourceTest
     //Org only Policy Monitoring set
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
     AuthedRestAccess.put(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()),
-        JsonHelpers.asJson(policyMonitoring));
+        toJson(policyMonitoring));
 
     response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
@@ -130,7 +129,7 @@ public class PolicyMonitoringResourceTest
     //App and Org both have Policy Monitoring set
     policyMonitoring.setStageTypeId(Stage.ID_OPERATE);
     AuthedRestAccess.put(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
-        JsonHelpers.asJson(policyMonitoring));
+        toJson(policyMonitoring));
     response = AuthedRestAccess
         .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);

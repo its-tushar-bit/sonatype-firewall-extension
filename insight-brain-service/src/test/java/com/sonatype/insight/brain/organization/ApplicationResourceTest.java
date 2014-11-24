@@ -34,7 +34,6 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -79,11 +78,11 @@ public class ApplicationResourceTest
     Application application = new Application(applicationPublicId, applicationName, organization.getId());
     application.setContactInternalName("admin");
 
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(application));
 
     assertResponseStatus(200, response);
 
-    ApplicationDTO applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
+    ApplicationDTO applicationResult = fromJson(response, ApplicationDTO.class);
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -134,9 +133,9 @@ public class ApplicationResourceTest
 
     // Test application update
     application.setName(applicationName + "updated");
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    response = AuthedRestAccess.put(getServiceURL(), toJson(application));
     assertResponseStatus(200, response);
-    applicationResult = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
+    applicationResult = fromJson(response, ApplicationDTO.class);
     Assert.assertEquals(application.getId(), applicationResult.getId());
     Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
     Assert.assertEquals(applicationName + "updated", applicationResult.getName());
@@ -151,7 +150,7 @@ public class ApplicationResourceTest
     // Verify non alpha numeric name fails
     application.setName("Non Alphanumeric Name !!!!!");
 
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    response = AuthedRestAccess.put(getServiceURL(), toJson(application));
 
     assertResponseStatus(400, response);
 
@@ -282,7 +281,7 @@ public class ApplicationResourceTest
     application.setName("testAddApplication_exceedsLicense_id_new_name");
     application.setPublicId("testAddApplication_exceedsLicense_id_new_id");
 
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(application));
     assertResponseStatus(402, response);
     Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getResponseBody());
   }
@@ -300,7 +299,7 @@ public class ApplicationResourceTest
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
 
-    ApplicationDTO[] applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO[].class);
+    ApplicationDTO[] applications = fromJson(response, ApplicationDTO[].class);
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
@@ -311,7 +310,7 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getApplicationServiceUrl(applicationPublicId));
     assertResponseStatus(200, response);
 
-    ApplicationDTO applicationSummary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationDTO.class);
+    ApplicationDTO applicationSummary = fromJson(response, ApplicationDTO.class);
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
     Assert.assertEquals(application.getName(), applicationSummary.getName());
@@ -338,16 +337,16 @@ public class ApplicationResourceTest
 
     final long startTime = System.currentTimeMillis();
     Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
-        JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
+        toJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
     response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId2),
-        JsonHelpers.asJson(new Stage(Stage.ID_RELEASE)));
+        toJson(new Stage(Stage.ID_RELEASE)));
     assertResponseStatus(200, response);
 
     // Verify Response for scan 1
     response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId1));
     assertResponseStatus(200, response);
-    ApplicationManagementSummaryDTO summary = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicationManagementSummaryDTO summary = fromJson(response,
         ApplicationManagementSummaryDTO.class);
 
     Assert.assertEquals(application.getName(), summary.getName());
@@ -363,7 +362,7 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getApplicationManagementSummaryUrl(application.getPublicId(), scanId2));
     assertResponseStatus(200, response);
 
-    summary = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummaryDTO.class);
+    summary = fromJson(response, ApplicationManagementSummaryDTO.class);
 
     Assert.assertEquals(application.getName(), summary.getName());
     Assert.assertEquals(application.getId(), summary.getId());
@@ -410,18 +409,18 @@ public class ApplicationResourceTest
 
     // Eval policy
     Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
-        JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
+        toJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
     response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId3),
-        JsonHelpers.asJson(new Stage(Stage.ID_RELEASE)));
+        toJson(new Stage(Stage.ID_RELEASE)));
     assertResponseStatus(200, response);
-    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId2), JsonHelpers.asJson(new Stage(Stage.ID_BUILD)));
+    response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId2), toJson(new Stage(Stage.ID_BUILD)));
     assertResponseStatus(200, response);
 
     response = AuthedRestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummaryDTO[] applications = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicationManagementSummaryDTO[] applications = fromJson(response,
         ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
 
@@ -473,7 +472,7 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getSummariesURL());
     assertResponseStatus(200, response);
 
-    applications = JsonHelpers.fromJson(response.getResponseBody(), ApplicationManagementSummaryDTO[].class);
+    applications = fromJson(response, ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
     Assert.assertEquals(1, applications[0].getScansCount());
 
@@ -481,7 +480,7 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.get(getSummaryURL(applicationPublicId));
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummaryDTO applicationSummary = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicationManagementSummaryDTO applicationSummary = fromJson(response,
         ApplicationManagementSummaryDTO.class);
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
@@ -534,7 +533,7 @@ public class ApplicationResourceTest
     Response response = AuthedRestAccess.get(getServiceURL());
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummaryDTO[] applications = JsonHelpers.fromJson(response.getResponseBody(),
+    ApplicationManagementSummaryDTO[] applications = fromJson(response,
         ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
     Assert.assertEquals(1, applications.length);
@@ -550,7 +549,7 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")
-    Map<String, String> applicationNames = JsonHelpers.fromJson(response.getResponseBody(), Map.class);
+    Map<String, String> applicationNames = fromJson(response, Map.class);
     Assert.assertNotNull(applicationNames);
 
     Assert.assertEquals(applicationNames.toString(), 1, applicationNames.size());
@@ -567,7 +566,7 @@ public class ApplicationResourceTest
     application.setName(applicationName);
     application.setPublicId(applicationPublicId);
 
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Application must have a parent organization.", response.getResponseBody());
   }
@@ -578,7 +577,7 @@ public class ApplicationResourceTest
 
     application.setOrganizationId(null);
 
-    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.put(getServiceURL(), toJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
   }
@@ -589,7 +588,7 @@ public class ApplicationResourceTest
 
     application.setOrganizationId("newOrganizationId");
 
-    Response response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(application));
+    Response response = AuthedRestAccess.put(getServiceURL(), toJson(application));
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
   }

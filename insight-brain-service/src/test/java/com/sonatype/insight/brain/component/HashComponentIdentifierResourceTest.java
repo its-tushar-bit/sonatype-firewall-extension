@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,9 +53,9 @@ public class HashComponentIdentifierResourceTest
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
 
     // create
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
-    hashComponentIdentifier = JsonHelpers.fromJson(response.getResponseBody(), HashComponentIdentifier.class);
+    hashComponentIdentifier = fromJson(response, HashComponentIdentifier.class);
     assertHashComponentIdentifier(hash, COMPONENT_IDENTIFIER, comment, createTime, hashComponentIdentifier);
 
     // read - no GET use case for this resource - use DAO to verify
@@ -68,9 +67,9 @@ public class HashComponentIdentifierResourceTest
     ComponentIdentifier updatedComponentIdentifier = COMPONENT_IDENTIFIER.createAlternativeVersion("updated-version");
     hashComponentIdentifier.setComponentIdentifier(updatedComponentIdentifier);
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
-    response = AuthedRestAccess.put(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    response = AuthedRestAccess.put(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
-    hashComponentIdentifier = JsonHelpers.fromJson(response.getResponseBody(), HashComponentIdentifier.class);
+    hashComponentIdentifier = fromJson(response, HashComponentIdentifier.class);
     assertHashComponentIdentifier(hash, updatedComponentIdentifier, comment, createTime, hashComponentIdentifier);
 
     // read - no GET use case for this resource - use DAO to verify
@@ -89,7 +88,7 @@ public class HashComponentIdentifierResourceTest
   public void testSet_KnownToSaaS() throws Exception {
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(true));
 
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(400, response);
     assertEquals("The 'g1 : a1 : e1 : c1 : v1' coordinates are already in use.", response.getResponseBody());
   }
@@ -97,7 +96,7 @@ public class HashComponentIdentifierResourceTest
   @Test
   public void testSet_NullComponentIdentifier() throws Exception {
     hashComponentIdentifier.setComponentIdentifier(null);
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(400, response);
     assertEquals("The component identifier cannot be null.", response.getResponseBody());
   }
@@ -106,7 +105,7 @@ public class HashComponentIdentifierResourceTest
   public void testSet_InvalidComponentIdentifier() throws Exception {
     hashComponentIdentifier.setComponentIdentifier(JsonUtils.parse("{\"format\":\"maven\",\"coordinates\":null}",
         ComponentIdentifier.class));
-    Response response = AuthedRestAccess.post(getServiceURL(), JsonHelpers.asJson(hashComponentIdentifier));
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
   }

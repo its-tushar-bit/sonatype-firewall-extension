@@ -45,7 +45,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -353,23 +352,23 @@ public class PolicyMonitorTest
       throws Exception
   {
     Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
-        + "?scanId=" + scanId, JsonHelpers.asJson(stage));
+        + "?scanId=" + scanId, toJson(stage));
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = JsonHelpers.fromJson(response.getResponseBody(), PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
     return policyEval;
   }
 
   private Policy addPolicy(String ownerType, String ownerId, Policy policy) throws Exception {
     Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
-        JsonHelpers.asJson(policy));
+        toJson(policy));
     assertResponseStatus(200, response);
     return fromJson(response, Policy.class);
   }
 
   private Policy updatePolicy(String ownerType, String ownerId, Policy policy) throws Exception {
     Response response = AuthedRestAccess.put(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
-        JsonHelpers.asJson(policy));
+        toJson(policy));
     assertResponseStatus(200, response);
     return fromJson(response, Policy.class);
   }

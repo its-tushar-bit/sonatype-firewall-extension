@@ -13,7 +13,6 @@ import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -96,7 +95,7 @@ public class UserSessionResourceTest
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    AuthenticationStatus status = JsonHelpers.fromJson(response.getResponseBody(), AuthenticationStatus.class);
+    AuthenticationStatus status = fromJson(response, AuthenticationStatus.class);
     Assert.assertTrue(status.isAuthenticated());
     Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 

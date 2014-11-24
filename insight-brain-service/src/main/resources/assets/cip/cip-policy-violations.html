@@ -24,7 +24,7 @@
           </div>
           <label class='radio'>
             <input type="radio" name='waiver-hash' ng-model='waiver.hash' value='{{component.hash}}'>
-            Selected component (<em>{{component.groupId}} : {{component.artifactId}} : {{component.version}}</em>)
+            Selected component (<em><span ng-repeat='part in component.displayName.parts'>{{part.value}}</span></em>)
           </label>
           <label class='radio'>
             <input type="radio" name='waiver-hash' ng-model='waiver.hash' ng-value='null'>

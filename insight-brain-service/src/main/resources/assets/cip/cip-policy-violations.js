@@ -23,11 +23,9 @@
       container.appendTo(me.node);
       angular.module('policyViolations' + timestamp, []).service('PolicyViolationData', function() {
         return {
-          hash: me.gav.hash,
-          groupId : me.gav.groupId,
-          artifactId : me.gav.artifactId,
-          version : me.gav.version,
-          appId: applicationId
+          hash: (me.component) ? me.component.hash : me.gav.hash,
+          appId: applicationId,
+          displayName: (me.component) ? me.component.displayName : me.gav.displayName
         };
       });
       angular.bootstrap(container[0], ['PolicyViolations', 'policyViolations' + timestamp, 'AngularCommon']);
@@ -181,11 +179,7 @@
                       id: activeViolation.policyId,
                       name: activeViolation.policyName,
                       threatLevel: activeViolation.policyThreatLevel,
-                      groupId: policyThreat.groupId,
-                      artifactId: policyThreat.artifactId,
-                      version: policyThreat.version,
                       hash: policyThreat.hash,
-                      componentIdentifier: policyThreat.componentIdentifier,
                       constraints: activeViolation.constraints,
                       actions: actions
                     }));

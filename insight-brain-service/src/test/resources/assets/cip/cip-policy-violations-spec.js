@@ -24,9 +24,16 @@ describe('CIP Policy Waiver tests', function() {
         $httpBackend.expectGET(SpecUtil.toRegExp('policythreats.json')).respond({
           version: 1,
           aaData: [{
-            groupId: "bsh",
-            artifactId: "bsh",
-            version: "1.3.0",
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: "bsh",
+                classifier: "",
+                extension: "jar",
+                groupId: "bsh",
+                version: "1.3.0"
+              }
+            },
             hash: "1",
             policyId: "policyId",
             policyName: "name",
@@ -58,9 +65,16 @@ describe('CIP Policy Waiver tests', function() {
               }]
             }]
           },{
-            groupId: "bsh",
-            artifactId: "bsh",
-            version: "1.3.0",
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: "bsh",
+                classifier: "",
+                extension: "jar",
+                groupId: "bsh",
+                version: "1.3.0"
+              }
+            },
             hash: "1",
             policyId: "policyId2",
             policyName: "name2",
@@ -110,9 +124,6 @@ describe('CIP Policy Waiver tests', function() {
           id: 'policyId2',
           name: 'name2',
           threatLevel: 7,
-          groupId: 'bsh',
-          artifactId: 'bsh',
-          version: '1.3.0',
           hash: '1',
           color: 'orange',
           constraints: [{
@@ -137,9 +148,6 @@ describe('CIP Policy Waiver tests', function() {
           id: 'policyId',
           name: 'name',
           threatLevel: 5,
-          groupId: 'bsh',
-          artifactId: 'bsh',
-          version: '1.3.0',
           hash: '1',
           color: 'orange',
           constraints: [{

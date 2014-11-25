@@ -9,6 +9,8 @@ import java.util.Locale;
 
 import com.sonatype.insight.brain.model.security.MemberType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * DTO representation of a CLM or LDAP Member
  *
@@ -42,6 +44,7 @@ public class Member
     this.internalName = internalName;
   }
 
+  @JsonIgnore
   public String getInternalNameLowerCase() {
     return (internalName != null) ? internalName.toLowerCase(Locale.ENGLISH) : null;
   }

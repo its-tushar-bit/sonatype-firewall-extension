@@ -12,6 +12,8 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 // Copied from com.sonatype.insight.model.datamart.dto.License
 @Entity
 @Table(name = "license")
@@ -123,10 +125,12 @@ public class License
     return true;
   }
 
+  @JsonIgnore
   public boolean isUnspecified() {
     return UNSPECIFIED_ID.equals(id);
   }
 
+  @JsonIgnore
   public boolean isUnknown() {
     return UNKNOWN_ID.equals(id);
   }

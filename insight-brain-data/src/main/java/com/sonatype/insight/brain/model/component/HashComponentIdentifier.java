@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Association of a component hash to a component identifier.
  * 
@@ -83,6 +85,7 @@ public class HashComponentIdentifier
     this.createTime = createTime;
   }
 
+  @JsonIgnore
   public Long getCreateTimeLong() {
     return (createTime != null) ? createTime.getTime() : null;
   }

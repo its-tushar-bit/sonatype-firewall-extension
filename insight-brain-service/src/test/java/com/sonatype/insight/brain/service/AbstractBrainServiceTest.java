@@ -29,6 +29,7 @@ import com.sonatype.insight.mock.InsightMockServer.ResponseProvider;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.ning.http.client.AsyncHttpClient;
@@ -36,7 +37,6 @@ import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
@@ -44,6 +44,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -52,6 +53,8 @@ public abstract class AbstractBrainServiceTest
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
   }
+
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
@@ -221,7 +224,7 @@ public abstract class AbstractBrainServiceTest
 
   protected String toJson(Object object) {
     try {
-      return JsonHelpers.asJson(object);
+      return objectMapper.writeValueAsString(object);
     }
     catch (IOException e) {
       throw new IllegalStateException(e);
@@ -230,7 +233,7 @@ public abstract class AbstractBrainServiceTest
 
   protected <T> T fromJson(Response response, Class<T> type) {
     try {
-      return JsonHelpers.fromJson(response.getResponseBody(), type);
+      return objectMapper.readValue(response.getResponseBody(), type);
     }
     catch (IOException e) {
       throw new IllegalStateException(e);

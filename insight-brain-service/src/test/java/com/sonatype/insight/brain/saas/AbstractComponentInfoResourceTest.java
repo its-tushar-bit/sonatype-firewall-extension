@@ -436,7 +436,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetailsList componentDetailsList = fromJson(response, ComponentDetailsList.class);
+    ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);
     Assert.assertNotNull(componentDetailsList);
     Assert.assertEquals(2, componentDetailsList.getList().size());
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -516,7 +516,7 @@ public abstract class AbstractComponentInfoResourceTest
         "01234567890123456789", "similar"));
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
@@ -542,7 +542,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
@@ -579,7 +579,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
@@ -616,7 +616,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     Assert.assertEquals(1, componentDetails.getSecurityVulnerabilities().size());
@@ -650,7 +650,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
@@ -663,7 +663,7 @@ public abstract class AbstractComponentInfoResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    componentDetails = fromJson(response, ComponentDetails.class);
+    componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails("", "", "", componentDetails);
     policyAlerts = componentDetails.getPolicyAlerts();
@@ -687,7 +687,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
   }
@@ -716,7 +716,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
@@ -728,7 +728,7 @@ public abstract class AbstractComponentInfoResourceTest
         "similar", "false");
     response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
-    componentDetails = fromJson(response, ComponentDetails.class);
+    componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
     policyAlerts = componentDetails.getPolicyAlerts();
@@ -759,7 +759,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
@@ -779,7 +779,7 @@ public abstract class AbstractComponentInfoResourceTest
     response = AuthedRestAccess.get(serviceUrl);
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
-    componentDetails = fromJson(response, ComponentDetails.class);
+    componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
     assertGavInComponentDetails("Claimed" + groupId, "Claimed" + artifactId, "Claimed" + version, componentDetails);
@@ -831,7 +831,7 @@ public abstract class AbstractComponentInfoResourceTest
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, ComponentDetails.class);
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
     Assert.assertThat(componentDetails, is(notNullValue()));
     Assert.assertThat(componentDetails.getHash(), is(hash));
     assertGavInComponentDetails(groupId, artifactId, version, componentDetails);

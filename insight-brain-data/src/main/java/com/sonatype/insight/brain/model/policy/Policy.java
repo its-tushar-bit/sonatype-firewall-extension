@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,6 +263,7 @@ public class Policy
    *
    * @since 1.11
    */
+  @JsonIgnore
   public PolicyThreatCategory getThreatCategory() {
     SortedSet<PolicyThreatCategory> threatCategories = new TreeSet<>();
     for (Constraint constraint : getConstraints()) {

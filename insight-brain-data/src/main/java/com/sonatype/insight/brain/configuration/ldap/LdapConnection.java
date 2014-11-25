@@ -14,6 +14,8 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -240,6 +242,7 @@ public class LdapConnection
     this.retryDelay = retryDelay;
   }
 
+  @JsonIgnore
   public String getUrl() {
     StringBuilder sb = new StringBuilder();
     sb.append(protocol.getProtocol()).append("://").append(hostname).append(':').append(port);

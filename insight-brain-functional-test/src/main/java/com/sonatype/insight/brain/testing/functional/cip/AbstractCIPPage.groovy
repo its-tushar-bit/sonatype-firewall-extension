@@ -29,7 +29,7 @@ extends Page {
   /**
    * Call the same javascript function used by clients to trigger loading component details.
    */
-  def setGav(String groupId, String artifactId, String version, String applicationPublicId) {
+  def setGav(String groupId, String artifactId, String version, String applicationPublicId, boolean wait = true) {
     browser.js.exec(groupId, artifactId, version, applicationPublicId, '''
   window.Insight.setGav({
         groupId: arguments[0],
@@ -38,15 +38,21 @@ extends Page {
         appId: arguments[3]
   });
   ''')
+    if (wait) {
+      waitFor('slow') {cip.displayed && cip.getNameField('Group')}
+    }
   }
 
-  def setCoordinates(ComponentIdentifier componentIdentifier, String applicationPublicId) {
+  def setCoordinates(ComponentIdentifier componentIdentifier, String applicationPublicId, boolean wait = true) {
     browser.js.exec(ComponentIdentifierAdapter.toJson(componentIdentifier), applicationPublicId, '''
   var componentIdentifier = JSON.parse(arguments[0]);
   window.Insight.setCoordinates(componentIdentifier.format, componentIdentifier.coordinates, {
-        appId: arguments[2]
+        appId: arguments[1]
   });
   ''')
+    if (wait) {
+      waitFor('slow') {cip.displayed && cip.getNameField('Version')}
+    }
   }
 
   def clearGav() {

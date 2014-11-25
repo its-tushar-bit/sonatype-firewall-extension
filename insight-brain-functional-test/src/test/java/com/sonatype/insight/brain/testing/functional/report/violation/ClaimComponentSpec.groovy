@@ -68,10 +68,14 @@ extends BaseSpec {
   def "Should see claim tab for an unknown component"() {
     when: 'First navigating to a report with an unknown component'
     navigation.toPolicyReportPage()
-    Cip cip = results[0].showCip()
+    PolicyReportRow firstRow = results[0]
+    Cip cip = firstRow.showCip()
 
     then: 'the claim component tab is shown'
     cip.claimComponent.showTrigger.displayed
+
+    and: 'the filename is shown for the unknown component'
+    firstRow.coordinates == 'hello-world.jar'
 
     when: 'opening the claim component tab'
     cip.claimComponent.showTrigger.click()
@@ -90,7 +94,8 @@ extends BaseSpec {
   def "Should be able to claim an unknown component"() {
     given: 'A GAV not found in our data'
     saasRule.setResponseForURI(createUri(CID), '{"isKnown": false }', 200)
-    Cip cip = results[0].cip
+    PolicyReportRow firstRow = results[0]
+    Cip cip = firstRow.cip
     def form = cip.claimComponent.claimForm
 
     when: 'Filling out the form'
@@ -112,18 +117,26 @@ extends BaseSpec {
     FORM_FIELDS.each { String name, String value ->
       form."$name" == value
     }
+
+    and: 'the coordinates are updated to match the claim details'
+    results[0].coordinates == 'testG : testA : testV'
   }
 
   def "Should be able to update an already claimed component"() {
     given: 'A GAV not found in our data'
-    ComponentIdentifier updatedVersion = ComponentIdentifier.
+    ComponentIdentifier updatedIdentifier = ComponentIdentifier.
         createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version + '-NEW',
-        CID.coordinates.classifier, CID.coordinates.extension)
-    saasRule.setResponseForURI(createUri(updatedVersion), '{"isKnown": false }', 200)
-    def component = results[0].cip.claimComponent
+        '', CID.coordinates.extension)
+    saasRule.setResponseForURI(createUri(updatedIdentifier), '{"isKnown": false }', 200)
+    PolicyReportRow firstRow = results[0]
+    Cip cip = firstRow.cip
+    ClaimComponentModule component = cip.claimComponent
 
     when: 'Changing the version of the claimed component'
     component.claimForm.version = FORM_FIELDS.version + '-NEW'
+
+    and: 'Removing the classifier'
+    component.claimForm.classifier = ''
 
     then: 'the update button should be enabled'
     waitFor { !component.update.disabled }
@@ -134,11 +147,15 @@ extends BaseSpec {
 
     then: 'data is updated and the update button is no longer enabled'
     component.claimForm.version == FORM_FIELDS.version + '-NEW'
+    component.claimForm.classifier == ''
+
+    and: 'the coordinates are updated to match the claim details'
+    results[0].coordinates == 'testG : testA : testV-NEW'
   }
 
   def "Should be able to revoke a claim on a component"() {
     given: 'An already claimed component'
-    def component = results[0].cip.claimComponent
+    ClaimComponentModule component = results[0].cip.claimComponent
 
     when: 'Clicking the "Revoke Claim" button'
     component.revoke.click()
@@ -158,6 +175,9 @@ extends BaseSpec {
     }
     !component.revoke.displayed
     !component.update.displayed
+
+    and: 'the filename is shown for the unknown component'
+    results[0].coordinates == 'hello-world.jar'
   }
 
   private String createUri(ComponentIdentifier componentIdentifier) {

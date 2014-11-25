@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional.cip
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
@@ -57,8 +58,7 @@ class NexusCIPSpec
 
   def 'Cannot load data without authenticating first'() {
     when: 'Simulating user selection of a GAV with javascript'
-      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version,
-          app.publicId)
+      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version, app.publicId, false)
 
     then: 'an error message is shown'
       waitFor { error.displayed }
@@ -86,14 +86,10 @@ class NexusCIPSpec
 
     then: 'the CIP loads'
       CIPModule cip = cip
-      waitFor('slow') { cip.displayed && cip.website.displayed }
-      validateCommon(cip, JUNIT)
+      validateMavenComponent(cip, JUNIT)
       cip.website.@href.startsWith(JUNIT.website) //FF at least appends a slash on the href
       cip.highestPolicyThreat == 'NA'
       cip.highestSecurityThreat == 'NA'
-      cip.catalogued == '1 year ago'
-      cip.identificationSource == 'Sonatype'
-      cip.website.@href.startsWith(JUNIT.website) //FF at least appends a slash on the href
 
     and: 'a "View Details" button is present and enabled'
       cip.viewDetails.displayed
@@ -103,10 +99,7 @@ class NexusCIPSpec
       !cip.migrate.present
 
     and: 'the version graph is present and has a fixed height'
-      VersionGraphModule versionGraph = versionGraph
-      versionGraph.displayed
-      versionGraph.labels == ['Popularity', 'License Risk', 'Security Alerts']
-      versionGraph.chart.@height.toInteger() == 142
+      verifyVersionGraph(versionGraph)
 
     and: 'the select text is no longer shown'
       !defaultText.displayed
@@ -143,7 +136,6 @@ class NexusCIPSpec
 
     then: 'The changes should be reflected in the component details'
       CIPModule cip = cip
-      waitFor('slow') { cip.displayed && cip.website.displayed }
       cip.highestPolicyThreat.toInteger() == violatedPolicy.threatLevel
 
     where:
@@ -164,8 +156,7 @@ class NexusCIPSpec
 
     then: 'Details of the vulnerabilities are shown'
       CIPModule cip = cip
-      waitFor('slow') { cip.displayed && cip.getNameField('Group') }
-      validateCommon(cip, CATALINA_HOST_MANAGER)
+      validateMavenComponent(cip, CATALINA_HOST_MANAGER)
       cip.highestSecurityThreat == '4.3 within 4 security issues'
 
     and: 'No website information is provided for this GAV'
@@ -183,6 +174,28 @@ class NexusCIPSpec
           setCoordinates: { page.setCoordinates(CATALINA_HOST_MANAGER.componentIdentifier, app.publicId) }
         ]
       ]
+  }
+
+  def "Can show classifier and extension"() {
+    when: 'We load a component with both classifier and extension'
+    setCoordinates(PREZI_DIST.componentIdentifier, app.publicId)
+
+    then: 'the CIP loads and all GAVEC coordinate information is shown'
+    CIPModule cip = cip
+    validateMavenComponent(cip, PREZI_DIST)
+    cip.getNameField('Extension') == PREZI_DIST.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_EXTENSION]
+    cip.getNameField('Classifier') == PREZI_DIST.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_CLASSIFIER]
+  }
+
+  def 'Can select a NuGet Component'() {
+    when: 'We load a NuGet component'
+    setCoordinates(ENTITY_FRAMEWORK.componentIdentifier, app.publicId)
+
+    then: 'the CIP loads and shows the expected fields'
+    CIPModule cip = cip
+    validateNuGetComponent(cip, ENTITY_FRAMEWORK)
+    cip.highestPolicyThreat == 'NA'
+    cip.highestSecurityThreat == 'NA'
   }
   
   String getToolName() {

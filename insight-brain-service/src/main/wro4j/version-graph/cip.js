@@ -162,11 +162,14 @@
           });
         }]);
       },
+      /**
+       * @since 1.13.0
+       */
       'setCoordinates' : function (componentType, coordinates, properties) {
         properties = properties || {};
         waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {
-            Coordinates.set(componentType, coordinates);
+            Coordinates.set(componentType, coordinates ? coordinates : {}); //coordinates may be null for unknown
             State.set(null);
 
             Properties.reset();
@@ -181,6 +184,9 @@
           });
         }], true);
       },
+      /**
+       * @deprecated since 1.13.0 Included for backwards compatibility with existing clients
+       */
       "setGav": function (arg) {
         waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {

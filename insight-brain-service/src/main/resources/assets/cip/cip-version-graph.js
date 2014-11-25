@@ -28,16 +28,31 @@
       me.node.empty();
       container.appendTo(this.node);
       angular.module('componentProvider' + timestamp, []).run(function() {
-        Insight.setGav({
-          appId : applicationId,
-          groupId : me.gav.groupId,
-          artifactId : me.gav.artifactId,
-          version : me.gav.version,
-          filename : me.gav.matchState === 'unknown' ? me.gav.coordinates : null,
-          hash : me.gav.hash,
-          matchState : me.gav.matchState,
-          proprietary : me.gav.proprietary
-        });
+        var component = me.component || me.gav;
+        var properties = {
+          //legacy coordinates here is the name to display, not componentIdentifier.coordinates
+          filename: component.matchState === 'unknown' ? component.coordinates : null,
+          hash: component.hash,
+          matchState: component.matchState,
+          proprietary: component.proprietary,
+          appId: applicationId
+        };
+        var componentIdentifier;
+        if (component.componentIdentifier) {
+          componentIdentifier = component.componentIdentifier;
+        }
+        else {
+          //legacy case we have only gav/unknown here
+          componentIdentifier = {
+            format: component.groupId !== null ? 'maven' : 'unknown',
+            coordinates: component.groupId !== null ? {
+              groupId: component.groupId,
+              artifactId: component.artifactId,
+              version: component.version
+            } : null
+          };
+        }
+        Insight.setCoordinates(componentIdentifier.format, componentIdentifier.coordinates, properties);
       });
       angular.bootstrap(container[0], ['CIP', 'componentProvider' + timestamp, 'HttpInterceptors',
           'UnauthenticatedResponseHttpInterceptor']);

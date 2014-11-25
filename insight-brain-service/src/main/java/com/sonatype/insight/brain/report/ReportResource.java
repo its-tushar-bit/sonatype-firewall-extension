@@ -40,6 +40,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -319,14 +320,14 @@ public class ReportResource
             continue;
           }
           if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
-            final ComponentDetails hdsDetails = JsonUtils
-                .parse(reportZip.getInputStream(entry), ComponentDetails.class);
-            ComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(),
+            final NamedComponentDetails hdsDetails = JsonUtils
+                .parse(reportZip.getInputStream(entry), NamedComponentDetails.class);
+            NamedComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(),
                 hdsDetails.getHash(), hdsDetails.getMatchState(),
                 new ComponentDetailsLoader.HostedDataServicesSource()
                 {
                   @Override
-                  public ComponentDetails getDetails() throws IOException {
+                  public NamedComponentDetails getDetails() throws IOException {
                     return hdsDetails;
                   }
                 });

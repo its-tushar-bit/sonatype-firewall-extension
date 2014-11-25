@@ -80,7 +80,7 @@ public abstract class AbstractComponentInfoResource
   @Path("{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public ComponentDetails getComponentDetails(
+  public NamedComponentDetails getComponentDetails(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
       @QueryParam("matchState") String matchState, @QueryParam("hash") String hash,
@@ -91,7 +91,7 @@ public abstract class AbstractComponentInfoResource
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    ComponentDetails details = getEvaluatedComponentDetails(applicationPublicId, matchState, hash, proprietary,
+    NamedComponentDetails details = getEvaluatedComponentDetails(applicationPublicId, matchState, hash, proprietary,
         identifier);
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
@@ -100,10 +100,10 @@ public abstract class AbstractComponentInfoResource
     return details;
   }
 
-  private ComponentDetails getEvaluatedComponentDetails(String applicationPublicId, String matchState, String hash,
+  private NamedComponentDetails getEvaluatedComponentDetails(String applicationPublicId, String matchState, String hash,
       boolean proprietary, final ComponentIdentifier identifier) throws IOException
   {
-    ComponentDetails componentDetails = getComponentDetails(matchState, hash, identifier);
+    NamedComponentDetails componentDetails = getComponentDetails(matchState, hash, identifier);
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();
@@ -115,11 +115,10 @@ public abstract class AbstractComponentInfoResource
     List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID), new PolicyDAO(),
         Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
-
     return componentDetails;
   }
 
-  private ComponentDetails getComponentDetails(String matchState, final String hash,
+  private NamedComponentDetails getComponentDetails(String matchState, final String hash,
       final ComponentIdentifier identifier)
       throws IOException
   {
@@ -127,8 +126,8 @@ public abstract class AbstractComponentInfoResource
         new ComponentDetailsLoader.HostedDataServicesSource()
         {
           @Override
-          public ComponentDetails getDetails() throws IOException {
-            ComponentDetails componentDetails;
+          public NamedComponentDetails getDetails() throws IOException {
+            NamedComponentDetails componentDetails;
 
             Map<String, String> queryParams = new HashMap<>();
             queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));

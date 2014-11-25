@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -49,7 +50,7 @@ public class ComponentDetailsLoader
     /**
      * @return The component details, never {@code null}.
      */
-    ComponentDetails getDetails() throws IOException;
+    NamedComponentDetails getDetails() throws IOException;
   }
 
   private final InsightWork work;
@@ -70,10 +71,10 @@ public class ComponentDetailsLoader
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
    */
-  public ComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier, String hash,
+  public NamedComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier, String hash,
       String matchState, HostedDataServicesSource hdsSource) throws IOException
   {
-    ComponentDetails componentDetails = null;
+    NamedComponentDetails componentDetails = null;
 
     // Look among claimed components first
     HashComponentIdentifier hashComponentIdentifier = null;
@@ -88,7 +89,8 @@ public class ComponentDetailsLoader
     }
 
     if (hashComponentIdentifier != null) {
-      componentDetails = new ComponentDetails(componentIdentifier);
+      componentDetails = new NamedComponentDetails();
+      componentDetails.setComponentIdentifier(componentIdentifier);
       componentDetails.setHash(hashComponentIdentifier.getHash());
       componentDetails.setMatchState(MatchState.EXACT.getId());
       componentDetails.setCatalogDate(hashComponentIdentifier.getCreateTimeLong());

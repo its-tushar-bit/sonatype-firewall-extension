@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.testing.functional.utils
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.model.policy.Condition
 import com.sonatype.insight.brain.model.policy.Constraint
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.cip.CIPModule
+import com.sonatype.insight.brain.testing.functional.cip.VersionGraphModule
 import com.sonatype.insight.mock.UriParamRequestMatcher
 
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -38,17 +39,33 @@ extends BaseSpec {
   static final String CATALINA_HOST_MANAGER_DETAILS_LIST_FILE =
   '/canned-hds-responses/componentDetailsListCatalinaHostManager.json'
 
+  static final String ENTITY_FRAMEWORK_DETAILS_FILE = '/canned-hds-responses/componentDetailsEntityFramework.json'
+
+  static final String ENTITY_FRAMEWORK_DETAILS_LIST_FILE = '/canned-hds-responses/componentDetailsListEntityFramework.json'
+
+  static final String PREZI_DETAILS_FILE = '/canned-hds-responses/componentDetailsPrezi.json'
+
+  static final String PREZI_DETAILS_LIST_FILE = '/canned-hds-responses/componentDetailsListPrezi.json'
+
   static final String LICENSES_FILE = '/canned-hds-responses/licenses.json'
 
   protected static ComponentDetails JUNIT
 
   protected static ComponentDetails CATALINA_HOST_MANAGER
 
+  protected static ComponentDetails ENTITY_FRAMEWORK
+
+  protected static ComponentDetails PREZI_DIST
+
   def setupSpec() {
     JUNIT = mockComponentDetails(JUNIT_DETAILS_FILE)
     mockComponentDetailsList(JUNIT_DETAILS_LIST_FILE, JUNIT)
     CATALINA_HOST_MANAGER = mockComponentDetails(CATALINA_HOST_MANAGER_DETAILS_FILE)
     mockComponentDetailsList(CATALINA_HOST_MANAGER_DETAILS_LIST_FILE, CATALINA_HOST_MANAGER)
+    ENTITY_FRAMEWORK = mockComponentDetails(ENTITY_FRAMEWORK_DETAILS_FILE)
+    mockComponentDetailsList(ENTITY_FRAMEWORK_DETAILS_LIST_FILE, ENTITY_FRAMEWORK)
+    PREZI_DIST = mockComponentDetails(PREZI_DETAILS_FILE)
+    mockComponentDetailsList(PREZI_DETAILS_LIST_FILE, PREZI_DIST)
 
     // validation of a license category Policy will trigger this request to populate a cache of licenses
     saasRule.setResponseForURI('rest/license', this.getClass().getResource(LICENSES_FILE).text, 200)
@@ -107,23 +124,32 @@ extends BaseSpec {
     return policy
   }
 
-  protected void validateCommon(CIPModule cip, ComponentDetails component) {
+  protected void verifyVersionGraph(VersionGraphModule versionGraph) {
+    assert versionGraph.displayed
+    assert versionGraph.labels == ['Popularity', 'License Risk', 'Security Alerts']
+    assert versionGraph.chart.@height.toInteger() == 142
+  }
+
+  protected void validateMavenComponent(CIPModule cip, ComponentDetails component) {
     assert cip.getNameField('Group') == component.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID]
     assert cip.getNameField('Artifact') ==
         component.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID]
-    assert cip.getNameField('Version') == component.componentIdentifier.coordinates[ComponentIdentifier.VERSION]
-    validateEffectiveLicense(cip, component)
-    assert cip.declaredLicense == component.declaredLicenses[0].licenseName
-    assert cip.observedLicense == component.observedLicenses[0].licenseName
-    assert cip.matchState == 'exact'
-    assert cip.identificationSource == 'Sonatype'
+    validateComponentCommon(cip, component)
   }
 
-  void validateEffectiveLicense(CIPModule cip, ComponentDetails component) {
-    List effectLicenseNames = component.effectiveLicenses.licenseName
-    effectLicenseNames = effectLicenseNames.sort()
-    List cipLicenseNames = cip.effectiveLicense.split(",").sort()
-    assert cipLicenseNames.join(",") == effectLicenseNames.join(",")
+  protected void validateNuGetComponent(CIPModule cip, ComponentDetails component) {
+    assert cip.getNameField('ID') == component.componentIdentifier.coordinates[ComponentIdentifier.NUGET_PACKAGE_ID]
+    validateComponentCommon(cip, component)
+  }
+
+  private void validateComponentCommon(CIPModule cip, ComponentDetails component) {
+    assert cip.getNameField('Version') == component.componentIdentifier.coordinates[ComponentIdentifier.VERSION]
+    assert cip.declaredLicense == component.declaredLicenses[0].licenseName
+    assert cip.observedLicense == component.observedLicenses[0].licenseName
+    assert cip.effectiveLicense.split(',').sort().join(',') == component.effectiveLicenses.licenseName.sort().join(',')
+    assert cip.matchState == 'exact'
+    assert cip.identificationSource == 'Sonatype'
+    assert cip.catalogued == '1 year ago'
   }
 
   abstract String getToolName();

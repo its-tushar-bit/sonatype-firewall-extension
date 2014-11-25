@@ -116,6 +116,20 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
+      it('Insight.setCoordinates with unknown', inject(function (Coordinates, Properties) {
+        Insight.setCoordinates('unknown', null,
+          { matchState : 'unknown', proprietary : false , filename : 'foo.jar', hash : 'abc123'});
+
+        expect(Coordinates.get()).toEqual({ });
+        expect(Coordinates.getSelected()).toEqual({  });
+        expect(Coordinates.getFormat()).toEqual('unknown');
+
+        expect(Properties.getMatchState()).toEqual('unknown');
+        expect(Properties.getProprietary()).toEqual(false);
+        expect(Properties.getFilename()).toEqual('foo.jar');
+        expect(Properties.getHash()).toEqual('abc123');
+      }));
+
       it('Selected', inject(function (Coordinates) {
         var gav = {
           groupId : 'gid',
@@ -137,7 +151,7 @@ var clmEndpointTemplate = {
         expect(Coordinates.getFormat()).toEqual('maven');
       }));
 
-      it('Insight.setGAV', inject(function (Coordinates, Properties, SelectedApp) {
+      it('Insight.setGAV', inject(function (Coordinates, Properties) {
         spyOn(Coordinates, 'set').andCallThrough();
         Insight.setGav({
           groupId : 'g1',
@@ -229,20 +243,20 @@ var clmEndpointTemplate = {
 
     describe('SelectedApp', function () {
       describe('IDE Mode', function () {
-        it ('Retrieves from setGav', inject(function (SelectedApp, Coordinates) {
+        it ('Retrieves from setGav', inject(function (SelectedApp) {
           Insight.setGav({
             appId : 'foo'
           });
           expect(SelectedApp.get()).toEqual('foo');
         }));
-        it ('Retrieves from setCoordinates', inject(function (SelectedApp, Coordinates) {
+        it ('Retrieves from setCoordinates', inject(function (SelectedApp) {
           Insight.setCoordinates('maven', {}, {
             appId : 'foo'
           });
           expect(SelectedApp.get()).toEqual('foo');
         }));
 
-        it ('Doesn\'t Persist', inject(function (SelectedApp, Coordinates) {
+        it ('Doesn\'t Persist', inject(function (SelectedApp) {
           SelectedApp.set('foo');
           expect(document.cookie.indexOf('foo')).toEqual(-1);
         }));

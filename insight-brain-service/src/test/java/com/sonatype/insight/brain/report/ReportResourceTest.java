@@ -30,6 +30,7 @@ import javax.mail.Message;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -61,6 +62,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.saas.TestNamedComponentDetails;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -151,6 +153,9 @@ public class ReportResourceTest
         assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
         assertEquals(createTime.getTime(), bomJsonNode.get("createTime").asLong());
         assertEquals(0F, bomJsonNode.get("relativePopularity").asDouble(), 0F);
+        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : " +
+                "testClaimedComponent_C : testClaimedComponent_V",
+            JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString());
         foundClaimedComponent = true;
       }
       else {
@@ -288,6 +293,9 @@ public class ReportResourceTest
         assertEquals(extension, bomJsonNode.get("extension").asText());
         assertEquals(classifier, bomJsonNode.get("classifier").asText());
         assertEquals(componentIdentifier, ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode));
+        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : " +
+                "testClaimedComponent_C : testClaimedComponent_V",
+            JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString());
         assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
         foundClaimedComponent = true;
       }
@@ -1253,10 +1261,11 @@ public class ReportResourceTest
         assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
 
         assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
-        ComponentDetails details = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), ComponentDetails.class);
+        TestNamedComponentDetails details = JsonUtils.parse(
+            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), TestNamedComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
         assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
+        assertThat(details.getDisplayName().toString(), is("commons-httpclient : commons-httpclient : 3.1.SONATYPE"));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
@@ -1274,7 +1283,7 @@ public class ReportResourceTest
         assertThat(list.getList(), hasSize(0));
 
         details = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/details/1249e25aebb15358bedd.json")),
-            ComponentDetails.class);
+            TestNamedComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
         assertThat(details.getIdentificationSourceComment(), is(nullValue()));
@@ -1285,14 +1294,14 @@ public class ReportResourceTest
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/maven/"
             + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/list.json")),
             ComponentDetailsList.class);
-        details = findDetailsForComponent(list,
+        ComponentDetails detailsFromList = findDetailsForComponent(list,
           ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
-        assertThat(details, is(notNullValue()));
-        assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),
+        assertThat(detailsFromList, is(notNullValue()));
+        assertThat(detailsFromList.getOverriddenLicenses(), hasSize(1));
+        assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId(),
             is(licenseOverride2.getLicenseId()));
-        assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
-        assertThat(details.getLicenseThreatLevel(), is(2));
+        assertThat(detailsFromList.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
+        assertThat(detailsFromList.getLicenseThreatLevel(), is(2));
       }
     }
   }

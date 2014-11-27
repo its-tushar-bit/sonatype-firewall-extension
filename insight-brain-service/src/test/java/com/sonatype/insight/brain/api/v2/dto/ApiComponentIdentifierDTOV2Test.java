@@ -7,39 +7,42 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 /**
- * Since we are exposing the component identifier coordinates map to the public api, we need to make sure the names
- * of the coordinates don't change. Or if they do we need to transform them.
+ * A compatibility test to highlight when changes to the internal {@link ComponentIdentifier} break the public API.
+ *
+ * Since we are exposing the non-public {@link ComponentIdentifier} coordinates map to the public API, we need to make sure the
+ * names (keys) of the coordinates don't change.  If they do we'll need to correct, potentially by transforming them.
+ *
+ * NOTE: Don't use the {@link ComponentIdentifier} constants that define the names (keys) in order to validate that expectations
+ * of API clients have not changed.
  */
 public class ApiComponentIdentifierDTOV2Test
 {
   @Test
-  public void testMavenComponentIdentifierNamesAReAsExpected() {
+  public void testMavenComponentIdentifierNamesAreAsExpected() {
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
     ApiComponentIdentifierDTOV2 apiComponentIdentifier = new ApiComponentIdentifierDTOV2(identifier);
 
-    // Don't use the static finals from ComponentIdentifier so we can verify they have not changed
-    Assert.assertThat(apiComponentIdentifier.getFormat(), is("maven"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("groupId"), is("g1"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("artifactId"), is("a1"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("version"), is("v1"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("classifier"), is("c1"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("extension"), is("e1"));
+    assertThat(apiComponentIdentifier.getFormat(), is("maven"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("groupId"), is("g1"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("artifactId"), is("a1"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("version"), is("v1"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("classifier"), is("c1"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("extension"), is("e1"));
   }
 
   @Test
-  public void testNugetComponentIdentifierNamesAReAsExpected() {
+  public void testNuGetComponentIdentifierNamesAreAsExpected() {
     ComponentIdentifier identifier = ComponentIdentifier.createNugetCoordinates("p1", "v1");
     ApiComponentIdentifierDTOV2 apiComponentIdentifier = new ApiComponentIdentifierDTOV2(identifier);
 
-    // Don't use the static finals from ComponentIdentifier so we can verify they have not changed
-    Assert.assertThat(apiComponentIdentifier.getFormat(), is("nuget"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("packageId"), is("p1"));
-    Assert.assertThat(apiComponentIdentifier.getCoordinates().get("version"), is("v1"));
+    assertThat(apiComponentIdentifier.getFormat(), is("nuget"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("packageId"), is("p1"));
+    assertThat(apiComponentIdentifier.getCoordinates().get("version"), is("v1"));
   }
 }

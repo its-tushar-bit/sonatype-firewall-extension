@@ -19,6 +19,7 @@ class ApplicationEvaluationModule
     file(required: false) { $('#bundleFile') }
     application(required: false) { $('#bundleApplication') }
     stage(required: false) { $('#bundleStage') }
+    availableStages { stage.find('option')*.text() - '-- Select CLM Stage --' }
     status(required: false) { $('#evaluate-bundle-status') }
     viewReport(required: false) { $('#evaluate-bundle-view') }
     close(required: false) { $('#evaluate-bundle-close') }

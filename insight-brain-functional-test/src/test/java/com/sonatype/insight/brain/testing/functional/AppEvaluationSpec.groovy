@@ -14,6 +14,8 @@ class AppEvaluationSpec
 {
   static Organization org
 
+  private static final ArrayList<String> AVAILABLE_STAGES = ['Build', 'Stage Release', 'Release', 'Operate']
+
   def setupSpec() {
     createUser()
     org = temporaryEntity.newOrganization('AppEvaluationOrg')
@@ -50,6 +52,9 @@ class AppEvaluationSpec
       waitFor { orgPage.tools.appEval.dialog.displayed }
       waitFor { orgPage.tools.appEval.application.value() == '' }
 
+    and: 'Four choices are available for the stage'
+    orgPage.tools.appEval.availableStages == AVAILABLE_STAGES
+
     and: 'Dialog can be canceled'
       orgPage.tools.appEval.cancel.click()
       waitFor { !orgPage.tools.appEval.dialog.displayed }
@@ -73,6 +78,9 @@ class AppEvaluationSpec
       appPage.tools.appEval.application.value() == '1'
       appPage.tools.appEval.getSelectedApplicationOption() == "AppEvaluationApp2"
 
+    and: 'Four choices are available for the stage'
+    appPage.tools.appEval.availableStages == AVAILABLE_STAGES
+
     and: 'Dialog can be canceled'
       appPage.tools.appEval.cancel.click()
       waitFor { !appPage.tools.appEval.dialog.displayed }
@@ -87,7 +95,7 @@ class AppEvaluationSpec
       appPage.tools.appEvalButton.displayed
       appPage.tools.appEvalButton.click()
       waitFor { appPage.tools.appEval.dialog.displayed }
-      appPage.tools.appEval.stage.value('0')
+      appPage.tools.appEval.stage.value('3')
       // integrating the file input with Angular is, interesting, populating this last to check UI responds
       // properly/immediately
       appPage.tools.appEval.file.value(

@@ -8,7 +8,7 @@
 (function() {
   'use strict';
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
-      validStages = ['build', 'stage-release', 'release'];
+      validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'];
 
   module.run(['editableOptions', function (editableOptions) {
     editableOptions.theme = 'bs2';
@@ -66,7 +66,7 @@
           $scope.applications = results[1];
           $scope.stages = [];
           angular.forEach(results[0][1], function(stage) {
-            if (validStages.indexOf(stage.id) > -1) {
+            if (validEvaluateBundleStages.indexOf(stage.id) > -1) {
               $scope.stages.push(stage);
             }
           });

@@ -76,10 +76,11 @@ describe('EditorToolsSpec', function() {
       expect(scope.bundle.applicationPublicId).toEqual('bom1-12345678');
       expect(scope.bundle.stage).toBeUndefined();
       expect(scope.bundle.notify).toEqual('true');
-      expect(scope.stages.length).toEqual(3);
+      expect(scope.stages.length).toEqual(4);
       expect(scope.stages[0].id).toEqual('build');
       expect(scope.stages[1].id).toEqual('stage-release');
       expect(scope.stages[2].id).toEqual('release');
+      expect(scope.stages[3].id).toEqual('operate');
     });
     
     it('Test validation', function () {

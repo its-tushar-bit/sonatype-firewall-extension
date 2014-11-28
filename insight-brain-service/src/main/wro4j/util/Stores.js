@@ -77,20 +77,6 @@
     }
   ]);
 
-  storesModule.service('ActionStore', [
-    'StageTypeStore', 'CLMLocations', 'CLMResource', '$q', function(StageTypeStore, clmLocations, clmResource, $q) {
-      var actionTypeStore = clmResource.getStore({
-        id: 'id',
-        url: clmLocations.getActionTypeUrl()
-      }), actionPromise = $q.all([actionTypeStore.get(), StageTypeStore.get()]);
-      return {
-        'get': function() {
-          return actionPromise;
-        }
-      };
-    }
-  ]);
-
   storesModule.service('PolicyStore', [
     'ConstraintStore', 'CLMLocations', 'CLMAppLocations', 'CLMResource', '$q',
     function(constraintStore, clmLocations, clmAppLocations, clmResource, $q) {

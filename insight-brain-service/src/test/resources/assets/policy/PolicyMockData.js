@@ -107,28 +107,6 @@ PolicyMockData = {
       }
     ];
   },
-  getActionTypeData: function() {
-    return [
-      {
-        "name": "Fail",
-        "id": "fail",
-        "availableTargets": null,
-        "requiresTarget": false
-      },
-      {
-        "name": "Warn",
-        "id": "warn",
-        "availableTargets": null,
-        "requiresTarget": false
-      },
-      {
-        "name": "Notify",
-        "id": "notify",
-        "availableTargets": null,
-        "requiresTarget": true
-      }
-    ];
-  },
   getConditionValueTypeData: function() {
     return [
       {

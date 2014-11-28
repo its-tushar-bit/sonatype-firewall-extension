@@ -18,10 +18,6 @@
           return baseUrl.get() + '/rest/policy/conditionType';
         },
 
-        getActionTypeUrl: function() {
-          return baseUrl.get() + '/rest/policy/actionType';
-        },
-
         getActionStageUrl: function() {
           return baseUrl.get() + '/rest/policy/stageType';
         },

@@ -31,9 +31,9 @@
   ]);
 
   policyModule.controller('PolicyController', [
-    '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'ActionStore', 'ErrorDialog',
+    '$scope', '$location', '$http', '$rootScope', '$q', 'PolicyStore', 'StageTypeStore', 'ErrorDialog',
     'CLMAppLocations', 'Dialog', 'ownerChange', 'PolicyMonitoringStore', 'Messages', 'ProductFeatures', 'TagStore',
-    function($scope, $location, $http, $rootScope, $q, policyStore, actionStore, ErrorDialog, clmAppLocations, Dialog,
+    function($scope, $location, $http, $rootScope, $q, policyStore, StageTypeStore, ErrorDialog, clmAppLocations, Dialog,
             ownerChange, PolicyMonitoringStore, messages, ProductFeatures, TagStore) {
 
       $scope.alerts = [];
@@ -74,7 +74,7 @@
             return store.refresh();
           }),
           $http.get(clmAppLocations.getApplicablePolicies()),
-          actionStore.get(),
+          StageTypeStore.get(),
           PolicyMonitoringStore.getApplicable()
         ];
         if (!clmAppLocations.isApplication()) {
@@ -94,7 +94,7 @@
 
         $q.all(promises).then(function(results) {
           $scope.applicablePolicies = results[1].data.policiesByOwner;
-          $scope.actionStageList = results[2][1];
+          $scope.actionStageList = results[2];
           $scope.policyMonitoring = clmAppLocations.isApplication() ? results[3].data.appPolicyMonitor : results[3].data.orgPolicyMonitor;
           $scope.policyMonitoring = $scope.policyMonitoring || {};
           $scope.policyMonitoringPlaceHolder = createPlaceHolderText(clmAppLocations.isApplication(), results[3].data.orgPolicyMonitor);
@@ -182,10 +182,10 @@
   ]);
 
   policyModule.directive('policyItems', [
-    'ActionStore', function(ActionStore) {
+    'StageTypeStore', function(StageTypeStore) {
       var actionStageList = null;
-      ActionStore.get().then(function(data) {
-        actionStageList = data[1];
+      StageTypeStore.get().then(function(data) {
+        actionStageList = data;
       });
       return {
         restrict: 'A',

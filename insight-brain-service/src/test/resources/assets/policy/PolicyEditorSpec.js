@@ -27,7 +27,6 @@ describe('PolicyEditor.js', function() {
 
   function expectActionRequests() {
     inject(function($httpBackend, CLMLocations) {
-      $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     });
   }

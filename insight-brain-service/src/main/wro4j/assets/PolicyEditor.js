@@ -12,9 +12,9 @@
   ]);
 
   module.controller('PolicyEditorController', [
-    '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'ActionStore',
+    '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'StageTypeStore',
     'ProductFeatures', 'PolicyTagStore', 'CLMAppLocations',
-    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, actionStore, ProductFeatures, PolicyTagStore, CLMAppLocations) {
+    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, StageTypeStore, ProductFeatures, PolicyTagStore, CLMAppLocations) {
       var originalTags;
 
       function isDirty() {
@@ -394,12 +394,12 @@
         $scope.error = null;
         originalTags = [];
         $scope.appliedTagIds = [];
-        var promises = [actionStore.get()];
+        var promises = [StageTypeStore.get()];
         if (!$scope.policy.$new && !$scope.isApplication) {
           promises.push(PolicyTagStore.getByPolicyId($scope.policy.id).get());
         }
         $q.all(promises).then(function(results) {
-          var actionStages = results[0][1];
+          var actionStages = results[0];
           $scope.actionStages = actionStages;
 
           if (results.length === 2) {

@@ -23,10 +23,10 @@
     'CLMLocations',
     'selectedApplication',
     'ApplicationStore',
-    'ActionStore',
+    'StageTypeStore',
     '$q',
     function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
-            ActionStore, $q) {
+            StageTypeStore, $q) {
       var fileElement = null;
       $scope.currentState = 'init';
 
@@ -61,11 +61,11 @@
 
       function doLoad() {
         $scope.state = 'loading';
-        $q.all([ActionStore.get(),ApplicationStore.get()]).then(function(results) {
+        $q.all([StageTypeStore.get(), ApplicationStore.get()]).then(function(results) {
           $scope.state = 'ready';
           $scope.applications = results[1];
           $scope.stages = [];
-          angular.forEach(results[0][1], function(stage) {
+          angular.forEach(results[0], function(stage) {
             if (validEvaluateBundleStages.indexOf(stage.id) > -1) {
               $scope.stages.push(stage);
             }

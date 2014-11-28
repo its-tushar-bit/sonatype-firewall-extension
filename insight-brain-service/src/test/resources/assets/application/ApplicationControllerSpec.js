@@ -112,7 +112,6 @@ describe('ApplicationEditorController', function() {
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
       
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
@@ -156,7 +155,6 @@ describe('ApplicationEditorController', function() {
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
 
       $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
@@ -184,7 +182,6 @@ describe('ApplicationEditorController', function() {
       httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionTypeUrl())).respond(PolicyMockData.getActionTypeData());
       
       var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);

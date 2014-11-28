@@ -135,9 +135,9 @@
 
   applicationModule.controller('applicationEditorController', [
       '$scope', '$state', '$http', '$q', '$modal', 'OrganizationStore', 'CLMLocations', 'CLMAppLocations',
-      'Messages', 'editorTools', 'ActionStore', 'policyEvaluator', 'selectedApplication', 'ErrorDialog', 'LastSelectedOrganization',
+      'Messages', 'editorTools', 'StageTypeStore', 'policyEvaluator', 'selectedApplication', 'ErrorDialog', 'LastSelectedOrganization',
       function($scope, $state, $http, $q, $modal, OrganizationStore, CLMLocations, CLMAppLocations, Messages,
-               editorTools, ActionStore, policyEvaluator, selectedApplication, ErrorDialog, LastSelectedOrganization)
+               editorTools, StageTypeStore, policyEvaluator, selectedApplication, ErrorDialog, LastSelectedOrganization)
       {
         var me = this;
         angular.extend(me,
@@ -219,7 +219,7 @@
 
           $scope.error = null;
 
-          var promises = [ActionStore.get()];
+          var promises = [StageTypeStore.get()];
           if (selectedApplication.publicId) {
             promises.push($http.get(CLMLocations.getApplicationSummaryUrl(selectedApplication.publicId)));
           }
@@ -234,7 +234,7 @@
             setApplicationIcon();
 
             $scope.state = {
-              actionStageList: results[0][1]
+              actionStageList: results[0]
             };
             $scope.ao = angular.extend(ao, {
               siblings : $scope.applications,

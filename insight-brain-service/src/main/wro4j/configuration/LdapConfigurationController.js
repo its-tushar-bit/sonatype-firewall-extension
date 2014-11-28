@@ -292,8 +292,8 @@
     }
   ]);
 
-  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'ErrorDialog',
-    function($scope, $modal, $http, ErrorDialog) {
+  module.controller('LdapUsermappingController', ['$scope', '$modal', '$http', 'ErrorDialog', '$q',
+    function($scope, $modal, $http, ErrorDialog, $q) {
       $scope.alerts = [];
       delete $scope.ldapUserMapping;// make sure the scope is clean while we query backend
 
@@ -343,7 +343,7 @@
           controller: 'LdapCheckUserMappingController',
           windowClass: 'modal modal-ldap',
           resolve: {
-            users: function($q, $http) {
+            users: function() {
               var deferred = $q.defer();
               $http.put($scope.getConfigLdapUrl('testUserMapping'), $scope.ldapUserMapping).success(function (users) {
                 deferred.resolve(users);

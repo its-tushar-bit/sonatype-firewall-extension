@@ -6,8 +6,11 @@
 /**
  * @since 1.7
  */
-@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.12.0-SNAPSHOT', changing = true)
-@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.42.0')
+@Grab(group = 'com.sonatype.insight.brain', module = 'insight-brain-functional-test', version = '1.13.0-SNAPSHOT', changing = true)
+@Grab(group = 'com.sonatype.clm', module = 'com.sonatype.clm.dto.model', version = '1.4.7-SNAPSHOT', changing = true)
+@Grab('org.seleniumhq.selenium:selenium-firefox-driver:2.43.0')
+@Grab('org.seleniumhq.selenium:selenium-support:2.43.0')
+@Grab('org.gebish:geb-core:0.9.2')
 import com.sonatype.insight.brain.testing.functional.*
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage

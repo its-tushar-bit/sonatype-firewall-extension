@@ -57,14 +57,7 @@ class LicenseOverrideSpec
     then: 'the form is shown and empty, with a disabled update button'
     waitFor { cip.licenses.form.displayed }
     LicenseModule licenses = cip.licenses
-    licenses.declaredLicenses == ''
-    licenses.observedLicenses == ''
-    licenses.effectiveLicense == ''
-    licenses.selectedScope == app.name
-    licenses.selectedStatus == 'Open'
-    licenses.selectedLicense == ''
-    licenses.form.comment == ''
-    licenses.update.disabled
+    licenses.validateLicense('', '', '', app.name, 'Open', '', '', false)
   }
 
   def "Should have an empty Audit Log"() {
@@ -104,14 +97,18 @@ class LicenseOverrideSpec
     and: 'We click the update button'
     licenses.update.click()
 
-    then: 'The update log should be extended'
+    then: 'The audit log should be extended'
     AuditLogModule auditLog = cip.auditLog
     auditLog.showTrigger.click()
-    waitFor { auditLog.results.size() == 1 }
-    AuditLogRow auditLogRow = auditLog.results[0]
-    auditLogRow.user == 'admin'
-    auditLogRow.action == 'Overrode'
-    auditLogRow.detail == 'License as Beerware'
-    auditLogRow.comment == 'Because everything goes better with beer!'
+    waitFor { auditLog.audits.size() == 1 }
+    auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as Beerware',
+        'Because everything goes better with beer!')
+
+    when: 'We go back to the licenses, our new info appears (the UI does not automatically update)'
+    cip.licenses.showTrigger.click()
+
+    then:
+    waitFor { cip.licenses.form.displayed }
+    licenses.validateLicense('', '', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
   }
 }

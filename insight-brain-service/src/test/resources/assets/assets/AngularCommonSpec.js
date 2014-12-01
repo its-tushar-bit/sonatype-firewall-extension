@@ -642,5 +642,5 @@ describe('AngularCommon', function() {
       var testCase = testCases[i];
       validateFilter(testCase.input, testCase.expected);
     }
-  })
+  });
 });

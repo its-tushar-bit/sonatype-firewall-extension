@@ -36,9 +36,12 @@
       me.node.empty();
       container.appendTo(this.node);
 
-      angular.module('componentProvider' + timestamp, []).service('SelectedComponent',function() {
-        return me.gav;
-      }).service('DataView', function() {
+      angular.module('componentProvider' + timestamp, ['ComponentUtils']).service('SelectedComponent', [
+        'ComponentUtil', function(ComponentUtil) {
+          var component = me.component || me.gav;
+          ComponentUtil.enhanceWithComponentIdentifier(component);
+          return component;
+      }]).service('DataView', function() {
             return me.grid.getData();
           });
 

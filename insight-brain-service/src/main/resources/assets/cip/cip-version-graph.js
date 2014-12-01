@@ -4,7 +4,7 @@
  * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  * trademark of Sonatype, Inc.
  */
-/*global $, angular, applicationId, Insight, CLM */
+/*global $, angular, applicationId, Insight, CLM, AngularUtils */
 (function () {
   'use strict';
 
@@ -27,33 +27,26 @@
           me = this;
       me.node.empty();
       container.appendTo(this.node);
-      angular.module('componentProvider' + timestamp, []).run(function() {
-        var component = me.component || me.gav;
-        var properties = {
-          //legacy coordinates here is the name to display, not componentIdentifier.coordinates
-          filename: component.matchState === 'unknown' ? component.coordinates : null,
-          hash: component.hash,
-          matchState: component.matchState,
-          proprietary: component.proprietary,
-          appId: applicationId
-        };
-        var componentIdentifier;
-        if (component.componentIdentifier) {
-          componentIdentifier = component.componentIdentifier;
-        }
-        else {
-          //legacy case we have only gav/unknown here
-          componentIdentifier = {
-            format: component.groupId !== null ? 'maven' : 'unknown',
-            coordinates: component.groupId !== null ? {
-              groupId: component.groupId,
-              artifactId: component.artifactId,
-              version: component.version
-            } : null
+      angular.module('componentProvider' + timestamp, ['ComponentUtils']).run([
+        'ComponentUtil', function(ComponentUtil) {
+          var component = me.component || me.gav;
+          var properties = {
+            //legacy coordinates here is the name to display, not componentIdentifier.coordinates
+            filename: component.matchState === 'unknown' ? component.coordinates : null,
+            hash: component.hash,
+            matchState: component.matchState,
+            proprietary: component.proprietary,
+            appId: applicationId
           };
+          if (ComponentUtil.enhanceWithComponentIdentifier(component)) {
+            Insight.setCoordinates(component.componentIdentifier.format, component.componentIdentifier.coordinates,
+              properties);
+          }
+          else {
+            Insight.setCoordinates(null, null, properties);
+          }
         }
-        Insight.setCoordinates(componentIdentifier.format, componentIdentifier.coordinates, properties);
-      });
+      ]);
       angular.bootstrap(container[0], ['CIP', 'componentProvider' + timestamp, 'HttpInterceptors',
           'UnauthenticatedResponseHttpInterceptor']);
     };

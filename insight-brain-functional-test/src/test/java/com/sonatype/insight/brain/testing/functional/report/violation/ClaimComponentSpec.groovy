@@ -26,14 +26,6 @@ extends BaseSpec {
 
   static final String cannedTestReport = '/canned-reports/report-with-unknown.zip'
 
-  static final ArrayList<String> HDS_PARAMS = [
-    'groupId',
-    'artifactId',
-    'version',
-    'extension',
-    'classifier'
-  ]
-
   @Shared
   Application app
 
@@ -153,9 +145,54 @@ extends BaseSpec {
     results[0].coordinates == 'testG : testA : testV-NEW'
   }
 
+  def "Can assign a license to a claimed component"() {
+    when: 'opening the Licenses tab'
+    Cip cip = results[0].cip
+    cip.licenses.showTrigger.click()
+
+    then: 'the form is shown and empty, with a disabled update button'
+    waitFor { cip.licenses.form.displayed }
+    LicenseModule licenses = cip.licenses
+    licenses.validateLicense('', '', '', app.name, 'Open', '', '', false)
+
+    when: 'Selecting to override the license'
+    licenses.status = 'Overridden'
+
+    then: 'License choices are shown'
+    waitFor { licenses.licenseOptionShown }
+
+    when: 'A new license is selected'
+    licenses.license = 'Beerware'
+
+    then: 'The update button should be enabled'
+    waitFor { !licenses.update.disabled }
+
+    when: 'We add a comment(which is optional)'
+    licenses.comment = 'Because everything goes better with beer!'
+
+    and: 'We click the update button'
+    licenses.update.click()
+
+    then: 'The audit log should be extended'
+    AuditLogModule auditLog = cip.auditLog
+    auditLog.showTrigger.click()
+    waitFor { auditLog.audits.size() == 1 }
+    auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as Beerware',
+        'Because everything goes better with beer!')
+
+    when: 'We go back to the licenses, our new info appears (the UI does not automatically update)'
+    cip.licenses.showTrigger.click()
+
+    then:
+    waitFor { cip.licenses.form.displayed }
+    licenses.validateLicense('', '', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
+  }
+
   def "Should be able to revoke a claim on a component"() {
     given: 'An already claimed component'
-    ClaimComponentModule component = results[0].cip.claimComponent
+    Cip cip = results[0].cip
+    cip.claimComponent.showTrigger.click()
+    ClaimComponentModule component = cip.claimComponent
 
     when: 'Clicking the "Revoke Claim" button'
     component.revoke.click()

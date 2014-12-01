@@ -30,8 +30,8 @@ class PolicyReportPage
 
   static content = {
     navigation { module ReportSubNavigation }
-    policyContent(wait: true) { $('div.slick-viewport') }
-    results { moduleList PolicyReportRow, $('.slick-row') }
+    policyContent(wait: true) { $('#componentTable .grid-canvas', 0) }
+    results { moduleList PolicyReportRow, policyContent.children('.slick-row') }
     resultsWithNoScore { results.findAll { it.threatGroup == none } }
     waiver(required: false) { module AddPolicyWaiver, $('#add-waiver-modal') }
     policyDetailWaivers(required: false) { module PolicyDetailWaivers, $('#componentExistingWaiverModal') }
@@ -271,6 +271,18 @@ class LicenseModule
     selectedLicense(required: false) { licenseOptionShown ? selectedOptionText(form.license()) : '' }
     selectedOptionText { field -> field.find('option', value: field.value()).text() }
   }
+
+  boolean validateLicense(declared, observed, effective, scope, status, selected, comment, updateEnabled) {
+    assert declaredLicenses == declared
+    assert observedLicenses == observed
+    assert effectiveLicense == effective
+    assert selectedScope == scope
+    assert selectedStatus == status
+    assert selectedLicense == selected
+    assert form.comment == comment
+    assert update.enabled == updateEnabled
+    return true // assertions used for better output, but still need a truthy return value to use in Geb expectations
+  }
 }
 
 /**
@@ -282,10 +294,17 @@ class AuditLogModule
   static content = {
     noChangesMessage(required: false) { $('.tab-content').text() }
     auditTable(required: false) { $('#auditTable') }
-    results { moduleList AuditLogRow, auditTable.find('.slick-row') }
+    audits { moduleList AuditLogRow, auditTable.find('.slick-row') }
     showTrigger { $('a', text: 'Audit Log') }
   }
 
+  def validateRow(AuditLogRow auditLogRow, String user, String action, String detail, String comment) {
+    assert auditLogRow.user == user
+    assert auditLogRow.action == action
+    assert auditLogRow.detail == detail
+    assert auditLogRow.comment == comment
+    return true // assertions used for better output, but still need a truthy return value to use in Geb expectations
+  }
 }
 
 class AuditLogRow

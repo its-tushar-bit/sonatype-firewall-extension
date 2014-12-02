@@ -39,7 +39,7 @@ public class ApiSearchResourceV2
   /**
    * Searches all currently registered applications for a component matching the given search criteria. A component can
    * be searched for by its hash or its coordinates, the latter supporting wildcards like the equivalent policy
-   * condition. The mandatory stage parameter restricts which scans/reports of the applications are inspected for the
+   * condition. The mandatory stageId parameter restricts which scans/reports of the applications are inspected for the
    * component.
    */
   @GET

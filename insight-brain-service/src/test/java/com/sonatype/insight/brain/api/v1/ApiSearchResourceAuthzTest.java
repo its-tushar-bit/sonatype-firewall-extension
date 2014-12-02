@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.search;
+package com.sonatype.insight.brain.api.v1;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.search.SearchResource.SearchResults;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v1.dto.ApiSearchResultsDTO;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -20,14 +21,14 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class SearchResourceAuthzTest
+public class ApiSearchResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-  private TestHelper helper;
+  private SearchTestHelper helper;
 
   @Before
   public void init() {
-    helper = new TestHelper(tempEntity, getCLMServer());
+    helper = new SearchTestHelper(tempEntity, getCLMServer());
   }
 
   @Test
@@ -36,17 +37,17 @@ public class SearchResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(SearchResource.SERVICE_PATH) + "?stageId=" + Stage.ID_BUILD + "&hash="
+    String url = getRestUrl(PublicApiPaths.SEARCH_SERVICE_PATH) + "?stageId=" + Stage.ID_BUILD + "&hash="
         + "1249e25aebb15358bedd";
     Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(empty()));
 
     response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
     assertResponseStatus(200, response);
-    results = fromJson(response, SearchResults.class);
+    results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
     assertThat(results.results.get(0).applicationId, is(app.getPublicId()));

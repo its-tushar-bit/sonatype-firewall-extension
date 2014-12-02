@@ -3,12 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.search;
+package com.sonatype.insight.brain.api.v1;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.search.SearchResource.SearchResult;
-import com.sonatype.insight.brain.search.SearchResource.SearchResults;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v1.dto.ApiSearchResultDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiSearchResultsDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.AsyncHttpClient;
@@ -21,31 +22,31 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class SearchResourceTest
+public class ApiSearchResourceTest
     extends AbstractResourceTest
 {
-  private TestHelper helper;
+  private SearchTestHelper helper;
 
   @Before
   public void init() {
-    helper = new TestHelper(tempEntity, getCLMServer());
+    helper = new SearchTestHelper(tempEntity, getCLMServer());
   }
 
   private String getSearchUrl(String stageId, String hash) {
-    return getRestBaseUrl() + SearchResource.SERVICE_PATH + "?stageId=" + stageId + "&hash=" + hash;
+    return getRestBaseUrl() + PublicApiPaths.SEARCH_SERVICE_PATH + "?stageId=" + stageId + "&hash=" + hash;
   }
 
   private String getSearchUrl(String stageId, String groupId, String artifactId, String version) {
-    return getRestBaseUrl() + SearchResource.SERVICE_PATH + "?stageId=" + stageId + "&groupId=" + groupId
+    return getRestBaseUrl() + PublicApiPaths.SEARCH_SERVICE_PATH + "?stageId=" + stageId + "&groupId=" + groupId
         + "&artifactId=" + artifactId + "&version=" + version;
   }
 
   private String getSearchUrl(String stageId, String hash, String groupId, String artifactId, String version) {
-    return getRestBaseUrl() + SearchResource.SERVICE_PATH + "?stageId=" + stageId + "&hash=" + hash + "&groupId="
+    return getRestBaseUrl() + PublicApiPaths.SEARCH_SERVICE_PATH + "?stageId=" + stageId + "&hash=" + hash + "&groupId="
         + groupId + "&artifactId=" + artifactId + "&version=" + version;
   }
 
-  private void assertSearchResult(SearchResult result, String appId, String appName, String hash, String groupId,
+  private void assertSearchResult(ApiSearchResultDTO result, String appId, String appName, String hash, String groupId,
       String artifactId, String version, Integer threatLevel) throws Exception
   {
     assertThat(result.applicationId, is(appId));
@@ -104,7 +105,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -119,7 +120,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -135,7 +136,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd00000000000000000000"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -150,7 +151,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "tomcat", "*", "*"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(3));
@@ -169,7 +170,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "tomcat", "*", "*"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -187,7 +188,7 @@ public class SearchResourceTest
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", "*", "tomcat-util",
         "*"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -197,7 +198,7 @@ public class SearchResourceTest
   public void testSearchComponent_EchoCriteria() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", "gid", "aid", "1"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -215,7 +216,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdf"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -227,7 +228,7 @@ public class SearchResourceTest
 
     Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd"));
     assertResponseStatus(200, response);
-    SearchResults results = fromJson(response, SearchResults.class);
+    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));

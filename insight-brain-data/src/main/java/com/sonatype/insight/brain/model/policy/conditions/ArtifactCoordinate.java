@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+
 import org.codehaus.plexus.util.StringUtils;
 
 //import org.springframework.util.AntPathMatcher;
@@ -143,6 +145,16 @@ public class ArtifactCoordinate
   public boolean matches(String groupId, String artifactId, String version) {
     return matchesGroup(getGroupId(), groupId) && matches(getArtifactId(), artifactId)
         && matches(getVersion(), version);
+  }
+
+  public boolean matches(ComponentIdentifier componentIdentifier) {
+    if (!componentIdentifier.isMaven()) {
+      return false;
+    }
+
+    return matches(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
+        componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+        componentIdentifier.get(ComponentIdentifier.VERSION));
   }
 
   /**

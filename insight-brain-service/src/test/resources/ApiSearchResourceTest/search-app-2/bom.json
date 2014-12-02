@@ -2,6 +2,16 @@
   "aaData" : [ {
     "filenames" : [ "tomcat-util-5.5.23.jar" ],
     "pathnames" : [ "sample-application.zip/tomcat-util-5.5.23.jar" ],
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "groupId" : "tomcat",
+        "artifactId" : "tomcat-util",
+        "version" : "5.5.23",
+        "extension" : "jar",
+        "classifier" : ""
+      }
+    },
     "groupId" : "tomcat",
     "artifactId" : "tomcat-util",
     "version" : "5.5.23",

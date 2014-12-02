@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.search;
+package com.sonatype.insight.brain.api.v1;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,13 +29,13 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import org.codehaus.plexus.util.FileUtils;
 
-class TestHelper
+public class SearchTestHelper
 {
   private final TemporaryEntity tempEntity;
 
   private final TestInsightBrainServiceRule brain;
 
-  public TestHelper(TemporaryEntity tempEntity, TestInsightBrainServiceRule brain) {
+  public SearchTestHelper(TemporaryEntity tempEntity, TestInsightBrainServiceRule brain) {
     this.tempEntity = tempEntity;
     this.brain = brain;
   }
@@ -49,11 +49,11 @@ class TestHelper
 
   public void createScanForApp(String appId, String stageId, String resPath) throws Exception {
     String scanId = UUID.randomUUID().toString().replace("-", "");
-    FileUtils.copyURLToFile(getClass().getResource("/SearchResourceTest/" + resPath + "/bom.json"),
+    FileUtils.copyURLToFile(getClass().getResource("/ApiSearchResourceTest/" + resPath + "/bom.json"),
         getReportCacheEntry(appId, scanId, "bom.json"));
     File policyAlertsJsonFile = getReportCacheEntry(appId, scanId, PolicyEvaluationUtils.POLICY_ALERTS_FILENAME);
     FileUtils.copyURLToFile(
-        getClass().getResource("/SearchResourceTest/" + resPath + "/" + PolicyEvaluationUtils.POLICY_ALERTS_FILENAME),
+        getClass().getResource("/ApiSearchResourceTest/" + resPath + "/" + PolicyEvaluationUtils.POLICY_ALERTS_FILENAME),
         policyAlertsJsonFile);
     createReport(appId, scanId);
 

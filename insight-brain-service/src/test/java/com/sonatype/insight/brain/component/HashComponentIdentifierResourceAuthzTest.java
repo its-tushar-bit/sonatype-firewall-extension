@@ -35,7 +35,8 @@ public class HashComponentIdentifierResourceAuthzTest
 
     response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), json);
     assertResponseStatus(200, response);
-    hashComponentIdentifier = fromJson(response, HashComponentIdentifier.class);
-    new HashComponentIdentifierDAO().delete(hashComponentIdentifier);
+    HashComponentIdentifierDTO hashComponentIdentifierDTO = fromJson(response, HashComponentIdentifierDTO.class);
+    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+    hashComponentIdentifierDAO.delete(hashComponentIdentifierDAO.getByHash(hashComponentIdentifierDTO.hash));
   }
 }

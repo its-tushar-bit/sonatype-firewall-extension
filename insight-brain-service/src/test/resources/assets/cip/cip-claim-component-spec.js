@@ -42,7 +42,13 @@ describe('CIP Claim Component tests', function() {
   'use strict';
   var scope, $http, formSetPristineSpy;
 
-  beforeEach(module('ClaimComponent'));
+  beforeEach(module('ClaimComponent', function($provide) {
+    $provide.value('ComponentUtil',
+      {
+        setDisplayNameAndCoordinates: function() {}
+      }
+    );
+  }));
   // setup our http backend to return what we want
   beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
     dataTableItems = [];

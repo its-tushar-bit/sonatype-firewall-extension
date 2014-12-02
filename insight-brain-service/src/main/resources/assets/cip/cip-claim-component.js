@@ -63,10 +63,11 @@
     }
   });
 
-  var claimApp = angular.module('ClaimComponent', ['HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor']);
+  var claimApp = angular.module('ClaimComponent', ['HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ComponentUtils']);
 
   claimApp.controller('ClaimComponentController', [
-    '$http', '$scope','CurrentData', 'Dialog', function($http, $scope, CurrentData, Dialog) {
+    '$http', '$scope','CurrentData', 'Dialog', 'ComponentUtil',
+    function($http, $scope, CurrentData, Dialog, ComponentUtil) {
       $scope.resetClaimData = function() {
         $scope.claimData = {};
         $scope.claimData.createTimeText = CurrentData.createTime ? dateToString(new Date(CurrentData.createTime)) : null;
@@ -141,11 +142,13 @@
           extension: data.extension,
           createTime: data.createTime,
           age: establishAge(data.createTime),
-          comment: data.comment
+          comment: data.comment,
+          coordinates: data.coordinates,
+          displayName: data.displayName,
+          componentIdentifier: data.componentIdentifier
         }, CurrentData.hash);
 
-        $scope.createSuccess = 'Component successfully claimed as ' + data.groupId + ':' + data.artifactId + ':' +
-          data.version;
+        $scope.createSuccess = 'Component successfully claimed as ' + data.coordinates;
         $scope.resetClaimData();
       }
 
@@ -226,6 +229,8 @@
         function deleteClaim() {
           updateStateForSubmit();
           $http.delete(servicePath + '/' + CurrentData.hash).success(function() {
+            // fall back on the display name
+            ComponentUtil.setDisplayNameAndCoordinates(CurrentData);
             updateDataView({
               matchState: 'unknown',
               groupId: null,
@@ -236,7 +241,10 @@
               identificationSource: null,
               createTime: null,
               age: null,
-              comment: null
+              comment: null,
+              coordinates: CurrentData.coordinates,
+              displayName: CurrentData.displayName,
+              componentIdentifier: null
             }, CurrentData.hash);
             $scope.createSuccess = 'Component claim has been revoked';
           }).error(errorHandler);

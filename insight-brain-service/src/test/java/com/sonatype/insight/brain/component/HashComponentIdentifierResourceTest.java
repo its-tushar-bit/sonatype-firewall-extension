@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.component;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -19,6 +21,7 @@ import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -55,8 +58,8 @@ public class HashComponentIdentifierResourceTest
     // create
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
-    hashComponentIdentifier = fromJson(response, HashComponentIdentifier.class);
-    assertHashComponentIdentifier(hash, COMPONENT_IDENTIFIER, comment, createTime, hashComponentIdentifier);
+    HashComponentIdentifierDTO serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
+    assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);
 
     // read - no GET use case for this resource - use DAO to verify
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
@@ -69,8 +72,8 @@ public class HashComponentIdentifierResourceTest
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
     response = AuthedRestAccess.put(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(200, response);
-    hashComponentIdentifier = fromJson(response, HashComponentIdentifier.class);
-    assertHashComponentIdentifier(hash, updatedComponentIdentifier, comment, createTime, hashComponentIdentifier);
+    serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
+    assertHashComponentIdentifierDTO(hash, updatedComponentIdentifier, comment, createTime, serverResponse);
 
     // read - no GET use case for this resource - use DAO to verify
     hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash());
@@ -118,6 +121,26 @@ public class HashComponentIdentifierResourceTest
     assertEquals(comment, hashComponentIdentifier.getComment());
     assertEquals(createTime, hashComponentIdentifier.getCreateTime());
   }
+
+  private void assertHashComponentIdentifierDTO(String hash, ComponentIdentifier componentIdentifier, String comment,
+      Date createTime, HashComponentIdentifierDTO hashComponentIdentifier)
+  {
+    assertEquals(hash, hashComponentIdentifier.hash);
+    assertEquals(componentIdentifier, hashComponentIdentifier.componentIdentifier);
+    assertEquals(comment, hashComponentIdentifier.comment);
+    assertEquals(createTime, hashComponentIdentifier.createTime);
+
+    ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
+    assertThat(hashComponentIdentifier.displayName.parts, hasSize(componentDisplayName.parts.size()));
+    for (int i = 0; i < componentDisplayName.parts.size(); i++) {
+      ComponentDisplayNamePart expected = componentDisplayName.parts.get(i);
+      ComponentDisplayNamePart actual = hashComponentIdentifier.displayName.parts.get(i);
+      assertThat(actual.field, is(expected.field));
+      assertThat(actual.value, is(expected.value));
+    }
+    assertThat(hashComponentIdentifier.coordinates, is(componentDisplayName.toString()));
+  }
+
 
   private String getServiceURL() {
     return getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH;

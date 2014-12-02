@@ -57,7 +57,7 @@ public class HashComponentIdentifierResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public HashComponentIdentifier set(HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  public HashComponentIdentifierDTO set(HashComponentIdentifier hashComponentIdentifier) throws IOException {
     ComponentIdentifierValidator.validate(hashComponentIdentifier.getComponentIdentifier());
 
     ensureUnknownComponent(hashComponentIdentifier);
@@ -67,13 +67,14 @@ public class HashComponentIdentifierResource
 
     ReportService.flushReportChanges();
 
-    return hashComponentIdentifier;
+    return new HashComponentIdentifierDTO(hashComponentIdentifier,
+        ComponentDisplayNameUtil.fromIdentifier(hashComponentIdentifier.getComponentIdentifier()));
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public HashComponentIdentifier update(HashComponentIdentifier hashComponentIdentifier) throws IOException {
+  public HashComponentIdentifierDTO update(HashComponentIdentifier hashComponentIdentifier) throws IOException {
     ComponentIdentifierValidator.validate(hashComponentIdentifier.getComponentIdentifier());
 
     ensureUnknownComponent(hashComponentIdentifier);
@@ -85,7 +86,8 @@ public class HashComponentIdentifierResource
 
     ReportService.flushReportChanges();
 
-    return hashComponentIdentifier;
+    return new HashComponentIdentifierDTO(hashComponentIdentifier,
+        ComponentDisplayNameUtil.fromIdentifier(hashComponentIdentifier.getComponentIdentifier()));
   }
 
   @DELETE

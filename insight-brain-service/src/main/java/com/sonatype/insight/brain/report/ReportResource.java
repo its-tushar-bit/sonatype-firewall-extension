@@ -44,6 +44,10 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -111,7 +115,7 @@ public class ReportResource
 
   private final PolicyEvaluationUtils policyEvaluationUtils;
 
-  private final ReportDataService reportDataService;
+  private final ApiReportDataServiceV2 reportDataService;
 
   private final ReleaseGraphService releaseGraphService;
 
@@ -121,7 +125,7 @@ public class ReportResource
 
   @Inject
   public ReportResource(final ReportService reportService, final PolicyEvaluationUtils policyEvaluationUtils,
-      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ReportDataService reportDataService,
+      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ApiReportDataServiceV2 reportDataService,
       ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser)
   {
     this.reportService = reportService;
@@ -293,7 +297,7 @@ public class ReportResource
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
-    ReportData reportData = reportDataService.getData(applicationPublicId, scanId);
+    ApiReportDataDTOV2 reportData = reportDataService.getData(applicationPublicId, scanId);
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
 
@@ -388,11 +392,11 @@ public class ReportResource
   }
 
   private void addUniqueComponentsToUpdater(final String applicationPublicId, final String scanId,
-      final String dataPath, final int dataVersion, final List<ReportData.Component> components,
+      final String dataPath, final int dataVersion, final List<ApiReportComponentDTOV2> components,
       final ReportBundleUpdater updater) throws IOException
   {
-    for (ReportData.Component component : components) {
-      ComponentIdentifier componentIdentifier = component.componentIdentifier;
+    for (ApiReportComponentDTOV2 component : components) {
+      ComponentIdentifier componentIdentifier = convertFromApi(component.componentIdentifier);
       if (componentIdentifier != null) {
         String imagePath;
         if (dataVersion >= 1) {
@@ -414,6 +418,14 @@ public class ReportResource
         }
       }
     }
+  }
+
+  private ComponentIdentifier convertFromApi(ApiComponentIdentifierDTOV2 apiComponentIdentifier) {
+    if (apiComponentIdentifier == null) {
+      return null;
+    }
+
+    return new ComponentIdentifier(apiComponentIdentifier.getFormat(), apiComponentIdentifier.getCoordinates());
   }
 
   private List<PolicyAlert> getAlertsForComponent(String hash, List<PolicyAlert> appAlerts) {

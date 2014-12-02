@@ -15,10 +15,10 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.report.ReportDataResource;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.codehaus.plexus.util.FileUtils;
@@ -99,6 +99,6 @@ public class ScanUploader
     // SaaS knows nothing about where CLM Server stores reports, add this info to the receipt.
     receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));
     receipt.setPdfUrl(UserInterfaceLinksResource.getPdfUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setDataUrl(ReportDataResource.getDataUrl(applicationPublicId, receipt.getScanId()));
+    receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
   }
 }

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.report;
+package com.sonatype.insight.brain.api.v1.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,9 +14,14 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiReportComponentDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiReportDataDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -33,11 +38,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class ReportDataServiceTest
+public class ApiReportDataServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private ReportDataService reportDataService;
+  private ApiReportDataService reportDataService;
 
   @Inject
   private InsightWork work;
@@ -62,7 +67,7 @@ public class ReportDataServiceTest
     String[] filenames = { "bom.json", "security.json", "licenses.json" };
     for (String filename : filenames) {
       File file = Report.getCacheFile(reportFile, filename);
-      FileUtils.copyURLToFile(getClass().getResource("/ReportDataServiceTest/" + resource + "/" + filename), file);
+      FileUtils.copyURLToFile(getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename), file);
       if ("licenses.json".equals(filename)) {
         JsonNode licenseNode = JsonUtils.read(file);
         for (JsonNode node : licenseNode.get("aaData")) {
@@ -86,17 +91,17 @@ public class ReportDataServiceTest
     scanId = "scan-id";
   }
 
-  private void assertLicenses(List<ReportData.License> licenses, String... multiLicenseIds) {
+  private void assertLicenses(List<ApiLicenseDTO> licenses, String... multiLicenseIds) {
     assertThat(licenses, is(notNullValue()));
     assertThat(licenses, hasSize(multiLicenseIds.length));
     for (int i = 0; i < multiLicenseIds.length; i++) {
-      ReportData.License license = licenses.get(i);
+      ApiLicenseDTO license = licenses.get(i);
       assertThat(license.licenseId, is(multiLicenseIds[i]));
       assertThat(license.licenseName, is(multiLicenseDAO.getByIdNotNull(multiLicenseIds[i]).getShortDisplayName()));
     }
   }
 
-  private void assertSv(ReportData.SecurityIssue sv, String status, String source, String ref, Float severity) {
+  private void assertSv(ApiSecurityIssueDTO sv, String status, String source, String ref, Float severity) {
     assertThat(sv.status, is(status));
     assertThat(sv.source, is(source));
     assertThat(sv.reference, is(ref));
@@ -106,12 +111,12 @@ public class ReportDataServiceTest
   @Test
   public void testGetData() throws Exception {
     makeReport("report-1");
-    ReportData data = reportDataService.getData(app.getPublicId(), scanId);
+    ApiReportDataDTO data = reportDataService.getData(app.getPublicId(), scanId);
     assertThat(data, is(notNullValue()));
     assertThat(data.components, is(notNullValue()));
     assertThat(data.components, hasSize(2));
 
-    ReportData.Component component = data.components.get(0);
+    ApiReportComponentDTO component = data.components.get(0);
     assertThat(component.hash, is("1249e25aebb15358bedd"));
     assertThat(component.matchState, is("exact"));
     assertThat(component.proprietary, is(true));

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.report;
+package com.sonatype.insight.brain.api.v1.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +14,14 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiMavenCoordinatesDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiReportComponentDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiReportDataDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
+import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -22,7 +30,9 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.report.ReportData.LicenseData;
+import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -31,11 +41,13 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
- * 
+ *
+ * @deprecated since 1.13.0, use {@link ApiReportDataServiceV2}
+ *
  * @since 1.9.1
  */
 @Named
-public class ReportDataService
+public class ApiReportDataService
 {
   private final InsightWork work;
 
@@ -48,7 +60,7 @@ public class ReportDataService
   private final ReportService reportService;
 
   @Inject
-  public ReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO,
+  public ApiReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO,
       ComponentDAO componentDAO, ReportService reportService)
   {
     this.work = work;
@@ -59,7 +71,7 @@ public class ReportDataService
   }
 
   @Authorize(permission = Permission.READ)
-  public ReportData getData(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+  public ApiReportDataDTO getData(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
@@ -77,12 +89,11 @@ public class ReportDataService
 
     List<Component> components = componentDAO.getAll(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf);
 
-    ReportData data = new ReportData();
+    ApiReportDataDTO data = new ApiReportDataDTO();
     for (Component comp : components) {
-      ReportData.Component component = new ReportData.Component();
+      ApiReportComponentDTO component = new ApiReportComponentDTO();
       component.hash = comp.getHash();
-      component.componentIdentifier = comp.getComponentIdentifier();
-      ReportData.Coordinates coords = new ReportData.Coordinates();
+      ApiMavenCoordinatesDTO coords = new ApiMavenCoordinatesDTO();
       coords.groupId = comp.getGroupId();
       if (coords.groupId != null) {
         coords.artifactId = comp.getArtifactId();
@@ -97,16 +108,16 @@ public class ReportDataService
         }
       }
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
-        component.securityData = new ReportData.SecurityData();
+        component.securityData = new ApiSecurityDataDTO();
         for (SecurityVulnerability vuln : comp.getSecurityVulnerabilities()) {
-          ReportData.SecurityIssue sv = new ReportData.SecurityIssue();
+          ApiSecurityIssueDTO sv = new ApiSecurityIssueDTO();
           sv.source = vuln.getSource();
           sv.reference = vuln.getRefId();
           sv.severity = vuln.getSeverity();
           sv.status = vuln.getStatus().getName();
           component.securityData.securityIssues.add(sv);
         }
-        component.licenseData = new LicenseData();
+        component.licenseData = new ApiLicenseDataDTO();
         component.licenseData.status = comp.getLicenseOverrideStatus().getName();
         convertLicenses(component.licenseData.declaredLicenses, comp.getDeclaredLicenseIds());
         convertLicenses(component.licenseData.observedLicenses, comp.getObservedLicenseIds());
@@ -120,9 +131,9 @@ public class ReportDataService
     return data;
   }
 
-  private void convertLicenses(List<ReportData.License> licenses, Collection<String> licenseIds) {
+  private void convertLicenses(List<ApiLicenseDTO> licenses, Collection<String> licenseIds) {
     for (String licenseId : licenseIds) {
-      ReportData.License license = new ReportData.License();
+      ApiLicenseDTO license = new ApiLicenseDTO();
       license.licenseId = licenseId;
       license.licenseName = multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName();
       licenses.add(license);

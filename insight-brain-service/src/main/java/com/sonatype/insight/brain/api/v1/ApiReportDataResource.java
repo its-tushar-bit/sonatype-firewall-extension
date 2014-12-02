@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.report;
+package com.sonatype.insight.brain.api.v1;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -12,23 +12,27 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
+
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v1.dto.ApiReportDataDTO;
+import com.sonatype.insight.brain.api.v1.service.ApiReportDataService;
+import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
- * 
+ *
+ * @deprecated since 1.13.0, use {@link ApiReportDataResourceV2}
+ *
  * @since 1.9.1
  */
 @Named
-@Path(ReportDataResource.SERVICE_PATH)
-public class ReportDataResource
+@Path(PublicApiPaths.REPORT_DATA_SERVICE_PATH)
+public class ApiReportDataResource
 {
-  public static final String SERVICE_PATH = "api/v1/applications/{applicationPublicId}/reports/{scanId}";
-
-  private final ReportDataService reportDataService;
+  private final ApiReportDataService reportDataService;
 
   @Inject
-  public ReportDataResource(ReportDataService reportDataService) {
+  public ApiReportDataResource(ApiReportDataService reportDataService) {
     this.reportDataService = reportDataService;
   }
 
@@ -37,16 +41,9 @@ public class ReportDataResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ReportData getData(@PathParam("applicationPublicId") String applicationPublicId,
+  public ApiReportDataDTO getData(@PathParam("applicationPublicId") String applicationPublicId,
       @PathParam("scanId") String scanId) throws Exception
   {
     return reportDataService.getData(applicationPublicId, scanId);
-  }
-
-  /**
-   * Gets the relative URL to this REST resource for the given application and scan.
-   */
-  public static String getDataUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(ReportDataResource.SERVICE_PATH).build(applicationPublicId, scanId).toString();
   }
 }

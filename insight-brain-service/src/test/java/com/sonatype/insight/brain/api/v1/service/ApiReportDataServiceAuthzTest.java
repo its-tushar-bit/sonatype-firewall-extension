@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.report;
+package com.sonatype.insight.brain.api.v1.service;
 
 import javax.inject.Inject;
 
@@ -14,11 +14,11 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
-public class ReportDataServiceAuthzTest
+public class ApiReportDataServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ReportDataService reportDataService;
+  private ApiReportDataService reportDataService;
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetData_Anon() throws Exception {

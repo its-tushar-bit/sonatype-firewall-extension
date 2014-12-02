@@ -47,5 +47,16 @@
     "createTime" : 1131486718000,
     "lastModifiedTime" : 1342168788000,
     "lastModifiedEntryTime" : 1099055424000
+  }, {
+    "filenames" : [ "unknown.jar" ],
+    "pathnames" : [ "sample-application.zip/unknown.jar" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "69b58197caabec2e0d06",
+    "relativePopularity" : null,
+    "createTime" : 1131486718000,
+    "lastModifiedTime" : 1342168788000,
+    "lastModifiedEntryTime" : 1099055424000
   } ]
 }

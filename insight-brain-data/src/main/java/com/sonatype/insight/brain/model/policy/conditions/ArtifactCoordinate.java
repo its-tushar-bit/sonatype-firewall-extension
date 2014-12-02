@@ -148,7 +148,7 @@ public class ArtifactCoordinate
   }
 
   public boolean matches(ComponentIdentifier componentIdentifier) {
-    if (!componentIdentifier.isMaven()) {
+    if (componentIdentifier == null || !componentIdentifier.isMaven()) {
       return false;
     }
 

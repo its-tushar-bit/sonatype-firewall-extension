@@ -131,7 +131,8 @@ public class ApiPolicyViolationServiceV2
               apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
               apiPolicyViolationDTO.component = new ApiComponentDTOV2();
               apiPolicyViolationDTO.component.hash = policyViolation.getHash();
-              apiPolicyViolationDTO.component.componentIdentifier = new ApiComponentIdentifierDTOV2(componentIdentifier);
+              apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
+                  .fromComponentIdentifier(componentIdentifier);
               apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
             }
           }

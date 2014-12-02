@@ -26,7 +26,8 @@ public class ApiComponentIdentifierDTOV2Test
   @Test
   public void testMavenComponentIdentifierNamesAreAsExpected() {
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
-    ApiComponentIdentifierDTOV2 apiComponentIdentifier = new ApiComponentIdentifierDTOV2(identifier);
+    ApiComponentIdentifierDTOV2 apiComponentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(identifier);
 
     assertThat(apiComponentIdentifier.getFormat(), is("maven"));
     assertThat(apiComponentIdentifier.getCoordinates().get("groupId"), is("g1"));
@@ -39,7 +40,8 @@ public class ApiComponentIdentifierDTOV2Test
   @Test
   public void testNuGetComponentIdentifierNamesAreAsExpected() {
     ComponentIdentifier identifier = ComponentIdentifier.createNugetCoordinates("p1", "v1");
-    ApiComponentIdentifierDTOV2 apiComponentIdentifier = new ApiComponentIdentifierDTOV2(identifier);
+    ApiComponentIdentifierDTOV2 apiComponentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(identifier);
 
     assertThat(apiComponentIdentifier.getFormat(), is("nuget"));
     assertThat(apiComponentIdentifier.getCoordinates().get("packageId"), is("p1"));

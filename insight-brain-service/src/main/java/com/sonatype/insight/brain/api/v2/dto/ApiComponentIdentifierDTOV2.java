@@ -24,9 +24,16 @@ public class ApiComponentIdentifierDTOV2
   public ApiComponentIdentifierDTOV2() {
   }
 
-  public ApiComponentIdentifierDTOV2(ComponentIdentifier componentIdentifier) {
+  private ApiComponentIdentifierDTOV2(ComponentIdentifier componentIdentifier) {
     this.format = componentIdentifier.getFormat();
     this.coordinates.putAll(componentIdentifier.getCoordinates());
+  }
+
+  public static ApiComponentIdentifierDTOV2 fromComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    if (componentIdentifier == null) {
+      return null;
+    }
+    return new ApiComponentIdentifierDTOV2(componentIdentifier);
   }
 
   public void setFormat(String format) {

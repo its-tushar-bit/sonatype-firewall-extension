@@ -101,9 +101,7 @@ public class ApiSearchServiceV2
     ApiSearchResultsDTOV2 results = new ApiSearchResultsDTOV2();
     results.criteria.stageId = stageId;
     results.criteria.hash = hash;
-    if (componentIdentifier != null) {
-      results.criteria.componentIdentifier = new ApiComponentIdentifierDTOV2(componentIdentifier);
-    }
+    results.criteria.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     String baseUrl = this.baseUrl.get();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (Application app : getApplicationsWithReadPermission()) {
@@ -135,7 +133,7 @@ public class ApiSearchServiceV2
         result.applicationName = app.getName();
         result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
         result.hash = h;
-        result.componentIdentifier = new ApiComponentIdentifierDTOV2(bomComponentIdentifier);
+        result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(bomComponentIdentifier);
         results.results.add(result);
 
         if (alerts == null) {

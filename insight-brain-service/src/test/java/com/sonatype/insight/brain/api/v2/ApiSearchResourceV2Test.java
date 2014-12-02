@@ -25,6 +25,7 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ApiSearchResourceV2Test
@@ -69,8 +70,14 @@ public class ApiSearchResourceV2Test
     builder.setFollowRedirects(true);
     assertResponseStatus(200, AuthedRestAccess.execute(builder));
     assertThat(result.hash, is(hash));
-    assertThat(result.componentIdentifier.getFormat(), is(componentIdentifier.getFormat()));
-    assertThat(result.componentIdentifier.getCoordinates(), is(componentIdentifier.getCoordinates()));
+    if (componentIdentifier != null) {
+      assertThat(result.componentIdentifier, is(notNullValue()));
+      assertThat(result.componentIdentifier.getFormat(), is(componentIdentifier.getFormat()));
+      assertThat(result.componentIdentifier.getCoordinates(), is(componentIdentifier.getCoordinates()));
+    }
+    else {
+      assertThat(result.componentIdentifier, is(nullValue()));
+    }
     assertThat(result.threatLevel, is(threatLevel));
   }
 
@@ -154,6 +161,19 @@ public class ApiSearchResourceV2Test
     assertThat(results.results, hasSize(1));
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
+  }
+
+  @Test
+  public void testSearchComponent_ByHash_UnknownComponent() throws Exception {
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "69b58197caabec2e0d06"));
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    assertThat(results, is(notNullValue()));
+    assertThat(results.results, is(notNullValue()));
+    assertThat(results.results, hasSize(1));
+    assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "69b58197caabec2e0d06", null, null);
   }
 
   @Test

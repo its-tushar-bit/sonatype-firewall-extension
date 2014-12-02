@@ -14,7 +14,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
@@ -91,10 +90,8 @@ public class ApiReportDataServiceV2
     for (Component comp : components) {
       ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
       component.hash = comp.getHash();
-      ComponentIdentifier componentIdentifier = comp.getComponentIdentifier();
-      if (componentIdentifier != null) {
-        component.componentIdentifier = new ApiComponentIdentifierDTOV2(componentIdentifier);
-      }
+      component.componentIdentifier = ApiComponentIdentifierDTOV2
+          .fromComponentIdentifier(comp.getComponentIdentifier());
 
       component.matchState = comp.getMatchState().getId();
       component.proprietary = comp.isProprietary();

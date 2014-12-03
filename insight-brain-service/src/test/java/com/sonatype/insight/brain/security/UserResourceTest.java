@@ -67,7 +67,7 @@ public class UserResourceTest
     }
   }
 
-  private List<User> fromResponse(Response response) throws IOException {
+  private List<User> fromResponse(Response response) {
     User[] users = fromJson(response, User[].class);
     if (users == null) {
       return null;

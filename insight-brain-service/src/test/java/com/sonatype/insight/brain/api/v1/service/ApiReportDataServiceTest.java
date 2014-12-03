@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -38,6 +39,10 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * @deprecated since 1.13.0, because the tested class is deprecated
+ */
+@Deprecated
 public class ApiReportDataServiceTest
     extends AbstractComponentTest
 {

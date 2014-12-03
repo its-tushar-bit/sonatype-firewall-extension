@@ -26,10 +26,15 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.ning.http.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 
+/**
+ * @deprecated since 1.13.0, because the tested class is deprecated
+ */
+@Deprecated
 public class ApiPolicyViolationResourceTest
     extends AbstractResourceTest
 {

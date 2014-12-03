@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.api.v1.dto.ApiApplicationViolationListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiPolicyViolationDTO;
-import com.sonatype.insight.brain.api.v1.service.ApiPolicyViolationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -29,11 +28,16 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 
+/**
+ * @deprecated since 1.13.0, because the tested class is deprecated
+ */
+@Deprecated
 public class ApiPolicyViolationServiceTest
     extends AbstractComponentTest
 {

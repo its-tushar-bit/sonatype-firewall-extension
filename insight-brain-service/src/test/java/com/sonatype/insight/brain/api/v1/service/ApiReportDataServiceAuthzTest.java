@@ -14,6 +14,10 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
+/**
+ * @deprecated since 1.13.0, because the tested class is deprecated
+ */
+@Deprecated
 public class ApiReportDataServiceAuthzTest
     extends AbstractServiceAuthzTest
 {

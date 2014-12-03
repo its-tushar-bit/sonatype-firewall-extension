@@ -12,6 +12,7 @@ public class ApiApplicationResourceTest
     extends AbstractApiApplicationResourceTest
 {
 
+  @Override
   protected String getServiceURL() {
     return getRestBaseUrl() + PublicApiPaths.APP_SERVICE_PATH.replace("{apiVersion: v1|v2}", "v1");
   }

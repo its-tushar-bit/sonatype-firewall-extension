@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 public class ApiPolicyResourceTest
     extends AbstractApiPolicyResourceTest
 {
+  @Override
   protected String getServiceURL() {
     return getRestBaseUrl() + PublicApiPaths.POLICY_SERVICE_PATH.replace("{apiVersion: v1|v2}", "v1");
   }

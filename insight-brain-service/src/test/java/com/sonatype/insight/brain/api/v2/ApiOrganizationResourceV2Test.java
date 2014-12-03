@@ -12,6 +12,7 @@ public class ApiOrganizationResourceV2Test
     extends AbstractApiOrganizationResourceTest
 {
 
+  @Override
   protected String getServiceURL() {
     return getRestBaseUrl() + PublicApiPaths.ORG_SERVICE_PATH.replace("{apiVersion: v1|v2}", "v2");
   }

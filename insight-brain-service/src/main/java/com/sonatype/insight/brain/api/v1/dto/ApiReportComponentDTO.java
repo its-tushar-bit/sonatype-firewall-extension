@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 /**
  * @deprecated since 1.13.0, use {@link ApiReportComponentDTOV2}
  */
+@Deprecated
 public class ApiReportComponentDTO
 {
   public String hash;

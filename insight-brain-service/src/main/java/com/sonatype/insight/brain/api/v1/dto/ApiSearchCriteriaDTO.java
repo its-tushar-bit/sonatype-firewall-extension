@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchCriteriaDTOV2;
  *
  * @deprecated since 1.13.0, use {@link ApiSearchCriteriaDTOV2}
  */
+@Deprecated
 public class ApiSearchCriteriaDTO
 {
   public String stageId;

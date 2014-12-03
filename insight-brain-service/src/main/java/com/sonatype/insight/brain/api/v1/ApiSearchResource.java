@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiSearchServiceV2;
  * @since 1.7
  * @deprecated since 1.13.0, use {@link ApiSearchResourceV2}
  */
+@Deprecated
 @Path(PublicApiPaths.SEARCH_SERVICE_PATH)
 @Named
 public class ApiSearchResource

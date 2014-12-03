@@ -13,6 +13,7 @@ public class PublicApiPaths
   /**
    * @deprecated V1 API since 1.12.0
    */
+  @Deprecated
   private static final String API_VERSION_PATH = "api/v1/";
 
   private static final String API_VERSION_PATH_V2 = "api/v2/";

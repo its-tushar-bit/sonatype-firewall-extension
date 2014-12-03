@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
  *
  * @since 1.12.0
  */
+@Deprecated
 public class ApiMavenComponentDTO
 {
 

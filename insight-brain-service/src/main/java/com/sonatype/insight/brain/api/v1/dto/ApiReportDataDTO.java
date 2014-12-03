@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
  *
  * @deprecated since 1.13.0, use {@link ApiReportDataDTOV2}
  */
+@Deprecated
 public class ApiReportDataDTO
 {
   // components in app, in no particular order

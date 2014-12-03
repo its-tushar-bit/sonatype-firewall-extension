@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
  *
  * @deprecated since 1.13.0, use {@link ApiSearchResultsDTOV2}
  */
+@Deprecated
 public class ApiSearchResultsDTO
 {
   public ApiSearchCriteriaDTO criteria = new ApiSearchCriteriaDTO();

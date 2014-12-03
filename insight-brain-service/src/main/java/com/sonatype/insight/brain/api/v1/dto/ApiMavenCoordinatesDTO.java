@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 /**
  * @deprecated since 1.13.0, use {@link ApiComponentIdentifierDTOV2}
  */
+@Deprecated
 public class ApiMavenCoordinatesDTO
 {
   public String groupId;

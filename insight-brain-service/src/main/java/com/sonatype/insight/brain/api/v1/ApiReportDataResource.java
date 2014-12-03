@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
  *
  * @since 1.9.1
  */
+@Deprecated
 @Named
 @Path(PublicApiPaths.REPORT_DATA_SERVICE_PATH)
 public class ApiReportDataResource

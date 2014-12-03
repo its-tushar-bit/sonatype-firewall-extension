@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
  *
  * @deprecated since 1.13.0, use {@link ApiSearchResultDTOV2}
  */
+@Deprecated
 public class ApiSearchResultDTO
 {
   public String applicationId;

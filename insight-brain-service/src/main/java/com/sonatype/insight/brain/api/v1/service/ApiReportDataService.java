@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
  *
  * @since 1.9.1
  */
+@Deprecated
 @Named
 public class ApiReportDataService
 {

@@ -36,6 +36,7 @@ import com.google.common.collect.ListMultimap;
  *
  * @since 1.12.0
  */
+@Deprecated
 @Named
 public class ApiPolicyViolationService
 {

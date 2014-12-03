@@ -5,39 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v1.service;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v1.dto.ApiMavenCoordinatesDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiReportComponentDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiReportDataDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * Provides data from an application's composition report in a format suitable for consumption by 3rd-party clients.
@@ -49,94 +28,43 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Named
 public class ApiReportDataService
 {
-  private final InsightWork work;
-
-  private final ApplicationDAO appDAO;
-
-  private final MultiLicenseDAO multiLicenseDAO;
-
-  private final ComponentDAO componentDAO;
-
-  private final ReportService reportService;
+  private final ApiReportDataServiceV2 reportDataService;
 
   @Inject
-  public ApiReportDataService(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO,
-      ComponentDAO componentDAO, ReportService reportService)
-  {
-    this.work = work;
-    this.appDAO = appDAO;
-    this.multiLicenseDAO = multiLicenseDAO;
-    this.componentDAO = componentDAO;
-    this.reportService = reportService;
+  public ApiReportDataService(ApiReportDataServiceV2 reportDataService) {
+    this.reportDataService = reportDataService;
   }
 
-  @Authorize(permission = Permission.READ)
-  public ApiReportDataDTO getData(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      String scanId) throws IOException
-  {
-    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File reportFile = reportService.getReport(work, app.getId(), scanId);
-    if (reportFile == null) {
-      throw new NotFoundException("Could not find a report with ID " + scanId);
-    }
-
-    ReportEntry bomEntry = Report.getEntry(reportFile, "bom.json");
-    ReportEntry securityEntry = Report.getEntry(reportFile, "security.json");
-    ReportEntry licenseEntry = Report.getEntry(reportFile, "licenses.json");
-    if (bomEntry == null || securityEntry == null || licenseEntry == null) {
-      throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
-    }
-
-    List<Component> components = componentDAO.getAll(app, licenseEntry.buf, securityEntry.buf, bomEntry.buf);
-
-    ApiReportDataDTO data = new ApiReportDataDTO();
-    for (Component comp : components) {
-      ApiReportComponentDTO component = new ApiReportComponentDTO();
-      component.hash = comp.getHash();
-      ApiMavenCoordinatesDTO coords = new ApiMavenCoordinatesDTO();
-      coords.groupId = comp.getGroupId();
-      if (coords.groupId != null) {
-        coords.artifactId = comp.getArtifactId();
-        coords.version = comp.getVersion();
-        component.mavenCoordinates = coords;
+  public ApiReportDataDTO getData(String applicationPublicId, String scanId) throws IOException {
+    ApiReportDataDTOV2 reportDataV2 = reportDataService.getData(applicationPublicId, scanId);
+    ApiReportDataDTO reportData = null;
+    if (reportDataV2 != null) {
+      reportData = new ApiReportDataDTO();
+      for (ApiReportComponentDTOV2 reportComponentV2 : reportDataV2.components) {
+        reportData.components.add(convert(reportComponentV2));
       }
-      component.matchState = comp.getMatchState().getId();
-      component.proprietary = comp.isProprietary();
-      for (String pathname : comp.getPathnames()) {
-        if (!pathname.startsWith("dependency:")) {
-          component.pathnames.add(pathname);
-        }
-      }
-      if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
-        component.securityData = new ApiSecurityDataDTO();
-        for (SecurityVulnerability vuln : comp.getSecurityVulnerabilities()) {
-          ApiSecurityIssueDTO sv = new ApiSecurityIssueDTO();
-          sv.source = vuln.getSource();
-          sv.reference = vuln.getRefId();
-          sv.severity = vuln.getSeverity();
-          sv.status = vuln.getStatus().getName();
-          component.securityData.securityIssues.add(sv);
-        }
-        component.licenseData = new ApiLicenseDataDTO();
-        component.licenseData.status = comp.getLicenseOverrideStatus().getName();
-        convertLicenses(component.licenseData.declaredLicenses, comp.getDeclaredLicenseIds());
-        convertLicenses(component.licenseData.observedLicenses, comp.getObservedLicenseIds());
-        if (comp.getLicenseOverrideId() != null) {
-          convertLicenses(component.licenseData.overriddenLicenses, Collections.singleton(comp.getLicenseOverrideId()));
-        }
-      }
-      data.components.add(component);
     }
-
-    return data;
+    return reportData;
   }
 
-  private void convertLicenses(List<ApiLicenseDTO> licenses, Collection<String> licenseIds) {
-    for (String licenseId : licenseIds) {
-      ApiLicenseDTO license = new ApiLicenseDTO();
-      license.licenseId = licenseId;
-      license.licenseName = multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName();
-      licenses.add(license);
+  private ApiReportComponentDTO convert(ApiReportComponentDTOV2 reportComponentV2) {
+    ApiReportComponentDTO reportComponent = new ApiReportComponentDTO();
+    reportComponent.hash = reportComponentV2.hash;
+    reportComponent.matchState = reportComponentV2.matchState;
+    reportComponent.proprietary = reportComponentV2.proprietary;
+    reportComponent.pathnames = reportComponentV2.pathnames;
+    reportComponent.licenseData = reportComponentV2.licenseData;
+    reportComponent.securityData = reportComponentV2.securityData;
+    if (reportComponentV2.componentIdentifier != null
+        && ComponentIdentifier.FORMAT_MAVEN.equals(reportComponentV2.componentIdentifier.getFormat())) {
+      reportComponent.mavenCoordinates = new ApiMavenCoordinatesDTO();
+      reportComponent.mavenCoordinates.groupId = reportComponentV2.componentIdentifier.getCoordinates().get(
+          ComponentIdentifier.MAVEN_GROUP_ID);
+      reportComponent.mavenCoordinates.artifactId = reportComponentV2.componentIdentifier.getCoordinates().get(
+          ComponentIdentifier.MAVEN_ARTIFACT_ID);
+      reportComponent.mavenCoordinates.version = reportComponentV2.componentIdentifier.getCoordinates().get(
+          ComponentIdentifier.VERSION);
     }
+    return reportComponent;
   }
 }

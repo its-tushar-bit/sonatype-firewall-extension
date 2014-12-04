@@ -21,6 +21,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
+/**
+ * @deprecated since 1.13.0, because the tested class is deprecated
+ */
+@Deprecated
 public class ApiSearchResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

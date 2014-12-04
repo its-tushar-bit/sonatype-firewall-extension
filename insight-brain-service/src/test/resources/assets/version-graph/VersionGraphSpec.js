@@ -117,12 +117,12 @@ var clmEndpointTemplate = {
       }));
 
       it('Insight.setCoordinates with unknown', inject(function (Coordinates, Properties) {
-        Insight.setCoordinates('unknown', null,
+        Insight.setCoordinates(null, null,
           { matchState : 'unknown', proprietary : false , filename : 'foo.jar', hash : 'abc123'});
 
         expect(Coordinates.get()).toEqual({ });
         expect(Coordinates.getSelected()).toEqual({  });
-        expect(Coordinates.getFormat()).toEqual('unknown');
+        expect(Coordinates.getFormat()).toEqual(null);
 
         expect(Properties.getMatchState()).toEqual('unknown');
         expect(Properties.getProprietary()).toEqual(false);

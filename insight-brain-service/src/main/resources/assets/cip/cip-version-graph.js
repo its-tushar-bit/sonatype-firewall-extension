@@ -38,6 +38,7 @@
             proprietary: component.proprietary,
             appId: applicationId
           };
+          ComponentUtil.enhanceWithComponentIdentifier(component);
           if (component.componentIdentifier) {
             Insight.setCoordinates(component.componentIdentifier.format, component.componentIdentifier.coordinates,
               properties);

@@ -37,8 +37,42 @@
         }).join('');
       };
 
+      /**
+       * @since 1.13.0
+       * Exists to enhance legacy report data structure with componentIdentifier where needed
+       * @param component representation of a coordinate agnostic component or maven GAV
+       */
+      var enhanceWithComponentIdentifier = function(component) {
+        var componentIdentifier = component.componentIdentifier;
+        if (!componentIdentifier) {
+          // This component represents an unknown or maven GAV.
+          var coordinates = null;
+          if (component.groupId) {
+            coordinates = {
+              groupId: component.groupId,
+              artifactId: component.artifactId,
+              version: component.version
+            };
+            // Extension and classifier properties should only populated for claimed components in data prior to v1.13.0
+            if (component.extension) {
+              coordinates.extension = component.extension;
+            }
+            if (component.classifier) {
+              coordinates.classifier = component.classifier;
+            }
+            angular.extend(component, {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: coordinates
+              }
+            });
+          }
+        }
+      };
+
       return {
-        setDisplayNameAndCoordinates: setDisplayNameAndCoordinates
+        setDisplayNameAndCoordinates: setDisplayNameAndCoordinates,
+        enhanceWithComponentIdentifier: enhanceWithComponentIdentifier
       };
     }
   ]);

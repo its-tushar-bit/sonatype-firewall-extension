@@ -28,7 +28,30 @@ describe('ComponentUtils tests', function() {
         expect(component.displayName.parts[0].value).toBe('(Anonymized Path) SHA1: ');
         expect(component.displayName.parts[1].field).toBe('Hash');
         expect(component.displayName.parts[1].value).toBe(component.hash);
-    }));
+      }));
   });
 
+  describe('We are able to enhance a legacy data structure with componentIdentifier', function() {
+    it('Can enhance reports with unknown componentIdentifier', inject(function(ComponentUtil) {
+      var component = {};
+      ComponentUtil.enhanceWithComponentIdentifier(component);
+      expect(component.componentIdentifier).toBeFalsy();
+    }));
+
+    it('Can enhance reports with GAV(EC) only', inject(function(ComponentUtil) {
+      //extension and classifier are included as they may be present for claimed components
+      var component = {
+        groupId: 'g',
+        artifactId: 'a',
+        version: 'v',
+        extension: 'e',
+        classifier: 'c'
+      };
+      var copy = angular.copy(component);
+      ComponentUtil.enhanceWithComponentIdentifier(copy);
+      expect(copy.componentIdentifier).toBeTruthy();
+      expect(copy.componentIdentifier.format).toBe('maven');
+      expect(copy.componentIdentifier.coordinates).toEqual(component);
+    }));
+  });
 });

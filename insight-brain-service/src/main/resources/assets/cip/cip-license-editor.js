@@ -36,11 +36,15 @@
       me.node.empty();
       container.appendTo(this.node);
 
-      angular.module('componentProvider' + timestamp, []).service('SelectedComponent', function() {
-          return me.component || me.gav;
-      }).service('DataView', function() {
-            return me.grid.getData();
-          });
+      angular.module('componentProvider' + timestamp, ['ComponentUtils']).service('SelectedComponent', [
+        'ComponentUtil', function(ComponentUtil) {
+          var component = me.component || me.gav;
+          ComponentUtil.enhanceWithComponentIdentifier(component);
+          return component;
+        }
+      ]).service('DataView', function() {
+        return me.grid.getData();
+      });
 
       angular.bootstrap(container[0], ['LicenseEditor', 'componentProvider' + timestamp]);
     };

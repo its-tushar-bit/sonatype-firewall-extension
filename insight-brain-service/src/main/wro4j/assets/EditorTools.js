@@ -182,7 +182,8 @@
   ]);
 
   module.directive('clmEditable', ['$parse', 'regexFactory', function ($parse, regexFactory) {
-    var alphaNumericRegex = new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i');
+    var invalidCharsRegex = new RegExp('[^-\\. _' + regexFactory.allLetters().source + '0-9]', 'i');
+    var spaceRegex = new RegExp('\\s', 'i');
     return {
       template : '<span><span ng-click="myForm.$show()"' +
           'editable-text="model[modelField]"' +
@@ -198,6 +199,7 @@
         duplicateIdField : '@',
         emptyText : '@',
         whitespaceCheck : '@',
+        noSpaces : '@',
         model : '=',
         modelField : '@',
         invalid : '=?',
@@ -232,7 +234,7 @@
         scope.check = function (val) {
           val = val || '';
           scope.invalid = true;
-          // check dupe
+          // check duplicate
           if (scope.duplicateArray) {
             var duplicate = false,
                 lowercaseVal = val.toLowerCase();
@@ -247,11 +249,15 @@
               return 'Already in use';
             }
           }
-          // check alpha
-          if (val.match(alphaNumericRegex)) {
-            return 'Name must be alpha numeric';
+          // check if spaces are not allowed
+          if(scope.noSpaces && val.match(spaceRegex)) {
+            return 'Spaces or tabs are not allowed';
           }
-          // check spaces
+          // check for invalid characters
+          if (val.match(invalidCharsRegex)) {
+            return 'Only alpha numeric,'+ (scope.noSpaces ? '' : ' spaces,')+' dash, underscore, or dot characters are allowed';
+          }
+          // check for double spaces or tabs
           if (scope.whitespaceCheck  && val.match(/^ | {2,}|\t| $/)) {
             return 'No double spaces or tabs in name';
           }

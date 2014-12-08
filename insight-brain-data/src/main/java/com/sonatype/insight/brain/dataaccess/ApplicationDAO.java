@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 
@@ -46,6 +47,8 @@ public class ApplicationDAO
     extends AbstractOperationalSqlDAO<Application>
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationDAO.class);
+
+  private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
 
   @Override
   public Application getById(EntityManager em, String id) {
@@ -199,6 +202,7 @@ public class ApplicationDAO
   @Override
   public void insert(EntityManager em, Application application) {
     validate(application);
+    validatePublicId(application.getPublicId());
 
     if (getByName(em, application.getName()) != null) {
       throw new InvalidNameException(application.getName() + " is already used as a name.");
@@ -367,10 +371,12 @@ public class ApplicationDAO
 
   private void validate(Application application) {
     NameHelper.validate(application.getName());
+  }
 
-    final String applicationPublicId = application.getPublicId();
-    if (applicationPublicId == null || applicationPublicId.trim().isEmpty()) {
-      throw new InvalidApplicationException("A public ID is required to save an application.");
+  private void validatePublicId(String publicId) {
+    NameHelper.validate("Public ID", publicId);
+    if (WHITESPACE_PATTERN.matcher(publicId).find()) {
+      throw new InvalidApplicationException("Public ID cannot contain whitespaces.");
     }
   }
 

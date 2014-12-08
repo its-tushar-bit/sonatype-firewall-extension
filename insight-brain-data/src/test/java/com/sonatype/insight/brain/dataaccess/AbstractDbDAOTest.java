@@ -25,8 +25,8 @@ public abstract class AbstractDbDAOTest
   @Before
   public void setup() {
     organization = tempEntity.newOrganization("AbstractDbDAOTest");
-    application = tempEntity
-        .newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest_AppPublicId", organization.getId());
+    application = tempEntity.newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest-AppPublicId",
+        organization.getId());
     applicationId = application.getId();
   }
 }

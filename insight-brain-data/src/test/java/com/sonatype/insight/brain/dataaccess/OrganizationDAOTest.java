@@ -46,6 +46,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -176,7 +177,7 @@ public class OrganizationDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
     }
   }
@@ -190,8 +191,24 @@ public class OrganizationDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Insert() {
+    for (String name : NameHelperTest.VALID_NAMES) {
+      tempEntity.newOrganization(name);
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Update() {
+    Organization organization = tempEntity.newOrganization("a");
+    for (String name : NameHelperTest.VALID_NAMES) {
+      organization.setName(name);
+      dao.update(organization);
     }
   }
 

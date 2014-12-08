@@ -391,7 +391,7 @@ var AngularStateUtils = {
    */
   angularCommon.directive('alphaNumeric', [
     'regexFactory', function(regexFactory) {
-      var alphaNumericRegex = new RegExp('[^-' + regexFactory.allLetters().source + '0-9 ]', 'i');
+      var alphaNumericRegex = new RegExp('[^-\\._' + regexFactory.allLetters().source + '0-9 ]', 'i');
       return {
         require: 'ngModel',
         restrict: 'A',

@@ -209,7 +209,8 @@ public class UserDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("The username must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The username", username.charAt(0)),
+            expected.getMessage());
       }
     }
   }
@@ -224,8 +225,32 @@ public class UserDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("The username must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "The username", username.charAt(0)),
+            expected.getMessage());
       }
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Insert() {
+    for (String name : NameHelperTest.VALID_NAMES) {
+      if (name.contains(" ")) {
+        continue;
+      }
+      tempEntity.newUser(name);
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Update() {
+    UserDAO dao = new UserDAO();
+    User user = tempEntity.newUser("a");
+    for (String name : NameHelperTest.VALID_NAMES) {
+      if (name.contains(" ")) {
+        continue;
+      }
+      user.setUsername(name);
+      dao.update(user);
     }
   }
 

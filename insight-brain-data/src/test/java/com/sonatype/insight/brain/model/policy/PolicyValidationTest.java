@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
@@ -22,6 +23,9 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class PolicyValidationTest
 {
@@ -74,11 +78,24 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    String[] invalidAlphaNumericNames = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
-    for (String name : invalidAlphaNumericNames) {
+    for (String name : NameHelperTest.INVALID_ALPHANUMERIC) {
       policy.setName(name);
       ValidationResult result = policy.validate(applicationId);
-      assertValidationResultHasErrors(result, "The policy name must be alpha numeric.");
+      assertValidationResultHasErrors(result,
+          String.format(NameHelper.INVALID_CHAR_MESSAGE, "The policy name", name.charAt(0)));
+    }
+  }
+
+  @Test
+  public void testValidate_NameValidChars() {
+    Policy policy = new Policy();
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    for (String name : NameHelperTest.VALID_NAMES) {
+      policy.setName(name);
+      ValidationResult result = policy.validate(applicationId);
+      assertThat(result.isValid(), is(true));
     }
   }
 

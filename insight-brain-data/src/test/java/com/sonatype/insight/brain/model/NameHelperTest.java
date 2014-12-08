@@ -20,12 +20,17 @@ public class NameHelperTest
   /**
    * A sample of characters not allowed.
    */
-  public static final String[] INVALID_ALPHANUMERIC = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "_", "+" };
+  public static final String[] INVALID_ALPHANUMERIC = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+" };
 
   public static final String[] INVALID_SPACING_NAMES = {
       " leading space", "trailing space ", " leading and trailing space ",
       "double  space", "  starts with double space", "ends with double space  "
   };
+
+  // The names must be case-insensitive unique in order to avoid test failures due to entity names being
+  // case-insensitive unique.
+  public static final String[] VALID_NAMES = { "abcdefghijklmnopqrstuvwxyz", "BACDEFGHIJKLMNOPQRSTUVWXYZ",
+      "1234567890", "-", ".", "_", "a b" };
 
   @Test
   public void validateNameCanNotBeBlank() throws Exception {
@@ -37,11 +42,9 @@ public class NameHelperTest
 
   @Test
   public void validateAllowedCharactersForName() {
-    // A sample of allowed characters, guessing that unicode characters are allowed too
-    NameHelper.validate("abcdefghijklmnopqrstuvwxyz");
-    NameHelper.validate("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    NameHelper.validate("1234567890");
-    NameHelper.validate("-");
+    for (String name : VALID_NAMES) {
+      NameHelper.validate(name);
+    }
   }
 
   @Test
@@ -52,10 +55,10 @@ public class NameHelperTest
   @Test
   public void validateNameCanNotHaveSpecialCharacters() throws Exception {
     for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
-      verifyNameHasBadCharacter(name);
+      verifyNameHasBadCharacter(name, name.charAt(0));
     }
 
-    verifyNameHasBadCharacter("tab\tspace");  // maybe should be a whitespace validation error
+    verifyNameHasBadCharacter("tab\tspace", '\t'); // maybe should be a whitespace validation error
   }
 
   @Test
@@ -76,13 +79,13 @@ public class NameHelperTest
     }
   }
 
-  private void verifyNameHasBadCharacter(String name) {
+  private void verifyNameHasBadCharacter(String name, char c) {
     try {
       NameHelper.validate(name);
       fail("Expected validation exception for bad characters in name");
     }
     catch (InvalidNameException validationException) {
-      assertThat(validationException, hasMessage("Name must be alpha numeric."));
+      assertThat(validationException, hasMessage(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", c)));
     }
   }
 

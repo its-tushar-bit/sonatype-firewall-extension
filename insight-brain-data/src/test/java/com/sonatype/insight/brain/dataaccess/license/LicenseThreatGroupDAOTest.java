@@ -411,7 +411,7 @@ public class LicenseThreatGroupDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
     }
   }
@@ -428,8 +428,25 @@ public class LicenseThreatGroupDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Insert() {
+    for (String name : NameHelperTest.VALID_NAMES) {
+      tempEntity.newLicenseThreatGroup(applicationId, name, 5);
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Update() {
+    LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
+    LicenseThreatGroup group = tempEntity.newLicenseThreatGroup(applicationId, "a", 5);
+    for (String name : NameHelperTest.VALID_NAMES) {
+      group.setName(name);
+      dao.update(group);
     }
   }
 

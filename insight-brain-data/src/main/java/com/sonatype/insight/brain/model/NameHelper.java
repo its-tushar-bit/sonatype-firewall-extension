@@ -9,6 +9,8 @@ import java.util.Locale;
 
 public class NameHelper
 {
+  public static final String INVALID_CHAR_MESSAGE = "%s contains an invalid character: '%c'.";
+
   public static final int MAX_NAME_LENGTH = 60;
 
   private NameHelper() {
@@ -37,8 +39,8 @@ public class NameHelper
       throw new InvalidNameException(fieldName + " is required.");
     }
     for (char c : fieldValue.toCharArray()) {
-      if (!Character.isLetterOrDigit(c) && c != '-' && c != ' ') {
-        throw new InvalidNameException(fieldName + " must be alpha numeric.");
+      if (!Character.isLetterOrDigit(c) && "-._ ".indexOf(c) < 0) {
+        throw new InvalidNameException(String.format(INVALID_CHAR_MESSAGE, fieldName, c));
       }
     }
     if (fieldValue.startsWith(" ") || fieldValue.endsWith(" ") || fieldValue.indexOf("  ") > 0) {

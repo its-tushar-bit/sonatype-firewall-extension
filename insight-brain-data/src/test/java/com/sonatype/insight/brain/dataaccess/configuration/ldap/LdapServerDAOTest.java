@@ -131,7 +131,7 @@ public class LdapServerDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
     }
   }
@@ -146,8 +146,24 @@ public class LdapServerDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Insert() {
+    for (String name : NameHelperTest.VALID_NAMES) {
+      tempEntity.newLdapServer(name);
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Update() {
+    LdapServer ldapServer = tempEntity.newLdapServer("a");
+    for (String name : NameHelperTest.VALID_NAMES) {
+      ldapServer.setName(name);
+      dao.update(ldapServer);
     }
   }
 

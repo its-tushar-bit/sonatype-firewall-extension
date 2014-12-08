@@ -142,7 +142,7 @@ public class TagDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
     }
   }
@@ -158,8 +158,24 @@ public class TagDAOTest
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException expected) {
-        assertEquals("Name must be alpha numeric.", expected.getMessage());
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0)), expected.getMessage());
       }
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Insert() {
+    for (String name : NameHelperTest.VALID_NAMES) {
+      tempEntity.newTag(organization.getId(), name);
+    }
+  }
+
+  @Test
+  public void testValidateNameValidChars_Update() {
+    Tag tag = tempEntity.newTag(organization.getId(), "a");
+    for (String name : NameHelperTest.VALID_NAMES) {
+      tag.setName(name);
+      dao.update(tag);
     }
   }
 

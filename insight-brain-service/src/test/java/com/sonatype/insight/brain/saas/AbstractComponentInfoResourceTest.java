@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.mock.UriParamRequestMatcher;
 
 import com.ning.http.client.Response;
@@ -683,29 +684,34 @@ public abstract class AbstractComponentInfoResourceTest
     Application application = new Application(applicationPublicId, "name", tempEntity.newOrganization().getId());
     application.setId("appid_with_unsafe_characters");
     EntityManager em = dao.createEntityManager();
-    em.getTransaction().begin();
-    em.persist(application);
-    em.getTransaction().commit();
-
     try {
-      String groupId = "ug1";
-      String artifactId = "ua1";
-      String version = "uv1";
-      String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
-          "01234567890123456789", "unknown");
-      ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
-      setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
-      Response response = AuthedRestAccess.get(serviceUrl);
-      assertResponseStatus(200, response);
+      em.getTransaction().begin();
+      em.persist(application);
+      em.getTransaction().commit();
 
-      ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
-      Assert.assertNotNull(componentDetails);
-      assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
+      try {
+        String groupId = "ug1";
+        String artifactId = "ua1";
+        String version = "uv1";
+        String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
+            "01234567890123456789", "unknown");
+        ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
+        setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
+        Response response = AuthedRestAccess.get(serviceUrl);
+        assertResponseStatus(200, response);
+
+        ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
+        Assert.assertNotNull(componentDetails);
+        assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
+      }
+      finally {
+        em.getTransaction().begin();
+        em.remove(application);
+        em.getTransaction().commit();
+      }
     }
     finally {
-      em.getTransaction().begin();
-      em.remove(application);
-      em.getTransaction().commit();
+      AbstractDAO.close(em);
     }
   }
 

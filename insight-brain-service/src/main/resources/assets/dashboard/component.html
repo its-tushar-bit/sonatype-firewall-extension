@@ -62,7 +62,7 @@
             </td>
             <td ng-repeat='stageDetails in applicationComponent.stageDetails' class="stage-column">
               <a title="View application report"
-                 ng-href="index.html#/reports/{{applicationComponent.application.publicId | EncodeURIComponent }}/{{stageDetails.scanId}}"
+                 ng-href="index.html#/reports/{{applicationComponent.application.publicId | EncodeURIComponent }}/{{stageDetails.scanId | EncodeURIComponent}}"
                  target="_blank" ng-if="stageDetails.time > 0">
                   {{stageDetails.time | terseAgo}}
                   <i class="sonatype-icons pad-left"
@@ -94,7 +94,7 @@
                             ng-class="{ 'latest-risk': stageDetails.time === policyViolation.time }"
                             class="stage-column stage-column-{{stageDetails.stageTypeId}}">
                           <a title="View application report"
-                             ng-href="index.html#/reports/{{applicationComponent.application.publicId | EncodeURIComponent }}/{{stageDetails.scanId}}"
+                             ng-href="index.html#/reports/{{applicationComponent.application.publicId | EncodeURIComponent }}/{{stageDetails.scanId | EncodeURIComponent}}"
                              target="_blank" ng-if="stageDetails.time > 0">
                               {{stageDetails.time | terseAgo}}
                               <i class="sonatype-icons pad-left"

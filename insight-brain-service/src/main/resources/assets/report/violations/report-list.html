@@ -42,7 +42,7 @@
                 <div ng-if='application.policyEvaluationsResults[stage.id]'>
                   <div>
                     <a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
-                        href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
+                        href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId | EncodeURIComponent}}'>
                       <div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
                         severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
                         moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
@@ -50,7 +50,7 @@
                     </a>
                   </div>
                   <div>
-                    <a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId}}'>
+                    <a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId | EncodeURIComponent}}'>
                       {{application.policyEvaluations[stage.id].time | ago}}</a>
                   </div>
                 </div>

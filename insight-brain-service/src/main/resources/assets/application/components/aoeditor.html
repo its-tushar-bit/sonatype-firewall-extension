@@ -7,7 +7,7 @@
         </span>
         <div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
           <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
-             ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId}}' target='_blank'>
+             ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId | EncodeURIComponent}}' target='_blank'>
             <span chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
                severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
                moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>
@@ -325,19 +325,19 @@
     <div ng-if='ao.selected && !ao.isNew()' style='clear:both'>
       <ul class='tri-pane underline'>
         <li ng-class='{ active : isCurrentTab("policies") || isCurrentTab("policies.edit") || isCurrentTab("policies.new") }'>
-          <a id='tab-button-policies' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/policies'>POLICIES</a>
+          <a id='tab-button-policies' ng-href='#/management/{{ao.type}}/{{ao.getPublicId() | EncodeURIComponent}}/policies'>POLICIES</a>
         </li>
         <li ng-class='{ active : isCurrentTab("labels") || isCurrentTab("labels.new")}'>
-          <a id='tab-button-labels' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/labels'>LABELS</a>
+          <a id='tab-button-labels' ng-href='#/management/{{ao.type}}/{{ao.getPublicId() | EncodeURIComponent}}/labels'>LABELS</a>
         </li>
         <li ng-class='{ active : isCurrentTab("licenses") || isCurrentTab("licenses.new")}'>
-          <a id='tab-button-licenses' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/licenses'>LICENSES</a>
+          <a id='tab-button-licenses' ng-href='#/management/{{ao.type}}/{{ao.getPublicId() | EncodeURIComponent}}/licenses'>LICENSES</a>
         </li>
         <li ng-class='{ active : isCurrentTab("tags") || isCurrentTab("tags.new")}'>
-          <a id='tab-button-tags' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/tags'>TAGS</a>
+          <a id='tab-button-tags' ng-href='#/management/{{ao.type}}/{{ao.getPublicId() | EncodeURIComponent}}/tags'>TAGS</a>
         </li>
         <li ng-class='{ active : isCurrentTab("security")}'>
-          <a id='tab-button-security' ng-href='#/management/{{ao.type}}/{{ao.getPublicId()}}/security'>SECURITY</a>
+          <a id='tab-button-security' ng-href='#/management/{{ao.type}}/{{ao.getPublicId() | EncodeURIComponent}}/security'>SECURITY</a>
         </li>
       </ul>
       <div ui-view style='margin:25px'></div>

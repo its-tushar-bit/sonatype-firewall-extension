@@ -53,7 +53,7 @@
         <tr class='stage' ng-repeat-end ng-repeat='stage in application.stageRisks'
             ng-if='expanded[application.applicationId]'>
           <td><a title="View application report" class="glyphicons-sonatype link"
-                 ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId}}"
+                 ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
                  target="_blank">{{stage.stageTypeName | uppercase}}</a></td>
           <td class="total-risk" ng-class="{ 'muted-text': stage.risk.totalRisk === 0 }">
             {{stage.risk.totalRisk}}</td>

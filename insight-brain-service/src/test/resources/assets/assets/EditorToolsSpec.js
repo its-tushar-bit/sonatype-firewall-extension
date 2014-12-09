@@ -379,11 +379,7 @@ describe('EditorToolsSpec', function() {
         scope.$digest();
         expect(scope.$invalid).not.toBeTruthy();
 
-        expect(directiveScope.check('._ -')).toEqual(null);
-        scope.$digest();
-        expect(scope.$invalid).not.toBeTruthy();
-        
-        expect(directiveScope.check('Foo&Bar')).toEqual('Only alpha numeric, spaces, dash, underscore, or dot characters are allowed');
+        expect(directiveScope.check('Foo&Bar')).toEqual('Name must be alpha numeric');
         scope.$digest();
         expect(scope.$invalid).toBeTruthy();
       });
@@ -413,20 +409,6 @@ describe('EditorToolsSpec', function() {
           });
 
           expect(directiveScope.check('foo')).toEqual('Already in use');
-          scope.$digest();
-          expect(scope.$invalid).toBeTruthy();
-        });
-      });
-      
-      describe('No Spaces', function () {
-        it('Spaces Validation', function () {
-          directiveScope.noSpaces = 'true';
-          expect(directiveScope.check('f oo')).toEqual('Spaces or tabs are not allowed');
-          scope.$digest();
-          expect(scope.$invalid).toBeTruthy();
-          
-          directiveScope.noSpaces = 'true';
-          expect(directiveScope.check('Foo&Bar')).toEqual('Only alpha numeric, dash, underscore, or dot characters are allowed');
           scope.$digest();
           expect(scope.$invalid).toBeTruthy();
         });

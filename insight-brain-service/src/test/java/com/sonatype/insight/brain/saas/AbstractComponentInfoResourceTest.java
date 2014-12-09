@@ -675,7 +675,7 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   @Test
-  public void testGetComponentDetails_AppIdWithUnsafeCharacters() throws Exception {
+  public void testGetComponentDetails_AppPublicIdWithUnsafeCharacters() throws Exception {
     String applicationPublicId = "bom 1&2%20?";
 
     // By passing the DAO since the only way an application public ID could get into this state is if it already existed
@@ -688,31 +688,25 @@ public abstract class AbstractComponentInfoResourceTest
       em.getTransaction().begin();
       em.persist(application);
       em.getTransaction().commit();
-
-      try {
-        String groupId = "ug1";
-        String artifactId = "ua1";
-        String version = "uv1";
-        String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
-            "01234567890123456789", "unknown");
-        ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
-        setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
-        Response response = AuthedRestAccess.get(serviceUrl);
-        assertResponseStatus(200, response);
-
-        ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
-        Assert.assertNotNull(componentDetails);
-        assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
-      }
-      finally {
-        em.getTransaction().begin();
-        em.remove(application);
-        em.getTransaction().commit();
-      }
+      tempEntity.register(application);
     }
     finally {
       AbstractDAO.close(em);
     }
+
+    String groupId = "ug1";
+    String artifactId = "ua1";
+    String version = "uv1";
+    String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
+        "01234567890123456789", "unknown");
+    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
+    setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
+    Response response = AuthedRestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
+    Assert.assertNotNull(componentDetails);
+    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
   }
 
   @Test

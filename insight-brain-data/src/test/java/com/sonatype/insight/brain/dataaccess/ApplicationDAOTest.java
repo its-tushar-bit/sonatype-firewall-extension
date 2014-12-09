@@ -76,6 +76,9 @@ import static org.junit.Assert.fail;
 public class ApplicationDAOTest
     extends AbstractDbDAOTest
 {
+  /** Prohibited application public ID whitespace characters. */
+  public static final char[] PUBLIC_ID_WHITESPACE_CHARS = { '\t', '\n', '\u000B', '\f', '\r' };
+
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Rule
@@ -197,27 +200,67 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testValidateNullPublicId_Insert() {
-    Application app = new Application(null, "name", organization.getId());
-    try {
-      applicationDAO.insert(app);
-      fail("Expected InvalidApplicationException");
-    }
-    catch (InvalidApplicationException expected) {
-      assertEquals("A public ID is required to save an application.", expected.getMessage());
+  public void testValidatePublicIdValidChars_Insert() {
+    for (String publicId : NameHelperTest.VALID_NAMES) {
+      tempEntity.newApplication(tempEntity.uuid(), publicId.replaceAll("\\s", ""), organization.getId());
     }
   }
 
   @Test
-  public void testValidateNullPublicId_Update() {
-    application.setPublicId(" ");
-    application.setName(application.getName() + "1");
-    try {
-      applicationDAO.update(application);
-      fail("Expected InvalidApplicationException");
+  public void testValidatePublicIdInvalidChars_Insert() {
+    Application app = new Application(null, "name", organization.getId());
+    for (String publicId : NameHelperTest.INVALID_ALPHANUMERIC) {
+      app.setPublicId(publicId);
+      try {
+        applicationDAO.insert(app);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException expected) {
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", publicId.charAt(0)),
+            expected.getMessage());
+      }
     }
-    catch (InvalidApplicationException expected) {
-      assertEquals("A public ID is required to save an application.", expected.getMessage());
+  }
+
+  @Test
+  public void testValidateNullPublicId_Insert() {
+    Application app = new Application(null, "name", organization.getId());
+    try {
+      applicationDAO.insert(app);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Public ID is required.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidateEmptyPublicId_Insert() {
+    Application app = new Application("", "name", organization.getId());
+    try {
+      applicationDAO.insert(app);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("Public ID is required.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testValidatePublicIdWithWhitespaces_Insert() {
+    Application app = new Application(null, "name", organization.getId());
+    for (char invalidChar : PUBLIC_ID_WHITESPACE_CHARS) {
+      app.setPublicId("foo" + invalidChar + "bar");
+      try {
+        applicationDAO.insert(app);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidApplicationException expected) {
+        assertEquals("Public ID cannot contain whitespaces.", expected.getMessage());
+      }
+      catch (InvalidNameException expected) {
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", invalidChar), expected.getMessage());
+      }
     }
   }
 

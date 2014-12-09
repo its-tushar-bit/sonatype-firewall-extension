@@ -33,8 +33,7 @@ import spock.lang.Shared
 
 @Slf4j
 abstract class BaseSpec
-    extends GebReportingSpec
-{
+extends GebReportingSpec {
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
   }
@@ -49,7 +48,7 @@ abstract class BaseSpec
   @Shared
   @ClassRule
   TestInsightBrainServiceRule serviceRule = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070),
-      PortAllocator.findFreePort(8071), null, "http://localhost:" + hdsPort, false, getBrainModules())
+  PortAllocator.findFreePort(8071), null, "http://localhost:" + hdsPort, false, getBrainModules())
 
   @Shared
   @ClassRule
@@ -69,8 +68,7 @@ abstract class BaseSpec
   public static CLMLicenseManager clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter)
 
   def getBrainModules() {
-    return Arrays.asList(new AbstractModule()
-    {
+    return Arrays.asList(new AbstractModule() {
       @Override
       protected void configure() {
         bind(ProductLicenseManager.class).toInstance(productLicenseManager)
@@ -176,16 +174,14 @@ abstract class BaseSpec
    * @return a reference to the newly loaded Page
    */
   public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage,
-                              Object[] args)
-  {
+      Object[] args) {
     via initialPage, args
     login.login(username, password)
     verifyAt()
     return page
   }
 
-  public <T> T loginAsUserVia(Class<T> initialPage = ReportViolationsPage, Object[] args)
-  {
+  public <T> T loginAsUserVia(Class<T> initialPage = ReportViolationsPage, Object[] args) {
     return loginAsUserVia(getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR, initialPage, args)
   }
 
@@ -196,7 +192,7 @@ abstract class BaseSpec
     waitFor { organizationList.size() > size }
   }
 
-  void createApplication(name = 'test application', id = 'test application', orgName = 'test organization') {
+  void createApplication(name = 'test application', id = 'test-application', orgName = 'test organization') {
     ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
     int size = !applicationList?.empty ? applicationList.size() : 0
     applicationManagementPage.createApp(name, id, orgName)

@@ -34,12 +34,12 @@ class ApplicationSpec
   def "Can create a new Application"() {
     when: 'We add a new Application'
       ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
-      applicationManagementPage.createApp('New Application', 'New Application')
+      applicationManagementPage.createApp('New Application', 'New-Application')
 
     then: 'we are left at the Application page'
       at ApplicationPage
       waitFor { applicationName.text() == 'New Application' }
-      applicationIdSaved.text() == 'New Application'
+      applicationIdSaved.text() == 'New-Application'
 
     and: 'the policy tab is shown by default'
       waitFor { policies.displayed }
@@ -52,7 +52,7 @@ class ApplicationSpec
   def "Policy evaluation summary lists stages in chronological order"() {
     given: 'at least one policy evaluation for the app'
       temporaryEntity.
-          newPolicyEvaluation(new ApplicationDAO().getByPublicIdNotNull('New Application').id, 'build', 'scan-id')
+          newPolicyEvaluation(new ApplicationDAO().getByPublicIdNotNull('New-Application').id, 'build', 'scan-id')
 
     when: 'refreshing the page to reload the policy evaluation summary'
       driver.navigate().refresh()

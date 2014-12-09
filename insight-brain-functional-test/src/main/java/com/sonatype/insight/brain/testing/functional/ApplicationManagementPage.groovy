@@ -7,8 +7,7 @@ package com.sonatype.insight.brain.testing.functional
 
 
 class ApplicationManagementPage
-    extends BasePage
-{
+extends BasePage {
   static url = "assets/index.html#/management/application"
 
   static at = { newApplicationButton.displayed }
@@ -16,10 +15,11 @@ class ApplicationManagementPage
   static content = {
     newApplicationButton(wait: true, to: ApplicationPage) { $('#nav-create-app') }
     applicationList(required: false) { $('#nav-app-list > li[ng-repeat] > a') }
-    application { name -> applicationList.find { it.text() == name } }
+    application { name -> applicationList.find { it.text() == name
+      } }
   }
 
-  void createApp(name = 'test application', id = 'test application', orgName = 'test organization') {
+  void createApp(name = 'test application', id = 'test-application', orgName = 'test organization') {
     newApplicationButton.click()
     browser.with {
       ApplicationPage applicationPage = at(ApplicationPage)

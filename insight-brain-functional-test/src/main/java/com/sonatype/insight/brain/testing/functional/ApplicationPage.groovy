@@ -16,8 +16,7 @@ import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringMod
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
 
 class ApplicationPage
-    extends ApplicationManagementPage
-{
+extends ApplicationManagementPage {
   static at = { $('#applicationEditor').displayed }
 
   static content = {
@@ -60,9 +59,8 @@ class ApplicationPage
     tags { module TagApplicationModule, tabs.tagTab }
   }
 
-  void editNewApp(String name = 'test application', String id = 'test application',
-                  String orgName = 'test organization')
-  {
+  void editNewApp(String name = 'test application', String id = 'test-application',
+      String orgName = 'test organization') {
     applicationId.click()
     waitFor { applicationIdField.displayed }
     applicationIdField = id

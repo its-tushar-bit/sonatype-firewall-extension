@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.migration.PolicyDroolsCodeMigrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -21,6 +20,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -38,7 +38,7 @@ public class PolicyDroolsCodeMigratorTest
   @Test
   public void testMigrate() throws Exception {
     // Create test data
-    Application app = tempEntity.newApplicationWithParent("PolicyDroolsCodeMigratorTest App",
+    Application app = tempEntity.newApplicationWithParent("PolicyDroolsCodeMigratorTest-App",
         "PolicyDroolsCodeMigratorTestAppId");
     Policy policyApp = tempEntity.newPolicy(app.getId(), "policyApp");
     Policy policyOrg = tempEntity.newPolicy(app.getOrganizationId(), "policyOrg");

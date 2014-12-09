@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.License;
@@ -51,15 +52,15 @@ import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWith
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.mock.UriParamRequestMatcher;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
-
 import com.ning.http.client.Response;
 import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -675,21 +676,37 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_AppIdWithUnsafeCharacters() throws Exception {
     String applicationPublicId = "bom 1&2%20?";
-    tempEntity.newApplicationWithParent(applicationPublicId);
 
-    String groupId = "ug1";
-    String artifactId = "ua1";
-    String version = "uv1";
-    String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
-        "01234567890123456789", "unknown");
-    ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
-    setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
-    Response response = AuthedRestAccess.get(serviceUrl);
-    assertResponseStatus(200, response);
+    // By passing the DAO since the only way an application public ID could get into this state is if it already existed
+    // from a prior version.
+    ApplicationDAO dao = new ApplicationDAO();
+    Application application = new Application(applicationPublicId, "name", tempEntity.newOrganization().getId());
+    application.setId("appid_with_unsafe_characters");
+    EntityManager em = dao.createEntityManager();
+    em.getTransaction().begin();
+    em.persist(application);
+    em.getTransaction().commit();
 
-    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
-    Assert.assertNotNull(componentDetails);
-    assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
+    try {
+      String groupId = "ug1";
+      String artifactId = "ua1";
+      String version = "uv1";
+      String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
+          "01234567890123456789", "unknown");
+      ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
+      setSaasResponseForURI(convertToSaasUrl(serviceUrl, applicationPublicId), toJson(saasComponentDetails), 200);
+      Response response = AuthedRestAccess.get(serviceUrl);
+      assertResponseStatus(200, response);
+
+      ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
+      Assert.assertNotNull(componentDetails);
+      assertGavInComponentDetails(groupId, artifactId, version, componentDetails);
+    }
+    finally {
+      em.getTransaction().begin();
+      em.remove(application);
+      em.getTransaction().commit();
+    }
   }
 
   @Test

@@ -12,7 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.License;
@@ -50,7 +49,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.mock.UriParamRequestMatcher;
 
 import com.ning.http.client.Response;
@@ -677,22 +675,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_AppPublicIdWithUnsafeCharacters() throws Exception {
     String applicationPublicId = "bom 1&2%20?";
-
-    // By passing the DAO since the only way an application public ID could get into this state is if it already existed
-    // from a prior version.
-    ApplicationDAO dao = new ApplicationDAO();
-    Application application = new Application(applicationPublicId, "name", tempEntity.newOrganization().getId());
-    application.setId("appid_with_unsafe_characters");
-    EntityManager em = dao.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      em.persist(application);
-      em.getTransaction().commit();
-      tempEntity.register(application);
-    }
-    finally {
-      AbstractDAO.close(em);
-    }
+    tempEntity.newApplicationWithInvalidPublicId(applicationPublicId);
 
     String groupId = "ug1";
     String artifactId = "ua1";

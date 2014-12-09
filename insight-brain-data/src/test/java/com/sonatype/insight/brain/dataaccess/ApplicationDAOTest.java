@@ -663,4 +663,18 @@ public class ApplicationDAOTest
       return o1.getId().compareTo(o2.getId());
     }
   }
+
+  @Test
+  public void testUpdateApplicationWithInvalidPublicId() {
+    // Applications can have invalid public IDs if they were created before the public ID validation was introduced. It
+    // should be possible to update these applications without changing the public ID (which is not allowed anyway).
+    String invalidAppId = "App Public Id !@#$%^&*()";
+    Application app = tempEntity.newApplicationWithInvalidPublicId(invalidAppId);
+    String newName = app.getName() + " Updated";
+    app.setName(newName);
+    applicationDAO.update(app);
+    app = applicationDAO.getById(app.getId());
+    assertThat(app.getName(), is(newName));
+    assertThat(app.getPublicId(), is(invalidAppId));
+  }
 }

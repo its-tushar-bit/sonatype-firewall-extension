@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -78,6 +80,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.dataaccess.AbstractDAO;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.rules.ExternalResource;
@@ -311,6 +314,26 @@ public class TemporaryEntity
     Application app = new Application(publicId, name, orgId);
     appDAO.insert(app);
     apps.add(app);
+    return app;
+  }
+
+  /**
+   * Creates an application with an invalid public ID for tests that verify backwards compatibility for existing
+   * applications with public IDs created before the validation for application public IDs was introduced.
+   */
+  public Application newApplicationWithInvalidPublicId(String invalidPublicId) {
+    Application app = new Application(invalidPublicId, "App with Invalid Public ID", newOrganization().getId());
+    app.setId("app_with_invalid_public_id");
+    EntityManager em = appDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      em.persist(app);
+      em.getTransaction().commit();
+      register(app);
+    }
+    finally {
+      AbstractDAO.close(em);
+    }
     return app;
   }
 

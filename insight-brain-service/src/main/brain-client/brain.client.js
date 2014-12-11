@@ -40,7 +40,8 @@ var clmBuildTimestamp = '${build.timestamp}';
     };
   }
 
-  var features = ["policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy"],// Lowercase
+  var features = ["policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy",
+                  "component-identifier"],// Lowercase
       param = window.$ ? $.param : function(obj) {
         var string = '',
             field;
@@ -120,13 +121,13 @@ var clmBuildTimestamp = '${build.timestamp}';
       },
       /**
        * Get the URL for the agnostic coordinate ComponentDetails resource
-       * 
+       *
        * @since version 1.13
        */
       'getComponentUrl' : createComponentUrl('ci'),
       /**
        * Get the URL for the agnostic coordinate ComponentDetailsList resource
-       * 
+       *
        * @since version 1.13
        */
       'getComponentListUrl' : createComponentListUrl('ci')
@@ -134,13 +135,13 @@ var clmBuildTimestamp = '${build.timestamp}';
     'ide': {
       /**
        * Get the URL for the agnostic coordinate ComponentDetails resource
-       * 
+       *
        * @since version 1.13
        */
       'getComponentUrl' : createComponentUrl('ide'),
       /**
        * Get the URL for the agnostic coordinate ComponentDetailsList resource
-       * 
+       *
        * @since version 1.13
        */
       'getComponentListUrl' : createComponentListUrl('ide')
@@ -148,13 +149,13 @@ var clmBuildTimestamp = '${build.timestamp}';
     'rm' : {
       /**
        * Get the URL for the agnostic coordinate ComponentDetails resource
-       * 
+       *
        * @since version 1.13
        */
       'getComponentUrl' : createComponentUrl('rm'),
       /**
        * Get the URL for the agnostic coordinate ComponentDetailsList resource
-       * 
+       *
        * @since version 1.13
        */
       'getComponentListUrl' : createComponentListUrl('rm')

@@ -125,18 +125,11 @@ class LabelSpec
   }
 
   def "We are prevented from saving if the form won't validate"() {
-    when: 'We try to add another label with an invalid name'
-      labels.createNewLabel('Another New Label')
+    when: 'We try to add a label with non-alphanumeric characters'
+      labels.createNewLabel('$')
 
-    then: 'An invalid characters error message appears'
-      popoverText(labels.name) == 'Invalid Character(s)'
-      labels.buttons.save.@disabled
-
-    when: 'We adjust name to use some non-alphanumeric characters'
-      labels.name << '$'
-
-    then: 'The error message remains'
-      popoverText(labels.name) == 'Invalid Character(s)'
+    then: 'The invalid characters error message is displayed'
+      popoverText(labels.name) == 'Must be alpha numeric'
       labels.buttons.save.@disabled
 
     when: 'We remove the content on the required field'
@@ -145,6 +138,13 @@ class LabelSpec
     then: 'A required error message is shown'
       waitFor {  popoverText(labels.name) == 'Please enter a value' }
 
+    when: 'We use a duplicate label'
+      labels.name = 'AnotherNewLabel'
+
+    then: 'The the duplicate label error message is displayed'
+      popoverText(labels.name) == 'Duplicate Label'
+      labels.buttons.save.@disabled
+      
     when: 'We correct the invalid data'
       labels.name = 'AnotherNewLabelAgain'
 

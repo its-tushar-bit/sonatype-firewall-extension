@@ -68,6 +68,16 @@ public class NameHelperTest
     }
   }
 
+  @Test
+  public void validateInvalidNameLength() {
+    try {
+      NameHelper.validate("test-field-name", "test-field-value", 2);
+    }
+    catch (InvalidNameException e) {
+      assertThat(e, hasMessage("test-field-name must be 2 characters or less."));
+    }
+  }
+
   private void verifyNameHasBadWhitespace(String name) {
     try {
       NameHelper.validate(name);

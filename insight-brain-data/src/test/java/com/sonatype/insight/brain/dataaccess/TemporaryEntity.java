@@ -422,6 +422,25 @@ public class TemporaryEntity
     return label;
   }
 
+  /**
+   * Creates a label with invalid label text for backwards compatibility tests. Prior to 1.13 labels could use any
+   * characters except for spaces and tabs.
+   */
+  public Label newLabelWithInvalidLabelText(String ownerId, String labelText, Color color) {
+    Label label = new Label(ownerId, labelText, color);
+    label.setId("label_with_invalid_label_text");
+    EntityManager em = labelDAO.createEntityManager();
+    try {
+      em.getTransaction().begin();
+      em.persist(label);
+      em.getTransaction().commit();
+    }
+    finally {
+      AbstractDAO.close(em);
+    }
+    return label;
+  }
+
   public ComponentLabel newComponentLabel(String ownerId, String labelId){
     return newComponentLabel(ownerId, labelId, uuid().substring(0, 19));
   }

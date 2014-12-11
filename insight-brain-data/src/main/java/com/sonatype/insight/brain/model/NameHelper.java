@@ -35,6 +35,10 @@ public class NameHelper
   }
 
   public static void validate(String fieldName, String fieldValue) throws InvalidNameException {
+    validate(fieldName, fieldValue, MAX_NAME_LENGTH);
+  }
+
+  public static void validate(String fieldName, String fieldValue, int maxNameLength) {
     if (fieldValue == null || fieldValue.trim().isEmpty()) {
       throw new InvalidNameException(fieldName + " is required.");
     }
@@ -47,8 +51,8 @@ public class NameHelper
       throw new InvalidNameException(fieldName
           + " must not have leading or trailing spaces, or have two spaces in a row.");
     }
-    if (fieldValue.length() > MAX_NAME_LENGTH) {
-      throw new InvalidNameException(fieldName + " must be " + NameHelper.MAX_NAME_LENGTH + " characters or less.");
+    if (fieldValue.length() > maxNameLength) {
+      throw new InvalidNameException(fieldName + " must be " + maxNameLength + " characters or less.");
     }
   }
 }

@@ -185,7 +185,7 @@ public class LabelConditionTypeTest
 
   @Test
   public void testEvaluateLabelNameEdgeCase() {
-    Label label1 = tempEntity.newLabel(applicationId, "*/comment-end", Color.green);
+    Label label1 = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/comment-end", Color.green);
     String labelId1 = label1.getId();
 
     List<Constraint> constraints = new ArrayList<Constraint>();

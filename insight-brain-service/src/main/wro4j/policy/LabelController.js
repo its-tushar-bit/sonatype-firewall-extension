@@ -196,23 +196,30 @@
     }
   ]);
 
-  labelModule.directive('itemLabel', function() {
+  labelModule.directive('uniqueLabel', function() {
     return {
       require: 'ngModel',
       link: function(scope, element, attrs, ctrl) {
         ctrl.$parsers.unshift(function(newValue) {
-          var unique = true,
-              notInvalid = newValue.indexOf(' ') === -1 && newValue.indexOf('\t') === -1;
+          // If we have a null or empty value then we don't have a duplicate.
+          if (!newValue) {
+            ctrl.$setValidity('uniqueLabel', true);
+            return newValue;
+          }
 
-          angular.forEach(scope.labels, function(item) {
-            if (item.id !== scope.selectedLabel.id) {
-              unique = unique && (item.label.toLowerCase() !== newValue.toLowerCase());
-            }
+          var unique = true;
+
+          angular.forEach(scope.applicableLabels, function(applicableLabel) {
+            angular.forEach(applicableLabel.labels, function(item) {
+              if (item.id !== scope.selectedLabel.id) {
+                unique = unique && (item.label.toLowerCase() !== newValue.toLowerCase());
+              }
+            });
           });
-          ctrl.$setValidity('duplicate', unique);
-          ctrl.$setValidity('invalid', notInvalid);
 
-          return (unique && notInvalid) ? newValue : undefined;
+          ctrl.$setValidity('uniqueLabel', unique);
+
+          return (unique) ? newValue : undefined;
         });
       }
     };

@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -139,18 +140,7 @@ public class LabelDAO
   }
 
   private void validateLabelText(String label) {
-    if (label == null || label.isEmpty()) {
-      throw new InvalidLabelException("The label text cannot be null or empty");
-    }
-    if (label.contains(" ")) {
-      throw new InvalidLabelException("The label text cannot contain spaces");
-    }
-    if (label.contains("\t")) {
-      throw new InvalidLabelException("The label text cannot contain tabs");
-    }
-    if (label.length() > MAX_NAME_SIZE) {
-      throw new InvalidLabelException("The label text must not exceed 50 characters");
-    }
+    NameHelper.validate("Label name", label, MAX_NAME_SIZE);
   }
 
   @Override
@@ -226,7 +216,12 @@ public class LabelDAO
 
   @Override
   public void update(EntityManager em, Label label) {
-    validateLabelText(label.getLabel());
+    // If the label text hasn't changed, don't validate it. This check is for older labels that may have had non-alpha
+    // numeric characters.
+    Label existingLabel = getById(em, label.getId());
+    if (existingLabel == null || !existingLabel.getLabel().equals(label.getLabel())) {
+      validateLabelText(label.getLabel());
+    }
     validateLabelUnique(em, label, true);
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());

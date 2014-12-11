@@ -91,7 +91,7 @@ describe('LabelController.js', function() {
     }
   });
 
-  describe('LabelController itemLabel tests', function() {
+  describe('LabelController Label Name Tests', function() {
     var scope,
         compileInput,
         setInput;
@@ -114,30 +114,34 @@ describe('LabelController.js', function() {
       };
     }));
 
-    it('Test No Spaces', function() {
-      compileInput("<input type='text' maxlength='50' name='label' ng-model='label'  item-label />");
+    it('Test Spaces', function() {
+      compileInput("<input type='text' maxlength='50' name='label' ng-model='label' unique-label alpha-numeric />");
       setInput('foo');
       expect(scope.form.$invalid).toEqual(false);
-      expect(scope.form.label.$error.invalid).toEqual(false);
+      expect(scope.form.label.$invalid).toEqual(false);
 
       setInput('foo bar');
-      expect(scope.form.$invalid).toEqual(true);
-      expect(scope.form.label.$error.invalid).toEqual(true);
+      expect(scope.form.$invalid).toEqual(false);
+      expect(scope.form.label.$invalid).toEqual(false);
     });
 
     it('Test Duplicate', function() {
       scope.selectedLabel = {};
-      compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label'  item-label />");
-      scope.labels = [
-        { id: 'bar', label: 'bar' }
-      ];
+      compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label' unique-label alpha-numeric />");
+      scope.applicableLabels = [{
+        labels: [{
+          id: 'bar',
+          label: 'bar'
+        }]
+      }];
       setInput('foo');
       expect(scope.form.$invalid).toEqual(false);
-      expect(scope.form.label.$error.duplicate).toEqual(false);
+      expect(scope.form.label.$invalid).toEqual(false);
 
       setInput('bar');
       expect(scope.form.$invalid).toEqual(true);
-      expect(scope.form.label.$error.duplicate).toEqual(true);
+      expect(scope.form.label.$invalid).toEqual(true);
+      expect(scope.form.label.$error.uniqueLabel).toEqual(true);
     });
   });
 

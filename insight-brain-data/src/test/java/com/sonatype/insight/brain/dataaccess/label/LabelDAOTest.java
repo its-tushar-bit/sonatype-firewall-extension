@@ -13,6 +13,9 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -22,44 +25,109 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class LabelDAOTest
     extends AbstractDbDAOTest
 {
   @Test
+  public void testValidateLabelNameInvalidChars_Insert() {
+    LabelDAO dao = new LabelDAO();
+    for (String labelName : NameHelperTest.INVALID_ALPHANUMERIC) {
+      try {
+        dao.insert(new Label(applicationId, labelName, Color.white));
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException e) {
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Label name", labelName.charAt(0)), e.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateLabelNameInvalidChars_Update() {
+    LabelDAO dao = new LabelDAO();
+    Label label = tempEntity.newLabel(applicationId, "label", Color.white);
+    for (String labelName : NameHelperTest.INVALID_ALPHANUMERIC) {
+      label.setLabel(labelName);
+      try {
+        dao.update(label);
+        fail("Expected InvalidNameException");
+      }
+      catch (InvalidNameException e) {
+        assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Label name", labelName.charAt(0)), e.getMessage());
+      }
+    }
+  }
+
+  @Test
+  public void testValidateLabelNameValidChars_Insert() {
+    for (String labelName : NameHelperTest.VALID_NAMES) {
+      tempEntity.newLabel(applicationId, labelName, Color.white);
+    }
+  }
+
+  @Test
+  public void testValidateLabelNameValidChars_Update() {
+    LabelDAO dao = new LabelDAO();
+    Label label = tempEntity.newLabel(applicationId, "label", Color.white);
+    for (String labelName : NameHelperTest.VALID_NAMES) {
+      label.setLabel(labelName);
+      dao.update(label);
+    }
+  }
+
+  @Test
+  public void testOlderLabelUpdate() throws Exception {
+    Label oldLabel = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/clearly_not_valid", Color.blue);
+    LabelDAO dao = new LabelDAO();
+
+    // Update old label without changing label text.
+    oldLabel.setColor(Color.white);
+    dao.update(oldLabel);
+    assertLabel(applicationId, "*/clearly_not_valid", Color.white, null, oldLabel);
+
+    // Attempt to update old label's label text using invalid characters.
+    oldLabel.setLabel("*/a_new_invalid_name");
+    try {
+      dao.update(oldLabel);
+      Assert.fail("Updates to older labels should be validated.");
+    }
+    catch (InvalidNameException e) {
+      assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '*'), e.getMessage());
+    }
+
+    // Should be able to update an older label with a valid label.
+    oldLabel.setLabel("_.- a valid label -._");
+    dao.update(oldLabel);
+    oldLabel = dao.getByIdNotNull(oldLabel.getId());
+    assertLabel(applicationId, "_.- a valid label -._", Color.white, null, oldLabel);
+  }
+
+  @Test
   public void testLabelWithSpaces() throws Exception {
     LabelDAO dao = new LabelDAO();
     Label label = new Label();
     label.setOwnerId(applicationId);
-    label.setLabel("My label");
+    label.setLabel("My Label");
+    label.setDescription("My label description.");
+    label.setColor(Color.blue);
 
-    // Insert
-    try {
-      dao.insert(label);
-      fail("Expected InvalidLabelException");
-    }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot contain spaces".equals(expected.getMessage())) {
-        throw expected;
-      }
-    }
+    // Create
+    dao.insert(label);
+
+    label = dao.getById(label.getId());
+    Assert.assertNotNull(label);
+    assertLabel(applicationId, "My Label", Color.blue, "My label description.", label);
 
     // Update
-    label.setLabel("MyLabel");
-    dao.insert(label);
-    label.setLabel("My UpdatedLabel");
-    try {
-      dao.update(label);
-      fail("Expected InvalidLabelException");
-    }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot contain spaces".equals(expected.getMessage())) {
-        throw expected;
-      }
-    }
+    label.setLabel("My Updated Label");
+    dao.update(label);
+    label = dao.getById(label.getId());
+    Assert.assertNotNull(label);
+    assertLabel(applicationId, "My Updated Label", Color.blue, "My label description.", label);
   }
 
   @Test
@@ -72,12 +140,10 @@ public class LabelDAOTest
     // Insert
     try {
       dao.insert(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot contain tabs".equals(expected.getMessage())) {
-        throw expected;
-      }
+    catch (InvalidNameException expected) {
+      assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '\t'), expected.getMessage());
     }
 
     // Update
@@ -86,12 +152,10 @@ public class LabelDAOTest
     label.setLabel("My\tUpdatedLabel");
     try {
       dao.update(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot contain tabs".equals(expected.getMessage())) {
-        throw expected;
-      }
+    catch (InvalidNameException expected) {
+      assertEquals(String.format(NameHelper.INVALID_CHAR_MESSAGE, "Label name", '\t'), expected.getMessage());
     }
   }
 
@@ -105,10 +169,10 @@ public class LabelDAOTest
     // Insert
     try {
       dao.insert(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot be null or empty".equals(expected.getMessage())) {
+    catch (InvalidNameException expected) {
+      if (!"Label name is required.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -119,10 +183,10 @@ public class LabelDAOTest
     label.setLabel(null);
     try {
       dao.update(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot be null or empty".equals(expected.getMessage())) {
+    catch (InvalidNameException expected) {
+      if (!"Label name is required.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -138,10 +202,10 @@ public class LabelDAOTest
     // Insert
     try {
       dao.insert(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot be null or empty".equals(expected.getMessage())) {
+    catch (InvalidNameException expected) {
+      if (!"Label name is required.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -152,10 +216,10 @@ public class LabelDAOTest
     label.setLabel(" ");
     try {
       dao.update(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException expected) {
-      if (!"The label text cannot be null or empty".equals(expected.getMessage())) {
+    catch (InvalidNameException expected) {
+      if (!"Label name is required.".equals(expected.getMessage())) {
         throw expected;
       }
     }
@@ -171,10 +235,10 @@ public class LabelDAOTest
     // Insert
     try {
       dao.insert(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException e) {
-      assertEquals("The label text must not exceed 50 characters", e.getMessage());
+    catch (InvalidNameException e) {
+      assertEquals("Label name must be " + LabelDAO.MAX_NAME_SIZE + " characters or less.", e.getMessage());
     }
 
     // Update
@@ -183,10 +247,10 @@ public class LabelDAOTest
     label.setLabel(StringUtils.repeat("X", LabelDAO.MAX_NAME_SIZE + 1));
     try {
       dao.update(label);
-      fail("Expected InvalidLabelException");
+      fail("Expected InvalidNameException");
     }
-    catch (InvalidLabelException e) {
-      assertEquals("The label text must not exceed 50 characters", e.getMessage());
+    catch (InvalidNameException e) {
+      assertEquals("Label name must be " + LabelDAO.MAX_NAME_SIZE + " characters or less.", e.getMessage());
     }
   }
 

@@ -50,9 +50,10 @@
           <div class='fade in well clm-well' style='width:544px;' ng-controller='LabelEditorController'>
             <form name='labelEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveLabel()'>
               <div clm-control-group for="labelEditorLabel" label="Label Name">
-                  <input clm-input id="labelEditorLabel" name='label' type="text" maxlength='50' ng-model='selectedLabel.label'
-                         placeholder="ex. Blacklisted" focus-input="true" required item-label
-                          messages='{duplicate: "Duplicate Label", invalid: "Invalid Character(s)"}'>
+                <input clm-input id="labelEditorLabel" name='label' type="text" maxlength='50'
+                  ng-model='selectedLabel.label' placeholder="ex. Blacklisted" focus-input="true" required unique-label
+                  alpha-numeric
+                  messages='{uniqueLabel: "Duplicate Label"}'>
               </div>
               <div clm-control-group label="Select Color">
                 <span ng-repeat="color in colors" ng-click='setColor(color);'>

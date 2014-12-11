@@ -1,8 +1,8 @@
-<div class="container" style="width: 990px;margin-top:40px">
+<div class="container">
   <div load-error='error' reload='doLoad()'></div>
   <div ng-hide='error'>
     <div ng-hide='application'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-    <div ng-if='application'>
+    <div ng-if='application'  style="width: 990px;margin-top:40px">
       <div id='report-title' class='reportTitle' style='margin-left:16.5px'>
         <strong>{{application.name}}</strong> - {{policyEvaluation.time | date:'yyyy-MM-dd'}} - <em>{{policyEvaluation.stageName}} Report</em>
       </div>

@@ -8,13 +8,10 @@ package com.sonatype.insight.brain.testing.functional.utils
 /**
  * @since 1.7
  */
-class ValidationConstants
-{
+class ValidationConstants {
   public static final String REQUIRED = 'Field is required.'
 
-  public static final String ALPHA_NUMERIC = 'Must be alpha numeric.'
-
-  public static final String INVALID_CHARACTERS = 'Invalid Character(s)'
+  public static final String INVALID_NAME_CHARACTERS = 'Use valid characters: alphanumeric, "_", ".", "-", or spaces'
 
   public static final String INVALID_EMAIL = 'Use valid format: abc@xyz.com'
 

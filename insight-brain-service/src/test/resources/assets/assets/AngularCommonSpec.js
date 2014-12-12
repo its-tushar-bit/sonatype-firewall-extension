@@ -28,18 +28,18 @@ describe('AngularCommon', function() {
     expect('$'.match(allLettersRegex)).not.toBeTruthy();
   });
 
-  it('validates alpha numeric controls', function() {
-    var element = compile("<ng-form id='form' name='form'><input id='control' name='control' type='text' ng-model='alpha' alpha-numeric /></ng-form>")(scope);
+  it('validates valid name characters controls', function() {
+    var element = compile("<ng-form id='form' name='form'><input id='control' name='control' type='text' ng-model='alpha' valid-name-characters /></ng-form>")(scope);
     scope.$digest();
     scope.$apply(function() {
       scope.alpha = '!!!!';
     });
     expect(element.find('input').val()).toEqual('!!!!');
-    expect(scope.form.control.$error.alphaNumeric).toBeTruthy();
+    expect(scope.form.control.$error.validNameCharacters).toBeTruthy();
     scope.$apply(function() {
       scope.alpha = 'foo';
     });
-    expect(scope.form.control.$error.alphaNumeric).not.toBeTruthy();
+    expect(scope.form.control.$error.validNameCharacters).not.toBeTruthy();
   });
 
   it('Messages', inject(function(Messages) {

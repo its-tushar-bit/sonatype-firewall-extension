@@ -387,18 +387,18 @@ var AngularStateUtils = {
 
 
   /**
-   * Ensure that a given value is all alphanumeric characters.
+   * Ensure that a given value contains only valid name characters.
    */
-  angularCommon.directive('alphaNumeric', [
+  angularCommon.directive('validNameCharacters', [
     'regexFactory', function(regexFactory) {
-      var alphaNumericRegex = new RegExp('[^-\\._' + regexFactory.allLetters().source + '0-9 ]', 'i');
+      var invalidNameCharactersRegex = new RegExp('[^-\\._' + regexFactory.allLetters().source + '0-9 ]', 'i');
       return {
         require: 'ngModel',
         restrict: 'A',
         link: function(scope, elem, attr, ctrl) {
           var validator = function(value) {
-            var passed = !value || !value.match(alphaNumericRegex);
-            ctrl.$setValidity('alphaNumeric', passed);
+            var passed = !value || !value.match(invalidNameCharactersRegex);
+            ctrl.$setValidity('validNameCharacters', passed);
             return passed ? value : undefined;
           };
           ctrl.$parsers.push(validator);

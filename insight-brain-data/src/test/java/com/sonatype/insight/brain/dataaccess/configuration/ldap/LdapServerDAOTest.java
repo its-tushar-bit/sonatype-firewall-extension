@@ -124,7 +124,7 @@ public class LdapServerDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       LdapServer config = createLdapServer(name);
       try {
         dao.insert(config);
@@ -139,7 +139,7 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     LdapServer config = insertLdapServer("testValidateNameInvalidChars");
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       config.setName(name);
       try {
         dao.update(config);

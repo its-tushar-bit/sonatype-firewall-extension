@@ -203,7 +203,7 @@ public class UserDAOTest
 
   @Test
   public void testValidateUsernameInvalidChars_Insert() {
-    for (String username : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String username : NameHelperTest.INVALID_CHARACTERS) {
       try {
         createUser(username);
         fail("Expected InvalidNameException");
@@ -218,7 +218,7 @@ public class UserDAOTest
   @Test
   public void testValidateUsernameInvalidChars_Update() {
     User user = createUser("testValidateUsernameInvalidChars");
-    for (String username : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String username : NameHelperTest.INVALID_CHARACTERS) {
       user.setUsername(username);
       try {
         new UserDAO().update(user);

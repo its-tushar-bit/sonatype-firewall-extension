@@ -67,12 +67,12 @@
     <form id='{{user.id}}user-form' name="userForm" class='clm-form well clm-well' ng-submit="saveClick(user)" novalidate>
       <div>
         <div clm-control-group for="firstName" label="First Name">
-          <input clm-input id="firstName" name="firstName" type="text" ng-required="true" alpha-numeric
+          <input clm-input id="firstName" name="firstName" type="text" ng-required="true" valid-name-characters
                  placeholder="ex. Isaac" ng-model="user.firstName" focus-input="user"
                  has-whitespace="suggestedFirstName">
         </div>
         <div clm-control-group for="lastName" label="Last Name">
-          <input clm-input id="lastName" name="lastName" type="text" ng-required="true" alpha-numeric
+          <input clm-input id="lastName" name="lastName" type="text" ng-required="true" valid-name-characters
                  placeholder="ex. Asimov" ng-model="user.lastName" has-whitespace="suggestedLastName">
         </div>
         <div clm-control-group for="email" label="Email">
@@ -82,7 +82,7 @@
         <div ng-if="!user.id">
           <div clm-control-group for="username" label="Username">
             <input clm-input id="username" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/"
-                   alpha-numeric is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"
+                   valid-name-characters is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"
                    is-duplicate-case-sensitive="false" placeholder="ex. iasimov" ng-model="user.username"
                    messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
           </div>

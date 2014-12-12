@@ -32,7 +32,7 @@
           <form name='tagEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveTag()'>
             <div clm-control-group for="tagEditorLabel" label="Tag Name">
                 <input clm-input id="tagEditorLabel" name='name' type="text" maxlength='50' ng-model='selectedTag.name'
-                       placeholder="ex. Distributed" focus-input="true" required alpha-numeric is-duplicate
+                       placeholder="ex. Distributed" focus-input="true" required valid-name-characters is-duplicate
                        is-duplicate-array='tags' is-duplicate-id-field='name' is-duplicate-case-sensitive='false'
                        messages='{duplicate: "Duplicate Tag name"}'>
             </div>

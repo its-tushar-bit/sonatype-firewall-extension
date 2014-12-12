@@ -78,7 +78,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    for (String name : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       policy.setName(name);
       ValidationResult result = policy.validate(applicationId);
       assertValidationResultHasErrors(result,

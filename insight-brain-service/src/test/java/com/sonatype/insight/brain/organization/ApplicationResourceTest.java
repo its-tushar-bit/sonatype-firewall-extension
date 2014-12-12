@@ -147,8 +147,8 @@ public class ApplicationResourceTest
     response = AuthedRestAccess.execute(builder);
     assertResponseStatus(204, response);
 
-    // Verify non alpha numeric name fails
-    application.setName("Non Alphanumeric Name !!!!!");
+    // Verify invalid name fails
+    application.setName("Invalid Name !!!!!");
 
     response = AuthedRestAccess.put(getServiceURL(), toJson(application));
 

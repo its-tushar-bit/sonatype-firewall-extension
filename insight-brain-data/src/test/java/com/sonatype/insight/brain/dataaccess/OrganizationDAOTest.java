@@ -170,7 +170,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       Organization organization = new Organization(name);
       try {
         dao.insert(organization);
@@ -184,7 +184,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       organization.setName(name);
       try {
         dao.update(organization);

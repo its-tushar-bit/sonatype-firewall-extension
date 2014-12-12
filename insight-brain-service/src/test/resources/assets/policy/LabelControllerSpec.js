@@ -115,7 +115,7 @@ describe('LabelController.js', function() {
     }));
 
     it('Test Spaces', function() {
-      compileInput("<input type='text' maxlength='50' name='label' ng-model='label' unique-label alpha-numeric />");
+      compileInput("<input type='text' maxlength='50' name='label' ng-model='label' unique-label valid-name-characters />");
       setInput('foo');
       expect(scope.form.$invalid).toEqual(false);
       expect(scope.form.label.$invalid).toEqual(false);
@@ -127,7 +127,7 @@ describe('LabelController.js', function() {
 
     it('Test Duplicate', function() {
       scope.selectedLabel = {};
-      compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label' unique-label alpha-numeric />");
+      compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label' unique-label valid-name-characters />");
       scope.applicableLabels = [{
         labels: [{
           id: 'bar',

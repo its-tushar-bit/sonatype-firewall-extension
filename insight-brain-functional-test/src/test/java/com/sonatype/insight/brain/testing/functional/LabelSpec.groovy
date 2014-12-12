@@ -129,7 +129,7 @@ class LabelSpec
       labels.createNewLabel('$')
 
     then: 'The invalid characters error message is displayed'
-      popoverText(labels.name) == 'Must be alpha numeric'
+      popoverText(labels.name) == 'Use valid characters: alphanumeric, "_", ".", "-", or spaces'
       labels.buttons.save.@disabled
 
     when: 'We remove the content on the required field'

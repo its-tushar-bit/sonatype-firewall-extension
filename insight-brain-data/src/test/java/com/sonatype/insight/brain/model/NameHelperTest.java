@@ -20,7 +20,7 @@ public class NameHelperTest
   /**
    * A sample of characters not allowed.
    */
-  public static final String[] INVALID_ALPHANUMERIC = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+" };
+  public static final String[] INVALID_CHARACTERS = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+" };
 
   public static final String[] INVALID_SPACING_NAMES = {
       " leading space", "trailing space ", " leading and trailing space ",
@@ -54,7 +54,7 @@ public class NameHelperTest
 
   @Test
   public void validateNameCanNotHaveSpecialCharacters() throws Exception {
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       verifyNameHasBadCharacter(name, name.charAt(0));
     }
 

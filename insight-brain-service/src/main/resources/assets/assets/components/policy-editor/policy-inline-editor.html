@@ -1,10 +1,10 @@
 <div class='inline-policy-editor' ng-controller='PolicyEditorController' style="width:875px;">
   <form name='inlinePolicyForm' novalidate>
-    <div class="control-group" ng-class='{ error : inlinePolicyForm.name.$error.alphaNumeric || inlinePolicyForm.name.$error.spaces }'>
-      <input id='policyName' name='name' type='text' placeholder='ex. Architecture-Quality' ng-model='policy.name' required maxlength='60' alpha-numeric has-whitespace='suggestedName' focus-input="true">
+    <div class="control-group" ng-class='{ error : inlinePolicyForm.name.$error.validNameCharacters || inlinePolicyForm.name.$error.spaces }'>
+      <input id='policyName' name='name' type='text' placeholder='ex. Architecture-Quality' ng-model='policy.name' required maxlength='60' valid-name-characters has-whitespace='suggestedName' focus-input="true">
       <span class='policy'><span threat-box ng-model='policy.threatLevel' one='1' zero='0 (None)'></span></span>
-      <span ng-show="inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">Must be alpha numeric</span>
-      <span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.alphaNumeric" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
+      <span ng-show="inlinePolicyForm.name.$error.validNameCharacters" class="help-inline">Use valid characters: alphanumeric, "_", ".", "-", or spaces</span>
+      <span ng-show="inlinePolicyForm.name.$error.spaces && !inlinePolicyForm.name.$error.validNameCharacters" class="help-inline">No leading, trailing or double spaces or tabs, suggested name: {{suggestedName}}</span>
     </div>
     <div ng-if="!isApplication" id="application-matching">
       <div>

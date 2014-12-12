@@ -135,7 +135,7 @@ public class TagDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
-    for (String name : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       tag.setName(name);
       try {
         dao.insert(tag);
@@ -151,7 +151,7 @@ public class TagDAOTest
   public void testValidateNameInvalidChars_Update() {
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       tag.setName(name);
       try {
         dao.update(tag);

@@ -470,7 +470,7 @@
         return {
           messages: {
             required: 'Name is required',
-            alphanumeric: 'Must be alpha numeric',
+            validNameCharacters: 'Use valid characters: alphanumeric, "_", ".", "-", or spaces',
             spaces: 'No leading, trailing or double spaces or tabs',
             duplicate: 'Name is already in use'
           },

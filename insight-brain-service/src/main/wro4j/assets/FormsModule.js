@@ -44,8 +44,8 @@
           else if (error.spaces) {
             message = 'No leading, trailing or double spaces or tabs';
           }
-          else if (error.alphaNumeric) {
-            message = 'Must be alpha numeric';
+          else if (error.validNameCharacters) {
+            message = 'Use valid characters: alphanumeric, "_", ".", "-", or spaces';
           }
           else if (error.number) {
             message = 'Please enter a valid number';

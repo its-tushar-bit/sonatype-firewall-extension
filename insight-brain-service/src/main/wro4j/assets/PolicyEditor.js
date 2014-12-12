@@ -337,8 +337,8 @@
               else if (error.spaces) {
                 msg = 'Policy name cannot contain leading, trailing or double spaces or tabs.';
               }
-              else if (error.alphaNumeric) {
-                msg = 'Policy name must be alpha numeric.';
+              else if (error.validNameCharacters) {
+                msg = 'Policy name must use valid characters: alphanumeric, "_", ".", "-", or spaces.';
               }
               else if (!$scope.policy.constraints || !$scope.policy.constraints.length) {
                 msg = 'You must add at least one constraint to the policy.';

@@ -282,7 +282,7 @@ describe('PolicyEditor.js', function() {
           $error: {
             required: true,
             spaces: true,
-            alphaNumeric: true
+            validNameCharacters: true
           }
         }
       };
@@ -306,9 +306,9 @@ describe('PolicyEditor.js', function() {
       validateValidation(policyEditorScope, 'Policy name cannot contain leading, trailing or double spaces or tabs.');
 
       form.name.$error.spaces = false;
-      validateValidation(policyEditorScope, 'Policy name must be alpha numeric.');
+      validateValidation(policyEditorScope, 'Policy name must use valid characters: alphanumeric, "_", ".", "-", or spaces.');
 
-      form.name.$error.alphaNumeric = false;
+      form.name.$error.validNameCharacters = false;
       validateValidation(policyEditorScope, 'You must add at least one constraint to the policy.');
 
       scope.policy.constraints.push({});

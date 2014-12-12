@@ -66,12 +66,12 @@ class UserManagementSpec
   }
 
   @Unroll
-  def "If non alphaNumeric content is present during validation the #inputName field should show an alphaNumeric error"() {
+  def "If non valid content is present during validation the #inputName field should show an invalid character error"() {
     when: 'we use non alphaNumeric content'
       input << '#'
 
-    then: 'the alphaNumeric validation error is shown'
-      waitFor { popoverText(input) == 'Must be alpha numeric' }
+    then: 'the valid name character validation error is shown'
+      waitFor { popoverText(input) == 'Use valid characters: alphanumeric, "_", ".", "-", or spaces' }
       report 'before cleanup'
 
     cleanup:

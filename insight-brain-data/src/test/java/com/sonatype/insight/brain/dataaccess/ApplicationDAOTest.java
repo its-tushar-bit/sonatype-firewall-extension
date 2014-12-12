@@ -209,7 +209,7 @@ public class ApplicationDAOTest
   @Test
   public void testValidatePublicIdInvalidChars_Insert() {
     Application app = new Application(null, "name", organization.getId());
-    for (String publicId : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String publicId : NameHelperTest.INVALID_CHARACTERS) {
       app.setPublicId(publicId);
       try {
         applicationDAO.insert(app);
@@ -355,7 +355,7 @@ public class ApplicationDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     Application app = new Application("publicId", "name", organization.getId());
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       app.setName(name);
       try {
         applicationDAO.insert(app);
@@ -369,7 +369,7 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidateNameInvalidChars_Update() {
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       application.setName(name);
       try {
         applicationDAO.update(application);

@@ -141,7 +141,7 @@ class TagSpec
       tags.name << '$'
 
     then: 'The error message changes to reflect this'
-      waitFor { popoverText(tags.name) == 'Must be alpha numeric' }
+      waitFor { popoverText(tags.name) == 'Use valid characters: alphanumeric, "_", ".", "-", or spaces' }
       tags.buttons.save.@disabled
       report 'alphanumeric validation error'
 

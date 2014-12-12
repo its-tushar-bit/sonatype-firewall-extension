@@ -38,7 +38,7 @@
   <div clm-control-group class='halfSize'>
     <input clm-input id='licenseGroupEditorName' name='name' type='text'
            class='input' maxlength='60' ng-model='selectedGroup.name'
-           required alpha-numeric is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
+           required valid-name-characters is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
            placeholder="ex. Copyleft" focus-input="true"
            messages="{duplicate: 'Name is already in use'}">
   </div>

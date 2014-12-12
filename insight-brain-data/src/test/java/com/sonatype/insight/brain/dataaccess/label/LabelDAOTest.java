@@ -35,7 +35,7 @@ public class LabelDAOTest
   @Test
   public void testValidateLabelNameInvalidChars_Insert() {
     LabelDAO dao = new LabelDAO();
-    for (String labelName : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
       try {
         dao.insert(new Label(applicationId, labelName, Color.white));
         fail("Expected InvalidNameException");
@@ -50,7 +50,7 @@ public class LabelDAOTest
   public void testValidateLabelNameInvalidChars_Update() {
     LabelDAO dao = new LabelDAO();
     Label label = tempEntity.newLabel(applicationId, "label", Color.white);
-    for (String labelName : NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
       label.setLabel(labelName);
       try {
         dao.update(label);

@@ -404,7 +404,7 @@ public class LicenseThreatGroupDAOTest
   @Test
   public void testValidateNameInvalidChars_Insert() {
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       LicenseThreatGroup group = new LicenseThreatGroup(applicationId, name, 5);
       try {
         dao.insert(group);
@@ -421,7 +421,7 @@ public class LicenseThreatGroupDAOTest
     LicenseThreatGroupDAO dao = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup(applicationId, "testValidateNameInvalidChars", 5);
     dao.insert(group);
-    for (String name: NameHelperTest.INVALID_ALPHANUMERIC) {
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
       group.setName(name);
       try {
         dao.update(group);

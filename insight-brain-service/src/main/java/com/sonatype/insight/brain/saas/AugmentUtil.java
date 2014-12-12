@@ -34,14 +34,6 @@ public class AugmentUtil
     for (SecurityVulnerability securityVulnerability : securityVulnerabilities) {
       ObjectNode svNode = svData.objectNode();
       svData.add(svNode);
-
-      // Add groupId, artifactId and version so that the node will merge successfully with old versions of security.json
-      if (componentIdentifier.isMaven()) {
-        svNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
-        svNode.put("artifactId", componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
-        svNode.put("version", componentIdentifier.get(ComponentIdentifier.VERSION));
-      }
-
       svNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
       svNode.put("reference", securityVulnerability.getRefId());
       svNode.put("source", securityVulnerability.getSource());

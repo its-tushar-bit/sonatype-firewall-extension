@@ -51,21 +51,21 @@ public class AugmentUtilTest
   @Test
   public void testGetSVDataByComponentIdentifier() throws IOException {
     final String securityJson = "[{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\",\"status\":\"Acknowledged\"}]";
-    final String expectedJson = "[{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\",\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\",\"status\":\"Acknowledged\"}]";
+    final String expectedJson = "[{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\",\"status\":\"Acknowledged\"}]";
     augmentAndAssertSecurity(securityJson, expectedJson);
   }
 
   @Test
   public void testGetSVDataByGAVNoMatch() throws IOException {
-    final String securityJson = "[{\"groupId\":\"foo\",\"artifactId\":\"bar\",\"version\": \"baz\",\"reference\":\"refId\",\"source\":\"source\",\"status\":\"Acknowledged\"}]";
-    final String expectedJson = "[{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\",\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\"}]";
+    final String securityJson = "[{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"foo\",\"artifactId\":\"bar\",\"version\": \"baz\"}},\"reference\":\"refId\",\"source\":\"source\",\"status\":\"Acknowledged\"}]";
+    final String expectedJson = "[{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\"}]";
     augmentAndAssertSecurity(securityJson, expectedJson);
   }
 
   @Test
   public void testGetSVDataByComponentIdentifierNoMatch() throws IOException {
     final String securityJson = "[{\"componentIdentifier\":{\"format\":\"qux\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\",\"status\":\"Acknowledged\"}]";
-    final String expectedJson = "[{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\",\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\"}]";
+    final String expectedJson = "[{\"componentIdentifier\":{\"format\":\"maven\",\"coordinates\":{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}},\"reference\":\"refId\",\"source\":\"source\"}]";
     augmentAndAssertSecurity(securityJson, expectedJson);
   }
 

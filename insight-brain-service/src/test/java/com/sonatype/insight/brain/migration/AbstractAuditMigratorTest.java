@@ -51,6 +51,8 @@ public abstract class AbstractAuditMigratorTest
 
   protected JsonStore orgAuditStore;
 
+  protected String applicationId = "app1";
+
   //common component randomly selected for testing
   protected static final ComponentIdentifier ANTLR_COMPONENT = ComponentIdentifier
       .createMavenCoordinates("antlr", "antlr", "2.7.2");
@@ -65,7 +67,7 @@ public abstract class AbstractAuditMigratorTest
     FileUtils.copyDirectory(new File("target/test-classes", getTestFolder() + "/" + testDataDir), sonatypeWork);
     Organization organization = tempEntity.newOrganizationWithSpecificId("org1");
     String name = this.getClass().getSimpleName();
-    app = tempEntity.newApplicationWithSpecificId("app1", name, name, organization.getId());
+    app = tempEntity.newApplicationWithSpecificId(applicationId, name, name, organization.getId());
 
     appAuditStore = JsonUtils.fileStore(insightWork.getAuditDir(app.getId()));
     orgAuditStore = JsonUtils.fileStore(insightWork.getAuditDir(organization.getId()));
@@ -91,7 +93,7 @@ public abstract class AbstractAuditMigratorTest
   public void testAppWithAudits() throws Exception {
     setup("appAudits");
     assertThat(auditMigrator.migrate(), is(1));
-    verifyAuditHistory(appAuditStore);
+    verifyAuditHistory(appAuditStore, false);
     assertThat(orgAuditStore.history(null, auditMigrator.getAuditFileName()), is(nullValue()));
   }
 
@@ -99,7 +101,7 @@ public abstract class AbstractAuditMigratorTest
   public void testOrgWithAudits() throws Exception {
     setup("orgAudits");
     assertThat(auditMigrator.migrate(), is(1));
-    verifyAuditHistory(orgAuditStore);
+    verifyAuditHistory(orgAuditStore, true);
     assertThat(appAuditStore.history(null, auditMigrator.getAuditFileName()), is(nullValue()));
   }
 
@@ -127,8 +129,8 @@ public abstract class AbstractAuditMigratorTest
     assertThat(auditMigrator.migrate(), is(0));
     assertThat(appAuditStore.history(null, auditMigrator.getAuditFileName()), is(nullValue()));
     assertThat(orgAuditStore.history(null, auditMigrator.getAuditFileName()), is(nullValue()));
-    assertThat(appAuditStore.history(null, "security.json"), is(notNullValue()));
-    assertThat(orgAuditStore.history(null, "security.json"), is(notNullValue()));
+    assertThat(appAuditStore.history(null, getDifferentAuditFileName()), is(notNullValue()));
+    assertThat(orgAuditStore.history(null, getDifferentAuditFileName()), is(notNullValue()));
   }
 
   public InsightWork getInsightWork() {
@@ -140,9 +142,16 @@ public abstract class AbstractAuditMigratorTest
   }
 
   /**
+   * Used to verify that other audit files can exist in the audit directory and be untouched by migration
+   */
+  protected String getDifferentAuditFileName() {
+    return "security.json";
+  }
+
+  /**
    * Perform specific validations of the auditStore.
    */
-  protected abstract void verifyAuditHistory(final JsonStore auditStore) throws IOException;
+  protected abstract void verifyAuditHistory(final JsonStore auditStore, final boolean isOrg) throws IOException;
 
   /**
    * Return a new instance of the auditMigrator to test.

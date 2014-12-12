@@ -31,7 +31,7 @@ public class BomAuditMigratorTest
   }
 
   @Override
-  protected void verifyAuditHistory(final JsonStore auditStore) throws IOException {
+  protected void verifyAuditHistory(final JsonStore auditStore, final boolean isOrg) throws IOException {
     ArrayNode aaData = (ArrayNode) auditStore.history(null, getAuditFileName()).get(
         "aaData");
     for (JsonNode auditJson : aaData) {

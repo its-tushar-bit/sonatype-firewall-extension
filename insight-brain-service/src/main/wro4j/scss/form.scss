@@ -254,6 +254,7 @@
 }
 .list-editor-well table {
   margin:auto;
+  width: 100%;
 }
 .list-editor-well tr {
   border-bottom: 1px solid #DDDDDD;
@@ -263,7 +264,6 @@
   vertical-align: top;
 }
 .list-editor-well td:nth-child(1) {
-  width: 1%;
   max-width: 370px;
   padding-left: 5px;
 }
@@ -273,6 +273,5 @@
   overflow:hidden
 }
 .list-editor-well td:nth-child(2) {
-  width: 99%;
   text-align: right;
 }

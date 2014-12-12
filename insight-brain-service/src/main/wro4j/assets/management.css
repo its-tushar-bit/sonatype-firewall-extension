@@ -549,6 +549,8 @@ a:focus {
  */
 .inline-editor {
   font-weight: bold;
+}
+#aoName.inline-editor {
   word-wrap: break-word;
   overflow: auto;
   max-width: 750px;

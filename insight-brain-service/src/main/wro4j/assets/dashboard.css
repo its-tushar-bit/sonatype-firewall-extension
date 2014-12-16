@@ -307,10 +307,6 @@ table th#affected-apps {
   min-width:149px
 }
 
-.dashboard-content th {
-  border-bottom: 1px solid #ddd;
-}
-
 .dashboard-content .nav.nav-tabs {
   margin:0px;
 }
@@ -361,37 +357,6 @@ table th#affected-apps {
   width : 12px;
 }
 
-.scrollable-container {
-  height: 500px;
-  position: relative;
-  padding-top: 30px;
-  border-top: 1px solid #ddd;
-}
-
-.scrollable-container-inner {
-  overflow-x: hidden;
-  overflow-y: auto;
-  height: 100%;
-  border-top: 1px solid #C6C6C6;
-  border-bottom: 1px solid #C6C6C6;
-}
-
-.scrollable-container-inner table {
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  margin-bottom: 0px;
-}
-
-.scrollable-container th {
-  padding: 0 5px;
-}
-
-.scrollable-container th>div {
-  position: absolute;
-  top: 0;
-  line-height: 30px;
-}
 
 .latest-risk {
   font-weight: bolder;
@@ -473,11 +438,6 @@ table th#affected-apps {
   -moz-border-radius: 4px;
   border-radius: 4px;
   vertical-align: middle;
-}
-
-.dashboard-section-header {
-  padding-bottom: 5px;
-  border-bottom:1px solid #ddd;
 }
 
 .dashboard-loading {

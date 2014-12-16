@@ -622,3 +622,70 @@ $policy-summary-table-row-height: 25px;
 .dashboard-summary-section {
   min-height : 257px;
 }
+
+$dashboard-border: 2px solid #CCC;
+
+.dashboard-section-header {
+  padding-bottom: 5px;
+  border-bottom: $dashboard-border;
+}
+
+/*
+ Tables with scrollable bodies
+ ```
+  <div class='scrollable-container'>
+    <div class='scrollable-container-inner'>
+      <table style='height:30px'>
+        <thead>
+          <tr>
+            <th>Count</th>
+          </tr>
+         </thead>
+         <tbody>
+           <tr><td>9</td></tr>
+           <tr><td>8</td></tr>
+           <tr><td>7</td></tr>
+           <tr><td>6</td></tr>
+           <tr><td>5</td></tr>
+           <tr><td>4</td></tr>
+           <tr><td>3</td></tr>
+           <tr><td>2</td></tr>
+           <tr><td>1</td></tr>
+         </tbody>
+      </table>
+    </div>
+  </div>
+ ```
+*/
+
+.scrollable-container {
+  height: 500px;
+  position: relative;
+  padding-top: 30px;
+  border-top: $dashboard-border;
+
+  th {
+    padding: 0 5px;
+  }
+
+  th>div {
+    position: absolute;
+    top: 0;
+    line-height: 30px;
+  }
+}
+
+.scrollable-container-inner {
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100%;
+  border-bottom: $dashboard-border;
+  border-top: $dashboard-border;
+
+  table {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin-bottom: 0px;
+  }
+}

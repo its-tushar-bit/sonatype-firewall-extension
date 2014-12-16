@@ -255,7 +255,8 @@
           }
           // check for invalid characters
           if (val.match(invalidCharsRegex)) {
-            return 'Only alpha numeric,'+ (scope.noSpaces ? '' : ' spaces,')+' dash, underscore, or dot characters are allowed';
+            return 'Use valid characters: alphanumeric, "_", ".",' +
+              (scope.noSpaces ? ' or' : '') + ' "-"' + (scope.noSpaces ? '' : ', or spaces');
           }
           // check for double spaces or tabs
           if (scope.whitespaceCheck  && val.match(/^ | {2,}|\t| $/)) {

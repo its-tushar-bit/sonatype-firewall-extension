@@ -383,7 +383,7 @@ describe('EditorToolsSpec', function() {
         scope.$digest();
         expect(scope.$invalid).not.toBeTruthy();
         
-        expect(directiveScope.check('Foo&Bar')).toEqual('Only alpha numeric, spaces, dash, underscore, or dot characters are allowed');
+        expect(directiveScope.check('Foo&Bar')).toEqual('Use valid characters: alphanumeric, "_", ".", "-", or spaces');
         scope.$digest();
         expect(scope.$invalid).toBeTruthy();
       });
@@ -426,7 +426,7 @@ describe('EditorToolsSpec', function() {
           expect(scope.$invalid).toBeTruthy();
           
           directiveScope.noSpaces = 'true';
-          expect(directiveScope.check('Foo&Bar')).toEqual('Only alpha numeric, dash, underscore, or dot characters are allowed');
+          expect(directiveScope.check('Foo&Bar')).toEqual('Use valid characters: alphanumeric, "_", ".", or "-"');
           scope.$digest();
           expect(scope.$invalid).toBeTruthy();
         });

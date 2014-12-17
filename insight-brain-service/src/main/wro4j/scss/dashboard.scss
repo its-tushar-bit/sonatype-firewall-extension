@@ -617,3 +617,8 @@ $policy-summary-table-row-height: 25px;
     }
   }
 }
+
+// Used on the dashboard to help the table with its initial size
+.dashboard-summary-section {
+  min-height : 257px;
+}

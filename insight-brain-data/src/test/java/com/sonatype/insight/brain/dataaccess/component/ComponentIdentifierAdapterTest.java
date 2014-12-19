@@ -110,18 +110,31 @@ public class ComponentIdentifierAdapterTest
   }
 
   @Test
-  public void testReplaceGAVExistingComponentIdentifier() throws Exception {
+  public void testInjectComponentIdentifier() throws Exception {
+    JsonNode jsonNode = mapper.readTree(GAV_CONTENT);
+    JsonNode copy = jsonNode.deepCopy();   
+    ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) jsonNode);
+    assertThat(copy, not(jsonNode));
+    for (String key : Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION)) {
+      assertThat(jsonNode.hasNonNull(key), is(true));
+    }
+    assertThat(jsonNode.hasNonNull(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER), is(true));
+    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(jsonNode), is(MAVEN_COMPONENT));
+  }
+
+  @Test
+  public void testInjectWithExistingComponentIdentifier() throws Exception {
     JsonNode jsonNode = mapper.readTree(MAVEN_CONTENT);
     JsonNode copy = jsonNode.deepCopy();
-    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
+    ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) jsonNode);
     assertThat(copy, is(jsonNode));
   }
 
   @Test
-  public void testReplaceGAVOnNonGAVStructure() throws Exception {
+  public void testInjectOnNonGAVStructure() throws Exception {
     JsonNode jsonNode = mapper.readTree("{\"blah\":{}}");
     JsonNode copy = jsonNode.deepCopy();
-    ComponentIdentifierAdapter.replaceGavWithComponentIdentifier((ObjectNode) jsonNode);
+    ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) jsonNode);
     assertThat(copy, is(jsonNode));
   }
 

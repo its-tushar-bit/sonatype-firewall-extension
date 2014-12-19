@@ -346,7 +346,6 @@ public final class Report
 
       if (hashComponentIdentifier != null) {
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
-        bomObjectNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         if (componentIdentifier.isMaven()) {
           // reports generated before 1.13.0 still require separate GAV fields
           bomObjectNode.put("groupId", componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
@@ -363,9 +362,9 @@ public final class Report
         claimedHashes.put(hash, hashComponentIdentifier);
       }
 
-      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomObjectNode);
+      ComponentIdentifierAdapter.injectComponentIdentifier(bomObjectNode);
       ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
-
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomObjectNode);
       componentIdentifiers.add(componentIdentifier);
     }
 
@@ -386,7 +385,7 @@ public final class Report
     Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
-
+      ComponentIdentifierAdapter.injectComponentIdentifier(licenseJsonNode);
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
 
       if (!componentIdentifiers.contains(componentIdentifier)) {
@@ -450,6 +449,7 @@ public final class Report
     Iterator<JsonNode> iterSecurityData = securityJsonData.get("aaData").iterator();
     while (iterSecurityData.hasNext()) {
       ObjectNode jsonNode = (ObjectNode) iterSecurityData.next();
+      ComponentIdentifierAdapter.injectComponentIdentifier(jsonNode);
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
 
       if (!componentIdentifiers.contains(componentIdentifier)) {
@@ -482,6 +482,7 @@ public final class Report
         JsonNode matchDetails = jsonNode.get("matchDetails");
         for (JsonNode matchDetail : matchDetails) {
           ObjectNode detailsNode = (ObjectNode) matchDetail;
+          ComponentIdentifierAdapter.injectComponentIdentifier(detailsNode);
           ComponentDisplayNameUtil.injectDisplayName(detailsNode);
         }
       }

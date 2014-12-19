@@ -432,6 +432,7 @@ public class ReportResourceTest
         JsonNode actual = JsonUtils.parse(response.getResponseBody());
         JsonNode expected = JsonUtils.parse(IOUtil.toString(zipFile.getInputStream(entry)));
         for (JsonNode node : expected.get("aaData")) {
+          ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
           ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
         }
         assertThat(actual, is(expected));

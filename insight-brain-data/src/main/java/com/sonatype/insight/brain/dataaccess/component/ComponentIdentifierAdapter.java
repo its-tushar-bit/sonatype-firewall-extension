@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_EXTENSION;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
@@ -41,9 +43,11 @@ public class ComponentIdentifierAdapter
     final String groupId = JsonUtils.getNullableString(objectNode.get(MAVEN_GROUP_ID));
     final String artifactId = JsonUtils.getNullableString(objectNode.get(MAVEN_ARTIFACT_ID));
     final String version = JsonUtils.getNullableString(objectNode.get(VERSION));
+    final String extension = JsonUtils.getNullableString(objectNode.get(MAVEN_EXTENSION));
+    final String classifier = JsonUtils.getNullableString(objectNode.get(MAVEN_CLASSIFIER));
 
     if (!Strings.isNullOrEmpty(groupId)) {
-      return ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+      return ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, classifier, extension);
     }
     return null;
   }
@@ -88,10 +92,17 @@ public class ComponentIdentifierAdapter
    * Remove existing GAV fields and replace with ComponentIdentifier structure.
    */
   public static void replaceGavWithComponentIdentifier(final ObjectNode component) {
+    injectComponentIdentifier(component);
+    component.remove(Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION, MAVEN_EXTENSION, MAVEN_CLASSIFIER));
+  }
+  
+  /**
+   * Inject ComponentIdentifier structure if it is absent.
+   */
+  public static void injectComponentIdentifier(final ObjectNode component) {
     if (!component.hasNonNull(COMPONENT_IDENTIFIER)) {
       ComponentIdentifier componentIdentifier = getComponentIdentifier(component);
       if (componentIdentifier != null) {
-        component.remove(Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION));
         component.put(COMPONENT_IDENTIFIER, JsonUtils.asTree(componentIdentifier));
       }
     }

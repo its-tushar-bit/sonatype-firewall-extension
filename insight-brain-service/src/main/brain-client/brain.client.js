@@ -112,14 +112,6 @@ var clmBuildTimestamp = '${build.timestamp}';
     },
     'ci': {
       /**
-       * Get the selectable licenses for a particular gav
-       * @since version 1.4
-       */
-      'getArtifactLicensesUrl': function(arg) {
-        return basePath + 'rest/ci/component/details/selectableLicenses/' + encodeURIComponent(arg.appId) + '?' +
-            param({ groupId: arg.groupId, artifactId: arg.artifactId, version: arg.version, instanceId: arg.instanceId });
-      },
-      /**
        * Get the URL for the agnostic coordinate ComponentDetails resource
        *
        * @since version 1.13

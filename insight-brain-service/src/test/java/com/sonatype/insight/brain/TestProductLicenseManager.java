@@ -139,7 +139,7 @@ public class TestProductLicenseManager
 
     private int appCount = 100;
 
-    private Date expirationDate = new Date(System.currentTimeMillis() + 600 * 1000);
+    private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
     private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION };
 

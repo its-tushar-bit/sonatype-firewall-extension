@@ -196,7 +196,10 @@ public class CLMLicenseManager
    */
   public void validate() throws InvalidLicenseException {
     if (!isValid()) {
-      String msg = "CLM is not licensed!";
+      String msg = "CLM license has expired!";
+      if (getLicenseFingerprint() == null) {
+        msg = "CLM is not licensed!";
+      }
       log.error(msg);
       throw new InvalidLicenseException(msg);
     }

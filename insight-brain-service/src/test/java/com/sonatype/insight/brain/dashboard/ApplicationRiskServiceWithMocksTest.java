@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -46,12 +47,12 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class DashboardServiceHighestRiskTest
+public class ApplicationRiskServiceWithMocksTest
 {
   private static final ComponentIdentifier MAVEN_IDENTIFIER1 = ComponentIdentifier.createMavenCoordinates("group1",
       "artifact1", "1.0");
 
-  private DashboardService dashboardService;
+  private ApplicationRiskService applicationRiskService;
 
   @Mock
   private ApplicationService applicationService;
@@ -106,9 +107,8 @@ public class DashboardServiceHighestRiskTest
     when(licenseManager.hasDashboard()).thenReturn(true);
 
     dashboardUtils = new DashboardUtils(licenseManager, stageTypeService);
-    dashboardService = new DashboardService(applicationDAO, applicationComponentDAO, applicationService, policyDAO,
-        policyEvaluationDAO, policyViolationAdapter, policyViolationDAO, dashboardFilterDAO,
-        currentUser, applicationAdapter, dashboardUtils);
+    applicationRiskService = new ApplicationRiskService(applicationService, applicationAdapter, policyEvaluationDAO,
+        policyViolationDAO, policyViolationAdapter, dashboardUtils);
   }
 
   private ContactDTO contactDTO = new ContactDTO(appUsername, "displayName", "email@example.com", "realm");
@@ -218,7 +218,7 @@ public class DashboardServiceHighestRiskTest
     when(policyViolationDAO.getActiveByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
     when(applicationAdapter.getContacts(appUserNames)).thenReturn(contacts.toArray(new ContactDTO[contacts.size()]));
 
-    return dashboardService
+    return applicationRiskService
         .getApplicationRisks(returnAppIds, stageIds, null, null, null, limit);
   }
 
@@ -468,7 +468,7 @@ public class DashboardServiceHighestRiskTest
         Lists.newArrayList(vio1));
     when(applicationAdapter.getContacts(Lists.<String>newArrayList())).thenReturn(new ContactDTO[0]);
 
-    List<ApplicationRiskScoreDTO> result = dashboardService
+    List<ApplicationRiskScoreDTO> result = applicationRiskService
         .getApplicationRisks(Sets.newHashSet(application99.getId()), null, null, null, null, Integer.MAX_VALUE);
 
     assertThat(result, hasSize(1));

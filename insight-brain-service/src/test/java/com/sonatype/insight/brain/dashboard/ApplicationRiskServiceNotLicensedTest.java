@@ -5,19 +5,22 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
+
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 
 import org.junit.Test;
 import org.mockito.InjectMocks;
 
-public class PolicySummaryServiceNotLicensedTest
+public class ApplicationRiskServiceNotLicensedTest
     extends AbstractServiceNotLicensedTest
 {
   @InjectMocks
-  private PolicySummaryService policySummaryService;
+  private ApplicationRiskService applicationRiskService;
 
   @Test(expected = InvalidLicenseException.class)
-  public void testGetPolicySummary_Unlicensed() throws Exception {
-    policySummaryService.getPolicySummary(null, null, null, null, null);
+  public void testGetApplicationRisks_Unlicensed() {
+    applicationRiskService.getApplicationRisks(null, Collections.singleton(DevelopStageType.ID), null, null, null, 0);
   }
 }

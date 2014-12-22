@@ -24,7 +24,9 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
@@ -36,6 +38,14 @@ public class DashboardUtils
   private final CLMLicenseManager licenseManager;
 
   private final StageTypeService stageTypeService;
+
+  static final Function<HasStringId, String> hasIdIdSelector = new Function<HasStringId, String>()
+  {
+    @Override
+    public String apply(final HasStringId hasStringId) {
+      return hasStringId.getId();
+    }
+  };
 
   @Inject
   public DashboardUtils(CLMLicenseManager licenseManager, StageTypeService stageTypeService) {

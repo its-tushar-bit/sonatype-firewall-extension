@@ -48,13 +48,29 @@ public class DashboardResource
 
   public static final String COMPONENTS_SUMMARY_PATH = "components/summary";
 
-  private final DashboardService dashboardService;
+  private final ApplicationRiskService applicationRiskService;
+
+  private final ComponentRiskService componentRiskService;
+
+  private final ComponentSummaryService componentSummaryService;
+
+  private final DashboardFilterService dashboardFilterService;
+
+  private final NewestRiskService newestRiskService;
 
   private final PolicySummaryService policySummaryService;
 
   @Inject
-  public DashboardResource(DashboardService dashboardService, PolicySummaryService policySummaryService) {
-    this.dashboardService = dashboardService;
+  public DashboardResource(ApplicationRiskService applicationRiskService,
+      DashboardFilterService dashboardFilterService, ComponentRiskService componentRiskService,
+      ComponentSummaryService componentSummaryService, NewestRiskService newestRiskService,
+      PolicySummaryService policySummaryService)
+  {
+    this.applicationRiskService = applicationRiskService;
+    this.componentRiskService = componentRiskService;
+    this.componentSummaryService = componentSummaryService;
+    this.dashboardFilterService = dashboardFilterService;
+    this.newestRiskService = newestRiskService;
     this.policySummaryService = policySummaryService;
   }
 
@@ -70,7 +86,7 @@ public class DashboardResource
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getNewestRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return newestRiskService.getNewestRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
   }
 
@@ -87,7 +103,7 @@ public class DashboardResource
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getApplicationRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return applicationRiskService.getApplicationRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
   }
 
@@ -103,7 +119,7 @@ public class DashboardResource
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
       @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
-    return dashboardService.getComponentRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return componentRiskService.getComponentRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
   }
 
@@ -117,7 +133,7 @@ public class DashboardResource
   @Metered(name = "getFilterMeter")
   @ExceptionMetered(name = "getFilterExceptionMeter")
   public DashboardFilterDTO getDashboardFilterForCurrentUser() throws IOException {
-    return dashboardService.getDashboardFilterForCurrentUser();
+    return dashboardFilterService.getDashboardFilterForCurrentUser();
   }
 
   /**
@@ -131,7 +147,7 @@ public class DashboardResource
   @Metered(name = "updateFilterMeter")
   @ExceptionMetered(name = "updateFilterExceptionMeter")
   public DashboardFilterDTO updateUserDashboardFilterForCurrentUser(DashboardFilterDTO dashboardFilterDTO) {
-    return dashboardService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
+    return dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dashboardFilterDTO);
   }
 
   /**
@@ -143,7 +159,7 @@ public class DashboardResource
   @Metered(name = "deleteFilterMeter")
   @ExceptionMetered(name = "deleteFilterExceptionMeter")
   public void deleteDashboardFilterForCurrentUser() {
-    dashboardService.deleteDashboardFilterForCurrentUser();
+    dashboardFilterService.deleteDashboardFilterForCurrentUser();
   }
 
   @GET
@@ -157,7 +173,7 @@ public class DashboardResource
       @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
       @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
   {
-    return dashboardService.getFilterSummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
+    return dashboardFilterService.getFilterSummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);
   }
 
@@ -170,7 +186,7 @@ public class DashboardResource
   public ComponentSummaryDTO getComponentSummary(@QueryParam("applicationIds") Set<String> applicationIds,
       @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds)
   {
-    return dashboardService.getComponentSummary(applicationIds, stageIds, tagIds);
+    return componentSummaryService.getComponentSummary(applicationIds, stageIds, tagIds);
   }
 
   @GET

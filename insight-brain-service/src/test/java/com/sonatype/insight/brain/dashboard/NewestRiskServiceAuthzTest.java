@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2011-2014 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dashboard;
+
+import java.util.Collections;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+
+public class NewestRiskServiceAuthzTest
+    extends AbstractServiceAuthzTest
+{
+  @Inject
+  private NewestRiskService newestRiskService;
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetNewestRisks_ExplicitApplicationFilter_Unauthenticated() {
+    newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetNewestRisks_ExplicitApplicationFilter_Unauthorized() {
+    login();
+    newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+  }
+
+  @Test
+  public void testGetNewestRisks_ExplicitApplicationFilter_Authorized() {
+    grantReadPermission(app.getId());
+    newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetNewestRisks_ImplicitApplicationFilter_Unauthenticated() {
+    createFirstOccurrencePolicyViolation(app.getId());
+    assertThat(newestRiskService.getNewestRisks(null, null, null, null, null, 1), hasSize(0));
+  }
+
+  @Test
+  public void testGetNewestRisks_ImplicitApplicationFilter_Unauthorized() {
+    createFirstOccurrencePolicyViolation(app.getId());
+    login();
+    assertThat(newestRiskService.getNewestRisks(null, null, null, null, null, 1), hasSize(0));
+  }
+
+  @Test
+  public void testGetNewestRisks_ImplicitApplicationFilter_Authorized() {
+    createFirstOccurrencePolicyViolation(app.getId());
+    grantReadPermission(app.getId());
+    assertThat(newestRiskService.getNewestRisks(null, null, null, null, null, 1), hasSize(1));
+  }
+
+  private void createFirstOccurrencePolicyViolation(String appId) {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation,
+        tempEntity.newPolicy(app.getId(), "test policy name"));
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), appId, BuildStageType.ID);
+  }
+}

@@ -10,14 +10,14 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 
-public class PolicySummaryServiceNotLicensedTest
+public class ComponentRiskServiceNotLicensedTest
     extends AbstractServiceNotLicensedTest
 {
   @InjectMocks
-  private PolicySummaryService policySummaryService;
+  private ComponentRiskService componentRiskService;
 
   @Test(expected = InvalidLicenseException.class)
-  public void testGetPolicySummary_Unlicensed() throws Exception {
-    policySummaryService.getPolicySummary(null, null, null, null, null);
+  public void testGetComponentRisks_Unlicensed() {
+    componentRiskService.getComponentRisks(null, null, null, null, null, 0);
   }
 }

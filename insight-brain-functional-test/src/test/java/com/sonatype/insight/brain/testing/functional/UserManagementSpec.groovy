@@ -190,6 +190,7 @@ class UserManagementSpec
 
     then: 'login succeeds'
       !login.isDisplayed()
+      waitFor { userOptions.displayName.text() == 'add user' }
       userOptions.logoutClick()
   }
 

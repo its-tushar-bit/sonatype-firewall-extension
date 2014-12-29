@@ -29,6 +29,7 @@ class UserOptionsModule
   void logoutClick() {
     optionsDropdown.click()
     def body = page.$('body').firstElement();
+    waitFor { logout.displayed }
     logout.click()
     /*
      * NOTE: Logout triggers navigation to a new page. Any page content that is accessed directly after the click event

@@ -284,7 +284,7 @@ public class PolicySummaryServiceTest
     for (int iWeek = 4; iWeek < PolicySummaryService.POLICY_SUMMARY_WEEKS; iWeek++) {
       assertCountersWeek(dto, iWeek, 0, 0, 0, 0);
     }
-    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe5.getTime().getTime() - pe4.getTime().getTime());
+    DescriptiveStatistics ageWaivedStatistics = createStatistics(pe6.getTime().getTime() - pe5.getTime().getTime());
     DescriptiveStatistics ageFixedStatistics = createStatistics(pe3.getTime().getTime() - pe1.getTime().getTime(), pe6
         .getTime().getTime() - pe4.getTime().getTime());
     DescriptiveStatistics ageUnresolvedStatistics = createStatistics(dto.timestamp - pe2.getTime().getTime());

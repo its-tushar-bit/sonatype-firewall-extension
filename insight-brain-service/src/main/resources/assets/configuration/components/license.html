@@ -1,3 +1,12 @@
+<script type="text/ng-template" id="install-license-form">
+  <form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;display: inline-block' method='post'>
+    <label for="license-input" firefox-input-click class='btn btn-primary'>
+      <i class='icon-white icon-plus-sign'></i>&nbsp;{{ license ? 'Update' : 'Install' }} License
+    </label>
+    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file" on-file-change="onFileChanged()" manual-file-clear/>
+    <input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
+  </form>
+</script>
 <div class='mid-content' authorization-wrapper="isAuthorized">
   <div id='license'>
     <h1 class='page-title'>
@@ -9,16 +18,10 @@
           <h5><i class='icon icon-time'></i> Loading...</h5>
       </div>
       <div ng-show='!error && isLoaded()'>
-        <div ng-show='!license' style="padding-left: 25px;padding-top:10px">
-            <form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;' method='post'>
-                <label for="license-input" firefox-input-click class='btn btn-primary'>
-                    <i class='icon-white icon-plus-sign'></i>&nbsp;Install License
-                </label>
-                <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file" on-file-change="onFileChanged()" manual-file-clear/>
-                <input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
-            </form>
+        <div ng-if='!license' style="padding-top:10px">
+          <div ng-include="'install-license-form'"></div>
         </div>
-        <div ng-show='license'>
+        <div ng-if='license'>
           <div class='form-horizontal configuration'>
             <div class='control-group'>
               <label class='control-label'>Expires:</label>
@@ -29,9 +32,10 @@
               <div id='license-fingerprint' class='controls' style='padding-top:5px'>{{license.fingerprint}}</div>
             </div>
             <div class='control-group'>
-              <button class='btn btn-remove btn-danger pull-left' ng-click='viewUninstallLicense()'>
+              <span ng-include="'install-license-form'"></span>
+              <label class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
                 <i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
-              </button>
+              </label>
             </div>
           </div>
         </div>

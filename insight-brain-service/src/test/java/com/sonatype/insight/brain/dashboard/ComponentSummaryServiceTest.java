@@ -132,7 +132,8 @@ public class ComponentSummaryServiceTest
 
   @Test
   public void testGetComponentSummary_UsesMostRecentMatchState() throws Exception {
-    tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, "hash-1", MatchState.SIMILAR, false);
+    tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, "hash-1", null, null, MatchState.SIMILAR,
+        false, new Date(System.currentTimeMillis() + 1));
 
     ComponentSummaryDTO summary = componentSummaryService.getComponentSummary(null, null, null);
     assertThat(summary.total, is(4));

@@ -776,21 +776,23 @@ public class TemporaryEntity
       MatchState matchState, boolean proprietary)
   {
     return newApplicationComponent(applicationId, stageTypeId, hash,
-        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), null, matchState, proprietary);
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), null, matchState, proprietary,
+        new Date());
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
       ComponentIdentifier componentIdentifier, String pathnamesString)
   {
     return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, pathnamesString,
-        MatchState.EXACT, false);
+        MatchState.EXACT, false, new Date());
   }
 
   public ApplicationComponent newApplicationComponent(String applicationId, String stageTypeId, String hash,
-      ComponentIdentifier componentIdentifier, String pathnamesString, MatchState matchState, boolean proprietary)
+      ComponentIdentifier componentIdentifier, String pathnamesString, MatchState matchState, boolean proprietary,
+      Date time)
   {
     List<String> pathnames = StringUtils.isBlank(pathnamesString) ? null : Collections.singletonList(pathnamesString);
-    ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, new Date(), hash,
+    ApplicationComponent applicationComponent = new ApplicationComponent(applicationId, stageTypeId, time, hash,
         componentIdentifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), proprietary, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;

@@ -12,7 +12,7 @@ class LoginSpec
   def "form states are usable"() {
     when: "login modal is shown"
       via ReportViolationsPage
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
 
     then: "username input has focus"
       js.'document.activeElement.id' == login.usernameInput.@id
@@ -36,7 +36,7 @@ class LoginSpec
       loginAsAdminVia()
 
     then: "the user is logged in"
-      waitFor { !login.isDisplayed() }
+      waitFor { !login.displayed }
   }
 
   def "log in prevented when using invalid credentials"() {
@@ -50,7 +50,7 @@ class LoginSpec
       waitFor { login.errorMessage.text().contains("Invalid credentials") }
 
     and: "user is prompted to log in"
-      login.isDisplayed()
+      login.displayed
   }
 
   def "report application is protected by authentication"() {
@@ -58,7 +58,7 @@ class LoginSpec
       via ReportViolationsPage
 
     then: "user is prompted to log in"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
   }
 
   def "management application is protected by authentication"() {
@@ -66,7 +66,7 @@ class LoginSpec
       via ManagementPage
 
     then: "user is prompted to log in"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
   }
 
   def "authentication session state is remembered"() {
@@ -91,7 +91,7 @@ class LoginSpec
       via ReportViolationsPage
 
     then: "user is prompted to log in"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
   }
 
   def "user can logout from management pages"() {
@@ -102,19 +102,19 @@ class LoginSpec
       userOptions.logoutClick()
 
     then: "we now see the login module"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
 
     when: "attempting to navigate back"
       browser.driver.navigate().back()
 
     then: "we never lose the login module"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
 
     when: "we try to go directly to another page"
       go ManagementPage.url
 
     then: "we are still prompted to login"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
   }
 
   def "user can logout from reporting pages"() {
@@ -125,18 +125,18 @@ class LoginSpec
       userOptions.logoutClick()
 
     then: "we redirect to the login page"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
 
     when: "attempting to navigate back"
       browser.driver.navigate().back()
 
     then: "the login dialog does not dispose"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
 
     when: "we try to go directly to another page"
       go ManagementPage.url
 
     then: "the login dialog does not dispose"
-      waitFor { login.isDisplayed() }
+      waitFor { login.displayed }
   }
 }

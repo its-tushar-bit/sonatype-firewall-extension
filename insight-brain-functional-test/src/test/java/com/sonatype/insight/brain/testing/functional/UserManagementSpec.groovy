@@ -189,7 +189,7 @@ class UserManagementSpec
       login.login('addusertest', newPassword)
 
     then: 'login succeeds'
-      !login.isDisplayed()
+      !login.displayed
       waitFor { userOptions.displayName.text() == 'add user' }
       userOptions.logoutClick()
   }

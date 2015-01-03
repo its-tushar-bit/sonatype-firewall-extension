@@ -21,10 +21,6 @@ class LoginModule
     errorMessage(required: false, wait: true) { $('#login-error') }
   }
 
-  def loginAsAdmin() {
-    login("admin", "admin123")
-  }
-
   def login(username, password) {
     login(username, password, false)
   }

@@ -157,10 +157,7 @@ extends GebReportingSpec {
    * @return a reference to the newly loaded Page
    */
   public <T> T loginAsAdminVia(Class<T> initialPage = ReportViolationsPage, Object[] args) {
-    via initialPage, args
-    login.loginAsAdmin()
-    verifyAt()
-    return page
+    return loginAsUserVia("admin", "admin123", initialPage, args)
   }
 
   /**

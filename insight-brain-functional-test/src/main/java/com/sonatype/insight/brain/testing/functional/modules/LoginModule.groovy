@@ -36,7 +36,7 @@ class LoginModule
     }
   }
 
-  def isDisplayed() {
+  boolean isDisplayed() {
     modal.displayed
   }
 }

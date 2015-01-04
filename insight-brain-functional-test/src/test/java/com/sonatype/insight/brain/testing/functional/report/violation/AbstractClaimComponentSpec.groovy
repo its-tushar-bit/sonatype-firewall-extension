@@ -189,6 +189,7 @@ extends BaseSpec {
     Cip cip = results[0].cip
     cip.claimComponent.showTrigger.click()
     ClaimComponentModule component = cip.claimComponent
+    waitFor { component.revoke.displayed }
 
     when: 'Clicking the "Revoke Claim" button'
     component.revoke.click()

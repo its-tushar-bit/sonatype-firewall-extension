@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.rules.TestName
 import org.openqa.selenium.logging.LogEntry
 import org.openqa.selenium.logging.LogType
+import org.openqa.selenium.StaleElementReferenceException
 import spock.lang.Shared
 
 @Slf4j
@@ -173,7 +174,26 @@ extends GebReportingSpec {
   public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage,
       Object[] args) {
     via initialPage, args
-    login.login(username, password)
+    /* 
+     * Sadly, a module can't reliably wait for itself to appear. Once a function of the module is called, its base
+     * element gets frozen and if that becomes stale, e.g. due to a page change as done above, all module contents
+     * suffer the same fate, no matter how long the invoked module function waits and a module can't reload its base.
+     */
+    waitFor { login.displayed }
+    try {
+      login.login(username, password)
+    }
+    catch (Exception e) {
+      /*
+       * Especially when the login prompt was already shown before the page change, the test can succeed in observing
+       * the modal as displayed (and continue execution) just before the page gets updated and the original modal
+       * becomes stale. It is hard to proactively wait for the DOM to stabilize so we try to recover afterwards.
+       */
+      if (!(e instanceof StaleElementReferenceException || e.cause instanceof StaleElementReferenceException)) {
+        throw e
+      }
+      login.login(username, password)
+    }
     verifyAt()
     return page
   }

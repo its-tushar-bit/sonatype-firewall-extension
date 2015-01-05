@@ -92,4 +92,3 @@ extends Module {
     labels { $('#aiVersionChartLabels text')*.text() }
   }
 }
-

@@ -41,5 +41,3 @@ class ProprietaryTableRow
     delete { cell(1).find('button').click() }
   }
 }
-
-

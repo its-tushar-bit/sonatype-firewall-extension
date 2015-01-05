@@ -121,4 +121,3 @@ class SecurityViolationTableRow
     summary { cell(SUMMARY).text() }
   }
 }
-

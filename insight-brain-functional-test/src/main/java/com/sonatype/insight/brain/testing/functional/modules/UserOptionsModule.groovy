@@ -26,8 +26,14 @@ class UserOptionsModule
     openChangePassword(wait: true) { $('#change-password') }
   }
 
-  void logoutClick() {
+  private void dropdownClick() {
+    // ensure DOM has settled after a prior login
+    waitFor { displayName.text() }
     optionsDropdown.click()
+  }
+
+  void logoutClick() {
+    dropdownClick()
     def body = page.$('body').firstElement();
     waitFor { logout.displayed }
     logout.click()
@@ -40,7 +46,7 @@ class UserOptionsModule
   }
 
   void changePasswordClick() {
-    optionsDropdown.click()
+    dropdownClick()
     waitFor { openChangePassword.displayed }
     openChangePassword.click()
   }

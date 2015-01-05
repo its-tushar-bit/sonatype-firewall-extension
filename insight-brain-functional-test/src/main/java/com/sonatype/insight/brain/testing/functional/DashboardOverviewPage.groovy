@@ -185,17 +185,17 @@ class SparklineModule
   }
 
   boolean isTrailingGreen() {
-    def parent = $().parent('tr')
+    def parent = parent('tr')
     return presentPath.hasClass('up') && parent.hasClass('natural') || presentPath.hasClass('down') && parent.hasClass('inverse')
   }
 
   boolean isTrailingRed() {
-    def parent = $().parent('tr')
+    def parent = parent('tr')
     return presentPath.hasClass('up') && parent.hasClass('inverse') || presentPath.hasClass('down') && parent.hasClass('natural')
   }
 
   boolean isTrailingBlue() {
-    return $().parent('tr').hasClass('neutral')
+    return parent('tr').hasClass('neutral')
   }
 }
 

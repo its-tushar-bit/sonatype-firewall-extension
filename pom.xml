@@ -42,7 +42,7 @@
     <mockito.version>1.9.5</mockito.version>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>6.0.0.CR1</drools.version>
-    <geb.version>0.9.2</geb.version>
+    <geb.version>0.10.0</geb.version>
     <selenium.version>2.43.0</selenium.version>
   </properties>
 

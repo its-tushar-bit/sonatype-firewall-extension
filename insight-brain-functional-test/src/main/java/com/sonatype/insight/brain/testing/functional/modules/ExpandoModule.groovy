@@ -41,6 +41,6 @@ class ExpandoModule
     else {
       expando.click()
     }
-    return $()
+    return this
   }
 }

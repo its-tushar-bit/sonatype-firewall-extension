@@ -161,10 +161,6 @@
   text-align: right;
 }
 
-.no-bottom-border {
-  border-bottom: none;
-}
-
 .mid-content, .dashboard-content {
   padding-top: 55px;
 }
@@ -305,30 +301,6 @@ table.table-risk td.low-risk, span.low-risk {
 
 table th#affected-apps {
   min-width:149px
-}
-
-.dashboard-content .nav.nav-tabs {
-  margin:0px;
-}
-
-.dashboard-content .nav.nav-tabs .active {
-  margin-bottom: 0px;
-}
-.dashboard-content .nav.nav-tabs .active a {
-  border-bottom:1px solid #2476FC;
-}
-
-.dashboard-content h4 {
-  font-size : 19.5px
-}
-
-.dashboard-content .nav.nav-tabs h4 {
-  margin:0px;
-  padding-top: 8px;
-}
-
-.dashboard-content td {
-  border-top: 0px;
 }
 
 /* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */

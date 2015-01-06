@@ -623,7 +623,8 @@ $policy-summary-table-row-height: 25px;
   min-height : 257px;
 }
 
-$dashboard-border: 2px solid #CCC;
+$dashboard-border-width: 2px;
+$dashboard-border: $dashboard-border-width solid #CCC;
 
 .dashboard-section-header {
   padding-bottom: 5px;
@@ -631,14 +632,23 @@ $dashboard-border: 2px solid #CCC;
 }
 
 /*
+  #Dashboard Tables
+*/
+
+/*
  Tables with scrollable bodies
  ```
+ <div class='scrollable-container-header'></div>
   <div class='scrollable-container'>
     <div class='scrollable-container-inner'>
       <table style='height:30px'>
         <thead>
           <tr>
-            <th>Count</th>
+            <th>
+              <div>
+                Count
+              </div>
+            </th>
           </tr>
          </thead>
          <tbody>
@@ -658,11 +668,18 @@ $dashboard-border: 2px solid #CCC;
  ```
 */
 
+.scrollable-container-header {
+  border-bottom: $dashboard-border !important;
+  width: 100%;
+}
+
 .scrollable-container {
   height: 500px;
   position: relative;
   padding-top: 30px;
-  border-top: $dashboard-border;
+  border-bottom: $dashboard-border;
+  border-left: $dashboard-border;
+  border-right: $dashboard-border;
 
   th {
     padding: 0 5px;
@@ -673,13 +690,17 @@ $dashboard-border: 2px solid #CCC;
     top: 0;
     line-height: 30px;
   }
+
+  th:first-child>div {
+    padding-left: 5px;
+  }
 }
 
 .scrollable-container-inner {
   overflow-x: hidden;
   overflow-y: auto;
   height: 100%;
-  border-bottom: $dashboard-border;
+  height: calc(100% - #{$dashboard-border-width});
   border-top: $dashboard-border;
 
   table {
@@ -688,4 +709,72 @@ $dashboard-border: 2px solid #CCC;
     overflow-y: auto;
     margin-bottom: 0px;
   }
+}
+
+/*
+Dashboard tables
+ ```
+ <div class="dashboard-content">
+  <ul class="nav nav-tabs scrollable-container-header">
+    <li>
+      <h4>Descriptor</h4>
+    </li>
+    <li class="pull-right active">
+      <a>
+        <div>
+          Table Name
+        </div>
+      </a>
+    </li>
+  </ul>
+  <div class="scrollable-container">
+    <div class='scrollable-container-inner'>
+      <table style='height:30px'>
+        <thead>
+          <tr>
+            <th>
+              <div>
+                Count
+              </div>
+            </th>
+          </tr>
+         </thead>
+         <tbody>
+           <tr><td>2</td></tr>
+           <tr><td>1</td></tr>
+         </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+ ```
+*/
+
+.dashboard-content .nav.nav-tabs {
+  margin:0px;
+}
+
+.dashboard-content .nav.nav-tabs .active {
+  margin-bottom: 0px;
+}
+
+.dashboard-content .nav.nav-tabs .active a {
+  border-top: $dashboard-border;
+  border-right: $dashboard-border;
+  border-left: $dashboard-border;
+  border-bottom: 2px solid white;
+  margin-bottom: -2px;
+}
+
+.dashboard-content h4 {
+  font-size : 19.5px
+}
+
+.dashboard-content .nav.nav-tabs h4 {
+  margin:0px;
+  padding-top: 8px;
+}
+
+.dashboard-content td {
+  border-top: 0px;
 }

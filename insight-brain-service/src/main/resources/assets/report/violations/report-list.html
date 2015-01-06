@@ -9,9 +9,11 @@
       </h5>
     </div>
     <div ng-show='applications.length > 0'>
-      <div class='input-prepend'>
-        <span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
-        <input type='text' ng-model='appFilter' autocomplete="off" placeholder='Filter Applications' />
+      <div class="scrollable-container-header">
+        <div class='input-prepend'>
+          <span class='add-on'><i ng-class="{'icon-search': !appFilter, 'icon-remove': appFilter}" ng-click="appFilter = ''"></i></span>
+          <input type='text' ng-model='appFilter' autocomplete="off" placeholder='Filter Applications' />
+        </div>
       </div>
       <div class='scrollable-container border-top' maximize-height>
         <div class='scrollable-container-inner'>

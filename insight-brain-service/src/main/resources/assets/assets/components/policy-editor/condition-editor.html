@@ -18,7 +18,12 @@
     </select>
     <select ng-model="condition.value" ng-switch-when="SecurityVulnerabilityStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
     </select>
-    <span label-drop-down ng-model="condition.value" ng-switch-when="LabelValueType" options="conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
+    <span ng-switch-when="LabelValueType">
+      <span ng-if="conditionTypes[condition.conditionTypeId].valueType.availableValues.length > 0" label-drop-down ng-model="condition.value" options="conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
+      </span>
+      <span class="no-condition-value error" ng-if="conditionTypes[condition.conditionTypeId].valueType.availableValues.length == 0">
+        No labels available
+      </span>
     </span>
     <span ng-switch-when="AgeInDaysValueType" age-in-days ng-model="condition.value">
     </span>

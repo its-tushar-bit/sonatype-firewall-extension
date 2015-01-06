@@ -148,6 +148,10 @@ table.policy-actions td:last-child {
 .condition-value select, .condition-value input {
 	vertical-align:top;
 }
+.condition-value .no-condition-value {
+  line-height: 30px;
+  margin-left: 10px;
+}
 
 .policy-tag {
   margin-left: 25px;

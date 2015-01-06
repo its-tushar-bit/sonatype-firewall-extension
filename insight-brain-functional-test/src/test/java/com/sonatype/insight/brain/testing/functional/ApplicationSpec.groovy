@@ -32,9 +32,32 @@ class ApplicationSpec
   }
 
   def "Can create a new Application"() {
-    when: 'We add a new Application'
+    when: 'We go to the new application page'
       ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
-      applicationManagementPage.createApp('New Application', 'New-Application')
+      newApplicationButton.click()
+      ApplicationPage applicationPage = at(ApplicationPage)
+
+    then: 'Controls not shown'
+      !applicationPage.tools.deleteButton.present
+      !applicationPage.tools.appEvalButton.present
+
+    when: 'Application details completed'
+      applicationId.click()
+      waitFor { applicationIdField.displayed }
+      applicationIdField = 'New-Application'
+      applicationOrgField.click()
+      waitFor { applicationOrgName('test organization').displayed }
+      applicationOrgName('test organization').click()
+      applicationPage.applicationName.click()
+      waitFor { applicationPage.applicationNameField.displayed }
+      applicationPage.applicationNameField = 'New Application'
+
+    then: 'Controls still not shown'
+      !applicationPage.tools.deleteButton.present
+      !applicationPage.tools.appEvalButton.present
+
+    when: 'We click the save button'
+      applicationSaveButton.click()
 
     then: 'we are left at the Application page'
       at ApplicationPage

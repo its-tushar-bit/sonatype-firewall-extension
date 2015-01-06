@@ -208,13 +208,13 @@
   <div class='fade' ng-class='{ in : ao.selected != null }'>
     <div clm-alerts='alerts'></div>
     <div id="editor-toolbar" style="float:right; margin:10px;" class='btn-group'>
-      <a id="policy-import-button" class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='ao.getId()'>
+      <a id="policy-import-button" class="btn btn-mini" title="Import Policies" ng-click="openImport()" ng-if='!ao.isNew()'>
         <img src='../assets/img/icon-import.png' alt='Import Policy' style='width:16px;height:16px;padding:6px 0px'>
       </a>
-      <a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvaluate()" ng-if='ao.getId()'>
+      <a id="app-evaluate-button" class="btn btn-mini" title="Evaluate an Application" ng-click="openEvaluate()" ng-if='!ao.isNew()'>
         <img src='../assets/img/icon-add-bundle.png' alt='Evaluate an Application' style='width:16px;height:16px;padding:6px 0px'>
       </a>
-      <a id="remove-app-org-button" class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='ao.getId()'>
+      <a id="remove-app-org-button" class="btn btn-mini" title="Remove {{ao.typeName}}" ng-click="confirmDelete()" ng-if='!ao.isNew()'>
         <i class='glyphicons-sonatype bin'></i>
       </a>
     </div>

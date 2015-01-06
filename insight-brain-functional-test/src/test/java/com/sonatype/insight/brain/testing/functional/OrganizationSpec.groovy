@@ -23,9 +23,27 @@ class OrganizationSpec
   }
 
   def "Can create a new Organization"() {
-    when: 'We add a new Organization'
+    when: 'We click New Organization'
       OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
-      organizationManagementPage.createOrg('New Organization')
+      organizationManagementPage.newOrganizationButton.click()
+      OrganizationPage organizationPage = at(OrganizationPage)
+
+    then: 'Organization controls are not visible'
+      !organizationPage.tools.deleteButton.present
+      !organizationPage.tools.appEvalButton.present
+
+    when: 'Organization name is entered'
+      organizationPage.organizationName.click()
+      waitFor { organizationPage.organizationNameField.displayed }
+      organizationPage.organizationNameField = 'New Organization'
+
+    then: 'Organization controls are still not visible'
+      !organizationPage.tools.deleteButton.present
+      !organizationPage.tools.appEvalButton.present
+
+    when: 'We click save'
+      organizationPage.organizationSaveButton.click()
+      waitFor { !organizationPage.organizationSaveButton.displayed }
 
     then: 'we are left at the Organization page'
       at OrganizationPage

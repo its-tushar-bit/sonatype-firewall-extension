@@ -14,8 +14,8 @@ class EditorToolsModule
     extends Module
 {
   static content = {
-    deleteButton(required: true) { $('#remove-app-org-button') }
-    appEvalButton(required: true) { $('#app-evaluate-button') }
+    deleteButton(required: false) { $('#remove-app-org-button') }
+    appEvalButton(required: false) { $('#app-evaluate-button') }
     appEval { module ApplicationEvaluationModule }
   }
 }

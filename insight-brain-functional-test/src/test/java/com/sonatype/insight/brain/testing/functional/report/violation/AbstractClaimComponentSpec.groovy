@@ -5,15 +5,20 @@
  */
 package com.sonatype.insight.brain.testing.functional.report.violation
 
-import javax.ws.rs.core.UriBuilder
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
+import com.sonatype.insight.json.store.JsonUtils
+import com.sonatype.insight.mock.UriParamRequestMatcher
+import org.eclipse.jetty.util.UrlEncoded
 import spock.lang.Shared
 import spock.lang.Stepwise
+
+import javax.ws.rs.core.UriBuilder
 
 /**
  * @since 1.11
@@ -43,6 +48,10 @@ extends BaseSpec {
   static final ComponentIdentifier CID = ComponentIdentifier.
   createMavenCoordinates(FORM_FIELDS.groupId, FORM_FIELDS.artifactId, FORM_FIELDS.version, FORM_FIELDS.classifier,
   FORM_FIELDS.extension)
+
+  static final ComponentIdentifier UCID = ComponentIdentifier.
+  createMavenCoordinates(FORM_FIELDS.groupId, FORM_FIELDS.artifactId, FORM_FIELDS.version + '-NEW',
+  '', FORM_FIELDS.extension)
 
   def setupSpec() {
     work = new InsightWork(serviceRule.configuration)
@@ -112,10 +121,7 @@ extends BaseSpec {
 
   def "Should be able to update an already claimed component"() {
     given: 'A GAV not found in our data'
-    ComponentIdentifier updatedIdentifier = ComponentIdentifier.
-        createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version + '-NEW',
-        '', CID.coordinates.extension)
-    saasRule.setResponseForURI(createUri(updatedIdentifier), '{"isKnown": false }', 200)
+    saasRule.setResponseForURI(createUri(UCID), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip
     ClaimComponentModule component = cip.claimComponent
@@ -182,6 +188,13 @@ extends BaseSpec {
     then:
     waitFor { cip.licenses.form.displayed }
     licenses.validateLicense('', '', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
+
+    when: 'We go to the component info page'
+    mockSaasComponentDetailsListResponse(UCID);
+    cip.componentInfo.show()
+
+    then: 'The effective license is shown'
+    waitFor { cip.componentInfo.effectiveLicense.text() == 'Beerware' }
   }
 
   def "Should be able to revoke a claim on a component"() {
@@ -219,7 +232,14 @@ extends BaseSpec {
     queryParam('componentIdentifier', ComponentIdentifierAdapter.toJson(componentIdentifier)).build().toString()
   }
 
+  void mockSaasComponentDetailsListResponse(ComponentIdentifier identifier) {
+    saasRule.setResponseForURI(new UriParamRequestMatcher("rest/ci/componentDetails/list?componentIdentifier=" +
+        UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)) +
+        "&hash=" + getExpectedHash() + "&matchState=exact", '{"list":[]}', 200))
+  }
+
   abstract String getReportPath()
   abstract String getExpectedDisplayNameString()
   abstract String getExpectedUpdatedDisplayNameString()
+  abstract String getExpectedHash()
 }

@@ -93,7 +93,23 @@ class Cip
     claimComponent(required: false) { module ClaimComponentModule }
     licenses(required: false) { module LicenseModule }
     auditLog(required: false) { module AuditLogModule }
+    componentInfo(required: false) { module ComponentInfoModule }
     // implement other tabs as needed
+  }
+}
+
+class ComponentInfoModule
+    extends Module
+{
+  static content = {
+    detailContainer { $('#version-graph') }
+    effectiveLicense(required: false) { $('#artifactInfoEffectiveLicenseRow td:nth-child(2) span') }
+    showTrigger { $('a', text: 'Component Info') }
+  }
+
+  void show() {
+    showTrigger.click()
+    waitFor { detailContainer.displayed }
   }
 }
 

@@ -28,4 +28,9 @@ extends AbstractClaimComponentSpec {
   String getExpectedUpdatedDisplayNameString() {
     return 'testG : testA : testV-NEW'
   }
+
+  @Override
+  String getExpectedHash() {
+    return 'b60f7aea3e3bf7247e14'
+  }
 }

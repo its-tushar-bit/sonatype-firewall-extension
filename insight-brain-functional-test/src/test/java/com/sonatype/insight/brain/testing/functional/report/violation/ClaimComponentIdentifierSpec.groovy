@@ -30,6 +30,11 @@ extends AbstractClaimComponentSpec {
     return 'testG : testA : testE : testV-NEW'
   }
 
+  @Override
+  String getExpectedHash() {
+    return '035f9a97aa10bb7a13ad'
+  }
+
   def 'Should not show jar extensions in the display name when claimed without a classifier'() {
     given: 'A GAV not found in our data'
     ComponentIdentifier identifier = ComponentIdentifier.

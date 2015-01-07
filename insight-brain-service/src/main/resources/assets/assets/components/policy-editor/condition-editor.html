@@ -8,8 +8,13 @@
     </select>
     <select ng-model="condition.value" ng-switch-when="LicenseValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.shortDisplayName for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
     </select>
-    <select ng-model="condition.value" ng-switch-when="LicenseThreatGroupValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
-    </select>
+    <span ng-switch-when="LicenseThreatGroupValueType">
+      <select ng-if="conditionTypes[condition.conditionTypeId].valueType.availableValues.length > 0" ng-model="condition.value" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
+      </select>
+      <span class="no-condition-value error" ng-if="conditionTypes[condition.conditionTypeId].valueType.availableValues.length == 0">
+        No license threat groups available
+      </span>
+    </span>
     <select ng-model="condition.value" ng-switch-when="LicenseStatusValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>
     </select>
     <select ng-model="condition.value" ng-switch-when="IdentificationSourceValueType" ng-multiple="conditionTypes[condition.conditionTypeId].valueType.allowMultiple" ng-options="c.id as c.name for c in conditionTypes[condition.conditionTypeId].valueType.availableValues" required>

@@ -563,6 +563,46 @@ var clmEndpointTemplate = {
       }));
     });
 
+    describe('Insight.registerViewDetailsListener', function () {
+      var listener, scope;
+      beforeEach(inject(function ($rootScope) {
+        listener = jasmine.createSpy('listener');
+        scope = $rootScope.$new();
+        Insight.registerViewDetailsListener(listener);
+        Insight.setCoordinates('maven', { groupId : 'org.group', artifactId : 'stuff', classifier : 'sources', extension : 'jar', version : '1.0.0' }, { hash : 'abcd', proprietary : true, matchState : 'similar', appId : 'myapp' });
+      }));
+
+      it('same version selected', inject(function ($rootScope) {
+        scope.$emit('viewDetails', '1.0.0');
+        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '1.0.0', 'sources', 'jar', 'abcd', 'similar', true);
+      }));
+
+      it('different version selected', inject(function ($rootScope) {
+        scope.$emit('viewDetails', '2.0.0');
+        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', null, null, true);
+      }));
+    });
+
+    describe('Insight.registerCoordsViewDetailsListener', function () {
+      var listener, scope;
+      beforeEach(inject(function ($rootScope) {
+        listener = jasmine.createSpy('listener');
+        scope = $rootScope.$new();
+        Insight.registerCoordsViewDetailsListener(listener);
+        Insight.setCoordinates('maven', { groupId : 'org.group', artifactId : 'stuff', classifier : 'sources', extension : 'jar', version : '1.0.0' }, { hash : 'abcd', proprietary : true, matchState : 'similar', appId : 'myapp' });
+      }));
+
+      it('same version selected', inject(function ($rootScope) {
+        scope.$emit('viewDetails', '1.0.0');
+        expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '1.0.0'], 'abcd', 'similar', true);
+      }));
+
+      it('different version selected', inject(function ($rootScope) {
+        scope.$emit('viewDetails', '2.0.0');
+        expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '2.0.0'], null, null, true);
+      }));
+    });
+
     describe('graph', function () {
       var scope = null,
           parentScope = null;

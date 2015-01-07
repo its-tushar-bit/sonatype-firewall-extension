@@ -125,7 +125,7 @@
         }]);
       },
       "registerViewDetailsListener": function (listener) {
-        waitOnInjector(['Coordinates', 'SelectedApp', '$rootScope', function (Coordinates, SelectedApp, $rootScope) {
+        waitOnInjector(['Coordinates', 'Properties', 'SelectedApp', '$rootScope', function (Coordinates, Properties, SelectedApp, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
 
             if (Coordinates.getFormat() === 'maven') {
@@ -137,9 +137,9 @@
                       version,
                       gav.classifier,
                       gav.extension,
-                      version === gav.version ? gav.hash : null,
-                      version === gav.version ? gav.matchState : null,
-                      gav.proprietary);
+                      version === gav.version ? Properties.getHash() : null,
+                      version === gav.version ? Properties.getMatchState() : null,
+                      Properties.getProprietary());
             }
           });
         }]);
@@ -147,11 +147,25 @@
       "registerCoordsViewDetailsListener": function (listener) {
         waitOnInjector(['Coordinates', 'SelectedApp', 'Properties', '$rootScope', function (Coordinates, SelectedApp, Properties, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
-            var coordinates = angular.extend({}, Coordinates.get(), { version : version });
+            var coordinates = [],
+                origVersion;
+
+            angular.forEach(Coordinates.get(), function (value, field) {
+              coordinates.push(field);
+
+              if ('version' === field) {
+                coordinates.push(version);
+                origVersion = value;
+              }
+              else {
+                coordinates.push(value);
+              }
+            });
 
             listener(SelectedApp.get(), Coordinates.getFormat(), coordinates,
-                    version === coordinates.version ? Properties.getHash() : null,
-                    version === coordinates.version ? Properties.getMatchState() : null);
+                    version === origVersion ? Properties.getHash() : null,
+                    version === origVersion ? Properties.getMatchState() : null,
+                    Properties.getProprietary());
           });
         }]);
       },

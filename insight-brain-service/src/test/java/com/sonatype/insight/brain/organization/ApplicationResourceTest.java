@@ -598,7 +598,7 @@ public class ApplicationResourceTest
     String hashcode = "abababababababababab";
     String url = getGenerateIconServiceUrl(hashcode);
     String saasUrl = "rest/application/icon/generate/" + hashcode;
-    setSaasResponseForURI(saasUrl, 200, loadDefaultIcon());
+    setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
     Response response = AuthedRestAccess.get(url);
     testValidIconResponse(response);
   }

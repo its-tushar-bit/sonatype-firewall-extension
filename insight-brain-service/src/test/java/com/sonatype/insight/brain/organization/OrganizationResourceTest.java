@@ -165,7 +165,7 @@ public class OrganizationResourceTest
     String hashcode = "abababababababababab";
     String url = getGenerateIconServiceUrl(hashcode);
     String saasUrl = "rest/application/icon/generate/" + hashcode;
-    setSaasResponseForURI(saasUrl, 200, loadDefaultIcon());
+    setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
     Response response = AuthedRestAccess.get(url);
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getResponseBodyAsBytes());

@@ -84,10 +84,6 @@ public class InsightMockServerRule
     insightMockServer.setResponseForURI(uri, body, status);
   }
 
-  void setResponseForURI(String uri, String body, int status) {
-    insightMockServer.setResponseForURI(uri, body, status);
-  }
-
   public void reset() throws IOException {
     insightMockServer.reset();
   }

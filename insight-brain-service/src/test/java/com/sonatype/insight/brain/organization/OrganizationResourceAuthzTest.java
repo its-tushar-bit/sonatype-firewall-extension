@@ -25,7 +25,7 @@ public class OrganizationResourceAuthzTest
   public void testGenerateIcon() throws Exception {
     String hash = "abababababababababab";
     String url = getRestUrl(OrganizationResource.SERVICE_PATH + '/' + OrganizationResource.GENERATE_ICON_PATH, hash);
-    setSaasResponseForURI("rest/application/icon/generate/" + hash, 200, new byte[0]);
+    setSaasResponseForURI("rest/application/icon/generate/" + hash, new byte[0], 200);
     Response response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
     assertResponseStatus(200, response);
   }

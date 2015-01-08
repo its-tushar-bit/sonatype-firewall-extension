@@ -155,11 +155,7 @@ public abstract class AbstractBrainServiceTest
     return getRestBaseUrl() + expandRestUrl(templateUrl, paramValues);
   }
 
-  protected void setSaasResponseForURI(String uri, int status, Object body) {
-    getInsightServer().setResponseForURI(uri, body, status);
-  }
-
-  protected void setSaasResponseForURI(String uri, String body, int status) {
+  protected void setSaasResponseForURI(String uri, Object body, int status) {
     getInsightServer().setResponseForURI(uri, body, status);
   }
 

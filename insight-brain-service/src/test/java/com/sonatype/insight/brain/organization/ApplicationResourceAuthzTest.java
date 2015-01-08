@@ -58,7 +58,7 @@ public class ApplicationResourceAuthzTest
     User user = tempEntity.newUser();
     String hash = "abababababababababab";
     String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GENERATE_ICON_PATH, hash);
-    setSaasResponseForURI("rest/application/icon/generate/" + hash, 200, new byte[0]);
+    setSaasResponseForURI("rest/application/icon/generate/" + hash, new byte[0], 200);
     Response response = RestAccess.get(url, user.getUsername(), user.getPassword());
     assertResponseStatus(200, response);
   }

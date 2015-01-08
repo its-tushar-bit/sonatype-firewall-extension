@@ -41,7 +41,7 @@ public class Component
 
   private List<SecurityVulnerability> securityVulnerabilities;
 
-  private int relativePopularity;
+  private Integer relativePopularity;
 
   private MatchState matchState = MatchState.UNKNOWN;
 
@@ -174,11 +174,11 @@ public class Component
     return licenseIds;
   }
 
-  public int getRelativePopularity() {
+  public Integer getRelativePopularity() {
     return relativePopularity;
   }
 
-  public void setRelativePopularity(int relativePopularity) {
+  public void setRelativePopularity(Integer relativePopularity) {
     this.relativePopularity = relativePopularity;
   }
 

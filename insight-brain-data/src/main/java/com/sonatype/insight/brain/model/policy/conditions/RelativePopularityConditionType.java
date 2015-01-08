@@ -70,6 +70,11 @@ public class RelativePopularityConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, Integer value) {
+    // Component without relative popularity should always pass this rule.
+    if (component.getRelativePopularity() == null) {
+      return true;
+    }
+
     if ("=".equals(operator)) {
       return component.getRelativePopularity() == value;
     }

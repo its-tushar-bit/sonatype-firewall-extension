@@ -31,6 +31,25 @@ public class RelativePopularityConditionTypeTest
   }
 
   @Test
+  public void testEvaluateNoPopularityData() {
+    Constraint constraint = createConstraint("=", "50");
+    List<Constraint> constraints = new ArrayList<Constraint>();
+    constraints.add(constraint);
+
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    policy.setConstraints(constraints);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+
+    List<Component> components = new ArrayList<>();
+    Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
+    component.setRelativePopularity(null);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(0, policyAlerts.size());
+  }
+
+  @Test
   public void testEvaluateEquals() {
     // Create policy constraints
     Constraint constraint = createConstraint("=", "30");

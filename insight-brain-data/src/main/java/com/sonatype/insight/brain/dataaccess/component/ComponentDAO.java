@@ -96,8 +96,11 @@ public class ComponentDAO
           if (!matchState.equals(MatchState.UNKNOWN)) {
             component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
 
+            Integer relativePopularity = null;
             final JsonNode relativePopularityJson = componentJson.get("relativePopularity");
-            final int relativePopularity = (int) (relativePopularityJson.asDouble() * 100);
+            if (!relativePopularityJson.isNull()) {
+              relativePopularity = (int) (relativePopularityJson.asDouble() * 100);
+            }
             final long catalogDate = componentJson.get("createTime").asLong();
 
             component.setRelativePopularity(relativePopularity);

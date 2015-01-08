@@ -49,7 +49,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.ComponentLicenses;
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.mock.UriParamRequestMatcher;
 
 import com.ning.http.client.Response;
 import org.eclipse.jetty.util.UrlEncoded;
@@ -106,8 +105,8 @@ public abstract class AbstractComponentInfoResourceTest
 
     // Verify that UNSPECIFIED is removed from the result
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("EPL-1.0", "UNSPECIFIED"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId,
         version));
     assertResponseStatus(200, response);
@@ -118,8 +117,8 @@ public abstract class AbstractComponentInfoResourceTest
     // Verify that a versionless license is resolved to versioned licenses
     version = "v2";
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-UNSPECIFIED"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     licenses = fromJson(response, License[].class);
@@ -133,8 +132,8 @@ public abstract class AbstractComponentInfoResourceTest
     version = "v3";
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "EPL-1.0"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("EPL-1.0", "GPL-2.0"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     licenses = fromJson(response, License[].class);
@@ -171,8 +170,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
 
     // Verify component without licenses
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
@@ -186,8 +185,8 @@ public abstract class AbstractComponentInfoResourceTest
     version = "v2"; // avoid matching parameters
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     licenses = fromJson(response, ComponentLicenses.class);
@@ -229,8 +228,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = new ComponentDetails(componentIdentifier);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
@@ -259,8 +258,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
@@ -285,8 +284,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("No-Sources"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
@@ -311,8 +310,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
@@ -337,8 +336,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
     saasComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
@@ -428,9 +427,9 @@ public abstract class AbstractComponentInfoResourceTest
     saasComponentDetails2.setDeclaredLicenses(licenses2);
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
     saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails1, saasComponentDetails2));
-    setSaasResponse(new UriParamRequestMatcher(convertToSaasUrl(
+    setSaasResponseForURI(convertToSaasUrl(
         getComponentDetailsListUrl(applicationPublicId, groupId, artifactId, version), applicationPublicId),
-        toJson(saasComponentDetailsList), 200));
+        toJson(saasComponentDetailsList), 200);
 
     String serviceUrl = getComponentDetailsListUrl(applicationPublicId, groupId, artifactId, version);
     Response response = AuthedRestAccess.get(serviceUrl);
@@ -510,8 +509,8 @@ public abstract class AbstractComponentInfoResourceTest
     String version = "v1";
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(hash, groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(hash, groupId, artifactId, version),
+        toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version,
         "01234567890123456789", "similar"));
     assertResponseStatus(200, response);
@@ -611,8 +610,7 @@ public abstract class AbstractComponentInfoResourceTest
     String serviceUrl = getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, null, null);
     ComponentDetails saasComponentDetails = newComponentDetailsForMaven(groupId, artifactId, version);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("36079", "osvdb", 7.5F, "Summary"));
-    setSaasResponse(new UriParamRequestMatcher(getSaasComponentDetailsUrl(groupId, artifactId, version),
-        toJson(saasComponentDetails), 200));
+    setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version), toJson(saasComponentDetails), 200);
     Response response = AuthedRestAccess.get(serviceUrl);
     assertResponseStatus(200, response);
 

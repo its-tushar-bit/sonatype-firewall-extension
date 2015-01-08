@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.cip.CIPModule
 import com.sonatype.insight.brain.testing.functional.cip.VersionGraphModule
-import com.sonatype.insight.mock.UriParamRequestMatcher
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -99,13 +98,13 @@ extends BaseSpec {
   ComponentDetails mockComponentDetails(String jsonFilename) {
     ComponentDetails hdsComponentResponse = parseJsonFile(jsonFilename, ComponentDetails.class)
     hdsComponentResponse.catalogDate = new Date().minus(366).time  // ensure that catalog data is consistent
-    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailURL(hdsComponentResponse.componentIdentifier), toJson(hdsComponentResponse), 200))
+    saasRule.setResponseForURI(createComponentDetailURL(hdsComponentResponse.componentIdentifier), toJson(hdsComponentResponse), 200)
     return hdsComponentResponse
   }
 
   void mockComponentDetailsList(String jsonFilename, ComponentDetails component) {
     ComponentDetailsList hdsComponentListResponse = parseJsonFile(jsonFilename, ComponentDetailsList.class)
-    saasRule.setResponseForURI(new UriParamRequestMatcher(createComponentDetailListURL(component.componentIdentifier), toJson(hdsComponentListResponse), 200))
+    saasRule.setResponseForURI(createComponentDetailListURL(component.componentIdentifier), toJson(hdsComponentListResponse), 200)
   }
 
   /**

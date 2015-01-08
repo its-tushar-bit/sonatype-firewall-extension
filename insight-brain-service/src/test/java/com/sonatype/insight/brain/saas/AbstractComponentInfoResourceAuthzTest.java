@@ -11,7 +11,6 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.mock.UriParamRequestMatcher;
 
 import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.Test;
@@ -28,8 +27,8 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String version = "1.0";
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     componentDetailsList.setList(Collections.<ComponentDetails> emptyList());
-    setSaasResponse(new UriParamRequestMatcher("rest/" + getTool() + "/componentDetails/list?componentIdentifier="
-        + getComponentIdentifierParam(groupId, artifactId, version), toJson(componentDetailsList), 200));
+    setSaasResponseForURI("rest/" + getTool() + "/componentDetails/list?componentIdentifier="
+        + getComponentIdentifierParam(groupId, artifactId, version), toJson(componentDetailsList), 200);
 
     grantReadPermission(app.getId());
 

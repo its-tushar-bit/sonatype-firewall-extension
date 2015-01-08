@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.mock.InsightMockServer.ResponseProvider;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -162,10 +161,6 @@ public abstract class AbstractBrainServiceTest
 
   protected void setSaasResponseForURI(String uri, String body, int status) {
     getInsightServer().setResponseForURI(uri, body, status);
-  }
-
-  protected void setSaasResponse(ResponseProvider provider) {
-    getInsightServer().setResponseForURI(provider);
   }
 
   protected void setSaasResponseForURI(String uri, int status, String bodyResource) {

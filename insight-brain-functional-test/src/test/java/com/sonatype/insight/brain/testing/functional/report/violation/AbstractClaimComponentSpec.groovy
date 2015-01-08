@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 import com.sonatype.insight.json.store.JsonUtils
-import com.sonatype.insight.mock.UriParamRequestMatcher
 import org.eclipse.jetty.util.UrlEncoded
 import spock.lang.Shared
 import spock.lang.Stepwise
@@ -233,9 +232,9 @@ extends BaseSpec {
   }
 
   void mockSaasComponentDetailsListResponse(ComponentIdentifier identifier) {
-    saasRule.setResponseForURI(new UriParamRequestMatcher("rest/ci/componentDetails/list?componentIdentifier=" +
+    saasRule.setResponseForURI("rest/ci/componentDetails/list?componentIdentifier=" +
         UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)) +
-        "&hash=" + getExpectedHash() + "&matchState=exact", '{"list":[]}', 200))
+        "&hash=" + getExpectedHash() + "&matchState=exact", '{"list":[]}', 200)
   }
 
   abstract String getReportPath()

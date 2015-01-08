@@ -23,11 +23,19 @@ class HelpSpec
 
     then: 'We are presented with the links to the external documentation'
       helpLinks.dropdown.displayed
-      helpLinks.documentation.@href == 'http://links.sonatype.com/products/clm/doc'
+      helpLinks.documentation.@href == 'http://links.sonatype.com/products/clm/doc/' + getMajorMinorVersion()
       helpLinks.documentation.@target == '_blank'
 
     and: 'links to create a new support request'
       helpLinks.support.@href == 'http://links.sonatype.com/products/clm/support'
       helpLinks.support.@target == '_blank'
+  }
+
+  String getMajorMinorVersion() {
+      Properties props = new Properties()
+      props.load(getClass().getResourceAsStream("/version.properties"))
+
+      String[] version = props.get("version").split("\\.")
+      return version[0] + "." + version[1]
   }
 }

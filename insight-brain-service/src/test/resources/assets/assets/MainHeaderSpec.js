@@ -72,6 +72,8 @@ describe('mainHeader', function() {
     scope = $rootScope.$new();
     state = $state;
 
+    window.clmServerVersion = '1.2.3-4';
+
     $controller('mainHeaderController', {
       $scope: scope,
       $state: state
@@ -84,11 +86,15 @@ describe('mainHeader', function() {
     } else if (scope) {
       scope.$destroy();
     }
+    delete window.clmServerVersion;
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
   describe('Main Header User Controls', function () {
+    it('Major Minor Version', function () {
+      expect(scope.majorMinorVersion).toEqual("1.2");
+    });
     describe('LogoutController', function () {
       beforeEach(inject(function ($controller, $rootScope) {
         parentScope = $rootScope.$new();

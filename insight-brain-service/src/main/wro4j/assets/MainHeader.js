@@ -69,6 +69,8 @@
       return clmServerVersion;
     };
 
+    $scope.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
+
     $scope.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
 
     PermissionService.isAuthorized(['ADMIN']).then(function(isAuthorized) {

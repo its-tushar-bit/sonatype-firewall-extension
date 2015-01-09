@@ -21,22 +21,38 @@
 
   var Slider = function(element, options) {
     this.validateNumericValue = function(value) {
+      function normalizeValue(value, defaultValue) {
+        var parsed = parseInt(value);
+        if (isNaN(parsed)) {
+          return defaultValue;
+        }
+
+        if (parsed < this.min) {
+          return this.min;
+        }
+
+        if (parsed > this.max) {
+          return this.max;
+        }
+
+        return parsed;
+      }
       if (!value) {
         return this.range ? [this.min, this.max] : this.min;
       }
       if (value instanceof Array) {
-        value[0] = parseInt(value[0]) || this.min;
-        value[1] = parseInt(value[1]) || this.max;
+        value[0] = normalizeValue(value[0], this.min);
+        value[1] = normalizeValue(value[1], this.max);
         return value;
       }
-      return parseInt(value) || this.min;
+      return normalizeValue(value, this.min);
     }
     this.element = $(element);
     this.min = this.element.data('slider-min')||options.min;
     this.max = this.element.data('slider-max')||options.max;
     this.step = this.element.data('slider-step')||options.step;
     this.value = this.element.data('slider-value')||options.value;
-    if (this.value[1]) {
+    if (this.value.length > 1) {
       this.range = true;
     }
     options.value = this.validateNumericValue(options.value);

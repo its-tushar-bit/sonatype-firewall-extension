@@ -271,6 +271,21 @@ extends BaseSpec {
     waitFor { filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat level 4' }
   }
 
+  def 'Zero min and max threat level slider filter'() {
+    when: 'clicking the filter toggle button'
+      filters.toggle.click()
+
+    then: 'the policy threat level slider is shown'
+      waitFor { filters.policyThreatLevelSlider.slider.displayed }
+
+    when: 'threat level filter is applied'
+      filters.policyThreatLevelSlider.setValues(0, 0)
+      filters.apply()
+
+    then: 'filter text shows one value'
+      waitFor { filters.policyThreatLevelSummary.getTooltipContent() == 'Policy threat level 0' }
+  }
+
   def 'Collapse filters presents apply dialog when necessary'() {
     when: 'clicking the filter toggle button'
     filters.toggle.click()

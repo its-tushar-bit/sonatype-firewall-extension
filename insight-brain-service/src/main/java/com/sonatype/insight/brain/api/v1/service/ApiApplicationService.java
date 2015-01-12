@@ -47,11 +47,11 @@ public class ApiApplicationService
 
   private final RoleDAO roleDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   private final ApiRoleAdapter roleAdapter;
 
   private final ApplicationHelper applicationHelper;
+
+  private final ApplicationDAO applicationDAO;
 
   @Inject
   public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
@@ -65,8 +65,8 @@ public class ApiApplicationService
     this.apiApplicationAdapter = apiApplicationAdapter;
     this.apiApplicationTagAdapter = apiApplicationTagAdapter;
     this.applicationTagDAO = applicationTagDAO;
-    this.roleDAO = roleDAO;
     this.applicationDAO = applicationDAO;
+    this.roleDAO = roleDAO;
     this.roleAdapter = roleAdapter;
     this.applicationHelper = applicationHelper;
   }
@@ -89,26 +89,6 @@ public class ApiApplicationService
     ApiApplicationListDTO applicationListDTO = new ApiApplicationListDTO();
     applicationListDTO.applications = applicationDTOs;
     return applicationListDTO;
-  }
-
-  /**
-   * Get all applications filtered by the set of publicIdsFilter.
-   * If the publicIdsFilter is empty then all applications are returned
-   *
-   * @param publicIdsFilter The set of public ids to filter on (cannot be null)
-   * @return The list of applications found
-   */
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  List<Application> getApplications(final Set<String> publicIdsFilter) {
-    List<Application> applications;
-    if (publicIdsFilter.isEmpty()) {
-      applications = applicationDAO.getAll();
-    }
-    else {
-      applications = applicationDAO.getByPublicIds(publicIdsFilter);
-    }
-
-    return applications;
   }
 
   public ApiApplicationDTO addApplication(final ApiApplicationDTO applicationDTO) {
@@ -188,6 +168,26 @@ public class ApiApplicationService
     return roleAdapter.convertToDTO(roles);
   }
 
+  /**
+   * Get all applications filtered by the set of publicIdsFilter.
+   * If the publicIdsFilter is empty then all applications are returned
+   *
+   * @param publicIdsFilter The set of public ids to filter on (cannot be null)
+   * @return The list of applications found
+   */
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  public List<Application> getApplications(final Set<String> publicIdsFilter) {
+    List<Application> applications;
+    if (publicIdsFilter.isEmpty()) {
+      applications = applicationDAO.getAll();
+    }
+    else {
+      applications = applicationDAO.getByPublicIds(publicIdsFilter);
+    }
+
+    return applications;
+  }
+
   private void addTags(final EntityManager entityManager, final List<ApplicationTag> applicationTags) {
     for (ApplicationTag applicationTag : applicationTags) {
       if (applicationTag.getTagId() == null) {
@@ -217,6 +217,7 @@ public class ApiApplicationService
     ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
     List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
     apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
+
     return apiApplicationDTO;
   }
 }

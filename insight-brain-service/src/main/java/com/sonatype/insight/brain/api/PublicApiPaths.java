@@ -34,6 +34,7 @@ public class PublicApiPaths
 
   public static final String SEARCH_SERVICE_PATH_V2 = API_VERSION_PATH_V2 + "search/component";
 
+  public static final String REPORTS_SERVICE_PATH_V2 = API_VERSION_PATH_V2 + "reports";
 
   public static final String REPORT_DATA_SERVICE_PATH = API_VERSION_PATH +
       "applications/{applicationPublicId}/reports/{scanId}";

@@ -1,3 +1,8 @@
+/**
+ * This file is based on the bootstrap-slider.js v2.0.0 (license shown below)
+ * Modified sources can be found here https://github.com/sonatype/bootstrap-slider
+ */
+
 /* =========================================================
  * bootstrap-slider.js v2.0.0
  * http://www.eyecon.ro/bootstrap-slider

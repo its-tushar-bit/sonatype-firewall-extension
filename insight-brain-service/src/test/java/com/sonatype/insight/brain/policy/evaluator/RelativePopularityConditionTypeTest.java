@@ -43,6 +43,7 @@ public class RelativePopularityConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component = ComponentFactory.forGav("g", "a", "v", MatchState.EXACT);
     component.setRelativePopularity(null);
+    components.add(component);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
     Assert.assertNotNull(policyAlerts);

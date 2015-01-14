@@ -31,5 +31,7 @@ public class MediaTypeUtilsTest
 
     assertThat(MediaTypeUtils.byName("unknown.extension"), is("application/octet-stream"));
     assertThat(MediaTypeUtils.byName("dir.html/noextension"), is("application/octet-stream"));
+
+    assertThat(MediaTypeUtils.byName("font.woff"), is("application/font-woff"));
   }
 }

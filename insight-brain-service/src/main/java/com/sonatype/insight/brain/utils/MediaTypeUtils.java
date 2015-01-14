@@ -19,12 +19,6 @@ public final class MediaTypeUtils
   // Reusing the same approach as used by DropWizard's AssertServlet to ensure consistency
   private static final MimeTypes mimeTypes = new MimeTypes();
 
-  static {
-    Map<String, String> extras = new HashMap<String, String>();
-    extras.put("json", "application/json");
-    mimeTypes.setMimeMap(extras);
-  }
-
   private MediaTypeUtils() {
     // utility class
   }

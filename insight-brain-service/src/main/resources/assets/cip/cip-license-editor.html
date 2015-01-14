@@ -31,7 +31,7 @@
             <div class='nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}'>
               {{licenseWithThreat.license.licenseName}}</div></li>
           </div>
-          <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
+          <li class="license" ng-show="isClaimedComponent() && !component.effectiveLicenses.length">Unavailable, Claimed Component</li>
         </ul>
       </div>
       <div class="well" style="width:595px">

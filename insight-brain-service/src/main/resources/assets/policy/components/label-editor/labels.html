@@ -36,7 +36,7 @@
         <div class="label-list">
           <span ng-repeat='label in applicableLabel.labels | orderBy:"label"' ng-click='editLabel(applicableLabel.editable, label)'>
             <span class='clmLabel {{label.color}}Label' ng-class="{active: selectedLabel.id == label.id}">
-              <span data-tooltip="{{label.description}}" data-tooltip-placement="bottom">{{label.label}}</span>
+              <span data-tooltip="{{label.description}}" data-tooltip-placement="bottom" data-tooltip-append-to-body="true">{{label.label}}</span>
               <i ng-if='applicableLabel.editable' ng-class='{ "icon-white" : isWhite(label) }' ng-click='deleteLabel(label, $event)'
                  class='icon-remove label-remove' title="Delete {{label.label}}"></i>
             </span>

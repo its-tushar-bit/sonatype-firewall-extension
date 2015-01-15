@@ -116,7 +116,7 @@
     "Insight": {
       "clearGav": createStateFn(null),
       "registerMarkUpgradeListener": function (listener) {
-        waitOnInjector(['$rootScope', function ($rootScope) {
+        waitOnInjector(['Coordinates', '$rootScope', function (Coordinates, $rootScope) {
           $rootScope.$on('markUpgrade', function (event, gav) {
             if (Coordinates.getFormat() === 'maven') {
               listener(gav.groupId, gav.artifactId, gav.version);

@@ -64,7 +64,7 @@
         <a style="text-transform:none;">Add New User</a>
       </li>
     </ul>
-    <form id='{{user.id}}user-form' name="userForm" class='clm-form well clm-well' ng-submit="saveClick(user)" novalidate>
+    <form id='{{user.id}}user-form' name="userForm" class='clm-form well clm-well' ng-submit="saveClick(user)" novalidate autocomplete="off">
       <div>
         <div clm-control-group for="firstName" label="First Name">
           <input clm-input id="firstName" name="firstName" type="text" ng-required="true" valid-name-characters
@@ -103,7 +103,7 @@
               ng-click='cancelClick(user)'>Cancel
       </button>
       <div class="pull-right clm-primary-buttons">
-        <button id='{{user.id}}user-form-save' type="submit" class='btn btn-primary' type='button' ng-click='saveClick(user)'
+        <button id='{{user.id}}user-form-save' class='btn btn-primary' type='button' ng-click='saveClick(user)'
                 ng-disabled='userForm.$invalid || userForm.$pristine || saving'>Save
         </button>
       </div>

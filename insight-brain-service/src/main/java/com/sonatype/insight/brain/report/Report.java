@@ -51,6 +51,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.plexus.util.IOUtil;
@@ -356,7 +357,7 @@ public final class Report
         }
         bomObjectNode.put("matchState", MatchState.EXACT.getId());
         bomObjectNode.put("createTime", hashComponentIdentifier.getCreateTimeLong());
-        bomObjectNode.put("relativePopularity", 0F);
+        bomObjectNode.put("relativePopularity", NullNode.getInstance());
         bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
         bomObjectNode.put("comment", hashComponentIdentifier.getComment());
         claimedHashes.put(hash, hashComponentIdentifier);

@@ -197,6 +197,24 @@ public class ApiSearchResourceV2Test
   }
 
   @Test
+  public void testSearchComponent_ByNugetComponent() throws Exception {
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("simplejson", "*");
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, componentIdentifier));
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    assertThat(results, is(notNullValue()));
+    assertThat(results.results, is(notNullValue()));
+    assertThat(results.results, hasSize(2));
+    assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "2143b68270b82576110f",
+        ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 8);
+    assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "2143b68270b82576110f",
+        ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 4);
+  }
+
+  @Test
   public void testSearchComponent_ByGavAndHash() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD);
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD);

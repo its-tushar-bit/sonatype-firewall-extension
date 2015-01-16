@@ -24,6 +24,27 @@
     "lastModifiedTime" : 1201148356000,
     "lastModifiedEntryTime" : 1173079498000
   }, {
+    "filenames": ["simplejson.0.38.0.nupkg"],
+    "pathnames": ["sample-application-with-nuget.zip/simplejson.0.38.0.nupkg"],
+    "componentIdentifier": {
+      "format": "nuget",
+      "coordinates": {
+        "packageId": "simplejson",
+        "version": "0.38.0"
+      }
+    },
+    "groupId": null,
+    "artifactId": null,
+    "version": null,
+    "matchState": "similar",
+    "scanError": false,
+    "proprietary": false,
+    "hash": "2143b68270b82576110f",
+    "relativePopularity": null,
+    "createTime": null,
+    "lastModifiedTime": 1418661298000,
+    "lastModifiedEntryTime": 1395199238000
+  }, {
     "filenames" : [ "servlets-default-5.5.4.jar" ],
     "pathnames" : [ "sample-application.zip/servlets-default-5.5.4.jar" ],
     "componentIdentifier" : {

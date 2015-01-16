@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import java.util.Map.Entry;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -38,11 +40,7 @@ public class ArtifactCoordinate
 {
   private static final String PLACEHOLDER = "*";
 
-  private String groupId;
-
-  private String artifactId;
-
-  private String version;
+  private ComponentIdentifier componentIdentifier;
 
   // private transient AntPathMatcher pathMatcher = new AntPathMatcher();
 
@@ -54,17 +52,9 @@ public class ArtifactCoordinate
 
   /**
    * Constructs an ArtifactCoordinate.
-   * 
-   * @param groupId
-   * @param artifactId
-   * @param version
    */
-  public ArtifactCoordinate(String groupId, String artifactId, String version) {
-    this.groupId = groupId;
-
-    this.artifactId = artifactId;
-
-    this.version = version;
+  public ArtifactCoordinate(ComponentIdentifier componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
   }
 
   /**
@@ -73,132 +63,68 @@ public class ArtifactCoordinate
    * @return
    */
   public boolean isFixed() {
-    // fixed is when all GAV is given and none of those contains placeholder
+    // fixed is when all coordinates are given and none of those contains placeholder
     // when fixed, it identifies exactly one artifact
-    return !StringUtils.isEmpty(getGroupId()) && !StringUtils.isEmpty(getArtifactId())
-        && !StringUtils.isEmpty(getVersion()) && !getGroupId().contains(PLACEHOLDER)
-        && !getArtifactId().contains(PLACEHOLDER) && !getVersion().contains(PLACEHOLDER);
+    for (String value : componentIdentifier.getCoordinates().values()) {
+      if (StringUtils.isEmpty(value) || value.contains(PLACEHOLDER)) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  /**
-   * Returns true if this ArtifactCoordinate matches the passed path.
-   * 
-   * @param groupId
-   * @param artifactId
-   * @param version
-   * @return
-   */
-  // public boolean matches( String path )
-  // {
-  // StringBuffer pathBuf = new StringBuffer( "/" );
-  //
-  // String gid = getGroupId();
-  //
-  // // a* -> a*/**/
-  // // a.* -> a/**
-  // if ( gid.endsWith( ".*" ) )
-  // {
-  // gid = gid.substring( 0, gid.length() - 2 ) + "/**";
-  // }
-  // else if ( gid.endsWith( "*" ) )
-  // {
-  // gid = gid.substring( 0, gid.length() - 1 ) + "*/**";
-  // }
-  //
-  // pathBuf.append( gid.replace( '.', '/' ) );
-  //
-  // if ( !PLACEHOLDER.equals( getArtifactId() ) || !PLACEHOLDER.equals( getVersion() ) )
-  // {
-  // pathBuf.append( "/" );
-  //
-  // pathBuf.append( getArtifactId() );
-  //
-  // if ( !PLACEHOLDER.equals( getVersion() ) )
-  // {
-  // pathBuf.append( "/" );
-  //
-  // pathBuf.append( getVersion() );
-  // }
-  // else
-  // {
-  // pathBuf.append( "/" );
-  //
-  // pathBuf.append( "**" );
-  // }
-  // }
-  // else
-  // {
-  // pathBuf.append( "/*/*" );
-  // }
-  //
-  // return pathMatcher.match( pathBuf.toString(), path );
-  // }
-
-  /**
-   * Returns true if this ArtifactCoordinate matches the passed coordinates.
-   * 
-   * @param groupId
-   * @param artifactId
-   * @param version
-   * @return
-   */
-  public boolean matches(String groupId, String artifactId, String version) {
-    return matchesGroup(getGroupId(), groupId) && matches(getArtifactId(), artifactId)
-        && matches(getVersion(), version);
-  }
-
-  public boolean matches(ComponentIdentifier componentIdentifier) {
-    if (componentIdentifier == null || !componentIdentifier.isMaven()) {
+  public boolean matches(final ComponentIdentifier otherComponentIdentifier) {
+    if (otherComponentIdentifier == null) {
       return false;
     }
 
-    return matches(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
-        componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
-        componentIdentifier.get(ComponentIdentifier.VERSION));
-  }
+    if (!componentIdentifier.getFormat().equals(otherComponentIdentifier.getFormat())) {
+      return false;
+    }
 
+    if (otherComponentIdentifier.isMaven()) {
+      return (
+          matchesGroup(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
+              otherComponentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID)) &&
+              matches(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
+                  otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)) &&
+              matches(componentIdentifier.get(ComponentIdentifier.VERSION),
+                  otherComponentIdentifier.get(ComponentIdentifier.VERSION)));
+    }
+
+    for (Entry<String, String> coord : componentIdentifier.getCoordinates().entrySet()) {
+      String name = coord.getKey();
+      String value = coord.getValue();
+      String value2 = otherComponentIdentifier.getCoordinates().get(name);
+      if (!matches(value, value2)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
   /**
    * Returns true if this ArtifactCoordinate matches the passed in fixed ArtifactCoordinate coordinates.
    * 
-   * @param groupId
-   * @param artifactId
-   * @param version
+   * @param coordinate
    * @return
    */
   public boolean matches(ArtifactCoordinate coordinate) {
-    return coordinate.isFixed()
-        && matches(coordinate.getGroupId(), coordinate.getArtifactId(), coordinate.getVersion());
+    return coordinate.isFixed() && matches(coordinate.getComponentIdentifier());
   }
 
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(String groupId) {
-    this.groupId = groupId;
-  }
-
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(String artifactId) {
-    this.artifactId = artifactId;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
+  public ComponentIdentifier getComponentIdentifier() {
+    return componentIdentifier;
   }
 
   // internal
 
   private int getMatchableCharacters() {
-    return cleanseCoordinate(getGroupId()).length() + cleanseCoordinate(getArtifactId()).length()
-        + cleanseCoordinate(getVersion()).length();
+    int count = 0;
+    for (String value : componentIdentifier.getCoordinates().values()) {
+      count += cleanseCoordinate(value).length();
+    }
+    return count;
   }
 
   private String cleanseCoordinate(String coordinate) {
@@ -218,14 +144,14 @@ public class ArtifactCoordinate
 
   /**
    * A utility method that handles group coordinates as matchable target. The meaning of them are:
-   * 
+   *
    * <pre>
    * * (or null) - matches all
    * some.value - matches exactly 'some.value'
    * some.value* - matches by prefix, so 'some.value', 'some.value.more' are all ok
    * some.value.* - matches only subgroups, so 'some.value.more1', 'some.value.more2' is ok only
    * </pre>
-   * 
+   *
    * @param coordinate
    * @param value
    * @return
@@ -262,13 +188,13 @@ public class ArtifactCoordinate
   /**
    * A utility method that handles A and V coordinates as matchable target. These are handled a bit differently that G
    * coordinates! The meaning of them are:
-   * 
+   *
    * <pre>
    * null - matches all
    * some.value - matches exactly 'some.value'
    * somevalue* - matches by prefix just before the '*'
    * </pre>
-   * 
+   *
    * @param coordinate
    * @param value
    * @return
@@ -301,14 +227,6 @@ public class ArtifactCoordinate
 
   @Override
   public String toString() {
-    return gavToString(getGroupId(), getArtifactId(), getVersion());
-  }
-
-  public static String gavToString(String g, String a, String v) {
-    StringBuffer sb = new StringBuffer();
-
-    sb.append(g).append(":").append(a).append(":").append(v);
-
-    return sb.toString();
+    return componentIdentifier == null ? "null" : componentIdentifier.toString();
   }
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
@@ -79,8 +80,9 @@ public class CoordinatesConditionType
       }
     }
 
-    boolean match = new ArtifactCoordinate(groupId, artifactId, version).matches(component.getGroupId(),
-        component.getArtifactId(), component.getVersion());
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+
+    boolean match = new ArtifactCoordinate(componentIdentifier).matches(component.getComponentIdentifier());
     return "match".equals(operator) ? match : !match;
   }
 }

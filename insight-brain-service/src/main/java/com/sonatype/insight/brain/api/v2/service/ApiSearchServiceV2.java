@@ -76,11 +76,7 @@ public class ApiSearchServiceV2
 
     ArtifactCoordinate coords = null;
     if (componentIdentifier != null) {
-      if (componentIdentifier.isMaven()) {
-        coords = new ArtifactCoordinate(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
-            componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
-            componentIdentifier.get(ComponentIdentifier.VERSION));
-      }
+      coords = new ArtifactCoordinate(componentIdentifier);
     }
     else if (StringUtils.isEmpty(hash)) {
       throw new BadRequestException("Neither hash nor coordinates of component to search for have been specified.");

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -17,27 +19,33 @@ public class ArtifactCoordinateTest
   @Test
   public void testSimple() throws Exception {
     // one fixed coord
-    ArtifactCoordinate coordF1 = new ArtifactCoordinate("org.group", "artifact", "1.0");
+    ArtifactCoordinate coordF1 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("org.group", "artifact", "1.0"));
     assertTrue(coordF1.isFixed());
 
     // one fixed coord
-    ArtifactCoordinate coordF2 = new ArtifactCoordinate("com.group", "artifact", "2.0");
+    ArtifactCoordinate coordF2 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("com.group", "artifact", "2.0"));
     assertTrue(coordF2.isFixed());
 
     // one non-fixed coord
-    ArtifactCoordinate coordN1 = new ArtifactCoordinate("org.*", "artifact", "1.*");
+    ArtifactCoordinate coordN1 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("org.*", "artifact", "1.*"));
     assertFalse(coordN1.isFixed());
 
     // one non-fixed coord
-    ArtifactCoordinate coordN2 = new ArtifactCoordinate("com.*", "artifact", "2.*");
+    ArtifactCoordinate coordN2 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("com.*", "artifact", "2.*"));
     assertFalse(coordN2.isFixed());
 
     // one non-fixed coord
-    ArtifactCoordinate coordN3 = new ArtifactCoordinate("org*", "artifact", "1.*");
+    ArtifactCoordinate coordN3 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("org*", "artifact", "1.*"));
     assertFalse(coordN3.isFixed());
 
     // one non-fixed coord
-    ArtifactCoordinate coordN4 = new ArtifactCoordinate("com*", "artifact", "2.*");
+    ArtifactCoordinate coordN4 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("com*", "artifact", "2.*"));
     assertFalse(coordN4.isFixed());
 
     // pair matching
@@ -61,25 +69,29 @@ public class ArtifactCoordinateTest
     assertFalse(coordF1.matches(coordN2));
 
     // only subgroups
-    assertTrue(coordN1.matches("org", "artifact", "1.2"));
-    assertTrue(coordN1.matches("org", "artifact", "1.3"));
-    assertFalse(coordN1.matches("organ", "artifact", "1.2"));
-    assertFalse(coordN1.matches("organic", "artifact", "1.3"));
-    assertFalse(coordN1.matches("organic.group", "artifact", "1.2"));
-    assertTrue(coordN1.matches("org.group", "artifact", "1.2"));
-    assertTrue(coordN1.matches("org.group.where", "artifact", "1.3"));
-    assertFalse(coordN1.matches("org.group.something.boo", "artifact", "2.0"));
-    assertFalse(coordN1.matches("org.group.something.boo", "non-artifact", "1.0"));
+    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.2")));
+    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.3")));
+    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organ", "artifact", "1.2")));
+    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organic", "artifact", "1.3")));
+    assertFalse(coordN1.matches(ComponentIdentifier.createMavenCoordinates("organic.group", "artifact", "1.2")));
+    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group", "artifact", "1.2")));
+    assertTrue(coordN1.matches(ComponentIdentifier.createMavenCoordinates("org.group.where", "artifact", "1.3")));
+    assertFalse(coordN1.matches(
+        ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "artifact", "2.0")));
+    assertFalse(coordN1.matches(
+        ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "non-artifact", "1.0")));
 
     // given group and subgroups
-    assertTrue(coordN3.matches("org", "artifact", "1.2"));
-    assertTrue(coordN3.matches("org", "artifact", "1.3"));
-    assertTrue(coordN3.matches("organ", "artifact", "1.2"));
-    assertTrue(coordN3.matches("organic", "artifact", "1.3"));
-    assertTrue(coordN3.matches("organic.group", "artifact", "1.2"));
-    assertTrue(coordN3.matches("org.group.where", "artifact", "1.3"));
-    assertFalse(coordN3.matches("org.group.something.boo", "artifact", "2.0"));
-    assertFalse(coordN3.matches("org.group.something.boo", "non-artifact", "1.0"));
+    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.2")));
+    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org", "artifact", "1.3")));
+    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organ", "artifact", "1.2")));
+    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organic", "artifact", "1.3")));
+    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("organic.group", "artifact", "1.2")));
+    assertTrue(coordN3.matches(ComponentIdentifier.createMavenCoordinates("org.group.where", "artifact", "1.3")));
+    assertFalse(coordN3.matches(
+        ComponentIdentifier.createMavenCoordinates("org.group.something.boo", "artifact", "2.0")));
+    assertFalse(coordN3.matches(ComponentIdentifier.createMavenCoordinates(
+        "org.group.something.boo", "non-artifact", "1.0")));
   }
 
   @Test
@@ -88,13 +100,18 @@ public class ArtifactCoordinateTest
     // org/apache/maven/shared/maven-repository-builder/1.0-alpha-1/maven-repository-builder-1.0-alpha-1.jar
     // GAV: org.apache.maven.shared : maven-repository-builder : 1.0-alpha-1
     // one fixed coord
-    ArtifactCoordinate coord1 = new ArtifactCoordinate("org.apache.maven", "*", "*");
+    ArtifactCoordinate coord1 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("org.apache.maven", "*", "*"));
 
-    ArtifactCoordinate coord2 = new ArtifactCoordinate("org.apache.maven.*", "*", "*");
+    ArtifactCoordinate coord2 = new ArtifactCoordinate(
+        ComponentIdentifier.createMavenCoordinates("org.apache.maven.*", "*", "*"));
 
     assertFalse("Should not match!",
-        coord1.matches("org.apache.maven.shared", "maven-repository-builder", "1.0-alpha-1"));
-    assertTrue("Should match!", coord2.matches("org.apache.maven.shared", "maven-repository-builder", "1.0-alpha-1"));
+        coord1.matches(ComponentIdentifier.createMavenCoordinates(
+            "org.apache.maven.shared", "maven-repository-builder", "1.0-alpha-1")));
+    assertTrue("Should match!", coord2.matches(
+        ComponentIdentifier.createMavenCoordinates(
+            "org.apache.maven.shared", "maven-repository-builder", "1.0-alpha-1")));
 
     // assertFalse( "Should not match!", coord1.matches( "/org/apache/maven/kuku/a/v/" ) );
     // assertTrue( "Should match!", coord2.matches( "/org/apache/maven/kuku/a/v/" ) );

@@ -45,5 +45,35 @@
       } ]
     },
     "actions" : [ ]
-  } ]
+  },  {
+    "trigger": {
+      "policyId": "1c25d5182bd24d46b6e83db428171554",
+      "policyName": "1st Policy",
+      "threatLevel": 8,
+      "componentFacts": [
+        {
+          "groupId": null,
+          "artifactId": null,
+          "version": null,
+          "hash": "2143b68270b82576110f",
+          "constraintFacts": [
+            {
+              "constraintId": "3004fda915214e99a9cd004a046574e9",
+              "constraintName": "Match State",
+              "operatorName": "OR",
+              "conditionFacts": [
+                {
+                  "conditionTypeId": "MatchState",
+                  "summary": "Match State is exact",
+                  "reason": "Match State was exact"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "actions": []
+  }
+  ]
 }

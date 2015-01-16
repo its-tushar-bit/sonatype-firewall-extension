@@ -89,7 +89,7 @@
       }
 
       function updateTable() {
-        if (SelectedComponent && SelectedComponent.observedLicenses) {
+        if (SelectedComponent) {
           var licenseOverride = null,
               component = SelectedComponent;
           for (var i = 0; i < $scope.hierarchy.length; i++) {
@@ -111,15 +111,19 @@
 
             var licenses = {};
             component.effectiveLicenses = [];
-            $.each(component.declaredLicenses, function(index, license) {
-              licenses[license] = license;
-              component.effectiveLicenses.push(license);
-            });
-            $.each(component.observedLicenses, function(index, license) {
-              if (!licenses[license]) {
+            if (component.declaredLicenses) {
+              $.each(component.declaredLicenses, function(index, license) {
+                licenses[license] = license;
                 component.effectiveLicenses.push(license);
-              }
-            });
+              });
+            }
+            if (component.observedLicenses) {
+              $.each(component.observedLicenses, function(index, license) {
+                if (!licenses[license]) {
+                  component.effectiveLicenses.push(license);
+                }
+              });
+            }
 
             // Update threat
             component.effectiveLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.effectiveLicenses);

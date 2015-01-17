@@ -336,11 +336,6 @@
         <artifactId>insight-scanner-model-io</artifactId>
         <version>${insight-scanner.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.scan</groupId>
-        <artifactId>insight-scanner-upload</artifactId>
-        <version>${insight-scanner.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>org.sonatype.aether</groupId>

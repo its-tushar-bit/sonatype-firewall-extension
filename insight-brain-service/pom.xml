@@ -106,7 +106,7 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-scanner-upload</artifactId>
+      <artifactId>insight-client-utils</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

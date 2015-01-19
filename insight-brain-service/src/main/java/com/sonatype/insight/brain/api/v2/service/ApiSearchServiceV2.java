@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,25 +17,21 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,19 +44,21 @@ public class ApiSearchServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSearchServiceV2.class);
 
-  private final InsightWork work;
-
   private final BaseUrl baseUrl;
 
-  private final ReportService reportService;
+  private final ApplicationDAO applicationDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final ApplicationComponentDAO applicationComponentDAO;
 
   @Inject
-  public ApiSearchServiceV2(final InsightWork work, final BaseUrl baseUrl, final ReportService reportService) {
-    this.work = work;
+  public ApiSearchServiceV2(final BaseUrl baseUrl, final ApplicationDAO applicationDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationComponentDAO applicationComponentDAO) {
     this.baseUrl = baseUrl;
-    this.reportService = reportService;
-
+    this.applicationDAO = applicationDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.applicationComponentDAO = applicationComponentDAO;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier)
@@ -99,28 +96,24 @@ public class ApiSearchServiceV2
     results.criteria.hash = hash;
     results.criteria.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     String baseUrl = this.baseUrl.get();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+
     for (Application app : getApplicationsWithReadPermission()) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(app.getId(), stageId);
       if (eval == null) {
         continue;
       }
 
-      File reportFile = reportService.getReport(work, app.getId(), eval.getScanId());
-      if (reportFile == null) {
-        log.error("Cannot search application {} for component, recent report does not exist", app.getName());
-        continue;
-      }
       List<PolicyAlert> alerts = null;
-      JsonNode bomNode = JsonUtils.parse(Report.getEntry(reportFile, "bom.json").buf);
-      for (JsonNode componentNode : bomNode.get("aaData")) {
-        String h = componentNode.path("hash").asText();
+      List<ApplicationComponent> applicationComponentList =
+          applicationComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stageId);
+      for (ApplicationComponent applicationComponent : applicationComponentList) {
+        String h = applicationComponent.getHash();
         if (hash != null && !hash.equalsIgnoreCase(h)) {
           continue;
         }
 
-        ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentNode);
-        if (coords != null && !coords.matches(bomComponentIdentifier)) {
+        ComponentIdentifier otherComponentIdentifier = applicationComponent.getComponentIdentifier();
+        if (coords != null && !coords.matches(otherComponentIdentifier)) {
           continue;
         }
 
@@ -129,7 +122,7 @@ public class ApiSearchServiceV2
         result.applicationName = app.getName();
         result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
         result.hash = h;
-        result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(bomComponentIdentifier);
+        result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(otherComponentIdentifier);
         results.results.add(result);
 
         if (alerts == null) {
@@ -162,6 +155,6 @@ public class ApiSearchServiceV2
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   List<Application> getApplicationsWithReadPermission() {
-    return new ApplicationDAO().getAll();
+    return applicationDAO.getAll();
   }
 }

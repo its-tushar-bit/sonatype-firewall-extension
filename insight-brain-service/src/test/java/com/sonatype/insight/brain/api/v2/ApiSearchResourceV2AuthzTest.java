@@ -5,9 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v1.SearchTestHelper;
+import com.sonatype.insight.brain.api.v1.SearchTestHelper.ComponentInfo;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
@@ -34,7 +39,10 @@ public class ApiSearchResourceV2AuthzTest
 
   @Test
   public void testSearchComponent() throws Exception {
-    helper.createScanForApp(app.getId(), Stage.ID_BUILD, "search-app-1");
+    List<ComponentInfo> app1ComponentInfos = new ArrayList<>();
+    app1ComponentInfos.add(new ComponentInfo("1249e25aebb15358bedd",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")));
+    helper.createScanForApp(app.getId(), Stage.ID_BUILD, "search-app-1", app1ComponentInfos);
 
     grantReadPermission(app.getId());
 

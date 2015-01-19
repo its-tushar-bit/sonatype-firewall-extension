@@ -40,7 +40,7 @@ public class ApiSearchResourceV2Test
 
   @Before
   public void init() {
-    helper = new SearchTestHelper(tempEntity, getCLMServer());
+    helper = new SearchTestHelper(tempEntity);
     appToComponentMap = helper.createTestComponentInfoForTwoApps("search-app-1", "search-app-2");
   }
 

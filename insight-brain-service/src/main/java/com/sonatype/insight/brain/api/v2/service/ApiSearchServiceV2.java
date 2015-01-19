@@ -12,22 +12,21 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -52,13 +51,17 @@ public class ApiSearchServiceV2
 
   private final ApplicationComponentDAO applicationComponentDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   @Inject
   public ApiSearchServiceV2(final BaseUrl baseUrl, final ApplicationDAO applicationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationComponentDAO applicationComponentDAO) {
+      final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyViolationDAO policyViolationDAO) {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier)
@@ -103,7 +106,6 @@ public class ApiSearchServiceV2
         continue;
       }
 
-      List<PolicyAlert> alerts = null;
       List<ApplicationComponent> applicationComponentList =
           applicationComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stageId);
       for (ApplicationComponent applicationComponent : applicationComponentList) {
@@ -124,22 +126,7 @@ public class ApiSearchServiceV2
         result.hash = h;
         result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(otherComponentIdentifier);
         results.results.add(result);
-
-        if (alerts == null) {
-          alerts = PolicyAlertUtil.createPolicyAlerts(eval);
-        }
-        result.threatLevel = null;
-        for (PolicyAlert alert : alerts) {
-          if (result.threatLevel != null && alert.getTrigger().getThreatLevel() <= result.threatLevel) {
-            continue;
-          }
-          for (ComponentFact fact : alert.getTrigger().getComponentFacts()) {
-            if (result.hash.equalsIgnoreCase(fact.getHash())) {
-              result.threatLevel = alert.getTrigger().getThreatLevel();
-              break;
-            }
-          }
-        }
+        result.threatLevel = getMaxThreatLevel(policyViolationDAO.getActiveByEvaluationIdAndHash(eval.getId(), h));
 
         if (hash != null) {
           break;
@@ -151,6 +138,17 @@ public class ApiSearchServiceV2
         componentIdentifier, System.currentTimeMillis() - start, results.results.size());
 
     return results;
+  }
+
+  private Integer getMaxThreatLevel(final List<PolicyViolation> policyViolations) {
+    Integer result = null;
+    for (PolicyViolation policyViolation : policyViolations) {
+      int threatLevel = policyViolation.getThreatLevel();
+      if (result == null || threatLevel > result) {
+        result = threatLevel;
+      }
+    }
+    return result;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)

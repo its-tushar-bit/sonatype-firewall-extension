@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.io.Buffer;
 

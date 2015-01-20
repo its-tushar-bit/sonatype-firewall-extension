@@ -476,7 +476,7 @@ public class PolicyEvaluateResourceTest
 
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
-    Assert.assertEquals(7, policyEval.getAffectedComponentCount());
+    Assert.assertEquals(0, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
     Assert.assertEquals(0, policyEval.getSevereComponentCount());
     Assert.assertEquals(0, policyEval.getModerateComponentCount());

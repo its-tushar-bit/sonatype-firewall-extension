@@ -286,7 +286,7 @@ public class PolicyEvaluationUtils
       }
     }
 
-    policyEvaluationResult.setAffectedComponentCount(componentThreatLevels.size());
+    policyEvaluationResult.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
     policyEvaluationResult.setCriticalComponentCount(criticalCount);
     policyEvaluationResult.setSevereComponentCount(severeCount);
     policyEvaluationResult.setModerateComponentCount(moderateCount);

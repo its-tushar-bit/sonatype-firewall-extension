@@ -109,13 +109,13 @@ public class ApiSearchServiceV2
       List<ApplicationComponent> applicationComponentList =
           applicationComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stageId);
       for (ApplicationComponent applicationComponent : applicationComponentList) {
-        String h = applicationComponent.getHash();
-        if (hash != null && !hash.equalsIgnoreCase(h)) {
+        String candidateHash = applicationComponent.getHash();
+        if (hash != null && !hash.equalsIgnoreCase(candidateHash)) {
           continue;
         }
 
-        ComponentIdentifier otherComponentIdentifier = applicationComponent.getComponentIdentifier();
-        if (coords != null && !coords.matches(otherComponentIdentifier)) {
+        ComponentIdentifier candidateComponentIdentifier = applicationComponent.getComponentIdentifier();
+        if (coords != null && !coords.matches(candidateComponentIdentifier)) {
           continue;
         }
 
@@ -123,10 +123,11 @@ public class ApiSearchServiceV2
         result.applicationId = app.getPublicId();
         result.applicationName = app.getName();
         result.reportUrl = baseUrl + UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
-        result.hash = h;
-        result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(otherComponentIdentifier);
+        result.hash = candidateHash;
+        result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(candidateComponentIdentifier);
         results.results.add(result);
-        result.threatLevel = getMaxThreatLevel(policyViolationDAO.getActiveByEvaluationIdAndHash(eval.getId(), h));
+        result.threatLevel = getMaxThreatLevel(policyViolationDAO.getActiveByEvaluationIdAndHash(eval.getId(),
+            candidateHash));
 
         if (hash != null) {
           break;

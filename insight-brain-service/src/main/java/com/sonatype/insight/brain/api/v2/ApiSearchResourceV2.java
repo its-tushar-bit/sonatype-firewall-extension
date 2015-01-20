@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -45,7 +43,7 @@ public class ApiSearchResourceV2
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiSearchResultsDTOV2 searchComponent(@QueryParam("stageId") String stageId, @QueryParam("hash") String hash,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
 
     return searchService.searchComponent(stageId, hash, componentIdentifier);

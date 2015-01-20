@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v1;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,7 +56,7 @@ public class ApiSearchResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApiSearchResultsDTO searchComponent(@QueryParam("stageId") String stageId, @QueryParam("hash") String hash,
       @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
-      @QueryParam("version") String version) throws IOException
+      @QueryParam("version") String version)
   {
 
     ComponentIdentifier componentIdentifier = getComponentIdentifier(groupId, artifactId, version);

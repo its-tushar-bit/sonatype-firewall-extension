@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -65,7 +64,6 @@ public class ApiSearchServiceV2
   }
 
   public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier)
-      throws IOException
   {
     if (StringUtils.isEmpty(stageId)) {
       throw new BadRequestException("Stage has not been specified.");

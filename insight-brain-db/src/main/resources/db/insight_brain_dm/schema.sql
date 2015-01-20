@@ -13,9 +13,9 @@ CREATE TABLE license_category (
 );
 
 CREATE TABLE license (
-  license_id varchar(50) NOT NULL,
-  shortDisplayName varchar(50) NOT NULL,
-  longDisplayName varchar(200) default NULL,
+  license_id varchar(1000) NOT NULL,
+  shortDisplayName varchar(1000) NOT NULL,
+  longDisplayName varchar(1000) default NULL,
   description varchar(400) default NULL,
   licenseUrl varchar(100) default NULL,
   license_category_id varchar(50) NULL,
@@ -25,9 +25,9 @@ CREATE TABLE license (
 );
 
 CREATE TABLE multi_license (
-  multi_license_id varchar(50) NOT NULL,
-  shortDisplayName varchar(50) NOT NULL,
-  longDisplayName varchar(200) default NULL,
+  multi_license_id varchar(1000) NOT NULL,
+  shortDisplayName varchar(1000) NOT NULL,
+  longDisplayName varchar(1000) default NULL,
   description varchar(400) default NULL,
   licenseUrl varchar(100) default NULL,
   CONSTRAINT multi_license_pk PRIMARY KEY (multi_license_id),
@@ -35,8 +35,8 @@ CREATE TABLE multi_license (
 );
 
 CREATE TABLE multi_license_license (
-  multi_license_id varchar(50) NOT NULL,
-  license_id varchar(50) NOT NULL,
+  multi_license_id varchar(1000) NOT NULL,
+  license_id varchar(1000) NOT NULL,
   CONSTRAINT multi_license_license_pk PRIMARY KEY (multi_license_id, license_id),
   CONSTRAINT multi_license_license_multi_fk FOREIGN KEY (multi_license_id) REFERENCES multi_license(multi_license_id),
   CONSTRAINT multi_license_license_license_fk FOREIGN KEY (license_id) REFERENCES license(license_id)

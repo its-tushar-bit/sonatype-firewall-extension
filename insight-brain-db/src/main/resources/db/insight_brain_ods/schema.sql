@@ -66,7 +66,7 @@ CREATE TABLE license_threat_group_license (
   license_threat_group_license_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   license_threat_group_id varchar(50) NOT NULL,
-  license_id varchar(50) NOT NULL,
+  license_id varchar(1000) NOT NULL,
   CONSTRAINT license_threat_group_license_pk PRIMARY KEY (license_threat_group_license_id),
   CONSTRAINT license_threat_group_license_group_fk FOREIGN KEY (license_threat_group_id) REFERENCES license_threat_group(license_threat_group_id),
   CONSTRAINT license_threat_group_license_uk UNIQUE KEY (license_threat_group_id, license_id)
@@ -115,7 +115,7 @@ CREATE TABLE license_override (
   component_id_format varchar(10) NOT NULL,
   component_id_coordinates_json CLOB NOT NULL, -- the component identifier coordinates stored in json format
   status varchar(20) NOT NULL,
-  license_id varchar(50) NULL,
+  license_id varchar(1000) NULL,
   comment varchar(1000) NULL,
   CONSTRAINT license_override_pk PRIMARY KEY (license_override_id)
 );

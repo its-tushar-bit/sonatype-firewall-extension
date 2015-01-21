@@ -12,6 +12,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -56,12 +57,8 @@ public class ScanUploader
 
     final File scanFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
 
-    final FileOutputStream os = new FileOutputStream(scanFile);
-    try {
-      IOUtil.copy(request.getInputStream(), os);
-    }
-    finally {
-      IOUtil.close(os);
+    try (ServletInputStream is = request.getInputStream(); FileOutputStream os = new FileOutputStream(scanFile)) {
+      IOUtil.copy(is, os);
     }
 
     request.setAttribute(SaasClient.UPLOAD_FILE_ATTRIBUTE, scanFile);

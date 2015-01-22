@@ -13,7 +13,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v1.service.ApiApplicationService;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
@@ -44,18 +44,18 @@ public class ApiReportServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ApiApplicationReportDTO> getByApplicationId(
+  public List<ApiApplicationReportDTOV2> getByApplicationId(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
   {
     Application application = applicationDAO.getById(applicationId);
 
-    List<ApiApplicationReportDTO> reports = new LinkedList<>();
+    List<ApiApplicationReportDTOV2> reports = new LinkedList<>();
     addReports(reports, application);
     return reports;
   }
 
-  public List<ApiApplicationReportDTO> getAll() {
-    List<ApiApplicationReportDTO> reports = new LinkedList<>();
+  public List<ApiApplicationReportDTOV2> getAll() {
+    List<ApiApplicationReportDTOV2> reports = new LinkedList<>();
 
     for (Application application : applicationService.getApplications(Collections.<String> emptySet())) {
       addReports(reports, application);
@@ -64,7 +64,7 @@ public class ApiReportServiceV2
     return reports;
   }
 
-  private void addReports(List<ApiApplicationReportDTO> reports, Application application) {
+  private void addReports(List<ApiApplicationReportDTOV2> reports, Application application) {
     for (StageType stageType : StageTypes.getAll()) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(),
           stageType.getId());
@@ -74,8 +74,8 @@ public class ApiReportServiceV2
     }
   }
 
-  private ApiApplicationReportDTO getReportDTO(Application app, PolicyEvaluation eval) {
-    ApiApplicationReportDTO report = new ApiApplicationReportDTO();
+  private ApiApplicationReportDTOV2 getReportDTO(Application app, PolicyEvaluation eval) {
+    ApiApplicationReportDTOV2 report = new ApiApplicationReportDTOV2();
 
     report.applicationId = app.getId();
     report.evaluationDate = eval.getTime();

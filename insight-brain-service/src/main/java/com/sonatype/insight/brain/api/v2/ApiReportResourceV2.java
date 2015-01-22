@@ -16,7 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportServiceV2;
 
 @Path(PublicApiPaths.REPORTS_SERVICE_PATH_V2 + ApiReportResourceV2.PATH)
@@ -35,13 +35,13 @@ public class ApiReportResourceV2
   @GET
   @Path("{applicationId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApiApplicationReportDTO> getByApplicationId(@PathParam("applicationId") String applicationId) {
+  public List<ApiApplicationReportDTOV2> getByApplicationId(@PathParam("applicationId") String applicationId) {
     return reportService.getByApplicationId(applicationId);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApiApplicationReportDTO> getAll() {
+  public List<ApiApplicationReportDTOV2> getAll() {
     return reportService.getAll();
   }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -53,7 +53,7 @@ public class ApiReportServiceV2Test
 
   @Test
   public void testAll() {
-    List<ApiApplicationReportDTO> reports = apiReportServiceV2.getAll();
+    List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getAll();
 
     assertEquals(3, reports.size());
 
@@ -64,7 +64,7 @@ public class ApiReportServiceV2Test
 
   @Test
   public void testSpecific() {
-    List<ApiApplicationReportDTO> reports = apiReportServiceV2.getByApplicationId(appOne.getId());
+    List<ApiApplicationReportDTOV2> reports = apiReportServiceV2.getByApplicationId(appOne.getId());
 
     assertEquals(2, reports.size());
 
@@ -73,10 +73,10 @@ public class ApiReportServiceV2Test
   }
 
   private void assertContainsReport(Application app, StageType expectedStage, String expectedScanId,
-      List<ApiApplicationReportDTO> actual)
+      List<ApiApplicationReportDTOV2> actual)
   {
     String expectedStageId = expectedStage.getId();
-    for (ApiApplicationReportDTO report : actual) {
+    for (ApiApplicationReportDTOV2 report : actual) {
       if (app.getId().equals(report.applicationId) && expectedStageId.equals(report.stage)) {
         assertEquals(UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), expectedScanId), report.reportPdfUrl);
         assertEquals(UserInterfaceLinksResource.getReportUrl(app.getPublicId(), expectedScanId), report.reportHtmlUrl);

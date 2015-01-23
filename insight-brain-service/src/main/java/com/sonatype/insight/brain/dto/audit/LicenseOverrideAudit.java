@@ -26,16 +26,21 @@ public class LicenseOverrideAudit
   private List<String> overriddenLicenses;
   private String comment;
 
+  private LicenseDAO licenseDAO = new LicenseDAO();
+
   public LicenseOverrideAudit() {
   }
 
   public LicenseOverrideAudit(LicenseOverride licenseOverride) {
     setComponentIdentifier(licenseOverride.getComponentIdentifier());
     status = licenseOverride.getStatus().getName();
-    if (licenseOverride.getLicenseId() != null) {
-      overriddenLicenses = new ArrayList<String>();
-      License license = new LicenseDAO().getByIdNotNull(licenseOverride.getLicenseId());
-      overriddenLicenses.add(license.getShortDisplayName());
+    if (!licenseOverride.getLicenseIds().isEmpty()) {
+      overriddenLicenses = new ArrayList<>();
+
+      for (String licenseId : licenseOverride.getLicenseIds()) {
+        License license = licenseDAO.getByIdNotNull(licenseId);
+        overriddenLicenses.add(license.getShortDisplayName());
+      }
     }
     comment = licenseOverride.getComment();
   }

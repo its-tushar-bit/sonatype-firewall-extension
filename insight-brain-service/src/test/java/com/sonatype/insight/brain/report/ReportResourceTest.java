@@ -811,12 +811,14 @@ public class ReportResourceTest
     licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), TOMCAT_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
-    assertEquals("GPL-3.0", licenseOverride.getLicenseId());
+    assertEquals(1, licenseOverride.getLicenseIds().size());
+    assertTrue(licenseOverride.getLicenseIds().contains("GPL-3.0"));
     assertEquals("My comment", licenseOverride.getComment());
     licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), COMMONS_POOL_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
-    assertEquals("GPL-3.0", licenseOverride.getLicenseId());
+    assertEquals(1, licenseOverride.getLicenseIds().size());
+    assertTrue(licenseOverride.getLicenseIds().contains("GPL-3.0"));
     assertEquals("My comment", licenseOverride.getComment());
 
     // verify the license overrides were applied to the license.json file
@@ -858,12 +860,14 @@ public class ReportResourceTest
     licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), TOMCAT_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
-    assertEquals("Apache-2.0", licenseOverride.getLicenseId());
+    assertEquals(1, licenseOverride.getLicenseIds().size());
+    assertTrue(licenseOverride.getLicenseIds().contains("Apache-2.0"));
     assertEquals("My comment1", licenseOverride.getComment());
     licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), COMMONS_POOL_ID);
     assertNotNull(licenseOverride);
     assertEquals(LicenseOverrideStatus.OVERRIDDEN, licenseOverride.getStatus());
-    assertEquals("Apache-2.0", licenseOverride.getLicenseId());
+    assertEquals(1, licenseOverride.getLicenseIds().size());
+    assertTrue(licenseOverride.getLicenseIds().contains("Apache-2.0"));
     assertEquals("My comment1", licenseOverride.getComment());
 
     // verify the license overrides were applied to the license.json file
@@ -1173,7 +1177,7 @@ public class ReportResourceTest
         assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds().iterator().next()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(9));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
@@ -1201,7 +1205,7 @@ public class ReportResourceTest
         assertThat(details, is(notNullValue()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
         assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),
-            is(licenseOverride2.getLicenseId()));
+            is(licenseOverride2.getLicenseIds().iterator().next()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(2));
       }
@@ -1269,7 +1273,7 @@ public class ReportResourceTest
         assertThat(details.getDisplayName().toString(), is("commons-httpclient : commons-httpclient : 3.1.SONATYPE"));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseId()));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds().iterator().next()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(9));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
@@ -1300,7 +1304,7 @@ public class ReportResourceTest
         assertThat(detailsFromList, is(notNullValue()));
         assertThat(detailsFromList.getOverriddenLicenses(), hasSize(1));
         assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId(),
-            is(licenseOverride2.getLicenseId()));
+            is(licenseOverride2.getLicenseIds().iterator().next()));
         assertThat(detailsFromList.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
         assertThat(detailsFromList.getLicenseThreatLevel(), is(2));
       }

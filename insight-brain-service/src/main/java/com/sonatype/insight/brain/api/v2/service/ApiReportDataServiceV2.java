@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -114,9 +113,7 @@ public class ApiReportDataServiceV2
         component.licenseData.status = comp.getLicenseOverrideStatus().getName();
         convertLicenses(component.licenseData.declaredLicenses, comp.getDeclaredLicenseIds());
         convertLicenses(component.licenseData.observedLicenses, comp.getObservedLicenseIds());
-        if (comp.getLicenseOverrideId() != null) {
-          convertLicenses(component.licenseData.overriddenLicenses, Collections.singleton(comp.getLicenseOverrideId()));
-        }
+        convertLicenses(component.licenseData.overriddenLicenses, comp.getLicenseOverrideIds());
       }
       data.components.add(component);
     }

@@ -115,9 +115,17 @@ CREATE TABLE license_override (
   component_id_format varchar(10) NOT NULL,
   component_id_coordinates_json CLOB NOT NULL, -- the component identifier coordinates stored in json format
   status varchar(20) NOT NULL,
-  license_id varchar(1000) NULL,
   comment varchar(1000) NULL,
   CONSTRAINT license_override_pk PRIMARY KEY (license_override_id)
+);
+
+CREATE TABLE license_override_license (
+  license_override_license_id varchar(50) NOT NULL,
+  license_override_id varchar(50) NOT NULL,
+  license_id varchar(1000) NOT NULL,
+  CONSTRAINT license_override_license_pk PRIMARY KEY (license_override_license_id),
+  CONSTRAINT license_override_license_uk UNIQUE KEY (license_override_id, license_id),
+  CONSTRAINT license_override_license_override_fk FOREIGN KEY (license_override_id) REFERENCES license_override(license_override_id)
 );
 
 CREATE TABLE user (

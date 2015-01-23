@@ -29,7 +29,6 @@ import org.hamcrest.core.IsCollectionContaining;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -117,7 +116,7 @@ public class ComponentDAOTest
     assertEquals(matchedComponent.getDeclaredLicenseIds(), component.getDeclaredLicenseIds());
     assertEquals(matchedComponent.getObservedLicenseIds(), component.getObservedLicenseIds());
 
-    assertNull(component.getLicenseOverrideId());
+    assertTrue(component.getLicenseOverrideIds().isEmpty());
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal");
     assertSecurityVulnerabilities(component.getSecurityVulnerabilities(),
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
@@ -133,7 +132,7 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     Component component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
-    assertNull(component.getLicenseOverrideId());
+    assertTrue(component.getLicenseOverrideIds().isEmpty());
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     // Override at org level
@@ -144,7 +143,8 @@ public class ComponentDAOTest
     licenseOverrideDAO.insert(orgLicenseOverride);
     component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
-    assertEquals("GPL-3.0", component.getLicenseOverrideId());
+    assertTrue(component.getLicenseOverrideIds().size() == 1);
+    assertTrue(component.getLicenseOverrideIds().contains("GPL-3.0"));
 
     // Override at app level
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
@@ -152,7 +152,8 @@ public class ComponentDAOTest
     licenseOverrideDAO.insert(appLicenseOverride);
     component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
-    assertEquals("GPL-2.0", component.getLicenseOverrideId());
+    assertTrue(component.getLicenseOverrideIds().size() == 1);
+    assertTrue(component.getLicenseOverrideIds().contains("GPL-2.0"));
   }
 
   @Test

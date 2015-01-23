@@ -16,7 +16,8 @@
     <class>com.sonatype.insight.brain.model.label.Label</class>
     <class>com.sonatype.insight.brain.model.label.ComponentLabel</class>
     <class>com.sonatype.insight.brain.model.HasComponentId</class>
-    <class>com.sonatype.insight.brain.model.license.LicenseOverride</class>
+    <class>com.sonatype.insight.brain.model.license.LicenseOverrideInternal</class>
+    <class>com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense</class>
     <class>com.sonatype.insight.brain.dataaccess.policy.PolicyInternal</class>

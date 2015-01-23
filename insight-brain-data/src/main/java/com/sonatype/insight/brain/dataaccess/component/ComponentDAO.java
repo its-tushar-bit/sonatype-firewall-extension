@@ -42,6 +42,8 @@ public class ComponentDAO
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
+  private LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
     component.setDeclaredLicenseIds(multiLicenseNamesToLicenseIds(declaredLicenseNames));
@@ -50,15 +52,15 @@ public class ComponentDAO
   }
 
   private void loadLicenseOverride(Application application, Component component) {
-    LicenseOverride licenseOverride = new LicenseOverrideDAO()
+    LicenseOverride licenseOverride = licenseOverrideDAO
       .getByOwnerIdAndComponentIdentifier(application.getId(), component.getComponentIdentifier());
     if (licenseOverride == null) {
-      licenseOverride = new LicenseOverrideDAO().getByOwnerIdAndComponentIdentifier(application.getOrganizationId(),
-        component.getComponentIdentifier());
+      licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getOrganizationId(),
+          component.getComponentIdentifier());
     }
     if (licenseOverride != null) {
       component.setLicenseOverrideStatus(licenseOverride.getStatus());
-      component.setLicenseOverrideId(licenseOverride.getLicenseId());
+      component.setLicenseOverrideIds(licenseOverride.getLicenseIds());
     }
   }
 
@@ -280,8 +282,8 @@ public class ComponentDAO
   public void loadLicenseThreatGroups(String applicationId, Component component) {
     // Gather all license ids
     Set<String> licenseIds = new LinkedHashSet<String>();
-    if (component.getLicenseOverrideId() != null) {
-      licenseIds.add(component.getLicenseOverrideId());
+    if (!component.getLicenseOverrideIds().isEmpty()) {
+      licenseIds.addAll(component.getLicenseOverrideIds());
     }
     else {
       licenseIds.addAll(component.getDeclaredLicenseIds());

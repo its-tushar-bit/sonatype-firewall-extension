@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.model;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 import org.junit.Test;
@@ -30,7 +30,7 @@ public class HasComponentIdTest
 
   @Test
   public void testJsonFormattingForNuget() {
-    HasComponentId hasComponentId = new LicenseOverride();
+    HasComponentId hasComponentId = new LicenseOverrideInternal();
     hasComponentId.setComponentIdentifier(ComponentIdentifier.createNugetCoordinates("a", "v"));
     assertThat(hasComponentId.getComponentIdCoordinatesJson(), is("{\"packageId\":\"a\",\"version\":\"v\"}"));
     assertThat(hasComponentId.getComponentIdFormat(), is(ComponentIdentifier.FORMAT_NUGET));

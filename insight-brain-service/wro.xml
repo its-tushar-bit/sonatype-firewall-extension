@@ -23,7 +23,6 @@
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tables.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_sprites.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_wells.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_close.scss</css>
@@ -91,6 +90,7 @@
     <css>/policy/labels.css</css>
     <css>/policy/policy.css</css>
     <css>/user/user.css</css>
+    <css>/assets/multi-select.css</css>
   </group>
 
   <group name='dashboard'>
@@ -146,6 +146,10 @@
     <css>/cip/cip-policy-violations.css</css>
     <css>/cip/cip-license-editor.css</css>
     <css>/version-graph/content.css</css>
+    <css>/lib/bootstrap/bootstrap-variables.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
+    <css>/assets/multi-select.css</css>
   </group>
 
   <group name='version-graph'>

@@ -131,7 +131,7 @@ public class LicenseOverrideResourceTest
     // Create
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
-      "My comment");
+        "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
         toJson(licenseOverride));
     assertResponseStatus(200, response);
@@ -148,8 +148,8 @@ public class LicenseOverrideResourceTest
 
     // Update (i.e. add again)
     licenseOverride = new LicenseOverride(null /* ownerId */,
-      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
-      "My comment updated");
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+        "My comment updated");
     response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
         toJson(licenseOverride));
     assertResponseStatus(200, response);
@@ -200,7 +200,7 @@ public class LicenseOverrideResourceTest
     }
     String licenseName = licenseOverrideAudit.getOverriddenLicenses().get(0);
     License license = new LicenseDAO().getByNameNotNull(licenseName);
-    assertEquals(expected.getLicenseId(), license.getId());
+    assertEquals(expected.getLicenseIds().iterator().next(), license.getId());
 
     // Verify the BOM audit
     logFile = new File(getCLMServer().getAuditDir(ownerId), "bom.json");
@@ -283,8 +283,8 @@ public class LicenseOverrideResourceTest
 
     // Create a license override for the application
     LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */,
-      componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
-      "My comment");
+        componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+        "My comment");
     response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId),
         toJson(appLicenseOverride));
     appLicenseOverride = fromJson(response, LicenseOverride.class);
@@ -314,7 +314,7 @@ public class LicenseOverrideResourceTest
     // Create a license override for the organization
     LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
-      "My comment");
+        "My comment");
     response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), toJson(orgLicenseOverride));
     orgLicenseOverride = fromJson(response, LicenseOverride.class);
 
@@ -368,8 +368,8 @@ public class LicenseOverrideResourceTest
       String ownerPublicId2) throws Exception
   {
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
-      ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
-      "My comment");
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
+        "My comment");
     Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), toJson(licenseOverride));
     assertResponseStatus(200, response);
     licenseOverride = fromJson(response, LicenseOverride.class);
@@ -414,7 +414,7 @@ public class LicenseOverrideResourceTest
     assertEquals(ownerId, actual.getOwnerId());
     assertEquals(componentIdentifier, actual.getComponentIdentifier());
     assertEquals(status, actual.getStatus());
-    assertEquals(licenseId, actual.getLicenseId());
+    assertEquals(licenseId, actual.getLicenseIds().iterator().next());
     assertEquals(comment, actual.getComment());
   }
 

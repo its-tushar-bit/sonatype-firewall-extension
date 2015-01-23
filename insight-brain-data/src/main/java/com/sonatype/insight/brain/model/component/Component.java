@@ -33,7 +33,7 @@ public class Component
 
   private Set<String> observedLicenseIds = new LinkedHashSet<String>();
 
-  private String licenseOverrideId;
+  private Set<String> licenseOverrideIds = new LinkedHashSet<>();
 
   private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<String, LicenseThreatGroup>();
 
@@ -153,8 +153,8 @@ public class Component
   }
 
   public boolean hasLicenseId(String licenseId) {
-    if (licenseOverrideId != null) {
-      return licenseOverrideId.equals(licenseId);
+    if (!licenseOverrideIds.isEmpty()) {
+      return licenseOverrideIds.contains(licenseId);
     }
     if (declaredLicenseIds.contains(licenseId)) {
       return true;
@@ -164,8 +164,8 @@ public class Component
 
   public Set<String> getLicenseIds() {
     final Set<String> licenseIds = new HashSet<String>();
-    if (licenseOverrideId != null) {
-      licenseIds.add(licenseOverrideId);
+    if (!licenseOverrideIds.isEmpty()) {
+      licenseIds.addAll(licenseOverrideIds);
     }
     else {
       licenseIds.addAll(declaredLicenseIds);
@@ -195,7 +195,7 @@ public class Component
 
   @JsonIgnore
   public boolean isLicenseOverridden() {
-    return getLicenseOverrideId() != null;
+    return !getLicenseOverrideIds().isEmpty();
   }
 
   public MatchState getMatchState() {
@@ -285,12 +285,22 @@ public class Component
     this.identificationSource = identificationSource;
   }
 
-  public void setLicenseOverrideId(String licenseOverrideId) {
-    this.licenseOverrideId = licenseOverrideId;
+  public void setLicenseOverrideIds(Set<String> licenseOverrideIds) {
+    this.licenseOverrideIds.clear();
+
+    if (licenseOverrideIds == null) {
+      return;
+    }
+
+    this.licenseOverrideIds.addAll(licenseOverrideIds);
   }
 
-  public String getLicenseOverrideId() {
-    return licenseOverrideId;
+  public Set<String> getLicenseOverrideIds() {
+    return licenseOverrideIds;
+  }
+
+  public void addLicenseOverrideId(String licenseOverrideId) {
+    licenseOverrideIds.add(licenseOverrideId);
   }
 
   public List<String> getPathnames() {

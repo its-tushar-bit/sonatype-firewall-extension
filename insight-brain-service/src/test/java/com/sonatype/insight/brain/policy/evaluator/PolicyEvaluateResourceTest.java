@@ -69,6 +69,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -628,7 +629,7 @@ public class PolicyEvaluateResourceTest
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
     tempEntity.newLicenseOverride(app.getId(), COMMONS_POOL_ID, LicenseOverrideStatus.ACKNOWLEDGED,
-      null /* licenseId */, " My comment");
+      (String)null /* licenseId */, " My comment");
 
     // Evaluate policy
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));

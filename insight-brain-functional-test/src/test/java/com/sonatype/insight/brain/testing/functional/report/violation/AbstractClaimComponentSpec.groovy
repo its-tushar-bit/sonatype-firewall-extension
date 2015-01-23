@@ -160,10 +160,10 @@ extends BaseSpec {
     licenses.status = 'Overridden'
 
     then: 'License choices are shown'
-    waitFor { licenses.licenseOptionShown }
+    waitFor { licenses.selectedLicenses.dropdownButton.text() == 'None selected' }
 
     when: 'A new license is selected'
-    licenses.license = 'Beerware'
+    licenses.selectedLicenses.toggleOption('Beerware')
 
     then: 'The update button should be enabled'
     waitFor { !licenses.update.disabled }

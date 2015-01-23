@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
+import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 
 import geb.Module
@@ -281,10 +282,9 @@ class LicenseModule
     observedLicenses { form.find('#observedLicenseBlock').text() }
     effectiveLicense { form.find('#effectiveLicenseBlock').text() }
     showTrigger { $('a', text: 'Licenses') }
-    licenseOptionShown(required: false) { form.find('select[name=license]').displayed }
     selectedScope { selectedOptionText(form.scope()) }
     selectedStatus { selectedOptionText(form.status()) }
-    selectedLicense(required: false) { licenseOptionShown ? selectedOptionText(form.license()) : '' }
+    selectedLicenses(required: false) { module DropdownMultiSelectModule, $('span[items="rawLicenses"]') }
     selectedOptionText { field -> field.find('option', value: field.value()).text() }
   }
 
@@ -294,7 +294,7 @@ class LicenseModule
     assert effectiveLicense == effective
     assert selectedScope == scope
     assert selectedStatus == status
-    assert selectedLicense == selected
+    assert (selected == '' && !selectedLicenses.displayed) || (selected != '' && selectedLicenses.dropdownButton.text() == selected)
     assert form.comment == comment
     assert update.enabled == updateEnabled
     return true // assertions used for better output, but still need a truthy return value to use in Geb expectations

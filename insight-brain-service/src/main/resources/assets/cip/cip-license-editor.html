@@ -55,19 +55,11 @@
             </div>
           </div>
           <div class="control-group">
-            <label class="control-label">License</label>
+            <label class="control-label">License(s)</label>
             <div class="controls" style="text-align:left;">
               <span ng-switch='override.status'>
-                <select ng-switch-when='SELECTED' name="license"
-                    ng-model='override.licenseId'
-                    ng-options='license.id as license.shortDisplayName for (id, license) in selectableLicenses'
-                    required>
-                </select>
-                <select ng-switch-when='OVERRIDDEN' name="license"
-                    ng-model='override.licenseId'
-                    ng-options='license.id as license.shortDisplayName for (id, license) in licenses'
-                    required>
-                </select>
+                <span class='multi-dropdown' multi-select items='selectableLicenses' selected-ids='override.licenseIds' ng-switch-when='SELECTED'></span>
+                <span class='multi-dropdown' multi-select items='rawLicenses' selected-ids='override.licenseIds' ng-switch-when='OVERRIDDEN'></span>
               </span>
             </div>
           </div>

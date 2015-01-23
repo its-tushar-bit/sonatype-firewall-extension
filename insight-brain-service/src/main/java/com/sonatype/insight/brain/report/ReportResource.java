@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -492,14 +494,13 @@ public class ReportResource
     ComponentIdentifierValidator.validate(componentIdentifier);
     String statusName = licenseData.get("status").asText();
 
-    String licenseOverrideId = null;
+    Set<String> licenseOverrideIds = new LinkedHashSet<>();
     LicenseOverrideStatus status = LicenseOverrideStatus.getByName(statusName);
     JsonNode licenseOverrideJsonNode = licenseData.get("overriddenLicenses");
     if (licenseOverrideJsonNode != null) {
-      licenseOverrideJsonNode = licenseOverrideJsonNode.get(0);
-      if (licenseOverrideJsonNode != null) {
-        String licenseOverrideName = licenseOverrideJsonNode.asText();
-        licenseOverrideId = new LicenseDAO().getByNameNotNull(licenseOverrideName).getId();
+      for (int i = 0; i < licenseOverrideJsonNode.size(); i++) {
+        String licenseOverrideName = licenseOverrideJsonNode.get(i).asText();
+        licenseOverrideIds.add(new LicenseDAO().getByNameNotNull(licenseOverrideName).getId());
       }
     }
     String comment = JsonUtils.getNullableString(licenseData.get("comment"));
@@ -507,12 +508,12 @@ public class ReportResource
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(appId, componentIdentifier);
     if (licenseOverride == null) {
-      licenseOverride = new LicenseOverride(appId, componentIdentifier, status, licenseOverrideId, comment);
+      licenseOverride = new LicenseOverride(appId, componentIdentifier, status, licenseOverrideIds, comment);
       licenseOverrideDAO.insert(licenseOverride);
     }
     else {
       licenseOverride.setStatus(status);
-      licenseOverride.setLicenseId(licenseOverrideId);
+      licenseOverride.setLicenseIds(licenseOverrideIds);
       licenseOverride.setComment(comment);
       licenseOverrideDAO.update(licenseOverride);
     }

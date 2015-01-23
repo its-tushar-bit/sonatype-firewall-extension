@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.migration;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.DummyLicenseDataUpdater;
@@ -27,6 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -117,7 +119,7 @@ public class LicenseOverrideMigratorTest
     assertEquals(ownerId, actual.getOwnerId());
     assertEquals(componentIdentifier, actual.getComponentIdentifier());
     assertEquals(status, actual.getStatus());
-    assertEquals(licenseId, actual.getLicenseId());
+    assertEquals(licenseId != null ? Collections.singleton(licenseId) : Collections.emptySet(), actual.getLicenseIds());
     assertEquals(comment, actual.getComment());
   }
 

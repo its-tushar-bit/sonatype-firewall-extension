@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -243,7 +242,7 @@ public final class Report
         final Component matchedComponent = new ComponentDAO().getComponent(application, matchedComponentJsonNode);
         ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
         matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
-        if (matchedComponent.getLicenseOverrideId() != null) {
+        if (!matchedComponent.getLicenseOverrideIds().isEmpty()) {
           matchedComponentNode.put("overriddenLicenseThreat", matchedComponent.getLicenseThreatLevel());
         }
       }
@@ -399,9 +398,13 @@ public final class Report
         LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
         if (licenseOverride != null) {
           licenseJsonNode.put("status", licenseOverride.getStatus().getName());
-          if (licenseOverride.getLicenseId() != null) {
-            License license = licenseDAO.getByIdNotNull(licenseOverride.getLicenseId());
-            licenseJsonNode.putArray("overriddenLicenses").add(license.getShortDisplayName());
+          if (!licenseOverride.getLicenseIds().isEmpty()) {
+            ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
+
+            for (String licenseId : licenseOverride.getLicenseIds()) {
+              licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
+            }
+
           }
           if (licenseOverride.getComment() != null) {
             licenseJsonNode.put("comment", licenseOverride.getComment());
@@ -429,9 +432,13 @@ public final class Report
         licenseJsonNode.put("matchState", MatchState.EXACT.getId());
         licenseJsonNode.put("catalogDate", hashComponentIdentifier.getCreateTimeLong());
         licenseJsonNode.put("status", licenseOverride.getStatus().getName());
-        if (licenseOverride.getLicenseId() != null) {
-          License license = licenseDAO.getByIdNotNull(licenseOverride.getLicenseId());
-          licenseJsonNode.putArray("overriddenLicenses").add(license.getShortDisplayName());
+        if (!licenseOverride.getLicenseIds().isEmpty()) {
+          ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
+
+          for (String licenseId : licenseOverride.getLicenseIds()) {
+            licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
+          }
+
         }
         if (licenseOverride.getComment() != null) {
           licenseJsonNode.put("comment", licenseOverride.getComment());

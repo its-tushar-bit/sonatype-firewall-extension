@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
@@ -482,15 +483,27 @@ public class TemporaryEntity
   }
 
   public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status, Set<String> licenseIds)
+  {
+    return newLicenseOverride(ownerId, componentIdentifier, status, licenseIds, "testing");
+  }
+
+  public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
       LicenseOverrideStatus status, String licenseId)
   {
     return newLicenseOverride(ownerId, componentIdentifier, status, licenseId, "testing");
   }
 
   public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
-    LicenseOverrideStatus status, String licenseId, String comment)
+      LicenseOverrideStatus status, String licenseId, String comment)
   {
-    LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseId, comment);
+    return newLicenseOverride(ownerId, componentIdentifier, status, licenseId != null ? Collections.singleton(licenseId) : null, comment);
+  }
+
+  public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
+    LicenseOverrideStatus status, Set<String> licenseIds, String comment)
+  {
+    LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseIds, comment);
     licenseOverrideDAO.insert(override);
     return override;
   }

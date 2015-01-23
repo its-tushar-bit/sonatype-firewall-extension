@@ -22,7 +22,7 @@
             artifactId: 'artifactid',
             version: '1',
             status: appStatus,
-            licenseId: appLicense,
+            licenseIds: [appLicense],
             comment: ''
           }
         },
@@ -45,7 +45,7 @@
             artifactId: 'artifactid',
             version: '1',
             status: orgStatus,
-            licenseId: orgLicense,
+            licenseIds: [orgLicense],
             comment: ''
           }
         }
@@ -153,7 +153,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'ACKNOWLEDGED',
-          licenseId: null
+          licenseIds: []
         });
 
         expect(scope.statuses.length).toEqual(6);
@@ -174,7 +174,7 @@
         expect(scope.override).toEqual({
           ownerId: 'org1',
           status: 'OVERRIDDEN',
-          licenseId: 'AFL-1.2'
+          licenseIds: ['AFL-1.2']
         });
         expect(scope.statuses.length).toEqual(5);
       }));
@@ -227,7 +227,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'OPEN',
-          licenseId: null
+          licenseIds: []
         });
         expect(scope.statuses.length).toEqual(5);
       });
@@ -242,7 +242,7 @@
             ownerId: 'org1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
-            licenseId: null,
+            licenseIds: [],
             comment: ''
           });
           post.id = 'saveOverrideId';
@@ -268,7 +268,7 @@
             ownerId: 'app1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
-            licenseId: null,
+            licenseIds: [],
             comment : ''
           });
           post.id = 'saveOverrideId';
@@ -304,7 +304,7 @@
       afterEach(inject(function($httpBackend, SelectedComponent) {
         scope.$apply(function() {
           scope.override.status = 'OVERRIDDEN';
-          scope.override.licenseId = 'AFL-1.2';
+          scope.override.licenseIds = ['AFL-1.2'];
         });
         expect(SelectedComponent.effectiveLicenses).toBeUndefined();
         scope.save();
@@ -322,7 +322,7 @@
             ownerId: 'org1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'OVERRIDDEN',
-            licenseId: 'AFL-1.2',
+            licenseIds: ['AFL-1.2'],
             comment: ''
           });
           post.id = 'saveOverrideId';
@@ -343,7 +343,7 @@
             ownerId: 'app1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'OVERRIDDEN',
-            licenseId: 'AFL-1.2',
+            licenseIds: ['AFL-1.2'],
             comment : ''
           });
           post.id = 'saveOverrideId';
@@ -376,7 +376,7 @@
         expect(scope.override).toEqual({
           ownerId: 'org1',
           status: 'OVERRIDDEN',
-          licenseId: 'AFL'
+          licenseIds: ['AFL']
         });
         expect(scope.statuses.length).toEqual(5);
       });
@@ -389,7 +389,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'OPEN',
-          licenseId: null
+          licenseIds: []
         });
         expect(scope.statuses.length).toEqual(5);
 
@@ -406,7 +406,7 @@
             ownerId: 'app1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
-            licenseId: null,
+            licenseIds: [],
             comment : ''
           });
           posted.id = 'AddApplication';
@@ -418,7 +418,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'ACKNOWLEDGED',
-          licenseId: null
+          licenseIds: []
         });
         expect(scope.statuses.length).toEqual(6);
       }));
@@ -445,7 +445,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'OVERRIDDEN',
-          licenseId: 'AFL-1.2'
+          licenseIds: ['AFL-1.2']
         });
         expect(scope.statuses.length).toEqual(6);
         expect(scope.statuses[5]).toEqual({ value: 'DELETE', label: 'Inherit Status (Open)' });
@@ -459,7 +459,7 @@
         expect(scope.override).toEqual({
           ownerId: 'org1',
           status: 'OPEN',
-          licenseId: null
+          licenseIds: []
         });
         expect(scope.statuses.length).toEqual(5);
 
@@ -476,7 +476,7 @@
             ownerId: 'org1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
-            licenseId: null,
+            licenseIds: [],
             comment : ''
           });
           posted.id = 'AddApplication';
@@ -489,7 +489,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'OVERRIDDEN',
-          licenseId: 'AFL-1.2'
+          licenseIds: ['AFL-1.2']
         });
         scope.$apply(function() {
           scope.override.ownerId = 'app1';
@@ -519,7 +519,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'OVERRIDDEN',
-          licenseId: 'AFL'
+          licenseIds: ['AFL']
         });
         expect(scope.statuses.length).toEqual(5);
       });
@@ -530,7 +530,7 @@
         scope.$apply(function() {
           scope.override.status = 'ACKNOWLEDGED';
         });
-        expect(scope.override.licenseId).toEqual(null);
+        expect(scope.override.licenseIds).toEqual([]);
 
         $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
                                                                                                      headers)
@@ -541,7 +541,7 @@
             ownerId: 'app1',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
-            licenseId: null,
+            licenseIds: [],
             comment : ''
           });
           posted.id = 'AddApplication';
@@ -553,7 +553,7 @@
         expect(scope.override).toEqual({
           ownerId: 'app1',
           status: 'ACKNOWLEDGED',
-          licenseId: null
+          licenseIds: []
         });
         expect(scope.statuses.length).toEqual(5);
       }));

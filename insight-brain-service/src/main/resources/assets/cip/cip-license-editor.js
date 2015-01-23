@@ -99,8 +99,10 @@
             }
           }
 
-          if (licenseOverride && licenseOverride.licenseId) {
-            component.overriddenLicenses = [$scope.licenses[licenseOverride.licenseId].shortDisplayName];
+          if (licenseOverride && licenseOverride.licenseIds) {
+            component.overriddenLicenses = $.map(licenseOverride.licenseIds, function(val) {
+              return [$scope.licenses[val].shortDisplayName];
+            });
             component.effectiveLicenses = component.overriddenLicenses;
             component.overriddenLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.overriddenLicenses[0]);
             component.effectiveLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.overriddenLicenses[0]);
@@ -139,14 +141,14 @@
       }
 
       function setOverrideScope(overrideScope) {
-        $scope.override.licenseId = null;
+        $scope.override.licenseIds = [];
         $scope.override.ownerId = overrideScope.ownerId;
 
         if (overrideScope.licenseOverride) {
           $scope.override.status = overrideScope.licenseOverride.status;
 
           if ($scope.override.status === 'OVERRIDDEN' || $scope.override.status === 'SELECTED') {
-            $scope.override.licenseId = overrideScope.licenseOverride.licenseId;
+            $scope.override.licenseIds = overrideScope.licenseOverride.licenseIds;
           }
         }
         else {
@@ -193,8 +195,11 @@
 
           $scope.component = component;
           $scope.licenses = {};
-          angular.forEach(licenses, function(license) {
-            $scope.licenses[license.id] = license;
+          $scope.rawLicenses = licenses;
+          angular.forEach($scope.rawLicenses, function(rawLicense) {
+            //this is solely for use in the multi select dropdown
+            rawLicense.name = rawLicense.shortDisplayName;
+            $scope.licenses[rawLicense.id] = rawLicense;
           });
 
           $scope.hierarchy = currentOverride.licenseOverridesByOwner;
@@ -221,14 +226,14 @@
               ownerId: null,
               componentIdentifier: SelectedComponent.componentIdentifier,
               status: $scope.override.status.toUpperCase(),
-              licenseId: null,
+              licenseIds: [],
               comment: $scope.override.comment || ''
             },
             owner = null;
 
         // Only set license for Override or Select states
         if (licenseOverride.status === 'OVERRIDDEN' || licenseOverride.status === 'SELECTED') {
-          licenseOverride.licenseId = $scope.override.licenseId;
+          licenseOverride.licenseIds = $scope.override.licenseIds;
         }
 
         // Find owner
@@ -267,7 +272,7 @@
         $scope.override = {
           status: null,
           ownerId: null,
-          licenseId: null
+          licenseIds: []
         };
         if ($scope.hierarchy) {
           for (var i = 0; i < $scope.hierarchy.length; i++) {
@@ -309,7 +314,7 @@
       // Remove license when changing away from Override/Selected status
       $scope.$watch('override.status', function(val) {
         if ($scope.override && val !== 'OVERRIDDEN' && val !== 'SELECTED') {
-          $scope.override.licenseId = null;
+          $scope.override.licenseIds = [];
         }
       });
 

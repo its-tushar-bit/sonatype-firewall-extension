@@ -260,13 +260,13 @@ public class LicenseThreatGroupConditionTypeTest
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
-    component1.setLicenseOverrideId("GPL-2.0");
+    component1.addLicenseOverrideId("GPL-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
-    component2.setLicenseOverrideId("Apache-2.0");
+    component2.addLicenseOverrideId("Apache-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 
@@ -300,13 +300,13 @@ public class LicenseThreatGroupConditionTypeTest
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
     component1.addObservedLicenseId("Apache-2.0");
-    component1.setLicenseOverrideId("GPL-2.0");
+    component1.addLicenseOverrideId("GPL-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component1);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("GPL-2.0");
     component2.addObservedLicenseId("GPL-2.0");
-    component2.setLicenseOverrideId("Apache-2.0");
+    component2.addLicenseOverrideId("Apache-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component2);
     components.add(component2);
 

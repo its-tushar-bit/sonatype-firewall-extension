@@ -125,9 +125,8 @@ public class ComponentDetailsLoader
     Component component = componentDAO.getComponent(application, componentDetails, svData);
 
     // Use CLM data to populate the component details
-    if (component.getLicenseOverrideId() != null) {
-      com.sonatype.insight.brain.model.license.License overriddenLicense = licenseDAO.getByIdNotNull(component
-          .getLicenseOverrideId());
+    for (String licenseId : component.getLicenseOverrideIds()) {
+      com.sonatype.insight.brain.model.license.License overriddenLicense = licenseDAO.getByIdNotNull(licenseId);
       componentDetails.getOverriddenLicenses().add(
           new License(overriddenLicense.getId(), overriddenLicense.getShortDisplayName()));
     }

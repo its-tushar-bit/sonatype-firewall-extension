@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dto.audit;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -41,6 +42,8 @@ public class LicenseOverrideAudit
         License license = licenseDAO.getByIdNotNull(licenseId);
         overriddenLicenses.add(license.getShortDisplayName());
       }
+
+      Collections.sort(overriddenLicenses);
     }
     comment = licenseOverride.getComment();
   }

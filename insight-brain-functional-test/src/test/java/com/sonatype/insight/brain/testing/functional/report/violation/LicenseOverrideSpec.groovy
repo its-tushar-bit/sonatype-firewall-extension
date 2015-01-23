@@ -85,14 +85,15 @@ class LicenseOverrideSpec
     then: 'License choices are shown'
     waitFor { licenses.selectedLicenses.dropdownButton.text() == 'None selected' }
 
-    when: 'A new license is selected'
+    when: 'Two new licenses are selected'
     licenses.selectedLicenses.toggleOption('Beerware')
+    licenses.selectedLicenses.toggleOption('Boost')
 
     then: 'The update button should be enabled'
     waitFor { !licenses.update.disabled }
 
     when: 'We add a comment(which is optional)'
-    licenses.comment = 'Because everything goes better with beer!'
+    licenses.comment = 'Because everything goes better with beer and boost!'
 
     and: 'We click the update button'
     licenses.update.click()
@@ -101,14 +102,14 @@ class LicenseOverrideSpec
     AuditLogModule auditLog = cip.auditLog
     auditLog.showTrigger.click()
     waitFor { auditLog.audits.size() == 1 }
-    auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as Beerware',
-        'Because everything goes better with beer!')
+    auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as Beerware, Boost',
+        'Because everything goes better with beer and boost!')
 
     when: 'We go back to the licenses, our new info appears (the UI does not automatically update)'
     cip.licenses.showTrigger.click()
 
     then:
     waitFor { cip.licenses.form.displayed }
-    licenses.validateLicense('', '', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
+    licenses.validateLicense('', '', 'Beerware\nBoost', app.name, 'Overridden', 'Beerware, Boost', '', false)
   }
 }

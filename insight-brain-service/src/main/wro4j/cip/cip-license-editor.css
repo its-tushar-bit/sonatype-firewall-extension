@@ -32,6 +32,7 @@
 
 #license-editor .multiselect-container .checkbox input {
   margin-left: 5px;
+  margin-top: 5px;
 }
 
 #license-editor .multi-dropdown .dropdown-menu {

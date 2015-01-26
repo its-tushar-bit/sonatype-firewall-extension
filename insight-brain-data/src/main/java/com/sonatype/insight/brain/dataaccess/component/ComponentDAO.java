@@ -290,10 +290,17 @@ public class ComponentDAO
       licenseIds.addAll(component.getObservedLicenseIds());
     }
 
+    Set<String> unassignedLicenseIds = new LinkedHashSet<String>();
     // Gather all license threat groups from the application
     for (String licenseId : licenseIds) {
       List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(applicationId,
           licenseId);
+
+      if (licenseThreatGroups.isEmpty()) {
+        unassignedLicenseIds.add(licenseId);
+        continue;
+      }
+
       for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
         component.addLicenseThreatGroup(licenseThreatGroup);
       }
@@ -304,10 +311,17 @@ public class ComponentDAO
     for (String licenseId : licenseIds) {
       List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(organizationId,
           licenseId);
-      for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-        component.addLicenseThreatGroup(licenseThreatGroup);
+
+      if (!licenseThreatGroups.isEmpty()) {
+        unassignedLicenseIds.remove(licenseId);
+
+        for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+          component.addLicenseThreatGroup(licenseThreatGroup);
+        }
       }
     }
+
+    component.setUnassignedLicenseIds(unassignedLicenseIds);
   }
 
   private Set<String> multiLicenseNamesToLicenseIds(List<String> multiLicenseNames) {

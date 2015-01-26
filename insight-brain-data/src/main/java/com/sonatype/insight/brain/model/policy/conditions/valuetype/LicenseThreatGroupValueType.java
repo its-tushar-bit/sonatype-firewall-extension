@@ -19,6 +19,15 @@ public class LicenseThreatGroupValueType
 {
   public static final String ID = "LicenseThreatGroupValueType";
 
+  public static final String UNASSIGNED_LICENSE_THREAT_GROUP_ID = "UNASSIGNED_LICENSE_THREAT_GROUP_ID";
+  public static final String UNASSIGNED_LICENSE_THREAT_GROUP_NAME = "[unassigned]";
+  public static final LicenseThreatGroup UNASSIGNED_LICENSE_THREAT_GROUP;
+  static {
+    UNASSIGNED_LICENSE_THREAT_GROUP = new LicenseThreatGroup();
+    UNASSIGNED_LICENSE_THREAT_GROUP.setId(UNASSIGNED_LICENSE_THREAT_GROUP_ID);
+    UNASSIGNED_LICENSE_THREAT_GROUP.setName(UNASSIGNED_LICENSE_THREAT_GROUP_NAME);
+  }
+
   private final String ownerId;
 
   public LicenseThreatGroupValueType(String ownerId) {
@@ -50,6 +59,7 @@ public class LicenseThreatGroupValueType
     if (application != null) {
       result.addAll(licenseThreatGroupDAO.getByOwnerId(application.getOrganizationId()));
     }
+    result.add(UNASSIGNED_LICENSE_THREAT_GROUP);
     return result;
   }
 }

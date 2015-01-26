@@ -20,9 +20,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GROUP_ID;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 public class Component
 {
@@ -34,6 +36,8 @@ public class Component
   private Set<String> observedLicenseIds = new LinkedHashSet<String>();
 
   private Set<String> licenseOverrideIds = new LinkedHashSet<>();
+
+  private Set<String> unassignedLicenseIds = new LinkedHashSet<>();
 
   private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<String, LicenseThreatGroup>();
 
@@ -317,5 +321,19 @@ public class Component
 
   public void setComponentIdentifier(final ComponentIdentifier componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
+  }
+
+  public Set<String> getUnassignedLicenseIds() {
+    return unassignedLicenseIds;
+  }
+
+  public void setUnassignedLicenseIds(Set<String> unassignedLicenseIds) {
+    this.unassignedLicenseIds.clear();
+
+    if (unassignedLicenseIds == null) {
+      return;
+    }
+
+    this.unassignedLicenseIds.addAll(unassignedLicenseIds);
   }
 }

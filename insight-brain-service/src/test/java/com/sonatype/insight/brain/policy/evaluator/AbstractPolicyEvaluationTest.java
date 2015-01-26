@@ -61,7 +61,8 @@ public abstract class AbstractPolicyEvaluationTest
       PolicyAlert actualPolicyAlert)
   {
     List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
-    Assert.assertEquals("Incorrect number of component facts", expectedComponentFactCount, componentFacts.size());
+    Assert.assertEquals("Incorrect number of component facts:" + componentFacts, expectedComponentFactCount,
+        componentFacts.size());
 
     int actualConstraintFactCount = 0;
     Set<String> observeredConstraints = new HashSet<String>();
@@ -75,7 +76,7 @@ public abstract class AbstractPolicyEvaluationTest
     Assert.assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
   }
 
-  public static void assertContainsPolicyAlert(Component expectedComponent, String expectedPolicyId,
+  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent, String expectedPolicyId,
       String expectedPolicyName, String actionTypeId, String expectedConstraintId, String expectedConstraintName,
       String expectedConditionTypeId, List<PolicyAlert> actual)
   {
@@ -91,7 +92,7 @@ public abstract class AbstractPolicyEvaluationTest
                   && expectedConstraintName.equals(constraintFact.getConstraintName())) {
                 for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
                   if (expectedConditionTypeId.equals(conditionFact.getConditionTypeId())) {
-                    return;
+                    return conditionFact;
                   }
                 }
               }
@@ -102,6 +103,7 @@ public abstract class AbstractPolicyEvaluationTest
     }
 
     Assert.fail(toString(actual));
+    return null;
   }
 
   private static String toString(List<PolicyAlert> policyAlerts) {

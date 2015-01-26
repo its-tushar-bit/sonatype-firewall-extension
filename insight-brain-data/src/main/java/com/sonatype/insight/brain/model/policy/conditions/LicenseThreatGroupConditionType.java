@@ -29,6 +29,8 @@ public class LicenseThreatGroupConditionType
     supportedOperators.add("is not");
   }
 
+  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
   @Override
   public List<String> getSupportedOperators() {
     return supportedOperators;
@@ -65,18 +67,34 @@ public class LicenseThreatGroupConditionType
 
   @Override
   public String generateDroolsConditionValue(String value) {
-    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroupDAO().getById(value);
-    return "\"" + value + "\"" + asDroolsComment("License threat group name: " + licenseThreatGroup.getName());
+    return "\"" + value + "\"" + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(value));
   }
 
   @Override
   public String explainCondition(final Condition condition) {
-    return getName() + ' ' + condition.getOperator() + " '"
-        + new LicenseThreatGroupDAO().getById(condition.getValue()).getName() + '\'';
+    return getName() + ' ' + condition.getOperator() + " '" + getLicenseThreatGroupName(condition.getValue()) + '\'';
+  }
+
+  private String getLicenseThreatGroupName(String licenseThreatGroupId) {
+    if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(licenseThreatGroupId)) {
+      return LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_NAME;
+    }
+
+    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getById(licenseThreatGroupId);
+    return licenseThreatGroup.getName();
   }
 
   @Override
   public String explainMatch(final Condition condition, final Component component) {
+    if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
+      if ("is".equals(condition.getOperator())) {
+        return "Found a License that is not assigned to any License Threat Group";
+      }
+      else {
+        return "Did not find a License that is not assigned to any License Threat Group";
+      }
+    }
+
     final StringBuilder buf = new StringBuilder();
     final Set<LicenseThreatGroup> licenseThreatGroups = component.getLicenseThreatGroups();
     if ("is".equals(condition.getOperator())) {
@@ -102,7 +120,13 @@ public class LicenseThreatGroupConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
-    boolean result = component.hasLicenseInLicenseThreatGroup(value);
+    boolean result;
+    if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(value)) {
+      result = !component.getUnassignedLicenseIds().isEmpty();
+    }
+    else {
+      result = component.hasLicenseInLicenseThreatGroup(value);
+    }
     return "is".equals(operator) ? result : !result;
   }
 

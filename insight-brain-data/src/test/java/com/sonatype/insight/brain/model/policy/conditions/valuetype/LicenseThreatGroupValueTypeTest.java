@@ -16,6 +16,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -40,7 +42,8 @@ public class LicenseThreatGroupValueTypeTest
     LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(app.getId());
     List<LicenseThreatGroup> ltgs = type.getAvailableValues();
     assertNotNull(ltgs);
-    assertEquals(5, ltgs.size());
+    assertEquals(6, ltgs.size());
+    assertThat(ltgs.get(5), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP));
   }
 
   @Test
@@ -48,6 +51,7 @@ public class LicenseThreatGroupValueTypeTest
     LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(org.getId());
     List<LicenseThreatGroup> ltgs = type.getAvailableValues();
     assertNotNull(ltgs);
-    assertEquals(4, ltgs.size());
+    assertEquals(5, ltgs.size());
+    assertThat(ltgs.get(4), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP));
   }
 }

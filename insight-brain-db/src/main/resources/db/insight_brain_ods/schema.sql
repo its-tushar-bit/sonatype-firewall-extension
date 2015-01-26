@@ -76,10 +76,11 @@ CREATE TABLE hash_component_identifier (
   hash_component_identifier_id varchar(50) NOT NULL,
   hash varchar(20) NOT NULL,
   component_id_format varchar(10) NOT NULL,
-  component_id_coordinates_json CLOB NOT NULL, -- the component identifier coordinates stored in json format
+  component_id_coordinates_json varchar(1000) NOT NULL, -- the component identifier coordinates stored in json format
   comment varchar(1000) NULL,
   create_time datetime NULL,
   CONSTRAINT hash_component_identifier_pk PRIMARY KEY (hash_component_identifier_id),
+  CONSTRAINT hash_component_identifier_component_id_uk UNIQUE KEY (component_id_format, component_id_coordinates_json),
   CONSTRAINT hash_component_identifier_hash_uk UNIQUE KEY (hash)
 );
 
@@ -113,10 +114,11 @@ CREATE TABLE license_override (
   license_override_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   component_id_format varchar(10) NOT NULL,
-  component_id_coordinates_json CLOB NOT NULL, -- the component identifier coordinates stored in json format
+  component_id_coordinates_json varchar(1000) NOT NULL, -- the component identifier coordinates stored in json format
   status varchar(20) NOT NULL,
   comment varchar(1000) NULL,
-  CONSTRAINT license_override_pk PRIMARY KEY (license_override_id)
+  CONSTRAINT license_override_pk PRIMARY KEY (license_override_id),
+  CONSTRAINT license_override_uk UNIQUE KEY (owner_id, component_id_format, component_id_coordinates_json)
 );
 
 CREATE TABLE license_override_license (
@@ -303,7 +305,7 @@ CREATE TABLE policy_violation (
   threat_category varchar(20) NOT NULL,
   hash varchar(20),
   component_id_format varchar(10),
-  component_id_coordinates_json CLOB, -- the component identifier coordinates (that caused the policy violation) stored in json format
+  component_id_coordinates_json varchar(1000), -- the component identifier coordinates (that caused the policy violation) stored in json format
   constraint_facts_json CLOB NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   pathnames CLOB, -- the paths to the component that caused the policy violation, paths are new line delimited
   action_type_id varchar(20),
@@ -348,7 +350,7 @@ CREATE TABLE application_component (
   time datetime NOT NULL,
   hash varchar(20) NOT NULL,
   component_id_format varchar(10),
-  component_id_coordinates_json CLOB, -- the component identifier coordinates stored in json format
+  component_id_coordinates_json varchar(1000), -- the component identifier coordinates stored in json format
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,
   proprietary bool DEFAULT false NOT NULL,

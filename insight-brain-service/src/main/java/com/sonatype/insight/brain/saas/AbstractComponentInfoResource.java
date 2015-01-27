@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.saas;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -186,53 +187,6 @@ public abstract class AbstractComponentInfoResource
   }
 
   /**
-   * NOTE: Cursory review suggests this method is obsolete since 1.6 when CLM-43 introduced cip-license-editor.js which
-   * makes use of getLicenses() instead to get this data (also see getArtifactLicensesUrl() in brain.client.js).
-   */
-  @GET
-  @Path("selectableLicenses/{applicationPublicId}")
-  @Produces({ MediaType.APPLICATION_JSON })
-  @Authorize(permission = Permission.READ)
-  public Set<License> getSelectableLicenses(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("instanceId") String instanceId, @QueryParam("groupId") String groupId,
-      @QueryParam("artifactId") String artifactId, @QueryParam("version") String version) throws IOException
-  {
-    applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    // Get component details from the SAAS server
-    ComponentDetails componentDetails = getEvaluatedComponentDetails(applicationPublicId, null, null, false, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
-
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-    Set<License> result = new LinkedHashSet<License>();
-    Set<License> licenses = new LinkedHashSet<License>();
-    licenses.addAll(componentDetails.getDeclaredLicenses());
-    licenses.addAll(componentDetails.getObservedLicenses());
-    Iterator<License> licenseIter = licenses.iterator();
-    while (licenseIter.hasNext()) {
-      License license = licenseIter.next();
-      MultiLicense multiLicense = multiLicenseDAO.getById(license.getLicenseId());
-      if (multiLicense.isUnspecified()) {
-        continue;
-      }
-      Set<com.sonatype.insight.brain.model.license.License> _licenses = multiLicenseDAO
-          .getLicensesByMultiLicenseIdNotNull(multiLicense.getId());
-      for (com.sonatype.insight.brain.model.license.License _license : _licenses) {
-        if (_license.getId().endsWith("-UNSPECIFIED")) {
-          String licenseIdPrefix = _license.getId().substring(0, _license.getId().length() - "UNSPECIFIED".length());
-          for (com.sonatype.insight.brain.model.license.License otherLicense : licenseDAO.getAll()) {
-            if (otherLicense.getId().startsWith(licenseIdPrefix) && !_license.getId().equals(otherLicense.getId())) {
-              result.add(new License(otherLicense.getId(), otherLicense.getShortDisplayName()));
-            }
-          }
-        }
-        result.add(new License(_license.getId(), _license.getShortDisplayName()));
-      }
-    }
-    return result;
-  }
-
-  /**
    * Returns the declared and observed licenses with their threat levels for a GAV
    * 
    * @since 1.6
@@ -259,7 +213,41 @@ public abstract class AbstractComponentInfoResource
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
     result.effectiveLicenses = getLicensesWithThreatLevels(application, componentDetails.getEffectiveLicenses());
+    result.selectableLicenses = new ArrayList<>(getSelectableLicenses(componentDetails.getDeclaredLicenses(),
+        componentDetails.getObservedLicenses()));
 
+    return result;
+  }
+
+  private Set<License> getSelectableLicenses(Collection<License> declared, Collection<License> observed) {
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    Set<License> result = new LinkedHashSet<License>();
+    Set<License> licenses = new LinkedHashSet<License>();
+    licenses.addAll(declared);
+    licenses.addAll(observed);
+    Iterator<License> licenseIter = licenses.iterator();
+    while (licenseIter.hasNext()) {
+      License license = licenseIter.next();
+
+      if (com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(license.getLicenseId())) {
+        continue;
+      }
+
+      MultiLicense multiLicense = multiLicenseDAO.getById(license.getLicenseId());
+      Set<com.sonatype.insight.brain.model.license.License> _licenses = multiLicenseDAO
+          .getLicensesByMultiLicenseIdNotNull(multiLicense.getId());
+      for (com.sonatype.insight.brain.model.license.License _license : _licenses) {
+        if (_license.getId().endsWith("-UNSPECIFIED")) {
+          String licenseIdPrefix = _license.getId().substring(0, _license.getId().length() - "UNSPECIFIED".length());
+          for (com.sonatype.insight.brain.model.license.License otherLicense : licenseDAO.getAll()) {
+            if (otherLicense.getId().startsWith(licenseIdPrefix) && !_license.getId().equals(otherLicense.getId())) {
+              result.add(new License(otherLicense.getId(), otherLicense.getShortDisplayName()));
+            }
+          }
+        }
+        result.add(new License(_license.getId(), _license.getShortDisplayName()));
+      }
+    }
     return result;
   }
 
@@ -297,6 +285,11 @@ public abstract class AbstractComponentInfoResource
      * @since 1.12
      */
     public List<LicenseWithThreatLevel> effectiveLicenses;
+
+    /**
+     * @since 1.13
+     */
+    public List<License> selectableLicenses;
 
   }
 

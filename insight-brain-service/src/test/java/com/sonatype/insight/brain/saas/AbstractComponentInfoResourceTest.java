@@ -87,13 +87,6 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   @Test
-  public void testGetSelectableLicenses_Unlicensed() throws Exception {
-    uninstallLicense();
-    Response response = AuthedRestAccess.get(getSelectableLicensesServiceURL("unlicensedappid", "ulg", "ula", "ulv"));
-    assertResponseStatus(402, response);
-  }
-
-  @Test
   public void testGetSelectableLicenses() throws Exception {
     String applicationPublicId = "ComponentInfoResourceTest";
     tempEntity.newApplicationWithParent(applicationPublicId);
@@ -107,22 +100,21 @@ public abstract class AbstractComponentInfoResourceTest
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("EPL-1.0", "UNSPECIFIED"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         toJson(saasComponentDetails), 200);
-    Response response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId,
-        version));
+    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
-    License[] licenses = fromJson(response, License[].class);
-    assertEquals(1, licenses.length);
-    assertEquals("EPL-1.0", licenses[0].getLicenseId());
+    List<License> licenses = fromJson(response, ComponentLicenses.class).selectableLicenses;
+    assertEquals(1, licenses.size());
+    assertEquals("EPL-1.0", licenses.get(0).getLicenseId());
 
     // Verify that a versionless license is resolved to versioned licenses
     version = "v2";
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-UNSPECIFIED"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         toJson(saasComponentDetails), 200);
-    response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
-    licenses = fromJson(response, License[].class);
-    assertEquals(Arrays.asList(licenses).toString(), 4, licenses.length);
+    licenses = fromJson(response, ComponentLicenses.class).selectableLicenses;
+    assertEquals(Arrays.asList(licenses).toString(), 4, licenses.size());
     assertContainsLicenseId("Apache-UNSPECIFIED", licenses);
     assertContainsLicenseId("Apache-1.0", licenses);
     assertContainsLicenseId("Apache-1.1", licenses);
@@ -134,10 +126,10 @@ public abstract class AbstractComponentInfoResourceTest
     saasComponentDetails.setObservedLicenses(toLicenseSet("EPL-1.0", "GPL-2.0"));
     setSaasResponseForURI(getSaasComponentDetailsUrl(groupId, artifactId, version),
         toJson(saasComponentDetails), 200);
-    response = AuthedRestAccess.get(getSelectableLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
+    response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
-    licenses = fromJson(response, License[].class);
-    assertEquals(Arrays.asList(licenses).toString(), 3, licenses.length);
+    licenses = fromJson(response, ComponentLicenses.class).selectableLicenses;
+    assertEquals(Arrays.asList(licenses).toString(), 3, licenses.size());
     assertContainsLicenseId("Apache-2.0", licenses);
     assertContainsLicenseId("EPL-1.0", licenses);
     assertContainsLicenseId("GPL-2.0", licenses);
@@ -178,6 +170,7 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(licenses.declaredlicenses, empty());
     assertThat(licenses.observedlicenses, empty());
     assertThat(licenses.effectiveLicenses, empty());
+    assertThat(licenses.selectableLicenses, empty());
 
     // Verify component with licenses
     tempEntity.newLicenseThreatGroup(application.getId(), "ComponentInfoResourceTest", 5, "LGPL-2.0", "BSD-3-Clause");
@@ -208,6 +201,13 @@ public abstract class AbstractComponentInfoResourceTest
       assertContainsLicenseWithThreatLevel(licenseWithThreatLevel.license.getLicenseId(),
           licenseWithThreatLevel.license.getLicenseName(), licenseWithThreatLevel.threatLevel, effectiveLicensesList);
     }
+    assertThat(licenses.selectableLicenses, hasSize(6));
+    assertContainsLicenseId("Apache-2.0", licenses.selectableLicenses);
+    assertContainsLicenseId("LGPL-2.0", licenses.selectableLicenses);
+    assertContainsLicenseId("LGPL-2.0", licenses.selectableLicenses);
+    assertContainsLicenseId("GPL-2.0", licenses.selectableLicenses);
+    assertContainsLicenseId("MPL-1.1", licenses.selectableLicenses);
+    assertContainsLicenseId("BSD-3-Clause", licenses.selectableLicenses);
   }
 
   @Test
@@ -847,7 +847,7 @@ public abstract class AbstractComponentInfoResourceTest
     policyDAO.insert(policy);
   }
 
-  private void assertContainsLicenseId(String licenseId, License[] licenses) {
+  private void assertContainsLicenseId(String licenseId, Iterable<License> licenses) {
     for (License license : licenses) {
       if (licenseId.equals(license.getLicenseId())) {
         return;
@@ -917,11 +917,6 @@ public abstract class AbstractComponentInfoResourceTest
 
   private String getLicensesServiceURL(String applicationPublicId) {
     return getServiceURL() + "/licenses/" + applicationPublicId;
-  }
-
-  private String getSelectableLicensesServiceURL(String applicationPublicId, String g, String a, String v) {
-    return getServiceURL() + "/selectableLicenses/" + applicationPublicId + "?groupId=" + g + "&artifactId=" + a
-        + "&version=" + v;
   }
 
   private String getComponentIdentifierParam(String g, String a, String v) {

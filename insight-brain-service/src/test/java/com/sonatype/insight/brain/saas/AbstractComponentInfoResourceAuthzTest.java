@@ -51,19 +51,6 @@ public abstract class AbstractComponentInfoResourceAuthzTest
   }
 
   @Test
-  public void testGetSelectableLicenses() throws Exception {
-    String groupId = "gid";
-    String artifactId = "aid";
-    String version = "1.0";
-
-    grantReadPermission(app.getId());
-
-    String url = getRestUrl(getResourcePath() + "/selectableLicenses/{applicationPublicId}", app.getPublicId())
-        + "?groupId=" + groupId + "&artifactId=" + artifactId + "&version=" + version;
-    testAuthzGet(url);
-  }
-
-  @Test
   public void testGetLicenses() throws Exception {
     String groupId = "gid";
     String artifactId = "aid";

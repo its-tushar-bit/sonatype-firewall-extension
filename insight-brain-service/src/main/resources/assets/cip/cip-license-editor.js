@@ -179,7 +179,7 @@
 
         var promises = [];
         // List of licenses
-        promises.push($http.get(CLM.path + 'rest/license'));
+        promises.push($http.get(CLM.path + 'rest/license?filterSynthetic=true'));
         // Current override state
         promises.push($http.get(CLM.path + 'rest/licenseOverride/application/' + ApplicationId.encoded() +
             '?componentIdentifier=' + encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier))));
@@ -196,6 +196,7 @@
           $scope.component = component;
           $scope.licenses = {};
           $scope.rawLicenses = licenses;
+
           angular.forEach($scope.rawLicenses, function(rawLicense) {
             //this is solely for use in the multi select dropdown
             rawLicense.name = rawLicense.shortDisplayName;
@@ -206,14 +207,21 @@
           $scope.reset();
 
           $scope.selectableLicenses = {};
-          angular.forEach($scope.component.declaredlicenses, function(license) {
-            $scope.selectableLicenses[license.license.licenseId] = $scope.licenses[license.license.licenseId];
-          });
-          angular.forEach($scope.component.observedlicenses, function(license) {
-            $scope.selectableLicenses[license.license.licenseId] = $scope.licenses[license.license.licenseId];
+          angular.forEach($scope.component.selectableLicenses, function (license) {
+            $scope.selectableLicenses[license.licenseId] = $scope.licenses[license.licenseId];
           });
 
-          }, function() {
+          // Hide SELECTED status if there are no licenses to choose from
+          if ($scope.component.selectableLicenses.length === 0 ) {
+            for (var i=0; i<$scope.statuses.length; i++) {
+              if ($scope.statuses[i].value === 'SELECTED') {
+                $scope.statuses.splice(i, 1);
+                statuses.splice(i, 1);
+                break;
+              }
+            }
+          }
+        }, function() {
           $scope.error = arguments[0];
         });
       };
@@ -262,9 +270,9 @@
             updateStatuses();
             updateTable();
           }).error(function() {
-                $scope.alert = Messages.getHttpErrorMessage(arguments);
-                $scope.saving = false;
-              });
+            $scope.alert = Messages.getHttpErrorMessage(arguments);
+            $scope.saving = false;
+          });
         }
       };
 

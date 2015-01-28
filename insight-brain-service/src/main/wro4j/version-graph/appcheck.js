@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global $, pv, window, navigator, document */
+/*global $, pv, window, document */
 (function() {
   'use strict';
+
   function useGradients() {
     function isIE() {
       return $.browser.msie ? true : false;
@@ -20,15 +21,6 @@
     }
 
     return !(isIE() || (isFirefox() && ffVersion() < 4));
-  }
-
-  /* Helper Functions */
-  function isNullOrUndefined(obj) {
-    return obj === null || typeof obj === 'undefined';
-  }
-
-  function isNotNullOrUndefined(obj) {
-    return !isNullOrUndefined(obj);
   }
 
   var blue = '#0047b2',
@@ -47,9 +39,8 @@
       bgBorder = '#eef2fb',
       textColor = '#575757',
       pillColor = '#cee8fb',
-      white = '#ffffff',
-      gridLine = "#dee6f3",
-      hc_prevLoaded = false, // Used to determine if the gradients have already been appended
+      gridLine = '#dee6f3',
+      hcPrevLoaded = false, // Used to determine if the gradients have already been appended
       ComponentInformation;
 
   function getAge(reportDate, endDate) {
@@ -238,25 +229,25 @@
           .textAlign(function() {
             var angle = wedge.midAngle() < 0 ? Math.PI * 2 + wedge.midAngle() : wedge.midAngle();
             if (this.index === 2 && angle > Math.PI * 1.5) {
-              return "left";
+              return 'left';
             }
             else if (Math.abs(angle % Math.PI - Math.PI / 2) < 0.31) {
-              return "center";
+              return 'center';
             }
             else if (this.index === 1 && wedge.angle() < 0.61) {
-              return (angle > (Math.PI / 2) && angle < (1.5 * Math.PI)) ? "left" : "right";
+              return (angle > (Math.PI / 2) && angle < (1.5 * Math.PI)) ? 'left' : 'right';
             }
-            return (angle > (Math.PI / 2) && angle < (1.5 * Math.PI)) ? "right" : "left";
+            return (angle > (Math.PI / 2) && angle < (1.5 * Math.PI)) ? 'right' : 'left';
           })
           .textBaseline(function() {
             var angle = wedge.midAngle() < 0 ? Math.PI * 2 + wedge.midAngle() : wedge.midAngle();
             if (Math.abs((angle + Math.PI / 2) % Math.PI - Math.PI / 2) < 0.31) {
-              return "middle";
+              return 'middle';
             }
             else if (this.index === 1 && wedge.angle() < 0.61) {
-              return angle > Math.PI ? "top" : "bottom";
+              return angle > Math.PI ? 'top' : 'bottom';
             }
-            return angle > Math.PI ? "bottom" : "top";
+            return angle > Math.PI ? 'bottom' : 'top';
           });
     }
     vis.render();
@@ -286,8 +277,8 @@
         bar,
         ticks;
 
-    if (hc_prevLoaded !== true) {
-      hc_prevLoaded = true;
+    if (hcPrevLoaded !== true) {
+      hcPrevLoaded = true;
       svg = document.createElement('div');
       svg.setAttribute('style', 'height:0px;width:0px;');
       svg.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' version='1.1'><defs><linearGradient id='orangebar' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' style='stop-color:rgb(199,122,32);stop-opacity:1'></stop><stop offset='100%' style='stop-color:rgb(248,149,32);stop-opacity:1'></stop></linearGradient><linearGradient id='redbar' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' style='stop-color:rgb(190,31,36);stop-opacity:1'></stop><stop offset='100%' style='stop-color:rgb(235,32,38);stop-opacity:1'></stop></linearGradient><linearGradient id='yellowbar' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' style='stop-color:rgb(209,186,30);stop-opacity:1'></stop><stop offset='100%' style='stop-color:rgb(255,222,29);stop-opacity:1'></stop></linearGradient></defs></svg>";
@@ -371,7 +362,7 @@
         .height(y.range().band)
         .left(leftPadding)
         .width(x)
-        .fillStyle(function(d) {
+        .fillStyle(function() {
           if (this.index < 3) {
             return useGradient ? 'url(#redbar)' : 'rgb(234,32,44)';
           }
@@ -384,8 +375,8 @@
         });
 
     /* The variable label. */
-    bar.anchor("left").add(pv.Label)
-        .textAlign("center")
+    bar.anchor('left').add(pv.Label)
+        .textAlign('center')
         .left(leftPadding / 2)
         .width(leftPadding)
         .font('normal ' + config.fontSize + 'px arial')
@@ -408,7 +399,7 @@
         .top(topPadding)
         .height(5)
         .strokeStyle(textColor)
-        .anchor("top").add(pv.Label)
+        .anchor('top').add(pv.Label)
         .text(x.tickFormat)
         .font('normal ' + config.fontSize + 'px arial')
         .textStyle(textColor);
@@ -490,17 +481,17 @@
         if (item > 0) {
           vis.add(pv.Dot)
               .data([item])
-              .left(function(d) {
+              .left(function() {
                 return 16 + itemIndex * 28;
               })
               .top(16 + rowIndex * 32)
               .size(function(d) {
                 return d / max * 144.0;
               })
-              .fillStyle(function(d) {
+              .fillStyle(function() {
                 return itemIndex === 0 ? red : itemIndex === 1 ? orange : yellow;
               })
-              .strokeStyle(function(d) {
+              .strokeStyle(function() {
                 return itemIndex === 0 ? darkRed : itemIndex === 1 ? darkOrange : darkYellow;
               });
         }
@@ -562,74 +553,74 @@
 
   ComponentInformation = (function() {
     var defaults = {
-          partialDisplay: false,
-          selectable: false,
-          barGap: 3,
-          barWidth: 8,
-          contentWidth: 375,
-          labelTop: 14,
-          labelWidth: 100,
-          topPadding: 20,
-          vizPadding: 6,
-          versionClick: $.noop,
-          versionDblClick: $.noop
+        partialDisplay: false,
+        selectable: false,
+        barGap: 3,
+        barWidth: 8,
+        contentWidth: 375,
+        labelTop: 14,
+        labelWidth: 100,
+        topPadding: 20,
+        vizPadding: 6,
+        versionClick: $.noop,
+        versionDblClick: $.noop
+      },
+      derivedValues = {
+        actualHeight: function(config) {
+          return this.height(config) + 11 + this.bottomPadding(config);
         },
-        derivedValues = {
-          actualHeight: function(config) {
-            return this.height(config) + 11 + this.bottomPadding(config);
-          },
-          barHeight: function(config) {
-            return (config.barWidth + config.barGap) * 3 - 1;
-          },
-          height: function(config) {
-            return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
-          },
-          contentRows: function(config) {
-            return config.partialDisplay ? 4 : 10;
-          },
-          bottomPadding: function(config) {
-            return config.partialDisplay ? 20 : 0;
-          },
-          versionCount: function(config) {
-            return config.data.versions ? config.data.versions.length : 0;
-          },
-          contentActualWidth: function(config) {
-            return (config.barWidth + config.barGap) * this.versionCount(config);
-          },
-          width: function(config) {
-            var currentIndex = config.data.currentVersionIndex;
+        barHeight: function(config) {
+          return (config.barWidth + config.barGap) * 3 - 1;
+        },
+        height: function(config) {
+          return config.topPadding + this.contentRows(config) * (config.barWidth + config.barGap) + 1;
+        },
+        contentRows: function(config) {
+          return config.partialDisplay ? 4 : 10;
+        },
+        bottomPadding: function(config) {
+          return config.partialDisplay ? 20 : 0;
+        },
+        versionCount: function(config) {
+          return config.data.versions ? config.data.versions.length : 0;
+        },
+        contentActualWidth: function(config) {
+          return (config.barWidth + config.barGap) * this.versionCount(config);
+        },
+        width: function(config) {
+          var currentIndex = config.data.currentVersionIndex;
 
-            //dont bother doing anything if we already know its 0
-            if (currentIndex > 0) {
-              //the inner width is twice the size of the area needed for the chart,
-              //simply so that the current version can always be directly in the middle
-              return Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
-                  (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
-            }
-
-            return config.contentWidth;
-          },
-          panning: function(config) {
-            return this.width(config) > config.contentWidth;
-          },
-          left: function(config) {
-            var currentIndex = config.data.currentVersionIndex;
-
-            if (currentIndex < 0) {
-              return 0;
-            }
-
-            //calculate the point in the inner chart where we need to start drawing, is based off having the current version centered in the chart
-            return (this.width(config) / 2) -
-                (((currentIndex * (config.barWidth + config.barGap)) + (config.barWidth / 2)) + (config.barWidth / 2));
-          },
-          spacer: function(config) {
-            return config.barGap + config.barWidth;
-          },
-          top: function(config) {
-            return config.topPadding;
+          //dont bother doing anything if we already know its 0
+          if (currentIndex > 0) {
+            //the inner width is twice the size of the area needed for the chart,
+            //simply so that the current version can always be directly in the middle
+            return Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
+                (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
           }
-        };
+
+          return config.contentWidth;
+        },
+        panning: function(config) {
+          return this.width(config) > config.contentWidth;
+        },
+        left: function(config) {
+          var currentIndex = config.data.currentVersionIndex;
+
+          if (currentIndex < 0) {
+            return 0;
+          }
+
+          //calculate the point in the inner chart where we need to start drawing, is based off having the current version centered in the chart
+          return (this.width(config) / 2) -
+              (((currentIndex * (config.barWidth + config.barGap)) + (config.barWidth / 2)) + (config.barWidth / 2));
+        },
+        spacer: function(config) {
+          return config.barGap + config.barWidth;
+        },
+        top: function(config) {
+          return config.topPadding;
+        }
+      };
 
     function getLicenseSeverity(threatLevel) {
       if (threatLevel >= 8) {
@@ -670,13 +661,8 @@
           versionPopularity: [],
           majorRevIndices: [],
           effectiveLicenses: [],
-          securityLevels: [
-            [],
-            [],
-            []
-          ]
-        },
-        i;
+          securityLevels: [[], [], []]
+        };
 
       $.each(json.versions, function(index, item) {
         var critical = false, severe = false, moderate = false;
@@ -691,13 +677,13 @@
         }
         data.effectiveLicenses.push(getLicenseSeverity(item.effectiveLicenseThreat || item.licenseThreatLevel));
         if (item.securityThreats) {
-          if ($.inArray("Critical", item.securityThreats) !== -1) {
+          if ($.inArray('Critical', item.securityThreats) !== -1) {
             data.securityLevels[0].push(index);
           }
-          if ($.inArray("Severe", item.securityThreats) !== -1) {
+          if ($.inArray('Severe', item.securityThreats) !== -1) {
             data.securityLevels[1].push(index);
           }
-          if ($.inArray("Moderate", item.securityThreats) !== -1) {
+          if ($.inArray('Moderate', item.securityThreats) !== -1) {
             data.securityLevels[2].push(index);
           }
         }
@@ -762,30 +748,30 @@
 
       panWrapper.add(pv.Dot).left(config.contentWidth - 7).top(15 +
               (config.height / 2)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(-Math.PI /
-              2).shape("triangle").lineWidth(1).size(30).cursor('pointer').events("all").event('mouseover',function() {
+              2).shape('triangle').lineWidth(1).size(30).cursor('pointer').events('all').event('mouseover',function() {
         this.fillStyle(darkGrey).render();
-      }).event("mouseout",function() {
+      }).event('mouseout',function() {
             this.fillStyle(bgBlue).render();
             rightPan = false;
-          }).event("mousedown",function() {
+          }).event('mousedown',function() {
             rightPan = true;
             setTimeout(panRight, 0);
-          }).event("mouseup", function() {
+          }).event('mouseup', function() {
             rightPan = false;
           });
 
       panWrapper.add(pv.Dot).left(7).top(15 +
               (config.height / 2)).fillStyle(bgBlue).strokeStyle(darkGrey).angle(Math.PI /
-              2).shape("triangle").lineWidth(1).size(30).cursor('pointer').event('all').events("all").event('mouseover',
+              2).shape('triangle').lineWidth(1).size(30).cursor('pointer').event('all').events('all').event('mouseover',
           function() {
             this.fillStyle(darkGrey).render();
-          }).event("mouseout",function() {
+          }).event('mouseout',function() {
             this.fillStyle(bgBlue).render();
             leftPan = false;
-          }).event("mousedown",function() {
+          }).event('mousedown',function() {
             leftPan = true;
             setTimeout(panLeft, 0);
-          }).event("mouseup", function() {
+          }).event('mouseup', function() {
             leftPan = false;
           });
 
@@ -793,9 +779,9 @@
     }
 
     function createHighlights(vis, config) {
-      var inner = vis.add(pv.Panel).def("i", -1),
+      var inner = vis.add(pv.Panel).def('i', -1),
           bars = inner.add(pv.Bar),
-          labels = bars.anchor("bottom").add(pv.Label).visible(false).textBaseline("top"),
+          labels = bars.anchor('bottom').add(pv.Label).visible(false).textBaseline('top'),
           leftPositionFn = getLeftPositionFn(config),
           selectedIndex = null;
 
@@ -804,18 +790,18 @@
         return config.left + leftPositionFn(this.index) - 1;
         //though we don't show the stroke, we need the strokeStyle to catch events within it
       }).top(config.topPadding).height(defaults.partialDisplay ? config.height : config.height -
-              20).lineWidth(0).strokeStyle(bgBlue).fillStyle("transparent").events("all").event('mouseover',function() {
+              20).lineWidth(0).strokeStyle(bgBlue).fillStyle('transparent').events('all').event('mouseover',function() {
             inner.i(this.index);
             this.render();
-            labels.visible(function(d) {
+            labels.visible(function() {
               return inner.i() === this.index;
             }).textAlign(this.index === 0 ? 'left' : (this.index ===
                     config.data.versions.length - 1) ? 'right' : 'center').render();
-          }).event("mouseout",function() {
+          }).event('mouseout',function() {
             inner.i(-1);
             this.render();
             labels.visible(false).render();
-          }).fillStyle(function(d) {
+          }).fillStyle(function() {
             if (inner.i() === this.index) {
               return pv.color('rgba(153, 204, 255, 0.5)');
             }
@@ -825,7 +811,7 @@
             else {
               return 'transparent';
             }
-          }).strokeStyle(function(d) {
+          }).strokeStyle(function() {
             if (this.index === selectedIndex) {
               return pv.color('rgba(10, 10, 10, 0.5)');
             }
@@ -833,12 +819,12 @@
           }).lineWidth(1);
       if (config.selectable) {
         selectedIndex = config.data.currentVersionIndex;
-        bars.event("click", function() {
+        bars.event('click', function() {
           config.versionClick(this.data());
           selectedIndex = this.index;
           this.render();
         });
-        bars.event("dblclick", function() {
+        bars.event('dblclick', function() {
           config.versionDblClick(this.data());
         });
       }
@@ -874,14 +860,14 @@
             //Note that i use a min height of 3 here as no bar looks silly
             return (barHeight * d * maxValue) + 3;
           }).bottom(0).fillStyle(
-          function(d) {
-            return this.index < data.currentVersionIndex ? "#a8a9ad" : this.index >=
-                nextMajorRevIndex ? "#6d97d0" : this.index === data.currentVersionIndex ? "#58585a"
-                : "#8bc73e";
+          function() {
+            return this.index < data.currentVersionIndex ? '#a8a9ad' : this.index >=
+                nextMajorRevIndex ? '#6d97d0' : this.index === data.currentVersionIndex ? '#58585a'
+                : '#8bc73e';
           });
 
       //the bottom rule just under the bars
-      inner.add(pv.Rule).width(config.contentActualWidth + config.barGap).bottom(0).left(0).strokeStyle("#949599");
+      inner.add(pv.Rule).width(config.contentActualWidth + config.barGap).bottom(0).left(0).strokeStyle('#949599');
       config.top += config.barHeight + config.spacer;
 
       return vis;
@@ -958,7 +944,7 @@
         row.add(pv.Dot).data(item).left(function(d) {
           return config.barWidth / 2 + getLeftPositionFn(config)(d) + 1;
         }).radius(config.barWidth / 2 - 0.5).fillStyle(fillColor).strokeStyle(strokeColor).angle(-Math.PI /
-                2).shape("triangle");
+                2).shape('triangle');
 
         config.top += config.spacer;
       });
@@ -1038,28 +1024,28 @@
       if (config.versionCount !== 0) {
         //the current version vertical rule
         vizContent.add(pv.Rule).left((config.width / 2) - 1).top(config.topPadding).height(config.height -
-            config.topPadding).strokeStyle("#949599");
+            config.topPadding).strokeStyle('#949599');
 
         //put in the version labels
-        vizContent.add(pv.Label).left((config.width / 2) - 70).top(15).textAlign("center").text("Older");
-        vizContent.add(pv.Label).left(config.width / 2).top(15).textAlign("center").text("This Version");
-        vizContent.add(pv.Label).left((config.width / 2) + 70).top(15).textAlign("center").text("Newer");
+        vizContent.add(pv.Label).left((config.width / 2) - 70).top(15).textAlign('center').text('Older');
+        vizContent.add(pv.Label).left(config.width / 2).top(15).textAlign('center').text('This Version');
+        vizContent.add(pv.Label).left((config.width / 2) + 70).top(15).textAlign('center').text('Newer');
       }
-      vizLabels.add(pv.Label).left(0).top(config.top + config.labelTop).textAlign("left").text("Popularity");
+      vizLabels.add(pv.Label).left(0).top(config.top + config.labelTop).textAlign('left').text('Popularity');
       config.top += 1;
       createPopularityPanel(vizContent, config);
 
       //these values are all hidden unless paid for
       if (!config.partialDisplay) {
-        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign("left").text("License Risk");
+        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign('left').text('License Risk');
         createEffectiveLicensePanel(vizContent, config);
 
-        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign("left").text("Security Alerts");
+        vizLabels.add(pv.Label).left(0).top(config.top + 10).textAlign('left').text('Security Alerts');
         createSecurityLevelPanel(vizContent, config);
       }
 
       if (config.versionCount === 0) {
-        _createLabel(vizContent, "No Data", { width: config.contentWidth, height: config.actualHeight});
+        _createLabel(vizContent, 'No Data', { width: config.contentWidth, height: config.actualHeight});
         vizLabels.render();
         vizContent.render();
         return;
@@ -1090,16 +1076,16 @@
   }());
 
   $.extend(true, window, {
-    "HealthCheck": {
-      "getAge": getAge,
-      "artifactsChart": artifactsChart,
-      "licenseChart": licenseChart,
-      "donutChart": donutChart,
-      "barChart": barChart,
-      "punchCard": punchCard
+    'HealthCheck': {
+      'getAge': getAge,
+      'artifactsChart': artifactsChart,
+      'licenseChart': licenseChart,
+      'donutChart': donutChart,
+      'barChart': barChart,
+      'punchCard': punchCard
     },
-    "Insight": {
-      "ComponentInformation": ComponentInformation
+    'Insight': {
+      'ComponentInformation': ComponentInformation
     }
   });
 }());

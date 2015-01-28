@@ -23,10 +23,9 @@
               </div>
               <div class='control-group' ng-class='{ error : submitted && claimForm.artifactId.$error.required }'>
                 <label class='control-label'>Artifact ID</label>
-
                 <div class='controls'>
                   <input name='artifactId' class='input-xlarge' type='text' ng-model='claimData.artifactId'
-                         required/>
+                         disablenav required/>
                 </div>
               </div>
               <div class='control-group' ng-class='{ error : submitted && claimForm.version.$error.required }'>

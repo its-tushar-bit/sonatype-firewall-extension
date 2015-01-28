@@ -87,13 +87,13 @@
 
       var servicePath = CLM.path + 'rest/component/identified';
 
-      var errorHandler = function(data, status, headersFn, config) {
+      var errorHandler = function(data, status, headersFn) {
         var header = headersFn();
         if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
           $scope.createError = 'Server Error';
         }
         else if (status === 0) {
-          $scope.errorResponse = 'Unable to connect to CLM server';
+          $scope.createError = 'Unable to connect to CLM server';
         }
         else {
           $scope.createError = data;
@@ -148,7 +148,6 @@
           componentIdentifier: data.componentIdentifier
         }, CurrentData.hash);
 
-        $scope.createSuccess = 'Component successfully claimed as ' + data.coordinates;
         $scope.resetClaimData();
       }
 
@@ -167,7 +166,6 @@
        */
       function updateStateForSubmit() {
         $scope.createError = '';
-        $scope.createSuccess = '';
         $scope.submitted = true;
       }
 
@@ -246,7 +244,6 @@
               displayName: CurrentData.displayName,
               componentIdentifier: null
             }, CurrentData.hash);
-            $scope.createSuccess = 'Component claim has been revoked';
           }).error(errorHandler);
         }
 

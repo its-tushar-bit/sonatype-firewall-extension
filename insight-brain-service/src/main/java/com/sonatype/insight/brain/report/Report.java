@@ -122,6 +122,14 @@ public final class Report
     }
   }
 
+  public static ReportEntry appendCacheBustingParams(ReportEntry reportEntry, String clmVersion) throws IOException {
+    String originalIndexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
+    String augmentedIndexHtmlContent = originalIndexHtmlContent
+        .replace("/brain.client.js", "/brain.client.js?" + clmVersion)
+        .replace("/cip-loader.js", "/cip-loader.js?" + clmVersion);
+    return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
+  }
+
   public static int[] applyChanges(final Application application, final File reportFile, final File auditDir)
       throws IOException
   {

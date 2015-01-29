@@ -76,6 +76,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -125,10 +126,13 @@ public class ReportResource
 
   private final CurrentUser currentUser;
 
+  private final VersionService versionService;
+
   @Inject
   public ReportResource(final ReportService reportService, final PolicyEvaluationUtils policyEvaluationUtils,
       InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ApiReportDataServiceV2 reportDataService,
-      ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser)
+      ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser,
+      VersionService versionService)
   {
     this.reportService = reportService;
     this.policyEvaluationUtils = policyEvaluationUtils;
@@ -139,6 +143,7 @@ public class ReportResource
     this.releaseGraphService = releaseGraphService;
     this.componentDetailsLoader = componentDetailsLoader;
     this.currentUser = currentUser;
+    this.versionService = versionService;
   }
 
   /**
@@ -199,19 +204,28 @@ public class ReportResource
       log.warn("Problem embedding report: " + e.getMessage(), e);
     }
     if (reportEntry != null) {
-      final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
-      if (ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000) {
-        return Response.status(304).build();
+      //we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
+      //the contents loaded from the file before serving up to the browser, the timestamp on the file won't
+      //change, even when brain versions do, so index.html is always sent in response
+      if (reportEntry.name.equals("index.html")) {
+        reportEntry = Report.appendCacheBustingParams(reportEntry, versionService.getVersion());
+      }
+      else {
+        final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
+        if (ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000) {
+          return Response.status(304).build();
+        }
       }
       final ResponseBuilder response = Response.ok(reportEntry.buf);
       response.lastModified(new Date(reportEntry.time));
       response.type(MediaTypeUtils.byName(name));
-      if (!name.endsWith(".json")) {
+      if (!name.endsWith(".json") && !name.equals("index.html")) {
         response.expires(new Date(System.currentTimeMillis() + YEAR));
       }
       else {
-        // JSON files should always check with the server to ensure they are updated. A 304 will be returned if
-        // they don't need updating
+        // JSON files and the index.html should always check with the server to ensure they are updated.
+        // A 304 will be returned for JSON files if they don't need updating, index.html will ALWAYS be
+        // returned with a 200 status
         response.expires(new Date());
       }
       return response.build();

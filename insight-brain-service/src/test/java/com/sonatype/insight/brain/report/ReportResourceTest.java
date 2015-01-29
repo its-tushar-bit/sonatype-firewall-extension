@@ -357,12 +357,12 @@ public class ReportResourceTest
 
     calendar.setTime(new Date());
     calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR) + 1);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/index.html");
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/insight.js");
     assertResponseStatus(200, response);
     String expiresHeader = response.getHeader("Expires");
     assertNotNull(expiresHeader);
     Date expires = expirationHeaderFormat.parse(expiresHeader);
-    assertTrue("index.html expires in one year: " + expires + " vs " + calendar.getTime(),
+    assertTrue("insight.js expires in one year: " + expires + " vs " + calendar.getTime(),
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
     calendar.setTime(new Date());
@@ -373,12 +373,27 @@ public class ReportResourceTest
     assertTrue("data.json expires immediately: " + expires + " vs " + calendar.getTime(),
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
-    Map<String, String> ifModifiedSinceHeader = new HashMap<String, String>();
+    calendar.setTime(new Date());
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/index.html");
+    assertResponseStatus(200, response);
+    expiresHeader = response.getHeader("Expires");
+    expires = expirationHeaderFormat.parse(expiresHeader);
+    assertTrue("index.html expires immediately: " + expires + " vs " + calendar.getTime(),
+        Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
+
+    Map<String, String> ifModifiedSinceHeader = new HashMap<>();
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
     ifModifiedSinceHeader.put("If-Modified-Since",
         new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime()));
     response = AuthedRestAccess.get(resourcePrefix + "/browseReport/data.json", ifModifiedSinceHeader);
     assertResponseStatus(304, response);
+
+    //make sure index.html always returns 200, no 304s here
+    ifModifiedSinceHeader = new HashMap<>();
+    ifModifiedSinceHeader.put("If-Modified-Since",
+        new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime()));
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/index.html", ifModifiedSinceHeader);
+    assertResponseStatus(200, response);
   }
 
   @Test

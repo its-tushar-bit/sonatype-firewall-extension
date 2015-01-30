@@ -63,7 +63,7 @@ public class InsightWork
   }
 
   public File getComponentDetailsFile(final String appId, final String resultsId) {
-    return new File(getComponentDetailsDir(appId), "componentDetails-" + resultsId +".json");
+    return new File(getComponentDetailsDir(appId), "componentDetails-" + resultsId + ".json");
   }
 
   public File getApplicationIconDir() {

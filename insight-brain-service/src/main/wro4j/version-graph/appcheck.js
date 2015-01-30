@@ -590,15 +590,10 @@
         width: function(config) {
           var currentIndex = config.data.currentVersionIndex;
 
-          //dont bother doing anything if we already know its 0
-          if (currentIndex > 0) {
-            //the inner width is twice the size of the area needed for the chart,
-            //simply so that the current version can always be directly in the middle
-            return Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
-                (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
-          }
-
-          return config.contentWidth;
+          //the inner width is twice the size of the area needed for the chart,
+          //simply so that the current version can always be directly in the middle
+          return Math.max(config.contentWidth, ((config.barWidth + config.barGap) *
+              (Math.max(currentIndex, config.data.versions.length - currentIndex) + 1) - config.barGap) * 2);
         },
         panning: function(config) {
           return this.width(config) > config.contentWidth;

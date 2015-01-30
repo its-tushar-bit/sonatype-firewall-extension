@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v1;
 
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v1.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.model.Application;
 
@@ -56,5 +57,22 @@ public class ApiApplicationAdapter
     application.setOrganizationId(applicationDTO.organizationId);
     application.setContactInternalName(applicationDTO.contactUserName);
     return application;
+  }
+
+  /**
+   * @since 1.13.0
+   */
+  public ApiApplicationBaseDTO convertToApplicationBaseDTO(final Application application) {
+    if (application == null) {
+      return null;
+    }
+
+    final ApiApplicationBaseDTO applicationDTO = new ApiApplicationBaseDTO();
+    applicationDTO.id = application.getId();
+    applicationDTO.publicId = application.getPublicId();
+    applicationDTO.name = application.getName();
+    applicationDTO.organizationId = application.getOrganizationId();
+    applicationDTO.contactUserName = application.getContactInternalName();
+    return applicationDTO;
   }
 }

@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v1.dto.ApiApplicationBaseDTO;
+import com.sonatype.insight.brain.api.v1.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -46,15 +46,18 @@ public class ApiPolicyViolationServiceV2
 
   private final PolicyViolationAdapter policyViolationAdapter;
 
+  private final ApiApplicationAdapter applicationAdapter;
+
   @Inject
   public ApiPolicyViolationServiceV2(final PolicyViolationDAO policyViolationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationService applicationService,
-      final PolicyViolationAdapter policyViolationAdapter)
+      final PolicyViolationAdapter policyViolationAdapter, final ApiApplicationAdapter applicationAdapter)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationService = applicationService;
     this.policyViolationAdapter = policyViolationAdapter;
+    this.applicationAdapter = applicationAdapter;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
@@ -96,12 +99,7 @@ public class ApiPolicyViolationServiceV2
       if (!policyViolationDTOs.isEmpty()) {
         ApiApplicationViolationDTOV2 apiApplicationViolationDTO = new ApiApplicationViolationDTOV2();
         apiViolationListDTO.applicationViolations.add(apiApplicationViolationDTO);
-        apiApplicationViolationDTO.application = new ApiApplicationBaseDTO();
-        apiApplicationViolationDTO.application.id = application.getId();
-        apiApplicationViolationDTO.application.publicId = application.getPublicId();
-        apiApplicationViolationDTO.application.name = application.getName();
-        apiApplicationViolationDTO.application.organizationId = application.getOrganizationId();
-        apiApplicationViolationDTO.application.contactUserName = application.getContactInternalName();
+        apiApplicationViolationDTO.application = applicationAdapter.convertToApplicationBaseDTO(application);
         apiApplicationViolationDTO.policyViolations = policyViolationDTOs;
       }
     }

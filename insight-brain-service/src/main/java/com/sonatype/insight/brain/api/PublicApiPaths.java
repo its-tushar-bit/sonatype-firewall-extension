@@ -41,4 +41,6 @@ public class PublicApiPaths
 
   public static final String REPORT_DATA_SERVICE_PATH_V2 = API_VERSION_PATH_V2 +
       "applications/{applicationPublicId}/reports/{scanId}";
+
+  public static final String APPLICATION_EVALUATION_PATH_V2 = API_VERSION_PATH_V2 + "evaluation/applications";
 }

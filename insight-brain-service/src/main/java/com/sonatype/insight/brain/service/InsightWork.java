@@ -58,6 +58,14 @@ public class InsightWork
     return new File(getReportDir(appId, scanId), "report.zip");
   }
 
+  public File getComponentDetailsDir(final String appId) {
+    return new File(insightConfig.getSonatypeWork(), "componentDetails/" + appId);
+  }
+
+  public File getComponentDetailsFile(final String appId, final String resultsId) {
+    return new File(getComponentDetailsDir(appId), "componentDetails-" + resultsId +".json");
+  }
+
   public File getApplicationIconDir() {
     return new File(insightConfig.getSonatypeWork(), "data/application");
   }

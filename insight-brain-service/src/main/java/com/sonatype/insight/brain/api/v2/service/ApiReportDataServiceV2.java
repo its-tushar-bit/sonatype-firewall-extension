@@ -7,26 +7,19 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
-import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -49,21 +42,24 @@ public class ApiReportDataServiceV2
 
   private final ApplicationDAO appDAO;
 
-  private final MultiLicenseDAO multiLicenseDAO;
-
   private final ComponentDAO componentDAO;
 
   private final ReportService reportService;
 
+  private final ApiLicenseDataAdapter licenseDataAdapter;
+
+  private final ApiSecurityDataAdapter securityDataAdapter;
+
   @Inject
-  public ApiReportDataServiceV2(InsightWork work, ApplicationDAO appDAO, MultiLicenseDAO multiLicenseDAO,
-      ComponentDAO componentDAO, ReportService reportService)
+  public ApiReportDataServiceV2(InsightWork work, ApplicationDAO appDAO, ComponentDAO componentDAO,
+      ReportService reportService, ApiLicenseDataAdapter licenseDataAdapter, ApiSecurityDataAdapter securityDataAdapter)
   {
     this.work = work;
     this.appDAO = appDAO;
-    this.multiLicenseDAO = multiLicenseDAO;
     this.componentDAO = componentDAO;
     this.reportService = reportService;
+    this.licenseDataAdapter = licenseDataAdapter;
+    this.securityDataAdapter = securityDataAdapter;
   }
 
   @Authorize(permission = Permission.READ)
@@ -100,33 +96,12 @@ public class ApiReportDataServiceV2
         }
       }
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
-        component.securityData = new ApiSecurityDataDTO();
-        for (SecurityVulnerability vuln : comp.getSecurityVulnerabilities()) {
-          ApiSecurityIssueDTO sv = new ApiSecurityIssueDTO();
-          sv.source = vuln.getSource();
-          sv.reference = vuln.getRefId();
-          sv.severity = vuln.getSeverity();
-          sv.status = vuln.getStatus().getName();
-          component.securityData.securityIssues.add(sv);
-        }
-        component.licenseData = new ApiLicenseDataDTO();
-        component.licenseData.status = comp.getLicenseOverrideStatus().getName();
-        convertLicenses(component.licenseData.declaredLicenses, comp.getDeclaredLicenseIds());
-        convertLicenses(component.licenseData.observedLicenses, comp.getObservedLicenseIds());
-        convertLicenses(component.licenseData.overriddenLicenses, comp.getLicenseOverrideIds());
+        component.securityData = securityDataAdapter.convertToDTO(comp);
+        component.licenseData = licenseDataAdapter.convertToDTO(comp);
       }
       data.components.add(component);
     }
 
     return data;
-  }
-
-  private void convertLicenses(List<ApiLicenseDTO> licenses, Collection<String> licenseIds) {
-    for (String licenseId : licenseIds) {
-      ApiLicenseDTO license = new ApiLicenseDTO();
-      license.licenseId = licenseId;
-      license.licenseName = multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName();
-      licenses.add(license);
-    }
   }
 }

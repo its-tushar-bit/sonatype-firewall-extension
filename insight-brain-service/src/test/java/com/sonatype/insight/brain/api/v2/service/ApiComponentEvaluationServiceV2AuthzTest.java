@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -28,7 +26,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
 
 
   @Test
-  public void testEvaluateComponents_Authorized() throws IOException {
+  public void testEvaluateComponents_Authorized() {
     grantReadPermission(app.getId());
 
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
@@ -36,7 +34,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
   }
 
   @Test
-  public void testEvaluateComponents_Unauthenticated() throws IOException {
+  public void testEvaluateComponents_Unauthenticated() {
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
     try {
       apiComponentEvaluationService.evaluateComponents(app.getId(), evaluationRequest);
@@ -48,7 +46,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
   }
 
   @Test
-  public void testEvaluateComponents_UnauthorizedButAuthenticated() throws IOException {
+  public void testEvaluateComponents_UnauthorizedButAuthenticated() {
     login();
 
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();

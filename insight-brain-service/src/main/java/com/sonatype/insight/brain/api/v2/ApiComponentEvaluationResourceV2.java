@@ -42,7 +42,7 @@ public class ApiComponentEvaluationResourceV2
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiComponentEvaluationTicketDTOV2 evaluateComponents(@PathParam("applicationId") final String applicationId,
-      final ApiComponentEvaluationRequestDTOV2 evaluationRequest) throws IOException
+      final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
     return componentEvaluationService.evaluateComponents(applicationId, evaluationRequest);
   }

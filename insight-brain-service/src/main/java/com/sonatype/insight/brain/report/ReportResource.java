@@ -12,11 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -50,17 +48,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
-import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -83,7 +76,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.IOUtil;
@@ -486,51 +478,9 @@ public class ReportResource
       final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
       store.commit(path, JsonUtils.stamp(currentUser.getUsername(), currentUser.getIP(request), where, data));
 
-      if ("licenses.json".equals(path)) {
-        // Save the data as license overrides
-        for (int i = 0; i < data.size(); i++) {
-          saveLicenseOverride(appId, data.get(i));
-        }
-      }
-
       return Response.ok().build();
     }
     return Response.status(Status.BAD_REQUEST).build();
-  }
-
-  /**
-   * Supports the bulk license editor which does not use LicenseOverrideResource.
-   *
-   * @since 1.6
-   */
-  private void saveLicenseOverride(String appId, JsonNode licenseData) {
-    ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseData);
-    ComponentIdentifierValidator.validate(componentIdentifier);
-    String statusName = licenseData.get("status").asText();
-
-    Set<String> licenseOverrideIds = new LinkedHashSet<>();
-    LicenseOverrideStatus status = LicenseOverrideStatus.getByName(statusName);
-    JsonNode licenseOverrideJsonNode = licenseData.get("overriddenLicenses");
-    if (licenseOverrideJsonNode != null) {
-      for (int i = 0; i < licenseOverrideJsonNode.size(); i++) {
-        String licenseOverrideName = licenseOverrideJsonNode.get(i).asText();
-        licenseOverrideIds.add(new LicenseDAO().getByNameNotNull(licenseOverrideName).getId());
-      }
-    }
-    String comment = JsonUtils.getNullableString(licenseData.get("comment"));
-
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(appId, componentIdentifier);
-    if (licenseOverride == null) {
-      licenseOverride = new LicenseOverride(appId, componentIdentifier, status, licenseOverrideIds, comment);
-      licenseOverrideDAO.insert(licenseOverride);
-    }
-    else {
-      licenseOverride.setStatus(status);
-      licenseOverride.setLicenseIds(licenseOverrideIds);
-      licenseOverride.setComment(comment);
-      licenseOverrideDAO.update(licenseOverride);
-    }
   }
 
   @GET

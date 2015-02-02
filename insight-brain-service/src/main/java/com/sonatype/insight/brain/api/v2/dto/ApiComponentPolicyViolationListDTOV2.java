@@ -10,5 +10,5 @@ import java.util.List;
 
 public class ApiComponentPolicyViolationListDTOV2
 {
-  public List<ApiComponentPolicyViolationDTOV2> policyViolations = new ArrayList<>();
+  public List<ApiPolicyViolationDTOV2> policyViolations = new ArrayList<>();
 }

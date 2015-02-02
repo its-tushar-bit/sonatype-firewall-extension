@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
@@ -18,11 +19,7 @@ public class ApiPolicyViolationDTOV2
 
   public String policyName;
 
-  public String stageId;
+  public int threatLevel;
 
-  public String reportUrl;
-
-  public List<ApiConstraintViolationDTO> constraintViolations;
-
-  public ApiComponentDTOV2 component;
+  public List<ApiConstraintViolationDTO> constraintViolations = new ArrayList<>();
 }

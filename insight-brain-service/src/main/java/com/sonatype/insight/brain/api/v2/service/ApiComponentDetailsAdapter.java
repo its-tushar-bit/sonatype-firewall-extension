@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentPolicyViolationListDTOV2;
 import com.sonatype.insight.brain.model.component.Component;
 
@@ -67,8 +67,8 @@ public class ApiComponentDetailsAdapter
     return componentDetailsDTO;
   }
 
-  private ApiComponentPolicyViolationDTOV2 convert(final PolicyAlert policyAlert) {
-    ApiComponentPolicyViolationDTOV2 componentPolicyViolationDTO = new ApiComponentPolicyViolationDTOV2();
+  private ApiPolicyViolationDTOV2 convert(final PolicyAlert policyAlert) {
+    ApiPolicyViolationDTOV2 componentPolicyViolationDTO = new ApiPolicyViolationDTOV2();
     PolicyFact policyFact = policyAlert.getTrigger();
     componentPolicyViolationDTO.policyId = policyFact.getPolicyId();
     componentPolicyViolationDTO.policyName = policyFact.getPolicyName();

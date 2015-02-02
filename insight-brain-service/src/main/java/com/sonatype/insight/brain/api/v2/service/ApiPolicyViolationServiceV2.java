@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v1.service.PolicyViolationAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -94,7 +94,7 @@ public class ApiPolicyViolationServiceV2
   {
     ApiApplicationViolationListDTOV2 apiViolationListDTO = new ApiApplicationViolationListDTOV2();
     for (Application application : applications) {
-      List<ApiPolicyViolationDTOV2> policyViolationDTOs = buildPolicyViolationDTOs(application,
+      List<ApiEnhancedPolicyViolationDTOV2> policyViolationDTOs = buildPolicyViolationDTOs(application,
           policyViolationMapByEvaluationId, policyEvaluationMapByAppId);
       if (!policyViolationDTOs.isEmpty()) {
         ApiApplicationViolationDTOV2 apiApplicationViolationDTO = new ApiApplicationViolationDTOV2();
@@ -107,11 +107,11 @@ public class ApiPolicyViolationServiceV2
     return apiViolationListDTO;
   }
 
-  private List<ApiPolicyViolationDTOV2> buildPolicyViolationDTOs(Application application,
+  private List<ApiEnhancedPolicyViolationDTOV2> buildPolicyViolationDTOs(Application application,
       ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
       ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
   {
-    List<ApiPolicyViolationDTOV2> apiPolicyViolationDTOs = new ArrayList<>();
+    List<ApiEnhancedPolicyViolationDTOV2> apiPolicyViolationDTOs = new ArrayList<>();
     List<PolicyEvaluation> policyEvaluations = policyEvaluationMapByAppId.get(application.getId());
     if (policyEvaluations != null) {
       for (PolicyEvaluation policyEvaluation : policyEvaluations) {
@@ -120,10 +120,11 @@ public class ApiPolicyViolationServiceV2
           for (PolicyViolation policyViolation : policyViolations) {
             ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
             if (componentIdentifier.isMaven()) {
-              ApiPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiPolicyViolationDTOV2();
+              ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
               apiPolicyViolationDTOs.add(apiPolicyViolationDTO);
               apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
               apiPolicyViolationDTO.policyName = policyViolation.getPolicyName();
+              apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
               apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
                   policyEvaluation.getScanId());
               apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();

@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.api.v1.dto;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 
 /**
- * @deprecated since 1.13.0, use {@link ApiPolicyViolationDTOV2}
+ * @deprecated since 1.13.0, use {@link ApiEnhancedPolicyViolationDTOV2}
  *
  * @since 1.12.0
  */

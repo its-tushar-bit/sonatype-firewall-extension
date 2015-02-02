@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.List;
-
-import com.sonatype.insight.brain.api.v1.dto.ApiApplicationBaseDTO;
-
 /**
  * @since 1.13.0
  */
-public class ApiApplicationViolationDTOV2
+public class ApiEnhancedPolicyViolationDTOV2
+    extends ApiPolicyViolationDTOV2
 {
-  public ApiApplicationBaseDTO application;
+  public String stageId;
 
-  public List<ApiEnhancedPolicyViolationDTOV2> policyViolations;
+  public String reportUrl;
+
+  public ApiComponentDTOV2 component;
 }

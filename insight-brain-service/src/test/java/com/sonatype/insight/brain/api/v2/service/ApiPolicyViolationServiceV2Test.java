@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -94,8 +94,8 @@ public class ApiPolicyViolationServiceV2Test
         is(appPolicyData.application.getOrganizationId()));
 
     assertThat(apiApplicationViolationDTO.policyViolations, hasSize(2));
-    ApiPolicyViolationDTOV2 apiPolicyViolationDTO1 = apiApplicationViolationDTO.policyViolations.get(0);
-    ApiPolicyViolationDTOV2 apiPolicyViolationDTO2 = apiApplicationViolationDTO.policyViolations.get(1);
+    ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO1 = apiApplicationViolationDTO.policyViolations.get(0);
+    ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO2 = apiApplicationViolationDTO.policyViolations.get(1);
 
     if (apiPolicyViolationDTO1.policyId.equals(appPolicyData.orgPolicy.getId())) {
       assertPolicyViolation(apiPolicyViolationDTO1, appPolicyData.application, appPolicyData.policyEvaluation1,
@@ -111,11 +111,12 @@ public class ApiPolicyViolationServiceV2Test
     }
   }
 
-  private void assertPolicyViolation(ApiPolicyViolationDTOV2 apiPolicyViolationDTO, Application application,
+  private void assertPolicyViolation(ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO, Application application,
       PolicyEvaluation policyEvaluation, PolicyViolation policyViolation)
   {
     assertThat(apiPolicyViolationDTO.policyId, is(policyViolation.getPolicyId()));
     assertThat(apiPolicyViolationDTO.policyName, is(policyViolation.getPolicyName()));
+    assertThat(apiPolicyViolationDTO.threatLevel, is(policyViolation.getThreatLevel()));
     assertThat(apiPolicyViolationDTO.reportUrl,
         is("ui/links/application/" + application.getPublicId() + "/report/" + policyEvaluation.getScanId()));
     assertThat(apiPolicyViolationDTO.stageId, is(policyEvaluation.getStageTypeId()));

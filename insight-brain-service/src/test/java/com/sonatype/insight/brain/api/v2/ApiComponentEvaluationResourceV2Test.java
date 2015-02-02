@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentIdentifierValidator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -341,7 +341,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     assertThat(resultComponentDTO.policyData, notNullValue());
     assertThat(resultComponentDTO.policyData.policyViolations.size(), is(policies.size()));
-    for (ApiComponentPolicyViolationDTOV2 violation : resultComponentDTO.policyData.policyViolations) {
+    for (ApiPolicyViolationDTOV2 violation : resultComponentDTO.policyData.policyViolations) {
       assertThat(violation.policyId, is(policies.get(violation.policyId).getId()));
       assertThat(violation.policyName, is(policies.get(violation.policyId).getName()));
     }

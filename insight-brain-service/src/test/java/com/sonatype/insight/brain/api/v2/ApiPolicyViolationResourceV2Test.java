@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -65,9 +65,10 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(apiApplicationViolationDTO.application.organizationId, is(app.getOrganizationId()));
 
     assertThat(apiApplicationViolationDTO.policyViolations, hasSize(1));
-    ApiPolicyViolationDTOV2 apiPolicyViolationDTO = apiApplicationViolationDTO.policyViolations.get(0);
+    ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = apiApplicationViolationDTO.policyViolations.get(0);
     assertThat(apiPolicyViolationDTO.policyId, is(pv1App1.getPolicyId()));
     assertThat(apiPolicyViolationDTO.policyName, is(pv1App1.getPolicyName()));
+    assertThat(apiPolicyViolationDTO.threatLevel, is(pv1App1.getThreatLevel()));
     assertThat(apiPolicyViolationDTO.reportUrl,
         is("ui/links/application/" + app.getPublicId() + "/report/" + pe1App1.getScanId()));
     assertThat(apiPolicyViolationDTO.stageId, is(pe1App1.getStageTypeId()));

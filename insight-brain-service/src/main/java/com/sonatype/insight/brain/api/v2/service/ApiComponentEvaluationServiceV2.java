@@ -106,7 +106,7 @@ public class ApiComponentEvaluationServiceV2
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
-    validateComponentIdentifiers(evaluationRequest);
+    validateRequest(evaluationRequest);
 
     ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = createEvaluationTicket(applicationId);
     executor.submit(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest));
@@ -128,18 +128,19 @@ public class ApiComponentEvaluationServiceV2
     }
   }
 
-  /**
-   * Validate the component identifier of each component and
-   * throws BadRequestException on first invalid component identifier
-   */
-  private void validateComponentIdentifiers(final ApiComponentEvaluationRequestDTOV2 evaluationRequest) {
+  private void validateRequest(final ApiComponentEvaluationRequestDTOV2 evaluationRequest) {
     if (evaluationRequest.components == null || evaluationRequest.components.isEmpty()) {
       throw new BadRequestException("No components provided for evaluation");
     }
     for (ApiComponentDefinitionDTOV2 componentDTO : evaluationRequest.components) {
-      ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-          componentDTO.componentIdentifier.getCoordinates());
-      componentIdentifierValidator.validate(componentIdentifier);
+      if (componentDTO.componentIdentifier != null) {
+        ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+            componentDTO.componentIdentifier.getCoordinates());
+        componentIdentifierValidator.validate(componentIdentifier);
+      }
+      else if (componentDTO.hash == null) {
+        throw new BadRequestException("One of either componentIdentifier or hash must be supplied.");
+      }
     }
   }
 
@@ -214,8 +215,12 @@ public class ApiComponentEvaluationServiceV2
     {
       Map<ApiComponentDefinitionDTOV2, NamedComponentDetails> componentMap = new LinkedHashMap<>();
       for (ApiComponentDefinitionDTOV2 componentDTO : evaluationRequestDTO.components) {
-        ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-            componentDTO.componentIdentifier.getCoordinates());
+        ComponentIdentifier componentIdentifier = null;
+
+        if (componentDTO.componentIdentifier != null ) {
+          componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+              componentDTO.componentIdentifier.getCoordinates());
+        }
         NamedComponentDetails componentDetails = getComponentDetails("", componentDTO.hash, componentIdentifier);
         componentMap.put(componentDTO, componentDetails);
       }
@@ -234,9 +239,11 @@ public class ApiComponentEvaluationServiceV2
               NamedComponentDetails componentDetails;
 
               Map<String, String> queryParams = new HashMap<>();
-              queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
               if (hash != null) {
                 queryParams.put("hash", hash);
+              }
+              if (identifier != null) {
+                queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
               }
 
               try {

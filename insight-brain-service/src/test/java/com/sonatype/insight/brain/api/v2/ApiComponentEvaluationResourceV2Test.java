@@ -93,6 +93,43 @@ public class ApiComponentEvaluationResourceV2Test
   }
 
   @Test
+  public void testEvaluateComponents_validation_nullComponentIdentifier() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    component.hash = "h1";
+    request.components.add(component);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testEvaluateComponents_validation_nullHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    component.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
+    request.components.add(component);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testEvaluateComponents_validation_nullComponentIdentifierAndNullHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    request.components.add(component);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("One of either componentIdentifier or hash must be supplied."));
+  }
+
+  @Test
   public void testEvaluateComponents_nullComponents() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = null;

@@ -114,7 +114,6 @@ public class ApiComponentEvaluationServiceV2
     return evaluationTicketDTO;
   }
 
-  @SuppressWarnings("UnusedParameters")
   @Authorize(permission = Permission.READ)
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId, final String resultId)

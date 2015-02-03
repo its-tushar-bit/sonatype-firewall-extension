@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDefinitionDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -61,17 +61,17 @@ public class ApiComponentEvaluationServiceV2AuthzTest
 
   private ApiComponentEvaluationRequestDTOV2 createEvaluationRequest() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ApiComponentDefinitionDTOV2 component = createComponent(
+    ApiComponentDTOV2 component = createComponent(
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", null, "jar"),
         "1249e25aebb15358bedd");
     request.components.add(component);
     return request;
   }
 
-  private ApiComponentDefinitionDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
+  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
       final String hash)
   {
-    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
     return component;

@@ -15,15 +15,9 @@ import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
  *
  * @since 1.13.0
  */
-public class ApiReportComponentDTOV2
+public class ApiReportComponentDTOV2 extends ApiComponentDTOV2
 {
-  public String hash;
-
-  public ApiComponentIdentifierDTOV2 componentIdentifier;
-
   public String matchState;
-
-  public boolean proprietary;
 
   // occurrences of component, in no particular order
   public List<String> pathnames = new ArrayList<>();

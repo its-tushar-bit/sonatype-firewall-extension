@@ -27,7 +27,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDefinitionDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
@@ -132,7 +132,7 @@ public class ApiComponentEvaluationServiceV2
     if (evaluationRequest.components == null || evaluationRequest.components.isEmpty()) {
       throw new BadRequestException("No components provided for evaluation");
     }
-    for (ApiComponentDefinitionDTOV2 componentDTO : evaluationRequest.components) {
+    for (ApiComponentDTOV2 componentDTO : evaluationRequest.components) {
       if (componentDTO.componentIdentifier != null) {
         ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
             componentDTO.componentIdentifier.getCoordinates());
@@ -178,14 +178,14 @@ public class ApiComponentEvaluationServiceV2
       evaluationResultDTO.applicationId = application.getId();
 
       try {
-        Map<ApiComponentDefinitionDTOV2, NamedComponentDetails> componentDetailsMap =
+        Map<ApiComponentDTOV2, NamedComponentDetails> componentDetailsMap =
             getComponentDetails(evaluationRequestDTO);
-        for (Entry<ApiComponentDefinitionDTOV2, NamedComponentDetails> componentDetailsEntry :
+        for (Entry<ApiComponentDTOV2, NamedComponentDetails> componentDetailsEntry :
             componentDetailsMap.entrySet()) {
-          ApiComponentDefinitionDTOV2 componentDefinitionDTO = componentDetailsEntry.getKey();
+          ApiComponentDTOV2 componentDTO = componentDetailsEntry.getKey();
           NamedComponentDetails componentDetails = componentDetailsEntry.getValue();
           Component component = componentDetailsLoader.augmentComponentDetails(application, componentDetails);
-          component.setProprietary(componentDefinitionDTO.proprietary);
+          component.setProprietary(componentDTO.proprietary);
           // Evaluate the policies
           List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(application.getId(), new Stage(DevelopStageType.ID),
               new PolicyDAO(), Collections.singletonList(component));
@@ -209,12 +209,12 @@ public class ApiComponentEvaluationServiceV2
       }
     }
 
-    private Map<ApiComponentDefinitionDTOV2, NamedComponentDetails> getComponentDetails(
+    private Map<ApiComponentDTOV2, NamedComponentDetails> getComponentDetails(
         final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
         throws IOException
     {
-      Map<ApiComponentDefinitionDTOV2, NamedComponentDetails> componentMap = new LinkedHashMap<>();
-      for (ApiComponentDefinitionDTOV2 componentDTO : evaluationRequestDTO.components) {
+      Map<ApiComponentDTOV2, NamedComponentDetails> componentMap = new LinkedHashMap<>();
+      for (ApiComponentDTOV2 componentDTO : evaluationRequestDTO.components) {
         ComponentIdentifier componentIdentifier = null;
 
         if (componentDTO.componentIdentifier != null ) {

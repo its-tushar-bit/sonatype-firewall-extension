@@ -16,7 +16,9 @@ import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -99,20 +101,20 @@ public class ApiPolicyViolationServiceV2Test
 
     if (apiPolicyViolationDTO1.policyId.equals(appPolicyData.orgPolicy.getId())) {
       assertPolicyViolation(apiPolicyViolationDTO1, appPolicyData.application, appPolicyData.policyEvaluation1,
-          appPolicyData.policyViolation1);
+          appPolicyData.policyViolation1, appPolicyData);
       assertPolicyViolation(apiPolicyViolationDTO2, appPolicyData.application, appPolicyData.policyEvaluation2,
-          appPolicyData.policyViolation2);
+          appPolicyData.policyViolation2, appPolicyData);
     }
     else {
       assertPolicyViolation(apiPolicyViolationDTO1, appPolicyData.application, appPolicyData.policyEvaluation2,
-          appPolicyData.policyViolation2);
+          appPolicyData.policyViolation2, appPolicyData);
       assertPolicyViolation(apiPolicyViolationDTO2, appPolicyData.application, appPolicyData.policyEvaluation1,
-          appPolicyData.policyViolation1);
+          appPolicyData.policyViolation1, appPolicyData);
     }
   }
 
   private void assertPolicyViolation(ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO, Application application,
-      PolicyEvaluation policyEvaluation, PolicyViolation policyViolation)
+      PolicyEvaluation policyEvaluation, PolicyViolation policyViolation, PolicyData appPolicyData)
   {
     assertThat(apiPolicyViolationDTO.policyId, is(policyViolation.getPolicyId()));
     assertThat(apiPolicyViolationDTO.policyName, is(policyViolation.getPolicyName()));
@@ -121,6 +123,7 @@ public class ApiPolicyViolationServiceV2Test
         is("ui/links/application/" + application.getPublicId() + "/report/" + policyEvaluation.getScanId()));
     assertThat(apiPolicyViolationDTO.stageId, is(policyEvaluation.getStageTypeId()));
     assertThat(apiPolicyViolationDTO.component.hash, is(policyViolation.getHash()));
+    assertThat(apiPolicyViolationDTO.component.proprietary, is(appPolicyData.applicationComponent.isProprietary()));
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(
         apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
         apiPolicyViolationDTO.component.componentIdentifier.getCoordinates()
@@ -160,6 +163,9 @@ public class ApiPolicyViolationServiceV2Test
     policyTestData.policyViolation1 = tempEntity
         .newPolicyViolation(policyTestData.policyEvaluation1, policyTestData.orgPolicy, groupId, artifactId, version,
             hash, reason);
+    policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
+        BuildStageType.ID, hash, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), null,
+        MatchState.EXACT, true, new Date(time));
 
     // Create a current violation for release stage
     policyTestData.policyEvaluation2 = tempEntity
@@ -167,6 +173,9 @@ public class ApiPolicyViolationServiceV2Test
     policyTestData.policyViolation2 = tempEntity
         .newPolicyViolation(policyTestData.policyEvaluation2, policyTestData.orgPolicy, groupId, artifactId, version,
             hash, reason);
+    policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
+        ReleaseStageType.ID, hash, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), null,
+        MatchState.EXACT, true, new Date(time));
 
     return policyTestData;
   }
@@ -186,5 +195,7 @@ public class ApiPolicyViolationServiceV2Test
     public PolicyEvaluation policyEvaluation2;
 
     public PolicyViolation policyViolation2;
+
+    public ApplicationComponent applicationComponent;
   }
 }

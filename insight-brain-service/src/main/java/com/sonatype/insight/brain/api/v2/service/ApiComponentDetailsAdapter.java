@@ -50,7 +50,7 @@ public class ApiComponentDetailsAdapter
     componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(component.getComponentIdentifier());
     componentDetailsDTO.component.hash = component.getHash();
-    componentDetailsDTO.proprietary = component.isProprietary();
+    componentDetailsDTO.component.proprietary = component.isProprietary();
     componentDetailsDTO.matchState = component.getMatchState().getId();
 
     if (component.getCatalogDate() != null) {

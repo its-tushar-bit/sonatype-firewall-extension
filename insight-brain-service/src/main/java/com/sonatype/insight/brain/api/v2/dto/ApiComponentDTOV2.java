@@ -14,4 +14,6 @@ public class ApiComponentDTOV2
   public String hash;
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  public boolean proprietary;
 }

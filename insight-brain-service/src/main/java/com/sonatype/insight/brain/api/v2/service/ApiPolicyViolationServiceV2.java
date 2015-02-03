@@ -15,16 +15,18 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v1.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v1.service.PolicyViolationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
-import com.sonatype.insight.brain.api.v1.service.PolicyViolationAdapter;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -48,16 +50,20 @@ public class ApiPolicyViolationServiceV2
 
   private final ApiApplicationAdapter applicationAdapter;
 
+  private final ApplicationComponentDAO applicationComponentDAO;
+
   @Inject
   public ApiPolicyViolationServiceV2(final PolicyViolationDAO policyViolationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationService applicationService,
-      final PolicyViolationAdapter policyViolationAdapter, final ApiApplicationAdapter applicationAdapter)
+      final PolicyViolationAdapter policyViolationAdapter, final ApiApplicationAdapter applicationAdapter,
+      final ApplicationComponentDAO applicationComponentDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationService = applicationService;
     this.policyViolationAdapter = policyViolationAdapter;
     this.applicationAdapter = applicationAdapter;
+    this.applicationComponentDAO = applicationComponentDAO;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
@@ -128,8 +134,13 @@ public class ApiPolicyViolationServiceV2
               apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
                   policyEvaluation.getScanId());
               apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
+              ApplicationComponent applicationComponent =
+                  applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
+                      application.getId(), policyEvaluation.getStageTypeId(), policyViolation.getHash());
               apiPolicyViolationDTO.component = new ApiComponentDTOV2();
               apiPolicyViolationDTO.component.hash = policyViolation.getHash();
+              apiPolicyViolationDTO.component.proprietary =
+                  applicationComponent != null && applicationComponent.isProprietary();
               apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
                   .fromComponentIdentifier(componentIdentifier);
               apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);

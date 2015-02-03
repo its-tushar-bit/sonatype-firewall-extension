@@ -102,6 +102,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
         is("ui/links/application/" + app.getPublicId() + "/report/" + pe1App1.getScanId()));
     assertThat(apiPolicyViolationDTO.stageId, is(pe1App1.getStageTypeId()));
     assertThat(apiPolicyViolationDTO.component.hash, is(pv1App1.getHash()));
+    assertThat(apiPolicyViolationDTO.component.proprietary, is(false));
     ComponentIdentifier componentIdentifier = new ComponentIdentifier(
         apiPolicyViolationDTO.component.componentIdentifier.getFormat(),
         apiPolicyViolationDTO.component.componentIdentifier.getCoordinates());

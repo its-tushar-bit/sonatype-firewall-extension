@@ -52,7 +52,14 @@ public class ApplicationComponentDAO
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2";
     return getList(em, sQuery, appId, stageTypeId);
   }
-  
+
+  public ApplicationComponent getByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId, String hash)
+  {
+    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 and entity.hash=?3";
+    return get(sQuery, appId, stageTypeId, hash);
+  }
+
   public List<ApplicationComponent> getByApplicationIdAndHash(String appId, String hash) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.hash=?2";

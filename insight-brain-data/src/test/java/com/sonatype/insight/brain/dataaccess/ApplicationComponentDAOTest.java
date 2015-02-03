@@ -174,4 +174,35 @@ public class ApplicationComponentDAOTest
         Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
     assertThat(components, hasSize(2));
   }
+
+  @Test
+  public void testGetByApplicationIdAndStageTypeIdAndHash() {
+    String app1 = application.getId();
+    String app2 = tempEntity.newApplication(organization.getId()).getId();
+    ApplicationComponent component1 = tempEntity
+        .newApplicationComponent(app1, BuildStageType.ID, "hash-1", MatchState.EXACT, false);
+    tempEntity.newApplicationComponent(app1, ReleaseStageType.ID, "hash-1", MatchState.EXACT, true);
+    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), null, MatchState.EXACT, true,
+        new Date());
+    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2", MatchState.EXACT, true);
+    tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-1", MatchState.EXACT, false);
+
+    ApplicationComponent retrievedComponent = dao.getByApplicationIdAndStageTypeIdAndHash(
+        app1, BuildStageType.ID, "hash-1");
+    assertApplicationComponent(component1, retrievedComponent);
+  }
+
+  public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {
+    assertThat(actual, notNullValue());
+    assertThat(actual.getApplicationId(), is(expected.getApplicationId()));
+    assertThat(actual.getHash(), is(expected.getHash()));
+    assertThat(actual.getId(), is(expected.getId()));
+    assertThat(actual.getIdentificationSourceId(), is(expected.getIdentificationSourceId()));
+    assertThat(actual.getStageTypeId(), is(expected.getStageTypeId()));
+    assertThat(actual.getMatchStateId(), is(expected.getMatchStateId()));
+    assertThat(actual.isProprietary(), is(expected.isProprietary()));
+    assertThat(actual.getPathnames(), is(expected.getPathnames()));
+    assertThat(actual.getPathnamesString(), is(expected.getPathnamesString()));
+  }
 }

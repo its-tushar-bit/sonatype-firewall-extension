@@ -25,7 +25,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDefinitionDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
@@ -83,7 +83,7 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_invalidComponentIdentifier() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ComponentIdentifier componentIdentifier = createMavenComponentIdentifier("g1", "a1", "v1", null);
-    ApiComponentDefinitionDTOV2 component = createComponent(componentIdentifier, "h1");
+    ApiComponentDTOV2 component = createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -95,7 +95,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_validation_nullComponentIdentifier() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.hash = "h1";
     request.components.add(component);
 
@@ -107,7 +107,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_validation_nullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
     request.components.add(component);
@@ -120,7 +120,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_validation_nullComponentIdentifierAndNullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -156,7 +156,7 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_HdsError() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ComponentIdentifier componentIdentifier = createMavenComponentIdentifier("g1", "a1", "v1", "e1");
-    ApiComponentDefinitionDTOV2 component = createComponent(componentIdentifier, "h1");
+    ApiComponentDTOV2 component = createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
     mockHDSInternalServiceError(componentIdentifier);
@@ -187,11 +187,11 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ComponentIdentifier componentIdentifier1 = createMavenComponentIdentifier("g1", "a1", "v1", "e1");
-    ApiComponentDefinitionDTOV2 component1 = createComponent(componentIdentifier1, "h1");
+    ApiComponentDTOV2 component1 = createComponent(componentIdentifier1, "h1");
     request.components.add(component1);
 
     ComponentIdentifier componentIdentifier2 = createMavenComponentIdentifier("g2", "a2", "v2", "e2");
-    ApiComponentDefinitionDTOV2 component2 = createComponent(componentIdentifier2, "h2");
+    ApiComponentDTOV2 component2 = createComponent(componentIdentifier2, "h2");
     request.components.add(component2);
 
     // Create a mock return for the first component
@@ -296,7 +296,7 @@ public class ApiComponentEvaluationResourceV2Test
   }
 
   private void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-      final ApiComponentDefinitionDTOV2 requestComponentDTO, final String matchState,
+      final ApiComponentDTOV2 requestComponentDTO, final String matchState,
       final List<License> declaredLicenses, final List<License> observedLicenses,
       final List<SecurityVulnerability> securityVulnerabilities, final Map<String, Policy> policies)
   {
@@ -360,10 +360,10 @@ public class ApiComponentEvaluationResourceV2Test
     return new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN, coordinates);
   }
 
-  private ApiComponentDefinitionDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
+  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
       final String hash)
   {
-    ApiComponentDefinitionDTOV2 component = new ApiComponentDefinitionDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
     return component;

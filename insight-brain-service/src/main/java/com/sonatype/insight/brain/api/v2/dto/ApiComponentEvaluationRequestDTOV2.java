@@ -13,5 +13,5 @@ import java.util.List;
  */
 public class ApiComponentEvaluationRequestDTOV2
 {
-  public List<ApiComponentDefinitionDTOV2> components = new ArrayList<>();
+  public List<ApiComponentDTOV2> components = new ArrayList<>();
 }

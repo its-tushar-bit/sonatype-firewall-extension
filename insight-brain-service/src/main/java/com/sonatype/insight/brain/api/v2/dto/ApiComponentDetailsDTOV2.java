@@ -20,8 +20,6 @@ public class ApiComponentDetailsDTOV2
 {
   public ApiComponentDTOV2 component;
 
-  public boolean proprietary;
-
   public String matchState;
 
   @JsonSerialize(using = ISODateSerializer.class)

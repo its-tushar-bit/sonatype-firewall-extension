@@ -7,9 +7,7 @@ LicenseGroupMockData = {
         "longDisplayName": "AFL-Style License Not Identifiable by Sonatype",
         "description": null,
         "licenseUrl": null,
-        "licenseCategoryId": "WEAKCOPYLEFT",
-        "unknown": false,
-        "unspecified": false
+        "licenseCategoryId": "WEAKCOPYLEFT"
       },
       {
         "id": "AFL-1.2",
@@ -17,9 +15,7 @@ LicenseGroupMockData = {
         "longDisplayName": "Academic Free License v1.2",
         "description": null,
         "licenseUrl": "http://www.spdx.org/licenses/AFL-1.2",
-        "licenseCategoryId": "WEAKCOPYLEFT",
-        "unknown": false,
-        "unspecified": false
+        "licenseCategoryId": "WEAKCOPYLEFT"
       },
       {
         "id": "AAL",
@@ -27,9 +23,7 @@ LicenseGroupMockData = {
         "longDisplayName": "Attribution Assurance License",
         "description": null,
         "licenseUrl": "http://www.spdx.org/licenses/AAL",
-        "licenseCategoryId": null,
-        "unknown": false,
-        "unspecified": false
+        "licenseCategoryId": null
       }
     ];
   },

@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
-import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -81,16 +80,7 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1196,9 +1186,5 @@ public class ReportResourceTest
   private String getServiceURL(final String appId, final String scanId) {
     return getRestBaseUrl()
         + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", appId).replace("{scanId}", scanId);
-  }
-
-  private String getLicenseOverrideServiceURL(final String ownerType, final String ownerId) {
-    return getRestBaseUrl() + LicenseOverrideResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
   }
 }

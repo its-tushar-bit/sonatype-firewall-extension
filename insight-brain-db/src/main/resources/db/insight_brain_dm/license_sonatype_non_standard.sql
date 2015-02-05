@@ -4,7 +4,6 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_cate
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('ATT','ATT','ATT','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Beerware','Beerware','Beerware','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Boost','Boost','Boost','NON-STANDARD');
-INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('DOCBOOK','DOCBOOK','DOCBOOK','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Dyade','Dyade','Dyade','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('HP-DEC','HP-DEC','HP-DEC','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('IETF','IETF','IETF','NON-STANDARD');
@@ -30,3 +29,17 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_cate
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Sun-TM','Sun-TM','Sun-TM','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Unicode','Unicode','Unicode','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Xerox','Xerox','Xerox','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Amazon','Amazon','Amazon','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('BigTribe-IP','BigTribe-IP','BigTribe-IP','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('BigTribe-IP-NoRedistribution','BigTribe-IP-NoRedistribution','BigTribe-IP-NoRedistribution','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('JSIP','JSIP','JSIP','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('JSON','JSON','JSON','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('OASIS','OASIS','OASIS','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('QuanticastTOS','QuanticastTOS','QuanticastTOS','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('USGovernmentRights','USGovernmentRights','USGovernmentRights','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WebFX-Commercial','WebFX-Commercial','WebFX-Commercial','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WebFX-NonCommercial','WebFX-NonCommercial','WebFX-NonCommercial','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WernerRandelshofer','WernerRandelshofer','WernerRandelshofer','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-Addressing-200403','WS-Addressing-200403','WS-Addressing-200403','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-Addressing-200408','WS-Addressing-200408','WS-Addressing-200408','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-I','WS-I','Web Services Interoperability','NON-STANDARD');

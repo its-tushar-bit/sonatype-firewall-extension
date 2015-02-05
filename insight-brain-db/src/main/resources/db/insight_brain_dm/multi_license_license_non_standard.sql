@@ -4,7 +4,6 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Adobe-
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('ATT','ATT');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Beerware','Beerware');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Boost','Boost');
-INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('DOCBOOK','DOCBOOK');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Dyade','Dyade');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('HP-DEC','HP-DEC');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IETF','IETF');
@@ -30,3 +29,17 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Sun-Re
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Sun-TM','Sun-TM');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Unicode','Unicode');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Xerox','Xerox');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Amazon','Amazon');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('BigTribe-IP','BigTribe-IP');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('BigTribe-IP-NoRedistribution','BigTribe-IP-NoRedistribution');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('JSIP','JSIP');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('JSON','JSON');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OASIS','OASIS');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('QuanticastTOS','QuanticastTOS');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('USGovernmentRights','USGovernmentRights');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WebFX-Commercial','WebFX-Commercial');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WebFX-NonCommercial','WebFX-NonCommercial');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WernerRandelshofer','WernerRandelshofer');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WS-Addressing-200403','WS-Addressing-200403');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WS-Addressing-200408','WS-Addressing-200408');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WS-I','WS-I');

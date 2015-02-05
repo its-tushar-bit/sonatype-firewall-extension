@@ -130,6 +130,7 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, description,
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('Python-2.0','Python-2.0','Python License 2.0',NULL,'http://www.spdx.org/licenses/Python-2.0');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('QPL-1.0','QPL-1.0','Q Public License 1.0',NULL,'http://www.spdx.org/licenses/QPL-1.0');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('RHeCos-1.1','RHeCos-1.1','Red Hat eCos Public License v1.1',NULL,'http://www.spdx.org/licenses/RHeCos-1.1');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('RPL-1.1','RPL-1.1','Reciprocal Public License 1.1',NULL,'http://www.spdx.org/licenses/RPL-1.1');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('RPL-1.5','RPL-1.5','Reciprocal Public License 1.5',NULL,'http://www.spdx.org/licenses/RPL-1.5');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('RPSL-1.0','RPSL-1.0','RealNetworks Public Source License v1.0',NULL,'http://www.spdx.org/licenses/RPSL-1.0');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('RSCPL','RSCPL','Ricoh Source Code Public License',NULL,'http://www.spdx.org/licenses/RSCPL');
@@ -151,3 +152,6 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, description,
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('ZPL-1.1','ZPL-1.1','Zope Public License 1.1',NULL,'http://www.spdx.org/licenses/ZPL-1.1');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('ZPL-2.0','ZPL-2.0','Zope Public License 2.0',NULL,'http://www.spdx.org/licenses/ZPL-2.0');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('ZPL-2.1','ZPL-2.1','Zope Public License 2.1',NULL,'http://www.spdx.org/licenses/ZPL-2.1');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('AGPL-1.0','AGPL-1.0','Affero General Public License v1.0',NULL,'http://spdx.org/licenses/AGPL-1.0');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('SMLNJ','SMLNJ','Standard ML of New Jersey License',NULL,'http://spdx.org/licenses/SMLNJ');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName, description, licenseUrl) VALUES ('WTFPL','WTFPL','Do What The F*ck You Want To Public License',NULL,'http://spdx.org/licenses/WTFPL');

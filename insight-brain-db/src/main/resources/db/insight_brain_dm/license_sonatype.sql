@@ -3,6 +3,7 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('UNS
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('BSD-UNSPECIFIED','BSD','BSD-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Apache-UNSPECIFIED','Apache','Apache-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('GPL-UNSPECIFIED','GPL','GPL-Style License Not Identifiable by Sonatype');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('GPL-UNSPECIFIED-with-classpath-exception','GPL-with-classpath-exception','GPL-Style License Not Identifiable by Sonatype w/Classpath exception');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('GPL-3.0-with-classpath-exception','GPL-3.0-with-classpath-exception','GNU General Public License v3.0 w/Classpath exception');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('LGPL-UNSPECIFIED','LGPL','LGPL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('AFL-UNSPECIFIED','AFL','AFL-Style License Not Identifiable by Sonatype');
@@ -25,3 +26,8 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('PUB
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('No-Source-License','No Source License','No licenses found in sources');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('No-Sources','No Sources','No sources provided with component');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Not-Declared','Not Declared','No licenses declared in component descriptor');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('DOCBOOK','DocBook','DocBook Software License');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('InitialDevelopersPL-1.0','InitialDevelopersPL-1.0','Initial Developer''s Public License Version 1.0');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('InterbasePL-1.0','InterbasePL-1.0','InterBase Public License Version 1.0');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('JA-SIG-Collaborative','JA-SIG-Collaborative','The JA-SIG Collaborative License');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('Spice-1.1','Spice-1.1','Spice Software License Version 1.1');

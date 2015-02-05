@@ -99,6 +99,20 @@ public class InsightBrainService
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
 
     getInstance(DataMigrator.class).migrate();
+
+    new Thread()
+    {
+      @Override
+      public void run() {
+        try {
+          LicenseDataUpdater.update();
+        }
+        catch (Exception e) {
+          log.info("Failed to retrieve license data from Sonatype HDS");
+          log.debug("Failed to retrieve license data from Sonatype HDS", e);
+        }
+      }
+    }.start();
   }
 
   private void printVersion() {

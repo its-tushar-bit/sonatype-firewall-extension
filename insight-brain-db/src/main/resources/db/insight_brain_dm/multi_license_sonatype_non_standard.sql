@@ -4,7 +4,6 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('ATT','ATT','ATT');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Beerware','Beerware','Beerware');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Boost','Boost','Boost');
-INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('DOCBOOK','DOCBOOK','DOCBOOK');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Dyade','Dyade','Dyade');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('HP-DEC','HP-DEC','HP-DEC');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IETF','IETF','IETF');
@@ -30,3 +29,17 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Sun-TM','Sun-TM','Sun-TM');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Unicode','Unicode','Unicode');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Xerox','Xerox','Xerox');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Amazon','Amazon','Amazon');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('BigTribe-IP','BigTribe-IP','BigTribe-IP');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('BigTribe-IP-NoRedistribution','BigTribe-IP-NoRedistribution','BigTribe-IP-NoRedistribution');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('JSIP','JSIP','JSIP');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('JSON','JSON','JSON');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('OASIS','OASIS','OASIS');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('QuanticastTOS','QuanticastTOS','QuanticastTOS');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('USGovernmentRights','USGovernmentRights','USGovernmentRights');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WebFX-Commercial','WebFX-Commercial','WebFX-Commercial');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WebFX-NonCommercial','WebFX-NonCommercial','WebFX-NonCommercial');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WernerRandelshofer','WernerRandelshofer','WernerRandelshofer');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-Addressing-200403','WS-Addressing-200403','WS-Addressing-200403');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-Addressing-200408','WS-Addressing-200408','WS-Addressing-200408');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-I','WS-I','Web Services Interoperability');

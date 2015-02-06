@@ -9,12 +9,12 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * Removes an {@link Application} along with related configuration and data.
@@ -35,12 +35,12 @@ public class ApplicationCleaner
     applicationDAO = new ApplicationDAO();
   }
 
-  public void delete(final EntityManager em, final Application application) throws IOException {
+  public void delete(final TransactionContext tx, final Application application) throws IOException {
     fileCleaner.delete(work.getScanDir(application.getId()));
     fileCleaner.delete(work.getAuditDir(application.getId()));
     fileCleaner.delete(work.getReportDir(application.getId()));
 
     // delete application last, this way the operation can be retried later if anything goes wrong
-    applicationDAO.deleteWithIcon(em, application, work.getApplicationIconDir());
+    applicationDAO.deleteWithIcon(tx, application, work.getApplicationIconDir());
   }
 }

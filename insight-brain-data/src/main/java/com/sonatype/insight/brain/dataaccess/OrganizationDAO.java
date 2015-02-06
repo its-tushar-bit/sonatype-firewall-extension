@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -27,53 +25,46 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class OrganizationDAO
     extends AbstractOperationalSqlDAO<Organization>
 {
   @Override
-  public Organization getById(EntityManager em, String id) {
+  public Organization getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Organization entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public Organization getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
-  public Organization getByIdNotNull(EntityManager em, String id) {
-    Organization organization = getById(em, id);
+  public Organization getByIdNotNull(TransactionContext tx, String id) {
+    Organization organization = getById(tx, id);
     if (organization == null) {
       throw new NotFoundException("Cannot find organization with ID " + id + ".");
     }
     return organization;
   }
 
-  private Organization getByName(EntityManager em, String name) {
+  private Organization getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The organization name cannot be null or empty.");
     }
     // Organization Name is whitespace and case insensitive
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM Organization entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(em, sQuery, name);
+    return get(tx, sQuery, name);
   }
 
   public Organization getByName(String name) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByName(em, name);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
     }
   }
 
@@ -84,21 +75,21 @@ public class OrganizationDAO
   }
 
   @Override
-  public void insert(EntityManager em, Organization organization) {
-    insert(em, organization, true /* createLicenseThreatGroups */);
+  public void insert(TransactionContext tx, Organization organization) {
+    insert(tx, organization, true /* createLicenseThreatGroups */);
   }
 
-  private void insert(EntityManager em, Organization organization, boolean createLicenseThreatGroups) {
+  private void insert(TransactionContext tx, Organization organization, boolean createLicenseThreatGroups) {
     NameHelper.validate(organization.getName());
 
-    if (getByName(em, organization.getName()) != null) {
+    if (getByName(tx, organization.getName()) != null) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
 
-    super.insert(em, organization);
+    super.insert(tx, organization);
 
     if (createLicenseThreatGroups) {
-      new LicenseThreatGroupDAO().createDefaultGroups(em, organization.getId());
+      new LicenseThreatGroupDAO().createDefaultGroups(tx, organization.getId());
     }
   }
 
@@ -108,82 +99,78 @@ public class OrganizationDAO
   }
 
   public void insert(Organization entity, boolean createLicenseThreatGroups) {
-    EntityManager em = createEntityManager();
-    try {
-      em.getTransaction().begin();
-      insert(em, entity, createLicenseThreatGroups);
-      em.getTransaction().commit();
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      insert(tx, entity, createLicenseThreatGroups);
+      tx.commit();
     }
   }
 
   @Override
-  public void update(EntityManager em, Organization organization) {
+  public void update(TransactionContext tx, Organization organization) {
     NameHelper.validate(organization.getName());
 
-    Organization existingOrganization = getByName(em, organization.getName());
+    Organization existingOrganization = getByName(tx, organization.getName());
     if (existingOrganization != null && !existingOrganization.getId().equals(organization.getId())) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
 
-    super.update(em, organization);
+    super.update(tx, organization);
   }
 
   @Override
-  public void delete(EntityManager em, Organization organization) {
+  public void delete(TransactionContext tx, Organization organization) {
     // Cascade to license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(em, organization.getId());
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, organization.getId());
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      licenseThreatGroupDAO.delete(em, licenseThreatGroup);
+      licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
     }
 
     // Cascade to labels
     LabelDAO labelDAO = new LabelDAO();
-    List<Label> labels = labelDAO.getByOwnerId(em, organization.getId());
+    List<Label> labels = labelDAO.getByOwnerId(tx, organization.getId());
     for (Label label : labels) {
-      labelDAO.delete(em, label);
+      labelDAO.delete(tx, label);
     }
 
     // Cascade to policies
-    new PolicyDAO().deleteByOwnerId(em, organization.getId());
+    new PolicyDAO().deleteByOwnerId(tx, organization.getId());
 
     // Cascade to policy waivers
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(em, organization.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, organization.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
-      policyWaiverDAO.delete(em, policyWaiver);
+      policyWaiverDAO.delete(tx, policyWaiver);
     }
 
     // Cascade to license overrides
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(em, organization.getId());
+    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, organization.getId());
     for (LicenseOverride licenseOverride : licenseOverrides) {
-      licenseOverrideDAO.delete(em, licenseOverride);
+      licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
     // Cascade to membership mappings
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(em, organization.getId())) {
-      membershipMappingDAO.delete(em, membershipMapping);
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, organization.getId())) {
+      membershipMappingDAO.delete(tx, membershipMapping);
     }
 
     // Cascade to policy monitoring
     PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(em, organization.getId());
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, organization.getId());
     if (policyMonitoring != null) {
-      policyMonitoringDAO.delete(em, policyMonitoring);
+      policyMonitoringDAO.delete(tx, policyMonitoring);
     }
 
     // Cascade to tags
     TagDAO tagDAO = new TagDAO();
-    List<Tag> tags = tagDAO.getByOrganizationId(em, organization.getId());
+    List<Tag> tags = tagDAO.getByOrganizationId(tx, organization.getId());
     for (Tag tag : tags) {
-      tagDAO.delete(em, tag);
+      tagDAO.delete(tx, tag);
     }
 
-    super.delete(em, organization);
+    super.delete(tx, organization);
   }
 }

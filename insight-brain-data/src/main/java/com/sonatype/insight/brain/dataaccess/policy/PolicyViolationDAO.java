@@ -8,12 +8,11 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.11
@@ -22,10 +21,10 @@ public class PolicyViolationDAO
     extends AbstractOperationalSqlDAO<PolicyViolation>
 {
   @Override
-  protected PolicyViolation getById(EntityManager em, String id) {
+  protected PolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public List<PolicyViolation> getActiveByEvaluationId(String evaluationId) {
@@ -36,20 +35,16 @@ public class PolicyViolationDAO
   }
 
   public List<PolicyViolation> getByEvaluationId(String evaluationId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByEvaluationId(em, evaluationId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByEvaluationId(tx, evaluationId);
     }
   }
 
-  public List<PolicyViolation> getByEvaluationId(EntityManager em, String evaluationId) {
+  public List<PolicyViolation> getByEvaluationId(TransactionContext tx, String evaluationId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.policyEvaluationId=?1" + //
         " ORDER BY entity.policyId, entity.hash";
-    return getList(em, sQuery, evaluationId);
+    return getList(tx, sQuery, evaluationId);
   }
 
   public List<PolicyViolation> getActiveByEvaluationIds(Set<String> evaluationIds) {
@@ -58,7 +53,7 @@ public class PolicyViolationDAO
     return getList(sQuery, evaluationIds);
   }
 
-  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(EntityManager em, String appId,
+  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(TransactionContext tx, String appId,
       String stageTypeId)
   {
     String sQuery = "SELECT policyViolation" + //
@@ -68,39 +63,35 @@ public class PolicyViolationDAO
         "   AND firstOccurrencePolicyViolation.applicationId=?1" + //
         "   AND firstOccurrencePolicyViolation.stageTypeId=?2" + //
         " ORDER BY policyViolation.policyId, policyViolation.hash";
-    return getList(em, sQuery, appId, stageTypeId);
+    return getList(tx, sQuery, appId, stageTypeId);
   }
 
   public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getFirstOccurrenceByApplicationIdAndStageTypeId(em, appId, stageTypeId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getFirstOccurrenceByApplicationIdAndStageTypeId(tx, appId, stageTypeId);
     }
   }
 
   @Override
-  public void delete(EntityManager em, PolicyViolation entity) {
+  public void delete(TransactionContext tx, PolicyViolation entity) {
     // Cascade to first occurrence policy violation
     FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
-    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(em,
+    FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(tx,
         entity.getId());
     if (firstOccurrencePolicyViolation != null) {
-      firstOccurrencePolicyViolationDAO.delete(em, firstOccurrencePolicyViolation);
+      firstOccurrencePolicyViolationDAO.delete(tx, firstOccurrencePolicyViolation);
     }
 
     // Cascade to waived policy violation
     if (entity.isWaived()) {
       WaivedPolicyViolationDAO waivedPolicyViolationDAO = new WaivedPolicyViolationDAO();
-      WaivedPolicyViolation waivedPolicyViolation = waivedPolicyViolationDAO.getById(em, entity.getId());
+      WaivedPolicyViolation waivedPolicyViolation = waivedPolicyViolationDAO.getById(tx, entity.getId());
       if (waivedPolicyViolation != null) {
-        waivedPolicyViolationDAO.delete(em, waivedPolicyViolation);
+        waivedPolicyViolationDAO.delete(tx, waivedPolicyViolation);
       }
     }
 
-    super.delete(em, entity);
+    super.delete(tx, entity);
   }
 
   public List<PolicyViolation> getActiveByEvaluationIdAndHash(String evaluationId, String hash) {

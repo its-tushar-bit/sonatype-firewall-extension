@@ -14,13 +14,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -39,10 +38,10 @@ public class MultiLicenseDAO
   private static volatile Map<String, Set<License>> licenseSetsById = null;
 
   @Override
-  public MultiLicense getById(EntityManager em, String id) {
+  public MultiLicense getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM MultiLicense entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public Collection<MultiLicense> getAll() {

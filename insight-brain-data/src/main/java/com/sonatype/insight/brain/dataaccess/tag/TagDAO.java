@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.Color;
@@ -17,6 +15,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -31,27 +30,23 @@ public class TagDAO
   public static final int MAX_DESC_SIZE = 255;
 
   @Override
-  protected Tag getById(EntityManager em, String id) {
+  protected Tag getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Tag entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public List<Tag> getByOrganizationId(String organizationId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOrganizationId(em, organizationId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOrganizationId(tx, organizationId);
     }
   }
 
-  public List<Tag> getByOrganizationId(EntityManager em, String organizationId) {
+  public List<Tag> getByOrganizationId(TransactionContext tx, String organizationId) {
     String sQuery = "SELECT entity FROM Tag entity" + //
         " WHERE entity.organizationId=?1" + //
         " ORDER BY entity.nameLowercaseNoWhitespace";
-    return getList(em, sQuery, organizationId);
+    return getList(tx, sQuery, organizationId);
   }
 
   public List<Tag> getUsedByApplicationId(String applicationId) {
@@ -60,7 +55,7 @@ public class TagDAO
     return getList(sQuery, applicationId);
   }
 
-  public Tag getByOrganizationIdAndName(EntityManager em, String organizationId, String name) {
+  public Tag getByOrganizationIdAndName(TransactionContext tx, String organizationId, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The tag name cannot be null or empty.");
     }
@@ -69,7 +64,7 @@ public class TagDAO
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM Tag entity" + //
         " WHERE entity.organizationId=?1 and entity.nameLowercaseNoWhitespace=?2";
-    return get(em, sQuery, organizationId, name);
+    return get(tx, sQuery, organizationId, name);
   }
 
   /**
@@ -116,34 +111,34 @@ public class TagDAO
   }
 
   @Override
-  public void insert(EntityManager em, Tag entity) {
+  public void insert(TransactionContext tx, Tag entity) {
     NameHelper.validate(entity.getName());
     validateDescription(entity.getDescription());
     validateColor(entity.getColor());
 
-    if (getByOrganizationIdAndName(em, entity.getOrganizationId(), entity.getName()) != null) {
+    if (getByOrganizationIdAndName(tx, entity.getOrganizationId(), entity.getName()) != null) {
       throw new InvalidNameException(entity.getName() + " is already used as a name.");
     }
 
-    super.insert(em, entity);
+    super.insert(tx, entity);
   }
 
   @Override
-  public void update(EntityManager em, Tag entity) {
+  public void update(TransactionContext tx, Tag entity) {
     NameHelper.validate(entity.getName());
     validateDescription(entity.getDescription());
     validateColor(entity.getColor());
 
-    Tag existingEntity = getByOrganizationIdAndName(em, entity.getOrganizationId(), entity.getName());
+    Tag existingEntity = getByOrganizationIdAndName(tx, entity.getOrganizationId(), entity.getName());
     if (existingEntity != null && !existingEntity.getId().equals(entity.getId())) {
       throw new InvalidNameException(entity.getName() + " is already used as a name.");
     }
 
-    super.update(em, entity);
+    super.update(tx, entity);
   }
 
-  private Tag getByIdNotNull(EntityManager em, String id) {
-    Tag tag = getById(em, id);
+  private Tag getByIdNotNull(TransactionContext tx, String id) {
+    Tag tag = getById(tx, id);
     if (tag == null) {
       throw new NotFoundException("Cannot find a tag with ID " + id + ".");
     }
@@ -151,30 +146,26 @@ public class TagDAO
   }
 
   public Tag getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
   @Override
-  public void delete(EntityManager em, Tag tag) {
+  public void delete(TransactionContext tx, Tag tag) {
     // Do not allow the delete if the tag is applied to policies
-    List<PolicyTag> policyTags = new PolicyTagDAO().getByTagId(em, tag.getId());
+    List<PolicyTag> policyTags = new PolicyTagDAO().getByTagId(tx, tag.getId());
     if (policyTags.size() > 0) {
       throw new BadRequestException("Cannot delete the tag because it is associated with policies.");
     }
 
     // Cascade to application tags
     ApplicationTagDAO applicationTagDAO = new ApplicationTagDAO();
-    List<ApplicationTag> appTags = applicationTagDAO.getByTagId(em, tag.getId());
+    List<ApplicationTag> appTags = applicationTagDAO.getByTagId(tx, tag.getId());
     for (ApplicationTag appTag : appTags) {
-      applicationTagDAO.delete(em, appTag);
+      applicationTagDAO.delete(tx, appTag);
     }
 
-    super.delete(em, tag);
+    super.delete(tx, tag);
   }
 }

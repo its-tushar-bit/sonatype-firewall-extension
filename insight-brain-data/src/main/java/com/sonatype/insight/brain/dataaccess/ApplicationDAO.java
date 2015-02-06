@@ -13,8 +13,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -38,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -51,31 +50,27 @@ public class ApplicationDAO
   private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
 
   @Override
-  public Application getById(EntityManager em, String id) {
+  public Application getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public Application getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
-  public Application getByIdNotNull(EntityManager em, String id) {
-    Application application = getById(em, id);
+  public Application getByIdNotNull(TransactionContext tx, String id) {
+    Application application = getById(tx, id);
     if (application == null) {
       throw new NotFoundException("Could not find an application with ID " + id + ".");
     }
     return application;
   }
 
-  public Application getByPublicId(EntityManager em, String publicId) {
+  public Application getByPublicId(TransactionContext tx, String publicId) {
     if (publicId == null || publicId.trim().isEmpty()) {
       throw new DataAccessException("The application public ID cannot be null or empty.");
     }
@@ -83,54 +78,42 @@ public class ApplicationDAO
     publicId = publicId.trim().toLowerCase(Locale.ENGLISH);
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.publicIdLowercase=?1";
-    return get(em, sQuery, publicId);
+    return get(tx, sQuery, publicId);
   }
 
   public Application getByPublicId(String publicId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByPublicId(em, publicId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByPublicId(tx, publicId);
     }
   }
 
   public Application getByPublicIdNotNull(String publicId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByPublicIdNotNull(em, publicId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByPublicIdNotNull(tx, publicId);
     }
   }
 
-  public Application getByPublicIdNotNull(EntityManager em, String publicId) {
-    Application application = getByPublicId(em, publicId);
+  public Application getByPublicIdNotNull(TransactionContext tx, String publicId) {
+    Application application = getByPublicId(tx, publicId);
     if (application == null) {
       throw new NotFoundException("Could not find an application with public ID " + publicId + ".");
     }
     return application;
   }
 
-  public Application getByName(EntityManager em, String name) {
+  public Application getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The application name cannot be null or empty.");
     }
     // Application Name is whitespace and case insensitive
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM Application entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(em, sQuery, name);
+    return get(tx, sQuery, name);
   }
 
   public Application getByName(String name) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByName(em, name);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
     }
   }
 
@@ -139,36 +122,28 @@ public class ApplicationDAO
     return getList(sQuery, contactInternalName);
   }
 
-  public List<Application> getAll(EntityManager em) {
+  public List<Application> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " ORDER BY entity.publicIdLowercase";
-    return getList(em, sQuery);
+    return getList(tx, sQuery);
   }
 
   public List<Application> getAll() {
-    EntityManager em = createEntityManager();
-    try {
-      return getAll(em);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx);
     }
   }
 
-  public List<Application> getByOrganizationId(EntityManager em, String organizationId) {
+  public List<Application> getByOrganizationId(TransactionContext tx, String organizationId) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.organizationId=?1" + //
         " ORDER BY entity.publicIdLowercase";
-    return getList(em, sQuery, organizationId);
+    return getList(tx, sQuery, organizationId);
   }
 
   public List<Application> getByOrganizationId(String organizationId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOrganizationId(em, organizationId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOrganizationId(tx, organizationId);
     }
   }
 
@@ -200,25 +175,25 @@ public class ApplicationDAO
   }
 
   @Override
-  public void insert(EntityManager em, Application application) {
+  public void insert(TransactionContext tx, Application application) {
     validate(application);
     validatePublicId(application.getPublicId());
 
-    if (getByName(em, application.getName()) != null) {
+    if (getByName(tx, application.getName()) != null) {
       throw new InvalidNameException(application.getName() + " is already used as a name.");
     }
-    if (getByPublicId(em, application.getPublicId()) != null) {
+    if (getByPublicId(tx, application.getPublicId()) != null) {
       throw new InvalidApplicationException(application.getPublicId() + " is already used as an ID.");
     }
 
-    super.insert(em, application);
+    super.insert(tx, application);
   }
 
   @Override
-  public void update(EntityManager em, Application application) {
+  public void update(TransactionContext tx, Application application) {
     validate(application);
 
-    Application existingApplication = getById(em, application.getId());
+    Application existingApplication = getById(tx, application.getId());
     if (existingApplication == null) {
       throw new InvalidApplicationException("Attempting to edit an application that doesn't exist. ID : "
           + application.getPublicId() + ".");
@@ -230,26 +205,26 @@ public class ApplicationDAO
       throw new InvalidApplicationException("Cannot change the parent organization of an application.");
     }
     Organization organization = new OrganizationDAO().getByIdNotNull(application.getOrganizationId());
-    checkConflictingLicenseThreatGroups(em, application, organization);
-    checkConflictingLabels(em, existingApplication, organization);
-    existingApplication = getByName(em, application.getName());
+    checkConflictingLicenseThreatGroups(tx, application, organization);
+    checkConflictingLabels(tx, existingApplication, organization);
+    existingApplication = getByName(tx, application.getName());
     if (existingApplication != null && !existingApplication.getId().equals(application.getId())) {
       throw new InvalidNameException(application.getName() + " is already used as a name.");
     }
-    existingApplication = getByPublicId(em, application.getPublicId());
+    existingApplication = getByPublicId(tx, application.getPublicId());
     if (existingApplication != null && !existingApplication.getId().equals(application.getId())) {
       throw new InvalidApplicationException(application.getPublicId() + " is already used as an ID.");
     }
 
-    super.update(em, application);
+    super.update(tx, application);
   }
 
-  private void checkConflictingLicenseThreatGroups(EntityManager em, Application application, Organization organization)
+  private void checkConflictingLicenseThreatGroups(TransactionContext tx, Application application, Organization organization)
   {
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    List<LicenseThreatGroup> appLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(em, application.getId());
+    List<LicenseThreatGroup> appLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
     for (LicenseThreatGroup appLicenseThreatGroup : appLicenseThreatGroups) {
-      if (licenseThreatGroupDAO.getByOwnerIdAndName(em, organization.getId(), appLicenseThreatGroup.getName()) != null) {
+      if (licenseThreatGroupDAO.getByOwnerIdAndName(tx, organization.getId(), appLicenseThreatGroup.getName()) != null) {
         throw new InvalidApplicationException(
             "Both the application and the organization have a license threat group with the same name '"
                 + appLicenseThreatGroup.getName() + "'.");
@@ -257,11 +232,11 @@ public class ApplicationDAO
     }
   }
 
-  private void checkConflictingLabels(EntityManager em, Application application, Organization organization) {
+  private void checkConflictingLabels(TransactionContext tx, Application application, Organization organization) {
     final List<Label> conflicts = new ArrayList<Label>();
     final LabelDAO labelDAO = new LabelDAO();
-    for (Label appLabel : labelDAO.getByOwnerId(em, application.getId())) {
-      if (labelDAO.getByOwnerIdAndLabelLowercase(em, organization.getId(), appLabel.getLabelLowercase()) != null) {
+    for (Label appLabel : labelDAO.getByOwnerId(tx, application.getId())) {
+      if (labelDAO.getByOwnerIdAndLabelLowercase(tx, organization.getId(), appLabel.getLabelLowercase()) != null) {
         conflicts.add(appLabel);
       }
     }
@@ -277,18 +252,14 @@ public class ApplicationDAO
   }
 
   public void deleteWithIcon(Application application, File iconDirectory) {
-    EntityManager em = createEntityManager();
-    try {
-      em.getTransaction().begin();
-      deleteWithIcon(em, application, iconDirectory);
-      em.getTransaction().commit();
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteWithIcon(tx, application, iconDirectory);
+      tx.commit();
     }
   }
 
-  public void deleteWithIcon(EntityManager em, Application application, File iconDirectory) {
+  public void deleteWithIcon(TransactionContext tx, Application application, File iconDirectory) {
     File applicationIconDirectory = new File(iconDirectory, application.getId());
     try {
       new FileCleaner().delete(applicationIconDirectory);
@@ -297,76 +268,76 @@ public class ApplicationDAO
       log.error("Could not delete application icons: {}" + applicationIconDirectory, e);
     }
 
-    delete(em, application);
+    delete(tx, application);
   }
 
   @Override
-  public void delete(EntityManager em, Application application) {
+  public void delete(TransactionContext tx, Application application) {
     // Cascade to license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(em, application.getId());
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
-      licenseThreatGroupDAO.delete(em, licenseThreatGroup);
+      licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
     }
 
     // Cascade to labels
     LabelDAO labelDAO = new LabelDAO();
-    List<Label> labels = labelDAO.getByOwnerId(em, application.getId());
+    List<Label> labels = labelDAO.getByOwnerId(tx, application.getId());
     for (Label label : labels) {
-      labelDAO.delete(em, label);
+      labelDAO.delete(tx, label);
     }
 
     // Cascade to policy evaluations
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(em, application.getId())) {
-      policyEvaluationDAO.delete(em, policyEvaluation);
+    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
+      policyEvaluationDAO.delete(tx, policyEvaluation);
     }
 
     // Cascade to policies
-    new PolicyDAO().deleteByOwnerId(em, application.getId());
+    new PolicyDAO().deleteByOwnerId(tx, application.getId());
 
     // Cascade to policy waivers
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(em, application.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(tx, application.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
-      policyWaiverDAO.delete(em, policyWaiver);
+      policyWaiverDAO.delete(tx, policyWaiver);
     }
 
     // Cascade to license overrides
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(em, application.getId());
+    List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(tx, application.getId());
     for (LicenseOverride licenseOverride : licenseOverrides) {
-      licenseOverrideDAO.delete(em, licenseOverride);
+      licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
     // Cascade to membership mappings
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(em, application.getId())) {
-      membershipMappingDAO.delete(em, membershipMapping);
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, application.getId())) {
+      membershipMappingDAO.delete(tx, membershipMapping);
     }
 
     // Cascade to policy monitoring
     PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(em, application.getId());
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, application.getId());
     if (policyMonitoring != null) {
-      policyMonitoringDAO.delete(em, policyMonitoring);
+      policyMonitoringDAO.delete(tx, policyMonitoring);
     }
 
     // Cascade to applied tags
     ApplicationTagDAO applicationTagDAO = new ApplicationTagDAO();
-    List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(em, application.getId());
+    List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(tx, application.getId());
     for (ApplicationTag appTag : appTags) {
-      applicationTagDAO.delete(em, appTag);
+      applicationTagDAO.delete(tx, appTag);
     }
 
     // Cascade to components
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
-    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(em, application.getId());
+    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(tx, application.getId());
     for (ApplicationComponent appComponent : appComponents) {
-      applicationComponentDAO.delete(em, appComponent);
+      applicationComponentDAO.delete(tx, appComponent);
     }
 
-    super.delete(em, application);
+    super.delete(tx, application);
   }
 
   private void validate(Application application) {
@@ -380,12 +351,12 @@ public class ApplicationDAO
     }
   }
 
-  public List<Application> getByOrganizationIdAndLabelLowercase(EntityManager em, String organizationId,
+  public List<Application> getByOrganizationIdAndLabelLowercase(TransactionContext tx, String organizationId,
       String labelLowercase)
   {
     final String oQuery = "SELECT app FROM Label label, Application app" + //
         " WHERE label.ownerId=app.id AND app.organizationId=?1" + //
         "    AND label.labelLowercase=?2";
-    return getList(em, oQuery, organizationId, labelLowercase);
+    return getList(tx, oQuery, organizationId, labelLowercase);
   }
 }

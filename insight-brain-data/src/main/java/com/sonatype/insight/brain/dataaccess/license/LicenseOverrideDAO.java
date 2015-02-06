@@ -10,14 +10,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -53,88 +51,72 @@ public class LicenseOverrideDAO
     return new LicenseOverride(licenseOverride, getLicenseIds(licenseOverride.getId()));
   }
 
-  public List<LicenseOverride> getByOwnerId(EntityManager em, String ownerId) {
-    List<LicenseOverrideInternal> internalOverrides = licenseOverrideInternalDAO.getByOwnerId(em, ownerId);
+  public List<LicenseOverride> getByOwnerId(TransactionContext tx, String ownerId) {
+    List<LicenseOverrideInternal> internalOverrides = licenseOverrideInternalDAO.getByOwnerId(tx, ownerId);
     List<LicenseOverride> overrides = new ArrayList<>();
 
     for (LicenseOverrideInternal internalOverride : internalOverrides) {
-      overrides.add(new LicenseOverride(internalOverride, getLicenseIds(em, internalOverride.getId())));
+      overrides.add(new LicenseOverride(internalOverride, getLicenseIds(tx, internalOverride.getId())));
     }
 
     return overrides;
   }
 
   public List<LicenseOverride> getByOwnerId(String ownerId) {
-    EntityManager em = licenseOverrideInternalDAO.createEntityManager();
-    try {
-      return getByOwnerId(em, ownerId);
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      return getByOwnerId(tx, ownerId);
     }
   }
 
-  public void insert(EntityManager em, LicenseOverride entity) {
+  public void insert(TransactionContext tx, LicenseOverride entity) {
     validate(entity);
 
     LicenseOverrideInternal internal = toInternal(entity);
 
-    licenseOverrideInternalDAO.insert(em, internal);
+    licenseOverrideInternalDAO.insert(tx, internal);
 
     entity.setId(internal.getId());
 
-    addLicenseOverrideLicenseInternals(em, entity);
+    addLicenseOverrideLicenseInternals(tx, entity);
   }
 
   public void insert(LicenseOverride entity) {
-    EntityManager em = licenseOverrideInternalDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      insert(em, entity);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      tx.begin();
+      insert(tx, entity);
+      tx.commit();
     }
   }
 
-  public void update(EntityManager em, LicenseOverride entity) {
+  public void update(TransactionContext tx, LicenseOverride entity) {
     validate(entity);
-    licenseOverrideInternalDAO.update(em, toInternal(entity));
+    licenseOverrideInternalDAO.update(tx, toInternal(entity));
 
     //clear existing licenses
-    clearLicenseOverrideLicenseInternals(em, entity.getId());
+    clearLicenseOverrideLicenseInternals(tx, entity.getId());
 
     //add new ones
-    addLicenseOverrideLicenseInternals(em, entity);
+    addLicenseOverrideLicenseInternals(tx, entity);
   }
 
   public void update(LicenseOverride entity) {
-    EntityManager em = licenseOverrideInternalDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      update(em, entity);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      tx.begin();
+      update(tx, entity);
+      tx.commit();
     }
   }
 
-  public void delete(EntityManager em, LicenseOverride entity) {
-    clearLicenseOverrideLicenseInternals(em, entity.getId());
-    licenseOverrideInternalDAO.delete(em, toInternal(entity));
+  public void delete(TransactionContext tx, LicenseOverride entity) {
+    clearLicenseOverrideLicenseInternals(tx, entity.getId());
+    licenseOverrideInternalDAO.delete(tx, toInternal(entity));
   }
 
   public void delete(LicenseOverride entity) {
-    EntityManager em = licenseOverrideInternalDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      delete(em, entity);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      tx.begin();
+      delete(tx, entity);
+      tx.commit();
     }
   }
 
@@ -167,24 +149,24 @@ public class LicenseOverrideDAO
     return licenseOverride;
   }
 
-  private void clearLicenseOverrideLicenseInternals(EntityManager em, String licenseOverrideId) {
+  private void clearLicenseOverrideLicenseInternals(TransactionContext tx, String licenseOverrideId) {
     for (LicenseOverrideLicenseInternal license : licenseOverrideLicenseInternalDAO
-        .getByLicenseOverrideId(em, licenseOverrideId)) {
-      licenseOverrideLicenseInternalDAO.delete(em, license);
+        .getByLicenseOverrideId(tx, licenseOverrideId)) {
+      licenseOverrideLicenseInternalDAO.delete(tx, license);
     }
   }
 
-  private void addLicenseOverrideLicenseInternals(EntityManager em, LicenseOverride entity) {
+  private void addLicenseOverrideLicenseInternals(TransactionContext tx, LicenseOverride entity) {
     for (String licenseId : entity.getLicenseIds()) {
       LicenseOverrideLicenseInternal license = new LicenseOverrideLicenseInternal();
       license.setLicenseOverrideId(entity.getId());
       license.setLicenseId(licenseId);
-      licenseOverrideLicenseInternalDAO.insert(em, license);
+      licenseOverrideLicenseInternalDAO.insert(tx, license);
     }
   }
 
-  private Set<String> getLicenseIds(EntityManager em, String id) {
-    List<LicenseOverrideLicenseInternal> licenses = licenseOverrideLicenseInternalDAO.getByLicenseOverrideId(em, id);
+  private Set<String> getLicenseIds(TransactionContext tx, String id) {
+    List<LicenseOverrideLicenseInternal> licenses = licenseOverrideLicenseInternalDAO.getByLicenseOverrideId(tx, id);
 
     Set<String> licenseIds = new LinkedHashSet<>();
 
@@ -196,12 +178,8 @@ public class LicenseOverrideDAO
   }
 
   private Set<String> getLicenseIds(String id) {
-    EntityManager em = licenseOverrideInternalDAO.createEntityManager();
-    try {
-      return getLicenseIds(em, id);
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      return getLicenseIds(tx, id);
     }
   }
 

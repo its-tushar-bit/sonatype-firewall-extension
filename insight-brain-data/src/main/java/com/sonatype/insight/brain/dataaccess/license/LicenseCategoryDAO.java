@@ -10,10 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -28,10 +27,10 @@ public class LicenseCategoryDAO
   private static volatile Map<String, LicenseCategory> licenseCategoriesById = null;
 
   @Override
-  public LicenseCategory getById(EntityManager em, String id) {
+  public LicenseCategory getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LicenseCategory entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   @Override

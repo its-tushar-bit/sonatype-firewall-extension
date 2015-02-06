@@ -14,7 +14,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -38,6 +37,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyWaiversMap;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -90,16 +90,15 @@ public class WaivedPolicyViolationMigrator
 
     int appCount;
     int policyEvalCount = 0;
-    EntityManager em = appDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
+    try (TransactionContext tx = appDAO.createTransactionContext()) {
+      tx.begin();
 
-      List<Application> applications = appDAO.getAll(em);
+      List<Application> applications = appDAO.getAll(tx);
       appCount = applications.size();
       for (Application application : applications) {
         long appStart = System.currentTimeMillis();
 
-        List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationId(em, application.getId());
+        List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationId(tx, application.getId());
         policyEvalCount += policyEvaluations.size();
         ListMultimap<String, PolicyEvaluation> policyEvaluationsByScanId = ArrayListMultimap.create();
         for (PolicyEvaluation policyEvaluation : policyEvaluations) {
@@ -114,17 +113,14 @@ public class WaivedPolicyViolationMigrator
           // We have a policythreats.json for each scan only for the last evaluation, so we can create waived policy
           // violations only for the last evaluation.
           PolicyEvaluation mostRecentPolicyEvaluationForThisScan = getMostRecentPolicyEvaluation(policyEvaluationsForThisScan);
-          migratePolicyEvaluation(em, mostRecentPolicyEvaluationForThisScan, policyWaiversMap);
+          migratePolicyEvaluation(tx, mostRecentPolicyEvaluationForThisScan, policyWaiversMap);
         }
 
         log.debug("Migration of waived policy violations for application named {} completed in {} ms.",
             application.getName(), System.currentTimeMillis() - appStart);
       }
 
-      em.getTransaction().commit();
-    }
-    finally {
-      ApplicationDAO.close(em);
+      tx.commit();
     }
 
     markerFile.getParentFile().mkdirs();
@@ -135,7 +131,7 @@ public class WaivedPolicyViolationMigrator
         appCount, policyEvalCount, System.currentTimeMillis() - start);
   }
 
-  private void migratePolicyEvaluation(EntityManager em, PolicyEvaluation policyEvaluation,
+  private void migratePolicyEvaluation(TransactionContext tx, PolicyEvaluation policyEvaluation,
       PolicyWaiversMap policyWaiversMap)
   {
     try {
@@ -162,7 +158,7 @@ public class WaivedPolicyViolationMigrator
             // The policy waiver is newer than the policy evaluation
             policyWaiver = null;
           }
-          createWaivedPolicyViolation(em, policyEvaluation, componentWithViolations, waivedViolation, policyWaiver);
+          createWaivedPolicyViolation(tx, policyEvaluation, componentWithViolations, waivedViolation, policyWaiver);
         }
       }
     }
@@ -186,7 +182,7 @@ public class WaivedPolicyViolationMigrator
     });
   }
 
-  private void createWaivedPolicyViolation(EntityManager em, PolicyEvaluation policyEvaluation,
+  private void createWaivedPolicyViolation(TransactionContext tx, PolicyEvaluation policyEvaluation,
       PolicyThreats.Component componentWithViolations, PolicyThreats.PolicyViolation waivedViolation,
       PolicyWaiver policyWaiver)
   {
@@ -206,12 +202,12 @@ public class WaivedPolicyViolationMigrator
         waivedViolation.policyName, waivedViolation.policyThreatLevel, threatCategory, componentWithViolations.hash,
         componentIdentifier, constraintFacts, pathnames);
     policyViolation.setWaived(true);
-    policyViolationDAO.insert(em, policyViolation);
+    policyViolationDAO.insert(tx, policyViolation);
 
     if (policyWaiver != null) {
       WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
           policyWaiver.getId(), policyWaiver.getComment());
-      waivedPolicyViolationDAO.insert(em, waivedPolicyViolation);
+      waivedPolicyViolationDAO.insert(tx, waivedPolicyViolation);
     }
   }
 

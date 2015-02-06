@@ -11,7 +11,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
@@ -20,7 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.UserDirectory;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 /**
@@ -55,35 +54,27 @@ public class ApplicationHelper
     return applicationDAO.getByIdNotNull(applicationId);
   }
 
-  public Application addApplication(final EntityManager em, final Application application) {
+  public Application addApplication(final TransactionContext tx, final Application application) {
     validate(application);
-    applicationDAO.insert(em, application);
+    applicationDAO.insert(tx, application);
     return application;
   }
 
   public Application addApplication(final Application application) {
-    EntityManager em = applicationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      addApplication(em, application);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      addApplication(tx, application);
+      tx.commit();
     }
     return application;
   }
 
   public void deleteApplicationById(final String applicationId) throws IOException {
-    final EntityManager em = applicationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      final Application app = applicationDAO.getByIdNotNull(em, applicationId);
-      applicationCleaner.delete(em, app);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      final Application app = applicationDAO.getByIdNotNull(tx, applicationId);
+      applicationCleaner.delete(tx, app);
+      tx.commit();
     }
   }
 

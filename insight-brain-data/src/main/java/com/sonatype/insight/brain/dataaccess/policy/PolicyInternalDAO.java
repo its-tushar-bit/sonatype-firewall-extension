@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -24,14 +23,14 @@ public class PolicyInternalDAO
     extends AbstractOperationalSqlDAO<PolicyInternal>
 {
   @Override
-  protected PolicyInternal getById(EntityManager em, String id) {
+  protected PolicyInternal getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
-  PolicyInternal getByIdNotNull(EntityManager em, String id) {
-    PolicyInternal policyInternal = getById(em, id);
+  PolicyInternal getByIdNotNull(TransactionContext tx, String id) {
+    PolicyInternal policyInternal = getById(tx, id);
     if (policyInternal == null) {
       throw new NotFoundException("Cannot find a policy with ID " + id + ".");
     }
@@ -39,12 +38,8 @@ public class PolicyInternalDAO
   }
 
   PolicyInternal getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
@@ -56,27 +51,23 @@ public class PolicyInternalDAO
   }
 
   List<PolicyInternal> getByOwnerId(String ownerId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOwnerId(em, ownerId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerId(tx, ownerId);
     }
   }
 
-  List<PolicyInternal> getByOwnerId(EntityManager em, String ownerId) {
+  List<PolicyInternal> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.ownerId=?1" + //
         " ORDER BY entity.nameLowercaseNoWhitespace";
-    return getList(em, sQuery, ownerId);
+    return getList(tx, sQuery, ownerId);
   }
 
-  PolicyInternal getByOwnerIdAndName(EntityManager em, String ownerId, String name) {
+  PolicyInternal getByOwnerIdAndName(TransactionContext tx, String ownerId, String name) {
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.ownerId=?1 AND entity.nameLowercaseNoWhitespace=?2";
-    return get(em, sQuery, ownerId, name);
+    return get(tx, sQuery, ownerId, name);
   }
 
   List<PolicyInternal> getAll() {
@@ -85,21 +76,21 @@ public class PolicyInternalDAO
   }
 
   @Override
-  public void delete(EntityManager em, PolicyInternal policy) {
+  public void delete(TransactionContext tx, PolicyInternal policy) {
     // Cascade to policy waivers
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(em, policy.getId());
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(tx, policy.getId());
     for (PolicyWaiver policyWaiver : policyWaivers) {
-      policyWaiverDAO.delete(em, policyWaiver);
+      policyWaiverDAO.delete(tx, policyWaiver);
     }
 
     // Cascade to policy tags
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-    List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(em, policy.getId());
+    List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(tx, policy.getId());
     for (PolicyTag policyTag : policyTags) {
-      policyTagDAO.delete(em, policyTag);
+      policyTagDAO.delete(tx, policyTag);
     }
 
-    super.delete(em, policy);
+    super.delete(tx, policy);
   }
 }

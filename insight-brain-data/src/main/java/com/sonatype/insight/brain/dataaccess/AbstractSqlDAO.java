@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
 public abstract class AbstractSqlDAO<T extends HasStringId>
@@ -20,11 +19,11 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   @Override
-  public void insert(EntityManager em, T entity) {
+  public void insert(TransactionContext tx, T entity) {
     String id = entity.getId();
     if (id == null || id.trim().isEmpty()) {
       entity.setId(newUUID());
     }
-    super.insert(em, entity);
+    super.insert(tx, entity);
   }
 }

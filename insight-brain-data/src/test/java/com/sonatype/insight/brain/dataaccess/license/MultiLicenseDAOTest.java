@@ -7,11 +7,10 @@ package com.sonatype.insight.brain.dataaccess.license;
 
 import java.util.Collection;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Assert;
@@ -165,34 +164,30 @@ public class MultiLicenseDAOTest
 
     @Override
     public void doUpdate() {
-      EntityManager em = multiLicenseDAO.createEntityManager();
-      try {
-        em.getTransaction().begin();
+      try (TransactionContext tx = multiLicenseDAO.createTransactionContext()) {
+        tx.begin();
 
         license = new License();
 
         license.setId(MOCK_REMOTE_LICENSE_ID);
         license.setShortDisplayName(MOCK_REMOTE_LICENSE_ID);
-        licenseDAO.insert(em, license);
+        licenseDAO.insert(tx, license);
 
         multiLicense = new MultiLicense();
         multiLicense.setId(MOCK_REMOTE_LICENSE_ID);
         multiLicense.setShortDisplayName(MOCK_REMOTE_LICENSE_ID);
-        multiLicenseDAO.insert(em, multiLicense);
+        multiLicenseDAO.insert(tx, multiLicense);
 
         multiLicenseLicense = new MultiLicenseLicenseInternal();
         multiLicenseLicense.setMultiLicenseId(multiLicense.getId());
         multiLicenseLicense.setLicenseId(MOCK_REMOTE_LICENSE_ID);
         multiLicenseLicense.setMultiLicenseId(MOCK_REMOTE_LICENSE_ID);
-        multiLicenseLicenseInternalDAO.insert(em, multiLicenseLicense);
+        multiLicenseLicenseInternalDAO.insert(tx, multiLicenseLicense);
 
-        em.getTransaction().commit();
+        tx.commit();
       }
       catch (Exception e) {
         throw new RuntimeException("Could not simulate retrieval of license data from Sonatype HDS: " + e.getMessage(), e);
-      }
-      finally {
-        LicenseCategoryDAO.close(em);
       }
     }
 

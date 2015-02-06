@@ -9,11 +9,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.11
@@ -24,43 +23,35 @@ public class PolicyEvaluationDAO
 
 
   @Override
-  protected PolicyEvaluation getById(EntityManager em, String id) {
+  protected PolicyEvaluation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public PolicyEvaluation getLastMonitoringByApplicationIdAndScanId(String appId, String scanId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getLastMonitoringByApplicationIdAndScanId(em, appId, scanId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastMonitoringByApplicationIdAndScanId(tx, appId, scanId);
     }
   }
 
-  public PolicyEvaluation getLastMonitoringByApplicationIdAndScanId(EntityManager em, String appId, String scanId) {
+  public PolicyEvaluation getLastMonitoringByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2 AND entity.isForMonitoring=true" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, scanId).forceSingleResult().get(em);
+    return createQuery(sQuery, appId, scanId).forceSingleResult().get(tx);
   }
 
-  public PolicyEvaluation getLastByApplicationIdAndScanId(EntityManager em, String appId, String scanId) {
+  public PolicyEvaluation getLastByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, scanId).forceSingleResult().get(em);
+    return createQuery(sQuery, appId, scanId).forceSingleResult().get(tx);
   }
 
   public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getLastByApplicationIdAndScanId(em, appId, scanId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastByApplicationIdAndScanId(tx, appId, scanId);
     }
   }
 
@@ -75,13 +66,13 @@ public class PolicyEvaluationDAO
   /**
    * Returns the most recent policy evaluation for the most recent scan for the given application and stage.
    */
-  public PolicyEvaluation getLastByApplicationIdAndStageId(EntityManager em, String appId, String stageTypeId) {
+  public PolicyEvaluation getLastByApplicationIdAndStageId(TransactionContext tx, String appId, String stageTypeId) {
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
         " LastPolicyEvaluation lpe" + //
         " WHERE pe.id = lpe.policyEvaluationId" + //
         " AND lpe.applicationId=?1" + //
         " AND lpe.stageTypeId=?2";
-    return get(em, sQuery, appId, stageTypeId);
+    return get(tx, sQuery, appId, stageTypeId);
   }
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
@@ -94,35 +85,27 @@ public class PolicyEvaluationDAO
   }
 
   public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getLastByApplicationIdAndStageId(em, appId, stageTypeId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastByApplicationIdAndStageId(tx, appId, stageTypeId);
     }
   }
 
   /**
    * Returns the last primary evaluation (i.e. not a reevaluation) for the given application and stage.
    */
-  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(EntityManager em, String appId, String stageTypeId) {
+  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(TransactionContext tx, String appId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.isReevaluation=false" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(em);
+    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get(tx);
   }
 
   /**
    * Returns the last primary evaluation (i.e. not a reevaluation) for the given application and stage.
    */
   public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(String appId, String stageTypeId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getLastPrimaryByApplicationIdAndStageId(em, appId, stageTypeId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastPrimaryByApplicationIdAndStageId(tx, appId, stageTypeId);
     }
   }
 
@@ -134,74 +117,70 @@ public class PolicyEvaluationDAO
   }
 
   @Override
-  public void insert(EntityManager em, PolicyEvaluation policyEvaluation) {
+  public void insert(TransactionContext tx, PolicyEvaluation policyEvaluation) {
     validate(policyEvaluation);
     final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 
     if (policyEvaluation.getTime() == null) {
       policyEvaluation.setTime(new Date());
     }
-    super.insert(em, policyEvaluation);
+    super.insert(tx, policyEvaluation);
 
     //make sure the last policy eval is right
-    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(em, policyEvaluation.getApplicationId(),
+    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(tx, policyEvaluation.getApplicationId(),
         policyEvaluation.getStageTypeId());
-    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(em, policyEvaluation.getApplicationId(),
+    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, policyEvaluation.getApplicationId(),
         policyEvaluation.getStageTypeId());
   }
 
 
-  public List<PolicyEvaluation> getByApplicationId(EntityManager em, String appId) {
+  public List<PolicyEvaluation> getByApplicationId(TransactionContext tx, String appId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1";
-    return getList(em, sQuery, appId);
+    return getList(tx, sQuery, appId);
   }
 
   public List<PolicyEvaluation> getByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByApplicationIdAndStageIds(em, appId, stageTypeIds);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndStageIds(tx, appId, stageTypeIds);
     }
   }
 
-  public List<PolicyEvaluation> getByApplicationIdAndStageIds(EntityManager em, String appId,
+  public List<PolicyEvaluation> getByApplicationIdAndStageIds(TransactionContext tx, String appId,
       Set<String> stageTypeIds)
   {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
         "   AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time";
-    return getList(em, sQuery, appId, stageTypeIds);
+    return getList(tx, sQuery, appId, stageTypeIds);
   }
 
   @Override
-  public void update(EntityManager em, PolicyEvaluation entity) {
+  public void update(TransactionContext tx, PolicyEvaluation entity) {
     throw new UnsupportedOperationException("The PolicyEvaluation table does not support update operations");
   }
 
   @Override
-  public void delete(final EntityManager em, PolicyEvaluation entity) {
+  public void delete(final TransactionContext tx, PolicyEvaluation entity) {
     final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 
     // Cascade to policy violations
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(em, entity.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(tx, entity.getId());
     for (PolicyViolation policyViolation : policyViolations) {
-      policyViolationDAO.delete(em, policyViolation);
+      policyViolationDAO.delete(tx, policyViolation);
     }
 
     //cascade to LastPolicyEvaluation
-    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(em, entity.getApplicationId(),
+    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(tx, entity.getApplicationId(),
         entity.getStageTypeId());
 
     //delete the eval itself
-    super.delete(em, entity);
+    super.delete(tx, entity);
 
     //insert if possible to LastPolicyEvaluation
-    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(em, entity.getApplicationId(),
+    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, entity.getApplicationId(),
         entity.getStageTypeId());
   }
 

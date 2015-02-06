@@ -7,12 +7,11 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -22,9 +21,9 @@ public class RoleDAO
     extends AbstractOperationalSqlDAO<Role>
 {
   @Override
-  protected Role getById(EntityManager em, String id) {
+  protected Role getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Role entity WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public Role getByIdNotNull(String id) {
@@ -36,14 +35,14 @@ public class RoleDAO
   }
 
   @Override
-  public void delete(EntityManager em, Role entity) {
+  public void delete(TransactionContext tx, Role entity) {
     // Cascade to permissions
     RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
-    for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(em, entity.getId())) {
-      rolePermissionDAO.delete(em, rolePermission);
+    for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(tx, entity.getId())) {
+      rolePermissionDAO.delete(tx, rolePermission);
     }
 
-    super.delete(em, entity);
+    super.delete(tx, entity);
   }
 
   /**

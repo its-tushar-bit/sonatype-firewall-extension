@@ -8,9 +8,8 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.11
@@ -19,38 +18,34 @@ public class ApplicationComponentDAO
     extends AbstractOperationalSqlDAO<ApplicationComponent>
 {
   @Override
-  public ApplicationComponent getById(EntityManager em, String id) {
+  public ApplicationComponent getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   @Override
-  public void update(EntityManager em, ApplicationComponent entity) {
+  public void update(TransactionContext tx, ApplicationComponent entity) {
     throw new UnsupportedOperationException("ApplicationComponent does not support update operations");
   }
 
-  public List<ApplicationComponent> getByApplicationId(EntityManager em, String appId) {
+  public List<ApplicationComponent> getByApplicationId(TransactionContext tx, String appId) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1";
-    return getList(em, sQuery, appId);
+    return getList(tx, sQuery, appId);
   }
 
   public List<ApplicationComponent> getByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByApplicationIdAndStageTypeId(em, appId, stageTypeId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndStageTypeId(tx, appId, stageTypeId);
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(EntityManager em, String appId, String stageTypeId)
+  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(TransactionContext tx, String appId, String stageTypeId)
   {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2";
-    return getList(em, sQuery, appId, stageTypeId);
+    return getList(tx, sQuery, appId, stageTypeId);
   }
 
   public ApplicationComponent getByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId, String hash)

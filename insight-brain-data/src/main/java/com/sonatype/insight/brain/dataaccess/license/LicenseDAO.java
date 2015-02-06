@@ -14,12 +14,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -38,10 +37,10 @@ public class LicenseDAO
   private static volatile Map<String, License> licensesByName = null;
 
   @Override
-  public License getById(EntityManager em, String id) {
+  public License getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM License entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   @Override

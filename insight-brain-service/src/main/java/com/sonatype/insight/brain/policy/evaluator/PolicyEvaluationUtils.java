@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -48,6 +47,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -146,22 +146,21 @@ public class PolicyEvaluationUtils
     Object lock = getPersistenceLock(appId);
     synchronized (lock) {
       PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-      EntityManager em = policyEvaluationDAO.createEntityManager();
-      try {
-        em.getTransaction().begin();
+      try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+        tx.begin();
   
         // Persist the policy evaluation
-        boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(em, appId, scanId) != null);
+        boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
             forMonitoring);
         boolean isForLatestScan = true;
         if (isReevaluation) {
           PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
-              em, appId, stage.getStageTypeId());
+              tx, appId, stage.getStageTypeId());
           isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
           policyEvaluation.setForObsoleteScan(!isForLatestScan);
         }
-        policyEvaluationDAO.insert(em, policyEvaluation);
+        policyEvaluationDAO.insert(tx, policyEvaluation);
   
         // Persist policy violations
         List<PolicyViolation> newPolicyViolations = new ArrayList<>();
@@ -188,11 +187,11 @@ public class PolicyEvaluationUtils
             }
             PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
             policyViolation.setWaived(policyWaiver != null);
-            policyViolationDAO.insert(em, policyViolation);
+            policyViolationDAO.insert(tx, policyViolation);
             if (policyWaiver != null) {
               WaivedPolicyViolation waivedPolicyViolation = new WaivedPolicyViolation(policyViolation.getId(),
                   policyWaiver.getId(), policyWaiver.getComment());
-              waivedPolicyViolationDAO.insert(em, waivedPolicyViolation);
+              waivedPolicyViolationDAO.insert(tx, waivedPolicyViolation);
             }
             else {
               newPolicyViolations.add(policyViolation);
@@ -204,7 +203,7 @@ public class PolicyEvaluationUtils
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
         if (isForLatestScan) {
           // Calculate a diff between the current policy violations and the previous first occurrence policy violations
-          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(em,
+          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(tx,
               appId, stage.getStageTypeId());
           PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations,
               newPolicyViolations);
@@ -212,39 +211,36 @@ public class PolicyEvaluationUtils
           // Delete cleared first occurrence policy violations
           for (PolicyViolation clearedPolicyViolation : policyViolationDiff.getCleared()) {
             FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationDAO.getById(
-                em, clearedPolicyViolation.getId());
-            firstOccurrencePolicyViolationDAO.delete(em, firstOccurrencePolicyViolation);
+                tx, clearedPolicyViolation.getId());
+            firstOccurrencePolicyViolationDAO.delete(tx, firstOccurrencePolicyViolation);
           }
           // Add new first occurrence policy violations
           for (PolicyViolation appearedPolicyViolation : policyViolationDiff.getAppeared()) {
             FirstOccurrencePolicyViolation firstOccurrencePolicyViolation = new FirstOccurrencePolicyViolation(
                 appearedPolicyViolation.getId(), appId, stage.getStageTypeId());
-            firstOccurrencePolicyViolationDAO.insert(em, firstOccurrencePolicyViolation);
+            firstOccurrencePolicyViolationDAO.insert(tx, firstOccurrencePolicyViolation);
           }
 
-          persistApplicationComponents(em, appId, stage, policyEvaluation.getTime(), components);
+          persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
         }
   
-        em.getTransaction().commit();
+        tx.commit();
   
         return policyEvaluation;
-      }
-      finally {
-        PolicyEvaluationDAO.close(em);
       }
     }
   }
 
-  private void persistApplicationComponents(EntityManager em, String appId, Stage stage, Date time,
+  private void persistApplicationComponents(TransactionContext tx, String appId, Stage stage, Date time,
       List<Component> components)
   {
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 
     // Delete all app->component associations for the specified stage
-    List<ApplicationComponent> oldApplicationComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(em,
+    List<ApplicationComponent> oldApplicationComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(tx,
         appId, stage.getStageTypeId());
     for (ApplicationComponent oldApplicationComponent : oldApplicationComponents) {
-      applicationComponentDAO.delete(em, oldApplicationComponent);
+      applicationComponentDAO.delete(tx, oldApplicationComponent);
     }
 
     // Add new app->component associations for the specified stage
@@ -256,7 +252,7 @@ public class PolicyEvaluationUtils
       ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(), time,
           component.getHash(), component.getComponentIdentifier(), component.getMatchState().getId(), component
               .getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
-      applicationComponentDAO.insert(em, applicationComponent);
+      applicationComponentDAO.insert(tx, applicationComponent);
     }
   }
 

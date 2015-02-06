@@ -12,7 +12,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,44 +54,40 @@ public class DefaultLicenseDataUpdater
       LicenseDAO licenseDAO = new LicenseDAO();
       MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
       MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
-      EntityManager em = licenseCategoryDAO.createEntityManager();
-      try {
-        em.getTransaction().begin();
+      try (TransactionContext tx = licenseCategoryDAO.createTransactionContext()) {
+        tx.begin();
         for (LicenseCategory licenseCategory : licenseData.categories) {
-          if (licenseCategoryDAO.getById(em, licenseCategory.getId()) == null) {
-            licenseCategoryDAO.insert(em, licenseCategory);
+          if (licenseCategoryDAO.getById(tx, licenseCategory.getId()) == null) {
+            licenseCategoryDAO.insert(tx, licenseCategory);
           }
           else {
-            licenseCategoryDAO.update(em, licenseCategory);
+            licenseCategoryDAO.update(tx, licenseCategory);
           }
         }
         for (License license : licenseData.licenses) {
-          if (licenseDAO.getById(em, license.getId()) == null) {
-            licenseDAO.insert(em, license);
+          if (licenseDAO.getById(tx, license.getId()) == null) {
+            licenseDAO.insert(tx, license);
           }
           else {
-            licenseDAO.update(em, license);
+            licenseDAO.update(tx, license);
           }
         }
         for (MultiLicense multiLicense : licenseData.multiLicenses) {
-          if (multiLicenseDAO.getById(em, multiLicense.getId()) == null) {
-            multiLicenseDAO.insert(em, multiLicense);
+          if (multiLicenseDAO.getById(tx, multiLicense.getId()) == null) {
+            multiLicenseDAO.insert(tx, multiLicense);
             for (String licenseId : licenseData.multiLicenseMappings.get(multiLicense.getId())) {
               MultiLicenseLicenseInternal multiLicenseLicense = new MultiLicenseLicenseInternal();
               multiLicenseLicense.setMultiLicenseId(multiLicense.getId());
               multiLicenseLicense.setLicenseId(licenseId);
-              multiLicenseLicenseInternalDAO.insert(em, multiLicenseLicense);
+              multiLicenseLicenseInternalDAO.insert(tx, multiLicenseLicense);
             }
           }
           else {
-            multiLicenseDAO.update(em, multiLicense);
+            multiLicenseDAO.update(tx, multiLicense);
             // Do not update the multi-license to license associations as those should never change.
           }
         }
-        em.getTransaction().commit();
-      }
-      finally {
-        LicenseCategoryDAO.close(em);
+        tx.commit();
       }
     }
     catch (Exception e) {

@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
@@ -23,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.codehaus.plexus.util.StringUtils;
 
@@ -34,8 +33,8 @@ public class PolicyDAO
     return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
   }
 
-  public Policy getById(EntityManager em, String id) {
-    return PolicyInternal.toPolicy(policyInternalDAO.getById(em, id));
+  public Policy getById(TransactionContext tx, String id) {
+    return PolicyInternal.toPolicy(policyInternalDAO.getById(tx, id));
   }
 
   public Policy getByIdNotNull(String id) {
@@ -58,18 +57,14 @@ public class PolicyDAO
   }
 
   public void insert(Policy policy) {
-    EntityManager em = policyInternalDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      insert(em, policy);
-      em.getTransaction().commit();
-    }
-    finally {
-      PolicyInternalDAO.close(em);
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+      tx.begin();
+      insert(tx, policy);
+      tx.commit();
     }
   }
 
-  public void insert(EntityManager em, Policy policy) {
+  public void insert(TransactionContext tx, Policy policy) {
     String ownerId = policy.getOwnerId();
     
     ValidationResult validationResult = policy.validate(ownerId);
@@ -77,12 +72,12 @@ public class PolicyDAO
       throw new InvalidPolicyException(validationResult);
     }
 
-    PolicyInternal existingPolicy = policyInternalDAO.getByOwnerIdAndName(em, ownerId, policy.getName());
+    PolicyInternal existingPolicy = policyInternalDAO.getByOwnerIdAndName(tx, ownerId, policy.getName());
     if (existingPolicy != null) {
       throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
     }
 
-    validateNameWithinHierarchy(em, ownerId, policy.getName());
+    validateNameWithinHierarchy(tx, ownerId, policy.getName());
 
     // Allocate unique ids to constraints
     for (Constraint constraint : policy.getConstraints()) {
@@ -96,23 +91,19 @@ public class PolicyDAO
     DroolsGenerator.generate(policy);
 
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
-    policyInternalDAO.insert(em, policyInternal);
+    policyInternalDAO.insert(tx, policyInternal);
     policy.setId(policyInternal.getId());
   }
 
   public void update(Policy policy) {
-    EntityManager em = policyInternalDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      update(em, policy);
-      em.getTransaction().commit();
-    }
-    finally {
-      PolicyInternalDAO.close(em);
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+      tx.begin();
+      update(tx, policy);
+      tx.commit();
     }
   }
 
-  public void update(EntityManager em, Policy policy) {
+  public void update(TransactionContext tx, Policy policy) {
     String ownerId = policy.getOwnerId();
 
     ValidationResult validationResult = policy.validate(ownerId);
@@ -120,14 +111,14 @@ public class PolicyDAO
       throw new InvalidPolicyException(validationResult);
     }
 
-    PolicyInternal existingPolicyByName = policyInternalDAO.getByOwnerIdAndName(em, ownerId, policy.getName());
+    PolicyInternal existingPolicyByName = policyInternalDAO.getByOwnerIdAndName(tx, ownerId, policy.getName());
     if (existingPolicyByName != null && !policy.getId().equals(existingPolicyByName.getId())) {
       throw new InvalidPolicyException("A policy with name '" + existingPolicyByName.getName() + "' already exists");
     }
 
-    Policy existingPolicyById = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(em, policy.getId()));
+    Policy existingPolicyById = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(tx, policy.getId()));
 
-    validateNameWithinHierarchy(em, ownerId, policy.getName());
+    validateNameWithinHierarchy(tx, ownerId, policy.getName());
 
     // Allocate ids to new constraints
     for (Constraint constraint : policy.getConstraints()) {
@@ -140,29 +131,25 @@ public class PolicyDAO
     DroolsGenerator.generate(policy);
 
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
-    policyInternalDAO.update(em, policyInternal);
+    policyInternalDAO.update(tx, policyInternal);
   }
 
   public void delete(Policy policy) {
-    EntityManager em = policyInternalDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      delete(em, policy);
-      em.getTransaction().commit();
-    }
-    finally {
-      PolicyInternalDAO.close(em);
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+      tx.begin();
+      delete(tx, policy);
+      tx.commit();
     }
   }
 
-  public void delete(EntityManager em, Policy policy) {
+  public void delete(TransactionContext tx, Policy policy) {
     PolicyInternal policyInternal = PolicyInternal.fromPolicy(policy);
-    policyInternalDAO.delete(em, policyInternal);
+    policyInternalDAO.delete(tx, policyInternal);
   }
 
-  public void deleteByOwnerId(EntityManager em, String ownerId) {
-    for (PolicyInternal policy : policyInternalDAO.getByOwnerId(em, ownerId)) {
-      policyInternalDAO.delete(em, policy);
+  public void deleteByOwnerId(TransactionContext tx, String ownerId) {
+    for (PolicyInternal policy : policyInternalDAO.getByOwnerId(tx, ownerId)) {
+      policyInternalDAO.delete(tx, policy);
     }
   }
 
@@ -206,34 +193,26 @@ public class PolicyDAO
     return false;
   }
 
-  private void validateNameWithinHierarchy(EntityManager em, final String ownerId, final String name)
+  private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final String name)
       throws InvalidPolicyException
   {
     ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application parentApplication = applicationDAO.getById(em, ownerId);
+    Application parentApplication = applicationDAO.getById(tx, ownerId);
     if (parentApplication != null) {
       // The owner is an application
-      if (policyInternalDAO.getByOwnerIdAndName(em, parentApplication.getOrganizationId(), name) != null) {
+      if (policyInternalDAO.getByOwnerIdAndName(tx, parentApplication.getOrganizationId(), name) != null) {
         throw new InvalidPolicyException("A policy with the same name already exists" + " for the parent organization");
       }
     }
     else {
       // The owner is an organization
-      List<Application> applications = applicationDAO.getByOrganizationId(em, ownerId);
+      List<Application> applications = applicationDAO.getByOrganizationId(tx, ownerId);
       for (Application application : applications) {
-        if (policyInternalDAO.getByOwnerIdAndName(em, application.getId(), name) != null) {
+        if (policyInternalDAO.getByOwnerIdAndName(tx, application.getId(), name) != null) {
           throw new InvalidPolicyException("A policy with the same name already exists" + " for application '"
               + application.getName() + "'");
         }
       }
     }
-  }
-
-  public EntityManager createEntityManager() {
-    return policyInternalDAO.createEntityManager();
-  }
-
-  public static void close(EntityManager em) {
-    PolicyInternalDAO.close(em);
   }
 }

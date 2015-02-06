@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -81,7 +79,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.rules.ExternalResource;
@@ -325,15 +323,11 @@ public class TemporaryEntity
   public Application newApplicationWithInvalidPublicId(String invalidPublicId) {
     Application app = new Application(invalidPublicId, "App with Invalid Public ID", newOrganization().getId());
     app.setId("app_with_invalid_public_id");
-    EntityManager em = appDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      em.persist(app);
-      em.getTransaction().commit();
+    try (TransactionContext tx = appDAO.createTransactionContext()) {
+      tx.begin();
+      tx.persist(app);
+      tx.commit();
       register(app);
-    }
-    finally {
-      AbstractDAO.close(em);
     }
     return app;
   }
@@ -430,14 +424,10 @@ public class TemporaryEntity
   public Label newLabelWithInvalidLabelText(String ownerId, String labelText, Color color) {
     Label label = new Label(ownerId, labelText, color);
     label.setId("label_with_invalid_label_text");
-    EntityManager em = labelDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      em.persist(label);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = labelDAO.createTransactionContext()) {
+      tx.begin();
+      tx.persist(label);
+      tx.commit();
     }
     return label;
   }

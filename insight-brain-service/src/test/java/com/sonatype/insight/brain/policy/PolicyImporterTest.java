@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -31,6 +30,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Lists;
@@ -104,14 +104,10 @@ public class PolicyImporterTest
     
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
-    EntityManager em = labelDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      policyImporter.importAndMergeLabels(em, exportDTO, oldLabels, null, toOrg.getId());
-      em.getTransaction().commit();
-    }
-    finally {
-      LabelDAO.close(em);
+    try (TransactionContext tx = labelDAO.createTransactionContext()) {
+      tx.begin();
+      policyImporter.importAndMergeLabels(tx, exportDTO, oldLabels, null, toOrg.getId());
+      tx.commit();
     }
 
     List<Label> labels = labelDAO.getByOwnerId(toOrg.getId());
@@ -160,14 +156,10 @@ public class PolicyImporterTest
     
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
-    EntityManager em = labelDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      policyImporter.importAndMergeLabels(em, exportDTO, oldLabels, toApp.getId(), toOrg.getId());
-      em.getTransaction().commit();
-    }
-    finally {
-      LabelDAO.close(em);
+    try (TransactionContext tx = labelDAO.createTransactionContext()) {
+      tx.begin();
+      policyImporter.importAndMergeLabels(tx, exportDTO, oldLabels, toApp.getId(), toOrg.getId());
+      tx.commit();
     }
 
     List<Label> labels = labelDAO.getByOwnerId(toApp.getId());
@@ -249,14 +241,10 @@ public class PolicyImporterTest
     exportDTO.policyTags = Arrays.asList(policyTag);
 
     TagDAO tagDAO = new TagDAO();
-    EntityManager em = tagDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      policyImporter.importAndMergeTags(em, exportDTO, fromOrg.getId());
-      em.getTransaction().commit();
-    }
-    finally {
-      LabelDAO.close(em);
+    try (TransactionContext tx = tagDAO.createTransactionContext()) {
+      tx.begin();
+      policyImporter.importAndMergeTags(tx, exportDTO, fromOrg.getId());
+      tx.commit();
     }
 
     assertTag(newTag, tagDAO.getById(tag.getId()));
@@ -274,14 +262,10 @@ public class PolicyImporterTest
     exportDTO.policyTags = Arrays.asList(policyTag);
 
     TagDAO tagDAO = new TagDAO();
-    EntityManager em = tagDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      policyImporter.importAndMergeTags(em, exportDTO, fromOrg.getId());
-      em.getTransaction().commit();
-    }
-    finally {
-      LabelDAO.close(em);
+    try (TransactionContext tx = tagDAO.createTransactionContext()) {
+      tx.begin();
+      policyImporter.importAndMergeTags(tx, exportDTO, fromOrg.getId());
+      tx.commit();
     }
 
     assertThat(tagDAO.getByOrganizationId(fromOrg.getId()), hasSize(1));

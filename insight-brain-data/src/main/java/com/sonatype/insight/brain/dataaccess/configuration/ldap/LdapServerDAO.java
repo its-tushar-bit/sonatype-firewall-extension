@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -24,10 +23,10 @@ public class LdapServerDAO
 {
 
   @Override
-  public LdapServer getById(EntityManager em, String id) {
+  public LdapServer getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LdapServer entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public LdapServer getByIdNotNull(String id) {
@@ -38,7 +37,7 @@ public class LdapServerDAO
     return config;
   }
 
-  private LdapServer getByName(EntityManager em, String name) {
+  private LdapServer getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The LdapServer name cannot be null or empty.");
     }
@@ -46,16 +45,12 @@ public class LdapServerDAO
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM LdapServer entity" + //
         " WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(em, sQuery, name);
+    return get(tx, sQuery, name);
   }
 
   public LdapServer getByName(String name) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByName(em, name);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
     }
   }
 
@@ -66,33 +61,33 @@ public class LdapServerDAO
   }
 
   @Override
-  public void insert(EntityManager em, LdapServer config) {
+  public void insert(TransactionContext tx, LdapServer config) {
     NameHelper.validate(config.getName());
 
-    if (getByName(em, config.getName()) != null) {
+    if (getByName(tx, config.getName()) != null) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
 
-    super.insert(em, config);
+    super.insert(tx, config);
   }
 
   @Override
-  public void update(EntityManager em, LdapServer config) {
+  public void update(TransactionContext tx, LdapServer config) {
     NameHelper.validate(config.getName());
 
-    LdapServer existingConfig = getByName(em, config.getName());
+    LdapServer existingConfig = getByName(tx, config.getName());
     if (existingConfig != null && !existingConfig.getId().equals(config.getId())) {
       throw new InvalidNameException(config.getName() + " is already used as a name.");
     }
 
-    super.update(em, config);
+    super.update(tx, config);
   }
 
   
   @Override
-  public void delete(EntityManager em, LdapServer entity) {
-    new LdapConnectionDAO().deleteByServerId(em, entity.getId());
-    new LdapUserMappingDAO().deleteByServerId(em, entity.getId());
-    super.delete(em, entity);
+  public void delete(TransactionContext tx, LdapServer entity) {
+    new LdapConnectionDAO().deleteByServerId(tx, entity.getId());
+    new LdapUserMappingDAO().deleteByServerId(tx, entity.getId());
+    super.delete(tx, entity);
   }
 }

@@ -5,10 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -19,10 +18,10 @@ public class LdapConnectionDAO
 {
 
   @Override
-  public LdapConnection getById(EntityManager em, String id) {
+  public LdapConnection getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LdapConnection entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public LdapConnection getByIdNotNull(String id) {
@@ -34,25 +33,25 @@ public class LdapConnectionDAO
   }
 
   public LdapConnection getByServerId(String serverId) {
-    EntityManager em = createEntityManager();
+    TransactionContext tx = createTransactionContext();
     try {
-      return getByServerId(em, serverId);
+      return getByServerId(tx, serverId);
     }
     finally {
-      em.close();
+      tx.close();
     }
   }
 
-  public LdapConnection getByServerId(EntityManager em, String serverId) {
+  public LdapConnection getByServerId(TransactionContext tx, String serverId) {
     String sQuery = "SELECT entity FROM LdapConnection entity" + //
         " WHERE entity.serverId=?1";
-    return get(em, sQuery, serverId);
+    return get(tx, sQuery, serverId);
   }
 
-  public void deleteByServerId(EntityManager em, String id) {
-    LdapConnection conn = getByServerId(em, id);
+  public void deleteByServerId(TransactionContext tx, String id) {
+    LdapConnection conn = getByServerId(tx, id);
     if (conn != null) {
-      delete(em, conn);
+      delete(tx, conn);
     }
   }
 

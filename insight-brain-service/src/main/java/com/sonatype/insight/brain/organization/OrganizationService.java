@@ -11,7 +11,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -24,7 +23,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,23 +83,19 @@ public class OrganizationService
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
       throws IOException
   {
-    EntityManager em = organizationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      deleteOrganization(em, organizationId);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = organizationDAO.createTransactionContext()) {
+      tx.begin();
+      deleteOrganization(tx, organizationId);
+      tx.commit();
     }
   }
 
-  private void deleteOrganization(final EntityManager em, final String organizationId) throws IOException {
-    Organization organization = organizationDAO.getByIdNotNull(em, organizationId);
+  private void deleteOrganization(final TransactionContext tx, final String organizationId) throws IOException {
+    Organization organization = organizationDAO.getByIdNotNull(tx, organizationId);
 
     // cascade to applications first
-    for (Application application : new ApplicationDAO().getByOrganizationId(em, organizationId)) {
-      applicationCleaner.delete(em, application);
+    for (Application application : new ApplicationDAO().getByOrganizationId(tx, organizationId)) {
+      applicationCleaner.delete(tx, application);
     }
 
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organizationId);
@@ -112,6 +107,6 @@ public class OrganizationService
     }
 
     // delete organization last, this way the operation can be retried later if anything goes wrong
-    organizationDAO.delete(em, organization);
+    organizationDAO.delete(tx, organization);
   }
 }

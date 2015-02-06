@@ -10,7 +10,6 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -21,7 +20,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonStore;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -79,9 +78,8 @@ public class PolicyMigrator
         OrganizationDAO orgDAO = new OrganizationDAO();
         ApplicationDAO appDAO = new ApplicationDAO();
         PolicyDAO policyDAO = new PolicyDAO();
-        EntityManager em = orgDAO.createEntityManager();
-        try {
-          em.getTransaction().begin();
+        try (TransactionContext tx = orgDAO.createTransactionContext()) {
+          tx.begin();
 
           for (File policyDir : policyDirs) {
             if (!policyDir.isDirectory()) {
@@ -90,9 +88,9 @@ public class PolicyMigrator
 
             String ownerId = policyDir.getName();
             String ownerName;
-            Application app = appDAO.getById(em, ownerId);
+            Application app = appDAO.getById(tx, ownerId);
             if (app == null) {
-              Organization org = orgDAO.getById(em, ownerId);
+              Organization org = orgDAO.getById(tx, ownerId);
               if (org == null) {
                 log.info("Cannot find an application or organization with id {}. It was probably deleted.", ownerId);
                 continue;
@@ -120,16 +118,13 @@ public class PolicyMigrator
               policy.setOwnerId(ownerId);
               // we need to migrate the procure items out now, otherwise we will be inserting invalid data into the database
               procureMigrator.pruneProcurement(policy);
-              policyDAO.insert(em, policy);
+              policyDAO.insert(tx, policy);
             }
             log.info("Migrated {} policies for application or organization {} (id {}).", policyJsonData.size(),
                 ownerName, ownerId);
           }
 
-          em.getTransaction().commit();
-        }
-        finally {
-          AbstractDAO.close(em);
+          tx.commit();
         }
       }
     }

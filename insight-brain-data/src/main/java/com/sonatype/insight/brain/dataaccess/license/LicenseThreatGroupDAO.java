@@ -9,8 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -19,6 +17,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
@@ -31,20 +30,16 @@ public class LicenseThreatGroupDAO
 
   private static final Logger log = LoggerFactory.getLogger(LicenseThreatGroupDAO.class);
 
-  public List<LicenseThreatGroup> getByOwnerId(EntityManager em, String ownerId) {
+  public List<LicenseThreatGroup> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
         " WHERE entity.ownerId=?1" + //
         " ORDER BY entity.name";
-    return getList(em, sQuery, ownerId);
+    return getList(tx, sQuery, ownerId);
   }
 
   public List<LicenseThreatGroup> getByOwnerId(String ownerId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOwnerId(em, ownerId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerId(tx, ownerId);
     }
   }
 
@@ -57,14 +52,14 @@ public class LicenseThreatGroupDAO
   }
 
   @Override
-  protected LicenseThreatGroup getById(EntityManager em, String id) {
+  protected LicenseThreatGroup getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
-  LicenseThreatGroup getByIdNotNull(EntityManager em, String id) {
-    LicenseThreatGroup licenseThreatGroup = getById(em, id);
+  LicenseThreatGroup getByIdNotNull(TransactionContext tx, String id) {
+    LicenseThreatGroup licenseThreatGroup = getById(tx, id);
     if (licenseThreatGroup == null) {
       throw new NotFoundException("Cannot find a license threat group with ID " + id + ".");
     }
@@ -72,61 +67,53 @@ public class LicenseThreatGroupDAO
   }
 
   public LicenseThreatGroup getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
   public LicenseThreatGroup getByOwnerIdAndName(String ownerId, String name) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOwnerIdAndName(em, ownerId, name);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndName(tx, ownerId, name);
     }
   }
 
-  public LicenseThreatGroup getByOwnerIdAndName(EntityManager em, String ownerId, String name) {
+  public LicenseThreatGroup getByOwnerIdAndName(TransactionContext tx, String ownerId, String name) {
     name = NameHelper.normalize(name);
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
         " WHERE entity.ownerId=?1 AND entity.nameLowercaseNoWhitespace=?2";
-    return get(em, sQuery, ownerId, name);
+    return get(tx, sQuery, ownerId, name);
   }
 
   @Override
-  public void insert(EntityManager em, LicenseThreatGroup licenseThreatGroup) {
+  public void insert(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     validateThreatLevel(licenseThreatGroup.getThreatLevel());
 
-    validateName(em, licenseThreatGroup);
-    if (getByOwnerIdAndName(em, licenseThreatGroup.getOwnerId(), licenseThreatGroup.getName()) != null) {
+    validateName(tx, licenseThreatGroup);
+    if (getByOwnerIdAndName(tx, licenseThreatGroup.getOwnerId(), licenseThreatGroup.getName()) != null) {
       throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists.");
     }
 
-    super.insert(em, licenseThreatGroup);
+    super.insert(tx, licenseThreatGroup);
   }
 
-  private void validateName(EntityManager em, LicenseThreatGroup licenseThreatGroup) {
+  private void validateName(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     NameHelper.validate(licenseThreatGroup.getName());
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application parentApplication = applicationDAO.getById(em, licenseThreatGroup.getOwnerId());
+    Application parentApplication = applicationDAO.getById(tx, licenseThreatGroup.getOwnerId());
     if (parentApplication != null) {
       // The owner is an application
-      if (getByOwnerIdAndName(em, parentApplication.getOrganizationId(), licenseThreatGroup.getName()) != null) {
+      if (getByOwnerIdAndName(tx, parentApplication.getOrganizationId(), licenseThreatGroup.getName()) != null) {
         throw new InvalidLicenseThreatGroupException(
             "A license threat group with the same name already exists for the parent organization.");
       }
     }
     else {
       // The owner is an organization
-      List<Application> applications = applicationDAO.getByOrganizationId(em, licenseThreatGroup.getOwnerId());
+      List<Application> applications = applicationDAO.getByOrganizationId(tx, licenseThreatGroup.getOwnerId());
       for (Application application : applications) {
-        if (getByOwnerIdAndName(em, application.getId(), licenseThreatGroup.getName()) != null) {
+        if (getByOwnerIdAndName(tx, application.getId(), licenseThreatGroup.getName()) != null) {
           throw new InvalidLicenseThreatGroupException(
               "A license threat group with the same name already exists for application '" + application.getName()
                   + "'.");
@@ -136,17 +123,17 @@ public class LicenseThreatGroupDAO
   }
 
   @Override
-  public void update(EntityManager em, LicenseThreatGroup licenseThreatGroup) {
+  public void update(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     validateThreatLevel(licenseThreatGroup.getThreatLevel());
 
-    validateName(em, licenseThreatGroup);
-    LicenseThreatGroup otherLicenseThreatGroup = getByOwnerIdAndName(em, licenseThreatGroup.getOwnerId(),
+    validateName(tx, licenseThreatGroup);
+    LicenseThreatGroup otherLicenseThreatGroup = getByOwnerIdAndName(tx, licenseThreatGroup.getOwnerId(),
         licenseThreatGroup.getName());
     if (otherLicenseThreatGroup != null && !otherLicenseThreatGroup.getId().equals(licenseThreatGroup.getId())) {
       throw new InvalidLicenseThreatGroupException("A license threat group with the same name already exists.");
     }
 
-    super.update(em, licenseThreatGroup);
+    super.update(tx, licenseThreatGroup);
   }
 
   private void validateThreatLevel(int threatLevel) {
@@ -156,17 +143,17 @@ public class LicenseThreatGroupDAO
   }
 
   @Override
-  public void delete(EntityManager em, LicenseThreatGroup licenseThreatGroup) {
+  public void delete(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
     List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO
-        .getByLicenseThreatGroupId(em, licenseThreatGroup.getId());
+        .getByLicenseThreatGroupId(tx, licenseThreatGroup.getId());
     for (LicenseThreatGroupLicense licenseThreatGroupLicense : licenseThreatGroupLicenses) {
-      licenseThreatGroupLicenseDAO.delete(em, licenseThreatGroupLicense);
+      licenseThreatGroupLicenseDAO.delete(tx, licenseThreatGroupLicense);
     }
-    super.delete(em, licenseThreatGroup);
+    super.delete(tx, licenseThreatGroup);
   }
 
-  public void createDefaultGroups(EntityManager em, String ownerId) {
+  public void createDefaultGroups(TransactionContext tx, String ownerId) {
     long start = System.currentTimeMillis();
 
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
@@ -205,14 +192,14 @@ public class LicenseThreatGroupDAO
         licenseThreatGroup.setOwnerId(ownerId);
         licenseThreatGroup.setName(licenseThreatGroupName);
         licenseThreatGroup.setThreatLevel(threatLevel);
-        insert(em, licenseThreatGroup);
+        insert(tx, licenseThreatGroup);
         licenseThreatGroupsByName.put(licenseThreatGroupName, licenseThreatGroup);
       }
       LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
       licenseThreatGroupLicense.setOwnerId(ownerId);
       licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
       licenseThreatGroupLicense.setLicenseId(license.getId());
-      licenseThreatGroupLicenseDAO.insert(em, licenseThreatGroupLicense);
+      licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
     }
 
     log.debug("Created default license threat groups for owner id {} in {} ms.", ownerId, System.currentTimeMillis()

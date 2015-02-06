@@ -12,7 +12,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -39,6 +38,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -87,32 +87,28 @@ public class PolicyImporterImpl
 
     String appId = application.getId();
     String orgId = application.getOrganizationId();
-    EntityManager em = applicationDAO.createEntityManager();
 
-    try {
-      em.getTransaction().begin();
-      deleteLicenseThreatGroups(em, appId, null);
-      deletePolicyWaivers(em, appId, null);
-      policyDAO.deleteByOwnerId(em, appId);
-      importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, appId), appId, orgId);
-      importLicenseThreatGroups(em, exportDTO, appId);
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      deleteLicenseThreatGroups(tx, appId, null);
+      deletePolicyWaivers(tx, appId, null);
+      policyDAO.deleteByOwnerId(tx, appId);
+      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, appId), appId, orgId);
+      importLicenseThreatGroups(tx, exportDTO, appId);
       // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
       // db tables for policy condition validations.
       // If everything was done in one transaction here, then all policy related validation methods need to participate
-      // in the same transaction, so they would need to take an EntityManager as param, which is not worth it in my
+      // in the same transaction, so they would need to take a TransactionContext as param, which is not worth it in my
       // opinion.
-      em.getTransaction().commit();
+      tx.commit();
 
-      em.getTransaction().begin();
+      tx.begin();
       for (Policy policy : exportDTO.policies) {
         policy.setId(null);
         policy.setOwnerId(appId);
-        policyDAO.insert(em, policy);
+        policyDAO.insert(tx, policy);
       }
-      em.getTransaction().commit();
-    }
-    finally {
-      ApplicationDAO.close(em);
+      tx.commit();
     }
 
     return createResult(application.getName(), application.getPublicId(), TYPE_APPLICATION);
@@ -123,41 +119,37 @@ public class PolicyImporterImpl
     checkOrgImportPreconditions(organization, exportDTO);
 
     String orgId = organization.getId();
-    EntityManager em = organizationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
+    try (TransactionContext tx = organizationDAO.createTransactionContext()) {
+      tx.begin();
 
-      deleteFromOwnedApplications(em, orgId);
-      deletePolicyWaivers(em, orgId, null);
-      deleteLicenseThreatGroups(em, orgId, null);
-      policyDAO.deleteByOwnerId(em, orgId);
-      for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
-        policyDAO.deleteByOwnerId(em, application.getId());
+      deleteFromOwnedApplications(tx, orgId);
+      deletePolicyWaivers(tx, orgId, null);
+      deleteLicenseThreatGroups(tx, orgId, null);
+      policyDAO.deleteByOwnerId(tx, orgId);
+      for (Application application : applicationDAO.getByOrganizationId(tx, orgId)) {
+        policyDAO.deleteByOwnerId(tx, application.getId());
       }
-      importAndMergeLabels(em, exportDTO, labelDAO.getByOwnerId(em, orgId), null, orgId);
-      importLicenseThreatGroups(em, exportDTO, orgId);
-      importAndMergeTags(em, exportDTO, orgId);
+      importAndMergeLabels(tx, exportDTO, labelDAO.getByOwnerId(tx, orgId), null, orgId);
+      importLicenseThreatGroups(tx, exportDTO, orgId);
+      importAndMergeTags(tx, exportDTO, orgId);
 
       Map<String, List<PolicyTag>> policyTagsByPolicyId = getPolicyTagsByPolicyId(exportDTO.policyTags);
       // Must commit before inserting the policies because policy insert() calls validate(), which needs to access some
       // db tables for policy condition validations.
       // If everything was done in one transaction here, then all policy related validation methods need to participate
-      // in the same transaction, so they would need to take an EntityManager as param, which is not worth it in my
+      // in the same transaction, so they would need to take a TransactionContext as param, which is not worth it in my
       // opinion.
-      em.getTransaction().commit();
+      tx.commit();
 
-      em.getTransaction().begin();
+      tx.begin();
       for (Policy policy : exportDTO.policies) {
         List<PolicyTag> policyTags = policyTagsByPolicyId.get(policy.getId());
         policy.setId(null);
         policy.setOwnerId(orgId);
         policyDAO.insert(policy);
-        importPolicyTags(em, policy.getId(), policyTags);
+        importPolicyTags(tx, policy.getId(), policyTags);
       }
-      em.getTransaction().commit();
-    }
-    finally {
-      OrganizationDAO.close(em);
+      tx.commit();
     }
 
     return createResult(organization.getName(), orgId, TYPE_ORGANIZATION);
@@ -166,51 +158,51 @@ public class PolicyImporterImpl
   /**
    * Delete all LTGs and waivers from an organization's child applications.
    */
-  private void deleteFromOwnedApplications(EntityManager em, String orgId) {
-    for (Application application : applicationDAO.getByOrganizationId(em, orgId)) {
-      deleteLicenseThreatGroups(em, application.getId(), orgId);
-      deletePolicyWaivers(em, application.getId(), orgId);
+  private void deleteFromOwnedApplications(TransactionContext tx, String orgId) {
+    for (Application application : applicationDAO.getByOrganizationId(tx, orgId)) {
+      deleteLicenseThreatGroups(tx, application.getId(), orgId);
+      deletePolicyWaivers(tx, application.getId(), orgId);
     }
   }
 
   /**
    * Delete all LTGs from the specified owner.
    */
-  private void deleteLicenseThreatGroups(EntityManager em, String ownerId, String orgId) {
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(em, ownerId);
+  private void deleteLicenseThreatGroups(TransactionContext tx, String ownerId, String orgId) {
+    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, ownerId);
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       log.debug("Deleting licenseThreatGroup: {} during import for ownerId: {}", licenseThreatGroup.getName(),
           orgId != null ? orgId : ownerId);
-      licenseThreatGroupDAO.delete(em, licenseThreatGroup);
+      licenseThreatGroupDAO.delete(tx, licenseThreatGroup);
     }
   }
 
   /**
    * Delete all PolicyWaivers from the specified owner.
    */
-  private void deletePolicyWaivers(EntityManager em, String ownerId, final String orgId) {
-    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(em, ownerId)) {
+  private void deletePolicyWaivers(TransactionContext tx, String ownerId, final String orgId) {
+    for (PolicyWaiver policyWaiver : policyWaiverDAO.getByOwnerId(tx, ownerId)) {
       log.debug("Deleting policyWaiver: {} during import for ownerId: {}", policyWaiver.getId(), orgId != null ? orgId
           : ownerId);
-      policyWaiverDAO.delete(em, policyWaiver);
+      policyWaiverDAO.delete(tx, policyWaiver);
     }
   }
 
   /**
    * Will import LicenseThreatGroup and LicenseThreatGroupLicense information from the exportDTO.
    * 
-   * @param em entityManager for sharing transaction
+   * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param ownerId the org/app id to import to
    */
-  private void importLicenseThreatGroups(EntityManager em, PolicyExportResult exportDTO, String ownerId) {
+  private void importLicenseThreatGroups(TransactionContext tx, PolicyExportResult exportDTO, String ownerId) {
     if (!exportDTO.licenseThreatGroups.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
         String oldId = licenseThreatGroup.getId();
         licenseThreatGroup.setId(null);
         licenseThreatGroup.setOwnerId(ownerId);
-        licenseThreatGroupDAO.insert(em, licenseThreatGroup);
+        licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
         idMap.put(oldId, licenseThreatGroup.getId());
       }
       for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
@@ -218,7 +210,7 @@ public class PolicyImporterImpl
         licenseThreatGroupLicense.setOwnerId(ownerId);
         licenseThreatGroupLicense
             .setLicenseThreatGroupId(idMap.get(licenseThreatGroupLicense.getLicenseThreatGroupId()));
-        licenseThreatGroupLicenseDAO.insert(em, licenseThreatGroupLicense);
+        licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
       }
       for (Policy policy : exportDTO.policies) {
         for (Constraint constraint : policy.getConstraints()) {
@@ -235,20 +227,20 @@ public class PolicyImporterImpl
   /**
    * Will import and update existing labels or add new ones mentioned in the exportDTO.
    * 
-   * @param em entityManager for sharing transaction
+   * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param oldLabels already persisted labels
    * @param applicationId the applicationId owning the labels(may be null if we're processing an organization)
    * @param organizationId the organizationId owning the labels; if applicationId is not set this organization will be
    *          updated
    */
-  void importAndMergeLabels(final EntityManager em, final PolicyExportResult exportDTO, final List<Label> oldLabels,
+  void importAndMergeLabels(final TransactionContext tx, final PolicyExportResult exportDTO, final List<Label> oldLabels,
       final String applicationId, final String organizationId)
   {
     if (!exportDTO.labels.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       if (applicationId != null && organizationId != null) {
-        for (Label label : labelDAO.getByOwnerId(em, organizationId)) {
+        for (Label label : labelDAO.getByOwnerId(tx, organizationId)) {
           idMap.put(label.getId(), label.getId());
         }
       }
@@ -260,14 +252,14 @@ public class PolicyImporterImpl
           existingLabel.setLabel(label.getLabel());
           existingLabel.setColor(label.getColor());
           existingLabel.setDescription(label.getDescription());
-          labelDAO.update(em, existingLabel);
+          labelDAO.update(tx, existingLabel);
           idMap.put(labelId, existingLabel.getId());
         }
         else {
           // New label, create it.
           label.setId(null);
           label.setOwnerId(applicationId != null ? applicationId : organizationId);
-          labelDAO.insert(em, label);
+          labelDAO.insert(tx, label);
           idMap.put(labelId, label.getId());
         }
       }
@@ -289,27 +281,27 @@ public class PolicyImporterImpl
    * If the Tag already exists on the specified Org, it is updated to reflect the passed in Tag
    * If the Tag does not exist, it is created
    * 
-   * @param em entityManager for sharing transaction
+   * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
    * @param orgId the organization owning the tags
    */
-  void importAndMergeTags(final EntityManager em, final PolicyExportResult exportDTO, final String orgId) {
+  void importAndMergeTags(final TransactionContext tx, final PolicyExportResult exportDTO, final String orgId) {
     if (!exportDTO.tags.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
       for (Tag tag : exportDTO.tags) {
         String oldId = tag.getId();
-        Tag existingTag = tagDAO.getByOrganizationIdAndName(em, orgId, tag.getName());
+        Tag existingTag = tagDAO.getByOrganizationIdAndName(tx, orgId, tag.getName());
         if (existingTag != null) {
           // Existing tag, update it
           tag.setId(existingTag.getId());
           tag.setOrganizationId(orgId);
-          tagDAO.update(em, tag);
+          tagDAO.update(tx, tag);
         }
         else {
           // New tag, create it
           tag.setId(null);
           tag.setOrganizationId(orgId);
-          tagDAO.insert(em, tag);
+          tagDAO.insert(tx, tag);
         }
         idMap.put(oldId, tag.getId());
       }
@@ -326,12 +318,12 @@ public class PolicyImporterImpl
    * The id on the passed in PolicyTags is no longer valid, since the policies
    * get new ids when imported
    */
-  private void importPolicyTags(EntityManager em, String policyId, List<PolicyTag> policyTags) {
+  private void importPolicyTags(TransactionContext tx, String policyId, List<PolicyTag> policyTags) {
     if (policyTags != null) {
       for (PolicyTag policyTag : policyTags) {
         policyTag.setId(null);
         policyTag.setPolicyId(policyId);
-        policyTagDAO.insert(em, policyTag);
+        policyTagDAO.insert(tx, policyTag);
       }
     }
   }

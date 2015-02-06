@@ -5,73 +5,64 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 public class HashComponentIdentifierDAO
     extends AbstractOperationalSqlDAO<HashComponentIdentifier>
 {
   @Override
-  protected HashComponentIdentifier getById(EntityManager em, String id) {
+  protected HashComponentIdentifier getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public HashComponentIdentifier getByHash(String hash) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByHash(em, hash);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByHash(tx, hash);
     }
   }
 
-  private HashComponentIdentifier getByHash(EntityManager em, String hash) {
+  private HashComponentIdentifier getByHash(TransactionContext tx, String hash) {
     // Note that our truncated representation of the hash is what is stored, hence the transformation on the input
     // hash.
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.hash=?1";
-    return get(em, sQuery, HashHelper.truncateHash(hash));
+    return get(tx, sQuery, HashHelper.truncateHash(hash));
   }
 
-  private HashComponentIdentifier getByComponentIdentifier(EntityManager em, ComponentIdentifier componentIdentifier)
+  private HashComponentIdentifier getByComponentIdentifier(TransactionContext tx, ComponentIdentifier componentIdentifier)
   {
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
-    return get(em, sQuery, componentIdentifier.getFormat(),
+    return get(tx, sQuery, componentIdentifier.getFormat(),
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
   }
 
   @Override
-  public void insert(EntityManager em, HashComponentIdentifier entity) {
-    HashComponentIdentifier other = getByHash(em, entity.getHash());
+  public void insert(TransactionContext tx, HashComponentIdentifier entity) {
+    HashComponentIdentifier other = getByHash(tx, entity.getHash());
     if (other != null) {
       throw new BadRequestException("This component is already mapped to '"
           + ComponentDisplayNameUtil.fromIdentifier(other.getComponentIdentifier()) + "'.");
     }
-    other = getByComponentIdentifier(em, entity.getComponentIdentifier());
+    other = getByComponentIdentifier(tx, entity.getComponentIdentifier());
     if (other != null) {
       throw new BadRequestException("Another component is already mapped to '"
           + ComponentDisplayNameUtil.fromIdentifier(other.getComponentIdentifier()) + "'.");
     }
-    super.insert(em, entity);
+    super.insert(tx, entity);
   }
 
   public HashComponentIdentifier getByComponentIdentifier(ComponentIdentifier componentIdentifier) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByComponentIdentifier(em, componentIdentifier);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByComponentIdentifier(tx, componentIdentifier);
     }
   }
 }

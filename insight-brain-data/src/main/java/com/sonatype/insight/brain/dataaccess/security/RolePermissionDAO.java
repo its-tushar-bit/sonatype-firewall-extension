@@ -13,11 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.7
@@ -28,35 +27,31 @@ public class RolePermissionDAO
   private static volatile Map<Permission, Set<String>> roleIdsByPermission;
 
   private List<RolePermission> getByRoleId(String roleId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByRoleId(em, roleId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRoleId(tx, roleId);
     }
   }
 
-  List<RolePermission> getByRoleId(EntityManager em, String roleId) {
+  List<RolePermission> getByRoleId(TransactionContext tx, String roleId) {
     String sQuery = "SELECT entity FROM RolePermission entity WHERE entity.roleId=?1";
-    return getList(em, sQuery, roleId);
+    return getList(tx, sQuery, roleId);
   }
 
   @Override
-  public void insert(EntityManager em, RolePermission entity) {
-    super.insert(em, entity);
+  public void insert(TransactionContext tx, RolePermission entity) {
+    super.insert(tx, entity);
     roleIdsByPermission = null;
   }
 
   @Override
-  public void update(EntityManager em, RolePermission entity) {
-    super.update(em, entity);
+  public void update(TransactionContext tx, RolePermission entity) {
+    super.update(tx, entity);
     roleIdsByPermission = null;
   }
 
   @Override
-  public void delete(EntityManager em, RolePermission entity) {
-    super.delete(em, entity);
+  public void delete(TransactionContext tx, RolePermission entity) {
+    super.delete(tx, entity);
     roleIdsByPermission = null;
   }
 

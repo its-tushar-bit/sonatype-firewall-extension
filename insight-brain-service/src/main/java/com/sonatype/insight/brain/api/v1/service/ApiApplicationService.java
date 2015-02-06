@@ -13,7 +13,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.api.v1.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationDTO;
@@ -31,7 +30,7 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.11.0
@@ -95,19 +94,15 @@ public class ApiApplicationService
 
     Application application = apiApplicationAdapter.convertFromDTO(applicationDTO);
 
-    EntityManager entityManager = applicationTagDAO.createEntityManager();
-    try {
-      entityManager.getTransaction().begin();
+    try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
+      tx.begin();
 
-      application = addApplication(entityManager, application);
+      application = addApplication(tx, application);
       List<ApplicationTag> applicationTags = apiApplicationTagAdapter
           .convertFromDTO(application.getId(), applicationDTO.applicationTags);
-      addTags(entityManager, applicationTags);
+      addTags(tx, applicationTags);
 
-      entityManager.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(entityManager);
+      tx.commit();
     }
 
     ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
@@ -119,19 +114,15 @@ public class ApiApplicationService
 
   public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO) {
     Application application = apiApplicationAdapter.convertFromDTO(applicationDTO);
-    EntityManager entityManager = applicationTagDAO.createEntityManager();
-    try {
-      entityManager.getTransaction().begin();
+    try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
+      tx.begin();
 
-      application = updateApplication(entityManager, application);
+      application = updateApplication(tx, application);
       List<ApplicationTag> applicationTags = apiApplicationTagAdapter
           .convertFromDTO(application.getId(), applicationDTO.applicationTags);
-      updateTags(entityManager, application, applicationTags);
+      updateTags(tx, application, applicationTags);
 
-      entityManager.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(entityManager);
+      tx.commit();
     }
 
     ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
@@ -149,17 +140,17 @@ public class ApiApplicationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  Application addApplication(final EntityManager entityManager,
+  Application addApplication(final TransactionContext tx,
       @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
   {
-    return applicationHelper.addApplication(entityManager, application);
+    return applicationHelper.addApplication(tx, application);
   }
 
   @Authorize(permission = Permission.WRITE)
-  Application updateApplication(final EntityManager entityManager,
+  Application updateApplication(final TransactionContext tx,
       @AuthzContext(AuthzContext.Key.APPLICATION) final Application application)
   {
-    applicationDAO.update(entityManager, application);
+    applicationDAO.update(tx, application);
     return application;
   }
 
@@ -188,28 +179,28 @@ public class ApiApplicationService
     return applications;
   }
 
-  private void addTags(final EntityManager entityManager, final List<ApplicationTag> applicationTags) {
+  private void addTags(final TransactionContext tx, final List<ApplicationTag> applicationTags) {
     for (ApplicationTag applicationTag : applicationTags) {
       if (applicationTag.getTagId() == null) {
         throw new InvalidApplicationException("Application tag must have an ID.");
       }
-      applicationTagDAO.insert(entityManager, applicationTag);
+      applicationTagDAO.insert(tx, applicationTag);
     }
   }
 
-  private void updateTags(final EntityManager entityManager, final Application application,
+  private void updateTags(final TransactionContext tx, final Application application,
       final List<ApplicationTag> applicationTags)
   {
     // Delete existing tags
-    for (ApplicationTag applicationTag : applicationTagDAO.getByApplicationId(entityManager, application.getId())) {
-      applicationTagDAO.delete(entityManager, applicationTag);
+    for (ApplicationTag applicationTag : applicationTagDAO.getByApplicationId(tx, application.getId())) {
+      applicationTagDAO.delete(tx, applicationTag);
     }
     // Now add the new tags
     for (ApplicationTag applicationTag : applicationTags) {
       if (applicationTag.getTagId() == null) {
         throw new InvalidApplicationException("Application tag must have an ID.");
       }
-      applicationTagDAO.insert(entityManager, applicationTag);
+      applicationTagDAO.insert(tx, applicationTag);
     }
   }
 

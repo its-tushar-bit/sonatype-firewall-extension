@@ -6,13 +6,13 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.12
@@ -25,11 +25,11 @@ public class LastPolicyEvaluationDAO
   private EntityManagerFactory entityManagerFactory = OperationalDataStoreProvider.getJPAEntityManagerFactory();
 
   @Override
-  public EntityManager createEntityManager() {
-    return entityManagerFactory.createEntityManager();
+  public TransactionContext createTransactionContext() {
+    return new TransactionContext(entityManagerFactory.createEntityManager());
   }
 
-  public void insertIfPossibleLastPolicyEvaluation(final EntityManager em, final String applicationId,
+  public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx, final String applicationId,
       final String stageTypeId)
   {
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
@@ -41,63 +41,55 @@ public class LastPolicyEvaluationDAO
         "ORDER BY e.time DESC";
 
     PolicyEvaluation newestPolicyEvaluation = policyEvaluationDAO.createQuery(sQuery, applicationId, stageTypeId)
-        .forceSingleResult().get(em);
+        .forceSingleResult().get(tx);
     if (newestPolicyEvaluation != null) {
-      insert(em,
+      insert(tx,
           new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getApplicationId(),
               newestPolicyEvaluation.getStageTypeId()));
     }
   }
 
-  public void deleteForApplicationIdAndStageTypeId(final EntityManager em, final String applicationId,
+  public void deleteForApplicationIdAndStageTypeId(final TransactionContext tx, final String applicationId,
       final String stageTypeId)
   {
-    LastPolicyEvaluation lpe = getByApplicationIdAndStageTypeId(em, applicationId, stageTypeId);
+    LastPolicyEvaluation lpe = getByApplicationIdAndStageTypeId(tx, applicationId, stageTypeId);
     if (lpe != null) {
-      delete(em, lpe);
+      delete(tx, lpe);
     }
   }
 
-  public LastPolicyEvaluation getByEvaluationId(final EntityManager em, final String evaluationId) {
+  public LastPolicyEvaluation getByEvaluationId(final TransactionContext tx, final String evaluationId) {
     String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
         " WHERE entity.policyEvaluationId=?1";
-    return createQuery(sQuery, evaluationId).forceSingleResult().get(em);
+    return createQuery(sQuery, evaluationId).forceSingleResult().get(tx);
   }
 
   public LastPolicyEvaluation getByEvaluationId(final String evaluationId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByEvaluationId(em, evaluationId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByEvaluationId(tx, evaluationId);
     }
   }
 
-  public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final EntityManager em, final String applicationId,
+  public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final TransactionContext tx, final String applicationId,
       final String stageTypeId)
   {
     String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1" + //
         " AND entity.stageTypeId = ?2";
-    return get(em, sQuery, applicationId, stageTypeId);
+    return get(tx, sQuery, applicationId, stageTypeId);
   }
 
   public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final String applicationId,
       final String stageTypeId)
   {
-    EntityManager em = createEntityManager();
-    try {
-      return getByApplicationIdAndStageTypeId(em, applicationId, stageTypeId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndStageTypeId(tx, applicationId, stageTypeId);
     }
   }
 
 
   @Override
-  public void update(EntityManager em, LastPolicyEvaluation entity) {
+  public void update(TransactionContext tx, LastPolicyEvaluation entity) {
     throw new UnsupportedOperationException("The LastPolicyEvaluation table does not support update operations");
   }
 }

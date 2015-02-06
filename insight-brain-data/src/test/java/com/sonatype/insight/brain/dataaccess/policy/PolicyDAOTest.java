@@ -10,8 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -25,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Assert;
@@ -446,14 +445,10 @@ public class PolicyDAOTest
     policyDAO.insert(policy1);
     Assert.assertEquals(1, policyDAO.getByOwnerId(applicationId).size());
 
-    EntityManager em = new PolicyInternalDAO().createEntityManager();
-    try {
-      em.getTransaction().begin();
-      policyDAO.deleteByOwnerId(em, applicationId);
-      em.getTransaction().commit();
-    }
-    finally {
-      PolicyInternalDAO.close(em);
+    try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
+      tx.begin();
+      policyDAO.deleteByOwnerId(tx, applicationId);
+      tx.commit();
     }
     Assert.assertEquals(0, policyDAO.getByOwnerId(applicationId).size());
   }

@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.dataaccess.label;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -19,6 +17,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class LabelDAO
@@ -34,24 +33,20 @@ public class LabelDAO
   }
 
   public List<Label> getByOwnerId(String ownerId, boolean inherit) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByOwnerId(em, ownerId, inherit);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerId(tx, ownerId, inherit);
     }
   }
 
-  public List<Label> getByOwnerId(EntityManager em, String ownerId) {
-    return getByOwnerId(em, ownerId, false);
+  public List<Label> getByOwnerId(TransactionContext tx, String ownerId) {
+    return getByOwnerId(tx, ownerId, false);
   }
 
   /**
    * @param inherit inherit boolean if {@code true} the returned list will include labels inherited from organization
    *          hierarchy
    */
-  public List<Label> getByOwnerId(EntityManager em, String ownerId, boolean inherit) {
+  public List<Label> getByOwnerId(TransactionContext tx, String ownerId, boolean inherit) {
     final String sQuery = "SELECT label FROM Label label" + //
         " WHERE label.ownerId=?1" + //
         " ORDER BY label.labelLowercase";
@@ -60,10 +55,10 @@ public class LabelDAO
       final ApplicationDAO applicationDAO = new ApplicationDAO();
       final Application application = applicationDAO.getById(ownerId);
       if (application != null) {
-        labels.addAll(getList(em, sQuery, application.getOrganizationId()));
+        labels.addAll(getList(tx, sQuery, application.getOrganizationId()));
       }
     }
-    labels.addAll(getList(em, sQuery, ownerId));
+    labels.addAll(getList(tx, sQuery, ownerId));
     return labels;
   }
 
@@ -82,37 +77,37 @@ public class LabelDAO
     return getList(sQuery, ownerId, hash);
   }
 
-  public Label getByOwnerIdAndLabelLowercase(EntityManager em, String ownerId, String labelLowercase) {
-    return getByOwnerIdAndLabelLowercase(em, ownerId, labelLowercase, false);
+  public Label getByOwnerIdAndLabelLowercase(TransactionContext tx, String ownerId, String labelLowercase) {
+    return getByOwnerIdAndLabelLowercase(tx, ownerId, labelLowercase, false);
   }
 
-  private Label getByOwnerIdAndLabelLowercase(EntityManager em, String ownerId, String labelLowercase, boolean inherit)
+  private Label getByOwnerIdAndLabelLowercase(TransactionContext tx, String ownerId, String labelLowercase, boolean inherit)
   {
     final String sQuery = "SELECT label FROM Label label" + //
         " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
     Label label = null;
     if (inherit) {
       final ApplicationDAO applicationDAO = new ApplicationDAO();
-      final Application application = applicationDAO.getById(em, ownerId);
+      final Application application = applicationDAO.getById(tx, ownerId);
       if (application != null) {
-        label = get(em, sQuery, application.getOrganizationId(), labelLowercase);
+        label = get(tx, sQuery, application.getOrganizationId(), labelLowercase);
       }
     }
     if (label == null) {
-      label = get(em, sQuery, ownerId, labelLowercase);
+      label = get(tx, sQuery, ownerId, labelLowercase);
     }
     return label;
   }
 
   @Override
-  protected Label getById(EntityManager em, String id) {
+  protected Label getById(TransactionContext tx, String id) {
     String sQuery = "SELECT label FROM Label label" + //
         " WHERE label.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
-  Label getByIdNotNull(EntityManager em, String id) {
-    Label label = getById(em, id);
+  Label getByIdNotNull(TransactionContext tx, String id) {
+    Label label = getById(tx, id);
     if (label == null) {
       throw new NotFoundException("Cannot find a label with ID " + id + ".");
     }
@@ -120,23 +115,19 @@ public class LabelDAO
   }
 
   public Label getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
   @Override
-  public void delete(EntityManager em, Label label) {
+  public void delete(TransactionContext tx, Label label) {
     ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
-    List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId(em, label.getId());
+    List<ComponentLabel> componentLabels = componentLabelDAO.getByLabelId(tx, label.getId());
     for (ComponentLabel componentLabel : componentLabels) {
-      componentLabelDAO.delete(em, componentLabel);
+      componentLabelDAO.delete(tx, componentLabel);
     }
-    super.delete(em, label);
+    super.delete(tx, label);
   }
 
   private void validateLabelText(String label) {
@@ -144,12 +135,12 @@ public class LabelDAO
   }
 
   @Override
-  public void insert(EntityManager em, Label label) {
+  public void insert(TransactionContext tx, Label label) {
     validateLabelText(label.getLabel());
-    validateLabelUnique(em, label, false);
+    validateLabelUnique(tx, label, false);
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
-    super.insert(em, label);
+    super.insert(tx, label);
   }
 
   private void validateLabelDescription(String description) {
@@ -165,7 +156,7 @@ public class LabelDAO
     }
   }
 
-  private void validateLabelUnique(EntityManager em, Label label, boolean update) throws InvalidLabelException {
+  private void validateLabelUnique(TransactionContext tx, Label label, boolean update) throws InvalidLabelException {
     // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
     // label uniqueness constraints
     final ApplicationDAO appDAO = new ApplicationDAO();
@@ -173,23 +164,23 @@ public class LabelDAO
 
     // first, check the same label does not exist in for the same owner
     // this is enforced by db unique key, but checking in java gives nicer error message
-    Label otherLabel = getByOwnerIdAndLabelLowercase(em, label.getOwnerId(), label.getLabelLowercase(), false);
+    Label otherLabel = getByOwnerIdAndLabelLowercase(tx, label.getOwnerId(), label.getLabelLowercase(), false);
     if (otherLabel != null && (!update || !otherLabel.getId().equals(label.getId()))) {
-      final Application app = appDAO.getById(em, label.getOwnerId());
+      final Application app = appDAO.getById(tx, label.getOwnerId());
       if (app != null) {
         final String message = String.format("A label with name '%s' already exists in application '%s'.",
             otherLabel.getLabel(), app.getName());
         throw new InvalidLabelException(message);
       }
 
-      Organization org = orgDAO.getById(em, label.getOwnerId());
+      Organization org = orgDAO.getById(tx, label.getOwnerId());
       final String message = String.format("A label with name '%s' already exists in organization '%s'.",
           otherLabel.getLabel(), org.getName());
       throw new InvalidLabelException(message);
     }
 
     // owner can be an org, make sure none of org's apps have this label already
-    final List<Application> apps = appDAO.getByOrganizationIdAndLabelLowercase(em, label.getOwnerId(),
+    final List<Application> apps = appDAO.getByOrganizationIdAndLabelLowercase(tx, label.getOwnerId(),
         label.getLabelLowercase());
     if (!apps.isEmpty()) {
       final StringBuilder message = new StringBuilder();
@@ -202,11 +193,11 @@ public class LabelDAO
     }
 
     // owner can be an app, make sure organization does not have this label already
-    final Application app = appDAO.getById(em, label.getOwnerId());
+    final Application app = appDAO.getById(tx, label.getOwnerId());
     if (app != null) {
-      otherLabel = getByOwnerIdAndLabelLowercase(em, app.getOrganizationId(), label.getLabelLowercase(), false);
+      otherLabel = getByOwnerIdAndLabelLowercase(tx, app.getOrganizationId(), label.getLabelLowercase(), false);
       if (otherLabel != null) {
-        final Organization org = orgDAO.getById(em, app.getOrganizationId());
+        final Organization org = orgDAO.getById(tx, app.getOrganizationId());
         final String message = String.format("A label with name '%s' already exists in organization '%s'.",
             otherLabel.getLabel(), org.getName());
         throw new InvalidLabelException(message);
@@ -215,16 +206,16 @@ public class LabelDAO
   }
 
   @Override
-  public void update(EntityManager em, Label label) {
+  public void update(TransactionContext tx, Label label) {
     // If the label text hasn't changed, don't validate it. This check is for older labels that may have had non-alpha
     // numeric characters.
-    Label existingLabel = getById(em, label.getId());
+    Label existingLabel = getById(tx, label.getId());
     if (existingLabel == null || !existingLabel.getLabel().equals(label.getLabel())) {
       validateLabelText(label.getLabel());
     }
-    validateLabelUnique(em, label, true);
+    validateLabelUnique(tx, label, true);
     validateLabelDescription(label.getDescription());
     validateLabelColor(label.getColor());
-    super.update(em, label);
+    super.update(tx, label);
   }
 }

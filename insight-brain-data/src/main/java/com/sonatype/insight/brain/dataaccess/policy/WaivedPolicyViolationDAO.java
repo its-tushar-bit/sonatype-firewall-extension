@@ -5,10 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.12
@@ -17,14 +16,14 @@ public class WaivedPolicyViolationDAO
     extends AbstractOperationalSqlDAO<WaivedPolicyViolation>
 {
   @Override
-  public WaivedPolicyViolation getById(EntityManager em, String id) {
+  public WaivedPolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM WaivedPolicyViolation entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   @Override
-  public void update(EntityManager em, WaivedPolicyViolation entity) {
+  public void update(TransactionContext tx, WaivedPolicyViolation entity) {
     throw new UnsupportedOperationException("The WaivedPolicyViolation table does not support update operations.");
   }
 }

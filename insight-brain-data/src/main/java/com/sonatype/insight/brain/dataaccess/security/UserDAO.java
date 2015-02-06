@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
@@ -19,6 +17,7 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -34,10 +33,10 @@ public class UserDAO
 
   public static final int MAX_EMAIL_SIZE = 255;
 
-  private User getByUsername(EntityManager em, String username) {
+  private User getByUsername(TransactionContext tx, String username) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.usernameLowercase=?1";
-    return get(em, sQuery, username.toLowerCase(Locale.ENGLISH));
+    return get(tx, sQuery, username.toLowerCase(Locale.ENGLISH));
   }
 
   /**
@@ -65,12 +64,8 @@ public class UserDAO
    * @return The user or {@code null} if not found.
    */
   public User getByUsername(String username) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByUsername(em, username);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByUsername(tx, username);
     }
   }
 
@@ -89,14 +84,14 @@ public class UserDAO
   }
 
   @Override
-  protected User getById(EntityManager em, String id) {
+  protected User getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM User entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
-  public User getByIdNotNull(EntityManager em, String id) {
-    User user = getById(em, id);
+  public User getByIdNotNull(TransactionContext tx, String id) {
+    User user = getById(tx, id);
     if (user == null) {
       throw new NotFoundException("Cannot find a user with ID " + id + ".");
     }
@@ -104,12 +99,8 @@ public class UserDAO
   }
 
   public User getByIdNotNull(String id) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByIdNotNull(em, id);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
     }
   }
 
@@ -150,44 +141,44 @@ public class UserDAO
   }
 
   @Override
-  public void insert(EntityManager em, User user) {
+  public void insert(TransactionContext tx, User user) {
     validate(user);
 
-    if (getByUsername(em, user.getUsername()) != null) {
+    if (getByUsername(tx, user.getUsername()) != null) {
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
     }
 
-    super.insert(em, user);
+    super.insert(tx, user);
   }
 
   @Override
-  public void update(EntityManager em, User user) {
+  public void update(TransactionContext tx, User user) {
     validate(user);
 
-    User existingUser = getByUsername(em, user.getUsername());
+    User existingUser = getByUsername(tx, user.getUsername());
     if (existingUser != null && !existingUser.getId().equals(user.getId())) {
       throw new InvalidNameException(user.getUsername() + " is already used as a username.");
     }
 
-    super.update(em, user);
+    super.update(tx, user);
   }
 
   @Override
-  public void delete(EntityManager em, User entity) {
+  public void delete(TransactionContext tx, User entity) {
     // Cascade to membership mappings
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByUser(em, entity.getUsername())) {
-      membershipMappingDAO.delete(em, membershipMapping);
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByUser(tx, entity.getUsername())) {
+      membershipMappingDAO.delete(tx, membershipMapping);
     }
 
     // Cascade to dashboard filter
     DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(em, entity.getUsername());
+    DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(tx, entity.getUsername());
     if (dashboardFilter != null) {
-      dashboardFilterDAO.delete(em, dashboardFilter);
+      dashboardFilterDAO.delete(tx, dashboardFilter);
     }
 
-    super.delete(em, entity);
+    super.delete(tx, entity);
   }
 
   public List<User> getAll() {

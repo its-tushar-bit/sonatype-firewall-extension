@@ -7,10 +7,9 @@ package com.sonatype.insight.brain.dataaccess.configuration.ldap;
 
 import java.util.Collection;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.7
@@ -19,32 +18,32 @@ public class LdapUserMappingDAO
     extends AbstractOperationalSqlDAO<LdapUserMapping>
 {
   @Override
-  public LdapUserMapping getById(EntityManager em, String id) {
+  public LdapUserMapping getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LdapUserMapping entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   public LdapUserMapping getByServerId(String serverId) {
-    EntityManager em = createEntityManager();
+    TransactionContext tx = createTransactionContext();
     try {
-      return getByServerId(em, serverId);
+      return getByServerId(tx, serverId);
     }
     finally {
-      em.close();
+      tx.close();
     }
   }
 
-  private LdapUserMapping getByServerId(EntityManager em, String serverId) {
+  private LdapUserMapping getByServerId(TransactionContext tx, String serverId) {
     String sQuery = "SELECT entity FROM LdapUserMapping entity" + //
         " WHERE entity.serverId=?1";
-    return get(em, sQuery, serverId);
+    return get(tx, sQuery, serverId);
   }
 
-  public void deleteByServerId(EntityManager em, String id) {
-    LdapUserMapping umap = getByServerId(em, id);
+  public void deleteByServerId(TransactionContext tx, String id) {
+    LdapUserMapping umap = getByServerId(tx, id);
     if (umap != null) {
-      delete(em, umap);
+      delete(tx, umap);
     }
   }
 

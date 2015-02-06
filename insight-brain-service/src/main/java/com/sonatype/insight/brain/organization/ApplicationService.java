@@ -14,7 +14,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -22,7 +21,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,15 +130,11 @@ public class ApplicationService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
       throws IOException
   {
-    EntityManager em = applicationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
-      Application application = applicationDAO.getByPublicIdNotNull(em, applicationPublicId);
-      applicationCleaner.delete(em, application);
-      em.getTransaction().commit();
-    }
-    finally {
-      AbstractDAO.close(em);
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      Application application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
+      applicationCleaner.delete(tx, application);
+      tx.commit();
     }
   }
 }

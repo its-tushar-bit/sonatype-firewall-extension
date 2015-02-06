@@ -14,7 +14,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -25,7 +24,7 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.AbstractDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -83,9 +82,8 @@ public class LicenseOverrideMigrator
     int applicationCount = 0;
     ApplicationDAO applicationDAO = new ApplicationDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    EntityManager em = applicationDAO.createEntityManager();
-    try {
-      em.getTransaction().begin();
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
 
       for (File auditDir : auditDirs) {
         if (!auditDir.isDirectory()) {
@@ -93,7 +91,7 @@ public class LicenseOverrideMigrator
         }
 
         String applicationId = auditDir.getName();
-        Application application = applicationDAO.getById(em, applicationId);
+        Application application = applicationDAO.getById(tx, applicationId);
         if (application == null) {
           log.info("Cannot find an application with id {}. It was probably deleted.", applicationId);
           continue;
@@ -169,19 +167,16 @@ public class LicenseOverrideMigrator
             LicenseOverride licenseOverride = new LicenseOverride(applicationId,
               ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), status, licenseOverrideId,
               comment);
-            licenseOverrideDAO.insert(em, licenseOverride);
+            licenseOverrideDAO.insert(tx, licenseOverride);
           }
         }
         log.info("Migrated {} license overrides for application {} (id {}).", seenGavs.size(), application.getName(),
             applicationId);
       }
 
-      em.getTransaction().commit();
+      tx.commit();
 
       markerFile.createNewFile();
-    }
-    finally {
-      AbstractDAO.close(em);
     }
 
     log.info("Migrated license override data for {} applications in {} ms.", applicationCount,

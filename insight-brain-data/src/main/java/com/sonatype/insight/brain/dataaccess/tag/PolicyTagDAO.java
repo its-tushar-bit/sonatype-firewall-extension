@@ -7,10 +7,9 @@ package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.9
@@ -19,47 +18,39 @@ public class PolicyTagDAO
     extends AbstractOperationalSqlDAO<PolicyTag>
 {
   @Override
-  protected PolicyTag getById(EntityManager em, String id) {
+  protected PolicyTag getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.id=?1";
-    return get(em, sQuery, id);
+    return get(tx, sQuery, id);
   }
 
   @Override
-  public void update(EntityManager em, PolicyTag entity) {
+  public void update(TransactionContext tx, PolicyTag entity) {
     throw new UnsupportedOperationException("The PolicyTag table does not support update operations");
   }
 
   public List<PolicyTag> getByPolicyId(String policyId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByPolicyId(em, policyId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByPolicyId(tx, policyId);
     }
   }
 
-  public List<PolicyTag> getByPolicyId(EntityManager em, String policyId) {
+  public List<PolicyTag> getByPolicyId(TransactionContext tx, String policyId) {
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.policyId=?1";
-    return getList(em, sQuery, policyId);
+    return getList(tx, sQuery, policyId);
   }
 
   public List<PolicyTag> getByTagId(String tagId) {
-    EntityManager em = createEntityManager();
-    try {
-      return getByTagId(em, tagId);
-    }
-    finally {
-      close(em);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByTagId(tx, tagId);
     }
   }
 
-  public List<PolicyTag> getByTagId(EntityManager em, String tagId) {
+  public List<PolicyTag> getByTagId(TransactionContext tx, String tagId) {
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.tagId=?1";
-    return getList(em, sQuery, tagId);
+    return getList(tx, sQuery, tagId);
   }
 
   /**

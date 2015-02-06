@@ -8,7 +8,7 @@
   'use strict';
 
   function isInvalidAppId(status) {
-    // Eclipse plugin 2.0 goes against the SaaS which returns 402, Eclipse plugin 2.1+ goes against the Brain which returns 404
+    // Eclipse plugin 2.0 goes against the HDS which returns 402, Eclipse plugin 2.1+ goes against the Brain which returns 404
     return Brain.getVersion ? (status === 404 || status === 403) : (status === 402);
   }
 

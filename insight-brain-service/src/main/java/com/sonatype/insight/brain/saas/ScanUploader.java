@@ -75,9 +75,9 @@ public class ScanUploader
   }
 
   /**
-   * Uploads an existing scan file to the SaaS server.
+   * Uploads an existing scan file to the HDS server.
    *
-   * @param path the destination REST path on the SaaS server, e.g. rest/ci/scan
+   * @param path the destination REST path on the HDS server, e.g. rest/ci/scan
    * @since 1.8
    */
   public ScanReceipt upload(File scanFile, String applicationPublicId, String path)
@@ -93,7 +93,7 @@ public class ScanUploader
   void augmentScanReceipt(String applicationPublicId, ScanReceipt receipt) {
     log.debug("Successfully uploaded scan id {}", receipt.getScanId());
 
-    // SaaS knows nothing about where CLM Server stores reports, add this info to the receipt.
+    // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
     receipt.setReportUrl(UserInterfaceLinksResource.getReportUrl(applicationPublicId, receipt.getScanId()));
     receipt.setPdfUrl(UserInterfaceLinksResource.getPdfUrl(applicationPublicId, receipt.getScanId()));
     receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));

@@ -11,7 +11,7 @@ import java.util.List;
 import com.google.inject.Module;
 
 /**
- * Test helper for CLM server. It wraps and manages a CLM brain service/server and a mocked Insight/SaaS/HDS server.
+ * Test helper for CLM server. It wraps and manages a CLM brain service/server and a mocked HDS server.
  * 
  * @since 1.11
  */
@@ -21,7 +21,7 @@ public class TestCLMServer
 
   private final TestInsightBrainServiceRule brain;
 
-  private final boolean isProxyRequiredToReachSaas;
+  private final boolean isProxyRequiredToReachHds;
 
   private static int startCount;
 
@@ -31,14 +31,14 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  TestCLMServer(File saasWorkDir, boolean isProxyRequiredToReachSaas, List<Module> modules) {
-    this.isProxyRequiredToReachSaas = isProxyRequiredToReachSaas;
+  TestCLMServer(File saasWorkDir, boolean isProxyRequiredToReachHds, List<Module> modules) {
+    this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int insightMockServerPort = PortAllocator.findFreePort(8090);
 
-    insightMockServer = new InsightMockServerRule(insightMockServerPort, saasWorkDir, isProxyRequiredToReachSaas);
+    insightMockServer = new InsightMockServerRule(insightMockServerPort, saasWorkDir, isProxyRequiredToReachHds);
     brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
-        null /* baseUrl */, "http://localhost:" + insightMockServerPort, isProxyRequiredToReachSaas, modules);
+        null /* baseUrl */, "http://localhost:" + insightMockServerPort, isProxyRequiredToReachHds, modules);
   }
 
   public void start() throws Throwable {
@@ -77,7 +77,7 @@ public class TestCLMServer
     return insightMockServer;
   }
 
-  public boolean isProxyRequiredToReachSaas() {
-    return isProxyRequiredToReachSaas;
+  public boolean isProxyRequiredToReachHds() {
+    return isProxyRequiredToReachHds;
   }
 }

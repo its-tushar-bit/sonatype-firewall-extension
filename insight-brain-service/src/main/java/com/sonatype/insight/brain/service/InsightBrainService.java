@@ -205,7 +205,7 @@ public class InsightBrainService
     env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);
 
     log.info("Server base URL: {}", config.getBaseUrl());
-    log.debug("SaaS address: {}", config.getSaasAddress());
+    log.debug("HDS address: {}", config.getSaasAddress());
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
   }
 

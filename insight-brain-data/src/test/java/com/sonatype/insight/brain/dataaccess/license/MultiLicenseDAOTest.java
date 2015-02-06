@@ -146,7 +146,7 @@ public class MultiLicenseDAOTest
   }
 
   /**
-   * Inserts License/Multilicense records locally to mock out updates from SaaS
+   * Inserts License/Multilicense records locally to mock out updates from HDS
    */
   private class MockLicenseDataUpdater
       extends LicenseDataUpdater
@@ -189,7 +189,7 @@ public class MultiLicenseDAOTest
         em.getTransaction().commit();
       }
       catch (Exception e) {
-        throw new RuntimeException("Could not simulate retrieval of license data from SaaS: " + e.getMessage(), e);
+        throw new RuntimeException("Could not simulate retrieval of license data from Sonatype HDS: " + e.getMessage(), e);
       }
       finally {
         LicenseCategoryDAO.close(em);

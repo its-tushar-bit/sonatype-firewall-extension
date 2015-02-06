@@ -360,7 +360,7 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "v1";
 
-    // Verify exception is not thrown if component is not known to SaaS
+    // Verify exception is not thrown if component is not known to HDS
     Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, groupId, artifactId, version));
     assertResponseStatus(200, response);
     // if we got here, we are good, but let's do some sanity check

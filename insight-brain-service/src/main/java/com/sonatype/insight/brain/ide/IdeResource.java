@@ -78,9 +78,9 @@ public class IdeResource
   }
 
   /**
-   * Requests an asset from the SaaS
+   * Requests an asset from the HDS
    * 
-   * @return the response from the SaaS
+   * @return the response from the HDS
    * @since 1.2
    * @deprecated supporting ide plugins up to version 2.5.0, newer plugins will directly access the
    *             brains assets
@@ -180,9 +180,9 @@ public class IdeResource
   }
 
   /**
-   * Gets the list of available versions for a given GA from the SaaS. (e.g. for use by migration wizard)
+   * Gets the list of available versions for a given GA from the HDS. (e.g. for use by migration wizard)
    * 
-   * @return the SaaS response
+   * @return the HDS response
    * @since 1.3
    */
   @GET

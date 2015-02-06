@@ -33,7 +33,7 @@ public class DefaultLicenseDataUpdaterTest
   @Test
   public void testLicenseCategory() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     String newId = "New license category id";
     LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
     assertNull(licenseCategoryDAO.getById(newId));
@@ -43,14 +43,14 @@ public class DefaultLicenseDataUpdaterTest
     newLicenseCategory.setName("New name");
     newLicenseCategory.setSeverity(4);
     licenseData.categories.add(newLicenseCategory);
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     assertNotNull(licenseCategoryDAO.getById(newId));
   }
 
   @Test
   public void testLicense() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     String newId = "New license id";
     LicenseDAO licenseDAO = new LicenseDAO();
     assertNull(licenseDAO.getById(newId));
@@ -62,14 +62,14 @@ public class DefaultLicenseDataUpdaterTest
     newLicense.setDescription("New description");
     newLicense.setLicenseCategoryId("COPYLEFT");
     licenseData.licenses.add(newLicense);
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     assertNotNull(licenseDAO.getById(newId));
   }
 
   @Test
   public void testMultiLicense_ById() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     String newId = "New license id1";
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     assertNull(multiLicenseDAO.getById(newId));
@@ -83,7 +83,7 @@ public class DefaultLicenseDataUpdaterTest
     Set<String> multiLicenseMappings = new LinkedHashSet<String>();
     multiLicenseMappings.add("GPL-2.0");
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     assertNotNull(multiLicenseDAO.getById(newId));
     assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(newId).iterator().next().getId());
   }
@@ -91,7 +91,7 @@ public class DefaultLicenseDataUpdaterTest
   @Test
   public void testMultiLicense_ByName() throws Exception {
     LicenseData licenseData = createLicenseData();
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     String newId = "New license id2";
     String newName = "New short name2";
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
@@ -106,13 +106,13 @@ public class DefaultLicenseDataUpdaterTest
     Set<String> multiLicenseMappings = new LinkedHashSet<String>();
     multiLicenseMappings.add("GPL-2.0");
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
-    setSaasResponseForURI(DefaultLicenseDataUpdater.SAAS_LICENSE_PATH, toJson(licenseData), 200);
+    setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
     assertNotNull(multiLicenseDAO.getByName(newName));
     assertEquals("GPL-2.0", multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(newId).iterator().next().getId());
   }
 
   @Test
-  public void testNoSaaSServer() throws Exception {
+  public void testNoHdsServer() throws Exception {
     getInsightServer().stop();
 
     try {
@@ -123,7 +123,7 @@ public class DefaultLicenseDataUpdaterTest
         fail("Expected RuntimeException");
       }
       catch (RuntimeException e) {
-        assertTrue(e.getMessage(), e.getMessage().startsWith("Could not retrieve license data from SaaS:"));
+        assertTrue(e.getMessage(), e.getMessage().startsWith("Could not retrieve license data from Sonatype HDS:"));
       }
     }
     finally {

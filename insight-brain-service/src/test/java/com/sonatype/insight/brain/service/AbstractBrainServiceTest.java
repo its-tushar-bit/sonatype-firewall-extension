@@ -76,13 +76,13 @@ public abstract class AbstractBrainServiceTest
 
   @Before
   public void initTest() throws Throwable {
-    if (testCLMServer != null && isProxyRequiredToReachSaas() != testCLMServer.isProxyRequiredToReachSaas()) {
+    if (testCLMServer != null && isProxyRequiredToReachHds() != testCLMServer.isProxyRequiredToReachHds()) {
       testCLMServer.stop();
       testCLMServer = null;
     }
 
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(saasWork, isProxyRequiredToReachSaas(), getBrainModules());
+      testCLMServer = new TestCLMServer(saasWork, isProxyRequiredToReachHds(), getBrainModules());
       testCLMServer.start();
     }
   }
@@ -119,7 +119,7 @@ public abstract class AbstractBrainServiceTest
     return modules;
   }
 
-  private boolean isProxyRequiredToReachSaas() {
+  private boolean isProxyRequiredToReachHds() {
     return getClass().getName().endsWith("ProxyTest");
   }
 

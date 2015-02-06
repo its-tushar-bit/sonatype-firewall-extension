@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultLicenseDataUpdater
     extends LicenseDataUpdater
 {
-  public static final String SAAS_LICENSE_PATH = "rest/license";
+  public static final String HDS_LICENSE_PATH = "rest/license";
 
   private static final Logger log = LoggerFactory.getLogger(DefaultLicenseDataUpdater.class);
 
@@ -48,7 +48,7 @@ public class DefaultLicenseDataUpdater
     long start = System.currentTimeMillis();
     log.info("Updating license data...");
     try {
-      LicenseData licenseData = client.get(LicenseData.class, SAAS_LICENSE_PATH, null /* params */);
+      LicenseData licenseData = client.get(LicenseData.class, HDS_LICENSE_PATH, null /* params */);
 
       LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
       LicenseDAO licenseDAO = new LicenseDAO();
@@ -95,7 +95,7 @@ public class DefaultLicenseDataUpdater
       }
     }
     catch (Exception e) {
-      throw new RuntimeException("Could not retrieve license data from SaaS: " + e.getMessage(), e);
+      throw new RuntimeException("Could not retrieve license data from Sonatype HDS: " + e.getMessage(), e);
     }
     log.debug("Updated license data in {} ms.", System.currentTimeMillis() - start);
   }

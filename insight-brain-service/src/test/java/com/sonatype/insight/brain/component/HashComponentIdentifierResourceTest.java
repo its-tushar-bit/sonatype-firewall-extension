@@ -88,7 +88,7 @@ public class HashComponentIdentifierResourceTest
   }
 
   @Test
-  public void testSet_KnownToSaaS() throws Exception {
+  public void testSet_KnownToHDS() throws Exception {
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(true));
 
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));

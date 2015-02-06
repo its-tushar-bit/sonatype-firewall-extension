@@ -62,7 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * HTTP client for accessing Sonatype hosted services (SaaS).
+ * HTTP client for accessing Sonatype hosted data services (HDS).
  */
 @Named
 @Singleton
@@ -92,7 +92,7 @@ public class SaasClient
     clientBuilder.setConnectionManager(buildHttpClientConnectionManager());
     client = clientBuilder.build();
     this.versionService = versionService;
-    // TODO Need to determine if there is additional information we should be sending to the SaaS
+    // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
   }
 
@@ -122,7 +122,7 @@ public class SaasClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -269,7 +269,7 @@ public class SaasClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 
@@ -371,7 +371,7 @@ public class SaasClient
     }
 
     String result = uriBuilder.build((Object[]) uriParams).toString();
-    log.debug("Constructed SaaS URI: {}", result);
+    log.debug("Constructed HDS URI: {}", result);
     return result;
   }
 

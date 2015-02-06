@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.TestNamedComponentDetails;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
@@ -80,7 +82,16 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -91,6 +102,9 @@ import static org.junit.Assert.assertTrue;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
+
+  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier.createMavenCoordinates("commons-pool",
+      "commons-pool", "1.4");
 
   @Test
   public void testManuallyIdentifiedComponent() throws Exception {
@@ -781,6 +795,108 @@ public class ReportResourceTest
   }
 
   @Test
+  public void test_LicenseOverrides_Organization() throws Exception {
+    final String applicationPublicId = "ReportResourceTest_AppId";
+    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    final String scanId = "ReportResourceTest_ScanId";
+    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
+    setLicenseFingerprint(licenseFingerprint);
+
+    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+
+    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
+    saasReportFile.delete();
+
+    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
+    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+
+    // Verify before any license overrides are added
+    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    assertResponseStatus(200, response);
+    int found = 0;
+    String licenseJsonString = response.getResponseBody();
+    JsonNode licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
+    for (JsonNode licenseJsonNode : licenseJsonData) {
+      String groupId = licenseJsonNode.get("groupId").asText();
+      String artifactId = licenseJsonNode.get("artifactId").asText();
+      String version = licenseJsonNode.get("version").asText();
+      if ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version)) {
+        assertNull(licenseJsonNode.get("overriddenLicenses"));
+        found++;
+      }
+    }
+    Assert.assertEquals("Did not find expected license", 1, found);
+
+    // Override the license at organization level
+    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
+      LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
+    response = AuthedRestAccess.post(
+        getLicenseOverrideServiceURL(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()),
+        toJson(orgLicenseOverride));
+    assertResponseStatus(200, response);
+    orgLicenseOverride = fromJson(response, LicenseOverride.class);
+
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    assertResponseStatus(200, response);
+    found = 0;
+    licenseJsonString = response.getResponseBody();
+    licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
+    for (JsonNode licenseJsonNode : licenseJsonData) {
+      String groupId = licenseJsonNode.get("groupId").asText();
+      String artifactId = licenseJsonNode.get("artifactId").asText();
+      String version = licenseJsonNode.get("version").asText();
+      if ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version)) {
+        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
+        Assert.assertEquals("[\"GPL-3.0\"]", overridenLicenseNamesStr);
+        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
+        Assert.assertEquals(9, effectiveLicenseThreat);
+        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
+        Assert.assertEquals(9, overriddenLicenseThreat);
+        String status = licenseJsonNode.get("status").asText();
+        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        String comment = licenseJsonNode.get("comment").asText();
+        Assert.assertEquals("My org license override", comment);
+        found++;
+      }
+    }
+    Assert.assertEquals("Did not find expected overridden license", 1, found);
+
+    // Override the license at application level
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(),
+      COMMONS_POOL_ID,
+      LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
+    response = AuthedRestAccess.post(getLicenseOverrideServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
+        toJson(appLicenseOverride));
+    assertResponseStatus(200, response);
+    appLicenseOverride = fromJson(response, LicenseOverride.class);
+
+    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    assertResponseStatus(200, response);
+    found = 0;
+    licenseJsonString = response.getResponseBody();
+    licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
+    for (JsonNode licenseJsonNode : licenseJsonData) {
+      String groupId = licenseJsonNode.get("groupId").asText();
+      String artifactId = licenseJsonNode.get("artifactId").asText();
+      String version = licenseJsonNode.get("version").asText();
+      if ("commons-pool".equals(groupId) && "commons-pool".equals(artifactId) && "1.4".equals(version)) {
+        String overridenLicenseNamesStr = licenseJsonNode.get("overriddenLicenses").toString();
+        Assert.assertEquals("[\"GPL-2.0\"]", overridenLicenseNamesStr);
+        int effectiveLicenseThreat = licenseJsonNode.get("effectiveLicenseThreat").asInt();
+        Assert.assertEquals(9, effectiveLicenseThreat);
+        int overriddenLicenseThreat = licenseJsonNode.get("overriddenLicenseThreat").asInt();
+        Assert.assertEquals(9, overriddenLicenseThreat);
+        String status = licenseJsonNode.get("status").asText();
+        Assert.assertEquals(LicenseOverrideStatus.OVERRIDDEN.getName(), status);
+        String comment = licenseJsonNode.get("comment").asText();
+        Assert.assertEquals("My app license override", comment);
+        found++;
+      }
+    }
+    Assert.assertEquals("Did not find expected overridden license", 1, found);
+  }
+
+  @Test
   public void testRefreshOnlyOnChange() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
@@ -1186,5 +1302,9 @@ public class ReportResourceTest
   private String getServiceURL(final String appId, final String scanId) {
     return getRestBaseUrl()
         + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", appId).replace("{scanId}", scanId);
+  }
+
+  private String getLicenseOverrideServiceURL(final String ownerType, final String ownerId) {
+    return getRestBaseUrl() + LicenseOverrideResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
   }
 }

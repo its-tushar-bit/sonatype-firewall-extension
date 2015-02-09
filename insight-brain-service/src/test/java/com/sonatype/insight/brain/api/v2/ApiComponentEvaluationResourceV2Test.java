@@ -8,43 +8,29 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.NamedComponentDetails;
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentIdentifierValidator;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -71,7 +57,7 @@ public class ApiComponentEvaluationResourceV2Test
 
   private Application app;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
   @Before
   public void setupApplication() {
@@ -82,8 +68,9 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier = createMavenComponentIdentifier("g1", "a1", "v1", null);
-    ApiComponentDTOV2 component = createComponent(componentIdentifier, "h1");
+    ComponentIdentifier componentIdentifier =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", null);
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -109,7 +96,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
+        .fromComponentIdentifier(componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
     request.components.add(component);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -155,11 +142,12 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_HdsError() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier = createMavenComponentIdentifier("g1", "a1", "v1", "e1");
-    ApiComponentDTOV2 component = createComponent(componentIdentifier, "h1");
+    ComponentIdentifier componentIdentifier =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
-    mockHDSInternalServiceError(componentIdentifier);
+    mockHDSInternalServiceError();
 
     String url = getComponentEvaluationURL(app.getId());
     Response response = AuthedRestAccess.post(url, toJson(request));
@@ -183,24 +171,32 @@ public class ApiComponentEvaluationResourceV2Test
 
   @Test
   public void testEvaluateComponents() throws Exception {
-    Map<String, Policy> policies = createPolicies();
+    Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 = createMavenComponentIdentifier("g1", "a1", "v1", "e1");
-    ApiComponentDTOV2 component1 = createComponent(componentIdentifier1, "h1");
+    ComponentIdentifier componentIdentifier1 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 = createMavenComponentIdentifier("g2", "a2", "v2", "e2");
-    ApiComponentDTOV2 component2 = createComponent(componentIdentifier2, "h2");
+    ComponentIdentifier componentIdentifier2 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
     request.components.add(component2);
 
     // Create a mock return for the first component
     LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
         Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
-    mockComponentDetails(componentIdentifier1, component1.hash, declaredLicenseSet, observedLicenseSet,
-        securityVulnerabilities);
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+
+    ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
+            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            Collections.<SecurityVulnerability>emptyList()));
+    mockComponentDetails(componentEvaluationDataList);
 
     String url = getComponentEvaluationURL(app.getId());
     Response response = AuthedRestAccess.post(url, toJson(request));
@@ -220,153 +216,140 @@ public class ApiComponentEvaluationResourceV2Test
     assertThat(details.submittedDate, notNullValue());
     assertThat(details.results, notNullValue());
     assertThat(details.results.size(), is(2));
-    assertComponentDetails(details.results.get(0), request.components.get(0), MatchState.EXACT.getId(),
-        new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, policies);
-    assertComponentDetails(details.results.get(1), request.components.get(1), MatchState.UNKNOWN.getId(),
-        Collections.<License>emptyList(), Collections.<License>emptyList(),
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
+        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        securityVulnerabilities, policies);
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
+        MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
         Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
   }
 
-  private Map<String, Policy> createPolicies() {
+  @Test
+  public void testEvaluateComponents_matchByComponentIdentifier() throws Exception {
+    Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    LinkedHashMap<String, Policy> policies = new LinkedHashMap<>();
+    ComponentIdentifier componentIdentifier1 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, null);
+    request.components.add(component1);
 
-    Stage stage = new Stage(DevelopStageType.ID);
+    ComponentIdentifier componentIdentifier2 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, null);
+    request.components.add(component2);
 
-    // Create org policy
-    List<Constraint> constraints = new ArrayList<>();
-    Constraint constraintOrg = new Constraint(null, "Constraint Name Org", LogicalOperator.AND);
-    constraintOrg.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    constraints.add(constraintOrg);
-    Policy policyOrg = new Policy(null, "Policy Name Org");
-    policyOrg.setOwnerId(org.getId());
-    policyOrg.setConstraints(constraints);
-    policyOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
-    policyDAO.insert(policyOrg);
-    policies.put(policyOrg.getId(), policyOrg);
+    // Create a mock return for the first component
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
+        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
-    // Create app policy
-    constraints = new ArrayList<>();
-    Constraint constraintApp = new Constraint(null, "Constraint Name App", LogicalOperator.AND);
-    constraintApp.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
-    constraints.add(constraintApp);
-    Policy policyApp = new Policy(null, "Policy Name App");
-    policyApp.setOwnerId(app.getId());
-    policyApp.setConstraints(constraints);
-    policyApp.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
-    policyDAO.insert(policyApp);
-    policies.put(policyApp.getId(), policyApp);
+    ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
+            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            Collections.<SecurityVulnerability>emptyList()));
+    mockComponentDetails(componentEvaluationDataList);
 
-    return policies;
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+
+    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    assertThat(details, notNullValue());
+    assertThat(details.isError, is(false));
+    assertThat(details.errorMessage, nullValue());
+    assertThat(details.applicationId, is(app.getId()));
+    assertThat(details.evaluationDate, notNullValue());
+    assertThat(details.submittedDate, notNullValue());
+    assertThat(details.results, notNullValue());
+    assertThat(details.results.size(), is(2));
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
+        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        securityVulnerabilities, policies);
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
+        MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
   }
 
-  private List<SecurityVulnerability> createSecurityVulnerabilities() {
-    List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
-    SecurityVulnerability securityVulnerability = new SecurityVulnerability();
-    securityVulnerability.setRefId("refId");
-    securityVulnerability.setSeverity(5.0F);
-    securityVulnerability.setSource("source");
-    securityVulnerabilities.add(securityVulnerability);
-    return securityVulnerabilities;
+  @Test
+  public void testEvaluateComponents_multipleMatchByHash() throws Exception {
+    Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(null, "h1");
+    request.components.add(component1);
+
+    // Create a mock return for the first component
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
+        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+
+    ComponentIdentifier componentIdentifier1 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ComponentIdentifier componentIdentifier2 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+
+    ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component1.hash,
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities));
+    mockComponentDetails(componentEvaluationDataList);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+
+    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    assertThat(details, notNullValue());
+    assertThat(details.isError, is(false));
+    assertThat(details.errorMessage, nullValue());
+    assertThat(details.applicationId, is(app.getId()));
+    assertThat(details.evaluationDate, notNullValue());
+    assertThat(details.submittedDate, notNullValue());
+    assertThat(details.results, notNullValue());
+    assertThat(details.results.size(), is(2));
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
+        componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1"),
+        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        securityVulnerabilities, policies);
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
+        componentEvaluationV2Helper.createComponent(componentIdentifier2, "h1"),
+        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        securityVulnerabilities, policies);
   }
 
-  private void mockHDSInternalServiceError(final ComponentIdentifier componentIdentifier) {
-    String uri = UriBuilder.fromPath("rest/ci/componentDetails")
-        .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
-    setSaasResponseForURI(uri, "Internal Error", 500);
+  private void mockHDSInternalServiceError() {
+    setSaasResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH, "Internal Error", 500);
 
   }
 
-  private void mockComponentDetails(final ComponentIdentifier componentIdentifier, final String hash,
-      final Set<License> declaredLicenses, final Set<License> observedLicenses,
-      final List<SecurityVulnerability> securityVulnerabilities)
-      throws Exception
+  private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
+    setSaasResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH,
+        toJson(componentEvaluationDataList), 200);
+  }
+
+  private ComponentEvaluationDataList createComponentEvaluationDataList(
+      final ComponentEvaluationData... componentEvaluationData)
   {
-    NamedComponentDetails componentDetails = new NamedComponentDetails();
-    componentDetails.setHash(hash);
-    componentDetails.setComponentIdentifier(componentIdentifier);
-
-    componentDetails.setDeclaredLicenses(declaredLicenses);
-    componentDetails.setObservedLicenses(observedLicenses);
-    componentDetails.setSecurityVulnerabilities(securityVulnerabilities);
-
-    String uri = UriBuilder.fromPath("rest/ci/componentDetails")
-        .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
-    setSaasResponseForURI(uri, toJson(componentDetails), 200);
-  }
-
-  private void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-      final ApiComponentDTOV2 requestComponentDTO, final String matchState,
-      final List<License> declaredLicenses, final List<License> observedLicenses,
-      final List<SecurityVulnerability> securityVulnerabilities, final Map<String, Policy> policies)
-  {
-    assertThat(resultComponentDTO, notNullValue());
-    assertThat(resultComponentDTO.component, notNullValue());
-    assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
-        is(requestComponentDTO.componentIdentifier.getFormat()));
-    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
-        is(requestComponentDTO.componentIdentifier.getCoordinates()));
-    assertThat(resultComponentDTO.component.hash, is(requestComponentDTO.hash));
-    assertThat(resultComponentDTO.matchState, is(matchState));
-
-
-    assertThat(resultComponentDTO.licenseData, notNullValue());
-    assertThat(resultComponentDTO.licenseData.declaredLicenses.size(), is(declaredLicenses.size()));
-    for (int i = 0; i < declaredLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseId,
-          is(declaredLicenses.get(i).getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseName,
-          is(declaredLicenses.get(i).getLicenseName()));
-    }
-
-    assertThat(resultComponentDTO.licenseData.observedLicenses.size(), is(observedLicenses.size()));
-    for (int i = 0; i < observedLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseId,
-          is(observedLicenses.get(i).getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseName,
-          is(observedLicenses.get(i).getLicenseName()));
-    }
-    assertThat(resultComponentDTO.licenseData.overriddenLicenses.size(), is(0));
-
-    assertThat(resultComponentDTO.securityData, notNullValue());
-    assertThat(resultComponentDTO.securityData.securityIssues.size(), is(securityVulnerabilities.size()));
-    for (int i = 0; i < securityVulnerabilities.size(); i++) {
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source,
-          is(securityVulnerabilities.get(i).getSource()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference,
-          is(securityVulnerabilities.get(i).getRefId()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity,
-          is(securityVulnerabilities.get(i).getSeverity()));
-    }
-
-    assertThat(resultComponentDTO.policyData, notNullValue());
-    assertThat(resultComponentDTO.policyData.policyViolations.size(), is(policies.size()));
-    for (ApiPolicyViolationDTOV2 violation : resultComponentDTO.policyData.policyViolations) {
-      assertThat(violation.policyId, is(policies.get(violation.policyId).getId()));
-      assertThat(violation.policyName, is(policies.get(violation.policyId).getName()));
-    }
-  }
-
-  private ComponentIdentifier createMavenComponentIdentifier(final String groupId, final String artifactId,
-      final String version, final String extension)
-  {
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put(ComponentIdentifier.MAVEN_GROUP_ID, groupId);
-    coordinates.put(ComponentIdentifier.MAVEN_ARTIFACT_ID, artifactId);
-    coordinates.put(ComponentIdentifier.VERSION, version);
-    if (extension != null) {
-      coordinates.put(ComponentIdentifier.MAVEN_EXTENSION, extension);
-    }
-    return new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN, coordinates);
-  }
-
-  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
-      final String hash)
-  {
-    ApiComponentDTOV2 component = new ApiComponentDTOV2();
-    component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
-    component.hash = hash;
-    return component;
+    ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
+    componentEvaluationDataList.components = new ArrayList<>();
+    Collections.addAll(componentEvaluationDataList.components, componentEvaluationData);
+    return componentEvaluationDataList;
   }
 
   private String getComponentEvaluationURL(final String applicationId) {

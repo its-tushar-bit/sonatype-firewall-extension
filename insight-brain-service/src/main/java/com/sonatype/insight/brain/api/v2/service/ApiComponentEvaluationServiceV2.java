@@ -8,13 +8,10 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +19,10 @@ import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -33,15 +34,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
-import com.sonatype.insight.brain.saas.CIComponentInfoResource;
 import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
@@ -63,6 +61,10 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ApiComponentEvaluationServiceV2
 {
+  public static final String HDS_EVALUATION_COMPONENTS_PATH = "rest/evaluation/components";
+
+  private int chunkSize = 100;
+
   private static final Logger log = LoggerFactory.getLogger(ApiComponentEvaluationServiceV2.class);
 
   private final ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -128,6 +130,11 @@ public class ApiComponentEvaluationServiceV2
     }
   }
 
+  // For testing
+  public void setChunkSize(final int chunkSize) {
+    this.chunkSize = chunkSize;
+  }
+
   private void validateRequest(final ApiComponentEvaluationRequestDTOV2 evaluationRequest) {
     if (evaluationRequest.components == null || evaluationRequest.components.isEmpty()) {
       throw new BadRequestException("No components provided for evaluation");
@@ -178,13 +185,11 @@ public class ApiComponentEvaluationServiceV2
       evaluationResultDTO.applicationId = application.getId();
 
       try {
-        Map<ApiComponentDTOV2, NamedComponentDetails> componentDetailsMap =
-            getComponentDetails(evaluationRequestDTO);
-        for (Entry<ApiComponentDTOV2, NamedComponentDetails> componentDetailsEntry :
-            componentDetailsMap.entrySet()) {
-          ApiComponentDTOV2 componentDTO = componentDetailsEntry.getKey();
-          NamedComponentDetails componentDetails = componentDetailsEntry.getValue();
+        List<ComponentEvaluationData> componentEvaluationDataList = getComponentDetailsList(evaluationRequestDTO);
+        for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
+          NamedComponentDetails componentDetails = convert(componentEvaluationData);
           Component component = componentDetailsLoader.augmentComponentDetails(application, componentDetails);
+          ApiComponentDTOV2 componentDTO = evaluationRequestDTO.components.get(componentEvaluationData.requestIndex);
           component.setProprietary(componentDTO.proprietary);
           // Evaluate the policies
           List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(application.getId(), new Stage(DevelopStageType.ID),
@@ -209,57 +214,73 @@ public class ApiComponentEvaluationServiceV2
       }
     }
 
-    private Map<ApiComponentDTOV2, NamedComponentDetails> getComponentDetails(
+    private NamedComponentDetails convert(final ComponentEvaluationData componentEvaluationData) {
+      NamedComponentDetails componentDetails = new NamedComponentDetails();
+      componentDetails.setCatalogDate(componentEvaluationData.catalogDate);
+      componentDetails.setHash(componentEvaluationData.hash);
+      componentDetails.setComponentIdentifier(componentEvaluationData.componentIdentifier);
+      componentDetails.setMatchState(componentEvaluationData.matchState);
+      componentDetails.setDeclaredLicenses(componentEvaluationData.declaredLicenses);
+      componentDetails.setObservedLicenses(componentEvaluationData.observedLicenses);
+      componentDetails.setSecurityVulnerabilities(componentEvaluationData.securityVulnerabilities);
+      componentDetails.setMatchState(componentEvaluationData.matchState);
+      return componentDetails;
+    }
+
+    private List<ComponentEvaluationData> getComponentDetailsList(
         final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
         throws IOException
     {
-      Map<ApiComponentDTOV2, NamedComponentDetails> componentMap = new LinkedHashMap<>();
-      for (ApiComponentDTOV2 componentDTO : evaluationRequestDTO.components) {
-        ComponentIdentifier componentIdentifier = null;
+      ComponentEvaluationDataList returnList = new ComponentEvaluationDataList();
+      returnList.components = new ArrayList<>();
 
-        if (componentDTO.componentIdentifier != null ) {
-          componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-              componentDTO.componentIdentifier.getCoordinates());
+      int indexAdjust = 0;
+      List<List<ApiComponentDTOV2>> componentChunks = createChunks(evaluationRequestDTO.components, chunkSize);
+      for (List<ApiComponentDTOV2> componentChunk : componentChunks) {
+        ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk);
+        ComponentEvaluationDataList componentEvaluationDataList = client.post(ComponentEvaluationDataList.class,
+            HDS_EVALUATION_COMPONENTS_PATH, componentEvaluationDataRequestList);
+
+        for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList.components) {
+          componentEvaluationData.requestIndex += indexAdjust * chunkSize;
+          returnList.components.add(componentEvaluationData);
         }
-        NamedComponentDetails componentDetails = getComponentDetails("", componentDTO.hash, componentIdentifier);
-        componentMap.put(componentDTO, componentDetails);
+        indexAdjust++;
       }
-      return componentMap;
+
+      return returnList.components;
     }
 
-    private NamedComponentDetails getComponentDetails(final String matchState, final String hash,
-        final ComponentIdentifier identifier)
-        throws IOException
-    {
-      return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
-          new ComponentDetailsLoader.HostedDataServicesSource()
-          {
-            @Override
-            public NamedComponentDetails getDetails() throws IOException {
-              NamedComponentDetails componentDetails;
+    private ComponentEvaluationDataRequestList convert(final List<ApiComponentDTOV2> components) {
+      ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
+      componentEvaluationDataRequestList.components = new ArrayList<>();
+      for (ApiComponentDTOV2 componentDTO : components) {
+        ComponentEvaluationDataRequest componentEvaluationDataRequest = convert(componentDTO);
+        componentEvaluationDataRequestList.components.add(componentEvaluationDataRequest);
+      }
+      return componentEvaluationDataRequestList;
+    }
 
-              Map<String, String> queryParams = new HashMap<>();
-              if (hash != null) {
-                queryParams.put("hash", hash);
-              }
-              if (identifier != null) {
-                queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
-              }
+    private ComponentEvaluationDataRequest convert(final ApiComponentDTOV2 componentDTO) {
+      ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
+      componentEvaluationDataRequest.hash = componentDTO.hash;
+      if (componentDTO.componentIdentifier != null) {
+        componentEvaluationDataRequest.componentIdentifier = new ComponentIdentifier(
+            componentDTO.componentIdentifier.getFormat(),
+            componentDTO.componentIdentifier.getCoordinates());
+      }
+      return componentEvaluationDataRequest;
+    }
 
-              try {
-                componentDetails = client.get(NamedComponentDetails.class, CIComponentInfoResource.SERVICE_PATH,
-                    queryParams);
-                componentDetails.setMatchState(MatchState.EXACT.getId());
-              }
-              catch (NotFoundException e) {
-                // Identifier is unknown to HDS, still want to provide minimal data
-                componentDetails = new NamedComponentDetails();
-                componentDetails.setComponentIdentifier(identifier);
-                componentDetails.setMatchState(MatchState.UNKNOWN.getId());
-              }
-              return componentDetails;
-            }
-          });
+    private <T> List<List<T>> createChunks(List<T> bigList, int n) {
+      List<List<T>> chunks = new ArrayList<>();
+
+      for (int i = 0; i < bigList.size(); i += n) {
+        List<T> chunk = bigList.subList(i, Math.min(bigList.size(), i + n));
+        chunks.add(chunk);
+      }
+
+      return chunks;
     }
   }
 }

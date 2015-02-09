@@ -54,6 +54,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
@@ -248,6 +249,29 @@ public class SaasClient
     }
     populateRequest(request, cloudReq);
     return execute(cloudReq);
+  }
+
+
+  /**
+   * @since 1.13.0
+   */
+  public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) throws IOException
+  {
+    long start = System.currentTimeMillis();
+    try {
+      HttpPost cloudReq = new HttpPost(buildUri(path, uriParams));
+      StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
+      cloudReq.setEntity(entity);
+      populateRequest(null /* base request */, cloudReq);
+      cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
+      cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+
+      HttpResponse response = execute(cloudReq);
+      return fromHttpResponse(response, clazz);
+    }
+    finally {
+      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
+    }
   }
 
   /**

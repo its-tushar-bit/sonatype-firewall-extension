@@ -21,9 +21,10 @@ import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentPolicyViolationListDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 
 /**
  * @since 1.13.0
@@ -51,7 +52,8 @@ public class ApiComponentDetailsAdapter
         .fromComponentIdentifier(component.getComponentIdentifier());
     componentDetailsDTO.component.hash = component.getHash();
     componentDetailsDTO.component.proprietary = component.isProprietary();
-    componentDetailsDTO.matchState = component.getMatchState().getId();
+    componentDetailsDTO.matchState =
+        component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component.getMatchState().getId();
 
     if (component.getCatalogDate() != null) {
       componentDetailsDTO.catalogDate = new Date(component.getCatalogDate());

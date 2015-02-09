@@ -34,7 +34,7 @@
     <shiro.version>1.2.3</shiro.version>
     <sisu-inject.version>0.1.1</sisu-inject.version>
     <sisu-guice.version>3.1.6</sisu-guice.version>
-    <clm.model.version>1.5.0</clm.model.version>
+    <clm.model.version>1.5.1-SNAPSHOT</clm.model.version>
     <!-- if the version of dropwizard changes, and pulls in a different version of jetty
     make sure to update the contents of our 
     insight-brain-service/src/main/resources/org/eclipse/jetty/http/mime.properties

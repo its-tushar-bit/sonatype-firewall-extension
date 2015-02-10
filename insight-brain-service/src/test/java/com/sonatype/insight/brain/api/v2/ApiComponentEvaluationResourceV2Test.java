@@ -66,7 +66,16 @@ public class ApiComponentEvaluationResourceV2Test
   }
 
   @Test
-  public void testEvaluateComponents_invalidComponentIdentifier() throws Exception {
+  public void testEvaluateComponents_invalidComponentIdentifier_noCoordinates() throws Exception {
+    String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, jsonRequest);
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
+  }
+
+  @Test
+  public void testEvaluateComponents_invalidComponentIdentifier_noExtension() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ComponentIdentifier componentIdentifier =
         componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", null);

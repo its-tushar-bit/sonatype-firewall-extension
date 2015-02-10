@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -141,14 +142,24 @@ public class ApiComponentEvaluationServiceV2
     }
     for (ApiComponentDTOV2 componentDTO : evaluationRequest.components) {
       if (componentDTO.componentIdentifier != null) {
-        ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
-            componentDTO.componentIdentifier.getCoordinates());
+        ComponentIdentifier componentIdentifier = createComponentIdentifier(componentDTO);
         componentIdentifierValidator.validate(componentIdentifier);
       }
       else if (componentDTO.hash == null) {
         throw new BadRequestException("One of either componentIdentifier or hash must be supplied.");
       }
     }
+  }
+
+  private ComponentIdentifier createComponentIdentifier(final ApiComponentDTOV2 componentDTO) {
+    ComponentIdentifier componentIdentifier;
+    try {
+      componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+          componentDTO.componentIdentifier.getCoordinates());
+    } catch (InvalidComponentIdentifierException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+    return componentIdentifier;
   }
 
   private ApiComponentEvaluationTicketDTOV2 createEvaluationTicket(final String applicationId) {

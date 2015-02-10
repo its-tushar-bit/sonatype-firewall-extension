@@ -152,14 +152,12 @@ public class ApiComponentEvaluationServiceV2
   }
 
   private ComponentIdentifier createComponentIdentifier(final ApiComponentDTOV2 componentDTO) {
-    ComponentIdentifier componentIdentifier;
     try {
-      componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+      return new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
     } catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
-    return componentIdentifier;
   }
 
   private ApiComponentEvaluationTicketDTOV2 createEvaluationTicket(final String applicationId) {

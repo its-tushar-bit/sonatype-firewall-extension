@@ -74,6 +74,24 @@ public class ComponentDetailsLoader
   public NamedComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier, String hash,
       String matchState, HostedDataServicesSource hdsSource) throws IOException
   {
+    NamedComponentDetails componentDetails = getComponentDetailsLocally(componentIdentifier, hash);
+
+    // Get component details from the HDS, if not found locally
+    if (componentDetails == null) {
+      componentDetails = hdsSource.getDetails();
+      componentDetails.setHash(hash); // HDS does not set hash
+      if (StringUtils.isNotBlank(matchState)) {
+        componentDetails.setMatchState(matchState);
+      }
+      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+    }
+
+    return componentDetails;
+  }
+
+  public NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash)
+      throws IOException
+  {
     NamedComponentDetails componentDetails = null;
 
     // Look among claimed components first
@@ -96,16 +114,6 @@ public class ComponentDetailsLoader
       componentDetails.setCatalogDate(hashComponentIdentifier.getCreateTimeLong());
       componentDetails.setIdentificationSource(IdentificationSource.MANUAL.getId());
       componentDetails.setIdentificationSourceComment(hashComponentIdentifier.getComment());
-    }
-
-    // Get component details from the HDS, if not found locally
-    if (componentDetails == null) {
-      componentDetails = hdsSource.getDetails();
-      componentDetails.setHash(hash); // HDS does not set hash
-      if (StringUtils.isNotBlank(matchState)) {
-        componentDetails.setMatchState(matchState);
-      }
-      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
 
     return componentDetails;

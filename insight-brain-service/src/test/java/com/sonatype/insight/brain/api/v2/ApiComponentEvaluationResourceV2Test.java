@@ -342,6 +342,63 @@ public class ApiComponentEvaluationResourceV2Test
         securityVulnerabilities, policies);
   }
 
+  @Test
+  public void testEvaluateComponents_withClaimedComponent() throws Exception {
+    Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    ComponentIdentifier componentIdentifier1 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
+    request.components.add(component1);
+
+    ComponentIdentifier componentIdentifier2 =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
+    request.components.add(component2);
+
+    tempEntity.newClaimedComponent("h2", componentIdentifier2);
+
+    // Create a mock return for the first component
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
+        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+
+    ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+        componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
+            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            Collections.<SecurityVulnerability>emptyList()));
+    mockComponentDetails(componentEvaluationDataList);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+
+    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    assertThat(details, notNullValue());
+    assertThat(details.isError, is(false));
+    assertThat(details.errorMessage, nullValue());
+    assertThat(details.applicationId, is(app.getId()));
+    assertThat(details.evaluationDate, notNullValue());
+    assertThat(details.submittedDate, notNullValue());
+    assertThat(details.results, notNullValue());
+    assertThat(details.results.size(), is(2));
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
+        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+        securityVulnerabilities, policies);
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
+        MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+  }
+
   private void mockHDSInternalServiceError() {
     setSaasResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH, "Internal Error", 500);
 

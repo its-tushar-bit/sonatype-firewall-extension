@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
@@ -197,6 +198,12 @@ public class ApiComponentEvaluationServiceV2
         List<ComponentEvaluationData> componentEvaluationDataList = getComponentDetailsList(evaluationRequestDTO);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
           NamedComponentDetails componentDetails = convert(componentEvaluationData);
+          // use the claimed component data if found
+          NamedComponentDetails localComponentDetails = componentDetailsLoader
+              .getComponentDetailsLocally(componentDetails.getComponentIdentifier(), componentDetails.getHash());
+          if (localComponentDetails != null) {
+            componentDetails = localComponentDetails;
+          }
           Component component = componentDetailsLoader.augmentComponentDetails(application, componentDetails);
           ApiComponentDTOV2 componentDTO = evaluationRequestDTO.components.get(componentEvaluationData.requestIndex);
           component.setProprietary(componentDTO.proprietary);

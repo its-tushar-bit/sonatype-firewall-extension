@@ -319,9 +319,9 @@
         return $scope.licenseEditorForm && $scope.licenseEditorForm.$dirty && !$scope.licenseEditorForm.$invalid && !$scope.saving;
       };
 
-      // Remove license when changing away from Override/Selected status
+      // Remove licenses when changing status
       $scope.$watch('override.status', function(val) {
-        if ($scope.override && val !== 'OVERRIDDEN' && val !== 'SELECTED') {
+        if ($scope.override) {
           $scope.override.licenseIds = [];
         }
       });

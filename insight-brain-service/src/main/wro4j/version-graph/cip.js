@@ -362,7 +362,7 @@
         properties.proprietary = proprietary;
       },
       isUnknown : function () {
-        return (properties.matchState || '').toLowerCase() === 'unknown';
+        return !properties.matchState || properties.matchState.toLowerCase() === 'unknown';
       }
     };
   });

@@ -125,7 +125,7 @@ public class ApiPolicyViolationServiceV2
         if (policyViolations != null) {
           for (PolicyViolation policyViolation : policyViolations) {
             ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
-            if (componentIdentifier.isMaven()) {
+            if (componentIdentifier != null && componentIdentifier.isMaven()) {
               ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
               apiPolicyViolationDTOs.add(apiPolicyViolationDTO);
               apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();

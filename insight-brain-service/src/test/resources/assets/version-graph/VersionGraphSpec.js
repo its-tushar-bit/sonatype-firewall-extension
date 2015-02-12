@@ -130,34 +130,6 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
-      it('Insight.setCoordinates with null', inject(function (Coordinates, Properties) {
-        Insight.setCoordinates(null, null,
-            { matchState : null, proprietary : false , filename : 'foo.jar', hash : 'abc123'});
-
-        expect(Coordinates.get()).toEqual({ });
-        expect(Coordinates.getSelected()).toEqual({  });
-        expect(Coordinates.getFormat()).toEqual(null);
-
-        expect(Properties.getMatchState()).toBeNull();
-        expect(Properties.getProprietary()).toEqual(false);
-        expect(Properties.getFilename()).toEqual('foo.jar');
-        expect(Properties.getHash()).toEqual('abc123');
-      }));
-
-      it('Insight.setCoordinates with undefined', inject(function (Coordinates, Properties) {
-        Insight.setCoordinates(null, null,
-            { proprietary : false , filename : 'foo.jar', hash : 'abc123'});
-
-        expect(Coordinates.get()).toEqual({ });
-        expect(Coordinates.getSelected()).toEqual({  });
-        expect(Coordinates.getFormat()).toEqual(null);
-
-        expect(Properties.getMatchState()).toBeUndefined();
-        expect(Properties.getProprietary()).toEqual(false);
-        expect(Properties.getFilename()).toEqual('foo.jar');
-        expect(Properties.getHash()).toEqual('abc123');
-      }));
-
       it('Selected', inject(function (Coordinates) {
         var gav = {
           groupId : 'gid',
@@ -373,8 +345,7 @@ var clmEndpointTemplate = {
           groupId : 'foo',
           artifactId : 'bar',
           version : '1',
-          proprietary : true,
-          matchState : 'exact'
+          proprietary : true
         };
         clmEndpoint.selectApplication = true;
 
@@ -512,8 +483,7 @@ var clmEndpointTemplate = {
         var gav = {
            groupId : 'groupId',
            artifactId : 'artifactId',
-           version : 'version',
-           matchState : 'exact'
+           version : 'version'
         };
 
         spyOn(Brain[clmEndpoint.type], 'getComponentUrl').andReturn('foo');
@@ -523,7 +493,6 @@ var clmEndpointTemplate = {
         });
 
         scope.$apply(function () {
-          Insight.setGav(gav);
           Coordinates.set('maven', gav);
           SelectedApp.set('appId');
         });
@@ -563,8 +532,7 @@ var clmEndpointTemplate = {
         var gav = {
           groupId : 'groupId',
           artifactId : 'artifactId',
-          version : 'version',
-          matchState : 'exact'
+          version : 'version'
         };
         expect(scope.highestPolicyThreat).toEqual(null);
 
@@ -585,7 +553,6 @@ var clmEndpointTemplate = {
         });
 
         scope.$apply(function () {
-          Insight.setGav(gav);
           Coordinates.set('maven', gav);
           SelectedApp.set('appId');
         });

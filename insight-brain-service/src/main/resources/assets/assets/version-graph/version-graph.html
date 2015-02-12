@@ -83,7 +83,7 @@
           The component is unknown.
         </span>
       </div>
-      <div ng-show='!isUnknown'>
+      <div ng-show='!isUnknown && componentDetailsList.length > 0'>
         <div class='cip-box' ng-controller='DetailsController'>
           <div ng-show='loaded' id='detailsparent'>
             <table id='infoPanelArtifactTable' style='border-collapse: collapse'>

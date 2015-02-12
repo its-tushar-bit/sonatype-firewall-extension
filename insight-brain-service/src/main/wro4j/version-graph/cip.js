@@ -362,7 +362,7 @@
         properties.proprietary = proprietary;
       },
       isUnknown : function () {
-        return !properties.matchState || properties.matchState.toLowerCase() === 'unknown';
+        return (properties.matchState || '').toLowerCase() === 'unknown';
       }
     };
   });
@@ -547,36 +547,45 @@
 
         if (coordinates && coordinates.appId && !Properties.isUnknown()) {
           $http.get(Brain[clmEndpoint.type].getComponentUrl(SelectedApp.get(), Coordinates.getFormat(), Properties.getHash(), Properties.getMatchState(), Properties.getProprietary(), coordinates.coordinates)).success(function (data) {
-            $scope.componentDetails = data;
-            $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
-
-            var i = 0;
-            while (i < $scope.componentDetails.securityVulnerabilities.length) {
-              if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
-                $scope.componentDetails.securityVulnerabilities.splice(i, 1);
-              } else {
-                i++;
-              }
+            if (data.matchState === 'unknown') {
+              Properties.setMatchState('unknown');
             }
+            else {
+              $scope.componentDetails = data;
+              $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
 
-            $scope.componentDetails.securityVulnerabilities.sort(function (a, b) {
-              if (a.severity === b.severity) {
-                return 0;
-              } else if (a.severity === null) {
-                return 1;
-              } else if (b.severity === null) {
-                return -1;
+              var i = 0;
+              while (i < $scope.componentDetails.securityVulnerabilities.length) {
+                if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
+                  $scope.componentDetails.securityVulnerabilities.splice(i, 1);
+                }
+                else {
+                  i++;
+                }
               }
-              return b.severity - a.severity;
-            });
 
-            $scope.componentDetails.policyAlerts.sort(function(alertA, alertB) {
-              return alertB.trigger.threatLevel - alertA.trigger.threatLevel;
-            });
-            $scope.highestPolicyThreat = {
-              level: $scope.componentDetails.policyAlerts.length > 0 ? $scope.componentDetails.policyAlerts[0].trigger.threatLevel : null,
-              violatedPolicies: $scope.componentDetails.policyAlerts.length
-            };
+              $scope.componentDetails.securityVulnerabilities.sort(function(a, b) {
+                if (a.severity === b.severity) {
+                  return 0;
+                }
+                else if (a.severity === null) {
+                  return 1;
+                }
+                else if (b.severity === null) {
+                  return -1;
+                }
+                return b.severity - a.severity;
+              });
+
+              $scope.componentDetails.policyAlerts.sort(function(alertA, alertB) {
+                return alertB.trigger.threatLevel - alertA.trigger.threatLevel;
+              });
+              $scope.highestPolicyThreat = {
+                level: $scope.componentDetails.policyAlerts.length >
+                    0 ? $scope.componentDetails.policyAlerts[0].trigger.threatLevel : null,
+                violatedPolicies: $scope.componentDetails.policyAlerts.length
+              };
+            }
           }).error(function () {
             $scope.setError(arguments);
           });

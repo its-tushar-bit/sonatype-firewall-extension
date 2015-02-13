@@ -663,7 +663,7 @@
       scope : {
         versions : '=graph'
       },
-      template : '<div ng-show="versions">' +
+      template : '<div>' +
                    '<div id="aiVersionChartContainer">' +
                      '<div id="aiVersionChartLabels"></div>' +
                      '<div id="aiVersionChartViz" style="overflow:hidden"></div>' +

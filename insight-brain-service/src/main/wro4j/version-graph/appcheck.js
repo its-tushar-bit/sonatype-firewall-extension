@@ -588,7 +588,7 @@
           return (config.barWidth + config.barGap) * this.versionCount(config);
         },
         width: function(config) {
-          var currentIndex = config.data.currentVersionIndex;
+          var currentIndex = config.data.currentVersionIndex ? config.data.currentVersionIndex : 0;
 
           //the inner width is twice the size of the area needed for the chart,
           //simply so that the current version can always be directly in the middle

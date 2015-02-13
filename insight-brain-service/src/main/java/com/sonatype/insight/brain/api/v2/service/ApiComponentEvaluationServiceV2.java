@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;

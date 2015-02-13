@@ -130,25 +130,28 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
-      it('Selected', inject(function (Coordinates) {
+      it('Selected', inject(function (Coordinates, Properties) {
         var gav = {
           groupId : 'gid',
           artifactId : 'aid',
-          version : '1',
-          hash : '12345678901234567890',
-          matchState : 'similar'
+          version : '1'
         }, sel = {
           groupId : 'gid',
           artifactId : 'aid',
           version : '2'
         };
         Coordinates.set('maven', gav);
+        Properties.setHash('abcd');
+
         Coordinates.setSelected(sel);
         expect(Coordinates.get()).toEqual(gav);
         expect(Coordinates.getSelected()).toEqual(sel);
+        expect(Properties.getHash()).toEqual(null);
+
         Coordinates.setSelected(angular.extend({}, sel, { version : gav.version }));
         expect(Coordinates.getSelected()).toEqual(gav);
         expect(Coordinates.getFormat()).toEqual('maven');
+        expect(Properties.getHash()).toEqual('abcd');
       }));
 
       it('Insight.setGAV', inject(function (Coordinates, Properties) {
@@ -422,7 +425,7 @@ var clmEndpointTemplate = {
           Coordinates.setSelected({ groupId : 'foo', artifactId : 'bar', version : '2' });
         });
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', '01234', 'similar', true, {
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', null, null, true, {
           groupId : 'foo',
           artifactId : 'bar',
           version : '2'
@@ -572,12 +575,13 @@ var clmEndpointTemplate = {
         Insight.setCoordinates('maven', { groupId : 'org.group', artifactId : 'stuff', classifier : 'sources', extension : 'jar', version : '1.0.0' }, { hash : 'abcd', proprietary : true, matchState : 'similar', appId : 'myapp' });
       }));
 
-      it('same version selected', inject(function ($rootScope) {
+      it('same version selected', function () {
         scope.$emit('viewDetails', '1.0.0');
         expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '1.0.0', 'sources', 'jar', 'abcd', 'similar', true);
-      }));
+      });
 
-      it('different version selected', inject(function ($rootScope) {
+      it('different version selected', inject(function (Coordinates) {
+        Coordinates.setSelected({ version : '2.0.0' });
         scope.$emit('viewDetails', '2.0.0');
         expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', null, null, true);
       }));

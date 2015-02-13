@@ -137,8 +137,8 @@
                       version,
                       gav.classifier,
                       gav.extension,
-                      version === gav.version ? Properties.getHash() : null,
-                      version === gav.version ? Properties.getMatchState() : null,
+                      Properties.getHash(),
+                      Properties.getMatchState(),
                       Properties.getProprietary());
             }
           });
@@ -310,6 +310,9 @@
         } else {
           selected = c;
         }
+      },
+      isOriginalVersion : function () {
+        return (this.get() || {}).version === (this.getSelected() || {}).version;
       }
     };
   });
@@ -331,17 +334,17 @@
     };
   });
 
-  module.service('Properties', function () {
+  module.service('Properties', ['Coordinates', function (Coordinates) {
     var properties = {};
     return {
       getFilename : function () {
         return properties.filename;
       },
       getHash : function () {
-        return properties.hash;
+        return Coordinates.isOriginalVersion() ? properties.hash : null;
       },
       getMatchState : function () {
-        return properties.matchState;
+        return Coordinates.isOriginalVersion() ? properties.matchState : null;
       },
       getProprietary : function () {
         return properties.proprietary;
@@ -365,7 +368,7 @@
         return (properties.matchState || '').toLowerCase() === 'unknown';
       }
     };
-  });
+  }]);
 
   /**
    * Service to provide the selected application.  Persisted via cookies.

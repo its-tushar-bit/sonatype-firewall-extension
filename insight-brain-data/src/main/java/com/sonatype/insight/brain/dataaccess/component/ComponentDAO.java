@@ -159,6 +159,7 @@ public class ComponentDAO
           final String reference = securityVulnerabilityJson.get("reference").asText();
           final Float severity = JsonUtils.getNullableFloat(securityVulnerabilityJson.get("score"));
           final String statusString = JsonUtils.getNullableString(securityVulnerabilityJson.get("status"));
+          final String urlString = JsonUtils.getNullableString(securityVulnerabilityJson.get("url"));
           final SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName(statusString);
 
           List<Component> components = componentsByKey.get(key);
@@ -169,6 +170,7 @@ public class ComponentDAO
               securityVulnerability.setRefId(reference);
               securityVulnerability.setSeverity(severity);
               securityVulnerability.setStatus(status);
+              securityVulnerability.setUrl(urlString);
 
               component.addSecurityVulnerability(securityVulnerability);
             }

@@ -14,9 +14,9 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
-import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.rhc.RepoHealthCheckSecurityVulnerability;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
@@ -108,7 +108,8 @@ public class ApiComponentEvaluationServiceV2Test
     LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
         Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+    List<RepoHealthCheckSecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper
+        .createSecurityVulnerabilities();
 
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();

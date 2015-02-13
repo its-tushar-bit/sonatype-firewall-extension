@@ -102,11 +102,15 @@ public class ApiReportDataServiceV2Test
     }
   }
 
-  private void assertSv(ApiSecurityIssueDTO sv, String status, String source, String ref, Float severity) {
+  private void assertSv(ApiSecurityIssueDTO sv, String status, String source, String ref, Float severity, String url,
+      String threatCategory)
+  {
     assertThat(sv.status, is(status));
     assertThat(sv.source, is(source));
     assertThat(sv.reference, is(ref));
     assertThat(sv.severity, is(severity));
+    assertThat(sv.url, is(url));
+    assertThat(sv.threatCategory, is(threatCategory));
   }
 
   @Test
@@ -138,8 +142,10 @@ public class ApiReportDataServiceV2Test
     assertThat(component.securityData, is(notNullValue()));
     assertThat(component.securityData.securityIssues, is(notNullValue()));
     assertThat(component.securityData.securityIssues, hasSize(2));
-    assertSv(component.securityData.securityIssues.get(0), "Acknowledged", "osvdb", "36079", 3.5f);
-    assertSv(component.securityData.securityIssues.get(1), "Open", "osvdb", "62054", null);
+    assertSv(component.securityData.securityIssues.get(0), "Acknowledged", "osvdb", "36079", 3.5f,
+        "http://osvdb.org/36079", "moderate");
+    assertSv(component.securityData.securityIssues.get(1), "Open", "osvdb", "62054", null, "http://osvdb.org/62054",
+        "moderate");
 
     component = data.components.get(1);
     assertThat(component.hash, is("69b58197caabec2e0d06"));

@@ -14,4 +14,8 @@ public class ApiSecurityIssueDTO
   public Float severity;
 
   public String status;
+
+  public String url;
+
+  public String threatCategory;
 }

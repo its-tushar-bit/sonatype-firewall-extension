@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.SecurityThreatLevel;
 import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.model.component.Component;
@@ -26,6 +27,8 @@ public class ApiSecurityDataAdapter
       sv.reference = vuln.getRefId();
       sv.severity = vuln.getSeverity();
       sv.status = vuln.getStatus().getName();
+      sv.url = vuln.getUrl();
+      sv.threatCategory = SecurityThreatLevel.getBySeverity(vuln.getSeverity()).getName();
       securityData.securityIssues.add(sv);
     }
 

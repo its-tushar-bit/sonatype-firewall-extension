@@ -90,7 +90,6 @@ public class ComponentDetailsLoader
   }
 
   public NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash)
-      throws IOException
   {
     NamedComponentDetails componentDetails = null;
 

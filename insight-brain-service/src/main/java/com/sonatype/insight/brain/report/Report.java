@@ -362,6 +362,8 @@ public final class Report
           bomObjectNode.put("extension", componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION));
           bomObjectNode.put("classifier", componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
         }
+        // injectComponentIdentifier below is for legacy reports and does not help claimed components
+        bomObjectNode.put("componentIdentifier", JsonUtils.asTree(componentIdentifier));
         bomObjectNode.put("matchState", MatchState.EXACT.getId());
         bomObjectNode.put("createTime", hashComponentIdentifier.getCreateTimeLong());
         bomObjectNode.put("relativePopularity", NullNode.getInstance());

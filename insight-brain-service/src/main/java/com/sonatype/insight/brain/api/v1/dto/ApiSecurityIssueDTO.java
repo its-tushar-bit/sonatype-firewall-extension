@@ -15,7 +15,13 @@ public class ApiSecurityIssueDTO
 
   public String status;
 
+  /**
+   * @since 1.13.0
+   */
   public String url;
 
+  /**
+   * @since 1.13.0
+   */
   public String threatCategory;
 }

@@ -366,14 +366,14 @@ public class ApiComponentEvaluationResourceV2Test
     LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
         Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+    List<RepoHealthCheckSecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability>emptyList()));
+            Collections.<RepoHealthCheckSecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -399,7 +399,7 @@ public class ApiComponentEvaluationResourceV2Test
         securityVulnerabilities, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+        Collections.<RepoHealthCheckSecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
   }
 
   private void mockHDSInternalServiceError() {

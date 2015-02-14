@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
-
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 public class ReportResourceAuthzTest
@@ -39,8 +36,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testBrowseReport() throws Exception {
     String scanId = "scanId";
-    File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     grantReadPermission(app.getId());
 
@@ -53,8 +49,7 @@ public class ReportResourceAuthzTest
   public void testPrintReport() throws Exception {
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
-    File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     grantReadPermission(app.getId());
 
@@ -65,8 +60,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testDownloadBundle() throws Exception {
     String scanId = "scanId";
-    File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     grantReadPermission(app.getId());
 
@@ -78,8 +72,7 @@ public class ReportResourceAuthzTest
   @Test
   public void testReevaluatePolicy() throws Exception {
     String scanId = "scanId";
-    File saasReportFile = getReportResponseFile(getLicenseFingerprint(), scanId);
-    FileUtils.copyURLToFile(getClass().getResource("/ReportResourceTest/report.zip"), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
     grantReadPermission(app.getId());

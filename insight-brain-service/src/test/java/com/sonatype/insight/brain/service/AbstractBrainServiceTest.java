@@ -127,16 +127,8 @@ public abstract class AbstractBrainServiceTest
     return new File(saasWork, "json");
   }
 
-  private static File getZipResponseDirectory() {
-    return new File(saasWork, "zip");
-  }
-
   protected static File getScanResponseFile(final String licenseFingerprint) {
     return new File(getJsonResponseDirectory(), licenseFingerprint + ".json");
-  }
-
-  protected static File getReportResponseFile(final String licenseFingerprint, final String scanId) {
-    return new File(getZipResponseDirectory(), licenseFingerprint + '-' + scanId + ".zip");
   }
 
   protected String getRestBaseUrl() {
@@ -160,7 +152,11 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void setSaasResponseForURI(String uri, int status, String bodyResource) {
-    setSaasResponseForURI(uri, toString(bodyResource), status);
+    setSaasResponseForURI(uri, getClass().getResource(bodyResource), status);
+  }
+
+  protected void mockReport(String scanId, String resourceName) {
+    setSaasResponseForURI("rest/ci/report?scanId=" + scanId, 200, resourceName);
   }
 
   protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)

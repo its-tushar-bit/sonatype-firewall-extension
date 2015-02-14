@@ -331,9 +331,8 @@ public class ApplicationResourceTest
     setLicenseFingerprint(licenseFingerprint);
 
     final String scanId1 = "ScanId1", scanId2 = "ScanId2";
-    final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
-    FileUtils.copyURLToFile(getClass().getResource("/PolicyEvaluateResourceTest/report.zip"), saasReportFile1);
-    FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId2));
+    mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
+    mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
 
     final long startTime = System.currentTimeMillis();
     Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),
@@ -402,10 +401,9 @@ public class ApplicationResourceTest
     // Create policy
     tempEntity.newPolicy(application.getId(), "policy 1");
     final String scanId1 = "ScanId1", scanId2 = "ScanId2", scanId3 = "ScanId3";
-    final File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
-    FileUtils.copyURLToFile(getClass().getResource("/PolicyEvaluateResourceTest/report.zip"), saasReportFile1);
-    FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId2));
-    FileUtils.copyFile(saasReportFile1, getReportResponseFile(licenseFingerprint, scanId3));
+    mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
+    mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
+    mockReport(scanId3, "/PolicyEvaluateResourceTest/report.zip");
 
     // Eval policy
     Response response = AuthedRestAccess.post(getEvalURL(applicationPublicId, scanId1),

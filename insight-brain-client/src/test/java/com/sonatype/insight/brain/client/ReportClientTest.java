@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.File;
-import java.net.URL;
 import java.util.zip.ZipFile;
 
 import javax.ws.rs.core.UriBuilder;
@@ -17,7 +16,6 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.client.HttpResponseException;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,9 +75,7 @@ public class ReportClientTest
     tempEntity.newApplicationWithParent(applicationPublicId).getId();
     setLicenseFingerprint(licenseFingerprint);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource(reportFileName);
-    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+    mockReport(scanId, reportFileName);
 
     File retrievedFile = temporaryFolder.newFile();
 
@@ -99,9 +95,7 @@ public class ReportClientTest
     tempEntity.newApplicationWithParent(applicationPublicId).getId();
     setLicenseFingerprint(licenseFingerprint);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource(reportFileName);
-    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+    mockReport(scanId, reportFileName);
 
     File retrievedFile = temporaryFolder.newFile();
 

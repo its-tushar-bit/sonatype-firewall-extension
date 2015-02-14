@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -63,7 +61,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.Response;
-import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
@@ -113,9 +110,6 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate_MultipleMatchesForSameGAV() throws Exception {
     String scanId = "testEvaluate_MultipleMatchesForSameGAV_ScanId";
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     Constraint constraintLicense = new Constraint(null /* constraintId */, "Constraint License", LogicalOperator.AND);
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "UNSPECIFIED");
     constraintLicense.addCondition(condition1);
@@ -142,8 +136,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip");
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
@@ -180,9 +173,6 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate_ManuallyIdentifiedComponent() throws Exception {
     String scanId = "testEvaluate_ManuallyIdentifiedComponent_ScanId";
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
     constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "younger than", "30"));
@@ -213,9 +203,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass()
-        .getResource("/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
@@ -257,9 +245,6 @@ public class PolicyEvaluateResourceTest
     tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
         .getId(), hash);
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
     Action action = new Action(FailActionType.ID);
@@ -277,8 +262,7 @@ public class PolicyEvaluateResourceTest
     String artifactId = "tomcat-util";
     String version = "5.5.23";
 
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
@@ -315,9 +299,6 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate() throws Exception {
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
     final Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraint1.addCondition(condition1);
@@ -353,8 +334,7 @@ public class PolicyEvaluateResourceTest
     final Stage stage = new Stage(BuildStageType.ID);
 
     // Simulate that the report is available
-    final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     final List<Message> messagesA = Mailbox.get("manager@example.com");
     final List<Message> messagesB = Mailbox.get("john.doe@example.com");
@@ -448,9 +428,6 @@ public class PolicyEvaluateResourceTest
   public void testPolicyThreatLevelCounts() throws Exception {
     final String scanId = "PolicyThreatCountResourceTest_ScanId";
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     final Constraint constraint = new Constraint("C1", "PolicyThreatCountResourceTest constraint 1",
         LogicalOperator.AND);
     final Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
@@ -468,8 +445,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
-    final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Threat Level 1 Should not show up in any counts
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
@@ -526,9 +502,6 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate_MultiLicense() throws Exception {
     String scanId = "testEvaluate_MultiLicense_ScanId";
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     constraint1.addCondition(condition1);
@@ -550,8 +523,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
@@ -573,9 +545,6 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testEvaluate_LicenseOverride_DefinedAtOrgLevel() throws Exception {
     String scanId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
-
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
 
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "ZPL-2.0");
@@ -599,8 +568,7 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Override the license at org level
     tempEntity.newLicenseOverride(app.getOrganizationId(), COMMONS_POOL_ID, LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0",
@@ -649,9 +617,6 @@ public class PolicyEvaluateResourceTest
   public void testNotificationEmailModel() throws Exception {
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     final Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
@@ -686,8 +651,7 @@ public class PolicyEvaluateResourceTest
 
     final Stage stage = new Stage(BuildStageType.ID);
 
-    final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     String serverUrl = "http://localhost/";
     String cdnUrl = "http://cdn.localhost/";
@@ -718,11 +682,7 @@ public class PolicyEvaluateResourceTest
   public void testErrorReport() throws Exception {
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/empty_report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/empty_report.zip");
 
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(Stage.ID_BUILD));
     assertResponseStatus(400, response);
@@ -734,9 +694,6 @@ public class PolicyEvaluateResourceTest
   @Test
   public void testReEvaluate_Notifications() throws Exception {
     String scanId = "testReEvaluation";
-
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
 
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
@@ -753,8 +710,7 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     List<Message> notifications = Mailbox.get("manager@test.corp");
     notifications.clear();
@@ -815,9 +771,6 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate_FirstOccurrencePolicyViolations_OneStage() throws Exception {
     String scanId = "testEvaluateFirstOccurrencePolicyViolations";
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     Constraint constraint1 = new Constraint("C1", "PolicyEvaluateResourceTest constraint 1", LogicalOperator.OR);
     Condition condition1 = new Condition(CoordinatesConditionType.ID, "match", "tomcat:tomcat-util:5.5.23");
     constraint1.addCondition(condition1);
@@ -832,8 +785,7 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Evaluate policy
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
@@ -883,10 +835,7 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate policy for the Build stage
     String scanBuildId = "scanBuildId";
-    File saasReportFileBuild = getReportResponseFile(licenseFingerprint, scanBuildId);
-    saasReportFileBuild.delete();
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFileBuild);
+    mockReport(scanBuildId, "/PolicyEvaluateResourceTest/report.zip");
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanBuildId),
         toJson(BuildStageType.ID));
     assertResponseStatus(200, response);
@@ -902,9 +851,7 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate policy for the Release stage
     String scanReleaseId = "scanReleaseId";
-    File saasReportFileRelease = getReportResponseFile(licenseFingerprint, scanReleaseId);
-    saasReportFileRelease.delete();
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFileRelease);
+    mockReport(scanReleaseId, "/PolicyEvaluateResourceTest/report.zip");
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanReleaseId),
         toJson(ReleaseStageType.ID));
     assertResponseStatus(200, response);
@@ -931,23 +878,11 @@ public class PolicyEvaluateResourceTest
 
     // Simulate that the report is available
     String scanId1 = "testEvaluatePersistApplicationComponents1";
-    File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
-    saasReportFile1.delete();
-    URL testReportFileUrl1 = getClass().getResource(
-        "/PolicyEvaluateResourceTest/PersistApplicationComponents/report1.zip");
-    FileUtils.copyFile(new File(testReportFileUrl1.getFile()), saasReportFile1);
+    mockReport(scanId1, "/PolicyEvaluateResourceTest/PersistApplicationComponents/report1.zip");
     String scanId2 = "testEvaluatePersistApplicationComponents2";
-    File saasReportFile2 = getReportResponseFile(licenseFingerprint, scanId2);
-    saasReportFile2.delete();
-    URL testReportFileUrl2 = getClass().getResource(
-        "/PolicyEvaluateResourceTest/PersistApplicationComponents/report2.zip");
-    FileUtils.copyFile(new File(testReportFileUrl2.getFile()), saasReportFile2);
+    mockReport(scanId2, "/PolicyEvaluateResourceTest/PersistApplicationComponents/report2.zip");
     String scanId3 = "testEvaluatePersistApplicationComponents3";
-    File saasReportFile3 = getReportResponseFile(licenseFingerprint, scanId3);
-    saasReportFile3.delete();
-    URL testReportFileUrl3 = getClass().getResource(
-        "/PolicyEvaluateResourceTest/PersistApplicationComponents/report3.zip");
-    FileUtils.copyFile(new File(testReportFileUrl3.getFile()), saasReportFile3);
+    mockReport(scanId3, "/PolicyEvaluateResourceTest/PersistApplicationComponents/report3.zip");
 
     // Evaluate policy
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
@@ -1001,11 +936,8 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate policy for scanId1
     String scanId1 = "scanId1";
-    File saasReportFile1 = getReportResponseFile(licenseFingerprint, scanId1);
-    saasReportFile1.delete();
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile1);
+    mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
     Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), toJson(stage));
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = fromJson(response,
@@ -1017,10 +949,8 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate policy for scanId2
     String scanId2 = "scanId2";
-    File saasReportFile2 = getReportResponseFile(licenseFingerprint, scanId2);
-    saasReportFile2.delete();
     // Simulate that the report is available
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile2);
+    mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
     response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId2), toJson(stage));
     assertResponseStatus(200, response);
     assertPolicyEvaluation(app.getId(), scanId2, false /* isReevaluation */);
@@ -1064,9 +994,6 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate_WaivedPolicyViolations() throws Exception {
     String scanId = "testEvaluate_WaivedPolicyViolations_ScanId";
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
     // Create a policy
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
@@ -1083,8 +1010,7 @@ public class PolicyEvaluateResourceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver(componentHash, policy.getId(), app.getId(), "Waiver comment here");
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyEvaluateResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);

@@ -9,12 +9,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,6 +22,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.mail.Message;
 
@@ -130,11 +129,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     assertResponseStatus(200,
         AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
@@ -226,11 +221,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     assertResponseStatus(200,
         AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
@@ -257,11 +248,7 @@ public class ReportResourceTest
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // populate JSON data cache before claiming the component
     String resourcePrefix = getServiceURL(applicationPublicId, scanId);
@@ -349,11 +336,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     TimeZone gmt = TimeZone.getTimeZone("GMT");
     final Calendar calendar = Calendar.getInstance(gmt);
@@ -411,72 +394,66 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
+    String reportResource = "/ReportResourceTest/report.zip";
+    mockReport(scanId, reportResource);
 
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    try (ZipInputStream zipStream = new ZipInputStream(getClass().getResourceAsStream(reportResource))) {
+      for (ZipEntry entry = zipStream.getNextEntry(); entry != null; entry = zipStream.getNextEntry()) {
+        final Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/" + entry.getName());
+        final String contentType = response.getContentType();
+        assertResponseStatus(200, response);
 
-    final ZipFile zipFile = new ZipFile(saasReportFile);
-    final Enumeration<? extends ZipEntry> e = zipFile.entries();
-    while (e.hasMoreElements()) {
-      final ZipEntry entry = e.nextElement();
-      final Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/" + entry.getName());
-      final String contentType = response.getContentType();
-      assertResponseStatus(200, response);
-
-      if ("data.json".equals(entry.getName())) {
-        String actual = response.getResponseBody();
-        testDataJsonApplyChanges(actual);
-      }
-      else if ("badges.json".equals(entry.getName())) {
-        assertThat(JsonUtils.parse(response.getResponseBodyAsBytes(), int[].class), equalTo(new int[] { 36, 8, 36 }));
-      }
-      else if ("licenses.json".equals(entry.getName())) {
-        String actual = response.getResponseBody();
-
-        testLicensesJsonApplyChanges(actual);
-        testJsonApplyComponentChanges(actual);
-      }
-      else if ("licensethreats.json".equals(entry.getName())) {
-        String actual = response.getResponseBody();
-
-        testLicenseThreatsJsonApplyChanges(actual);
-      }
-      else if ("partialmatched.json".equals(entry.getName())) {
-        String actual = response.getResponseBody();
-
-        testPartialMatchedJsonApplyChanges(actual);
-      }
-      else if ("security.json".equals(entry.getName())) {
-        JsonNode actual = JsonUtils.parse(response.getResponseBody());
-        JsonNode expected = JsonUtils.parse(IOUtil.toString(zipFile.getInputStream(entry)));
-        for (JsonNode node : expected.get("aaData")) {
-          ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
-          ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
+        if ("data.json".equals(entry.getName())) {
+          String actual = response.getResponseBody();
+          testDataJsonApplyChanges(actual);
         }
-        assertThat(actual, is(expected));
-      }
-      else if ("index.html".equals(entry.getName())) {
-        String actual = response.getResponseBody();
-        assertTrue("The app public id was not included in the report",
-            actual.contains("applicationId = '" + applicationPublicId + "'"));
-      }
-      else if ("bom.json".equals(entry.getName())) {
-        String actual = response.getResponseBody();
-        testJsonApplyComponentChanges(actual);
-      }
-      else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-        assertThat(response.getResponseBody(),
-            equalToIgnoringWhiteSpace(IOUtil.toString(zipFile.getInputStream(entry), "UTF-8")));
-      }
-      else {
-        assertThat(IOUtil.toByteArray(response.getResponseBodyAsStream()),
-            equalTo(IOUtil.toByteArray(zipFile.getInputStream(entry))));
+        else if ("badges.json".equals(entry.getName())) {
+          assertThat(JsonUtils.parse(response.getResponseBodyAsBytes(), int[].class), equalTo(new int[] { 36, 8, 36 }));
+        }
+        else if ("licenses.json".equals(entry.getName())) {
+          String actual = response.getResponseBody();
+
+          testLicensesJsonApplyChanges(actual);
+          testJsonApplyComponentChanges(actual);
+        }
+        else if ("licensethreats.json".equals(entry.getName())) {
+          String actual = response.getResponseBody();
+
+          testLicenseThreatsJsonApplyChanges(actual);
+        }
+        else if ("partialmatched.json".equals(entry.getName())) {
+          String actual = response.getResponseBody();
+
+          testPartialMatchedJsonApplyChanges(actual);
+        }
+        else if ("security.json".equals(entry.getName())) {
+          JsonNode actual = JsonUtils.parse(response.getResponseBody());
+          JsonNode expected = JsonUtils.parse(IOUtil.toString(zipStream));
+          for (JsonNode node : expected.get("aaData")) {
+            ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
+            ComponentDisplayNameUtil.injectDisplayName((ObjectNode) node);
+          }
+          assertThat(actual, is(expected));
+        }
+        else if ("index.html".equals(entry.getName())) {
+          String actual = response.getResponseBody();
+          assertTrue("The app public id was not included in the report",
+              actual.contains("applicationId = '" + applicationPublicId + "'"));
+        }
+        else if ("bom.json".equals(entry.getName())) {
+          String actual = response.getResponseBody();
+          testJsonApplyComponentChanges(actual);
+        }
+        else if (contentType.startsWith("text") || contentType.endsWith("json")) {
+          assertThat(response.getResponseBody(),
+              equalToIgnoringWhiteSpace(IOUtil.toString(zipStream, "UTF-8")));
+        }
+        else {
+          assertThat(IOUtil.toByteArray(response.getResponseBodyAsStream()),
+              equalTo(IOUtil.toByteArray(zipStream)));
+        }
       }
     }
-
-    zipFile.close();
 
     assertResponseStatus(200,
         AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
@@ -490,9 +467,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
     File reportDir = getCLMServer().getReportDir(appId, scanId);
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
@@ -546,11 +521,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     final Response response;
     try {
@@ -580,11 +551,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     Response response;
     try {
@@ -620,11 +587,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation = policyEvaluationDAO
@@ -685,9 +648,7 @@ public class ReportResourceTest
     // Evaluate the policy for a new scan for the same app. It should send notifications since this is not a
     // reevaluation.
     scanId = "ReportResourceTest_ScanId1";
-    saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
     response = AuthedRestAccess.post(
         getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId)
             + "?scanId=" + scanId, toJson(stage));
@@ -713,11 +674,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     final String query = "security.json?user=test&where=ReportResourceTest";
 
@@ -804,11 +761,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // Verify before any license overrides are added
     Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
@@ -907,11 +860,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     final String query = "security.json?user=test&where=ReportResourceTest";
 
@@ -961,11 +910,7 @@ public class ReportResourceTest
 
     final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
-
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/report.zip");
-    FileUtils.copyFile(new File(testReportResultUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/report.zip");
 
     final String query = "extra.json?user=test&where=ReportResourceTest";
 
@@ -1005,9 +950,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/standalone-legacy.zip");
-    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/standalone-legacy.zip");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE");
@@ -1100,9 +1043,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    final URL testReportResultUrl = getClass().getResource("/ReportResourceTest/standalone.zip");
-    FileUtils.copyURLToFile(testReportResultUrl, saasReportFile);
+    mockReport(scanId, "/ReportResourceTest/standalone.zip");
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
         "commons-httpclient", "3.1.SONATYPE", "", "jar");

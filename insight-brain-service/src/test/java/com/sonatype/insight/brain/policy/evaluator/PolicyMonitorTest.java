@@ -98,8 +98,6 @@ public class PolicyMonitorTest
     String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
     String scanId = "PolicyMonitorTest_scanId";
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     scanFile.delete();
 
@@ -108,8 +106,7 @@ public class PolicyMonitorTest
     FileUtils.copyFile(new File(testScanFileUrl.getFile()), scanFile);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyMonitorTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyMonitorTest/report.zip");
 
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
@@ -206,8 +203,6 @@ public class PolicyMonitorTest
     String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
     String scanId = "PolicyMonitorTest_scanId";
-    File saasReportFile = getReportResponseFile(licenseFingerprint, scanId);
-    saasReportFile.delete();
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     scanFile.delete();
 
@@ -225,8 +220,7 @@ public class PolicyMonitorTest
     FileUtils.copyFile(new File(testScanFileUrl.getFile()), scanFile);
 
     // Simulate that the report is available
-    URL testReportFileUrl = getClass().getResource("/PolicyMonitorTest/report.zip");
-    FileUtils.copyFile(new File(testReportFileUrl.getFile()), saasReportFile);
+    mockReport(scanId, "/PolicyMonitorTest/report.zip");
 
     // Prepare to receive email notifications
     List<Message> notificationsDeveloper = Mailbox.get(notifyEmail);

@@ -20,7 +20,7 @@ public class LabelConditionType
 {
   public static final String ID = "Label";
 
-  private static List<String> supportedOperators = new ArrayList<String>();
+  private static List<String> supportedOperators = new ArrayList<>();
 
   static {
     supportedOperators.add("is");

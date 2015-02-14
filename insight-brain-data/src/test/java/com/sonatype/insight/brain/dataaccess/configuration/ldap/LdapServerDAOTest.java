@@ -29,7 +29,7 @@ public class LdapServerDAOTest
 {
   private LdapServerDAO dao = new LdapServerDAO();
 
-  protected Set<LdapServer> serversToDelete = new LinkedHashSet<LdapServer>();
+  protected Set<LdapServer> serversToDelete = new LinkedHashSet<>();
 
   @Test
   public void testCRUD() {

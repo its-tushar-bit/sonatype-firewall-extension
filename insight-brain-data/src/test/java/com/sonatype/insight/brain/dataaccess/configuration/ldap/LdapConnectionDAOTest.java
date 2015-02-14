@@ -26,7 +26,7 @@ public class LdapConnectionDAOTest
 
   private LdapConnectionDAO connDao = new LdapConnectionDAO();
 
-  protected Set<LdapConnection> connsToDelete = new LinkedHashSet<LdapConnection>();
+  protected Set<LdapConnection> connsToDelete = new LinkedHashSet<>();
 
   private LdapServer server;
 

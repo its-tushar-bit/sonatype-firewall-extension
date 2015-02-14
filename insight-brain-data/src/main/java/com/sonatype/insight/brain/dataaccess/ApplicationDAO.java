@@ -233,7 +233,7 @@ public class ApplicationDAO
   }
 
   private void checkConflictingLabels(TransactionContext tx, Application application, Organization organization) {
-    final List<Label> conflicts = new ArrayList<Label>();
+    final List<Label> conflicts = new ArrayList<>();
     final LabelDAO labelDAO = new LabelDAO();
     for (Label appLabel : labelDAO.getByOwnerId(tx, application.getId())) {
       if (labelDAO.getByOwnerIdAndLabelLowercase(tx, organization.getId(), appLabel.getLabelLowercase()) != null) {

@@ -72,7 +72,7 @@ public class ComponentDetailService
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
-    List<StageType> stageTypes = new ArrayList<StageType>();
+    List<StageType> stageTypes = new ArrayList<>();
     for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
       if (!StageTypes.isIgnoredForDashboard(stageType.getId())) {
         stageTypes.add(stageType);

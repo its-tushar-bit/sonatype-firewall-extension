@@ -320,8 +320,8 @@ public class ApplicationResource
     applicationManagement.setScansCount(scans != null ? scans.length : 0);
 
     final List<PolicyEvaluation> policyEvaluationList = getMostRecentPolicyEvaluations(applicationManagement.getId());
-    Map<String, PolicyEvaluation> policyEvaluations = new HashMap<String, PolicyEvaluation>();
-    Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<String, PolicyEvaluationResult>();
+    Map<String, PolicyEvaluation> policyEvaluations = new HashMap<>();
+    Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
     for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
       policyEvaluations.put(policyEvaluation.getStageTypeId(), policyEvaluation);
 
@@ -341,7 +341,7 @@ public class ApplicationResource
   }
 
   private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) {
-    final List<PolicyEvaluation> policyEvaluations = new ArrayList<PolicyEvaluation>();
+    final List<PolicyEvaluation> policyEvaluations = new ArrayList<>();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : StageTypes.getAll()) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(appId, stageType.getId());

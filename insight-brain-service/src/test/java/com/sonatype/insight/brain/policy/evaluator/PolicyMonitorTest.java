@@ -117,7 +117,7 @@ public class PolicyMonitorTest
 
     Collection<StageType> stageTypes = StageTypes.getAll();
 
-    Map<StageType, Date> lastRun = new HashMap<StageType, Date>();
+    Map<StageType, Date> lastRun = new HashMap<>();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (StageType stageType : stageTypes) {
       PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId());

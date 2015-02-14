@@ -343,7 +343,7 @@ public final class Report
   {
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
-    Map<String, HashComponentIdentifier> claimedHashes = new LinkedHashMap<String, HashComponentIdentifier>();
+    Map<String, HashComponentIdentifier> claimedHashes = new LinkedHashMap<>();
     Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
     ReportEntry bomReportEntry = extractEntry(reportFile, "bom.json");
     ContainerNode<?> bomJsonData = JsonUtils.parse(bomReportEntry.buf);
@@ -547,7 +547,7 @@ public final class Report
    */
   @Deprecated
   private static void filterKeyFindings(final ObjectNode data, final ContainerNode<?> security) {
-    final Set<String> textSet = new HashSet<String>();
+    final Set<String> textSet = new HashSet<>();
 
     ArrayNode sourceFindings = (ArrayNode) data.get("keyFindings");
     if (sourceFindings == null) {

@@ -101,7 +101,7 @@ public class LicenseAwareContainerResourceFilterFactory
       return null;
     }
 
-    Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+    Set<CLMEnforcementPoint> enforcementPoints = new HashSet<>();
 
     ProductLicenseEnforcementPoint ep = am.getAnnotation(ProductLicenseEnforcementPoint.class);
 

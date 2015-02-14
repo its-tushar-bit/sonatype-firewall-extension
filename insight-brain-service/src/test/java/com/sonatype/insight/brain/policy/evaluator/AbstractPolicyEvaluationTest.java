@@ -65,7 +65,7 @@ public abstract class AbstractPolicyEvaluationTest
         componentFacts.size());
 
     int actualConstraintFactCount = 0;
-    Set<String> observeredConstraints = new HashSet<String>();
+    Set<String> observeredConstraints = new HashSet<>();
     for (ComponentFact componentFact : componentFacts) {
       for (ConstraintFact constraintFact : componentFact.getConstraintFacts()) {
         if (observeredConstraints.add(constraintFact.getConstraintId())) {

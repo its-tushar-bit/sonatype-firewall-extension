@@ -92,7 +92,7 @@ public class LabelResource
 
     ApplicableLabels result = new ApplicableLabels();
 
-    result.labelsByOwner = new ArrayList<LabelsByOwner>();
+    result.labelsByOwner = new ArrayList<>();
     String organizationId;
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
       Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);

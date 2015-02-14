@@ -144,7 +144,7 @@ public class SaasClientTest
   @Test
   public void testClmUserAgentOnRequests() throws Exception {
     String userAgent = UserAgentUtils.getDefaultUserAgent();
-    final Set<String> headers = new HashSet<String>();
+    final Set<String> headers = new HashSet<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()
     {
@@ -185,7 +185,7 @@ public class SaasClientTest
 
   @Test
   public void testDoNotLeakUserCredentialsToSaas() throws Exception {
-    final Set<String> headers = new HashSet<String>();
+    final Set<String> headers = new HashSet<>();
     handler = new AbstractHandler()
     {
 

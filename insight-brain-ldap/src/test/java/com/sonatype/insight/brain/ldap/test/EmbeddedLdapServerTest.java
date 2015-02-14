@@ -155,7 +155,7 @@ public class EmbeddedLdapServerTest
   }
 
   private Hashtable<String, Object> getEnv(String mechanism) {
-    Hashtable<String, Object> env = new Hashtable<String, Object>();
+    Hashtable<String, Object> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, server.getUrl());
     env.put(Context.SECURITY_AUTHENTICATION, mechanism);

@@ -123,7 +123,7 @@ public class DatabaseAccessTest
 
     private String orgId;
 
-    public List<Exception> errors = new ArrayList<Exception>();
+    public List<Exception> errors = new ArrayList<>();
 
     DatabaseAccessThread(int id, String orgId) {
       super("DatabaseAccessThread" + id);

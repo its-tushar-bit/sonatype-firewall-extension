@@ -29,7 +29,7 @@ public class AgeInDaysConditionType
 
   private static final PeriodFormatter AGE_FORMATTER = PeriodFormat.wordBased(Locale.ENGLISH);
 
-  private static List<String> supportedOperators = new ArrayList<String>();
+  private static List<String> supportedOperators = new ArrayList<>();
 
   static {
     supportedOperators.add("older than");

@@ -155,16 +155,16 @@ public class MultiLicenseDAO
       @SuppressWarnings({ "unchecked", "rawtypes" })
       List<MultiLicenseLicenseInternal> mappings = (List) getList(sQuery);
 
-      Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<String, Set<License>>();
+      Map<String, Set<License>> _licenseSetsById = new LinkedHashMap<>();
 
-      Map<String, MultiLicense> _licensesById = new LinkedHashMap<String, MultiLicense>();
+      Map<String, MultiLicense> _licensesById = new LinkedHashMap<>();
       for (MultiLicense license : multiLicenses) {
         _licensesById.put(license.getId(), license);
         _licenseSetsById.put(license.getId(), new LinkedHashSet<License>());
       }
       multiLicensesById = _licensesById;
 
-      Map<String, MultiLicense> _licensesByName = new TreeMap<String, MultiLicense>(String.CASE_INSENSITIVE_ORDER);
+      Map<String, MultiLicense> _licensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
       for (MultiLicense license : multiLicenses) {
         _licensesByName.put(license.getShortDisplayName(), license);
       }

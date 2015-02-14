@@ -154,7 +154,7 @@ public class LicenseOverrideResource
 
     AppliedLicenseOverrides result = new AppliedLicenseOverrides();
 
-    result.licenseOverridesByOwner = new ArrayList<LicenseOverrideByOwner>();
+    result.licenseOverridesByOwner = new ArrayList<>();
     String organizationId;
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {

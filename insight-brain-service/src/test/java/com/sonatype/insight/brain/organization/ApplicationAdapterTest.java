@@ -149,7 +149,7 @@ public class ApplicationAdapterTest
     List<ApplicationDTO> expectedApplicationDTOs = new ArrayList<>();
     List<Application> applications = new ArrayList<>();
     List<Member> members = new ArrayList<>();
-    Set<String> memberNames = new HashSet<String>();
+    Set<String> memberNames = new HashSet<>();
 
     for (int i = 1; i <= 5; i++) {
       String orgId = organizationId;

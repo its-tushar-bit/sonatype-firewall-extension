@@ -267,7 +267,7 @@ public class PolicyViolationTest
 
   @Test
   public void testSetNotifications_Empty() throws Exception {
-    List<String> notifications = new ArrayList<String>();
+    List<String> notifications = new ArrayList<>();
     // Violations must have constraint facts.
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
 

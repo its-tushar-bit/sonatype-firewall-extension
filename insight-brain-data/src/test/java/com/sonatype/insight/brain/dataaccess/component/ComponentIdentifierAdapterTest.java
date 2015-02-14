@@ -156,7 +156,7 @@ public class ComponentIdentifierAdapterTest
 
   @Test
   public void testToJsonCoordinates() throws Exception {
-    Map<String, String> coordinates = new HashMap<String, String>();
+    Map<String, String> coordinates = new HashMap<>();
     coordinates.put("groupId", "tomcat");// throw in a unicode character just for the hell of it
     coordinates.put("artifactId", "tomcat-util");
     coordinates.put("version", "5.5.23");

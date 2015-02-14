@@ -18,9 +18,9 @@ import java.util.Map;
  */
 public class IdentificationSource
 {
-  private final static Map<String, IdentificationSource> byId = new LinkedHashMap<String, IdentificationSource>();
+  private final static Map<String, IdentificationSource> byId = new LinkedHashMap<>();
 
-  private final static List<IdentificationSource> all = new ArrayList<IdentificationSource>();
+  private final static List<IdentificationSource> all = new ArrayList<>();
 
   // Note: The order the values are defined here determines the order they are displayed in the UI
   public static final IdentificationSource SONATYPE = new IdentificationSource("Sonatype", "Sonatype");

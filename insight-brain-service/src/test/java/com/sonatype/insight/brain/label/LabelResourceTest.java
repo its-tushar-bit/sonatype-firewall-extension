@@ -111,7 +111,7 @@ public class LabelResourceTest
     Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
     Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
     constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
@@ -232,7 +232,7 @@ public class LabelResourceTest
     Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
     Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
     constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
@@ -269,7 +269,7 @@ public class LabelResourceTest
     Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
     Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
     constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);

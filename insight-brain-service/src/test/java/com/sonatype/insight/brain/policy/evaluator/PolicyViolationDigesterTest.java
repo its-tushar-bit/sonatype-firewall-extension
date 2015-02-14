@@ -129,7 +129,7 @@ public class PolicyViolationDigesterTest
   @Test
   public void testDigest_UnknownPolicyViolationBeforeAndAfterClearedPolicyViolation() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
-    final List<PolicyViolation> newViolations = new ArrayList<PolicyViolation>();
+    final List<PolicyViolation> newViolations = new ArrayList<>();
 
     newViolations.add(newPolicyViolation("policy_1", "Policy 1", 0));
     newViolations.add(newPolicyViolation("policy_8", "Policy 8", 0));

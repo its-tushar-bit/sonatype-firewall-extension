@@ -162,12 +162,12 @@ public class TemporaryEntity
 
   @Override
   protected void before() {
-    apps = new ArrayList<Application>();
-    orgs = new ArrayList<Organization>();
-    users = new ArrayList<User>();
-    roles = new ArrayList<Role>();
-    ldapServers = new ArrayList<LdapServer>();
-    claimedComponents = new ArrayList<HashComponentIdentifier>();
+    apps = new ArrayList<>();
+    orgs = new ArrayList<>();
+    users = new ArrayList<>();
+    roles = new ArrayList<>();
+    ldapServers = new ArrayList<>();
+    claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
   }
 

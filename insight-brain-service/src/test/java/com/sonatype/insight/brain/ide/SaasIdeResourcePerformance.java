@@ -97,7 +97,7 @@ public class SaasIdeResourcePerformance
   }
 
   List<Long> execute(String hash) throws Exception {
-    List<ClientRunnable> callables = new ArrayList<ClientRunnable>();
+    List<ClientRunnable> callables = new ArrayList<>();
     HttpServletRequest request = SaasIdeResourcePerformanceUtils.createRequest();
     new ClientRunnable(resource, testApplication.getPublicIdLowercase(), hash, request).call();
     try {
@@ -106,7 +106,7 @@ public class SaasIdeResourcePerformance
       }
 
       List<Future<Long>> resultFutures = pool.invokeAll(callables, 10, TimeUnit.MINUTES);
-      List<Long> results = new ArrayList<Long>(resultFutures.size());
+      List<Long> results = new ArrayList<>(resultFutures.size());
       for (Future<Long> result : resultFutures) {
         results.add(result.get());
       }

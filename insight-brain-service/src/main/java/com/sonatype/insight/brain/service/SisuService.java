@@ -52,7 +52,7 @@ public abstract class SisuService<T extends Configuration>
 {
   private static final Logger logger = LoggerFactory.getLogger(SisuService.class);
 
-  private final List<Module> initModules = new ArrayList<Module>();
+  private final List<Module> initModules = new ArrayList<>();
 
   private Injector injector = null;
 
@@ -72,7 +72,7 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private Injector createInjector(final T configuration) {
-    List<Module> modules = new ArrayList<Module>();
+    List<Module> modules = new ArrayList<>();
 
     modules.add(new AbstractModule()
     {
@@ -219,7 +219,7 @@ public abstract class SisuService<T extends Configuration>
   }
 
   private void addResourceFilterFactories(Environment environment, BeanLocator locator) {
-    List<ResourceFilterFactory> resourceFilterFactories = new ArrayList<ResourceFilterFactory>();
+    List<ResourceFilterFactory> resourceFilterFactories = new ArrayList<>();
     for (BeanEntry<Annotation, ResourceFilterFactory> beanEntry : filter(locator.locate(Key
         .get(ResourceFilterFactory.class)))) {
       ResourceFilterFactory resourceFilterFactory = beanEntry.getValue();

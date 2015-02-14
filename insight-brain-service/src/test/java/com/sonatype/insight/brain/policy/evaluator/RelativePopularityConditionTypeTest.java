@@ -33,7 +33,7 @@ public class RelativePopularityConditionTypeTest
   @Test
   public void testEvaluateNoPopularityData() {
     Constraint constraint = createConstraint("=", "50");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     Policy policy = new Policy("PolicyId", "Policy Name");
@@ -54,7 +54,7 @@ public class RelativePopularityConditionTypeTest
   public void testEvaluateEquals() {
     // Create policy constraints
     Constraint constraint = createConstraint("=", "30");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -62,7 +62,7 @@ public class RelativePopularityConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setRelativePopularity(10);
     components.add(component1);
@@ -85,7 +85,7 @@ public class RelativePopularityConditionTypeTest
   public void testEvaluateLess() {
     // Create policy constraints
     Constraint constraint = createConstraint("<", "30");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -93,7 +93,7 @@ public class RelativePopularityConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setRelativePopularity(10);
     components.add(component1);
@@ -116,7 +116,7 @@ public class RelativePopularityConditionTypeTest
   public void testEvaluateLessOrEqual() {
     // Create policy constraints
     Constraint constraint = createConstraint("<=", "30");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -124,7 +124,7 @@ public class RelativePopularityConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setRelativePopularity(10);
     components.add(component1);
@@ -149,7 +149,7 @@ public class RelativePopularityConditionTypeTest
   public void testEvaluateGreater() {
     // Create policy constraints
     Constraint constraint = createConstraint(">", "30");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -157,7 +157,7 @@ public class RelativePopularityConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setRelativePopularity(10);
     components.add(component1);
@@ -180,7 +180,7 @@ public class RelativePopularityConditionTypeTest
   public void testEvaluateGreaterOrEqual() {
     // Create policy constraints
     Constraint constraint = createConstraint(">=", "30");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -188,7 +188,7 @@ public class RelativePopularityConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setRelativePopularity(10);
     components.add(component1);

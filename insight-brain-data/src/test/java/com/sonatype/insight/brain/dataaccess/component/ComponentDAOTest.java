@@ -73,11 +73,11 @@ public class ComponentDAOTest
   }
 
   private void assertLicenseThreatGroups(Set<LicenseThreatGroup> actual, String... expected) {
-    Set<String> actualNames = new TreeSet<String>();
+    Set<String> actualNames = new TreeSet<>();
     for (LicenseThreatGroup group : actual) {
       actualNames.add(group.getName());
     }
-    assertEquals(new TreeSet<String>(Arrays.asList(expected)), actualNames);
+    assertEquals(new TreeSet<>(Arrays.asList(expected)), actualNames);
   }
 
   @SuppressWarnings("deprecation")

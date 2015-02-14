@@ -60,7 +60,7 @@ public class MembershipMappingDAOTest
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private Matcher<Collection<? extends MembershipMapping>> matches(List<MembershipMapping>... arrayOfMemberships) {
-    List<Matcher<MembershipMapping>> matchers = new ArrayList<Matcher<MembershipMapping>>();
+    List<Matcher<MembershipMapping>> matchers = new ArrayList<>();
     for (List<MembershipMapping> memberships : arrayOfMemberships) {
       for (MembershipMapping membership : memberships) {
         matchers.add(eq(membership));

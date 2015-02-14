@@ -305,7 +305,7 @@ public class UserDirectoryTest
   public void testGetUsersByName_LdapOnlyCalledWithNamesNotFoundInCLMRealm() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
-    List<LdapUser> emptyLdapUsers = new ArrayList<LdapUser>();
+    List<LdapUser> emptyLdapUsers = new ArrayList<>();
     String[] expectedArgument = new String[] { "Alpha", "CLMBOB" };
     when(mockLdapManager.getUsers(expectedArgument, 2)).thenReturn(emptyLdapUsers);
 

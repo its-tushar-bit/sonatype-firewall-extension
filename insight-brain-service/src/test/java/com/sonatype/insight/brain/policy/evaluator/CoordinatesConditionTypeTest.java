@@ -32,7 +32,7 @@ public class CoordinatesConditionTypeTest
   public void testEvaluateMatchExact() {
     // Create policy constraints
     Constraint constraint = createConstraint("match", "g2:a2:v2");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -40,7 +40,7 @@ public class CoordinatesConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
@@ -62,7 +62,7 @@ public class CoordinatesConditionTypeTest
   public void testEvaluateMatchGavWithSpaces() {
     // Create policy constraints
     Constraint constraint = createConstraint("match", "g1 : a1 : v1");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -70,7 +70,7 @@ public class CoordinatesConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
 
@@ -87,7 +87,7 @@ public class CoordinatesConditionTypeTest
   public void testEvaluateMatchWildcard() {
     // Create policy constraints
     Constraint constraint = createConstraint("match", "g2:a*:v2");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -95,7 +95,7 @@ public class CoordinatesConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
@@ -117,7 +117,7 @@ public class CoordinatesConditionTypeTest
   public void testEvaluateDoNotMatchExact() {
     // Create policy constraints
     Constraint constraint = createConstraint("do not match", "g2:a2:v2");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -125,7 +125,7 @@ public class CoordinatesConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
@@ -147,7 +147,7 @@ public class CoordinatesConditionTypeTest
   public void testEvaluateDoNotMatchWildcard() {
     // Create policy constraints
     Constraint constraint = createConstraint("do not match", "g2:a*:v2");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -155,7 +155,7 @@ public class CoordinatesConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.SIMILAR);
@@ -180,7 +180,7 @@ public class CoordinatesConditionTypeTest
     policy.addConstraint(createConstraint("match", "g1:" + artifactId));
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", artifactId, "v1", MatchState.EXACT);
     components.add(component1);
 

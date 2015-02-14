@@ -104,7 +104,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
   public void testEvaluateLessOrEqual() {
     // Create policy constraints
     Constraint constraint = createConstraint("<=", "2");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -112,7 +112,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLicenseThreatGroup(licenseThreatGroup2);
     components.add(component1);
@@ -135,7 +135,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
   public void testEvaluateGreaterOrEqual() {
     // Create policy constraints
     Constraint constraint = createConstraint(">=", "5");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -143,7 +143,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLicenseThreatGroup(licenseThreatGroup2);
     components.add(component1);
@@ -187,7 +187,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
 
     // Create policy constraints
     Constraint constraint = createConstraint(">=", "7");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -196,7 +196,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
     ComponentDAO componentDAO = new ComponentDAO();
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("Apache-2.0");
     componentDAO.loadLicenseThreatGroups(app.getId(), component1);

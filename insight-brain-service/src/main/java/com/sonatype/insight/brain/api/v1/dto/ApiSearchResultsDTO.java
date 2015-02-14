@@ -20,5 +20,5 @@ public class ApiSearchResultsDTO
 {
   public ApiSearchCriteriaDTO criteria = new ApiSearchCriteriaDTO();
 
-  public List<ApiSearchResultDTO> results = new ArrayList<ApiSearchResultDTO>();
+  public List<ApiSearchResultDTO> results = new ArrayList<>();
 }

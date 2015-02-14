@@ -34,8 +34,8 @@ public class ScanConfiguration
   public ScanConfiguration() {
     workDir = getDefaultWorkDir();
     scanOptions = new Properties();
-    componentItems = new ArrayList<RepositoryItem>(128);
-    scanItems = new ArrayList<RepositoryItem>();
+    componentItems = new ArrayList<>(128);
+    scanItems = new ArrayList<>();
   }
 
   private static File getDefaultWorkDir() {

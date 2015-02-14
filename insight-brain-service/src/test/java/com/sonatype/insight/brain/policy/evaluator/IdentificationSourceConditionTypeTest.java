@@ -35,7 +35,7 @@ public class IdentificationSourceConditionTypeTest
   public void testEvaluateIs() {
     // Create policy constraints
     Constraint constraint = createConstraint("is", IdentificationSource.SONATYPE.getId());
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -43,7 +43,7 @@ public class IdentificationSourceConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setIdentificationSource(IdentificationSource.SONATYPE);
     components.add(component1);
@@ -64,7 +64,7 @@ public class IdentificationSourceConditionTypeTest
   public void testEvaluateIsNot() {
     // Create policy constraints
     Constraint constraint = createConstraint("is not", IdentificationSource.SONATYPE.getId());
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -72,7 +72,7 @@ public class IdentificationSourceConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setIdentificationSource(IdentificationSource.SONATYPE);
     components.add(component1);

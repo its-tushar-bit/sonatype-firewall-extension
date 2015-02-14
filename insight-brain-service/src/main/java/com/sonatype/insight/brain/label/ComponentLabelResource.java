@@ -123,7 +123,7 @@ public class ComponentLabelResource
    */
   static class AppliedLabels
   {
-    public List<LabelsByOwner> labelsByOwner = new ArrayList<LabelsByOwner>();
+    public List<LabelsByOwner> labelsByOwner = new ArrayList<>();
 
     void add(String ownerId, String ownerName, String ownerType, List<Label> labels) {
       if (labels == null || labels.isEmpty()) {

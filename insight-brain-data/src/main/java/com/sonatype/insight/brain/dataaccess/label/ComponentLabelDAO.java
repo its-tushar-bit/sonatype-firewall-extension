@@ -49,7 +49,7 @@ public class ComponentLabelDAO
         " WHERE label.ownerId=?1 AND label.hash=?2";
     final ApplicationDAO applicationDAO = new ApplicationDAO();
     final Application application = applicationDAO.getById(tx, ownerId);
-    final List<ComponentLabel> labels = new ArrayList<ComponentLabel>();
+    final List<ComponentLabel> labels = new ArrayList<>();
     if (application != null) {
       labels.addAll(getList(tx, sQuery, application.getOrganizationId(), hash));
     }

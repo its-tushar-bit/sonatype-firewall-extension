@@ -14,7 +14,7 @@ public class NumericOperators
   public static final List<String> LIST;
 
   static {
-    List<String> list = new ArrayList<String>();
+    List<String> list = new ArrayList<>();
     list.add("=");
     list.add("<");
     list.add("<=");

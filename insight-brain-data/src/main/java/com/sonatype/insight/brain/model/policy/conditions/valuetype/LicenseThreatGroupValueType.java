@@ -51,7 +51,7 @@ public class LicenseThreatGroupValueType
 
   @Override
   public List<LicenseThreatGroup> getAvailableValues() {
-    List<LicenseThreatGroup> result = new ArrayList<LicenseThreatGroup>();
+    List<LicenseThreatGroup> result = new ArrayList<>();
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     result.addAll(licenseThreatGroupDAO.getByOwnerId(ownerId));
 

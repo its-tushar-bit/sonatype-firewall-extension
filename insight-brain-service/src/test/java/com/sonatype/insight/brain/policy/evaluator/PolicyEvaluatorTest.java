@@ -84,7 +84,7 @@ public class PolicyEvaluatorTest
     final Stage stage = new Stage(BuildStageType.ID);
 
     // Create policy constraints
-    final List<Constraint> constraints = new ArrayList<Constraint>();
+    final List<Constraint> constraints = new ArrayList<>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints.add(constraint1);
@@ -96,7 +96,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
     policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
 
-    final List<Component> components = new ArrayList<Component>();
+    final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
     final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
@@ -124,7 +124,7 @@ public class PolicyEvaluatorTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Create policy constraints
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LicenseConditionType.ID, "is not", "Apache-2.0"));
     constraints.add(constraint1);
@@ -133,7 +133,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
     policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = new Component();
     component1.setMatchState(MatchState.UNKNOWN);
     components.add(component1);
@@ -149,7 +149,7 @@ public class PolicyEvaluatorTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Create policy constraints
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LicenseConditionType.ID, "is not", "Apache-2.0"));
     constraints.add(constraint1);
@@ -161,7 +161,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
     policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = new Component();
     component1.setMatchState(MatchState.UNKNOWN);
     components.add(component1);
@@ -185,7 +185,7 @@ public class PolicyEvaluatorTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Create policy constraints
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.OR);
     constraint1.addCondition(new Condition(LicenseConditionType.ID, "is not", "GPL-2.0"));
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId()));
@@ -201,7 +201,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
     policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = new Component();
     component1.setMatchState(MatchState.UNKNOWN);
     components.add(component1);
@@ -225,7 +225,7 @@ public class PolicyEvaluatorTest
     final Stage stage = new Stage(BuildStageType.ID);
 
     // Create policy constraints
-    final List<Constraint> constraints = new ArrayList<Constraint>();
+    final List<Constraint> constraints = new ArrayList<>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraint1.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
@@ -235,7 +235,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
     policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
 
-    final List<Component> components = new ArrayList<Component>();
+    final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
     final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
@@ -304,7 +304,7 @@ public class PolicyEvaluatorTest
     final Stage stage = new Stage(BuildStageType.ID);
 
     // Create policy constraints
-    final List<Constraint> constraints = new ArrayList<Constraint>();
+    final List<Constraint> constraints = new ArrayList<>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.OR);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraint1.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
@@ -314,7 +314,7 @@ public class PolicyEvaluatorTest
     policy.setConstraints(constraints);
     policy.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
 
-    final List<Component> components = new ArrayList<Component>();
+    final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
     final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
@@ -399,7 +399,7 @@ public class PolicyEvaluatorTest
   @Test
   public void testEvaluate_ContextBasedActions() {
     // Create policy constraints
-    final List<Constraint> constraints = new ArrayList<Constraint>();
+    final List<Constraint> constraints = new ArrayList<>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints.add(constraint1);
@@ -415,7 +415,7 @@ public class PolicyEvaluatorTest
     policy.addAction(ReleaseStageType.ID, new Action(NotifyActionType.ID));
     policy.getActions(ReleaseStageType.ID).get(0).setTarget("manager@some.com");
 
-    final List<Component> components = new ArrayList<Component>();
+    final List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
     final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
@@ -461,7 +461,7 @@ public class PolicyEvaluatorTest
 
   @Test
   public void testEvaluate_SortedAlerts() {
-    final List<Policy> policies = new ArrayList<Policy>();
+    final List<Policy> policies = new ArrayList<>();
 
     // randomly generate a series of policies
     for (int i = 0; i <= 25 * Math.random(); i++) {
@@ -470,7 +470,7 @@ public class PolicyEvaluatorTest
       policies.add(policy);
     }
 
-    final List<Component> components = new ArrayList<Component>();
+    final List<Component> components = new ArrayList<>();
 
     // A component with one security vulnerability
     final Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
@@ -499,7 +499,7 @@ public class PolicyEvaluatorTest
 
     // Sort facts by policy then component then constraint then condition
     Collections.sort(facts, PolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
-    final List<MatchFact> expectedFacts = new ArrayList<MatchFact>(facts);
+    final List<MatchFact> expectedFacts = new ArrayList<>(facts);
 
     // Check sorting is consistent
     for (int i = 0; i < 100; i++) {
@@ -540,7 +540,7 @@ public class PolicyEvaluatorTest
     Stage stage = new Stage(BuildStageType.ID);
 
     // Create org policy
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     Constraint constraintOrg = new Constraint(null, "Constraint Name Org", LogicalOperator.AND);
     constraintOrg.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints.add(constraintOrg);
@@ -551,7 +551,7 @@ public class PolicyEvaluatorTest
     policyDAO.insert(policyOrg);
 
     // Create app policy
-    constraints = new ArrayList<Constraint>();
+    constraints = new ArrayList<>();
     Constraint constraintApp = new Constraint(null, "Constraint Name App", LogicalOperator.AND);
     constraintApp.addCondition(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     constraints.add(constraintApp);
@@ -561,7 +561,7 @@ public class PolicyEvaluatorTest
     policyApp.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
     policyDAO.insert(policyApp);
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));
@@ -628,7 +628,7 @@ public class PolicyEvaluatorTest
     Application app = tempEntity.newApplication(org.getId());
 
     // Create two policies
-    List<Constraint> constraints1 = new ArrayList<Constraint>();
+    List<Constraint> constraints1 = new ArrayList<>();
     Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints1.add(constraint1);
@@ -638,7 +638,7 @@ public class PolicyEvaluatorTest
     policy1.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.insert(policy1);
-    List<Constraint> constraints2 = new ArrayList<Constraint>();
+    List<Constraint> constraints2 = new ArrayList<>();
     Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints2.add(constraint2);
@@ -649,7 +649,7 @@ public class PolicyEvaluatorTest
     policyDAO.insert(policy2);
 
     // Create two components
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("hash1");
     component1.addSecurityVulnerability(new SecurityVulnerability("osvdb", "sv1", 3F));

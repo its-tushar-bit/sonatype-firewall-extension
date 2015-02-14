@@ -1199,7 +1199,7 @@ public class ReportResourceTest
     JsonNode keyFindings = data.get("keyFindings");
     Assert.assertNotNull(keyFindings);
     Assert.assertTrue(keyFindings.size() > 0);
-    Set<String> uniqueKeyFindings = new LinkedHashSet<String>();
+    Set<String> uniqueKeyFindings = new LinkedHashSet<>();
     for (int i = 0; i < keyFindings.size(); i++) {
       String keyFinding = keyFindings.get(i).get("text").asText();
       uniqueKeyFindings.add(keyFinding);

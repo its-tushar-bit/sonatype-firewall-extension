@@ -72,7 +72,7 @@ public class RolePermissionDAO
   public Set<String> getRoleIdsByPermission(Permission permission) {
     Map<Permission, Set<String>> map = roleIdsByPermission;
     if (map == null) {
-      map = new EnumMap<Permission, Set<String>>(Permission.class);
+      map = new EnumMap<>(Permission.class);
       for (Permission perm : Permission.values()) {
         map.put(perm, new HashSet<String>());
       }

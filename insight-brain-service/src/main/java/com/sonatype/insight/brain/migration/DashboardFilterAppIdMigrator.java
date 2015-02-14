@@ -57,7 +57,7 @@ public class DashboardFilterAppIdMigrator
       try {
         DashboardFilterDTO dto = JsonUtils.parse(filter.getFilter(), DashboardFilterDTO.class);
         if (dto.applicationFilters != null) {
-          List<String> byId = new LinkedList<String>();
+          List<String> byId = new LinkedList<>();
           for (String appPublicId : dto.applicationFilters) {
             log.trace("Looking for application {}", appPublicId);
             Application app = appDAO.getByPublicId(appPublicId);

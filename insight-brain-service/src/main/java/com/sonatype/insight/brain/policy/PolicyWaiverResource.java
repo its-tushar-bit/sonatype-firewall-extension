@@ -114,11 +114,11 @@ public class PolicyWaiverResource
 
   private List<PolicyWaiverDTO> getAppliedWaivers(String ownerId, String hash) {
     List<PolicyWaiver> waivers = new PolicyWaiverDAO().getByOwnerIdAndHash(ownerId, hash);
-    Map<String, String> policyNamesById = new HashMap<String, String>();
+    Map<String, String> policyNamesById = new HashMap<>();
     for (Policy policy : new PolicyDAO().getApplicableByOwnerId(ownerId)) {
       policyNamesById.put(policy.getId(), policy.getName());
     }
-    List<PolicyWaiverDTO> dtos = new ArrayList<PolicyWaiverDTO>(waivers.size());
+    List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
     for (PolicyWaiver waiver : waivers) {
       PolicyWaiverDTO dto = new PolicyWaiverDTO();
       dto.setComment(waiver.getComment());
@@ -173,7 +173,7 @@ public class PolicyWaiverResource
    */
   public static class AppliedWaivers
   {
-    public List<WaiversByOwner> waiversByOwner = new ArrayList<WaiversByOwner>();
+    public List<WaiversByOwner> waiversByOwner = new ArrayList<>();
 
     void add(String ownerId, String ownerName, String ownerType, List<PolicyWaiverDTO> waivers) {
       if (waivers == null || waivers.isEmpty()) {

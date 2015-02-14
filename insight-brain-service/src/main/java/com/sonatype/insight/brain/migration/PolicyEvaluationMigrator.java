@@ -472,7 +472,7 @@ public class PolicyEvaluationMigrator
   }
 
   private Map<String, List<String>> loadPathnames(List<Component> components) {
-    Map<String, List<String>> mappedComponents = new HashMap<String, List<String>>();
+    Map<String, List<String>> mappedComponents = new HashMap<>();
 
     if (components == null || components.isEmpty()) {
       return mappedComponents;

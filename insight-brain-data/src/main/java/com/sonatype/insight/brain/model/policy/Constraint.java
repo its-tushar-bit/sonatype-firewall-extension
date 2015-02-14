@@ -71,7 +71,7 @@ public class Constraint
 
   public void addCondition(final Condition condition) {
     if (conditions == null) {
-      conditions = new ArrayList<Condition>();
+      conditions = new ArrayList<>();
     }
     conditions.add(condition);
   }

@@ -93,7 +93,7 @@ public class LicenseThreatGroupResource
   }
 
   private List<LicenseThreatGroupWithLicenses> loadLicenseThreatGroups(String ownerId) {
-    List<LicenseThreatGroupWithLicenses> results = new ArrayList<LicenseThreatGroupWithLicenses>();
+    List<LicenseThreatGroupWithLicenses> results = new ArrayList<>();
     for (LicenseThreatGroup ltg : licenseThreatGroupDAO.getByOwnerId(ownerId)) {
       LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
       ltgwl.id = ltg.getId();
@@ -181,7 +181,7 @@ public class LicenseThreatGroupResource
 
   public static class ApplicableLicenseThreatGroups
   {
-    public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner = new ArrayList<LicenseThreatGroupsByOwner>();
+    public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner = new ArrayList<>();
 
     public void add(String ownerId, String ownerName, String ownerType,
         List<LicenseThreatGroupWithLicenses> licenseThreatGroups)

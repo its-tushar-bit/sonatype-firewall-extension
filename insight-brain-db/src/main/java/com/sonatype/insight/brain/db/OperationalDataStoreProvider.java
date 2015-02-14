@@ -45,7 +45,7 @@ public class OperationalDataStoreProvider
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     new H2DatabaseMigrator()
         .migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 6 /* defaultCurrentVersion */);
-    Map<String, Object> props = new LinkedHashMap<String, Object>();
+    Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainODS", props);
     isInitialized = true;

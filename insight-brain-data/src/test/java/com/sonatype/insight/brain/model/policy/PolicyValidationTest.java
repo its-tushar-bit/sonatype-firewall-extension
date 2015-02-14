@@ -218,7 +218,7 @@ public class PolicyValidationTest
     policy.addConstraint(constraint);
     
     Action action = new Action(FailActionType.ID);
-    HashMap<String, List<Action>> invalidStage = new HashMap<String, List<Action>>();
+    HashMap<String, List<Action>> invalidStage = new HashMap<>();
     invalidStage.put("unknown stage type", Arrays.asList(action));
     policy.setActions(invalidStage);
 
@@ -227,7 +227,7 @@ public class PolicyValidationTest
         "Invalid stage type id: 'unknown stage type'");
 
     // Fix the stage and validate again
-    HashMap<String, List<Action>> validStage = new HashMap<String, List<Action>>();
+    HashMap<String, List<Action>> validStage = new HashMap<>();
     validStage.put(BuildStageType.ID, Arrays.asList(action));
     policy.setActions(validStage);
     result = policy.validate(applicationId);

@@ -38,12 +38,12 @@ public class ReleaseGraphPerformanceUtils
   }
 
   private static void doOutput(String file, List<Map<ComponentPopularity, Long>> results) throws IOException {
-    Map<ComponentPopularity, List<Long>> data = new HashMap<ComponentPopularity, List<Long>>();
+    Map<ComponentPopularity, List<Long>> data = new HashMap<>();
     for (Map<ComponentPopularity, Long> row : results) {
       for (Entry<ComponentPopularity, Long> entry : row.entrySet()) {
         List<Long> d = data.get(entry.getKey());
         if (d == null) {
-          d = new LinkedList<Long>();
+          d = new LinkedList<>();
           data.put(entry.getKey(), d);
         }
         d.add(entry.getValue());

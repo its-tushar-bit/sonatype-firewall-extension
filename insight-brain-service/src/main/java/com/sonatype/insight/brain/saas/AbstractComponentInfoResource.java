@@ -221,8 +221,8 @@ public abstract class AbstractComponentInfoResource
 
   private Set<License> getSelectableLicenses(Collection<License> declared, Collection<License> observed) {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-    Set<License> result = new LinkedHashSet<License>();
-    Set<License> licenses = new LinkedHashSet<License>();
+    Set<License> result = new LinkedHashSet<>();
+    Set<License> licenses = new LinkedHashSet<>();
     licenses.addAll(declared);
     licenses.addAll(observed);
     Iterator<License> licenseIter = licenses.iterator();
@@ -256,7 +256,7 @@ public abstract class AbstractComponentInfoResource
    */
   private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Application application, Set<License> multiLicenses)
   {
-    List<LicenseWithThreatLevel> result = new ArrayList<LicenseWithThreatLevel>();
+    List<LicenseWithThreatLevel> result = new ArrayList<>();
 
     if (multiLicenses != null) {
       MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();

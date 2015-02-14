@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.ActionType;
 
 public class ActionTypes
 {
-  private static final Map<String, ActionType> allActionTypes = new LinkedHashMap<String, ActionType>();
+  private static final Map<String, ActionType> allActionTypes = new LinkedHashMap<>();
 
   static {
     add(new FailActionType());

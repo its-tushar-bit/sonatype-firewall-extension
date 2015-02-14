@@ -158,7 +158,7 @@ public class LicenseThreatGroupDAO
 
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
-    Map<String, LicenseThreatGroup> licenseThreatGroupsByName = new LinkedHashMap<String, LicenseThreatGroup>();
+    Map<String, LicenseThreatGroup> licenseThreatGroupsByName = new LinkedHashMap<>();
     List<License> allLicenses = new LicenseDAO().getAll();
     for (License license : allLicenses) {
       String licenseCategoryId = license.getLicenseCategoryId();

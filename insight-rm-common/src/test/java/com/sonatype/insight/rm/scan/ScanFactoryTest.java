@@ -64,8 +64,8 @@ public class ScanFactoryTest
   }
 
   private void assertIds(ScanItemProvider items, String... ids) {
-    Set<String> expected = new TreeSet<String>(Arrays.asList(ids));
-    Set<String> actual = new TreeSet<String>();
+    Set<String> expected = new TreeSet<>(Arrays.asList(ids));
+    Set<String> actual = new TreeSet<>();
     for (ScanItem item : items.getItems()) {
       actual.add(String.valueOf(item.getId()));
     }
@@ -73,8 +73,8 @@ public class ScanFactoryTest
   }
 
   private void assertPaths(ScanItemProvider items, String... paths) {
-    Set<String> expected = new TreeSet<String>(Arrays.asList(paths));
-    Set<String> actual = new TreeSet<String>();
+    Set<String> expected = new TreeSet<>(Arrays.asList(paths));
+    Set<String> actual = new TreeSet<>();
     for (ScanItem item : items.getItems()) {
       actual.add(String.valueOf(item.getPath()));
     }

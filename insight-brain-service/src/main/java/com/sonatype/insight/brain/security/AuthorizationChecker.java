@@ -141,10 +141,10 @@ public class AuthorizationChecker
 
   private static <T> Collection<T> newCollection(Object prototype) {
     if (prototype instanceof Set) {
-      return new LinkedHashSet<T>();
+      return new LinkedHashSet<>();
     }
     else {
-      return new ArrayList<T>();
+      return new ArrayList<>();
     }
   }
 
@@ -152,7 +152,7 @@ public class AuthorizationChecker
       Iterable<? extends T> entities, ContextIdResolver<T> resolver)
   {
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
-    Map<String, Boolean> resultByContextId = new HashMap<String, Boolean>(256);
+    Map<String, Boolean> resultByContextId = new HashMap<>(256);
     for (T entity : entities) {
       Iterable<String> contextIds = resolver.resolveContextIds(entity);
       if (isUserHavingAnyRoleInAnyContext(user, roleIds, contextIds, resultByContextId)) {

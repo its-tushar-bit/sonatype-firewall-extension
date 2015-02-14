@@ -34,7 +34,7 @@ public class AgeInDaysConditionTypeTest
   public void testEvaluateOlderThan() {
     // Create policy constraints
     Constraint constraint = createConstraint("older than", "11");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -42,7 +42,7 @@ public class AgeInDaysConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     // A component without age
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
@@ -67,7 +67,7 @@ public class AgeInDaysConditionTypeTest
   public void testEvaluateYoungerThan() {
     // Create policy constraints
     Constraint constraint = createConstraint("younger than", "11");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -75,7 +75,7 @@ public class AgeInDaysConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     // A component without age
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);

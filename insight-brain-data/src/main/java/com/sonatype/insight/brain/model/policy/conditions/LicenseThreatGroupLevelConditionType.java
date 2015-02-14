@@ -22,7 +22,7 @@ public class LicenseThreatGroupLevelConditionType
 {
   public static final String ID = "License Threat Group Level";
 
-  private static List<String> supportedOperators = new ArrayList<String>();
+  private static List<String> supportedOperators = new ArrayList<>();
 
   static {
     supportedOperators.add("<=");
@@ -98,7 +98,7 @@ public class LicenseThreatGroupLevelConditionType
       return licenseThreatGroups;
     }
 
-    Set<LicenseThreatGroup> result = new LinkedHashSet<LicenseThreatGroup>();
+    Set<LicenseThreatGroup> result = new LinkedHashSet<>();
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       if (">=".equals(operator) && (licenseThreatGroup.getThreatLevel() >= threatLevel)) {
         result.add(licenseThreatGroup);

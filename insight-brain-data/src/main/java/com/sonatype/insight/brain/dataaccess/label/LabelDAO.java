@@ -50,7 +50,7 @@ public class LabelDAO
     final String sQuery = "SELECT label FROM Label label" + //
         " WHERE label.ownerId=?1" + //
         " ORDER BY label.labelLowercase";
-    final List<Label> labels = new ArrayList<Label>();
+    final List<Label> labels = new ArrayList<>();
     if (inherit) {
       final ApplicationDAO applicationDAO = new ApplicationDAO();
       final Application application = applicationDAO.getById(ownerId);

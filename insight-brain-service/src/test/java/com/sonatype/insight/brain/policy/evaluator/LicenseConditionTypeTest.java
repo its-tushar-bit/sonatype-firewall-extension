@@ -51,7 +51,7 @@ public class LicenseConditionTypeTest
   public void testEvaluateIs_Declared() {
     // Create policy constraints
     Constraint constraint = createConstraint("is", "UNSPECIFIED");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -59,7 +59,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     components.add(component1);
@@ -82,7 +82,7 @@ public class LicenseConditionTypeTest
   public void testEvaluateIsNot_Declared() {
     // Create policy constraints
     Constraint constraint = createConstraint("is not", "UNSPECIFIED");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -90,7 +90,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     components.add(component1);
@@ -113,7 +113,7 @@ public class LicenseConditionTypeTest
   public void testEvaluateIs_Observed() {
     // Create policy constraints
     Constraint constraint = createConstraint("is", "UNSPECIFIED");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -121,7 +121,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("UNSPECIFIED");
     components.add(component1);
@@ -144,7 +144,7 @@ public class LicenseConditionTypeTest
   public void testEvaluateIsNot_Observed() {
     // Create policy constraints
     Constraint constraint = createConstraint("is not", "UNSPECIFIED");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -152,7 +152,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addObservedLicenseId("UNSPECIFIED");
     components.add(component1);
@@ -175,7 +175,7 @@ public class LicenseConditionTypeTest
   public void testEvaluateIs_Overridden() {
     // Create policy constraints
     Constraint constraint = createConstraint("is", "UNSPECIFIED");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -183,7 +183,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     component1.addObservedLicenseId("UNSPECIFIED");
@@ -217,7 +217,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component.addDeclaredLicenseId("UNSPECIFIED");
     component.addObservedLicenseId("UNSPECIFIED");
@@ -255,7 +255,7 @@ public class LicenseConditionTypeTest
   public void testEvaluateIsNot_Overridden() {
     // Create policy constraints
     Constraint constraint = createConstraint("is not", "UNSPECIFIED");
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -263,7 +263,7 @@ public class LicenseConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addDeclaredLicenseId("UNSPECIFIED");
     component1.addObservedLicenseId("UNSPECIFIED");

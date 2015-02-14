@@ -58,7 +58,7 @@ public class LdapResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.ADMIN)
   public List<LdapServer> getAll() {
-    List<LdapServer> result = new ArrayList<LdapServer>();
+    List<LdapServer> result = new ArrayList<>();
     for (LdapServer server : serverDao.getAll()) {
       result.add(server);
     }

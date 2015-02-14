@@ -54,7 +54,7 @@ public class ReleaseGraphPerformance
   private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
   private ReleaseGraphPerformance(int threads, InsightWork work) throws Exception {
-    callables = new LinkedList<UserCallable>();
+    callables = new LinkedList<>();
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
     cache = CacheBuilder.newBuilder().maximumSize(1000)
         .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(work, null, new ApplicationDAO())));
@@ -100,7 +100,7 @@ public class ReleaseGraphPerformance
         int c = 0;
         for (ComponentPopularity component : components) {
           if (connections[c] == null) {
-            connections[c] = new LinkedList<ComponentPopularity>();
+            connections[c] = new LinkedList<>();
           }
           connections[c].add(component);
           c = ++c % connectionsPerUser;
@@ -114,7 +114,7 @@ public class ReleaseGraphPerformance
     this(users, work);
 
     List<ComponentPopularity> components = getComponents();
-    List<String> scanIds = new LinkedList<String>();
+    List<String> scanIds = new LinkedList<>();
     int u = (int) Math.ceil(((double) users) / components.size());
     for (int i = 0; i < u; i++) {
       String scanId = createReport(work);
@@ -144,7 +144,7 @@ public class ReleaseGraphPerformance
   List<Map<ComponentPopularity, Long>> begin() throws Exception {
     try {
       // pool.prestartAllCoreThreads();
-      List<Map<ComponentPopularity, Long>> results = new LinkedList<Map<ComponentPopularity, Long>>();
+      List<Map<ComponentPopularity, Long>> results = new LinkedList<>();
       List<Future<Map<ComponentPopularity, Long>>> futures = pool.invokeAll(callables);
       for (Future<Map<ComponentPopularity, Long>> f : futures) {
         results.add(f.get());
@@ -178,12 +178,12 @@ public class ReleaseGraphPerformance
   }
 
   private static void doOutput(String file, List<Map<ComponentPopularity, Long>> results) throws IOException {
-    Map<ComponentPopularity, List<Long>> data = new HashMap<ComponentPopularity, List<Long>>();
+    Map<ComponentPopularity, List<Long>> data = new HashMap<>();
     for (Map<ComponentPopularity, Long> row : results) {
       for (Entry<ComponentPopularity, Long> entry : row.entrySet()) {
         List<Long> d = data.get(entry.getKey());
         if (d == null) {
-          d = new LinkedList<Long>();
+          d = new LinkedList<>();
           data.put(entry.getKey(), d);
         }
         d.add(entry.getValue());
@@ -256,7 +256,7 @@ public class ReleaseGraphPerformance
 
     private List<ComponentPopularity> components;
 
-    private Map<ComponentPopularity, Long> results = new HashMap<ComponentPopularity, Long>();
+    private Map<ComponentPopularity, Long> results = new HashMap<>();
 
     public UserCallable(String scanId, ReleaseGraphResource resource, List<ComponentPopularity> components) {
       this.scanId = scanId;

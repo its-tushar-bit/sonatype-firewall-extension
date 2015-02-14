@@ -67,7 +67,7 @@ public class EmbeddedLdapServer
 
   private AuthenticationLevel authLevel = AuthenticationLevel.NONE;
 
-  private Map<String, MechanismHandler> saslHandlers = new HashMap<String, MechanismHandler>();
+  private Map<String, MechanismHandler> saslHandlers = new HashMap<>();
 
   private File ldapsKeystore;
 

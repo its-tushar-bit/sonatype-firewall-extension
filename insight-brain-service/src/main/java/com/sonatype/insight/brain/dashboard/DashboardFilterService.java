@@ -240,6 +240,6 @@ public class DashboardFilterService
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   protected List<Application> getApplicationsByIds(final List<String> applicationIds) {
-    return applicationDAO.getByIds(new LinkedHashSet<String>(applicationIds));
+    return applicationDAO.getByIds(new LinkedHashSet<>(applicationIds));
   }
 }

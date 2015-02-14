@@ -418,11 +418,11 @@ public abstract class AbstractComponentInfoResourceTest
     String artifactId = "a1";
     String version = "1.0.0";
     ComponentDetails saasComponentDetails1 = newComponentDetailsForMaven(groupId, artifactId, version);
-    Set<License> licenses1 = new LinkedHashSet<License>();
+    Set<License> licenses1 = new LinkedHashSet<>();
     licenses1.add(new License("Apache-2.0", "Apache-2.0"));
     saasComponentDetails1.setDeclaredLicenses(licenses1);
     ComponentDetails saasComponentDetails2 = newComponentDetailsForMaven(groupId, artifactId, "2.0.0");
-    Set<License> licenses2 = new LinkedHashSet<License>();
+    Set<License> licenses2 = new LinkedHashSet<>();
     licenses2.add(new License("GPL-2.0", "GPL-2.0"));
     saasComponentDetails2.setDeclaredLicenses(licenses2);
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
@@ -857,7 +857,7 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   private Set<License> toLicenseSet(String... licenseIds) {
-    Set<License> result = new LinkedHashSet<License>();
+    Set<License> result = new LinkedHashSet<>();
     MultiLicenseDAO dao = new MultiLicenseDAO();
     for (String licenseId : licenseIds) {
       MultiLicense multiLicense = dao.getByIdNotNull(licenseId);

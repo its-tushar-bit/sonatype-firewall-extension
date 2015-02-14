@@ -243,7 +243,7 @@ public class ApplicationAdapter
   }
 
   private Map<String, ContactDTO> mapNameToContact(List<Member> members) {
-    Map<String, ContactDTO> result = new HashMap<String, ContactDTO>();
+    Map<String, ContactDTO> result = new HashMap<>();
 
     for (Member member : members) {
       result.put(member.getInternalNameLowerCase(), new ContactDTO(member.getInternalName(), member.getDisplayName(),

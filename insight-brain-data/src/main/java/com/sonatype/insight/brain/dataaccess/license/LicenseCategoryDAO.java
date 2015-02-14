@@ -63,7 +63,7 @@ public class LicenseCategoryDAO
           " ORDER BY entity.severity DESC";
       List<LicenseCategory> licenseCategories = getList(sQuery);
 
-      Map<String, LicenseCategory> _licenseCategoriesById = new LinkedHashMap<String, LicenseCategory>();
+      Map<String, LicenseCategory> _licenseCategoriesById = new LinkedHashMap<>();
       for (LicenseCategory licenseCategory : licenseCategories) {
         _licenseCategoriesById.put(licenseCategory.getId(), licenseCategory);
       }

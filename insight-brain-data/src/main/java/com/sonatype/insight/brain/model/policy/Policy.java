@@ -103,7 +103,7 @@ public class Policy
 
   public void addConstraint(final Constraint constraint) {
     if (constraints == null) {
-      constraints = new ArrayList<Constraint>();
+      constraints = new ArrayList<>();
     }
     constraints.add(constraint);
   }
@@ -122,7 +122,7 @@ public class Policy
 
   public void setActions(final String stageTypeId, final List<Action> stageActions) {
     if (actions == null) {
-      actions = new HashMap<String, List<Action>>();
+      actions = new HashMap<>();
     }
     actions.put(stageTypeId, stageActions);
   }
@@ -130,7 +130,7 @@ public class Policy
   public void addAction(final String stageTypeId, final Action action) {
     List<Action> stageActions = getActions(stageTypeId);
     if (stageActions == null) {
-      setActions(stageTypeId, stageActions = new ArrayList<Action>());
+      setActions(stageTypeId, stageActions = new ArrayList<>());
     }
     stageActions.add(action);
   }
@@ -150,7 +150,7 @@ public class Policy
     }
     else {
       ValidationResult constraintResult = new ValidationResult();
-      Set<String> constraintNames = new LinkedHashSet<String>();
+      Set<String> constraintNames = new LinkedHashSet<>();
       for (Constraint constraint : constraints) {
         String constraintName = constraint.getName();
         if (constraintName != null && !constraintName.trim().isEmpty()) {

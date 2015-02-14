@@ -68,10 +68,10 @@ public class ComponentDAO
       final byte[] bomData)
   {
     final Map<ComponentIdentifier, List<Component>> componentsByKey = new LinkedHashMap<>();
-    final Map<String, Component> componentsByHash = new LinkedHashMap<String, Component>();
+    final Map<String, Component> componentsByHash = new LinkedHashMap<>();
 
     // Load bom data
-    List<Component> unhashedComponents = new ArrayList<Component>();
+    List<Component> unhashedComponents = new ArrayList<>();
     JsonNode bomJson = loadJson(bomData);
     if (bomJson != null) {
       bomJson = bomJson.get("aaData");
@@ -179,7 +179,7 @@ public class ComponentDAO
       }
     }
 
-    final List<Component> result = new ArrayList<Component>();
+    final List<Component> result = new ArrayList<>();
     result.addAll(componentsByHash.values());
     result.addAll(unhashedComponents);
 
@@ -283,7 +283,7 @@ public class ComponentDAO
 
   public void loadLicenseThreatGroups(String applicationId, Component component) {
     // Gather all license ids
-    Set<String> licenseIds = new LinkedHashSet<String>();
+    Set<String> licenseIds = new LinkedHashSet<>();
     if (!component.getLicenseOverrideIds().isEmpty()) {
       licenseIds.addAll(component.getLicenseOverrideIds());
     }
@@ -324,7 +324,7 @@ public class ComponentDAO
     if (multiLicenseNames == null) {
       return null;
     }
-    Set<String> licenseIds = new LinkedHashSet<String>();
+    Set<String> licenseIds = new LinkedHashSet<>();
     for (String multiLicenseName : multiLicenseNames) {
       String multiLicenseId = multiLicenseDAO.getByNameNotNull(multiLicenseName).getId();
       Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId);
@@ -339,7 +339,7 @@ public class ComponentDAO
     if (multiLicenseIds == null) {
       return null;
     }
-    Set<String> licenseIds = new LinkedHashSet<String>();
+    Set<String> licenseIds = new LinkedHashSet<>();
     for (String multiLicenseId : multiLicenseIds) {
       Set<License> licenses = multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId);
       for (License license : licenses) {

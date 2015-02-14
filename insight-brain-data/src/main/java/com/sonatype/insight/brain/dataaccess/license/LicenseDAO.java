@@ -70,7 +70,7 @@ public class LicenseDAO
       long start = System.currentTimeMillis();
 
       String sQuery = "SELECT license FROM License license";
-      List<License> _licenses = new ArrayList<License>();
+      List<License> _licenses = new ArrayList<>();
       _licenses.addAll(getList(sQuery));
       Collections.sort(_licenses, new Comparator<License>()
       {
@@ -81,12 +81,12 @@ public class LicenseDAO
         }
       });
 
-      Map<String, License> _licensesById = new LinkedHashMap<String, License>();
+      Map<String, License> _licensesById = new LinkedHashMap<>();
       for (License license : _licenses) {
         _licensesById.put(license.getId(), license);
       }
 
-      Map<String, License> _licensesByName = new TreeMap<String, License>(String.CASE_INSENSITIVE_ORDER);
+      Map<String, License> _licensesByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
       for (License license : _licenses) {
         _licensesByName.put(license.getShortDisplayName(), license);
       }

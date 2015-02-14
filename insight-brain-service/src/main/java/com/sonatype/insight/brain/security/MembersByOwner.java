@@ -16,7 +16,7 @@ public class MembersByOwner
 
   public String ownerType;
 
-  public List<Member> members = new ArrayList<Member>();
+  public List<Member> members = new ArrayList<>();
 
   public MembersByOwner() {
   }

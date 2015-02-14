@@ -77,7 +77,7 @@ public class H2DatabaseMigrator
       backup(databaseDir, databaseFilename, backupDir);
 
       String scriptsPath = "/db/" + databaseName + "/";
-      List<String> scriptNames = new ArrayList<String>();
+      List<String> scriptNames = new ArrayList<>();
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
         String scriptName = scriptsPath + "schema_incremental_" + String.format("%1$04d", i) + ".sql";
         scriptNames.add(scriptName);

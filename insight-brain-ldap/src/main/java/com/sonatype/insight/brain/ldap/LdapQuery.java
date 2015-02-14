@@ -226,7 +226,7 @@ class LdapQuery
       ctx = ctxFactory.getSystemLdapContext();
       String username = "*";
       results = searchUsersByUsername(ctx, username, attributes, maxResults);
-      List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+      List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement(), withMembership));
       }
@@ -251,7 +251,7 @@ class LdapQuery
       // TODO: query sanitization will be applied with this ticket
       // https://issues.sonatype.org/browse/CLM-1083
       results = searchUsersByUsernames(ctx, names, attributes, maxResults);
-      List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+      List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement(), false));
       }
@@ -299,7 +299,7 @@ class LdapQuery
       // TODO: query sanitization will be applied with this ticket
       // https://issues.sonatype.org/browse/CLM-1083
       results = searchUsersByName(ctx, name, attributes, maxResults);
-      List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+      List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
         ldapUsers.add(createUser(ctx, results.nextElement(), false));
       }
@@ -370,7 +370,7 @@ class LdapQuery
     try {
       String groupIdAttribute = umap.getGroupIDAttribute();
       results = searchGroups(ctx, user, pickAttributes(groupIdAttribute));
-      Set<String> membership = new LinkedHashSet<String>();
+      Set<String> membership = new LinkedHashSet<>();
       while (results.hasMoreElements()) {
         Attributes attributes = results.nextElement().getAttributes();
         membership.addAll(getAttributeValues(attributes, groupIdAttribute));
@@ -736,7 +736,7 @@ class LdapQuery
    * Returns the given sequence of names with any null/empty elements removed.
    */
   private static String[] pickAttributes(String... names) {
-    List<String> result = new ArrayList<String>(names.length);
+    List<String> result = new ArrayList<>(names.length);
     for (String n : names) {
       if (StringUtils.isNotBlank(n)) {
         result.add(n);
@@ -771,7 +771,7 @@ class LdapQuery
     if (name != null) {
       Attribute attribute = attributes.get(name);
       if (attribute != null) {
-        Set<String> values = new LinkedHashSet<String>();
+        Set<String> values = new LinkedHashSet<>();
         for (NamingEnumeration<?> e = attribute.getAll(); e.hasMoreElements();) {
           values.add(String.valueOf(e.nextElement()));
         }

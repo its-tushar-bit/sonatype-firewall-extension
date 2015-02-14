@@ -54,7 +54,7 @@ public class ReportDownloader
 
         try {
           os = new BufferedOutputStream(new FileOutputStream(reportFile));
-          Map<String, String> queryParams = new HashMap<String, String>();
+          Map<String, String> queryParams = new HashMap<>();
           queryParams.put("scanId", scanId);
           is = client.get(InputStream.class, "rest/ci/report", queryParams);
           IOUtil.copy(is, os);
@@ -92,7 +92,7 @@ public class ReportDownloader
   {
     private int statusCode;
 
-    private Map<String, String> headers = new LinkedHashMap<String, String>();
+    private Map<String, String> headers = new LinkedHashMap<>();
 
     private byte[] data;
 

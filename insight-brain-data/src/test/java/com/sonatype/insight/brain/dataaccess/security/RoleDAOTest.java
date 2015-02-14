@@ -27,7 +27,7 @@ public class RoleDAOTest
 {
   private RoleDAO roleDAO = new RoleDAO();
 
-  private List<Role> rolesToDelete = new ArrayList<Role>();
+  private List<Role> rolesToDelete = new ArrayList<>();
 
   private Role newRole(String name) {
     Role role = new Role();

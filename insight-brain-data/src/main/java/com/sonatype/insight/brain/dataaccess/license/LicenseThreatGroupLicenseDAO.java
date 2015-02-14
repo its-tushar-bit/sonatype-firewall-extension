@@ -73,7 +73,7 @@ public class LicenseThreatGroupLicenseDAO
 
       LicenseDAO licenseDAO = new LicenseDAO();
 
-      List<LicenseThreatGroupLicense> oldLicenses = new ArrayList<LicenseThreatGroupLicense>();
+      List<LicenseThreatGroupLicense> oldLicenses = new ArrayList<>();
       oldLicenses.addAll(getByLicenseThreatGroupId(tx, licenseThreatGroupId));
       for (String licenseId : licenseIds) {
         licenseDAO.getByIdNotNull(licenseId);

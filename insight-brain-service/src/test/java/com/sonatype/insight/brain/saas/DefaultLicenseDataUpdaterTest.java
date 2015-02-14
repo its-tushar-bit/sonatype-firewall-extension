@@ -80,7 +80,7 @@ public class DefaultLicenseDataUpdaterTest
     newMultiLicense.setLongDisplayName("New long name");
     newMultiLicense.setDescription("New description");
     licenseData.multiLicenses.add(newMultiLicense);
-    Set<String> multiLicenseMappings = new LinkedHashSet<String>();
+    Set<String> multiLicenseMappings = new LinkedHashSet<>();
     multiLicenseMappings.add("GPL-2.0");
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
     setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
@@ -103,7 +103,7 @@ public class DefaultLicenseDataUpdaterTest
     newMultiLicense.setLongDisplayName("New long name");
     newMultiLicense.setDescription("New description");
     licenseData.multiLicenses.add(newMultiLicense);
-    Set<String> multiLicenseMappings = new LinkedHashSet<String>();
+    Set<String> multiLicenseMappings = new LinkedHashSet<>();
     multiLicenseMappings.add("GPL-2.0");
     licenseData.multiLicenseMappings.put(newId, multiLicenseMappings);
     setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
@@ -133,10 +133,10 @@ public class DefaultLicenseDataUpdaterTest
 
   private LicenseData createLicenseData() {
     LicenseData licenseData = new LicenseData();
-    licenseData.categories = new ArrayList<LicenseCategory>();
-    licenseData.licenses = new ArrayList<License>();
-    licenseData.multiLicenses = new ArrayList<MultiLicense>();
-    licenseData.multiLicenseMappings = new LinkedHashMap<String, Set<String>>();
+    licenseData.categories = new ArrayList<>();
+    licenseData.licenses = new ArrayList<>();
+    licenseData.multiLicenses = new ArrayList<>();
+    licenseData.multiLicenseMappings = new LinkedHashMap<>();
     return licenseData;
   }
 }

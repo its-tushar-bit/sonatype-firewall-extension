@@ -40,7 +40,7 @@ public class LicenseThreatGroupLicenseResourceTest
     Assert.assertEquals(0, licenseThreatGroupLicenses.length);
 
     // Set
-    Set<String> licenseIds = new LinkedHashSet<String>();
+    Set<String> licenseIds = new LinkedHashSet<>();
     licenseIds.add("GPL-2.0");
     licenseIds.add("Apache-2.0");
     response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId, group.getId()), toJson(licenseIds));

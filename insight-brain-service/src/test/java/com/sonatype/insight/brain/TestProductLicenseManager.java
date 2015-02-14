@@ -143,7 +143,7 @@ public class TestProductLicenseManager
 
     private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION };
 
-    private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<CLMEnforcementPoint>();
+    private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<>();
 
     private Map<String, String> properties = new HashMap<>();
 
@@ -182,7 +182,7 @@ public class TestProductLicenseManager
     }
 
     private void createKey() {
-      Map<String, Feature> featureMap = new HashMap<String, Feature>();
+      Map<String, Feature> featureMap = new HashMap<>();
       featureMap.put(CLMFeature.ID, new CLMFeature());
       Properties properties = new Properties();
 

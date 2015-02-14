@@ -30,7 +30,7 @@ class LdapCtxFactory
     System.setProperty("com.sun.jndi.ldap.connect.pool.protocol", "plain ssl");
   }
 
-  private static final ThreadLocal<Boolean> systemContext = new ThreadLocal<Boolean>();
+  private static final ThreadLocal<Boolean> systemContext = new ThreadLocal<>();
 
   private String saslRealm;
 

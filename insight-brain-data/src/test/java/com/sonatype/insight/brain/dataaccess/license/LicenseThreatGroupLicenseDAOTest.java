@@ -140,7 +140,7 @@ public class LicenseThreatGroupLicenseDAOTest
     LicenseThreatGroupLicenseDAO dao = new LicenseThreatGroupLicenseDAO();
 
     // Set one license
-    Set<String> licenseIds = new LinkedHashSet<String>();
+    Set<String> licenseIds = new LinkedHashSet<>();
     licenseIds.add("Apache-2.0");
     dao.setLicenses(groupId, licenseIds);
     List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = dao.getByLicenseThreatGroupId(groupId);

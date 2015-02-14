@@ -158,7 +158,7 @@ public class PolicyDAO
   }
 
   public List<Policy> getApplicableByOwnerId(final String ownerId) {
-    List<Policy> result = new ArrayList<Policy>();
+    List<Policy> result = new ArrayList<>();
 
     result.addAll(getByOwnerId(ownerId));
 

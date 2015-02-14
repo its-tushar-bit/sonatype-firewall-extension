@@ -275,7 +275,7 @@ public class CLMLicenseManager
 
     Set<String> products = getProducts(key);
 
-    Set<String> features = new LinkedHashSet<String>();
+    Set<String> features = new LinkedHashSet<>();
     if (version < 1) {
       // legacy license without product info
       if (enforcementPoints.contains(CLMEnforcementPoint.Build)) {

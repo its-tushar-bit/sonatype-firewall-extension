@@ -50,7 +50,7 @@ public class PolicyViolationAdapter
     dto.threatLevel = violation.getThreatLevel();
     dto.time = violation.getTime().getTime();
     if (violation.getPathnames() != null) {
-      dto.pathnames = new ArrayList<String>(violation.getPathnames());
+      dto.pathnames = new ArrayList<>(violation.getPathnames());
       Collections.sort(dto.pathnames);
     }
     return dto;

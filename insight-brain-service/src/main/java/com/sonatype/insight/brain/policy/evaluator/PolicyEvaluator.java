@@ -179,16 +179,16 @@ public class PolicyEvaluator
   }
 
   private static Map<Policy, List<MatchFact>> byPolicy(final List<Policy> policies, final List<MatchFact> facts) {
-    final Map<String, Policy> policiesById = new HashMap<String, Policy>();
+    final Map<String, Policy> policiesById = new HashMap<>();
     for (final Policy policy : policies) {
       policiesById.put(policy.getId(), policy);
     }
-    final Map<Policy, List<MatchFact>> byPolicy = new LinkedHashMap<Policy, List<MatchFact>>();
+    final Map<Policy, List<MatchFact>> byPolicy = new LinkedHashMap<>();
     for (final MatchFact fact : facts) {
       final Policy policy = policiesById.get(fact.getPolicyId());
       List<MatchFact> partition = byPolicy.get(policy);
       if (partition == null) {
-        byPolicy.put(policy, partition = new ArrayList<MatchFact>());
+        byPolicy.put(policy, partition = new ArrayList<>());
       }
       partition.add(fact);
     }
@@ -198,16 +198,16 @@ public class PolicyEvaluator
   private static Map<Constraint, List<MatchFact>> byConstraint(final List<Constraint> constraints,
       final List<MatchFact> facts)
   {
-    final Map<String, Constraint> constraintsById = new HashMap<String, Constraint>();
+    final Map<String, Constraint> constraintsById = new HashMap<>();
     for (final Constraint constraint : constraints) {
       constraintsById.put(constraint.getId(), constraint);
     }
-    final Map<Constraint, List<MatchFact>> byConstraint = new LinkedHashMap<Constraint, List<MatchFact>>();
+    final Map<Constraint, List<MatchFact>> byConstraint = new LinkedHashMap<>();
     for (final MatchFact fact : facts) {
       final Constraint constraint = constraintsById.get(fact.getConstraintId());
       List<MatchFact> partition = byConstraint.get(constraint);
       if (partition == null) {
-        byConstraint.put(constraint, partition = new ArrayList<MatchFact>());
+        byConstraint.put(constraint, partition = new ArrayList<>());
       }
       partition.add(fact);
     }
@@ -215,11 +215,11 @@ public class PolicyEvaluator
   }
 
   private static Map<Component, List<MatchFact>> byComponent(final List<MatchFact> facts) {
-    final Map<Component, List<MatchFact>> byComponent = new LinkedHashMap<Component, List<MatchFact>>();
+    final Map<Component, List<MatchFact>> byComponent = new LinkedHashMap<>();
     for (final MatchFact fact : facts) {
       List<MatchFact> partition = byComponent.get(fact.getComponent());
       if (partition == null) {
-        byComponent.put(fact.getComponent(), partition = new ArrayList<MatchFact>());
+        byComponent.put(fact.getComponent(), partition = new ArrayList<>());
       }
       partition.add(fact);
     }
@@ -250,7 +250,7 @@ public class PolicyEvaluator
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private static List<MatchFact> getMatchFacts(StatefulKnowledgeSession droolsSession) {
-    return new ArrayList<MatchFact>((Collection) droolsSession.getObjects(new ObjectFilter()
+    return new ArrayList<>((Collection) droolsSession.getObjects(new ObjectFilter()
     {
       @Override
       public boolean accept(final Object object) {

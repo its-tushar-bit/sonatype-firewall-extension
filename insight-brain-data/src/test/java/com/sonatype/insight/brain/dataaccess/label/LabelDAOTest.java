@@ -569,7 +569,7 @@ public class LabelDAOTest
   }
 
   private Map<String, Label> toLabelsMap(Collection<Label> actual) {
-    final Map<String, Label> actualMap = new HashMap<String, Label>();
+    final Map<String, Label> actualMap = new HashMap<>();
     for (Label label : actual) {
       actualMap.put(label.getId(), label);
     }

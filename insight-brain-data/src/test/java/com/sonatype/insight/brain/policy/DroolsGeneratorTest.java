@@ -35,7 +35,7 @@ public class DroolsGeneratorTest
 {
   @Test
   public void testGenerate() {
-    final List<Constraint> constraints = new ArrayList<Constraint>();
+    final List<Constraint> constraints = new ArrayList<>();
     final Constraint constraint1 = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
     Condition condition1 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraint1.addCondition(condition1);

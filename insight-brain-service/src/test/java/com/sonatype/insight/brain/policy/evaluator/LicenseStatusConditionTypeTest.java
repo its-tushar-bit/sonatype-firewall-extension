@@ -35,7 +35,7 @@ public class LicenseStatusConditionTypeTest
   public void testEvaluateIs() {
     // Create policy constraints
     Constraint constraint = createConstraint("is", LicenseOverrideStatus.OPEN.getId());
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -43,7 +43,7 @@ public class LicenseStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     // A component with license status OPEN
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
@@ -65,7 +65,7 @@ public class LicenseStatusConditionTypeTest
   public void testEvaluateIsNot() {
     // Create policy constraints
     Constraint constraint = createConstraint("is not", LicenseOverrideStatus.OPEN.getId());
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -73,7 +73,7 @@ public class LicenseStatusConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     // A component with license status OPEN
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);

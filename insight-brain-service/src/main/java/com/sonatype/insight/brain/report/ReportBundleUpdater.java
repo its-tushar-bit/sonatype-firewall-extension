@@ -71,7 +71,7 @@ class ReportBundleUpdater
     updatedFile.getParentFile().mkdirs();
     zipStream = new ZipOutputStream(new FileOutputStream(updatedFile));
     addedEntries = new HashSet<>();
-    removedEntries = new HashSet<String>();
+    removedEntries = new HashSet<>();
     this.filenameMappings = Arrays.asList(filenameMappings);
   }
 

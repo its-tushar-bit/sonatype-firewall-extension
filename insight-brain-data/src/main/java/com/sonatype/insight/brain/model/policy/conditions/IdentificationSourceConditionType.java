@@ -19,7 +19,7 @@ public class IdentificationSourceConditionType
 {
   public static final String ID = "IdentificationSource";
 
-  private static List<String> supportedOperators = new ArrayList<String>();
+  private static List<String> supportedOperators = new ArrayList<>();
 
   static {
     supportedOperators.add("is");

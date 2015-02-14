@@ -16,9 +16,9 @@ import com.sonatype.insight.db.DatabaseConfig;
 public class DataSourceFactory
     extends AbstractDataSourceFactory
 {
-  private static Map<String, DataSource> dataSources = new LinkedHashMap<String, DataSource>();
+  private static Map<String, DataSource> dataSources = new LinkedHashMap<>();
 
-  private static Map<DataSource, Boolean> newDataSources = new LinkedHashMap<DataSource, Boolean>();
+  private static Map<DataSource, Boolean> newDataSources = new LinkedHashMap<>();
 
   public DataSourceFactory() {
     super(null, null);

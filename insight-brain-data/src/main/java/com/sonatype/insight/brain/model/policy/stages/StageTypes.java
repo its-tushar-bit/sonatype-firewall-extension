@@ -24,7 +24,7 @@ public class StageTypes
 
   public static final StageType OPERATE = new OperateStageType();
 
-  private static final Map<String, StageType> allStageTypes = new LinkedHashMap<String, StageType>();
+  private static final Map<String, StageType> allStageTypes = new LinkedHashMap<>();
 
   static {
     add(DEVELOP);

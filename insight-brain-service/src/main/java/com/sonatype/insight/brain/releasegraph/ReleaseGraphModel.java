@@ -164,14 +164,14 @@ public class ReleaseGraphModel
 
   private static void add(Integer item, int bucketIndex, List<Integer>[] buckets) {
     if (buckets[bucketIndex] == null) {
-      buckets[bucketIndex] = new LinkedList<Integer>();
+      buckets[bucketIndex] = new LinkedList<>();
     }
     buckets[bucketIndex].add(item);
   }
 
   private static void add(Integer item, int position, int bucketIndex, List<Integer>[] buckets) {
     if (buckets[bucketIndex] == null) {
-      buckets[bucketIndex] = new LinkedList<Integer>();
+      buckets[bucketIndex] = new LinkedList<>();
     }
     buckets[bucketIndex].add(position, item);
   }

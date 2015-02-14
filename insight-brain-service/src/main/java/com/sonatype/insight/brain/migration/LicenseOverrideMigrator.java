@@ -107,7 +107,7 @@ public class LicenseOverrideMigrator
 
         ArrayNode licenseJsonData = JsonUtils.read(licenseJsonFile);
         // Aggregate all the changes found in the licenseJsonData log into one flat list
-        List<JsonNode> licenseAuditChanges = new ArrayList<JsonNode>();
+        List<JsonNode> licenseAuditChanges = new ArrayList<>();
         for (int x = 0; x < licenseJsonData.size(); x++) {
           ContainerNode<?> data = (ContainerNode<?>) licenseJsonData.get(x);
           if (data != null && data.has("data")) // stamped data?
@@ -125,7 +125,7 @@ public class LicenseOverrideMigrator
         }
 
         // Process the license audit changes and create license overrides in the db
-        Set<String> seenGavs = new LinkedHashSet<String>();
+        Set<String> seenGavs = new LinkedHashSet<>();
         for (JsonNode licenseAuditChange : licenseAuditChanges) {
           String groupId = licenseAuditChange.get("groupId").asText();
           String artifactId = licenseAuditChange.get("artifactId").asText();

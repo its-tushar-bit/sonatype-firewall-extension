@@ -257,7 +257,7 @@ public class PolicyEvaluationUtils
   }
 
   public void calculateCounters(PolicyEvaluationResult policyEvaluationResult) {
-    final Map<String, Integer> componentThreatLevels = new HashMap<String, Integer>();
+    final Map<String, Integer> componentThreatLevels = new HashMap<>();
     for (final PolicyAlert alert : policyEvaluationResult.getAlerts()) {
       final PolicyFact trigger = alert.getTrigger();
       final int policyThreatLevel = trigger.getThreatLevel();

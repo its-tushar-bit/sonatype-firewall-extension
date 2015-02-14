@@ -19,7 +19,7 @@ public class MatchStateConditionType
 {
   public static final String ID = "MatchState";
 
-  private static List<String> supportedOperators = new ArrayList<String>();
+  private static List<String> supportedOperators = new ArrayList<>();
 
   static {
     supportedOperators.add("is");

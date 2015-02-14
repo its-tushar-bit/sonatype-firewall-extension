@@ -92,9 +92,9 @@ public class ScanFactory
 
     Bindings.clientScanner().scan(new ClientScanRequest(scan));
 
-    Set<String> moduleIds = new HashSet<String>();
-    Set<SHA1> componentHashes = new HashSet<SHA1>();
-    Set<SHA1> scannedHashes = new HashSet<SHA1>();
+    Set<String> moduleIds = new HashSet<>();
+    Set<SHA1> componentHashes = new HashSet<>();
+    Set<SHA1> scannedHashes = new HashSet<>();
 
     List<RepositoryItem> componentItems = config.getComponentItems();
     for (int i = componentItems.size() - 1; i >= 0; i--) {

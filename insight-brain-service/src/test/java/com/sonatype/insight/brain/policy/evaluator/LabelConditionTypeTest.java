@@ -60,7 +60,7 @@ public class LabelConditionTypeTest
 
     // Create policy constraints
     Constraint constraint = createConstraint("is", labelId1);
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -68,7 +68,7 @@ public class LabelConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLabelId(labelId1);
     components.add(component1);
@@ -99,7 +99,7 @@ public class LabelConditionTypeTest
 
     // Create policy constraints
     Constraint constraint = createConstraint("is not", labelId1);
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -107,7 +107,7 @@ public class LabelConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLabelId(labelId1);
     components.add(component1);
@@ -140,7 +140,7 @@ public class LabelConditionTypeTest
 
     // Create policy constraints
     Constraint constraint = createConstraint("is", labelId1);
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(constraint);
 
     // Create policy
@@ -148,7 +148,7 @@ public class LabelConditionTypeTest
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.addLabelId(labelId1);
     components.add(component1);
@@ -188,14 +188,14 @@ public class LabelConditionTypeTest
     Label label1 = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/comment-end", Color.green);
     String labelId1 = label1.getId();
 
-    List<Constraint> constraints = new ArrayList<Constraint>();
+    List<Constraint> constraints = new ArrayList<>();
     constraints.add(createConstraint("is", labelId1));
 
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
 
-    List<Component> components = new ArrayList<Component>();
+    List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
 

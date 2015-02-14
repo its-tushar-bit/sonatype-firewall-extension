@@ -49,7 +49,7 @@ import static org.junit.Assert.assertThat;
 public class UserResourceTest
     extends AbstractResourceTest
 {
-  private List<User> usersToDelete = new ArrayList<User>();
+  private List<User> usersToDelete = new ArrayList<>();
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();

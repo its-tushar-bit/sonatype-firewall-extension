@@ -149,14 +149,14 @@ public class PolicyAlertNotifier
   }
 
   private static Map<String, List<PolicyAlert>> byRecipients(final List<PolicyAlert> alerts) {
-    final Map<String, List<PolicyAlert>> byRecipients = new HashMap<String, List<PolicyAlert>>();
+    final Map<String, List<PolicyAlert>> byRecipients = new HashMap<>();
     for (final PolicyAlert alert : alerts) {
       for (final Action action : alert.getActions()) {
         if (NotifyActionType.ID.equals(action.getActionTypeId())) {
           final String address = action.getTarget();
           List<PolicyAlert> personalAlerts = byRecipients.get(address);
           if (personalAlerts == null) {
-            byRecipients.put(address, personalAlerts = new ArrayList<PolicyAlert>());
+            byRecipients.put(address, personalAlerts = new ArrayList<>());
           }
           if (!personalAlerts.contains(alert)) {
             personalAlerts.add(alert);
@@ -229,7 +229,7 @@ public class PolicyAlertNotifier
       }
     });
 
-    final Map<String, Object> model = new HashMap<String, Object>();
+    final Map<String, Object> model = new HashMap<>();
 
     model.put("cdnUrl", cdnUrl);
     model.put("detailedReportUrl", serverUrl + UserInterfaceLinksResource.getReportUrl(applicationPublicId, scanId));

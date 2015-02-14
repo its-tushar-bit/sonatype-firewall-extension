@@ -22,7 +22,7 @@ public class CoordinatesConditionType
   private static List<String> supportedOperators;
 
   static {
-    supportedOperators = new ArrayList<String>();
+    supportedOperators = new ArrayList<>();
     supportedOperators.add("match");
     supportedOperators.add("do not match");
     supportedOperators = Collections.unmodifiableList(supportedOperators);

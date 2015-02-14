@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ValidationResult
 {
-  private List<String> errors = new ArrayList<String>();
+  private List<String> errors = new ArrayList<>();
 
   /**
    * An instance that can be used to indicate that the ValidationResult has no errors, instead of returning null values.
@@ -66,7 +66,7 @@ public class ValidationResult
     }
 
     if (errors == null) {
-      errors = new ArrayList<String>();
+      errors = new ArrayList<>();
     }
     errors.addAll(other.getErrors());
   }

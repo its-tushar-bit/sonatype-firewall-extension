@@ -31,7 +31,7 @@ public class RolePermissionDAOTest
 
   private RoleDAO roleDAO = new RoleDAO();
 
-  private Collection<Role> rolesToDelete = new ArrayList<Role>();
+  private Collection<Role> rolesToDelete = new ArrayList<>();
 
   @After
   public void exit() {

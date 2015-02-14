@@ -31,15 +31,15 @@ public class Component
 
   private String hash;
 
-  private Set<String> declaredLicenseIds = new LinkedHashSet<String>();
+  private Set<String> declaredLicenseIds = new LinkedHashSet<>();
 
-  private Set<String> observedLicenseIds = new LinkedHashSet<String>();
+  private Set<String> observedLicenseIds = new LinkedHashSet<>();
 
   private Set<String> licenseOverrideIds = new LinkedHashSet<>();
 
   private Set<String> unassignedLicenseIds = new LinkedHashSet<>();
 
-  private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<String, LicenseThreatGroup>();
+  private Map<String, LicenseThreatGroup> licenseThreatGroupsById = new LinkedHashMap<>();
 
   private LicenseOverrideStatus licenseOverrideStatus;
 
@@ -51,7 +51,7 @@ public class Component
 
   private Long catalogDate;
 
-  private List<String> labelIds = new ArrayList<String>();
+  private List<String> labelIds = new ArrayList<>();
 
   private boolean proprietary;
 
@@ -87,7 +87,7 @@ public class Component
     }
 
     SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getById(securityVulnerabilityStatusId);
-    List<SecurityVulnerability> result = new ArrayList<SecurityVulnerability>();
+    List<SecurityVulnerability> result = new ArrayList<>();
     for (SecurityVulnerability securityVulnerability : securityVulnerabilities) {
       if (status.equals(securityVulnerability.getStatus())) {
         result.add(securityVulnerability);
@@ -109,7 +109,7 @@ public class Component
 
   public void addSecurityVulnerability(final SecurityVulnerability securityVulnerability) {
     if (securityVulnerabilities == null) {
-      securityVulnerabilities = new ArrayList<SecurityVulnerability>();
+      securityVulnerabilities = new ArrayList<>();
     }
     securityVulnerabilities.add(securityVulnerability);
   }
@@ -167,7 +167,7 @@ public class Component
   }
 
   public Set<String> getLicenseIds() {
-    final Set<String> licenseIds = new HashSet<String>();
+    final Set<String> licenseIds = new HashSet<>();
     if (!licenseOverrideIds.isEmpty()) {
       licenseIds.addAll(licenseOverrideIds);
     }
@@ -251,7 +251,7 @@ public class Component
 
   @JsonIgnore
   public Set<LicenseThreatGroup> getLicenseThreatGroups() {
-    final Set<LicenseThreatGroup> licenseThreatGroups = new LinkedHashSet<LicenseThreatGroup>();
+    final Set<LicenseThreatGroup> licenseThreatGroups = new LinkedHashSet<>();
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroupsById.values()) {
       licenseThreatGroups.add(licenseThreatGroup);
     }

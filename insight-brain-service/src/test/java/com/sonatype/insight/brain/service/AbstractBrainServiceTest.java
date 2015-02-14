@@ -59,8 +59,6 @@ public abstract class AbstractBrainServiceTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  private static File saasWork = new File("target/mock-saas-work/");
-
   @Rule
   public TestName testName = new TestName();
 
@@ -83,7 +81,7 @@ public abstract class AbstractBrainServiceTest
     }
 
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(saasWork, isProxyRequiredToReachHds(), getBrainModules());
+      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules());
       testCLMServer.start();
     }
   }

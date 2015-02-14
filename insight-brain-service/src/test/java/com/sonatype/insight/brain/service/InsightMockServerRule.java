@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.insight.mock.InsightMockServer;
@@ -24,15 +23,12 @@ public class InsightMockServerRule
 
   private final int port;
 
-  private final File workDir;
-
   private final boolean isProxyRequired;
 
   protected InsightMockServer insightMockServer;
 
-  public InsightMockServerRule(int port, File workDir, boolean isProxyRequired) {
+  public InsightMockServerRule(int port, boolean isProxyRequired) {
     this.port = port;
-    this.workDir = workDir;
     this.isProxyRequired = isProxyRequired;
   }
 
@@ -52,8 +48,6 @@ public class InsightMockServerRule
     log.debug("Starting InsightMockServer on port {}", port);
     insightMockServer = new InsightMockServer();
     insightMockServer.setHttpPort(port);
-    insightMockServer.setJsonResponseDirectory(getJsonResponseDirectory());
-    insightMockServer.setZipResponseDirectory(getZipResponseDirectory());
     if (isProxyRequired) {
       insightMockServer.setKeyStore(System.getProperty("javax.net.ssl.trustStore"), "server-pwd");
       insightMockServer.setProxyAuthentication("proxyuser", "proxypass");
@@ -70,14 +64,6 @@ public class InsightMockServerRule
     }
 
     log.debug("Stopped InsightMockServer in {}", System.currentTimeMillis() - start);
-  }
-
-  private File getJsonResponseDirectory() {
-    return new File(workDir, "json");
-  }
-
-  private File getZipResponseDirectory() {
-    return new File(workDir, "zip");
   }
 
   void setResponseForURI(String uri, Object body, int status) {

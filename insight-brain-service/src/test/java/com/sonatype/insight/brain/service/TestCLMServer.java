@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
 import java.util.List;
 
 import com.google.inject.Module;
@@ -31,12 +30,12 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  TestCLMServer(File saasWorkDir, boolean isProxyRequiredToReachHds, List<Module> modules) {
+  TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules) {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int insightMockServerPort = PortAllocator.findFreePort(8090);
 
-    insightMockServer = new InsightMockServerRule(insightMockServerPort, saasWorkDir, isProxyRequiredToReachHds);
+    insightMockServer = new InsightMockServerRule(insightMockServerPort, isProxyRequiredToReachHds);
     brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
         null /* baseUrl */, "http://localhost:" + insightMockServerPort, isProxyRequiredToReachHds, modules);
   }

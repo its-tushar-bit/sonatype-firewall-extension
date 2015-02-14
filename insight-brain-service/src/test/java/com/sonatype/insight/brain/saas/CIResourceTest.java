@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.saas;
 
-import java.io.File;
-
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -15,7 +13,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import com.ning.http.client.Response;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -79,14 +76,10 @@ public class CIResourceTest
     tempEntity.newApplicationWithParent(applicationPublicId);
     setLicenseFingerprint(licenseFingerprint);
 
-    final File saasScanFile = getScanResponseFile(licenseFingerprint);
-    saasScanFile.delete();
-
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
     scanReceipt.setTimeToReport(30L);
-    saasScanFile.getParentFile().mkdirs();
-    FileUtils.fileWrite(saasScanFile, "UTF-8", toJson(scanReceipt));
+    mockScanReceipt(scanReceipt);
 
     final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
 

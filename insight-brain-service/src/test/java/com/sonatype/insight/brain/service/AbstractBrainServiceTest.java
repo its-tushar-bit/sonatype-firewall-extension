@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -123,14 +124,6 @@ public abstract class AbstractBrainServiceTest
     return getClass().getName().endsWith("ProxyTest");
   }
 
-  private static File getJsonResponseDirectory() {
-    return new File(saasWork, "json");
-  }
-
-  protected static File getScanResponseFile(final String licenseFingerprint) {
-    return new File(getJsonResponseDirectory(), licenseFingerprint + ".json");
-  }
-
   protected String getRestBaseUrl() {
     String restBaseUrl = getCLMServer().getClientConfiguration().getServerUrl();
     if (!restBaseUrl.endsWith("/")) {
@@ -153,6 +146,11 @@ public abstract class AbstractBrainServiceTest
 
   protected void setSaasResponseForURI(String uri, int status, String bodyResource) {
     setSaasResponseForURI(uri, getClass().getResource(bodyResource), status);
+  }
+
+  protected void mockScanReceipt(ScanReceipt scanReceipt) {
+    setSaasResponseForURI("rest/ci/scan", toJson(scanReceipt), 200);
+    setSaasResponseForURI("rest/rm/scan", toJson(scanReceipt), 200);
   }
 
   protected void mockReport(String scanId, String resourceName) {

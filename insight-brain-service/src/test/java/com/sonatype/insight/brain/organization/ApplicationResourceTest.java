@@ -34,7 +34,6 @@ import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -219,8 +218,7 @@ public class ApplicationResourceTest
     final String licenseFingerprint = "testDeleteApplicationWithScan_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    File saasScanFile = getScanResponseFile(licenseFingerprint);
-    makeScanReceipt(saasScanFile);
+    makeScanReceipt();
 
     Response response = AuthedRestAccess.put(getScanURL(applicationPublicId), "");
 
@@ -462,8 +460,7 @@ public class ApplicationResourceTest
     Assert.assertEquals(7, policyEvaluationsResults.get(stageTypeIds[1]).getSevereComponentCount());
 
     // Scans count
-    final File saasScanFile = getScanResponseFile(licenseFingerprint);
-    makeScanReceipt(saasScanFile);
+    makeScanReceipt();
 
     AuthedRestAccess.put(getScanURL(applicationPublicId), "");
 
@@ -663,13 +660,11 @@ public class ApplicationResourceTest
     return getRestBaseUrl() + CIResource.SERVICE_PATH + "/scan/" + appId;
   }
 
-  private void makeScanReceipt(File saasScanFile) throws Exception {
+  private void makeScanReceipt() throws Exception {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");
     scanReceipt.setTimeToReport(30L);
-    saasScanFile.delete();
-    saasScanFile.getParentFile().mkdirs();
-    FileUtils.fileWrite(saasScanFile, "UTF-8", toJson(scanReceipt));
+    mockScanReceipt(scanReceipt);
   }
 
   private void assertContact(ContactDTO actualContact, ContactDTO expectedContact) {

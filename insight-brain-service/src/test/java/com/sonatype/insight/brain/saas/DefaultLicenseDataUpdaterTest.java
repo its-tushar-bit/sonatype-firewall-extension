@@ -59,7 +59,6 @@ public class DefaultLicenseDataUpdaterTest
     newLicense.setId(newId);
     newLicense.setShortDisplayName("New short name");
     newLicense.setLongDisplayName("New long name");
-    newLicense.setDescription("New description");
     newLicense.setLicenseCategoryId("COPYLEFT");
     licenseData.licenses.add(newLicense);
     setSaasResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, toJson(licenseData), 200);
@@ -78,7 +77,6 @@ public class DefaultLicenseDataUpdaterTest
     newMultiLicense.setId(newId);
     newMultiLicense.setShortDisplayName("New short name1");
     newMultiLicense.setLongDisplayName("New long name");
-    newMultiLicense.setDescription("New description");
     licenseData.multiLicenses.add(newMultiLicense);
     Set<String> multiLicenseMappings = new LinkedHashSet<>();
     multiLicenseMappings.add("GPL-2.0");
@@ -101,7 +99,6 @@ public class DefaultLicenseDataUpdaterTest
     newMultiLicense.setId(newId);
     newMultiLicense.setShortDisplayName(newName);
     newMultiLicense.setLongDisplayName("New long name");
-    newMultiLicense.setDescription("New description");
     licenseData.multiLicenses.add(newMultiLicense);
     Set<String> multiLicenseMappings = new LinkedHashSet<>();
     multiLicenseMappings.add("GPL-2.0");

@@ -46,7 +46,6 @@ public class LicenseDAOTest
     newLicense.setId(newId);
     newLicense.setShortDisplayName("New short name");
     newLicense.setLongDisplayName("New long name");
-    newLicense.setDescription("New description");
     newLicense.setLicenseCategoryId("COPYLEFT");
     dao.insert(newLicense);
     Assert.assertNull(dao.getById(newId));

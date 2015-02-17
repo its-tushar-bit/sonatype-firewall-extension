@@ -40,9 +40,6 @@ public class License
   @Column(name = "longDisplayName")
   private String longDisplayName;
 
-  @Column(name = "description")
-  private String description;
-
   @Column(name = "licenseUrl")
   private String licenseUrl;
 
@@ -73,14 +70,6 @@ public class License
 
   public void setLongDisplayName(String longDisplayName) {
     this.longDisplayName = longDisplayName;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
   }
 
   public String getLicenseUrl() {

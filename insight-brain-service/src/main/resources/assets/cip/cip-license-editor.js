@@ -99,7 +99,7 @@
             }
           }
 
-          if (licenseOverride && licenseOverride.licenseIds) {
+          if (licenseOverride && licenseOverride.licenseIds && licenseOverride.licenseIds.length > 0) {
             component.overriddenLicenses = $.map(licenseOverride.licenseIds, function(val) {
               return [$scope.licenses[val].shortDisplayName];
             });

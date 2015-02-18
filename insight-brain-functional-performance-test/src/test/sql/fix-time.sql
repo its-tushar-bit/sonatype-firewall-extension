@@ -8,5 +8,5 @@ UPDATE policy_evaluation     SET time = dateadd('mi', @timeDelta, time);
 UPDATE policy_violation      SET time = dateadd('mi', @timeDelta, time);
 UPDATE application_component SET time = dateadd('mi', @timeDelta, time);
 
-UPDATE hash_gav      SET create_time = dateadd('mi', @timeDelta, create_time);
+UPDATE hash_component_identifier SET create_time = dateadd('mi', @timeDelta, create_time);
 UPDATE policy_waiver SET create_time = dateadd('mi', @timeDelta, create_time);

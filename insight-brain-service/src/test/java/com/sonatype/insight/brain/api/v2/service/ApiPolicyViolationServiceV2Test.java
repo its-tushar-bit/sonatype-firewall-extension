@@ -10,10 +10,10 @@ import java.util.Date;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -46,12 +46,21 @@ public class ApiPolicyViolationServiceV2Test
 
   private PolicyData appPolicyData2;
 
+  private PolicyData appPolicyData3;
+
   @Before
   public void setUpPolicyViolations() {
     // Create three org/apps with policies and policy violations
-    appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1", "g1", "a1", "v1", "h1", "r1");
-    appPolicyData2 = createPolicyTestData("org-policy2", "scanId1App2", "g2", "a2", "v2", "h2", "r2");
-    createPolicyTestData("org-policy3", "scanId1App3", "g3", "a3", "v3", "h3", "r3");
+    appPolicyData1 = createPolicyTestData("org-policy1", "scanId1App1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", "r1");
+    appPolicyData2 = createPolicyTestData("org-policy2", "scanId1App2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), "h2", "r2");
+    createPolicyTestData("org-policy3", "scanId1App3",
+        ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), "h3", "r3");
+    appPolicyData3 = createPolicyTestData("org-policy4", "scanId1App4",
+        ComponentIdentifier.createNugetCoordinates("nuget1", "v1"), "h3", "r4");
+    createPolicyTestData("org-policy5", "scanId1App5",
+        ComponentIdentifier.createNugetCoordinates("nuget2", "v1"), "h4", "r5");
   }
 
   @Test
@@ -83,6 +92,20 @@ public class ApiPolicyViolationServiceV2Test
       assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData2);
       assertPolicyViolation(apiApplicationViolationDTO2, appPolicyData1);
     }
+  }
+
+  @Test
+  public void testGetPolicyViolations_nuGetFilteredByPolicyId() {
+    // Get two of the three policy violations by policy ids
+    Set<String> policyIds = Sets.newHashSet(appPolicyData3.orgPolicy.getId());
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO =
+        apiPolicyViolationService.getPolicyViolations(policyIds);
+
+    assertThat(apiApplicationViolationListDTO, notNullValue());
+    assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
+    ApiApplicationViolationDTOV2 apiApplicationViolationDTO1 = apiApplicationViolationListDTO.applicationViolations
+        .get(0);
+    assertPolicyViolation(apiApplicationViolationDTO1, appPolicyData3);
   }
 
   private void assertPolicyViolation(ApiApplicationViolationDTOV2 apiApplicationViolationDTO, PolicyData appPolicyData) {
@@ -142,8 +165,8 @@ public class ApiPolicyViolationServiceV2Test
         is(policyViolation.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
   }
 
-  private PolicyData createPolicyTestData(String orgPolicyNName, String scanId, String groupId, String artifactId,
-      String version, String hash, String reason)
+  private PolicyData createPolicyTestData(String orgPolicyNName, String scanId, ComponentIdentifier componentIdentifier,
+      String hash, String reason)
   {
     PolicyData policyTestData = new PolicyData();
     policyTestData.organization = tempEntity.newOrganization();
@@ -154,28 +177,25 @@ public class ApiPolicyViolationServiceV2Test
     long time = System.currentTimeMillis() - 1000;
     PolicyEvaluation policyEvaluation = tempEntity
         .newPolicyEvaluation(policyTestData.application.getId(), BuildStageType.ID, scanId + "1", new Date(time));
-    tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy, groupId, artifactId,
-        version, hash, reason);
+    tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy,componentIdentifier, hash, reason);
 
     // Create a current violation for build stage
     policyTestData.policyEvaluation1 = tempEntity
         .newPolicyEvaluation(policyTestData.application.getId(), BuildStageType.ID, scanId, new Date());
     policyTestData.policyViolation1 = tempEntity
-        .newPolicyViolation(policyTestData.policyEvaluation1, policyTestData.orgPolicy, groupId, artifactId, version,
+        .newPolicyViolation(policyTestData.policyEvaluation1, policyTestData.orgPolicy, componentIdentifier,
             hash, reason);
     policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
-        BuildStageType.ID, hash, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), null,
-        MatchState.EXACT, true, new Date(time));
+        BuildStageType.ID, hash,componentIdentifier, null, MatchState.EXACT, true, new Date(time));
 
     // Create a current violation for release stage
     policyTestData.policyEvaluation2 = tempEntity
         .newPolicyEvaluation(policyTestData.application.getId(), ReleaseStageType.ID, scanId, new Date());
     policyTestData.policyViolation2 = tempEntity
-        .newPolicyViolation(policyTestData.policyEvaluation2, policyTestData.orgPolicy, groupId, artifactId, version,
+        .newPolicyViolation(policyTestData.policyEvaluation2, policyTestData.orgPolicy, componentIdentifier,
             hash, reason);
     policyTestData.applicationComponent = tempEntity.newApplicationComponent(policyTestData.application.getId(),
-        ReleaseStageType.ID, hash, ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), null,
-        MatchState.EXACT, true, new Date(time));
+        ReleaseStageType.ID, hash, componentIdentifier, null, MatchState.EXACT, true, new Date(time));
 
     return policyTestData;
   }

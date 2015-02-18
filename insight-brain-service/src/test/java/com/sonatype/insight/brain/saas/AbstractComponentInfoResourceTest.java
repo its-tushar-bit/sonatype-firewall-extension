@@ -670,6 +670,38 @@ public abstract class AbstractComponentInfoResourceTest
     Assert.assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
   }
 
+  // CLM-4195
+  @Test
+  public void testGetComponentDetails_UnknownComponentNullIdentifier() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(ProprietaryConditionType.ID, "is true"));
+    Policy policy1 = new Policy("PolicyId1", "Policy1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    addPolicy(applicationPublicId, policy1);
+
+    String hash = "01234567890123456789";
+    String serviceUrl = getComponentDetailsUrl(applicationPublicId, null, hash, MatchState.UNKNOWN.getId(), "true" /* proprietary */);
+    Response response = AuthedRestAccess.get(serviceUrl);
+    assertResponseStatus(200, response);
+
+    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
+    Assert.assertNotNull(componentDetails);
+    Assert.assertEquals(hash, componentDetails.getHash());
+    Assert.assertNull(componentDetails.getComponentIdentifier());
+
+    Assert.assertEquals(MatchState.UNKNOWN.getId(), componentDetails.getMatchState());
+
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertNotNull(policyAlerts);
+    Assert.assertEquals(1, policyAlerts.size());
+  }
+
   @Test
   public void testGetComponentDetails_AppPublicIdWithUnsafeCharacters() throws Exception {
     String applicationPublicId = "bom 1&2%20?";
@@ -890,9 +922,18 @@ public abstract class AbstractComponentInfoResourceTest
   private String getComponentDetailsUrl(String applicationPublicId, String groupId, String artifactId, String version,
       String hash, String matchState, String proprietary)
   {
+    return getComponentDetailsUrl(applicationPublicId, getComponentIdentifierParam(groupId, artifactId, version), hash,
+        matchState, proprietary);
+  }
+
+  private String getComponentDetailsUrl(String applicationPublicId, String identifier, String hash,
+      String matchState, String proprietary)
+  {
     UriBuilder builder = UriBuilder.fromUri(getServiceURL());
     builder.path("{appId}");
-    builder.queryParam("componentIdentifier", getComponentIdentifierParam(groupId, artifactId, version));
+    if (identifier != null) {
+      builder.queryParam("componentIdentifier", identifier);
+    }
     if (hash != null) {
       builder.queryParam("hash", hash);
     }

@@ -88,9 +88,6 @@ public abstract class AbstractComponentInfoResource
       @QueryParam("proprietary") boolean proprietary) throws IOException
   {
     long start = System.currentTimeMillis();
-    if (identifier == null) {
-      throw new BadRequestException("componentIdentifier is required");
-    }
 
     NamedComponentDetails details = getEvaluatedComponentDetails(applicationPublicId, matchState, hash, proprietary,
         identifier);
@@ -104,7 +101,15 @@ public abstract class AbstractComponentInfoResource
   private NamedComponentDetails getEvaluatedComponentDetails(String applicationPublicId, String matchState, String hash,
       boolean proprietary, final ComponentIdentifier identifier) throws IOException
   {
-    NamedComponentDetails componentDetails = getComponentDetails(matchState, hash, identifier);
+    NamedComponentDetails componentDetails;
+
+    if (identifier != null) {
+      componentDetails = getComponentDetails(matchState, hash, identifier);
+    }
+    else {
+      // See CLM-4195
+      componentDetails = createEmptyComponentDetails(hash, identifier);
+    }
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();
@@ -143,13 +148,21 @@ public abstract class AbstractComponentInfoResource
             }
             catch (NotFoundException e) {
               // Identifier is unknown to HDS, still want to provide minimal data for details view
-              componentDetails = new NamedComponentDetails();
-              componentDetails.setComponentIdentifier(identifier);
-              componentDetails.setMatchState(MatchState.UNKNOWN.getId());
+              componentDetails = createEmptyComponentDetails(hash, identifier);
             }
             return componentDetails;
           }
         });
+  }
+
+  // Intended for unknown cases
+  private NamedComponentDetails createEmptyComponentDetails(String hash, ComponentIdentifier identifier)
+  {
+    NamedComponentDetails details = new NamedComponentDetails();
+    details.setComponentIdentifier(identifier);
+    details.setHash(hash);
+    details.setMatchState(MatchState.UNKNOWN.getId());
+    return details;
   }
 
   @GET

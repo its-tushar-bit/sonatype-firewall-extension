@@ -10,7 +10,11 @@ var clmBuildTimestamp = '${build.timestamp}';
   "use strict";
 
   function toParams(componentType, hash, matchState, proprietary, coordinates) {
-    var params = { componentIdentifier : JSON.stringify({ format : componentType, coordinates : coordinates }) };
+    var params = {};
+
+    if (coordinates) {
+      params.componentIdentifier = JSON.stringify({ format : componentType, coordinates : coordinates });
+    }
 
     if (hash) {
       params.hash = hash;

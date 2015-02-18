@@ -198,7 +198,7 @@
           matchState = query.matchState;
 
       if (identifier === null) {
-        identifier = {
+        identifier =  query.groupId ? {
           format : 'maven',
           coordinates : {
             groupId : query.groupId,
@@ -207,7 +207,7 @@
             classifier : query.classifier,
             extension : query.extension
           }
-        };
+        } : {};
       }
 
       // TODO Determine where the GAV is coming from, should it be a query string or should Eclipse call a JS function?

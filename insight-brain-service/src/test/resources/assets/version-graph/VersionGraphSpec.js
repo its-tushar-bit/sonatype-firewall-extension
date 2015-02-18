@@ -177,12 +177,28 @@ var clmEndpointTemplate = {
         expect(Properties.getProprietary()).toEqual(false);
       }));
 
-      it('Insight.clearGAV', inject(function (Coordinates, State) {
-        Coordinates.set({
-          id : 'clearGAV'
-        });
+      it('Insight.clearGAV', inject(function (Coordinates, State, Properties) {
         spyOn(Coordinates, 'set').andCallThrough();
         spyOn(State, 'set').andCallThrough();
+        Insight.setGav({
+          groupId : 'g1',
+          artifactId : 'a1',
+          version : 'v1',
+          classifier : 'war',
+          hash : '01234',
+          proprietary : false,
+          matchState : 'similar',
+          filename : 'foo.war'
+        });
+
+        expect(Coordinates.set).toHaveBeenCalledWith('maven', { groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
+        expect(Coordinates.get()).toEqual({ groupId : 'g1', artifactId : 'a1', version : 'v1', classifier : 'war' });
+        expect(Coordinates.getFormat()).toEqual('maven');
+
+        expect(Properties.getHash()).toEqual('01234');
+        expect(Properties.getFilename()).toEqual('foo.war');
+        expect(Properties.getMatchState()).toEqual('similar');
+        expect(Properties.getProprietary()).toEqual(false);
 
         Insight.clearGav();
 
@@ -191,6 +207,11 @@ var clmEndpointTemplate = {
         expect(Coordinates.getSelected()).toEqual(null);
         expect(Coordinates.getFormat()).toEqual(null);
         expect(State.set).toHaveBeenCalledWith(null, undefined);
+        expect(Properties.getFilename()).toBeUndefined();
+        expect(Properties.getHash()).toBeUndefined();
+        expect(Properties.getMatchState()).toBeUndefined();
+        expect(Properties.getProprietary()).toBeUndefined();
+        expect(Properties.isUnknown()).toBeFalsy();
       }));
     });
 

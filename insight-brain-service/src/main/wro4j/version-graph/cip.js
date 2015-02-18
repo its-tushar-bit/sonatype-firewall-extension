@@ -85,9 +85,10 @@
 
   function createStateFn(stateName) {
     return function (arg) {
-      waitOnInjector(['$rootScope', 'Coordinates', 'State', function ($rootScope, Coordinates, State) {
+      waitOnInjector(['$rootScope', 'Coordinates', 'State', 'Properties', function ($rootScope, Coordinates, State, Properties) {
         safeApply($rootScope, function () {
           Coordinates.set(null);
+          Properties.reset();
           State.set(stateName, arg);
         });
       }], true);

@@ -29,7 +29,6 @@ import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.clm.dto.model.rhc.RepoHealthCheckSecurityVulnerability;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
@@ -233,15 +232,15 @@ public class ApiComponentEvaluationServiceV2
     }
 
     private void augmentSecurityVulnerabilities(Component component,
-        List<RepoHealthCheckSecurityVulnerability> vulnerabilities)
+        List<SecurityVulnerability> vulnerabilities)
     {
       if (component.getSecurityVulnerabilities() != null) {
         for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
             .getSecurityVulnerabilities()) {
           if (sv.getUrl() == null && sv.getRefId() != null) {
-            for (RepoHealthCheckSecurityVulnerability rhcSv : vulnerabilities) {
-              if (sv.getRefId().equals(rhcSv.getRefId())) {
-                sv.setUrl(rhcSv.getUrl());
+            for (SecurityVulnerability vulnerability : vulnerabilities) {
+              if (sv.getRefId().equals(vulnerability.getRefId())) {
+                sv.setUrl(vulnerability.getUrl());
                 break;
               }
             }
@@ -265,13 +264,13 @@ public class ApiComponentEvaluationServiceV2
     }
 
     private List<SecurityVulnerability> convertToSecurityVulnerability(
-        List<RepoHealthCheckSecurityVulnerability> vulnerabilities)
+        List<SecurityVulnerability> vulnerabilities)
     {
       if (vulnerabilities == null) {
         return null;
       }
 
-      return new ArrayList<SecurityVulnerability>(vulnerabilities);
+      return new ArrayList<>(vulnerabilities);
     }
 
     private List<ComponentEvaluationData> getComponentDetailsList(

@@ -14,11 +14,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.clm.dto.model.rhc.RepoHealthCheckSecurityVulnerability;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -47,7 +47,7 @@ public class ComponentEvaluationV2Helper
   public ComponentEvaluationData createComponentEvaluationData(final ComponentIdentifier componentIdentifier,
       final String hash, final MatchState matchState, final int index,
       final Set<License> declaredLicenses, final Set<License> observedLicenses,
- final List<RepoHealthCheckSecurityVulnerability> securityVulnerabilities)
+ final List<SecurityVulnerability> securityVulnerabilities)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -84,9 +84,9 @@ public class ComponentEvaluationV2Helper
     return new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN, coordinates);
   }
 
-  public List<RepoHealthCheckSecurityVulnerability> createSecurityVulnerabilities() {
-    List<RepoHealthCheckSecurityVulnerability> securityVulnerabilities = new ArrayList<>();
-    RepoHealthCheckSecurityVulnerability securityVulnerability = new RepoHealthCheckSecurityVulnerability();
+  public List<SecurityVulnerability> createSecurityVulnerabilities() {
+    List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability();
     securityVulnerability.setRefId("refId");
     securityVulnerability.setSeverity(5.0F);
     securityVulnerability.setSource("source");
@@ -130,7 +130,7 @@ public class ComponentEvaluationV2Helper
 
   public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
       final ApiComponentDTOV2 requestComponentDTO, final String matchState, final List<License> declaredLicenses,
-      final List<License> observedLicenses, final List<RepoHealthCheckSecurityVulnerability> securityVulnerabilities,
+      final List<License> observedLicenses, final List<SecurityVulnerability> securityVulnerabilities,
       final Map<String, Policy> policies)
   {
     assertThat(resultComponentDTO, notNullValue());

@@ -38,7 +38,7 @@ extends AbstractClaimComponentSpec {
   def 'Should not show jar extensions in the display name when claimed without a classifier'() {
     given: 'A GAV not found in our data'
     ComponentIdentifier identifier = ComponentIdentifier.
-        createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version, null, 'jar')
+        createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version, '', 'jar')
     saasRule.setResponseForURI(createUri(identifier), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip

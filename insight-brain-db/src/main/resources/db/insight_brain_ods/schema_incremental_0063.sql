@@ -17,8 +17,9 @@ INSERT INTO hash_component_identifier
     component_id_coordinates_json,
     comment, create_time) 
   SELECT hash_gav_id, hash, 'maven',
-    '{"artifactId":"' || STRINGENCODE(artifact_id) || '","groupId":"' || STRINGENCODE(group_id) || '","version":"' || STRINGENCODE(version) || '"}',
+  '{"artifactId":"' || STRINGENCODE(artifact_id) || IFNULL('","classifier":"' || STRINGENCODE(classifier),'') ||
+    IFNULL('","extension":"' || STRINGENCODE(extension),'') || '","groupId":"' || STRINGENCODE(group_id) ||
+    '","version":"' || STRINGENCODE(version) || '"}',
     comment, create_time FROM hash_gav;
 
 DROP TABLE hash_gav;
-  

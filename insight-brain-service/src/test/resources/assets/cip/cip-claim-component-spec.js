@@ -87,7 +87,14 @@ describe('CIP Claim Component tests', function() {
     scope.claimData.version = 'version';
     expect(scope.formValid()).toEqual(true);
 
-    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified'),function(data){
+      var obj = JSON.parse(data);
+      expect(obj.componentIdentifier.coordinates.groupId).toEqual('groupid');
+      expect(obj.componentIdentifier.coordinates.artifactId).toEqual('artifactid');
+      expect(obj.componentIdentifier.coordinates.version).toEqual('version');
+      expect(obj.componentIdentifier.coordinates.classifier).toEqual('');
+      return true;
+    }).respond(component);
     scope.claimSubmit();
     $http.flush();
     expect(formSetPristineSpy).toHaveBeenCalled();

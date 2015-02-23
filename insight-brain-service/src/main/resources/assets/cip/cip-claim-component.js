@@ -183,7 +183,7 @@
               groupId: $scope.claimData.groupId,
               artifactId: $scope.claimData.artifactId,
               version: $scope.claimData.version,
-              classifier: $scope.claimData.classifier,
+              classifier: $scope.claimData.classifier ? $scope.claimData.classifier : '',
               extension: $scope.claimData.extension
             }
           }}

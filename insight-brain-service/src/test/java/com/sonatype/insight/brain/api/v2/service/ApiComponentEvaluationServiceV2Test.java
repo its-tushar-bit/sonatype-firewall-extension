@@ -55,9 +55,9 @@ public class ApiComponentEvaluationServiceV2Test
     extends AbstractComponentTest
 {
 
-  private static final long RETRY_INTERVAL = 500;
+  private static final long RETRY_INTERVAL = 50;
 
-  private static final int NUM_TRIES = 100;
+  private static final int NUM_TRIES = 1000;
 
   private static final int CHUNK_SIZE = 5;
 
@@ -164,6 +164,7 @@ public class ApiComponentEvaluationServiceV2Test
     boolean done = false;
     int tryCount = 1;
     while (!done) {
+      System.out.println("tryCount=" + tryCount);
       try {
         return apiComponentEvaluationService
             .getComponentEvaluation(evaluationTicket.applicationId, evaluationTicket.resultId);

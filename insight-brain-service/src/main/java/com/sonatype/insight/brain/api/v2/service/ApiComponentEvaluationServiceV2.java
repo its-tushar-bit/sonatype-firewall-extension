@@ -53,6 +53,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.inject.Singleton;
+import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -224,7 +225,25 @@ public class ApiComponentEvaluationServiceV2
 
       try {
         File componentDetailsFile = work.getComponentDetailsFile(application.getId(), evaluationTicketDTO.resultId);
-        JsonUtils.write(componentDetailsFile, evaluationResultDTO);
+        log.debug("Writing component evaluation results for appliction id {} and result id {} to file {}",
+            application.getId(), evaluationTicketDTO.resultId, componentDetailsFile.getAbsolutePath());
+
+        // Write first to a temp file and rename it in the end to avoid the read of an incomplete results' file.
+        File tmpComponentDetailsFile = work.getComponentDetailsFile(application.getId(), evaluationTicketDTO.resultId
+            + "-temp");
+        JsonUtils.write(tmpComponentDetailsFile, evaluationResultDTO);
+        if (!tmpComponentDetailsFile.renameTo(componentDetailsFile)) {
+          try {
+            FileUtils.copyFile(tmpComponentDetailsFile, componentDetailsFile);
+          }
+          catch (IOException e) {
+            componentDetailsFile.delete();
+            throw e;
+          }
+          finally {
+            tmpComponentDetailsFile.delete();
+          }
+        }
       }
       catch (IOException e) {
         log.error(e.getMessage(), e);

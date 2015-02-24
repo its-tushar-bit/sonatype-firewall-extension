@@ -6,6 +6,7 @@
 	font-size: 12px;
 	vertical-align: middle;
 	padding-left: 105px;
+	max-width: 280px;
 }
 .claimComponent form {
 	margin: 0px;

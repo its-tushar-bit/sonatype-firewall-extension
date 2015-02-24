@@ -24,7 +24,8 @@ var componentIdentifier = {
   coordinates: {
     groupId: 'g',
     artifactId: 'a',
-    version: 'v'
+    version: 'v',
+    extension: 'e'
   }
 };
 var component = {
@@ -34,6 +35,7 @@ var component = {
   groupId: componentIdentifier.coordinates.groupId,
   artifactId: componentIdentifier.coordinates.artifactId,
   version: componentIdentifier.coordinates.version,
+  extension: componentIdentifier.coordinates.extension,
   createTime: 100,
   comment: 'testc'
 };
@@ -85,6 +87,8 @@ describe('CIP Claim Component tests', function() {
     scope.claimData.artifactId = 'artifactid';
     expect(scope.formValid()).toEqual(false);
     scope.claimData.version = 'version';
+    expect(scope.formValid()).toEqual(false);
+    scope.claimData.extension = 'e';
     expect(scope.formValid()).toEqual(true);
 
     $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified'),function(data){
@@ -93,6 +97,7 @@ describe('CIP Claim Component tests', function() {
       expect(obj.componentIdentifier.coordinates.artifactId).toEqual('artifactid');
       expect(obj.componentIdentifier.coordinates.version).toEqual('version');
       expect(obj.componentIdentifier.coordinates.classifier).toEqual('');
+      expect(obj.componentIdentifier.coordinates.extension).toEqual('e');
       return true;
     }).respond(component);
     scope.claimSubmit();
@@ -195,6 +200,7 @@ describe('CIP Claim Component tests', function() {
       expect(item.groupId).toEqual(component.groupId);
       expect(item.artifactId).toEqual(component.artifactId);
       expect(item.version).toEqual(component.version);
+      expect(item.extension).toEqual(component.extension);
       expect(item.createTime).toEqual(component.createTime);
       expect(item.comment).toEqual(component.comment);
     }

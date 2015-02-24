@@ -183,6 +183,8 @@
               groupId: $scope.claimData.groupId,
               artifactId: $scope.claimData.artifactId,
               version: $scope.claimData.version,
+              // as classifier is optional, we want to enforce an empty string when the user has not
+              // touched the field
               classifier: $scope.claimData.classifier ? $scope.claimData.classifier : '',
               extension: $scope.claimData.extension
             }
@@ -280,14 +282,17 @@
         else if (!data.version) {
           return false;
         }
+        else if (!data.extension) {
+          return false;
+        }
         return true;
       };
 
       $scope.getValidationMessage = function() {
         var claimForm = $scope.claimForm;
         if ($scope.submitted && (claimForm.groupId.$error.required || claimForm.artifactId.$error.required ||
-            claimForm.version.$error.required)) {
-          return 'Group ID, Artifact ID and Version are required';
+            claimForm.version.$error.required || claimForm.extension.$error.required)) {
+          return 'Group ID, Artifact ID, Version and Extension are required';
         }
         else if (claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern) {
           return 'Date format is MM/DD/YYYY';

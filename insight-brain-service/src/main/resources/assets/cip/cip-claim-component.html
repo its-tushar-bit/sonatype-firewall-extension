@@ -47,11 +47,11 @@
           </td>
           <td>
             <div class='form-horizontal'>
-              <div class='control-group'>
+              <div class='control-group' ng-class='{ error : submitted && claimForm.extension.$error.required }'>
                 <label class='control-label'>Extension</label>
 
                 <div class='controls'>
-                  <input name='extension' class='input-xlarge' type='text' ng-model='claimData.extension'/>
+                  <input name='extension' class='input-xlarge' type='text' ng-model='claimData.extension' required/>
                 </div>
               </div>
               <div class='control-group'

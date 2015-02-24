@@ -5,13 +5,11 @@
  */
 package com.sonatype.insight.brain.model.policy.actions;
 
-import java.util.List;
-
 import javax.mail.internet.InternetAddress;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.ValidationResult;
+import com.sonatype.insight.brain.model.policy.ActionType;
 
 public class NotifyActionType
     implements ActionType
@@ -26,11 +24,6 @@ public class NotifyActionType
   @Override
   public String getName() {
     return "Notify";
-  }
-
-  @Override
-  public List<String> getAvailableTargets() {
-    return null;
   }
 
   @Override

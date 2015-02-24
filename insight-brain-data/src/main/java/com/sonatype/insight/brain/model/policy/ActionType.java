@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import java.util.List;
-
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.ValidationResult;
 
@@ -15,8 +13,6 @@ public interface ActionType
   String getId();
 
   String getName();
-
-  List<String> getAvailableTargets();
 
   boolean isRequiresTarget();
 

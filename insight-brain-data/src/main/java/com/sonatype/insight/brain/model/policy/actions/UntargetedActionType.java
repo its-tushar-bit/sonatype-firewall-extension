@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.model.policy.actions;
 
-import java.util.List;
-
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.model.policy.ActionType;
 import com.sonatype.insight.brain.model.ValidationResult;
+import com.sonatype.insight.brain.model.policy.ActionType;
 
 /**
  * An {@link ActionType} that does not support targets.
@@ -22,11 +20,6 @@ abstract class UntargetedActionType
   @Override
   public boolean isRequiresTarget() {
     return false;
-  }
-
-  @Override
-  public List<String> getAvailableTargets() {
-    return null;
   }
 
   @Override

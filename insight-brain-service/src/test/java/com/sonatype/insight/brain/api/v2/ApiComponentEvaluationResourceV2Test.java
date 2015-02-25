@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
+import org.hamcrest.core.StringStartsWith;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -205,7 +206,7 @@ public class ApiComponentEvaluationResourceV2Test
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability> emptyList()));
+            Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -231,7 +232,7 @@ public class ApiComponentEvaluationResourceV2Test
         securityVulnerabilities, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), Collections.<String, Policy> emptyMap());
+        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
   }
 
   @Test
@@ -261,7 +262,7 @@ public class ApiComponentEvaluationResourceV2Test
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability> emptyList()));
+            Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
     String url = getComponentEvaluationURL(app.getId());
@@ -287,7 +288,7 @@ public class ApiComponentEvaluationResourceV2Test
         securityVulnerabilities, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability> emptyList(), Collections.<String, Policy> emptyMap());
+        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
   }
 
   @Test
@@ -400,6 +401,83 @@ public class ApiComponentEvaluationResourceV2Test
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
         Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+  }
+
+  @Test
+  public void testEvaluateComponents_withClaimedComponentEmptyVsNullClassifier() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    ComponentIdentifier compIdentifierWithEmptyClassifier =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1", "");
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithEmptyClassifier, null);
+    request.components.add(component1);
+
+    ComponentIdentifier compIdentifierWithNullClassifier =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(compIdentifierWithNullClassifier, null);
+    request.components.add(component2);
+
+    ComponentIdentifier expectedComponentIdentifier1 =
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
+    tempEntity.newClaimedComponent("h1", expectedComponentIdentifier1);
+    ComponentIdentifier expectedComponentIdentifier2 =
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
+    tempEntity.newClaimedComponent("h2", expectedComponentIdentifier2);
+
+    // Create a mock return
+    ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
+        componentEvaluationV2Helper.createComponentEvaluationData(
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1"), component1.hash,
+            MatchState.UNKNOWN, 0, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            Collections.<SecurityVulnerability>emptyList()),
+        componentEvaluationV2Helper.createComponentEvaluationData(
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2"), component1.hash,
+            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            Collections.<SecurityVulnerability>emptyList()));
+    mockComponentDetails(componentEvaluationDataList);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+
+    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    assertResponseStatus(200, response);
+
+    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    assertThat(details, notNullValue());
+    assertThat(details.isError, is(false));
+    assertThat(details.errorMessage, nullValue());
+    assertThat(details.applicationId, is(app.getId()));
+    assertThat(details.evaluationDate, notNullValue());
+    assertThat(details.submittedDate, notNullValue());
+    assertThat(details.results, notNullValue());
+    assertThat(details.results.size(), is(2));
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1",
+        MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2",
+        MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+  }
+
+  @Test
+  public void testEvaluateComponents_withClaimedComponentMissingExtension() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    ComponentIdentifier compIdentifierWithNoExtension =
+        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", null);
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithNoExtension, null);
+    request.components.add(component1);
+
+    String url = getComponentEvaluationURL(app.getId());
+    Response response = AuthedRestAccess.post(url, toJson(request));
+    assertResponseStatus(400, response);
+    assertThat(response.getResponseBody(), StringStartsWith
+        .startsWith("Coordinates missing the following required entries for the given format: [extension]"));
   }
 
   private void mockHDSInternalServiceError() {

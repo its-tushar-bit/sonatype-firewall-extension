@@ -74,12 +74,21 @@ public class ComponentEvaluationV2Helper
   public ComponentIdentifier createMavenComponentIdentifier(final String groupId, final String artifactId,
       final String version, final String extension)
   {
+    return createMavenComponentIdentifier(groupId, artifactId, version, extension, null);
+  }
+
+  public ComponentIdentifier createMavenComponentIdentifier(final String groupId, final String artifactId,
+      final String version, final String extension, final String classifier)
+  {
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put(ComponentIdentifier.MAVEN_GROUP_ID, groupId);
     coordinates.put(ComponentIdentifier.MAVEN_ARTIFACT_ID, artifactId);
     coordinates.put(ComponentIdentifier.VERSION, version);
     if (extension != null) {
       coordinates.put(ComponentIdentifier.MAVEN_EXTENSION, extension);
+    }
+    if (classifier != null) {
+      coordinates.put(ComponentIdentifier.MAVEN_CLASSIFIER, classifier);
     }
     return new ComponentIdentifier(ComponentIdentifier.FORMAT_MAVEN, coordinates);
   }
@@ -133,13 +142,22 @@ public class ComponentEvaluationV2Helper
       final List<License> observedLicenses, final List<SecurityVulnerability> securityVulnerabilities,
       final Map<String, Policy> policies)
   {
+    assertComponentDetails(resultComponentDTO , requestComponentDTO.componentIdentifier, requestComponentDTO.hash,
+        matchState, declaredLicenses, observedLicenses,securityVulnerabilities, policies);
+  }
+
+  public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
+      final ApiComponentIdentifierDTOV2 expectedComponentIdentifier, final String expectedHash, final String matchState,
+      final List<License> declaredLicenses, final List<License> observedLicenses,
+      final List<SecurityVulnerability> securityVulnerabilities, final Map<String, Policy> policies)
+  {
     assertThat(resultComponentDTO, notNullValue());
     assertThat(resultComponentDTO.component, notNullValue());
     assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
-        is(requestComponentDTO.componentIdentifier.getFormat()));
+        is(expectedComponentIdentifier.getFormat()));
     assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
-        is(requestComponentDTO.componentIdentifier.getCoordinates()));
-    assertThat(resultComponentDTO.component.hash, is(requestComponentDTO.hash));
+        is(expectedComponentIdentifier.getCoordinates()));
+    assertThat(resultComponentDTO.component.hash, is(expectedHash));
     assertThat(resultComponentDTO.matchState, is(matchState));
 
 

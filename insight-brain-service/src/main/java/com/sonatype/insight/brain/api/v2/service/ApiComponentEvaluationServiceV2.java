@@ -333,8 +333,8 @@ public class ApiComponentEvaluationServiceV2
       componentEvaluationDataRequest.hash = componentDTO.hash;
       if (componentDTO.componentIdentifier != null) {
         componentEvaluationDataRequest.componentIdentifier = new ComponentIdentifier(
-            componentDTO.componentIdentifier.getFormat(),
-            componentDTO.componentIdentifier.getCoordinates());
+            componentDTO.componentIdentifier.getFormat(), componentDTO.componentIdentifier.getCoordinates());
+        componentEvaluationDataRequest.componentIdentifier.ensureComplete();
       }
       return componentEvaluationDataRequest;
     }

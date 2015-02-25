@@ -131,7 +131,7 @@ public class ApiComponentEvaluationServiceV2
   }
 
   // For testing
-  public void setChunkSize(final int chunkSize) {
+  void setChunkSize(final int chunkSize) {
     this.chunkSize = chunkSize;
   }
 

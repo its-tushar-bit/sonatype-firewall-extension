@@ -22,19 +22,15 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
-import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,24 +57,8 @@ public class ApiComponentEvaluationServiceV2Test
 
   private static final int CHUNK_SIZE = 5;
 
+  @Inject
   private ApiComponentEvaluationServiceV2 apiComponentEvaluationService;
-
-  @Inject
-  private PolicyEvaluator policyEvaluator;
-
-  @Inject
-  private ComponentDetailsLoader componentDetailsLoader;
-
-  @Inject
-  private ApiComponentDetailsAdapter componentDetailsAdapter;
-
-  @Inject
-  private InsightWork work;
-
-  @Inject
-  private ErrorResponseGenerator errorResponseGenerator;
-
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Mock
   private SaasClient client;
@@ -89,12 +69,16 @@ public class ApiComponentEvaluationServiceV2Test
 
   private Application app;
 
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(SaasClient.class).toInstance(client);
+  }
+  
   @Before
   public void setupApplication() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
-    apiComponentEvaluationService = new ApiComponentEvaluationServiceV2(applicationDAO, policyEvaluator,
-        componentDetailsLoader, componentDetailsAdapter, client, work, errorResponseGenerator);
 
     apiComponentEvaluationService.setChunkSize(CHUNK_SIZE);
   }

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -52,6 +53,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Singleton;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
@@ -70,7 +72,7 @@ public class ApiComponentEvaluationServiceV2
 
   private static final Logger log = LoggerFactory.getLogger(ApiComponentEvaluationServiceV2.class);
 
-  private final ExecutorService executor = Executors.newFixedThreadPool(4);
+  private final ExecutorService executor = Executors.newFixedThreadPool(4, createThreadFactory());
 
   private final ApplicationDAO applicationDAO;
 
@@ -347,5 +349,9 @@ public class ApiComponentEvaluationServiceV2
 
       return chunks;
     }
+  }
+
+  private ThreadFactory createThreadFactory() {
+    return new ThreadFactoryBuilder().setNameFormat("ApiComponentEvaluationServiceV2-%d").build();
   }
 }

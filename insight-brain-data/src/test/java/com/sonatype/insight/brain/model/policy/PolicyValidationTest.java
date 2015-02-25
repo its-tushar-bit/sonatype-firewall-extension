@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.Role;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -272,14 +273,14 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Action action = new Action(NotifyActionType.ID);
-    policy.addAction(BuildStageType.ID, action);
+    NotifyAction notifyAction = new NotifyAction(null /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
+    policy.addAction(BuildStageType.ID, notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Notify': A valid e-mail address is required");
 
     // Fix the action and validate again
-    action.setTarget("tester@sonatype.com");
+    notifyAction.setTarget("tester@sonatype.com");
     result = policy.validate(applicationId);
     Assert.assertTrue(result.isValid());
   }
@@ -290,15 +291,14 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Action action = new Action(NotifyActionType.ID);
-    action.setTarget("  ");
-    policy.addAction(BuildStageType.ID, action);
+    NotifyAction notifyAction = new NotifyAction("  " /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
+    policy.addAction(BuildStageType.ID, notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Notify': A valid e-mail address is required");
 
     // Fix the action and validate again
-    action.setTarget("tester@sonatype.com");
+    notifyAction.setTarget("tester@sonatype.com");
     result = policy.validate(applicationId);
     Assert.assertTrue(result.isValid());
   }
@@ -309,21 +309,44 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    Action action = new Action(NotifyActionType.ID);
-    action.setTarget("bad email address");
-    policy.addAction(BuildStageType.ID, action);
+    NotifyAction notifyAction = new NotifyAction("bad email address", NotifyActionType.TARGET_TYPE_EMAIL);
+    policy.addAction(BuildStageType.ID, notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Notify': A valid e-mail address is required instead of: bad email address");
 
     // Fix the action and validate again
-    action.setTarget("tester@sonatype.com");
+    notifyAction.setTarget("tester@sonatype.com");
     result = policy.validate(applicationId);
     Assert.assertTrue(result.isValid());
   }
 
   @Test
-  public void testValidate_FailActionType() {
+  public void testValidate_NotifyActionTypeWithEmptyTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("tester@sonatype.com", " " /* targetType */);
+    policy.addAction(BuildStageType.ID, notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithNullTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("tester@sonatype.com", null /* targetType */);
+    policy.addAction(BuildStageType.ID, notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_FailActionTypeWithTarget() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
@@ -342,7 +365,26 @@ public class PolicyValidationTest
   }
 
   @Test
-  public void testValidate_WarnActionType() {
+  public void testValidate_FailActionTypeWithTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    Action action = new Action(FailActionType.ID);
+    action.setTargetType("abc");
+    policy.addAction(BuildStageType.ID, action);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Fail': This action does not support target types");
+
+    // Fix the action and validate again
+    action.setTargetType(null);
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_WarnActionTypeWithTarget() {
     Policy policy = new Policy("PolicyId", "Policy Name");
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
@@ -358,6 +400,25 @@ public class PolicyValidationTest
     action.setTarget(null);
     result = policy.validate(applicationId);
     Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_WarnActionTypeWithTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    Action action = new Action(WarnActionType.ID);
+    action.setTargetType("abc");
+    policy.addAction(BuildStageType.ID, action);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Warn': This action does not support target types");
+
+    // Fix the action and validate again
+    action.setTargetType(null);
+    result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
   }
 
   @Test
@@ -403,8 +464,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction();
-    notifyAction.setTarget("  ");
+    NotifyAction notifyAction = new NotifyAction("  " /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
     policy.addMonitorNotifyAction(notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
@@ -422,8 +482,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction();
-    notifyAction.setTarget("bad email address");
+    NotifyAction notifyAction = new NotifyAction("bad email address", NotifyActionType.TARGET_TYPE_EMAIL);
     policy.addMonitorNotifyAction(notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
@@ -441,7 +500,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction();
+    NotifyAction notifyAction = new NotifyAction(null /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
     policy.addMonitorNotifyAction(notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
@@ -449,6 +508,176 @@ public class PolicyValidationTest
 
     // Fix the action and validate again
     notifyAction.setTarget("tester@sonatype.com");
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithInvalidRole() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("Hamlet", NotifyActionType.TARGET_TYPE_ROLE);
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': A valid role ID is required instead of: Hamlet");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithNullRole() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction(null, NotifyActionType.TARGET_TYPE_ROLE);
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': A valid role ID is required");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithEmptyRole() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction(" ", NotifyActionType.TARGET_TYPE_ROLE);
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': A valid role ID is required");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithInvalidTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("hello", "Not a target type");
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
+        "Invalid action 'Notify': Invalid target type: 'Not a target type'");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    notifyAction.setTargetType(NotifyActionType.TARGET_TYPE_ROLE);
+    result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithEmptyTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("tester@sonatype.com", " " /* targetType */);
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_MonitorNotifyActionTypeWithNullTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("tester@sonatype.com", null /* targetType */);
+    policy.addMonitorNotifyAction(notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertThat(result.isValid(), is(true));
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithInvalidRole() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("Hamlet", NotifyActionType.TARGET_TYPE_ROLE);
+    policy.addAction(BuildStageType.ID, notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Notify': A valid role ID is required instead of: Hamlet");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithNullRole() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction(null, NotifyActionType.TARGET_TYPE_ROLE);
+    policy.addAction(BuildStageType.ID, notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Notify': A valid role ID is required");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithEmptyRole() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction(" ", NotifyActionType.TARGET_TYPE_ROLE);
+    policy.addAction(BuildStageType.ID, notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Notify': A valid role ID is required");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    result = policy.validate(applicationId);
+    Assert.assertTrue(result.isValid());
+  }
+
+  @Test
+  public void testValidate_NotifyActionTypeWithInvalidTargetType() {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    NotifyAction notifyAction = new NotifyAction("hello", "Not a target type");
+    policy.addAction(BuildStageType.ID, notifyAction);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
+        "Invalid action 'Notify': Invalid target type: 'Not a target type'");
+
+    // Fix the action and validate again
+    notifyAction.setTarget(Role.ADMIN_ROLE_ID);
+    notifyAction.setTargetType(NotifyActionType.TARGET_TYPE_ROLE);
     result = policy.validate(applicationId);
     Assert.assertTrue(result.isValid());
   }

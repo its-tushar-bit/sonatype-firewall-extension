@@ -29,6 +29,9 @@ abstract class UntargetedActionType
     if (action.getTarget() != null) {
       result.addError("Invalid action '" + getName() + "': This action does not support targets");
     }
+    if (action.getTargetType() != null) {
+      result.addError("Invalid action '" + getName() + "': This action does not support target types");
+    }
 
     return result;
   }

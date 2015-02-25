@@ -86,17 +86,13 @@ public class ApiComponentEvaluationServiceV2
 
   private final InsightWork work;
 
-  private final ApiComponentIdentifierValidator componentIdentifierValidator;
-
   private final ErrorResponseGenerator errorResponseGenerator;
 
 
   @Inject
   public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO, final PolicyEvaluator policyEvaluator,
       final ComponentDetailsLoader componentDetailsLoader, final ApiComponentDetailsAdapter componentDetailsAdapter,
-      final SaasClient client, final InsightWork work,
-      final ApiComponentIdentifierValidator componentIdentifierValidator,
-      final ErrorResponseGenerator errorResponseGenerator)
+      final SaasClient client, final InsightWork work, final ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluator = policyEvaluator;
@@ -104,7 +100,6 @@ public class ApiComponentEvaluationServiceV2
     this.componentDetailsAdapter = componentDetailsAdapter;
     this.client = client;
     this.work = work;
-    this.componentIdentifierValidator = componentIdentifierValidator;
     this.errorResponseGenerator = errorResponseGenerator;
   }
 
@@ -146,8 +141,7 @@ public class ApiComponentEvaluationServiceV2
     }
     for (ApiComponentDTOV2 componentDTO : evaluationRequest.components) {
       if (componentDTO.componentIdentifier != null) {
-        ComponentIdentifier componentIdentifier = createComponentIdentifier(componentDTO);
-        componentIdentifierValidator.validate(componentIdentifier);
+        validateComponentIdentifier(componentDTO);
       }
       else if (componentDTO.hash == null) {
         throw new BadRequestException("One of either componentIdentifier or hash must be supplied.");
@@ -155,10 +149,11 @@ public class ApiComponentEvaluationServiceV2
     }
   }
 
-  private ComponentIdentifier createComponentIdentifier(final ApiComponentDTOV2 componentDTO) {
+  private void validateComponentIdentifier(final ApiComponentDTOV2 componentDTO) {
     try {
-      return new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
+      ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
+      componentIdentifier.ensureComplete();
     } catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
     }

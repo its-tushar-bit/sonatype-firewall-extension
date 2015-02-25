@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentIdentifierValidator;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -34,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
-import org.hamcrest.core.StringStartsWith;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,6 +48,8 @@ import static org.hamcrest.Matchers.startsWith;
 public class ApiComponentEvaluationResourceV2Test
     extends AbstractResourceTest
 {
+  public static final String MISSING_COORDINATES = "The following coordinates are missing for given format: ";
+
   private static final long RETRY_INTERVAL = 500;
 
   private static final int NUM_TRIES = 20;
@@ -86,7 +86,7 @@ public class ApiComponentEvaluationResourceV2Test
     String url = getComponentEvaluationURL(app.getId());
     Response response = AuthedRestAccess.post(url, toJson(request));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(ApiComponentIdentifierValidator.MISSING_COORDINATES + "[extension]"));
+    assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
   }
 
   @Test
@@ -476,8 +476,7 @@ public class ApiComponentEvaluationResourceV2Test
     String url = getComponentEvaluationURL(app.getId());
     Response response = AuthedRestAccess.post(url, toJson(request));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), StringStartsWith
-        .startsWith("Coordinates missing the following required entries for the given format: [extension]"));
+    assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
   }
 
   private void mockHDSInternalServiceError() {

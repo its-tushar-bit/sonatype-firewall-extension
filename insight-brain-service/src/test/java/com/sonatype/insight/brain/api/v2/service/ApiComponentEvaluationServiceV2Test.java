@@ -76,9 +76,6 @@ public class ApiComponentEvaluationServiceV2Test
   private InsightWork work;
 
   @Inject
-  private ApiComponentIdentifierValidator componentIdentifierValidator;
-
-  @Inject
   private ErrorResponseGenerator errorResponseGenerator;
 
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -97,8 +94,7 @@ public class ApiComponentEvaluationServiceV2Test
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     apiComponentEvaluationService = new ApiComponentEvaluationServiceV2(applicationDAO, policyEvaluator,
-        componentDetailsLoader, componentDetailsAdapter, client, work, componentIdentifierValidator,
-        errorResponseGenerator);
+        componentDetailsLoader, componentDetailsAdapter, client, work, errorResponseGenerator);
 
     apiComponentEvaluationService.setChunkSize(CHUNK_SIZE);
   }

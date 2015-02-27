@@ -46,7 +46,13 @@ public class PolicyDAO
   }
 
   public List<Policy> getAll() {
-    return PolicyInternal.toPolicies(policyInternalDAO.getAll());
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+      return getAll(tx);
+    }
+  }
+
+  public List<Policy> getAll(TransactionContext tx) {
+    return PolicyInternal.toPolicies(policyInternalDAO.getAll(tx));
   }
 
   /**

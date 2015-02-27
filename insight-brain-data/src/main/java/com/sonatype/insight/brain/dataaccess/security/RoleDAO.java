@@ -5,10 +5,16 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Iterator;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -40,6 +46,40 @@ public class RoleDAO
     RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(tx, entity.getId())) {
       rolePermissionDAO.delete(tx, rolePermission);
+    }
+
+    // Cascade to policy notify actions
+    PolicyDAO policyDAO = new PolicyDAO();
+    for (Policy policy : policyDAO.getAll(tx)) {
+      boolean policyWasChanged = false;
+      if (policy.getActions() != null) {
+        for (List<Action> actions : policy.getActions().values()) {
+          Iterator<Action> iterAction = actions.iterator();
+          while (iterAction.hasNext()) {
+            Action action = iterAction.next();
+            if (NotifyActionType.ID.equals(action.getActionTypeId())
+                && NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())
+                && entity.getId().equals(action.getTarget())) {
+              iterAction.remove();
+              policyWasChanged = true;
+            }
+          }
+        }
+      }
+      if (policy.getMonitorNotifyActions() != null) {
+        Iterator<NotifyAction> iterAction = policy.getMonitorNotifyActions().iterator();
+        while (iterAction.hasNext()) {
+          NotifyAction action = iterAction.next();
+          if (NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())
+              && entity.getId().equals(action.getTarget())) {
+            iterAction.remove();
+            policyWasChanged = true;
+          }
+        }
+        if (policyWasChanged) {
+          policyDAO.update(tx, policy);
+        }
+      }
     }
 
     super.delete(tx, entity);

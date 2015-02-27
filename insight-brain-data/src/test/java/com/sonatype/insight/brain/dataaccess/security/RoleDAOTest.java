@@ -8,7 +8,12 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
@@ -75,5 +80,25 @@ public class RoleDAOTest
     roleDAO.delete(role);
     rolesToDelete.remove(role);
     assertThat(rolePermissionDAO.getPermissionsForRole(role.getId()), is(empty()));
+  }
+
+  @Test
+  public void testDeleteCascadesToPolicyNotifyActions() throws Exception {
+    Role role = newRole("cascade");
+    tempEntity.newPolicy(organization.getId(), "Test Policy without Actions");
+    Policy policyWithNotifyActions = tempEntity.newPolicy(organization.getId(), "Test Policy with Notify Actions");
+    NotifyAction notifyAction1 = new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE);
+    policyWithNotifyActions.addAction(BuildStageType.ID, notifyAction1);
+    NotifyAction notifyAction2 = new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE);
+    policyWithNotifyActions.addMonitorNotifyAction(notifyAction2);
+    PolicyDAO policyDAO = new PolicyDAO();
+    policyDAO.update(policyWithNotifyActions);
+
+    roleDAO.delete(role);
+    rolesToDelete.remove(role);
+
+    policyWithNotifyActions = policyDAO.getById(policyWithNotifyActions.getId());
+    assertThat(policyWithNotifyActions.getActions(BuildStageType.ID), hasSize(0));
+    assertThat(policyWithNotifyActions.getMonitorNotifyActions(), hasSize(0));
   }
 }

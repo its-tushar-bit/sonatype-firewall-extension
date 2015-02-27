@@ -70,9 +70,9 @@ public class PolicyInternalDAO
     return get(tx, sQuery, ownerId, name);
   }
 
-  List<PolicyInternal> getAll() {
+  List<PolicyInternal> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM PolicyInternal entity";
-    return getList(sQuery);
+    return getList(tx, sQuery);
   }
 
   @Override

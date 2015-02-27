@@ -62,6 +62,12 @@ public class MembershipMappingDAO
     return getList(tx, sQuery, contextId, roleId);
   }
 
+  public List<MembershipMapping> getByContextIdAndRoleId(String contextId, String roleId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByContextIdAndRoleId(tx, contextId, roleId);
+    }
+  }
+
   /**
    * Sets the membership mappings for a given context and role.
    */

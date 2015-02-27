@@ -13,10 +13,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,6 +28,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -33,8 +36,12 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
+import com.sonatype.insight.brain.security.Member;
+import com.sonatype.insight.brain.security.MemberAttributeResolver;
+import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -42,6 +49,7 @@ import com.sonatype.insight.brain.utils.TemplateUtils;
 import org.sonatype.micromailer.Address;
 
 import freemarker.template.Template;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,21 +71,28 @@ public class PolicyAlertNotifier
 
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
+  private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+
   private final ApplicationAdapter applicationAdapter;
 
+  private final MemberAttributeResolver memberAttributeResolver;
+
   @Inject
-  public PolicyAlertNotifier(InsightMail mail, BaseUrl baseUrl, ApplicationAdapter applicationAdapter) {
+  public PolicyAlertNotifier(InsightMail mail, BaseUrl baseUrl, ApplicationAdapter applicationAdapter,
+      UserDirectory userDirectory)
+  {
     this.mail = mail;
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
+    memberAttributeResolver = new MemberAttributeResolver(userDirectory);
   }
 
   /**
    * Sends notifications in case of a difference between the current and previous policy violations for a given
    * application and stage.
    */
-  public void sendNotifications(final String applicationPublicId, 
-      final PolicyEvaluation currentEvaluation, final PolicyEvaluation previousEvaluation)
+  public void sendNotifications(final Application app, final PolicyEvaluation currentEvaluation,
+      final PolicyEvaluation previousEvaluation)
   {
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());
@@ -91,12 +106,12 @@ public class PolicyAlertNotifier
       List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(diff.getAppeared(),
           currentEvaluation.getStageTypeId(), currentEvaluation.isForMonitoring());
       updatePolicyViolations(diff.getAppeared(), policyAlerts);
-      sendNotifications(applicationPublicId, currentEvaluation.getApplicationId(), currentEvaluation.getScanId(),
+      sendNotifications(app, currentEvaluation.getScanId(),
           new Stage(currentEvaluation.getStageTypeId()), policyAlerts);
     }
     else {
       log.debug("Not sending notification emails for application {} and scan {} in stage {}"
-          + ", no new policy violations since last evaluation", applicationPublicId, currentEvaluation.getScanId(),
+          + ", no new policy violations since last evaluation", app.getPublicId(), currentEvaluation.getScanId(),
           currentEvaluation.getStageTypeId());
     }
   }
@@ -120,11 +135,13 @@ public class PolicyAlertNotifier
     }
   }
 
-  private void sendNotifications(final String applicationPublicId, String appId, final String scanId, final Stage stage,
+  private void sendNotifications(final Application app, final String scanId, final Stage stage,
       final List<PolicyAlert> policyAlerts)
   {
+    // TODO: Send notifications async
+    String applicationPublicId = app.getPublicId();
     String mailServer = mail.getServer();
-    Map<String, List<PolicyAlert>> alertsByRecipients = byRecipients(policyAlerts);
+    Map<String, List<PolicyAlert>> alertsByRecipients = getPolicyAlertsByEmailAddresses(app, policyAlerts);
     if (alertsByRecipients.isEmpty()) {
       log.debug("Not sending notification emails for application {} and scan {} in stage {}"
           + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
@@ -136,7 +153,7 @@ public class PolicyAlertNotifier
         final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
         final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
         final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
-        final String body = summarizeThreats(applicationPublicId, appId, scanId, stage, details.getValue());
+        final String body = summarizeThreats(applicationPublicId, app.getId(), scanId, stage, details.getValue());
         mail.sendHtml(mailId, addresses, subject, body);
       }
       catch (final Exception e) {
@@ -148,23 +165,75 @@ public class PolicyAlertNotifier
     // TODO: notify about cleared policy alerts...
   }
 
-  private static Map<String, List<PolicyAlert>> byRecipients(final List<PolicyAlert> alerts) {
-    final Map<String, List<PolicyAlert>> byRecipients = new HashMap<>();
+  private Map<String, List<PolicyAlert>> getPolicyAlertsByEmailAddresses(Application app, final List<PolicyAlert> alerts)
+  {
+    final Map<String, Set<String>> emailAddressesByRoleId = new HashMap<>();
+
+    final Map<String, List<PolicyAlert>> policyAlertsByEmailAddress = new HashMap<>();
     for (final PolicyAlert alert : alerts) {
       for (final Action action : alert.getActions()) {
         if (NotifyActionType.ID.equals(action.getActionTypeId())) {
-          final String address = action.getTarget();
-          List<PolicyAlert> personalAlerts = byRecipients.get(address);
-          if (personalAlerts == null) {
-            byRecipients.put(address, personalAlerts = new ArrayList<>());
+          if (NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
+            String roleId = action.getTarget();
+            Set<String> emailAddresses = emailAddressesByRoleId.get(roleId);
+            if (emailAddresses == null) {
+              emailAddresses = getEmailAddressesForRole(app, roleId);
+              emailAddressesByRoleId.put(roleId, emailAddresses);
+            }
+            for (String emailAddress : emailAddresses) {
+              addPolicyAlert(policyAlertsByEmailAddress, emailAddress, alert);
+            }
           }
-          if (!personalAlerts.contains(alert)) {
-            personalAlerts.add(alert);
+          else {
+            String emailAddress = action.getTarget();
+            addPolicyAlert(policyAlertsByEmailAddress, emailAddress, alert);
           }
         }
       }
     }
-    return byRecipients;
+    return policyAlertsByEmailAddress;
+  }
+
+  private void addPolicyAlert(Map<String, List<PolicyAlert>> policyAlertsByEmailAddress, String emailAddress,
+      PolicyAlert policyAlert)
+  {
+    List<PolicyAlert> policyAlerts = policyAlertsByEmailAddress.get(emailAddress);
+    if (policyAlerts == null) {
+      policyAlertsByEmailAddress.put(emailAddress, policyAlerts = new ArrayList<>());
+    }
+    if (!policyAlerts.contains(policyAlert)) {
+      policyAlerts.add(policyAlert);
+    }
+  }
+
+  private Set<String> getEmailAddressesForRole(Application app, String roleId) {
+    List<Member> members = new ArrayList<>();
+    // Get application role members
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(app.getId(), roleId)) {
+      Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
+          membershipMapping.getMemberName());
+      members.add(member);
+    }
+    // Get organization role members
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(app.getOrganizationId(),
+        roleId)) {
+      Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
+          membershipMapping.getMemberName());
+      members.add(member);
+    }
+
+    // Fill in email addresses
+    memberAttributeResolver.resolve(members);
+
+    Set<String> emailAddresses = new HashSet<>();
+    for (Member member : members) {
+      // TODO: Expand LDAP groups
+      if (!StringUtils.isBlank(member.getEmail())) {
+        emailAddresses.add(member.getEmail());
+      }
+    }
+
+    return emailAddresses;
   }
 
   static String createPolicyMailSubject(MailPolicyAlertCounts counts) {

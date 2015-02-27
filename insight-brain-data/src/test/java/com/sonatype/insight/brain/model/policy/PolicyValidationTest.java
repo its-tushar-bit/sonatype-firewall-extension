@@ -273,7 +273,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction(null /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
+    NotifyAction notifyAction = new NotifyAction(null /* email */, null /* targetType */);
     policy.addAction(BuildStageType.ID, notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
@@ -291,7 +291,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction("  " /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
+    NotifyAction notifyAction = new NotifyAction("  " /* email */, null /* targetType */);
     policy.addAction(BuildStageType.ID, notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
@@ -309,7 +309,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction("bad email address", NotifyActionType.TARGET_TYPE_EMAIL);
+    NotifyAction notifyAction = new NotifyAction("bad email address", null /* targetType */);
     policy.addAction(BuildStageType.ID, notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
@@ -464,7 +464,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction("  " /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
+    NotifyAction notifyAction = new NotifyAction("  " /* email */, null /* targetType */);
     policy.addMonitorNotifyAction(notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
@@ -482,7 +482,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction("bad email address", NotifyActionType.TARGET_TYPE_EMAIL);
+    NotifyAction notifyAction = new NotifyAction("bad email address", null /* targetType */);
     policy.addMonitorNotifyAction(notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
@@ -500,7 +500,7 @@ public class PolicyValidationTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    NotifyAction notifyAction = new NotifyAction(null /* email */, NotifyActionType.TARGET_TYPE_EMAIL);
+    NotifyAction notifyAction = new NotifyAction(null /* email */, null /* targetType */);
     policy.addMonitorNotifyAction(notifyAction);
     ValidationResult result = policy.validate(applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",

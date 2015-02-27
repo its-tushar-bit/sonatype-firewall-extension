@@ -205,7 +205,7 @@ public class ScanTaskTest
 
     task.run();
 
-    verify(notifier).sendNotifications(eq(app.getPublicId()), same(eval), (PolicyEvaluation) any());
+    verify(notifier).sendNotifications(eq(app), same(eval), (PolicyEvaluation) any());
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

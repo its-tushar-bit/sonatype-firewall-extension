@@ -21,7 +21,6 @@ public class NotifyActionType
   public static final String ID = Action.ID_NOTIFY;
 
   public static final String TARGET_TYPE_ROLE = "role";
-  public static final String TARGET_TYPE_EMAIL = "email";
 
   @Override
   public String getId() {
@@ -60,7 +59,7 @@ public class NotifyActionType
         }
       }
     }
-    else if (TARGET_TYPE_EMAIL.equals(targetType) || StringUtils.isBlank(targetType)) {
+    else if (StringUtils.isBlank(targetType)) {
       if (StringUtils.isBlank(target)) {
         result.addError("Invalid action '" + getName() + "': A valid e-mail address is required");
       }

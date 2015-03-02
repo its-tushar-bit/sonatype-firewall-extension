@@ -144,6 +144,11 @@ public class LdapManager
     return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(name, maxResults);
   }
 
+  public List<LdapUser> findUsersByGroup(String groupName, long maxResults) throws NamingException {
+    LdapConnection conn = getDecryptedConnection();
+    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByGroup(groupName, maxResults);
+  }
+
   /**
    * Find a list of groups, searching the Group ID attribute.
    * 

@@ -510,7 +510,7 @@ public class LdapManagerTest
     createStaticGroupMapping();
 
     List<LdapGroup> groups = manager.findGroupsByName("*a*", 100);
-    assertThat(groups, hasSize(3));
+    assertThat(groups, hasSize(5));
 
     groups = manager.findGroupsByName("*a*", 2);
     assertThat(groups, hasSize(2));
@@ -524,12 +524,12 @@ public class LdapManagerTest
     createStaticGroupMapping();
 
     List<LdapGroup> groups = manager.findGroupsByName("*a", 100);
-    assertThat(groups, hasSize(3));
+    assertThat(groups, hasSize(5));
     List<String> foundNames = new ArrayList<>();
     for (LdapGroup group : groups) {
       foundNames.add(group.getGroupname());
     }
-    assertThat(foundNames, containsInAnyOrder("Gamma", "Omega", "Theta"));
+    assertThat(foundNames, containsInAnyOrder("Gamma", "Omega", "Theta", "Lambda", "Delta"));
   }
 
   @Test
@@ -541,6 +541,89 @@ public class LdapManagerTest
 
     List<LdapGroup> groups = manager.findGroupsByName("Foo", 100);
     assertThat(groups, hasSize(0));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Static_OnlyDnExpression() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("${dn}");
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.findUsersByGroup("Epsilon", 100);
+    assertThat(users, hasSize(2));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Static_UsernameExpression() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.findUsersByGroup("Delta", 100);
+    assertThat(users, hasSize(2));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Static_DnExpression() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("dc=company,${dn},dc=com,${dn}");
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.findUsersByGroup("Lambda", 100);
+    assertThat(users, hasSize(2));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Static_Dn_MaxResults() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("${dn}");
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.findUsersByGroup("Epsilon", 1);
+    assertThat(users, hasSize(1));
+    users = manager.findUsersByGroup("Epsilon", 0);
+    assertThat(users, hasSize(2));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Static_Username_MaxResults() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createStaticGroupMapping();
+
+    List<LdapUser> users = manager.findUsersByGroup("Theta", 1);
+    assertThat(users, hasSize(1));
+    users = manager.findUsersByGroup("Theta", 0);
+    assertThat(users, hasSize(2));
   }
 
   private void createStaticGroupMapping() {

@@ -79,6 +79,27 @@ objectClass: groupOfNames
 member: uid=test_user
 member: uid=test_user2
 
+dn: cn=Epsilon,ou=groups,dc=company,dc=com
+cn: Epsilon
+objectClass: top
+objectClass: groupOfNames
+member: uid=test_user,ou=users,dc=company,dc=com
+member: uid=test_user2,ou=users,dc=company,dc=com
+
+dn: cn=Delta,ou=groups,dc=company,dc=com
+cn: Delta
+objectClass: top
+objectClass: groupOfNames
+member: uid=qwertytest_userzxcvbn,uid=test_user,ou=users,dc=company,dc=comyuioptest_user
+member: uid=qwertytest_user2zxcvbn,uid=test_user2,ou=users,dc=company,dc=comyuioptest_user2
+
+dn: cn=Lambda,ou=groups,dc=company,dc=com
+cn: Lambda
+objectClass: top
+objectClass: groupOfNames
+member: dc=company,uid=test_user,ou=users,dc=company,dc=com,dc=com,uid=test_user,ou=users,dc=company,dc=com
+member: dc=company,uid=test_user2,ou=users,dc=company,dc=com,dc=com,uid=test_user,ou=users,dc=company,dc=com
+
 dn: cn=Omega,ou=groups,dc=company,dc=com
 cn: Omega
 objectClass: top

@@ -344,13 +344,13 @@ public class ReportResourceTest
     expirationHeaderFormat.setTimeZone(gmt);
 
     calendar.setTime(new Date());
-    calendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR) + 1);
+    calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) + 365);
     Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/insight.js");
     assertResponseStatus(200, response);
     String expiresHeader = response.getHeader("Expires");
     assertNotNull(expiresHeader);
     Date expires = expirationHeaderFormat.parse(expiresHeader);
-    assertTrue("insight.js expires in one year: " + expires + " vs " + calendar.getTime(),
+    assertTrue("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime(),
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
     calendar.setTime(new Date());

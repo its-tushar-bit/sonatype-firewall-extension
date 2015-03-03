@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.ldap.test;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
@@ -889,5 +891,47 @@ public class LdapManagerTest
     umap.setGroupIDAttribute("cn");
     umap.setGroupSubtree(true);
     return umap;
+  }
+
+  @Test
+  public void testFindUsersByGroup_Dynamic() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createDynamicGroupMapping();
+
+    // Group with one user
+    List<LdapUser> users = manager.findUsersByGroup("xb", 0 /* maxResults */);
+    assertThat(users, hasSize(1));
+    LdapUser user = users.get(0);
+    assertThat(user.getUsername(), is("test_user"));
+    assertThat(user.getRealName(), is("Test User"));
+    assertThat(user.getEmail(), is("test.user@company.com"));
+
+    // Group with two users
+    users = manager.findUsersByGroup("ab", 0 /* maxResults */);
+    Set<String> usernames = new HashSet<>();
+    for (LdapUser user1 : users) {
+      usernames.add(user1.getUsername());
+    }
+    assertThat(usernames, containsInAnyOrder("test_user", "test_user2"));
+
+    // Group without users
+    users = manager.findUsersByGroup("no such group", 0 /* maxResults */);
+    assertThat(users, hasSize(0));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Dynamic_MaxResults() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    createDynamicGroupMapping();
+
+    // Group with two users
+    List<LdapUser> users = manager.findUsersByGroup("ab", 0 /* maxResults */);
+    assertThat(users, hasSize(2));
+    users = manager.findUsersByGroup("ab", 1 /* maxResults */);
+    assertThat(users, hasSize(1));
   }
 }

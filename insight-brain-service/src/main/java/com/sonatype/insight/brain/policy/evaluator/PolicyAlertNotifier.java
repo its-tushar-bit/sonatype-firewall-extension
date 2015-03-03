@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.NamingException;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -30,12 +31,15 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -77,14 +81,17 @@ public class PolicyAlertNotifier
 
   private final MemberAttributeResolver memberAttributeResolver;
 
+  private final LdapManager ldapManager;
+
   @Inject
   public PolicyAlertNotifier(InsightMail mail, BaseUrl baseUrl, ApplicationAdapter applicationAdapter,
-      UserDirectory userDirectory)
+      UserDirectory userDirectory, LdapManager ldapManager)
   {
     this.mail = mail;
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
     memberAttributeResolver = new MemberAttributeResolver(userDirectory);
+    this.ldapManager = ldapManager;
   }
 
   /**
@@ -227,9 +234,19 @@ public class PolicyAlertNotifier
 
     Set<String> emailAddresses = new HashSet<>();
     for (Member member : members) {
-      // TODO: Expand LDAP groups
       if (!StringUtils.isBlank(member.getEmail())) {
         emailAddresses.add(member.getEmail());
+      }
+      if (MemberType.GROUP == member.getType()) {
+        try {
+          List<LdapUser> ldapUsers = ldapManager.findUsersByGroup(member.getInternalName(), 0 /* no max results */);
+          for (LdapUser ldapUser : ldapUsers) {
+            emailAddresses.add(ldapUser.getEmail());
+          }
+        }
+        catch (NamingException e) {
+          log.error("Cannot send notifications to members of group {}", member.getInternalName(), e);
+        }
       }
     }
 

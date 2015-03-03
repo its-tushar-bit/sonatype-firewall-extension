@@ -15,11 +15,21 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType;
+import com.sonatype.insight.brain.configuration.ldap.LdapProtocol;
+import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.ldap.LdapManager;
+import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -32,6 +42,7 @@ import com.sonatype.insight.test.LogOutput;
 import org.sonatype.micromailer.Address;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,6 +81,14 @@ public class PolicyAlertNotifierTest
   @Captor
   private ArgumentCaptor<List<Address>> toAddressesArgumentCaptor;
 
+  private LdapServer serverDetails;
+
+  @Rule
+  public TestLdapServer ldapServer = new TestLdapServer();
+
+  @Inject
+  private LdapManager manager;
+
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
@@ -82,6 +101,13 @@ public class PolicyAlertNotifierTest
   @Before
   public void before() {
     config.setBaseUrl("http://localhost");
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    if (serverDetails != null) {
+      new LdapServerDAO().delete(serverDetails);
+    }
   }
 
   @Test
@@ -222,6 +248,33 @@ public class PolicyAlertNotifierTest
   }
 
   @Test
+  public void test_Notification_Role_WithGroups() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping ldapUserMapping = createUserMapping();
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().insert(ldapUserMapping);
+    
+    Application app = tempEntity.newApplicationWithParent("test");
+
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    String groupName = "ab";
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), groupName, MemberType.GROUP);
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
+    Policy policy = tempEntity.newPolicy(app.getId(), "test");
+    policy.addAction(eval.getStageTypeId(), new NotifyAction(role.getId(), NotifyActionType.TARGET_TYPE_ROLE));
+    new PolicyDAO().update(policy);
+    tempEntity.newPolicyViolation(eval, policy);
+
+    notifier.sendNotifications(app, eval, null);
+    verify(mailer, times(2)).sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
+    assertEmailAddresses(toAddressesArgumentCaptor, "test.user@company.com", "test.user2@company.com");
+  }
+
+  @Test
   public void test_Monitoring_Notification_Role() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test");
 
@@ -259,5 +312,44 @@ public class PolicyAlertNotifierTest
       }
     }
     assertThat(actualEmailAddresses, containsInAnyOrder(expectedEmailAddresses));
+  }
+
+  private void startLdapServer() throws Exception {
+    serverDetails = tempEntity.newLdapServer("Test Server");
+
+    ldapServer.start();
+    ldapServer.loadData("/ldap_users.ldif");
+  }
+
+  protected LdapConnection createLdapConnection() {
+    LdapConnection conn = manager.loadConnection(serverDetails.getId());
+    conn.setServerId(serverDetails.getId());
+    conn.setProtocol(LdapProtocol.LDAP);
+    if (ldapServer != null) {
+      conn.setHostname(ldapServer.getHostname());
+      conn.setPort(ldapServer.getPort());
+    }
+    return conn;
+  }
+
+  private void setSearchBase() {
+    LdapConnection conn = createLdapConnection();
+    conn.setSearchBase("dc=company,dc=com");
+    manager.saveConnection(conn);
+  }
+
+  private LdapUserMapping createUserMapping() {
+    LdapUserMapping umap = new LdapUserMapping();
+    umap.setServerId(serverDetails.getId());
+    umap.setUserBaseDN("ou=users");
+    umap.setUserObjectClass("person");
+    umap.setUserIDAttribute("uid");
+    umap.setUserRealNameAttribute("cn");
+    umap.setUserEmailAttribute("mail");
+    umap.setUserSubtree(true);
+    umap.setGroupBaseDN("ou=groups");
+    umap.setGroupIDAttribute("cn");
+    umap.setGroupSubtree(true);
+    return umap;
   }
 }

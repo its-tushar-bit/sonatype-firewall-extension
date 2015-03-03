@@ -587,7 +587,7 @@ class LdapQuery
    * 
    * @param attributeValues list of attribute values that will be passed to ldap to perform the query
    * @param attributes list of attributes that we are requesting ldap to send back to us for each user
-   * @param maxResults limit the number of results returned
+   * @param maxResults limit the number of results returned. Unlimited if <= 0.
    */
   private NamingEnumeration<SearchResult> searchUsersByAttributes(LdapContext ctx, Multimap<String, String> attributeValues,
       String[] attributes, long maxResults) throws NamingException
@@ -717,6 +717,11 @@ class LdapQuery
     return ctx.search(baseDN, ldapFilterString, controls);
   }
 
+  /**
+   * Queries LDAP for list of users who are members of the specified group.
+   * 
+   * @since 1.14.0
+   */
   public List<LdapUser> queryUsersByGroup(String groupName, long maxResults) throws NamingException {
     LdapContext ctx = null;
     try {
@@ -733,7 +738,7 @@ class LdapQuery
   {
     switch (umap.getGroupMappingType()) {
       case DYNAMIC:
-        return null;
+        return searchUsersByDynamicGroups(ctx, groupNames, maxResults);
       case STATIC:
         return searchUsersByStaticGroups(ctx, groupNames, maxResults);
       default:
@@ -758,6 +763,22 @@ class LdapQuery
       limit = (maxResults <= 0) ? maxResults : limit - users.size();
     }
     return users;
+  }
+
+  private List<LdapUser> searchUsersByDynamicGroups(LdapContext ctx, String[] groupNames, long maxResults)
+      throws NamingException
+  {
+    String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
+        umap.getUserEmailAttribute());
+    Multimap<String, String> attributeValues = ArrayListMultimap.create();
+    attributeValues.putAll(umap.getUserMemberOfGroupAttribute(), Arrays.asList(groupNames));
+    NamingEnumeration<SearchResult> results = searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
+    List<LdapUser> ldapUsers = new ArrayList<>();
+    while (results.hasMoreElements()) {
+      SearchResult result = results.nextElement();
+      ldapUsers.add(createUser(ctx, result.getNameInNamespace(), result.getAttributes(), false /* withMembership */));
+    }
+    return ldapUsers;
   }
 
   private void queryUsersFromGroupMembers(LdapContext ctx, List<LdapUser> users, String memberFormat,

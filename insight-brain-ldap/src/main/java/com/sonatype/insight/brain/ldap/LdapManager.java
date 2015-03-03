@@ -144,6 +144,13 @@ public class LdapManager
     return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(name, maxResults);
   }
 
+  /**
+   * Retrieve users that are members of the specified group.
+   *
+   * @throws NamingException if there is a problem with the mapping or the credentials
+   * 
+   * @since 1.14.0
+   */
   public List<LdapUser> findUsersByGroup(String groupName, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
     return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByGroup(groupName, maxResults);

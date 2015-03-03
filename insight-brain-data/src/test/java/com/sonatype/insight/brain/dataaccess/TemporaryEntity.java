@@ -394,7 +394,13 @@ public class TemporaryEntity
   }
 
   public MembershipMapping newMembershipMapping(String contextId, String roleId, String username) {
-    MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, username, MemberType.USER);
+    return newMembershipMapping(contextId, roleId, username, MemberType.USER);
+  }
+
+  public MembershipMapping newMembershipMapping(String contextId, String roleId, String memberName,
+      MemberType memberType)
+  {
+    MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, memberName, memberType);
     membershipMappingDAO.insert(membershipMapping);
     return membershipMapping;
   }

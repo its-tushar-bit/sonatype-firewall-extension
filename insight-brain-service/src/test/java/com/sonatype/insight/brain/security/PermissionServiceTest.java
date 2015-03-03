@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import org.apache.shiro.subject.Subject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,8 +31,6 @@ public class PermissionServiceTest
 {
   @Inject
   PermissionService service;
-
-  private Subject subject = mock(Subject.class);
 
   private UserPrincipal principal = mock(UserPrincipal.class);
 

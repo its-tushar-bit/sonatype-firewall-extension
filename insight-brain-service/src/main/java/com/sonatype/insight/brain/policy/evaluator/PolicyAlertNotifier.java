@@ -113,7 +113,7 @@ public class PolicyAlertNotifier
       List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(diff.getAppeared(),
           currentEvaluation.getStageTypeId(), currentEvaluation.isForMonitoring());
       updatePolicyViolations(diff.getAppeared(), policyAlerts);
-      sendNotifications(app, currentEvaluation.getScanId(),
+      sendEmailNotificationsAsync(app, currentEvaluation.getScanId(),
           new Stage(currentEvaluation.getStageTypeId()), policyAlerts);
     }
     else {
@@ -142,34 +142,40 @@ public class PolicyAlertNotifier
     }
   }
 
-  private void sendNotifications(final Application app, final String scanId, final Stage stage,
+  private void sendEmailNotificationsAsync(final Application app, final String scanId, final Stage stage,
       final List<PolicyAlert> policyAlerts)
   {
-    // TODO: Send notifications async
-    String applicationPublicId = app.getPublicId();
-    String mailServer = mail.getServer();
-    Map<String, List<PolicyAlert>> alertsByRecipients = getPolicyAlertsByEmailAddresses(app, policyAlerts);
-    if (alertsByRecipients.isEmpty()) {
-      log.debug("Not sending notification emails for application {} and scan {} in stage {}"
-          + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
-    }
-    for (final Entry<String, List<PolicyAlert>> details : alertsByRecipients.entrySet()) {
-      try {
-        log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}", mailServer,
-            details.getKey(), applicationPublicId, scanId, stage);
-        final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
-        final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
-        final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
-        final String body = summarizeThreats(applicationPublicId, app.getId(), scanId, stage, details.getValue());
-        mail.sendHtml(mailId, addresses, subject, body);
+    // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
+    final String stringBaseUrl = baseUrl.get();
+    new Thread("PolicyAlertNotifierForScan-" + scanId)
+    {
+      @Override
+      public void run() {
+        String applicationPublicId = app.getPublicId();
+        String mailServer = mail.getServer();
+        Map<String, List<PolicyAlert>> alertsByRecipients = getPolicyAlertsByEmailAddresses(app, policyAlerts);
+        if (alertsByRecipients.isEmpty()) {
+          log.debug("Not sending notification emails for application {} and scan {} in stage {}"
+              + ", no recipients configured for any violated policy", applicationPublicId, scanId, stage);
+        }
+        for (final Entry<String, List<PolicyAlert>> details : alertsByRecipients.entrySet()) {
+          try {
+            log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}", mailServer,
+                details.getKey(), applicationPublicId, scanId, stage);
+            final String mailId = "SONATYPE-CLM-" + applicationPublicId + '-' + scanId;
+            final List<Address> addresses = Arrays.asList(new Address(details.getKey()));
+            final String subject = createPolicyMailSubject(new MailPolicyAlertCounts(details.getValue()));
+            final String body = summarizeThreats(stringBaseUrl, applicationPublicId, app.getId(), scanId, stage,
+                details.getValue());
+            mail.sendHtml(mailId, addresses, subject, body);
+          }
+          catch (final Exception e) {
+            log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
+                details.getKey(), applicationPublicId, scanId, stage, e);
+          }
+        }
       }
-      catch (final Exception e) {
-        log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
-            details.getKey(), applicationPublicId, scanId, stage, e);
-      }
-    }
-
-    // TODO: notify about cleared policy alerts...
+    }.start();
   }
 
   private Map<String, List<PolicyAlert>> getPolicyAlertsByEmailAddresses(Application app, final List<PolicyAlert> alerts)
@@ -275,10 +281,10 @@ public class PolicyAlertNotifier
     return buffer.toString();
   }
 
-  private String summarizeThreats(final String applicationPublicId, final String appId, final String scanId,
-      final Stage stage, final List<PolicyAlert> policyAlerts) throws IOException
+  private String summarizeThreats(String baseUrl, final String applicationPublicId, final String appId,
+      final String scanId, final Stage stage, final List<PolicyAlert> policyAlerts) throws IOException
   {
-    final Map<String, Object> model = createPolicyMailModel(baseUrl.get(), mail.getCdnUrl(), applicationPublicId,
+    final Map<String, Object> model = createPolicyMailModel(baseUrl, mail.getCdnUrl(), applicationPublicId,
         scanId, stage, getContact(applicationPublicId), policyAlerts);
     return TemplateUtils.render(getPolicyThreatsTemplate(), model);
   }

@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain;
 
+import java.util.List;
+
+import javax.mail.Message;
+
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -21,5 +26,26 @@ public class Assert
     assertThat(actual.getNameLowercaseNoWhitespace(), is(expected.getNameLowercaseNoWhitespace()));
     assertThat(actual.getDescription(), is(expected.getDescription()));
     assertThat(actual.getColor(), is(expected.getColor()));
+  }
+
+  public static void assertNotifications(List<Message> notifications, int notificationCount, long timeoutMillisecs)
+      throws InterruptedException
+  {
+    if (notificationCount == 0) {
+      Thread.sleep(timeoutMillisecs);
+      assertThat(notifications, hasSize(notificationCount));
+      return;
+    }
+
+    long start = System.currentTimeMillis();
+    do {
+      if (notifications.size() == notificationCount) {
+        return;
+      }
+      Thread.sleep(50);
+    }
+    while (System.currentTimeMillis() - start <= timeoutMillisecs);
+    assertThat("Not found " + notificationCount + " notifications after " + (System.currentTimeMillis() - start)
+        + " ms", notifications, hasSize(notificationCount));
   }
 }

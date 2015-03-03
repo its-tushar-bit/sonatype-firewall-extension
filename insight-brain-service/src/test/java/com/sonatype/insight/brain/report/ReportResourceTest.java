@@ -80,17 +80,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -623,7 +615,7 @@ public class ReportResourceTest
     assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
     Assert.assertFalse(policyEvaluation.isReevaluation());
 
-    Assert.assertEquals(1, notifications.size());
+    assertNotifications(notifications, 1, 5000);
     notifications.clear();
 
     Thread.sleep(1);
@@ -643,7 +635,7 @@ public class ReportResourceTest
     assertTrue(policyReEvaluation.getTime().getTime() > policyEvaluation.getTime().getTime());
     assertTrue(policyReEvaluation.isReevaluation());
 
-    Assert.assertEquals(0, notifications.size());
+    assertNotifications(notifications, 0, 5000);
 
     // Evaluate the policy for a new scan for the same app. It should send notifications since this is not a
     // reevaluation.
@@ -661,7 +653,7 @@ public class ReportResourceTest
     assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
     Assert.assertFalse(policyEvaluation.isReevaluation());
 
-    Assert.assertEquals(1, notifications.size());
+    assertNotifications(notifications, 1, 5000);
   }
 
   @Test

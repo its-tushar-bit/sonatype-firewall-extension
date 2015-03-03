@@ -59,7 +59,7 @@ import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +67,8 @@ import static org.mockito.Mockito.when;
 public class PolicyAlertNotifierTest
     extends AbstractComponentTest
 {
+  private static final int NOTIFICATION_WAIT_TIMEOUT = 5000; // millisecs
+
   @Rule
   public LogOutput log = new LogOutput(PolicyAlertNotifier.class);
 
@@ -142,9 +144,10 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    log.assertDebug("Not sending notification emails for application " + app.getPublicId() + " and scan "
-        + eval.getScanId() + " in stage " + eval.getStageTypeId()
-        + ", no recipients configured for any violated policy");
+    log.assertDebug(
+        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+            + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy",
+        NOTIFICATION_WAIT_TIMEOUT);
   }
 
   @Test
@@ -158,9 +161,10 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    log.assertDebug("Sending notification email via " + mailer.getServer() + " to " + action.getTarget()
-        + " for application " + app.getPublicId() + " and scan " + eval.getScanId() + " in stage "
-        + eval.getStageTypeId());
+    log.assertDebug(
+        "Sending notification email via " + mailer.getServer() + " to " + action.getTarget() + " for application "
+            + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(),
+        NOTIFICATION_WAIT_TIMEOUT);
   }
 
   @Test
@@ -180,7 +184,7 @@ public class PolicyAlertNotifierTest
     notifier.sendNotifications(app, eval, null);
     log.assertError(
         "Unable to send notification email to " + action.getTarget() + " for application " + app.getPublicId()
-            + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex);
+            + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex, NOTIFICATION_WAIT_TIMEOUT);
   }
 
   @Test
@@ -198,9 +202,8 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    verify(mailer, times(2)).sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
     // emailAddress3 should not get a message
-    assertEmailAddresses(toAddressesArgumentCaptor, emailAddress1, emailAddress2);
+    assertEmailAddresses(emailAddress1, emailAddress2);
   }
 
   @Test
@@ -217,8 +220,7 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    verify(mailer, times(2)).sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
-    assertEmailAddresses(toAddressesArgumentCaptor, emailAddress1, emailAddress2);
+    assertEmailAddresses(emailAddress1, emailAddress2);
   }
 
   @Test
@@ -242,9 +244,8 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    verify(mailer, times(2)).sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
     // emailAddress3 should not get a message
-    assertEmailAddresses(toAddressesArgumentCaptor, emailAddress1, emailAddress2);
+    assertEmailAddresses(emailAddress1, emailAddress2);
   }
 
   @Test
@@ -270,8 +271,7 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    verify(mailer, times(2)).sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
-    assertEmailAddresses(toAddressesArgumentCaptor, "test.user@company.com", "test.user2@company.com");
+    assertEmailAddresses("test.user@company.com", "test.user2@company.com");
   }
 
   @Test
@@ -296,14 +296,15 @@ public class PolicyAlertNotifierTest
     tempEntity.newPolicyViolation(eval, policy);
 
     notifier.sendNotifications(app, eval, null);
-    verify(mailer, times(2)).sendHtml(anyString(), toAddressesArgumentCaptor.capture(), anyString(), anyString());
     // emailAddress3 should not get a message
-    assertEmailAddresses(toAddressesArgumentCaptor, emailAddress1, emailAddress2);
+    assertEmailAddresses(emailAddress1, emailAddress2);
   }
 
-  private void assertEmailAddresses(ArgumentCaptor<List<Address>> toAddressesArgumentCaptor,
-      String... expectedEmailAddresses)
+  private void assertEmailAddresses(String... expectedEmailAddresses)
   {
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(expectedEmailAddresses.length)).sendHtml(anyString(),
+        toAddressesArgumentCaptor.capture(), anyString(), anyString());
+
     assertThat(toAddressesArgumentCaptor.getAllValues(), hasSize(expectedEmailAddresses.length));
     Set<String> actualEmailAddresses = new HashSet<>();
     for (List<Address> addresses : toAddressesArgumentCaptor.getAllValues()) {

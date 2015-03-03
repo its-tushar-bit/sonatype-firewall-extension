@@ -51,9 +51,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
-import static org.hamcrest.Matchers.empty;
+import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -232,10 +231,10 @@ public class PolicyMonitorTest
 
     // Evaluate the policy. Only the developer should receive a notification.
     evaluatePolicy(app.getPublicId(), scanId, stage);
-    assertThat(notificationsDeveloper, hasSize(1));
+    assertNotifications(notificationsDeveloper, 1, 5000);
     notificationsDeveloper.clear();
-    assertThat(notificationsMonitor1, is(empty()));
-    assertThat(notificationsMonitor2, is(empty()));
+    assertNotifications(notificationsMonitor1, 0, 5000);
+    assertNotifications(notificationsMonitor2, 0, 1);
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -255,9 +254,9 @@ public class PolicyMonitorTest
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
       assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
-    assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, is(empty()));
-    assertThat(notificationsMonitor2, is(empty()));
+    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsMonitor1, 0, 1);
+    assertNotifications(notificationsMonitor2, 0, 1);
 
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
@@ -272,9 +271,9 @@ public class PolicyMonitorTest
       assertThat(policyViolation.getActionTypeId(), is(nullValue()));
       assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
-    assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, is(empty()));
-    assertThat(notificationsMonitor2, is(empty()));
+    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsMonitor1, 0, 1);
+    assertNotifications(notificationsMonitor2, 0, 1);
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
     policy1.setName(policy1.getName() + "Updated");
@@ -293,10 +292,10 @@ public class PolicyMonitorTest
         assertThat(policyViolation.getNotificationsString(), is(nullValue()));
       }
     }
-    assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, hasSize(1));
+    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsMonitor1, 1, 5000);
     notificationsMonitor1.clear();
-    assertThat(notificationsMonitor2, is(empty()));
+    assertNotifications(notificationsMonitor2, 0, 5000);
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setName(policy2.getName() + "Updated");
@@ -315,9 +314,9 @@ public class PolicyMonitorTest
         assertThat(policyViolation.getNotificationsString(), is(nullValue()));
       }
     }
-    assertThat(notificationsDeveloper, is(empty()));
-    assertThat(notificationsMonitor1, is(empty()));
-    assertThat(notificationsMonitor2, hasSize(1));
+    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsMonitor1, 0, 5000);
+    assertNotifications(notificationsMonitor2, 1, 5000);
     notificationsMonitor2.clear();
   }
 

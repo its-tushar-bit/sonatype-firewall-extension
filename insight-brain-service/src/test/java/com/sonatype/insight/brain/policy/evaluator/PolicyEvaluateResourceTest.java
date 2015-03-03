@@ -67,6 +67,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
+import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -389,9 +390,9 @@ public class PolicyEvaluateResourceTest
         hasSize(28));
 
     // notification message should also have been sent
-    Assert.assertEquals(1, messagesA.size());
+    assertNotifications(messagesA, 1, 5000);
     Assert.assertTrue(messagesA.get(0).getSubject().contains("Policy"));
-    Assert.assertEquals(1, messagesB.size());
+    assertNotifications(messagesB, 1, 5000);
     Assert.assertTrue(messagesB.get(0).getSubject().contains("Policy"));
 
     messagesA.clear();
@@ -420,8 +421,8 @@ public class PolicyEvaluateResourceTest
     }
 
     // notification message should not have been sent since the results are the same
-    Assert.assertTrue(messagesA.isEmpty());
-    Assert.assertTrue(messagesB.isEmpty());
+    assertNotifications(messagesA, 0, 5000);
+    assertNotifications(messagesB, 0, 1000);
   }
 
   @Test
@@ -728,7 +729,7 @@ public class PolicyEvaluateResourceTest
     assertPolicyEvaluation(app.getId(), scanId, false /* isReevaluation */);
 
     // Notification message should have been sent
-    Assert.assertEquals(1, notifications.size());
+    assertNotifications(notifications, 1, 5000);
     notifications.clear();
 
     // Change the policy name
@@ -745,7 +746,7 @@ public class PolicyEvaluateResourceTest
     assertPolicyEvaluation(app.getId(), scanId, true /* isReevaluation */);
 
     // Notification message should not have been sent since this is a re-evaluation
-    Assert.assertTrue(notifications.isEmpty());
+    assertNotifications(notifications, 0, 5000);
   }
 
   @Test

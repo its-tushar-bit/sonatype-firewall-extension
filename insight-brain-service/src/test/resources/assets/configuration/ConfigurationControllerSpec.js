@@ -101,41 +101,6 @@ describe('Proprietary components', function() {
     }));
   });
 
-  describe('Validation of inputs', function() {
-
-    beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations){
-      scope = $rootScope.$new();
-      $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
-      $httpBackend.flush();
-      expect(scope.error).toBeFalsy();
-    }));
-
-    it('Good package inputs', function() {
-      expect(scope.validatePackage('com.sonatype', false)).toEqual({ invalidPrefix : true, wildcards : true });
-    });
-
-    it('Good regex inputs', function() {
-      expect(scope.validatePackage('com.sonatype.*', true)).toEqual({ invalidPrefix : true, wildcards : true });
-    });
-
-    //see CLM-1097
-    it('Should treat an empty entry as valid', function(){
-      expect(scope.validatePackage('', false)).toEqual({ invalidPrefix : true, wildcards : true });
-    });
-
-    it('Bad package inputs', function() {
-      expect(scope.validatePackage('com sonatype', false)).toEqual({ invalidPrefix : false, wildcards : true });
-      expect(scope.validatePackage('com/sonatype', false)).toEqual({ invalidPrefix : false, wildcards : true });
-      expect(scope.validatePackage('com.sonatype.', false)).toEqual({ invalidPrefix : false, wildcards : true });
-      expect(scope.validatePackage('.com.sonatype', false)).toEqual({ invalidPrefix : false, wildcards : true });
-      expect(scope.validatePackage('com.sonatype.*', false)).toEqual({ invalidPrefix : true, wildcards : false });
-      expect(scope.validatePackage('com.sonatype.**', false)).toEqual({ invalidPrefix : true, wildcards : false });
-      expect(scope.validatePackage('com.sona*', false)).toEqual({ invalidPrefix : true, wildcards : false });
-      expect(scope.validatePackage('*.sonatype', false)).toEqual({ invalidPrefix : true, wildcards : false });
-    });
-  });
-
   describe('ProprietaryConfigurationController "isDirty"', function() {
     beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
         scope = $rootScope.$new();
@@ -183,5 +148,62 @@ describe('Proprietary components', function() {
       expect(scope.packages.length).toBeGreaterThan(0);
       expect(scope.regexes.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe('proprietaryConfigEditor', function() {
+  var scope, element, editorScope;
+
+  beforeEach(module('Configuration'));
+
+  beforeEach(inject(function($rootScope, $compile, $httpBackend) {
+    scope = angular.extend($rootScope.$new(), {
+      packages: ['foo'],
+      regexes: ['bar']
+    });
+    $httpBackend.expectGET('config-editor')
+      .respond('<form name="foo"><input name="bar" type="text" ng-model="qux" input-validator="validatePackage"></form>');
+    element = $compile('<div proprietary-config-editor prefixes="packages" regexes="regexes"></div>')(scope);
+    $httpBackend.flush();
+    editorScope = scope.$$childHead;
+  }));
+
+  afterEach(inject(function($httpBackend) {
+    scope.$destroy();
+    scope = null;
+    editorScope.$destroy();
+    editorScope = null;
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
+
+  describe('Validation of Inputs', function() {
+    it('Good package inputs', function() {
+      expect(editorScope.validatePackage('com.sonatype')).toEqual({ invalidPrefix : true, wildcards : true });
+    });
+
+    //see CLM-1097
+    it('Should treat an empty entry as valid', function(){
+      expect(editorScope.validatePackage('')).toEqual({ invalidPrefix : true, wildcards : true });
+    });
+
+    it('Bad package inputs', function() {
+      expect(editorScope.validatePackage('com sonatype')).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(editorScope.validatePackage('com/sonatype')).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(editorScope.validatePackage('com.sonatype.')).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(editorScope.validatePackage('.com.sonatype')).toEqual({ invalidPrefix : false, wildcards : true });
+      expect(editorScope.validatePackage('com.sonatype.*')).toEqual({ invalidPrefix : true, wildcards : false });
+      expect(editorScope.validatePackage('com.sonatype.**')).toEqual({ invalidPrefix : true, wildcards : false });
+      expect(editorScope.validatePackage('com.sona*')).toEqual({ invalidPrefix : true, wildcards : false });
+      expect(editorScope.validatePackage('*.sonatype')).toEqual({ invalidPrefix : true, wildcards : false });
+    });
+  });
+
+  // See https://issues.sonatype.org/browse/CLM-844
+  it('Reruns validation when source array resets', function() {
+    spyOn(editorScope, 'validatePackage').andCallThrough();
+    scope.packages = ['baz'];
+    scope.$digest();
+    expect(editorScope.validatePackage).toHaveBeenCalled();
   });
 });

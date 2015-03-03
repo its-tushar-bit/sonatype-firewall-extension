@@ -10,7 +10,8 @@
   'use strict';
 
   var module = angular.module('Configuration',
-    ['ListEditor', 'ui.router', 'ManagementModule', 'ProductLicense', 'PermissionServiceModule'], ['$stateProvider', function($stateProvider) {
+    ['ui.router', 'ManagementModule', 'ProductLicense', 'PermissionServiceModule', 'AngularCommon', 'Validators'],
+    ['$stateProvider', function($stateProvider) {
       $stateProvider.state('management.configuration', {
         parent: 'management',
         url: '/configuration',
@@ -46,16 +47,7 @@
 
   module.controller('ProprietaryConfigurationController', [
     '$scope', '$http', 'CLMLocations', 'Messages', 'hasAdminPermission', function($scope, $http, clmLocations, Messages, hasAdminPermission) {
-      var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
-      $scope.isRegex = false;
       $scope.isAuthorized = hasAdminPermission;
-
-      $scope.validatePackage = function(value, isRegex) {
-        return {
-          invalidPrefix: !value || isRegex || PACKAGE_REGEXP.test(value),
-          wildcards: !value || isRegex || value.indexOf('*') < 0
-        };
-      };
 
       $scope.doLoad = function() {
         if (hasAdminPermission) {
@@ -105,4 +97,56 @@
       });
     }
   ]);
+
+  module.directive('proprietaryConfigEditor', ['validationHelper', function(validationHelper) {
+    return {
+      restrict: 'A',
+      scope: {
+        prefixes: '=',
+        regexes: '='
+      },
+      templateUrl: 'config-editor',
+      link: function($scope, element) {
+        function resetComponent() {
+          $scope.component = {
+            prefix: '',
+            regex: ''
+          };
+        }
+
+        function rerunValidators() {
+          validationHelper.revalidateChildren(element);
+        }
+
+        var PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
+        $scope.isRegex = false;
+        resetComponent();
+
+        $scope.validatePackage = function(value) {
+          return {
+            invalidPrefix: !value || PACKAGE_REGEXP.test(value),
+            wildcards: !value || value.indexOf('*') < 0
+          };
+        };
+
+        $scope.add = function($event, entry, group) {
+          group.push(entry);
+          resetComponent();
+
+          // Use event object to reset calling form to pristine
+          angular.element($event.currentTarget).controller('form').$setPristine();
+        };
+
+        $scope.remove = function(index, group) {
+          group.splice(index, 1);
+
+          //rerun validator for every input once entry is removed
+          rerunValidators();
+        };
+
+        $scope.$watch('prefixes', rerunValidators);
+        $scope.$watch('regexes', rerunValidators);
+      }
+    };
+  }]);
 }());

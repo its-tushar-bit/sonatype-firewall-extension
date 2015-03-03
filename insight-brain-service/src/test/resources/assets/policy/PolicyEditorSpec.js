@@ -1,33 +1,47 @@
 describe('PolicyEditor.js', function() {
   var testScope = null,
-    dialogScope = null,
     bomId = 'bom1-12345678',
     tags = [
       {id: 'tagId1', ownerId: bomId, name: 'foo', description: 'foo'},
       {id: 'tagId2', ownerId: bomId, name: 'bar', description: 'bar'},
       {id: 'tagId3', ownerId: bomId, name: 'baz', description: 'baz'}
-    ];
+    ],
+    roles = {
+      membersByRole: [
+        { roleId: 'foo', roleName: 'bar' },
+        { roleId: 'baz', roleName: 'qux' }
+      ]
+    };
 
   function getPolicyEditorScope(){
     var scope = angular.element('.inline-policy-editor').scope();
     return  scope;
   }
-  function getController(controllerName) {
+  function getController(controllerName, parentScope, noFlush) {
     var controller = null,
         scope = null;
 
     inject(function($controller, $httpBackend) {
-      scope = testScope.$new();
+      if (!parentScope) {
+        scope = testScope.$new();
+      } else {
+        scope = parentScope.$new();
+      }
+
       controller = $controller(controllerName, {$scope: scope});
-      $httpBackend.flush();
+
+      if (!noFlush) {
+        $httpBackend.flush();
+      }
     });
 
     return { controller: controller, scope: scope };
   }
 
   function expectActionRequests() {
-    inject(function($httpBackend, CLMLocations) {
+    inject(function($httpBackend, CLMLocations, CLMAppLocations) {
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getRoleMappingUrl())).respond(roles);
     });
   }
 
@@ -49,26 +63,6 @@ describe('PolicyEditor.js', function() {
   }
 
   beforeEach(module('PolicyEditor', 'HttpInterceptors', 'AngularCommon', 'CLMLocation', 'CLMAppLocation', function($provide) {
-    $provide.value('$modal', {
-      open: function(config) {
-        dialogScope = testScope.$new();
-        dialogScope.$close = function() {
-        };
-        inject(function($controller) {
-          $controller(config.controller, {
-            $scope: dialogScope
-          });
-        });
-        return {
-          result: {
-            then: function(success, failure) {
-              success();
-            }
-          }
-        };
-      }
-    });
-
     $provide.value('ApplicationId', {
       encoded: function() {
         return bomId;
@@ -666,155 +660,187 @@ describe('PolicyEditor.js', function() {
     });
   });
 
-  describe('Email notification display formatter', function() {
+  describe('Notification target aggregators', function() {
     beforeEach(inject(function() {
       expectActionRequests();
       testScope.policy = createNewPolicy();
       editorScope = getController('PolicyEditorController').scope;
     }));
 
-    it('No format when no emails', function() {
+    it('No email when no emails', function() {
       testScope.policy.actions.foo = [];
 
-      var formatted = editorScope.getFormattedEmailList({ id: 'foo' });
-      expect(formatted).toEqual('');
+      var emails = editorScope.getEmailList({ id: 'foo' });
+      expect(emails).toEqual([]);
     });
 
-    it('Formats single email', function() {
+    it('No role when no roles', function() {
+      testScope.policy.actions.foo = [];
+
+      var roleList = editorScope.getRolesList({ id: 'foo' });
+      expect(roleList).toEqual([]);
+    });
+
+    it('Returns single email', function() {
       testScope.policy.actions.foo = [
         { actionTypeId: 'notify', target: 'single@email.org' }
       ];
 
-      var formatted = editorScope.getFormattedEmailList({ id: 'foo' });
-      expect(formatted).toEqual('single@email.org');
+      var emails = editorScope.getEmailList({ id: 'foo' });
+      expect(emails).toEqual(['single@email.org']);
     });
 
-    it('Formats multiple emails', function() {
+    it('Returns single role', function() {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: roles.membersByRole[0].roleId, targetType: 'role' }
+      ];
+
+      var roleList = editorScope.getRolesList({ id: 'foo' });
+      expect(roleList).toEqual([roles.membersByRole[0]]);
+    });
+
+    it('Returns multiple emails', function() {
       testScope.policy.actions.foo = [
         { actionTypeId: 'notify', target: 'any@email.org' },
         { actionTypeId: 'notify', target: 'another@email.org' }
       ];
 
-      var formatted = editorScope.getFormattedEmailList({ id: 'foo' });
-      expect(formatted).toEqual('any@email.org, another@email.org');
+      var emails = editorScope.getEmailList({ id: 'foo' });
+      expect(emails).toEqual(['any@email.org', 'another@email.org']);
+    });
+
+    it('Returns multiple roles', function() {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: roles.membersByRole[0].roleId, targetType: 'role' },
+        { actionTypeId: 'notify', target: roles.membersByRole[1].roleId, targetType: 'role' }
+      ];
+
+      var roleList = editorScope.getRolesList({ id: 'foo' });
+      expect(roleList).toEqual([roles.membersByRole[0], roles.membersByRole[1]]);
+    });
+
+    it('Ignores roles for emails list', function() {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: roles.membersByRole[0].roleId, targetType: 'role' }
+      ];
+
+      var emails = editorScope.getEmailList({ id: 'foo' });
+      expect(emails).toEqual([]);
+    });
+
+    it('Ignores emails for roles list', function() {
+      testScope.policy.actions.foo = [
+        { actionTypeId: 'notify', target: 'any@email.org' }
+      ];
+
+      var roleList = editorScope.getRolesList({ id: 'foo' });
+      expect(roleList).toEqual([]);
     });
   });
 
-  describe('Edit Notifications', function() {
-    var editorScope;
+  describe('Notification Modal Controller', function() {
+    var editorScope, originalActions = [
+      { actionTypeId: 'notify', target: 'any@email.org' },
+      { actionTypeId: 'notify', target: roles.membersByRole[0].roleId, targetType: 'role' }
+    ];
 
     beforeEach(inject(function() {
       expectActionRequests();
       testScope.policy = createNewPolicy();
       editorScope = getController('PolicyEditorController').scope;
+      editorScope.actions = angular.copy(originalActions);
+      dialogScope = getController('NotificationModalController', editorScope, true).scope;
+      dialogScope.$close = jasmine.createSpy();
     }));
 
-    it('Save no addresses', function() {
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.save();
-      expect(testScope.policy.actions.foo).toEqual([]);
+    it('Populates emails', function() {
+      expect(dialogScope.notifications.emails).toEqual([originalActions[0].target]);
     });
 
-    it('Save One New Address', function() {
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('single@example.org');
+    it('Populates roles', function() {
+      expect(dialogScope.notifications.roles).toEqual([roles.membersByRole[0]]);
+    });
+
+    it('Populates available roles', function() {
+      expect(dialogScope.availableRoles).toEqual([roles.membersByRole[1]]);
+    });
+
+    it('Closes modal on save', function() {
       dialogScope.save();
-      expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'single@example.org' }
+      expect(dialogScope.$close).toHaveBeenCalled();
+    })
+
+    it('Save no changes', function() {
+      dialogScope.save();
+      expect(editorScope.actions).toEqual(originalActions);
+    });
+
+    it('Save New Address', function() {
+      dialogScope.entries.email = 'single@example.org';
+      dialogScope.addEmail();
+      dialogScope.save();
+      expect(editorScope.actions).toEqual([
+        originalActions[0],
+        { actionTypeId: 'notify', target: 'single@example.org' },
+        originalActions[1]
       ]);
     });
 
-    it('Save Multiple New Addresses', function() {
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('one@example.org', 'two@example.org');
+    it('Clears address after adding', function() {
+      dialogScope.entries.email = 'single@example.org';
+      dialogScope.addEmail();
+      expect(dialogScope.entries.email).toEqual('');
+    });
+
+    it('Saves New Role', function() {
+      dialogScope.entries.role = { roleId: 'baz'};
+      dialogScope.addRole();
       dialogScope.save();
-      expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'one@example.org' },
-        { actionTypeId: 'notify', target: 'two@example.org' }
+      expect(editorScope.actions).toEqual([
+        originalActions[0],
+        originalActions[1],
+        { actionTypeId: 'notify', target: 'baz', targetType: 'role' }
       ]);
     });
 
-    it('Cancel Does Not Update', function() {
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('cancelled@example.org');
-      dialogScope.$close();
-      expect(testScope.policy.actions.foo).toBeUndefined();
+    it('Removes role after adding', function() {
+      dialogScope.entries.role = { roleId: 'baz'};
+      dialogScope.addRole();
+      expect(dialogScope.availableRoles).toEqual([]);
     });
 
-    it('Adds to Existing Addresses', function () {
-      testScope.policy.actions.foo = [
-        { actionTypeId: 'notify', target: 'existing@example.org' },
-        { actionTypeId: 'notify', target: 'another.existing@example.org' }
-      ];
-
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('new@example.org');
+    it('Saves New Address and Role', function() {
+      dialogScope.entries.email = 'single@example.org';
+      dialogScope.addEmail();
+      dialogScope.entries.role = { roleId: 'bar'};
+      dialogScope.addRole();
       dialogScope.save();
-
-      expect(testScope.policy.actions.foo.length).toEqual(3);
-      expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'existing@example.org' },
-        { actionTypeId: 'notify', target: 'another.existing@example.org' },
-        { actionTypeId: 'notify', target: 'new@example.org' }
+      expect(editorScope.actions).toEqual([
+        originalActions[0],
+        { actionTypeId: 'notify', target: 'single@example.org' },
+        originalActions[1],
+        { actionTypeId: 'notify', target: 'bar', targetType: 'role' }
       ]);
     });
 
-    it('Removes Existing Address', function () {
-      testScope.policy.actions.foo = [
-        { actionTypeId: 'notify', target: 'existing@example.org' },
-        { actionTypeId: 'notify', target: 'another.existing@example.org' }
-      ];
-
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('new@example.org', 'gnu@example.org');
-      dialogScope.notificationEmailList.splice(0,1);
+    it('Allows comma separated Emails from Brain < 1.6', function() {
+      dialogScope.entries.email = 'one@foo.com,two@bar.com';
+      var validation = dialogScope.validateEmail(dialogScope.entries.email);
+      expect(validation.email).toBe(true);
+      dialogScope.addEmail();
       dialogScope.save();
-
-      expect(testScope.policy.actions.foo.length).toEqual(3);
-      expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'another.existing@example.org' },
-        { actionTypeId: 'notify', target: 'new@example.org' },
-        { actionTypeId: 'notify', target: 'gnu@example.org' }
+      expect(editorScope.actions).toEqual([
+        originalActions[0],
+        { actionTypeId: 'notify', target: 'one@foo.com,two@bar.com' },
+        originalActions[1]
       ]);
     });
 
-    it('Accepts brain 1.6 concatenated emails', function () {
-      testScope.policy.actions.foo = [
-        { actionTypeId: 'notify', target: 'chang.bunker@siam.th,eng.bunker@siam.th' }
-      ];
-
-      editorScope.editNotification({ id: 'foo' });
-      dialogScope.notificationEmailList.push('abby.hensel@mn.us', 'brittany.hensel@mn.us');
+    it('Removes Role', function () {
+      dialogScope.remove(dialogScope.notifications.roles[0], dialogScope.notifications.roles);
       dialogScope.save();
-
-      expect(testScope.policy.actions.foo).toEqual([
-        { actionTypeId: 'notify', target: 'chang.bunker@siam.th,eng.bunker@siam.th' },
-        { actionTypeId: 'notify', target: 'abby.hensel@mn.us' },
-        { actionTypeId: 'notify', target: 'brittany.hensel@mn.us' }
-      ]);
-    });
-  });
-
-  /**
-   * Testing is not exhaustive as under the hood this shares the same code path as
-   * all conditions previously tested in 'Editing Notifications'.
-   */
-  describe('Edit Monitoring Notifications', function() {
-    var editorScope;
-
-    beforeEach(inject(function() {
-      expectActionRequests();
-      testScope.policy = createNewPolicy();
-      editorScope = getController('PolicyEditorController').scope;
-    }));
-
-    it('Save Multiple New Addresses', function() {
-      editorScope.editMonitoringNotificationActions();
-      dialogScope.notificationEmailList.push('one@example.org', 'two@example.org');
-      dialogScope.save();
-      expect(testScope.policy.monitorNotifyActions).toEqual([
-        { actionTypeId: 'notify', target: 'one@example.org' },
-        { actionTypeId: 'notify', target: 'two@example.org' }
+      expect(editorScope.actions).toEqual([
+        originalActions[0]
       ]);
     });
   });

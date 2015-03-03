@@ -70,7 +70,7 @@
       <thead>
         <tr>
           <th></th>
-          <th colspan="2">Enforcement Points</th>
+          <th colspan="2" class="action-header">Enforcement Points</th>
           <th></th>
         </tr>
         <tr>
@@ -90,21 +90,21 @@
             class="sonatype-icons-hover" ng-class="{'fail': !showFailureIcon(actionStage)}">
           <i ng-show='showFailureIcon(actionStage)' class='sonatype-icons fail'></i>
         </td>
-        <td style="width:400px;">
-                  <div class="truncate-ellipsis" style="width:400px; cursor:pointer;"
-                       ng-click='editNotification(actionStage)' title="Edit Notifications">
-                    <i class="icon-envelope" style="padding-right:5px;"></i>{{getFormattedEmailList(actionStage)}}
-                  </div>
+        <td style="width:200px; cursor:pointer;" ng-click='editNotification(actionStage)' title="Edit Notifications">
+          <div style="width:200px;">
+            <i class="glyphicons-sonatype bell small" style="padding-right:5px;"></i>
+            {{getEmailList(actionStage).length + getRolesList(actionStage).length}}
+          </div>
         </td>
       </tr>
     </table>
       <div style="padding-bottom: 10px;" ng-if="isPolicyMonitoringLicensed()">
         <h5>Monitoring Notifications</h5>
         <div style="padding-bottom: 5px;">If you have enabled monitoring, who should be notified?</div>
-        <div class="truncate-ellipsis"
-             style="padding-left: 5px; border: 1px solid #ddd; background-color: white; cursor:pointer;"
+        <div style="padding-left: 5px; border: 1px solid #ddd; background-color: white; cursor:pointer;"
              ng-click='editMonitoringNotificationActions()' title="Edit Notifications">
-          <i class="icon-envelope" style="padding-right:5px;"></i>{{getFormattedMonitoringEmailList()}}
+          <i class="glyphicons-sonatype bell small" style="padding-left:5px;padding-right:5px;"></i>
+          {{getMonitoringEmailList().length + getMonitoringRoleList().length}}
         </div>
       </div>
     <div clm-alerts='alerts'></div>
@@ -118,10 +118,61 @@
       <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
       <h3>Notifications</h3>
     </div>
-    <div class="clm-form well clm-well notification-list-editor">
-      <div list-editor label="E-mail Address" placeholder="ex. iasimov@sonatype.com" max-length="100"
-           entries="notificationEmailList" validator="validateEmail"
-           messages="{unique: 'Enter a unique value'}"></div>
+    <div id="notification-editor" class="clm-form well clm-well">
+      <form ng-submit="addEmail()" class="clm-form list-editor-form" name="emailForm">
+        <div clm-control-group for="notification-email" label="E-mail Address">
+          <div class="input-append controls">
+            <input clm-input unique-validator="notifications.emails" input-validator="validateEmail"
+                   type="text" id="notification-email" name="notificationEmail" ng-model="entries.email" max="100"
+                   required entersubmit placeholder="ex. iasimov@sonatype.com"
+                   messages="{unique: 'Enter a unique value'}">
+            <button class="btn" ng-disabled="emailForm.$invalid" title="Add E-mail Address">
+              Add
+            </button>
+          </div>
+        </div>
+      </form>
+      <form ng-submit="addRole()" class="clm-form list-editor-form" name="roleForm">
+        <div class="control-group">
+          <label class="control-label" for="role">Role</label>
+          <div class="input-append controls">
+            <select name="role" id="role" ng-model="entries.role"
+                    ng-options="role.roleName for role in availableRoles"
+                    ng-disabled="availableRoles.length == 0">
+              <option value="" selected>-- Select Role --</option>
+            </select>
+            <button class="btn" ng-disabled="availableRoles.length == 0 || !entries.role" title="Add Role">
+              Add
+            </button>
+          </div>
+        </div>
+      </form>
+      <div class='well well-small list-editor-well'>
+        <div>
+          <table>
+            <tr ng-repeat='email in notifications.emails'>
+              <td>
+                <div><i class="glyphicons-sonatype envelope small"></i>{{email}}</div>
+              </td>
+              <td>
+                <button class='btn btn-mini' ng-click='remove(email, notifications.emails)' title='Remove Email'>
+                  <i class='icon-minus-sign'></i>
+                </button>
+              </td>
+            </tr>
+            <tr ng-repeat='role in notifications.roles'>
+              <td>
+                <div><i class="glyphicons-sonatype user small"></i>{{role.roleName}}</div>
+              </td>
+              <td>
+                <button class='btn btn-mini' ng-click='remove(role, notifications.roles)' title='Remove Role'>
+                  <i class='icon-minus-sign'></i>
+                </button>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
       <button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>
       <span class="pull-right">
         <button class="btn btn-primary" ng-click="save()">Done</button>

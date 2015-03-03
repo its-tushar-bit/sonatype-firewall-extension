@@ -1008,6 +1008,24 @@ var AngularStateUtils = {
       });
     };
   }]);
+
+  angularCommon.directive('entersubmit', function() {
+    return {
+      restrict: 'A',
+      require: 'ngModel',
+      scope: false,
+      link: function(scope, element, attrs, ctrl) {
+        element.bind('keydown', function(e) {
+          if (e.keyCode === 13) { // Enter
+            e.preventDefault();
+            if (ctrl.$valid) {
+              element.trigger('submit');
+            }
+          }
+        });
+      }
+    };
+  });
 }());
 
 (function() {

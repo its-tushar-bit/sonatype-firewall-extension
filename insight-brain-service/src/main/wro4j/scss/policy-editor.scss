@@ -1,0 +1,72 @@
+/*
+  #Policy Editor Elements
+*/
+/*
+  ##Policy Action Table
+```
+<table class="table table-striped table-bordered table-condensed policy-actions" style="border-top: 0; border-right: 0;">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="2" class="action-header">Enforcement Points</th>
+      <th></th>
+    </tr>
+    <tr>
+      <th>Stage</th>
+      <th style="text-align:center;">Warn</th>
+      <th style="text-align:center;">Fail</th>
+      <th style="border-right: 1px solid #ddd;">Roles</th>
+    </tr>
+  </thead>
+  <tr>
+    <td>Build</td>
+    <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;">
+      <i class='sonatype-icons warn'></i>
+    </td>
+    <td style="text-align:center;cursor:pointer;vertical-align:middle;" class="sonatype-icons-hover fail"></td>
+    <td style="width:200px; cursor:pointer;" title="Edit Notifications">
+      <div style="width:200px;">
+        <i class="glyphicons-sonatype bell small" style="padding-right:5px;"></i>2
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td>Release</td>
+    <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;" class="sonatype-icons-hover warn"></td>
+    <td style="text-align:center;cursor:pointer;vertical-align:middle;">
+      <i class='sonatype-icons fail'></i>
+    </td>
+    <td style="width:200px; cursor:pointer;" title="Edit Notifications">
+      <div style="width:200px;">
+        <i class="glyphicons-sonatype bell small" style="padding-right:5px;"></i>7
+      </div>
+    </td>
+  </tr>
+</table>
+```
+*/
+$gray-border: 1px solid #ddd;
+
+table.policy-actions thead tr:first-child th {
+  border : 0;
+}
+table.policy-actions .action-header {
+  border-radius: 4px 4px 0 0;
+  border: $gray-border;
+  border-bottom: 0;
+  text-align: center;
+  font-weight: normal;
+  background-color: #e8e8e8;
+  font-size: 12px;
+  color: #444;
+  line-height: 16px;
+}
+table.policy-actions>tbody>tr>td:nth-child(2):hover {
+  background-color: #FFF;
+}
+table.policy-actions>tbody>tr>td:nth-child(3):hover {
+  background-color: #FFF;
+}
+table.policy-actions td:last-child {
+  border-right: $gray-border;
+}

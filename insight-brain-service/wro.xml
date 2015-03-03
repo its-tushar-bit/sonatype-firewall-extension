@@ -75,6 +75,7 @@
     <css>/scss/chiclet.scss</css>
     <css>/scss/dashboard.scss</css>
     <css>/scss/threatBars.scss</css>
+    <css>/scss/policy-editor.scss</css>
   </group>
 
   <group name='css'>
@@ -133,6 +134,7 @@
     <js>/util/Stores.js</js>
     <js>/util/PermissionService.js</js>
     <js>/util/BootstrapSliderModule.js</js>
+    <js>/util/Validators.js</js>
   </group>
 
   <group name='style'>

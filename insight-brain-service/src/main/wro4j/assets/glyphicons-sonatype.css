@@ -27,6 +27,14 @@
   content: "\E044";
 }
 
+.glyphicons-sonatype.envelope:before {
+  content: "\2709";
+}
+
+.glyphicons-sonatype.bell:before {
+  content: "\E334"
+}
+
 .glyphicons-sonatype.inherited:before {
   content: "\E214";
 }

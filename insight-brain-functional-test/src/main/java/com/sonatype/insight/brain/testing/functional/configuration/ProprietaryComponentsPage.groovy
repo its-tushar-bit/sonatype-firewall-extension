@@ -22,9 +22,9 @@ class ProprietaryComponentsPage
 
   static content = {
     pageTitle { $('h1.page-title', text: 'Proprietary Components') }
-    form { $('form[name="neditor"]') }
-    input { $('form[name="neditor"] input[type="text"]') }
-    add { $('form[name="neditor"] button') }
+    input { $('input[ng-model^="component"]') }
+    regex { $('#isRegex') }
+    add { $('form button') }
     rows(required: false) { moduleList ProprietaryTableRow, $('tr') }
     buttons(required: false) { module ButtonsModule, $('#proprietaryButtons') }
     error(required: false) { $('#proprietaryError .alert-message') }

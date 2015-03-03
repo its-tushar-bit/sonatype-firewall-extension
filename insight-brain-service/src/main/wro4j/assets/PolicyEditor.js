@@ -8,13 +8,13 @@
   'use strict';
   var module = angular.module('PolicyEditor', [
     'CLMAppLocation', 'CLMLocation', 'ResourceModule', 'ui.router', 'ui.bootstrap', 'AngularCommon',
-    'CommonServices', 'Stores', 'ProductFeaturesModule', 'Tags'
+    'CommonServices', 'Stores', 'ProductFeaturesModule', 'Tags', 'Validators'
   ]);
 
   module.controller('PolicyEditorController', [
     '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'StageTypeStore',
-    'ProductFeatures', 'PolicyTagStore', 'CLMAppLocations',
-    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, StageTypeStore, ProductFeatures, PolicyTagStore, CLMAppLocations) {
+    'ProductFeatures', 'PolicyTagStore', 'CLMAppLocations', '$http',
+    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, StageTypeStore, ProductFeatures, PolicyTagStore, CLMAppLocations, $http) {
       var originalTags;
 
       function isDirty() {
@@ -134,41 +134,17 @@
        * @param actions the existing set of notifications to update
        * @param callback  function that will be called with the new list of actions as a param
        */
-      function openNotificationModal(addresses, actions, callback) {
+      function openNotificationModal(actions, callback) {
         $modal.open({
           backdrop: 'static',
           templateUrl: 'notification',
-          controller: [
-            '$scope', function(modalScope) {
-              var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
-              modalScope.validateEmail = function(value) {
-                return {
-                  email: !value || EMAIL_REGEXP.test(value)
-                };
-              };
-
-              modalScope.notificationEmailList = addresses;
-
-              modalScope.save = function() {
-                // remove existing notify actions since all entries will be added when saved
-                // loop in reverse to avoid missing items when splice reindexes the array, causing the counter to be off if done in a normal for loop
-                var i = actions.length;
-                while (i--) {
-                  if (actions[i].actionTypeId === 'notify') {
-                    actions.splice(i,1);
-                  }
-                }
-                // add notify action for each address
-                for (var j = 0; j < addresses.length; j++) {
-                  actions.push({ actionTypeId: 'notify', target: addresses[j] });
-                }
-
-                callback(actions);
-
-                modalScope.$close();
-              };
-            }
-          ]
+          controller: 'NotificationModalController',
+          scope: angular.extend($scope.$new(), {
+            actions: actions,
+            roles: $scope.roles
+          })
+        }).result.then(function() {
+          callback(actions);
         });
       }
 
@@ -176,41 +152,62 @@
         // extract the emails for notification action types
         var addresses = [];
         for (var i = 0; i < actions.length; i++) {
-          if (actions[i].actionTypeId === 'notify') {
+          if (actions[i].actionTypeId === 'notify' && !actions[i].targetType) {
             addresses.push(actions[i].target);
           }
         }
         return addresses;
       };
 
-      /**
-       * Formats the list of notification recipients as a single string, or empty string if no recipients.
-       */
-      function getFormattedEmailListFromActions(actions) {
-        return $scope.extractAddresses(actions).join(', ');
-      }
-
-      $scope.getFormattedEmailList = function(stage) {
-        return getFormattedEmailListFromActions($scope.policy.actions[stage.id] || []);
+      $scope.extractRoles = function(actions) {
+        if (!$scope.roles) {
+          return [];
+        }
+        var roles = [];
+        for (var i = 0; i < actions.length; i++) {
+          if (actions[i].actionTypeId === 'notify' && actions[i].targetType === 'role') {
+            for (var j = 0; j < $scope.roles.length; j++) {
+              if (actions[i].target === $scope.roles[j].roleId) {
+                roles.push($scope.roles[j]);
+                break;
+              }
+            }
+          }
+        }
+        return roles;
       };
 
-      $scope.getFormattedMonitoringEmailList = function(){
-        return getFormattedEmailListFromActions($scope.policy.monitorNotifyActions || []);
+      /**
+       * Extracts the notification targets with type email
+       */
+      $scope.getEmailList = function(stage) {
+        return $scope.extractAddresses($scope.policy.actions[stage.id] || []);
+      };
+
+      $scope.getRolesList = function(stage) {
+        return $scope.extractRoles($scope.policy.actions[stage.id] || []);
+      };
+
+      $scope.getMonitoringEmailList = function() {
+        return $scope.extractAddresses($scope.policy.monitorNotifyActions || []);
+      };
+
+      $scope.getMonitoringRoleList = function() {
+        return $scope.extractRoles($scope.policy.monitorNotifyActions || []);
       };
 
       $scope.editNotification = function(stage) {
         // local reference for updating/adding notification actions
         var actions = $scope.policy.actions[stage.id] || [];
-        var addresses = $scope.extractAddresses(actions);
-        openNotificationModal(addresses, actions, function(actions){
+        openNotificationModal(actions, function(actions){
           // replace policy action state with updated copy
           $scope.policy.actions[stage.id] = actions;
         });
       };
 
-      $scope.editMonitoringNotificationActions = function(){
+      $scope.editMonitoringNotificationActions = function() {
         var actions = $scope.policy.monitorNotifyActions || [];
-        openNotificationModal($scope.extractAddresses(actions),actions, function(actions){
+        openNotificationModal(actions, function(actions) {
           $scope.policy.monitorNotifyActions = actions;
         });
       };
@@ -394,17 +391,21 @@
         $scope.error = null;
         originalTags = [];
         $scope.appliedTagIds = [];
-        var promises = [StageTypeStore.get()];
+        var promises = [
+          StageTypeStore.get(),
+          $http.get(CLMAppLocations.getRoleMappingUrl())
+        ];
         if (!$scope.policy.$new && !$scope.isApplication) {
           promises.push(PolicyTagStore.getByPolicyId($scope.policy.id).get());
         }
         $q.all(promises).then(function(results) {
           var actionStages = results[0];
           $scope.actionStages = actionStages;
+          $scope.roles = results[1].data.membersByRole;
 
-          if (results.length === 2) {
-            originalTags = results[1];
-            $scope.appliedTagIds = jQuery.map(results[1], function(appliedTag) { return appliedTag.id; });
+          if (results.length === 3) {
+            originalTags = results[2];
+            $scope.appliedTagIds = jQuery.map(results[2], function(appliedTag) { return appliedTag.id; });
           }
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;
@@ -415,6 +416,90 @@
       });
       $scope.alerts = [];
       $scope.doLoad();
+    }
+  ]);
+
+  module.controller('NotificationModalController', [
+    '$scope', 'validationHelper', function($scope, validationHelper) {
+      var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
+      $scope.validateEmail = function(value) {
+        return {
+          email: !value || EMAIL_REGEXP.test(value)
+        };
+      };
+
+      var emails = $scope.extractAddresses($scope.actions);
+      var roles = $scope.extractRoles($scope.actions);
+      $scope.notifications = {
+        emails: emails,
+        roles: roles
+      };
+
+      function setAvailableRoles() {
+        var availableRoles = angular.copy($scope.roles);
+        for (var i = availableRoles.length - 1; i >= 0; i--) {
+          for (var j = 0; j < $scope.notifications.roles.length; j++) {
+            if (availableRoles[i].roleId === $scope.notifications.roles[j].roleId) {
+              availableRoles.splice(i, 1);
+              break;
+            }
+          }
+        }
+        $scope.availableRoles = availableRoles;
+      }
+
+      function rerunValidators() {
+        validationHelper.revalidateChildren(angular.element('#notification-editor'));
+      }
+
+      $scope.addEmail = function() {
+        $scope.notifications.emails.push($scope.entries.email);
+        $scope.entries.email = '';
+      };
+
+      $scope.addRole = function() {
+        $scope.notifications.roles.push($scope.entries.role);
+        $scope.entries.role = null;
+        setAvailableRoles();
+      };
+
+      $scope.remove = function(item, group) {
+        for (var i = 0; i < group.length; i++) {
+          if (item === group[i]) {
+            group.splice(i, 1);
+          }
+        }
+        setAvailableRoles();
+        rerunValidators();
+      };
+
+      $scope.save = function() {
+        // remove existing notify actions since all entries will be added when saved
+        // loop in reverse to avoid missing items when splice reindexes the array,
+        // causing the counter to be off if done in a normal for loop
+        var i = $scope.actions.length;
+        while (i--) {
+          if ($scope.actions[i].actionTypeId === 'notify') {
+            $scope.actions.splice(i,1);
+          }
+        }
+        // add notify action for each address
+        for (var j = 0; j < $scope.notifications.emails.length; j++) {
+          $scope.actions.push({ actionTypeId: 'notify', target: $scope.notifications.emails[j] });
+        }
+
+        for (var k = 0; k < $scope.notifications.roles.length; k++) {
+          $scope.actions.push({ actionTypeId: 'notify', target: $scope.notifications.roles[k].roleId, targetType: 'role' });
+        }
+
+        $scope.$close($scope.actions);
+      };
+
+      $scope.entries = {
+        email: '',
+        role: null
+      };
+      setAvailableRoles();
     }
   ]);
 

@@ -8,7 +8,7 @@
 (function() {
   'use strict';
 
-  var module = angular.module('ListEditor', []);
+  var module = angular.module('ListEditor', ['Validators']);
 
   module.directive('listEditor', function() {
     return {
@@ -95,24 +95,6 @@
           // Account for "reset" events
           if (angular.isArray(newValue) && oldValue !== undefined) {
             validate(elm.val());
-          }
-        });
-      }
-    };
-  });
-
-  module.directive('entersubmit', function() {
-    return {
-      restrict: 'A',
-      require: 'ngModel',
-      scope: false,
-      link: function(scope, element, attrs, ctrl) {
-        element.bind('keydown', function(e) {
-          if (e.keyCode === 13) { // Enter
-            e.preventDefault();
-            if (ctrl.$valid) {
-              element.trigger('submit');
-            }
           }
         });
       }

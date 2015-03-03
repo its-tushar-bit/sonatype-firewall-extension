@@ -198,7 +198,7 @@
   <div class='clm-form well clm-well'>
     <form class='clm-form list-editor-form'>
       <div class='control-group'>
-        <label for='current-entry'>Entry</label>
+        <label for='current-entry'>Text Entry</label>
         <div class='controls'>
           <div class='input-append controls'>
             <input type='text'>
@@ -206,11 +206,25 @@
           </div>
         </div>
       </div>
+    </form>
+    <form class='clm-form list-editor-form'>
       <div class='control-group'>
-        <input type='checkbox'>
-        <label>Optional Regex Checkbox</label>
+        <label for='current-entry'>Combobox Entry</label>
+        <div class='controls'>
+          <div class='input-append controls'>
+            <select>
+              <option>Option</option>
+            </select>
+            <button class='btn' title='Add Entry'>Add</button>
+          </div>
+        </div>
       </div>
     </form>
+    <div class='checkbox'>
+      <label>
+        <input type='checkbox'> Checkbox
+      </label>
+    </div>
     <div class='well well-small list-editor-well'>
       <div>
         <table>
@@ -242,9 +256,8 @@
 .list-editor-form input[type=text] {
   width: 440px !important;
 }
-.list-editor-form input[type=checkbox] {
-  float: left;
-  margin-right: 5px;
+.list-editor-form select {
+  width: 459px !important;
 }
 .list-editor-well {
   padding: 3px;

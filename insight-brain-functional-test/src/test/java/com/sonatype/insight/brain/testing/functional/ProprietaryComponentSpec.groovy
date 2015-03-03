@@ -45,7 +45,7 @@ class ProprietaryComponentSpec
 
   def "Can add a new proprietary package to the list"() {
     when: 'adding a new package'
-      form.currentEntry = 'org.sonatype'
+      input << 'org.sonatype'
       add.click()
 
     then: 'it is added to the end of the package list'
@@ -58,8 +58,8 @@ class ProprietaryComponentSpec
 
   def "Can add a new proprietary regex to the list"() {
     when: 'adding a new regex'
-      form.currentEntry = '.*sonatype.*'
-      form.isRegex = true
+      regex.value(true)
+      input << '.*sonatype.*'
       add.click()
 
     then: 'it is added to the end of the regex list'
@@ -83,17 +83,17 @@ class ProprietaryComponentSpec
 
   def "Already specified packages result in an error"() {
     when: 'we add a package already stored'
-      form.isRegex = false
-      form.currentEntry = CONFIG.packages[0]
+      regex.value(false)
+      input << CONFIG.packages[0]
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Component selector already specified'
+      popoverText(input) == 'Component prefix already specified'
       buttons.save.disabled
   }
 
   def "We can clear an error by removing the entry"() {
     when: 'we clear an existing error'
-      form.currentEntry = ''
+      input.value('')
 
     then: 'the error is replaced and buttons are disabled'
       popoverText(input) == 'Please enter a value'
@@ -102,18 +102,18 @@ class ProprietaryComponentSpec
 
   def "Already specified regexes result in an error"() {
     when: 'we add a package already stored'
-      form.currentEntry = CONFIG.regexes[0]
-      form.isRegex = true
+      regex.value(true)
+      input <<  CONFIG.regexes[0]
 
     then: 'an error is shown and the Reset button is enabled'
-      popoverText(input) == 'Component selector already specified'
+      popoverText(input) == 'Component regex already specified'
       buttons.save.disabled
   }
 
   def "Packages with wildcards should be rejected"() {
     when: 'we add a package containing a wildcard'
-      form.isRegex = false
-      form.currentEntry = 'com.**'
+      regex.value(false)
+      input <<  'com.**'
 
     then: 'an error is shown and the Reset button is enabled'
       popoverText(input) == 'Wildcards are not allowed/required for packages'
@@ -122,7 +122,7 @@ class ProprietaryComponentSpec
 
   def "Packages which have a bad prefix should be rejected"() {
     when: 'we add a package containing a wildcard'
-      form.currentEntry = '.'
+      input <<  '.'
 
     then: 'an error is shown and the Reset button is enabled'
       popoverText(input) == 'Invalid package prefix:\ne.g. com.sonatype'
@@ -131,8 +131,8 @@ class ProprietaryComponentSpec
 
   def "Unparseable regexes result in an error"() {
     when: 'we add a regex that cannot be parsed and try to save it'
-      form.currentEntry = '*'
-      form.isRegex = true
+      regex.value(true)
+      input <<  '*'
       add.click()
       buttons.save.click()
 

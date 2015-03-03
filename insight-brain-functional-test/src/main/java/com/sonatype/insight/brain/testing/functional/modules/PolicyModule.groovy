@@ -92,7 +92,8 @@ class ActionModule
 {
   static content = {
     stageName { $('td:first-child').text() }
-    notificationButton { $('.icon-envelope') }
+    notificationButton { $('td[title="Edit Notifications"]') }
+    notificationCount { notificationButton.text() }
   }
 }
 
@@ -100,8 +101,13 @@ class NotificationsModule
     extends ModalModule
 {
   static content = {
-    emailInput { modal.find('input[name="currentEntry"]') }
-    addEmailButton { modal.find('.btn') }
-    selectedEmails(required: false) { modal.find('tr[ng-repeat="entry in entries"]') }
+    emailInput { modal.find('input[name="notificationEmail"]') }
+    addEmailButton { modal.find('.btn[title="Add E-mail Address"]') }
+    roleSelect { modal.find('select[name="role"]') }
+    roleOptions { roleSelect.find('option') }
+    addRoleButton { modal.find('.btn[title="Add Role"]') }
+    selectedEmails(required: false) { modal.find('tr[ng-repeat="email in notifications.emails"]') }
+    selectedRoles(required: false) { modal.find('tr[ng-repeat="role in notifications.roles"]') }
+    saveButton { modal.find('.btn[ng-click="save()"]') }
   }
 }

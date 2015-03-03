@@ -110,29 +110,6 @@
 .inline-policy-editor > form {
 	margin : 0px;
 }
-table.policy-actions thead tr:first-child th {
-	border : 0;
-}
-table.policy-actions thead tr:first-child th:nth-child(2) {
-	border-radius: 4px 4px 0 0;
-	border: 1px solid #ddd;
-	border-bottom: 0;
-	text-align: center;
-	font-weight: normal;
-	background-color: #e8e8e8;
-	font-size: 12px;
-	color: #444;
-	line-height: 16px;
-}
-table.policy-actions>tbody>tr>td:nth-child(2):hover {
-	background-color: #FFF;
-}
-table.policy-actions>tbody>tr>td:nth-child(3):hover {
-	background-color: #FFF;
-}
-table.policy-actions td:last-child {
-	border-right: 1px solid #ddd;
-}
 .condition-container {
 	padding: 10px;
 	margin-bottom:10px;
@@ -166,7 +143,4 @@ table.policy-actions td:last-child {
 .policy-tag label {
   display: inline;
   font-weight: normal;
-}
-.notification-list-editor .list-editor-form input[type=text] {
-  width: 449px !important;
 }

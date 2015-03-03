@@ -79,6 +79,13 @@ public class ApiApplicationResource
     return apiApplicationService.getApplicationById(applicationId);
   }
 
+  /**
+   * Get the application DTO list filtered by the set of publicIds.
+   * If the publicIds is empty then all applications are returned.
+   *
+   * @param publicIds The set of public ids to filter on (cannot be null)
+   * @return The application DTO list found
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiApplicationListDTO getApplications(

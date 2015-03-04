@@ -155,6 +155,14 @@ var clmBuildTimestamp = '${build.timestamp}';
        * @since version 1.13
        */
       'getComponentListUrl' : createComponentListUrl('rm')
+    },
+    /**
+     * Get the URL for the vulnerability detail content
+     *
+     * @since version 1.14
+     */
+    'getVulnerabilityDetailUrl' : function (source, refId) {
+      return '/rest/vulnerability/details/' + encodeURIComponent(source) + '/' + encodeURIComponent(refId);
     }
   };
 }());

@@ -661,7 +661,7 @@ public class PolicyEvaluateResourceTest
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
-    Map<String, Object> model = PolicyAlertNotifier.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
+    Map<String, Object> model = PolicyAlertEmailer.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
         scanId, stage, new ContactDTO(null, "displayName", "email", null), policyAlerts);
     Assert.assertNotNull(model);
     Assert.assertEquals(policyAlerts, model.get("policyAlerts"));

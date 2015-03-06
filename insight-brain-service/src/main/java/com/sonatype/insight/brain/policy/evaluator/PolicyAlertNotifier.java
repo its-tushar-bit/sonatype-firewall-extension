@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Utility class used to send (email) notifications for policy alerts.
+ * Utility class used to generate policy alerts and send notifications for them.
  * 
  * @since 1.8
  */
@@ -62,7 +62,7 @@ public class PolicyAlertNotifier
     if (!diff.getAppeared().isEmpty()) {
       List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(diff.getAppeared(),
           currentEvaluation.getStageTypeId(), currentEvaluation.isForMonitoring());
-      updatePolicyViolations(diff.getAppeared(), policyAlerts);
+      addAlertsToPolicyViolations(diff.getAppeared(), policyAlerts);
       policyAlertEmailer.sendNotifications(app, currentEvaluation.getScanId(),
           new Stage(currentEvaluation.getStageTypeId()), policyAlerts);
     }
@@ -73,7 +73,7 @@ public class PolicyAlertNotifier
     }
   }
 
-  private void updatePolicyViolations(List<PolicyViolation> policyViolations, List<PolicyAlert> policyAlerts) {
+  private void addAlertsToPolicyViolations(List<PolicyViolation> policyViolations, List<PolicyAlert> policyAlerts) {
     Map<String, PolicyAlert> policyAlertsByPolicyId = new HashMap<>();
     for (PolicyAlert policyAlert : policyAlerts) {
       policyAlertsByPolicyId.put(policyAlert.getTrigger().getPolicyId(), policyAlert);

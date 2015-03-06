@@ -48,4 +48,8 @@ public class PolicyViolationDiff
   public void addSame(PolicyViolation newPolicyViolation, PolicyViolation oldPolicyViolation) {
     same.put(oldPolicyViolation, newPolicyViolation);
   }
+
+  public boolean hasAppeared() {
+    return !appeared.isEmpty();
+  }
 }

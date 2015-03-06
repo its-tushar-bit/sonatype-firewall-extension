@@ -52,14 +52,9 @@ public class PolicyAlertNotifier
   public void sendNotifications(final Application app, final PolicyEvaluation currentEvaluation,
       final PolicyEvaluation previousEvaluation)
   {
-    List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());
-    List<PolicyViolation> previousViolations = null;
-    if (previousEvaluation != null) {
-      previousViolations = policyViolationDAO.getActiveByEvaluationId(previousEvaluation.getId());
-    }
-    PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(previousViolations, currentViolations);
+    PolicyViolationDiff diff = createPolicyViolationDiff(previousEvaluation, currentEvaluation);
 
-    if (!diff.getAppeared().isEmpty()) {
+    if (diff.hasAppeared()) {
       List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(diff.getAppeared(),
           currentEvaluation.getStageTypeId(), currentEvaluation.isForMonitoring());
       addAlertsToPolicyViolations(diff.getAppeared(), policyAlerts);
@@ -71,6 +66,17 @@ public class PolicyAlertNotifier
           + ", no new policy violations since last evaluation", app.getPublicId(), currentEvaluation.getScanId(),
           currentEvaluation.getStageTypeId());
     }
+  }
+
+  private PolicyViolationDiff createPolicyViolationDiff(final PolicyEvaluation previousEvaluation,
+      final PolicyEvaluation currentEvaluation)
+  {
+    List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());
+    List<PolicyViolation> previousViolations = null;
+    if (previousEvaluation != null) {
+      previousViolations = policyViolationDAO.getActiveByEvaluationId(previousEvaluation.getId());
+    }
+    return PolicyViolationDigester.digestPolicyViolations(previousViolations, currentViolations);
   }
 
   private void addAlertsToPolicyViolations(List<PolicyViolation> policyViolations, List<PolicyAlert> policyAlerts) {

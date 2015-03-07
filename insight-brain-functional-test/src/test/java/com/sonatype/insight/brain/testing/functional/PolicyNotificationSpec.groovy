@@ -34,6 +34,9 @@ class PolicyNotificationSpec
   }
 
   def 'Opens a modal to edit notifications'() {
+    given: 'The action table has fully loaded'
+      waitFor { !policyEditor.actions.empty }
+
     when: 'The first stage notifications envelope is clicked'
       ActionModule firstStage = policyEditor.actions[0]
       firstStage.notificationButton.click()
@@ -117,7 +120,7 @@ class PolicyNotificationSpec
       policyEditor.editButton.click()
 
     then: 'Policy editor still shows notification counts'
-      policyEditor.actions[0].notificationCount == "3"
+      waitFor { policyEditor.actions[0].notificationCount == '3' }
 
     when: 'Notifications editor is opened'
       ActionModule firstStage = policyEditor.actions[0]

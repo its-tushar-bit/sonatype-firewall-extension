@@ -136,7 +136,7 @@ public class Policy
   }
 
   public ValidationResult validate(String ownerId) {
-    log.debug("Validating " + this.toString());
+    log.debug("Validating {}", this);
 
     ValidationResult result = new ValidationResult();
     try {
@@ -214,7 +214,7 @@ public class Policy
     }
 
     if (!result.isValid()) {
-      log.debug("Validation result: " + result.toMessageString());
+      log.debug("Validation result: {}", result.toMessageString());
     }
 
     return result;

@@ -156,7 +156,7 @@ public class PolicyEvaluatorTest
   public void testServerDown() throws Exception {
     when(restClient.getApplications()).thenThrow(new HttpResponseException(503, "Maintenance"));
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-p", "localhost:8888", "-U",
-        "proxyuser:proxypass", "-i", "the-app-id", "src/test/data/artifact.jar");
+        "proxyuser:proxypass", "-i", "the-app-id", "-a", "user:pass", "src/test/data/artifact.jar");
     try {
       evaluator.run(params);
       fail("Expected error");
@@ -168,6 +168,8 @@ public class PolicyEvaluatorTest
       assertEquals(8888, httpConfig.getValue().getProxyPort());
       assertEquals("proxyuser", httpConfig.getValue().getProxyAuth().getUsername());
       assertEquals("proxypass", new String(httpConfig.getValue().getProxyAuth().getPassword()));
+      assertEquals("user", httpConfig.getValue().getServerAuth().getUsername());
+      assertEquals("pass", new String(httpConfig.getValue().getServerAuth().getPassword()));
     }
   }
 
@@ -180,6 +182,34 @@ public class PolicyEvaluatorTest
     }
     catch (ExitException e) {
       assertLog("[ERROR] The application ID the-app-id is invalid.");
+    }
+  }
+
+  @Test
+  public void testInvalidAuthc() throws Exception {
+    when(restClient.getApplications()).thenThrow(new HttpResponseException(401, "Bad Authc"));
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
+        "src/test/data/artifact.jar");
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException e) {
+      assertLog("[ERROR] The CLM Server http://localhost:8070/ requires authentication: Bad Authc");
+    }
+  }
+
+  @Test
+  public void testInvalidAuthz() throws Exception {
+    when(restClient.getApplications()).thenThrow(new HttpResponseException(403, "Bad Authz"));
+    Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "-a", "user:pass",
+        "src/test/data/artifact.jar");
+    try {
+      evaluator.run(params);
+      fail("Expected error");
+    }
+    catch (ExitException e) {
+      assertLog("[ERROR] The CLM Server http://localhost:8070/ requires authentication: Bad Authz");
     }
   }
 

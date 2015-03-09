@@ -195,7 +195,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The CLM Server http://localhost:8070/ requires authentication: Bad Authc");
+      assertLog("[ERROR] The CLM server http://localhost:8070/ rejected the supplied credentials.");
     }
   }
 
@@ -209,7 +209,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The CLM Server http://localhost:8070/ requires authentication: Bad Authz");
+      assertLog("[ERROR] The CLM server http://localhost:8070/ rejected the supplied credentials.");
     }
   }
 

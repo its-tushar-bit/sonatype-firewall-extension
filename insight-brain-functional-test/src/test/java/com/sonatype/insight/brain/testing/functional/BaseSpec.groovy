@@ -250,4 +250,9 @@ extends GebReportingSpec {
     Role role = temporaryEntity.newRole(false /* global */, perms)
     temporaryEntity.newMembershipMapping(contextId, role.getId(), username)
   }
+
+  Date daysAgo(Date date, int days) {
+    // ensure "n days ago" is at least "n * 24 hours ago", even with DST
+    return new Date((date - days).time - 2 * 60 * 60 * 1000);
+  }
 }

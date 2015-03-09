@@ -43,7 +43,7 @@ extends BaseSpec {
 
     Date now = new Date()
     PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(app.id, BuildStageType.ID,
-        'DashboardSpecFirstEvaluation', now - 7)
+        'DashboardSpecFirstEvaluation', daysAgo(now, 7))
     policyViolation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", FailActionType.ID)
     temporaryEntity.newFirstOccurrencePolicyViolation(policyViolation.id, policyEvaluation.applicationId,

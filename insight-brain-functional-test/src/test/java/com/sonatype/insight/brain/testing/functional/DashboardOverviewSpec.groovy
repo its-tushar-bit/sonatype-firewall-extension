@@ -80,7 +80,7 @@ extends BaseSpec {
 
     //first evaluation dated a week ago
     PolicyEvaluation firstPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-        'DashboardSpecFirstEvaluation', now - 7)
+        'DashboardSpecFirstEvaluation', daysAgo(now, 7))
     PolicyViolation firstViolation = temporaryEntity.
         newPolicyViolation(firstPolicyEvaluation, policy, 5,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", FailActionType.ID)
@@ -97,7 +97,7 @@ extends BaseSpec {
 
     //same policy as first evaluation, but a different stage and earlier
     PolicyEvaluation firstPolicyEvaluationSecondStage = temporaryEntity.newPolicyEvaluation(firstApp.id,
-        StageReleaseStageType.ID, 'DashboardSpecFirstEvaluationSecondStage', now - 14)
+        StageReleaseStageType.ID, 'DashboardSpecFirstEvaluationSecondStage', daysAgo(now, 14))
     PolicyViolation firstViolationSecondStage = temporaryEntity.newPolicyViolation(firstPolicyEvaluationSecondStage,
         policy, 5, PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1", "hash", WarnActionType.ID)
     temporaryEntity.newFirstOccurrencePolicyViolation(firstViolationSecondStage.id,
@@ -108,7 +108,7 @@ extends BaseSpec {
 
     // evaluation in yet another stage
     PolicyEvaluation thirdPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, ReleaseStageType.ID,
-        'DashboardSpecThirdEvaluation', now - 8)
+        'DashboardSpecThirdEvaluation', daysAgo(now, 8))
     PolicyViolation thirdViolation = temporaryEntity.
         newPolicyViolation(thirdPolicyEvaluation, policy, 2, PolicyThreatCategory.QUALITY,
         "Group1", "Artifact1", "Version1")
@@ -117,7 +117,7 @@ extends BaseSpec {
 
     // and one more stage to cover them all
     PolicyEvaluation forthPolicyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, OperateStageType.ID,
-        'DashboardSpecForthEvaluation', now - 9)
+        'DashboardSpecForthEvaluation', daysAgo(now, 9))
     PolicyViolation forthViolation = temporaryEntity.
         newPolicyViolation(forthPolicyEvaluation, policy, 1, PolicyThreatCategory.OTHER,
         "Group1", "Artifact1", "Version1")
@@ -666,7 +666,7 @@ extends BaseSpec {
       def application = temporaryEntity.newApplication("DashboardSpecApp${i}", "DashboardSpecApp${i}", org.id)
       applications.add(application)
       def policyEvaluation = temporaryEntity.newPolicyEvaluation(application.id, BuildStageType.ID,
-          "DashboardSpecFirstEvaluation${i}", now - 7)
+          "DashboardSpecFirstEvaluation${i}", daysAgo(now, 7))
       def violation = temporaryEntity.newPolicyViolation(policyEvaluation, policy, 2 + (3 * i),
           PolicyThreatCategory.SECURITY, "Group${i}", "Artifact${i}", "Version${i}", "hash${i}")
       temporaryEntity.newFirstOccurrencePolicyViolation(violation.id, policyEvaluation.applicationId,
@@ -742,7 +742,7 @@ extends BaseSpec {
     setup: 'Add over 100 records'
     Date now = new Date()
     PolicyEvaluation policyEvaluation = temporaryEntity.newPolicyEvaluation(firstApp.id, BuildStageType.ID,
-        'DashboardSpecFirstEvaluation', now - 7)
+        'DashboardSpecFirstEvaluation', daysAgo(now, 7))
     for (i in 0..100) {
       PolicyViolation violation = temporaryEntity.
           newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,

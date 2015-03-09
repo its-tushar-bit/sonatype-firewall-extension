@@ -69,7 +69,7 @@ extends BaseSpec {
 
     Date now = new Date()
     (12..0).each { int weeksAgo ->
-      Date time = now.minus(7 * weeksAgo + 2)
+      Date time = daysAgo(now, 7 * weeksAgo + 2)
       switch (weeksAgo) {
         case 12: // introduce 3 violations outside the bounds of the 12 week delta to start with
           PolicyEvaluation seedEval = temporaryEntity.newPolicyEvaluation(app.id, BuildStageType.ID, 'SeedEval', time)

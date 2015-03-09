@@ -1,0 +1,164 @@
+/*
+ * Copyright (c) 2011-2015 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.diagnostics;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DiagnosticsCli
+{
+  private static final Logger log = LoggerFactory.getLogger(DiagnosticsCli.class);
+
+  public static void main(String[] args) {
+    Parameters params = new Parameters(args);
+    if (params.getError() != null) {
+      params.printUsage();
+      log.error("Actual arguments were: {}", Arrays.asList(params.getArgs()));
+      System.exit(1);
+    }
+    if (params.isHelp()) {
+      params.printUsage();
+      return;
+    }
+    try {
+      new DiagnosticsCli().run(params);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+      System.exit(1);
+    }
+  }
+
+  public void run(Parameters params) throws Exception {
+    File ods = new File(params.getWorkDirectory(), "data/ods").getAbsoluteFile();
+    File h2 = new File(ods.getPath() + ".h2.db");
+    if (!h2.isFile()) {
+      throw new IllegalArgumentException("The specified work directory is invalid, found no database file at " + h2);
+    }
+    log.info("-- Database Diagnostics --");
+    log.info("Total database size: {} bytes", h2.length());
+
+    String version = new String(Files.readAllBytes(new File(ods + ".ver").toPath()), "UTF-8");
+    log.info("Schema version: {}", version);
+
+    String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+    try (Connection connection = DriverManager.getConnection(dbUrl, "sa", "");) {
+      connection.setAutoCommit(true);
+      if (params.isCompact()) {
+        compactDatabase(connection);
+        log.info("New database size: {} bytes", h2.length());
+      }
+      else {
+        try (Statement statement = connection.createStatement();) {
+          statement.execute("SET SCHEMA insight_brain_ods;");
+        }
+        logRowCounts(connection);
+        logOldestEvaluation(connection);
+        logUniqueCoordinates(connection);
+        logAverageColumnSizes(connection);
+        logTableSizes(connection);
+      }
+    }
+  }
+
+  private void logRowCounts(Connection connection) throws Exception {
+    log.info("Row counts:");
+    String[] tables = { "organization", "application", "policy", "policy_evaluation", "policy_violation",
+        "first_occurrence_policy_violation", "application_component" };
+    for (String table : tables) {
+      try (Statement statement = connection.createStatement();) {
+        ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table);
+        while (result.next()) {
+          log.info("  {}: {}", table, result.getLong(1));
+        }
+      }
+    }
+  }
+
+  private void logTableSizes(Connection connection) throws Exception {
+    log.info("Table sizes:");
+    String[] tables = { "organization", "application", "policy", "policy_evaluation", "policy_violation",
+        "first_occurrence_policy_violation", "application_component" };
+    for (String table : tables) {
+      try (Statement statement = connection.createStatement();) {
+        ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')");
+        while (result.next()) {
+          log.info("  {}: {}", table, result.getLong(1));
+        }
+      }
+    }
+  }
+
+  private void logOldestEvaluation(Connection connection) throws Exception {
+    try (Statement statement = connection.createStatement();) {
+      ResultSet result = statement.executeQuery("SELECT MIN(time) FROM policy_evaluation");
+      while (result.next()) {
+        log.info("Oldest policy evaluation: {}", result.getDate(1));
+      }
+    }
+  }
+
+  private void logUniqueCoordinates(Connection connection) throws Exception {
+    log.info("Unique coordinates:");
+    String[] tables = { "policy_violation", "application_component" };
+    for (String table : tables) {
+      try (Statement statement = connection.createStatement();) {
+        ResultSet result;
+        try {
+          result = statement.executeQuery("SELECT COUNT(DISTINCT component_id_coordinates_json) FROM " + table);
+        }
+        catch (SQLException e) {
+          result = statement
+              .executeQuery("SELECT COUNT(DISTINCT CONCAT(group_id, artifact_id, version)) FROM " + table);
+        }
+        while (result.next()) {
+          log.info("  {}: {}", table, result.getLong(1));
+        }
+      }
+    }
+  }
+
+  private void logAverageColumnSizes(Connection connection) throws Exception {
+    log.info("Average column sizes:");
+    try (Statement statement = connection.createStatement();) {
+      ResultSet result;
+      result = statement.executeQuery("SELECT AVG(LENGTH(constraint_facts_json)) FROM policy_violation");
+      while (result.next()) {
+        log.info("  constraints: {}", result.getLong(1));
+      }
+      result = statement.executeQuery("SELECT AVG(LENGTH(pathnames)) FROM policy_violation");
+      while (result.next()) {
+        log.info("  pathnames: {}", result.getLong(1));
+      }
+      try {
+        result = statement.executeQuery("SELECT AVG(LENGTH(component_id_coordinates_json)) FROM policy_violation");
+      }
+      catch (SQLException e) {
+        result = statement
+            .executeQuery("SELECT AVG(LENGTH(CONCAT(group_id, artifact_id, version))) FROM policy_violation");
+      }
+      while (result.next()) {
+        log.info("  coordinates: {}", result.getLong(1));
+      }
+    }
+  }
+
+  private void compactDatabase(Connection connection) throws Exception {
+    log.info("Compacting database...");
+    try (Statement statement = connection.createStatement();) {
+      statement.execute("SHUTDOWN COMPACT");
+    }
+  }
+}

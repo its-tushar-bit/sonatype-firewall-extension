@@ -71,6 +71,7 @@
     <module>sonatype-clm-server</module>
     <module>sonatype-clm-scanner</module>
     <module>sonatype-integrator-scanner</module>
+    <module>sonatype-clm-diagnostics</module>
     <module>insight-brain-functional-test</module>
     <module>insight-brain-functional-performance-test</module>
   </modules>

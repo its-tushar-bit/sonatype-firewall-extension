@@ -33,6 +33,7 @@ public class PolicyEvaluator
     super(scanner, restClientFactory);
   }
 
+  @Override
   protected void processResults(Parameters params, ScanReceipt receipt, PolicyEvaluationResult eval,
       PolicyAction outcome, RestClient restClient)
       throws ExitException

@@ -30,6 +30,7 @@ public class Parameters
     parse(args);
   }
 
+  @Override
   protected String getProgramName() {
     return "java -jar sonatype-clm-scanner.jar";
   }
@@ -42,6 +43,7 @@ public class Parameters
     return failOnPolicyWarning;
   }
 
+  @Override
   public String getServerUser() {
     return serverUser;
   }

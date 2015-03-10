@@ -31,6 +31,7 @@ public class Parameters
     parse(args);
   }
 
+  @Override
   protected String getProgramName() {
     return "java -jar sonatype-integrator-scanner.jar";
   }
@@ -39,6 +40,7 @@ public class Parameters
     return reportBundleFile;
   }
 
+  @Override
   public String getServerUser() {
     return serverUser;
   }

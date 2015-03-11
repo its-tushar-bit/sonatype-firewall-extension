@@ -18,7 +18,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 @Path(RepoManResource.SERVICE_PATH)
@@ -38,7 +41,10 @@ public class RepoManResource
   @PUT
   @Path("scan/{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanReceipt uploadScan(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
+  public ScanReceipt uploadScan(
+      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
+      final String applicationPublicId,
       @Context HttpServletRequest req) throws IOException
   {
     return uploader.upload(req, applicationPublicId, "rest/rm/scan");

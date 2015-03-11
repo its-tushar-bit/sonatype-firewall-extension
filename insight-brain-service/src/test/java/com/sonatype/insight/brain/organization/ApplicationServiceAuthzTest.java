@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -103,6 +104,54 @@ public class ApplicationServiceAuthzTest
   public void testGetAllApplications_Unauthenticated() throws Exception {
     List<Application> applications = applicationService.getApplications();
     assertThat(applications, hasSize(0));
+  }
+
+  @Test
+  public void testGetApplicationNames_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    Map<String, String> applicationNames = applicationService.getApplicationNames();
+    assertThat(applicationNames.size(), is(1));
+    assertThat(applicationNames.get(app.getPublicId()), is(app.getName()));
+  }
+
+  @Test
+  public void testGetApplicationNames_Unauthorized() throws Exception {
+    login();
+    Map<String, String> applicationNames = applicationService.getApplicationNames();
+    assertThat(applicationNames.size(), is(0));
+  }
+
+  @Test
+  public void testGetApplicationNames_UnauthenticatedAnonymousAllowed() throws Exception {
+    // This will return unfiltered as anonymous is on for this resource
+    Map<String, String> applicationNames = applicationService.getApplicationNames();
+    assertThat(applicationNames.size(), is(1));
+    assertThat(applicationNames.get(app.getPublicId()), is(app.getName()));
+  }
+
+  @Test
+  public void testValidateApplicationPublicId_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    String value = applicationService.validateApplicationPublicId(app.getPublicId());
+    assertThat(value, is("OK"));
+  }
+
+  @Test
+  public void testValidateApplicationPublicId_Unauthorized() throws Exception {
+    login();
+    try {
+      applicationService.validateApplicationPublicId(app.getPublicId());
+      fail("Expected UnauthorizedException");
+    } catch (UnauthorizedException e) {
+      assertThat(e.getMessage(), is("Insufficient permissions"));
+    }
+  }
+
+  @Test
+  public void testValidateApplicationPublicId_UnauthenticatedAnonymousAllowed() throws Exception {
+    // This will succeed as anonymous is on for this resource
+    String value = applicationService.validateApplicationPublicId(app.getPublicId());
+    assertThat(value, is("OK"));
   }
 
   @Test

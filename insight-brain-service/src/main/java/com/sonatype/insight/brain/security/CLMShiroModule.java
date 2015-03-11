@@ -37,6 +37,12 @@ public class CLMShiroModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
+  private final boolean anonymousClientAccessAllowed;
+
+  public CLMShiroModule(final boolean anonymousClientAccessAllowed) {
+    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
+  }
+
   @Override
   protected void configureShiro() {
     bindWebSecurityManager(bind(WebSecurityManager.class));
@@ -52,7 +58,6 @@ public class CLMShiroModule
     manager.createChain("/favicon.ico", "anon"); // favicon for web interface
     manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/report/*/*/embedReport/**", "anon"); // backward-compat with non-authenticating clients
     manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
     manager.createChain("/rest/session/environment", "anon"); // client environment gathering
     manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing if not authenticated
@@ -73,13 +78,17 @@ public class CLMShiroModule
   
   // to be removed once all clients use authentication
   private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
-    manager.createChain("/rest/application/services/names", "anon");
-    manager.createChain("/rest/application/validate/*", "anon");
+    String clientAuthFilterName = anonymousClientAccessAllowed ? "authcBasic[permissive]" : "authcBasic";
+
+    manager.createChain("/rest/report/*/*/embedReport/**", clientAuthFilterName);
+    manager.createChain("/rest/application/services/names", clientAuthFilterName);
+    manager.createChain("/rest/application/validate/*", clientAuthFilterName);
+    manager.createChain("/rest/policy/*/evaluate", clientAuthFilterName);
+    manager.createChain("/rest/ci/validate/*", clientAuthFilterName);
+    manager.createChain("/rest/ci/scan/*", clientAuthFilterName);
+    manager.createChain("/rest/rm/scan/*", clientAuthFilterName);
+
     manager.createChain("/rest/config/proprietary", "anon");
-    manager.createChain("/rest/policy/*/evaluate", "anon");
-    manager.createChain("/rest/ci/validate/*", "anon");
-    manager.createChain("/rest/ci/scan/*", "anon");
-    manager.createChain("/rest/rm/scan/*", "anon");
   }
 
   @Override

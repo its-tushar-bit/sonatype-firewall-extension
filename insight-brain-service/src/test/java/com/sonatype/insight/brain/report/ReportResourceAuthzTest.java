@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.report;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
+import com.sonatype.insight.test.RestAccess;
 
+import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class ReportResourceAuthzTest
@@ -79,5 +81,30 @@ public class ReportResourceAuthzTest
 
     String url = getRestUrl(ReportResource.SERVICE_PATH + "/reevaluatePolicy", app.getPublicId(), scanId);
     testAuthzGet(url);
+  }
+
+  @Test
+  public void testEmbedReport() throws Exception {
+    grantReadPermission(app.getId());
+
+    String url = getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/{path}", app.getPublicId(), "scanId",
+        "index.html");
+    testAuthzGet(url);
+  }
+
+  @Test
+  public void testEmbedReport_Unauthenticated() throws Exception {
+    String url = getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/{path}", app.getPublicId(), "scanId",
+        "index.html");
+    Response response = RestAccess.get(url, "unknownUser", "unknownPassword");
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testEmbedReport_UnauthenticatedAnonymousAllowed() throws Exception {
+    String url = getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/{path}", app.getPublicId(), "scanId",
+        "index.html");
+    Response response = RestAccess.get(url);
+    assertResponseStatus(200, response);
   }
 }

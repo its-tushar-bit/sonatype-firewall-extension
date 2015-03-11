@@ -255,6 +255,7 @@ public class InsightBrainService
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
-    }, new CLMShiroModule(), new CLMShiroAopModule());
+    }, new CLMShiroModule(config.isAnonymousClientAccessAllowed()),
+        new CLMShiroAopModule(config.isAnonymousClientAccessAllowed()));
   }
 }

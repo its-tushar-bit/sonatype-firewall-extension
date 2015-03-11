@@ -46,6 +46,11 @@ public class AuthorizeMethodInterceptorTest
     return arg0;
   }
 
+  @Authorize(permission = Permission.READ, anonymousAllowed = true)
+  public String stubNoContextAnonymousAllowed(String arg0) {
+    return arg0;
+  }
+
   @Authorize(permission = Permission.READ)
   public String stubSomeContext(@AuthzContext(AuthzContext.Key.TYPE) String arg0,
       @AuthzContext(AuthzContext.Key.ID) String arg1, String arg2)
@@ -105,6 +110,14 @@ public class AuthorizeMethodInterceptorTest
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMapOf(AuthzContext.Key.class, ContextParameter.class)))
         .thenReturn(true);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
+    assertThat(interceptor.invoke(invoc), is((Object) "test"));
+  }
+
+  @Test
+  public void testAnonymousInvoke_Pass() throws Throwable {
+    when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContextAnonymousAllowed", String.class));
+    when(invoc.getArguments()).thenReturn(new Object[] { "test" });
+    when(invoc.proceed()).thenReturn("test");
     assertThat(interceptor.invoke(invoc), is((Object) "test"));
   }
 

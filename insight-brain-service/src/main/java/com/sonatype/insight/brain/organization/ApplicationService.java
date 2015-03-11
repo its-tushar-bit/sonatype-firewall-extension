@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,13 @@ public class ApplicationService
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
-    if (applicationDAO.getByPublicId(applicationPublicId) == null) {
+    try {
+      if (getApplicationByPublicIdAllowAnonymous(applicationPublicId) == null) {
+        return "Invalid application ID " + applicationPublicId + ".";
+      }
+    }
+    catch (NotFoundException e) {
+      // The auth context can throw not found exception
       return "Invalid application ID " + applicationPublicId + ".";
     }
 
@@ -58,8 +65,19 @@ public class ApplicationService
     return "OK";
   }
 
+  /**
+   * @since 1.14.0
+   * Allows anonymous access. Only for use by the clients.
+   */
+  @Authorize(permission = Permission.READ, anonymousAllowed = true)
+  protected Application getApplicationByPublicIdAllowAnonymous(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
+    return applicationDAO.getByPublicId(applicationPublicId);
+  }
+
   public Map<String, String> getApplicationNames() {
-    List<Application> applications = applicationDAO.getAll();
+    List<Application> applications = getApplicationsAllowAnonymous();
     Map<String, String> applicationPublicIDNamePairs = new LinkedHashMap<>();
 
     for (Application application : applications) {
@@ -68,6 +86,15 @@ public class ApplicationService
     }
 
     return applicationPublicIDNamePairs;
+  }
+
+  /**
+   * @since 1.14.0
+   * Allows anonymous access. Only for use by the clients.
+   */
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  protected List<Application> getApplicationsAllowAnonymous() {
+    return applicationDAO.getAll();
   }
 
   @Authorize(permission = Permission.READ)

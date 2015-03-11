@@ -145,7 +145,10 @@ public class ReportResource
   @Deprecated
   @GET
   @Path("embedReport/{path:.*}")
-  public Response embedReport(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.READ, anonymousAllowed = true)
+  public Response embedReport(
+      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
+      final String applicationPublicId,
       @PathParam("scanId") final String scanId, @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest)
   {

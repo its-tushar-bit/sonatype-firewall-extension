@@ -69,6 +69,13 @@ public class InsightConfig
   @Max(23)
   private int policyMonitoringHour = 0;
 
+  /**
+   * @since 1.14.0
+   */
+  @NotNull
+  @JsonProperty
+  private boolean anonymousClientAccessAllowed = true;
+
   public ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -195,5 +202,19 @@ public class InsightConfig
 
   public void setAdditionalDBParams(final String additionalDBParams) {
     this.additionalDBParams = additionalDBParams;
+  }
+
+  /**
+   * @since 1.14.0
+   */
+  public boolean isAnonymousClientAccessAllowed() {
+    return anonymousClientAccessAllowed;
+  }
+
+  /**
+   * @since 1.14.0
+   */
+  public void setAnonymousClientAccessAllowed(final boolean anonymousClientAccessAllowed) {
+    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
   }
 }

@@ -16,9 +16,15 @@ import org.apache.shiro.guice.aop.ShiroAopModule;
 public class CLMShiroAopModule
     extends ShiroAopModule
 {
+  private final boolean anonymousClientAccessAllowed;
+
+  public CLMShiroAopModule(final boolean anonymousClientAccessAllowed) {
+    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
+  }
+
   @Override
   protected void configureInterceptors(AnnotationResolver resolver) {
-    bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver));
-    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver));
+    bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, anonymousClientAccessAllowed));
+    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, anonymousClientAccessAllowed));
   }
 }

@@ -79,7 +79,7 @@ class TestReportEvaluator
     HttpPost post = new HttpPost(brainBaseUrl + "rest/policy/" + app.getPublicId() + "/evaluate?scanId=" + scanId);
     post.setEntity(new StringEntity(JsonHelpers.asJson(new Stage(Stage.ID_BUILD)), ContentType.APPLICATION_JSON));
     // please don't change the admin password on me!
-    post.setHeader("Authorization", "Basic " + Base64.encode("admin:admin123"));
+    post.setHeader("Authorization", "Basic " + new String(Base64.encode("admin:admin123")));
     HttpResponse response = client.execute(post);
     // evaluation is done synchronously within the request, if the request is successful the eval is complete
     assert response.getStatusLine().getStatusCode() == 200;

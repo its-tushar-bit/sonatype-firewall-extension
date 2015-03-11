@@ -27,19 +27,22 @@ class AuthorizeMethodInterceptor
 {
   private final AuthorizationChecker authzChecker;
 
-  public AuthorizeMethodInterceptor(AnnotationResolver resolver) {
-    this(new AuthorizeAnnotationHandler(), resolver, new AuthorizationChecker());
+  private final boolean anonymousClientAccessAllowed;
+
+  public AuthorizeMethodInterceptor(AnnotationResolver resolver, boolean anonymousClientAccessAllowed) {
+    this(new AuthorizeAnnotationHandler(), resolver, new AuthorizationChecker(), anonymousClientAccessAllowed);
   }
 
   AuthorizeMethodInterceptor(AuthorizationChecker authzChecker) {
-    this(new AuthorizeAnnotationHandler(), null, authzChecker);
+    this(new AuthorizeAnnotationHandler(), null, authzChecker, true);
   }
 
   private AuthorizeMethodInterceptor(AuthorizeAnnotationHandler handler, AnnotationResolver resolver,
-      AuthorizationChecker authzChecker)
+      AuthorizationChecker authzChecker, boolean anonymousClientAccessAllowed)
   {
     super(handler, resolver);
     this.authzChecker = authzChecker;
+    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
   }
 
   @Override
@@ -95,6 +98,9 @@ class AuthorizeMethodInterceptor
   private void assertAuthorized(MethodInvocation mi, Authorize anno) throws AuthorizationException {
     Object principal = getSubject().getPrincipal();
     if (principal == null) {
+      if (anno.anonymousAllowed() && anonymousClientAccessAllowed) {
+        return;
+      }
       throw new UnauthenticatedException("Anonymous access forbidden", newAuthzException(mi));
     }
     UserPrincipal user = (UserPrincipal)principal;

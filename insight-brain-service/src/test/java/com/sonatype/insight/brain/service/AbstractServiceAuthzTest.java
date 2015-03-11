@@ -49,7 +49,7 @@ public class AbstractServiceAuthzTest
         bindRealm().to(CLMRealm.class);
       }
     });
-    binder.install(new CLMShiroAopModule());
+    binder.install(new CLMShiroAopModule(true));
   }
 
   @Override

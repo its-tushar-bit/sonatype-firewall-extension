@@ -24,6 +24,9 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +56,10 @@ public class PolicyEvaluateResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") final String applicationPublicId,
+  @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
+  public PolicyEvaluationResult evaluate(
+      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
+      final String applicationPublicId,
       @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent)
       throws IOException
   {

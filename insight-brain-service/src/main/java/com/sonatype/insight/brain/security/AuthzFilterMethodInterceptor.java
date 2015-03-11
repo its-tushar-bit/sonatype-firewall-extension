@@ -21,19 +21,22 @@ class AuthzFilterMethodInterceptor
 {
   private final AuthorizationChecker authzChecker;
 
-  public AuthzFilterMethodInterceptor(AnnotationResolver resolver) {
-    this(new AuthzFilterAnnotationHandler(), resolver, new AuthorizationChecker());
+  private final boolean anonymousClientAccessAllowed;
+
+  public AuthzFilterMethodInterceptor(AnnotationResolver resolver, boolean anonymousClientAccessAllowed) {
+    this(new AuthzFilterAnnotationHandler(), resolver, new AuthorizationChecker(), anonymousClientAccessAllowed);
   }
 
   AuthzFilterMethodInterceptor(AuthorizationChecker authzChecker) {
-    this(new AuthzFilterAnnotationHandler(), null, authzChecker);
+    this(new AuthzFilterAnnotationHandler(), null, authzChecker, true);
   }
 
   private AuthzFilterMethodInterceptor(AuthzFilterAnnotationHandler handler, AnnotationResolver resolver,
-      AuthorizationChecker authzChecker)
+      AuthorizationChecker authzChecker, boolean anonymousClientAccessAllowed)
   {
     super(handler, resolver);
     this.authzChecker = authzChecker;
+    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
   }
 
   @Override
@@ -49,9 +52,15 @@ class AuthzFilterMethodInterceptor
       if (anno != null) {
         Object principal = getSubject().getPrincipal();
         UserPrincipal user = (UserPrincipal)((principal != null) ? principal : null);
-        result = authzChecker.filterByPermission(user, anno.permission(), result, anno.context());
+        if (!isAnonymous(user, anno)) {
+          result = authzChecker.filterByPermission(user, anno.permission(), result, anno.context());
+        }
       }
     }
     return result;
+  }
+
+  private boolean isAnonymous(UserPrincipal user, AuthzFilter anno) {
+    return user == null && anno.anonymousAllowed() && anonymousClientAccessAllowed;
   }
 }

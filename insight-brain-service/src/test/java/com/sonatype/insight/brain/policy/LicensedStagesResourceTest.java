@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -21,9 +21,13 @@ public class LicensedStagesResourceTest
 {
   @Test
   public void testGetLicenseStages() throws Exception {
-    Response response = RestAccess.get(getRestUrl(LicensedStagesResource.SERVICE_PATH));
+    Response response = AuthedRestAccess.get(getRestUrl(LicensedStagesResource.SERVICE_PATH));
     assertResponseStatus(200, response);
     Stage[] stages = fromJson(response, Stage[].class);
+    assertStages(stages);
+  }
+
+  private void assertStages(final Stage[] stages) {
     // This rest call will return the stages in the following predefined order
     assertThat(stages.length, is(5));
     assertThat(stages[0].getStageTypeId(), is(StageTypes.DEVELOP.getId()));

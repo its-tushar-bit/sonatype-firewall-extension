@@ -329,10 +329,8 @@ public class ConfigurationClientTest
     assertEquals(regexes, config.getRegexes());
   }
 
-
   @Test
-  public void testValidLogin() throws Exception {
-
+  public void testValidateAuthentication_ValidLogin() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     ConfigurationClient client = new ConfigurationClient(config);
@@ -340,8 +338,7 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testInvalidPassword() throws Exception {
-
+  public void testValidateAuthentication_InvalidPassword() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:invalidpassword"));
     ConfigurationClient client = new ConfigurationClient(config);
@@ -355,8 +352,7 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testInvalidUser() throws Exception {
-
+  public void testValidateAuthentication_InvalidUser() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("invaliduser:invalidpassword"));
     ConfigurationClient client = new ConfigurationClient(config);
@@ -370,8 +366,7 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testNoAuthProvided() throws Exception {
-
+  public void testValidateAuthentication_NoAuthProvided() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
     try {

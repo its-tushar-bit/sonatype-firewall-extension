@@ -67,7 +67,21 @@ public class ConfigurationClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(401, e.getStatusCode());
-      assertMatch("(?i).*not found.*", e.getMessage());
+      assertThat(e.getMessage(), is("Unauthorized"));
+    }
+  }
+
+  @Test
+  public void testValidateConfiguration_BadAuth() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Validation should have failed due to bad authentication");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode(), is(401));
+      assertThat(e.getMessage(), is("Unauthorized"));
     }
   }
 

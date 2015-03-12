@@ -45,23 +45,6 @@ public class ConfigurationClient
     return result;
   }
 
-  private Result getAnon(RequestBuilder builder) throws IOException {
-    try {
-      return get(builder);
-    }
-    catch (HttpResponseException e) {
-      if (e.getStatusCode() == 401) {
-        /*
-         * For clients making anonymous calls, a misconfigured base URL will make the client encounter authentication
-         * errors from protected resources, so tweak the user facing error message to better highlight the proper
-         * remediation.
-         */
-        throw new HttpResponseException(e.getStatusCode(), "Resource not found, please check your request URL.");
-      }
-      throw e;
-    }
-  }
-
   /**
    * @deprecated as of version 1.11.0 use {@link #getApplications()} instead. This method does not require
    *             authentication (while {@link #getApplications()} does).
@@ -69,7 +52,7 @@ public class ConfigurationClient
   @Deprecated
   @SuppressWarnings("unchecked")
   public Map<String, String> getApplicationIdNameMap() throws IOException {
-    Result result = getAnon(path("rest/application/services/names"));
+    Result result = get(path("rest/application/services/names"));
     Map<String, String> applicationsById = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     applicationsById.putAll(JsonUtils.parse(result.text(), Map.class));
     return applicationsById;
@@ -105,14 +88,12 @@ public class ConfigurationClient
   }
 
   public void validateConfiguration() throws IOException {
-    final Result result = getAnon(path("rest/version"));
+    final Result result = get(path("rest/config/proprietary"));
     final String text = result.text();
     // at this point, the network connection appears fine, now let's just check we actually talked to a CLM server
     try {
-      final Map<?, ?> versionInfo = JsonUtils.parse(text, Map.class);
-      if (versionInfo.get("version") == null && versionInfo.get("name") == null) {
-        throw new Exception("No CLM version information present");
-      }
+      // this smoke checks we actually got JSON back and not say some HTML from a misconfigured proxy
+      JsonUtils.parse(text, Map.class);
     }
     catch (Exception e) {
       throw new IOException("Server is not compatible with this Sonatype CLM integration", e);
@@ -120,7 +101,7 @@ public class ConfigurationClient
   }
 
   public void validateApplicationId(final String appId) throws IOException {
-    final Result result = getAnon(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
+    final Result result = get(path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)));
     final String text = result.text();
     if (!"OK".equals(text)) {
       throw new IOException(text);
@@ -128,7 +109,7 @@ public class ConfigurationClient
   }
 
   public ProprietaryConfig getProprietaryConfiguration() throws IOException {
-    Result result = getAnon(path("rest/config/proprietary"));
+    Result result = get(path("rest/config/proprietary"));
     return JsonUtils.parse(result.text(), ProprietaryConfig.class);
   }
 

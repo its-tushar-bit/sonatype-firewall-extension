@@ -134,6 +134,10 @@ public class DiagnosticsCli
     log.info("Average column sizes:");
     try (Statement statement = connection.createStatement();) {
       ResultSet result;
+      result = statement.executeQuery("SELECT AVG(LENGTH(policy_name)) FROM policy_violation");
+      while (result.next()) {
+        log.info("  policy_name: {}", result.getLong(1));
+      }
       result = statement.executeQuery("SELECT AVG(LENGTH(constraint_facts_json)) FROM policy_violation");
       while (result.next()) {
         log.info("  constraints: {}", result.getLong(1));
@@ -151,6 +155,10 @@ public class DiagnosticsCli
       }
       while (result.next()) {
         log.info("  coordinates: {}", result.getLong(1));
+      }
+      result = statement.executeQuery("SELECT AVG(LENGTH(notifications)) FROM policy_violation");
+      while (result.next()) {
+        log.info("  notifications: {}", result.getLong(1));
       }
     }
   }

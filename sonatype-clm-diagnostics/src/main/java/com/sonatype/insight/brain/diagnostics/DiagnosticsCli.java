@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.diagnostics;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -53,6 +54,10 @@ public class DiagnosticsCli
     String version = new String(Files.readAllBytes(new File(ods + ".ver").toPath()), "UTF-8");
     log.info("Schema version: {}", version);
 
+    if (!params.isCompact()) {
+      logDiskSpeed(h2);
+    }
+
     String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
     try (Connection connection = DriverManager.getConnection(dbUrl, "sa", "");) {
       connection.setAutoCommit(true);
@@ -70,6 +75,24 @@ public class DiagnosticsCli
         logAverageColumnSizes(connection);
         logTableSizes(connection);
       }
+    }
+  }
+
+  private void logDiskSpeed(File dbFile) throws Exception {
+    byte[] buffer = new byte[4 * 1024 * 1024];
+    long length = Math.min(dbFile.length(), 1024 * 1024 * 1024), total = 0;
+    try (RandomAccessFile raf = new RandomAccessFile(dbFile, "r");) {
+      long start = System.nanoTime();
+      while (total < length) {
+        int read = raf.read(buffer);
+        if (read < 0) {
+          break;
+        }
+        total += read;
+      }
+      long stop = System.nanoTime();
+      int mbPerSec = (int) ((double) total / (stop - start) * 1000 * 1000 * 1000 / 1024 / 1024);
+      log.info("Read throughput: {} MB/sec", mbPerSec);
     }
   }
 

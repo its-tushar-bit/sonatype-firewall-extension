@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient;
@@ -67,9 +68,9 @@ public class RestClientFactory
     }
 
     @Override
-    public Map<String, String> getApplications() throws IOException {
+    public ApplicationSummaryList getApplicationSummaryList() throws IOException {
       try {
-        return newConfigurationClient(config).getApplicationIdNameMap();
+        return newConfigurationClient(config).getApplications();
       }
       catch (IOException e) {
         throw handleError(e);

@@ -6,8 +6,12 @@
 package com.sonatype.insight.rm.rest;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.clm.dto.model.application.ApplicationSummary;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -73,6 +77,28 @@ public class RestClientFactoryTest
       assertEquals(hre.getStatusCode(), e.getStatus());
       assertEquals(hre.getMessage(), e.getReason());
     }
+  }
+
+  @Test
+  public void testGetApplicationSummaryList() throws Exception {
+    ApplicationSummary summary = new ApplicationSummary();
+    summary.setId("test-id");
+    summary.setPublicId("test-public-id");
+    summary.setName("test-name");
+
+    List<ApplicationSummary> summaries = new ArrayList<>();
+    summaries.add(summary);
+    ApplicationSummaryList applicationSummaryList = new ApplicationSummaryList();
+    applicationSummaryList.setApplicationSummaries(summaries);
+
+    ConfigurationClient configClient = mock(ConfigurationClient.class);
+    when(configClient.getApplications()).thenReturn(applicationSummaryList);
+
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+
+    assertSame(applicationSummaryList, client.getApplicationSummaryList());
   }
 
 }

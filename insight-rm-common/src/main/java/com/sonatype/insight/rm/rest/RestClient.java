@@ -13,6 +13,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 
 public interface RestClient
@@ -23,7 +24,7 @@ public interface RestClient
 
     void validateConfiguration() throws IOException;
 
-    Map<String, String> getApplications() throws IOException;
+    ApplicationSummaryList getApplicationSummaryList() throws IOException;
 
     ProprietaryConfig getProprietaryConfiguration() throws IOException;
 

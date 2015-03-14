@@ -59,14 +59,14 @@ public class DiagnosticsCli
     }
 
     String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
-    try (Connection connection = DriverManager.getConnection(dbUrl, "sa", "");) {
+    try (Connection connection = DriverManager.getConnection(dbUrl, "sa", "")) {
       connection.setAutoCommit(true);
       if (params.isCompact()) {
         compactDatabase(connection);
         log.info("New database size: {} bytes", h2.length());
       }
       else {
-        try (Statement statement = connection.createStatement();) {
+        try (Statement statement = connection.createStatement()) {
           statement.execute("SET SCHEMA insight_brain_ods;");
         }
         logRowCounts(connection);
@@ -81,7 +81,7 @@ public class DiagnosticsCli
   private void logDiskSpeed(File dbFile) throws Exception {
     byte[] buffer = new byte[4 * 1024 * 1024];
     long length = Math.min(dbFile.length(), 1024 * 1024 * 1024), total = 0;
-    try (RandomAccessFile raf = new RandomAccessFile(dbFile, "r");) {
+    try (RandomAccessFile raf = new RandomAccessFile(dbFile, "r")) {
       long start = System.nanoTime();
       while (total < length) {
         int read = raf.read(buffer);
@@ -101,7 +101,7 @@ public class DiagnosticsCli
     String[] tables = { "organization", "application", "policy", "policy_evaluation", "policy_violation",
         "first_occurrence_policy_violation", "application_component" };
     for (String table : tables) {
-      try (Statement statement = connection.createStatement();) {
+      try (Statement statement = connection.createStatement()) {
         ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table);
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
@@ -115,7 +115,7 @@ public class DiagnosticsCli
     String[] tables = { "organization", "application", "policy", "policy_evaluation", "policy_violation",
         "first_occurrence_policy_violation", "application_component" };
     for (String table : tables) {
-      try (Statement statement = connection.createStatement();) {
+      try (Statement statement = connection.createStatement()) {
         ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')");
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
@@ -125,7 +125,7 @@ public class DiagnosticsCli
   }
 
   private void logOldestEvaluation(Connection connection) throws Exception {
-    try (Statement statement = connection.createStatement();) {
+    try (Statement statement = connection.createStatement()) {
       ResultSet result = statement.executeQuery("SELECT MIN(time) FROM policy_evaluation");
       while (result.next()) {
         log.info("Oldest policy evaluation: {}", result.getDate(1));
@@ -137,7 +137,7 @@ public class DiagnosticsCli
     log.info("Unique coordinates:");
     String[] tables = { "policy_violation", "application_component" };
     for (String table : tables) {
-      try (Statement statement = connection.createStatement();) {
+      try (Statement statement = connection.createStatement()) {
         ResultSet result;
         try {
           result = statement.executeQuery("SELECT COUNT(DISTINCT component_id_coordinates_json) FROM " + table);
@@ -155,7 +155,7 @@ public class DiagnosticsCli
 
   private void logAverageColumnSizes(Connection connection) throws Exception {
     log.info("Average column sizes:");
-    try (Statement statement = connection.createStatement();) {
+    try (Statement statement = connection.createStatement()) {
       ResultSet result;
       result = statement.executeQuery("SELECT AVG(LENGTH(policy_name)) FROM policy_violation");
       while (result.next()) {
@@ -188,7 +188,7 @@ public class DiagnosticsCli
 
   private void compactDatabase(Connection connection) throws Exception {
     log.info("Compacting database...");
-    try (Statement statement = connection.createStatement();) {
+    try (Statement statement = connection.createStatement()) {
       statement.execute("SHUTDOWN COMPACT");
     }
   }

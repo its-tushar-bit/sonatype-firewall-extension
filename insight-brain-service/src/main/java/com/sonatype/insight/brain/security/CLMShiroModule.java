@@ -59,7 +59,6 @@ public class CLMShiroModule
     manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/session/environment", "anon"); // client environment gathering
     manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing if not authenticated
     manager.createChain("/rest/version", "anon"); // product version info
     manager.createChain("/about", "anon"); // about product release static link

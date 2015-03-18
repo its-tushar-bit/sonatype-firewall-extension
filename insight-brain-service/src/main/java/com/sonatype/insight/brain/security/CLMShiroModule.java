@@ -82,7 +82,6 @@ public class CLMShiroModule
     manager.createChain("/rest/application/services/names", clientAuthFilterName);
     manager.createChain("/rest/application/validate/*", clientAuthFilterName);
     manager.createChain("/rest/policy/*/evaluate", clientAuthFilterName);
-    manager.createChain("/rest/ci/validate/*", clientAuthFilterName);
     manager.createChain("/rest/ci/scan/*", clientAuthFilterName);
     manager.createChain("/rest/rm/scan/*", clientAuthFilterName);
     manager.createChain("/rest/config/proprietary", clientAuthFilterName);

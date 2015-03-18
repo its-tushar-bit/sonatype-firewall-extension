@@ -14,26 +14,6 @@ import org.junit.Test;
 public class CIResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-
-  @Test
-  public void testValidate() throws Exception {
-    grantReadPermission(app.getId());
-    testAuthzGet(getServiceURL() + "/validate/" + app.getPublicId());
-  }
-
-  @Test
-  public void testValidate_UnauthorizedAnonymousAllowed() throws Exception {
-    Response response = RestAccess.get(getServiceURL() + "/validate/" + app.getPublicId());
-    assertResponseStatus(200, response);
-  }
-
-  @Test
-  public void testValidate_Unauthorized() throws Exception {
-    Response response = RestAccess.get(getServiceURL() + "/validate/" + app.getPublicId(),
-        "unknownUser", "unknownPassword");
-    assertResponseStatus(401, response);
-  }
-
   @Test
   public void testScan() throws Exception {
     grantWritePermission(app.getId());

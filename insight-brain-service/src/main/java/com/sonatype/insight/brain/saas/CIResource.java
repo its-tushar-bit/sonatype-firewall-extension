@@ -10,7 +10,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -20,7 +19,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -35,23 +33,9 @@ public class CIResource
 
   private final ScanUploader uploader;
 
-  private final ApplicationService applicationService;
-
   @Inject
-  public CIResource(final ScanUploader uploader, final ApplicationService applicationService) {
+  public CIResource(final ScanUploader uploader) {
     this.uploader = uploader;
-    this.applicationService = applicationService;
-  }
-
-  /**
-   * @deprecated Use ApplicationResource.validateApplicationPublicId() instead.
-   */
-  @Deprecated
-  @GET
-  @Path("validate/{applicationPublicId}")
-  @Produces(MediaType.TEXT_PLAIN)
-  public String validateToken(@PathParam("applicationPublicId") final String applicationPublicId) throws Exception {
-    return applicationService.validateApplicationPublicId(applicationPublicId);
   }
 
   @PUT

@@ -7,68 +7,19 @@ package com.sonatype.insight.brain.saas;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import com.ning.http.client.Response;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class CIResourceTest
     extends AbstractResourceTest
 {
-  @Test
-  public void testValidate() throws Exception {
-    final String applicationPublicId = "CIResourceTest_testValidate_AppId";
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getByPublicId(applicationPublicId);
-    Assert.assertNull(application);
-
-    application = tempEntity.newApplicationWithParent(applicationPublicId, "CIResourceTest-Application-Name");
-
-    // Validate that the application was created
-    Response response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
-    assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("OK"));
-    applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    // Validation should not fail if the application exists
-    response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
-    assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("OK"));
-    applicationDAO.getByPublicIdNotNull(applicationPublicId);
-
-    applicationDAO.delete(application);
-
-    // validate service always returns 200, the actual result is in the response body
-    response = AuthedRestAccess.get(getServiceURL() + "/validate/" + applicationPublicId);
-    assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("Invalid application ID " + applicationPublicId + "."));
-  }
-
-  @Test
-  public void testValidate_Unlicensed() throws Exception {
-    uninstallLicense();
-    Response response = AuthedRestAccess.get(getServiceURL() + "/validate/unlicensedapp");
-    assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testValidate_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
-
-    Response response = AuthedRestAccess.get(getServiceURL() + "/validate/unlicensedapp");
-    assertResponseStatus(402, response);
-  }
-
   @Test
   public void testScan() throws Exception {
     final String applicationPublicId = "CIResourceTest_AppId";

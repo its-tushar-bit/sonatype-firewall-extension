@@ -334,12 +334,21 @@ public class SaasClient
         }
       }
 
-      req.setHeader(CLM_CLIENT_USER_AGENT_HEADER, orig.getHeader(HttpHeaders.USER_AGENT));
+      req.setHeader(CLM_CLIENT_USER_AGENT_HEADER, getClientUserAgent(orig));
     }
 
     req.setHeader("X-Brain-Version", version);
     req.setHeader("X-CLM-Token", licenseManager.getLicenseFingerprint());
     req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());
+  }
+
+  private String getClientUserAgent(HttpServletRequest request) {
+    // some clients can't control the actual UA header and use an alternative header
+    String clientUserAgent = request.getHeader(CLM_CLIENT_USER_AGENT_HEADER);
+    if (clientUserAgent == null) {
+      clientUserAgent = request.getHeader(HttpHeaders.USER_AGENT);
+    }
+    return clientUserAgent;
   }
 
   private Response buildResponse(final HttpResponse response) throws IOException {

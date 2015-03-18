@@ -139,6 +139,11 @@ public class SaasClientTest
     client.put(InputStream.class, testPath, new File(SaasClientTest.class.getResource("/config-test.yml").toURI()),
         new String[] {});
     assertNull(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER));
+
+    when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
+    when(request.getHeader(eq(SaasClient.CLM_CLIENT_USER_AGENT_HEADER))).thenReturn(testClmClientUserAgent);
+    client.get(request, InputStream.class, testPath, new String[] {});
+    assertThat(headers.get(SaasClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
   }
 
   @Test

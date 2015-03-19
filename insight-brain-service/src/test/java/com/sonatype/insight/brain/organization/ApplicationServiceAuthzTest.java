@@ -131,20 +131,15 @@ public class ApplicationServiceAuthzTest
 
   @Test
   public void testValidateApplicationPublicId_Authorized() throws Exception {
-    grantReadPermission(app.getId());
+    grantWritePermission(app.getId());
     String value = applicationService.validateApplicationPublicId(app.getPublicId());
     assertThat(value, is("OK"));
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testValidateApplicationPublicId_Unauthorized() throws Exception {
-    login();
-    try {
-      applicationService.validateApplicationPublicId(app.getPublicId());
-      fail("Expected UnauthorizedException");
-    } catch (UnauthorizedException e) {
-      assertThat(e.getMessage(), is("Insufficient permissions"));
-    }
+    grantReadPermission(app.getId());
+    applicationService.validateApplicationPublicId(app.getPublicId());
   }
 
   @Test

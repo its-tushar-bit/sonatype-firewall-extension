@@ -69,7 +69,7 @@ public class ApplicationService
    * @since 1.14.0
    * Allows anonymous access. Only for use by the clients.
    */
-  @Authorize(permission = Permission.READ, anonymousAllowed = true)
+  @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
   protected Application getApplicationByPublicIdAllowAnonymous(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {

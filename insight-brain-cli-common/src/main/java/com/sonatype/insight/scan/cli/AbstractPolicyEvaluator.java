@@ -102,7 +102,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
     if (!(appIds.contains(params.getApplicationId()))) {
       log.error("The application ID {} is invalid.", params.getApplicationId());
-      log.error("The following application IDs are registered on the CLM server: {} ", appIds);
+      log.error("The following application IDs are available on the CLM server: {} ", appIds);
       throw new ExitException(1, String.format("The application ID %s is invalid.", params.getApplicationId()));
     }
   }

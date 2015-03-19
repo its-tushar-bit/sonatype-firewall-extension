@@ -7,18 +7,14 @@ package com.sonatype.insight.brain.client;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.client.ConfigurationClient;
-import com.sonatype.insight.brain.client.PolicyClient;
-import com.sonatype.insight.brain.client.ReportClient;
-import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 /**
@@ -41,8 +37,8 @@ public class RestClientFactory
       this.config = config;
     }
 
-    public Map<String, String> getApplications() throws IOException {
-      return new ConfigurationClient(config).getApplicationIdNameMap();
+    public ApplicationSummaryList getApplications() throws IOException {
+      return new ConfigurationClient(config).getApplications();
     }
 
     public ProprietaryConfig getProprietaryConfiguration() throws IOException {

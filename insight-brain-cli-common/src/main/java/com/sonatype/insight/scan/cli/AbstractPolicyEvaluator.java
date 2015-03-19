@@ -10,9 +10,12 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import java.util.TreeSet;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.application.ApplicationSummary;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -65,9 +68,14 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private void validateServerAccess(P params, RestClient restClient) throws ExitException {
     log.info("Validating application ID {} with CLM server {}...", params.getApplicationId(), params.getServerUrl());
-    Collection<String> appIds;
+    Collection<String> appIds = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
     try {
-      appIds = restClient.getApplications().keySet();
+      ApplicationSummaryList list = restClient.getApplications();
+      if (list != null) {
+        for (ApplicationSummary application : list.getApplicationSummaries()) {
+          appIds.add(application.getPublicId());
+        }
+      }
     }
     catch (Exception e) {
       if (e instanceof HttpResponseException) {

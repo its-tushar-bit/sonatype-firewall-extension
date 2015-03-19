@@ -14,8 +14,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.AuthzFilter;
 
 @Named
 public class ApplicationSummaryService
@@ -30,19 +32,24 @@ public class ApplicationSummaryService
 
   private final ApplicationSummaryAdapter applicationAdapter;
 
-  private final ApplicationService applicationService;
+  private final ApplicationDAO applicationDAO;
 
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
-      final ApplicationService applicationService)
+      final ApplicationDAO applicationDAO)
   {
     this.applicationAdapter = applicationAdapter;
-    this.applicationService = applicationService;
+    this.applicationDAO = applicationDAO;
   }
 
   public ApplicationSummaryList getApplications() {
-    List<Application> apps = new ArrayList<>(applicationService.getApplications());
+    List<Application> apps = new ArrayList<>(getAccessibleApplications());
     Collections.sort(apps, APP_COMPARATOR);
     return applicationAdapter.convert(apps);
+  }
+
+  @AuthzFilter(permission = Permission.WRITE, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  protected List<Application> getAccessibleApplications() {
+    return applicationDAO.getAll();
   }
 }

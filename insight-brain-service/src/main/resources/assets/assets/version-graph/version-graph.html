@@ -23,7 +23,7 @@
 
             <div class='controls'>
               <select id='selectApp' class='input-xlarge' ng-model='selectedApplication'
-                      ng-options='key as value for (key,value) in applications'></select>
+                      ng-options='key as value + " (" + key + ")" for (key,value) in applications'></select>
             </div>
           </div>
         </form>

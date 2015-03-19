@@ -23,11 +23,13 @@ class NexusCIPSpec
     extends AbstractComponentDetailsSpec
 {
   static Application app
+  static String optionLabel
   static Policy violatedPolicy = null
 
   def setupSpec() {
     Organization org = temporaryEntity.newOrganization('NexusCIPSpec')
     app = temporaryEntity.newApplication('NexusCIPSpec', org.id)
+    optionLabel = app.name + " (" + app.publicId + ")";
   }
 
   def 'The application names are available without authentication'() {
@@ -35,7 +37,7 @@ class NexusCIPSpec
       to NexusCIPPage
 
     then: 'Application names are available to choose from'
-      waitFor { options == [app.name] }
+      waitFor { options == [optionLabel] }
       selectAnAppText.displayed
       selectAnAppText.text() == 'Select an application.'
   }
@@ -45,10 +47,10 @@ class NexusCIPSpec
       waitFor { appSelect.displayed }
 
     when: 'Selecting an application from the list'
-      appSelect = app.name
+      appSelect = optionLabel
 
     then: 'Shows the application name in the select'
-      appSelect.text() == app.name
+      appSelect.text() == optionLabel
       defaultText.displayed
       defaultText.text() == SELECT_COMPONENT
 
@@ -79,7 +81,7 @@ class NexusCIPSpec
       to NexusCIPPage
 
     expect: 'The previous choice for application is still there'
-      waitFor { appSelect.text() == app.name }
+      waitFor { appSelect.text() == optionLabel }
 
     when: 'Simulating user selection of a Component with javascript'
       tests.setCoordinates()

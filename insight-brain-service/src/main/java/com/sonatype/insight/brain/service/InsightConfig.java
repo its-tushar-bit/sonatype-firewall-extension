@@ -13,6 +13,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yammer.dropwizard.config.Configuration;
@@ -75,6 +76,14 @@ public class InsightConfig
   @NotNull
   @JsonProperty
   private boolean anonymousClientAccessAllowed = true;
+
+  /**
+   * @since 1.14.0
+   */
+  @NotNull
+  @JsonProperty
+  @Size(max = 128)
+  private String userAgentSuffix = "";
 
   public ProxyConfig getProxyConfig() {
     return proxy;
@@ -216,5 +225,19 @@ public class InsightConfig
    */
   public void setAnonymousClientAccessAllowed(final boolean anonymousClientAccessAllowed) {
     this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
+  }
+
+  /**
+   * @since 1.14.0
+   */
+  public String getUserAgentSuffix() {
+    return userAgentSuffix;
+  }
+
+  /**
+   * @since 1.14.0
+   */
+  public void setUserAgentSuffix(final String userAgentSuffix) {
+    this.userAgentSuffix = userAgentSuffix;
   }
 }

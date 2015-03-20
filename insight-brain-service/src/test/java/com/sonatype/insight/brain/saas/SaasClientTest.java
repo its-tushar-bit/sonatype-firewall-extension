@@ -52,6 +52,7 @@ import static org.mockito.Mockito.when;
 
 public class SaasClientTest
 {
+  private static final String USER_AGENT_SUFFIX = "test suffix";
 
   private Server server;
 
@@ -79,6 +80,7 @@ public class SaasClientTest
 
     config = new InsightConfig();
     config.setSaasAddress("http://localhost:" + server.getConnectors()[0].getLocalPort());
+    config.setUserAgentSuffix(USER_AGENT_SUFFIX);
     initClient();
   }
 
@@ -148,7 +150,7 @@ public class SaasClientTest
 
   @Test
   public void testClmUserAgentOnRequests() throws Exception {
-    String userAgent = UserAgentUtils.getDefaultUserAgent();
+    String userAgent = UserAgentUtils.getDefaultUserAgent() + " " + USER_AGENT_SUFFIX;
     final Set<String> headers = new HashSet<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()

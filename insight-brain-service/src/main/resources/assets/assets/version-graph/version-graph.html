@@ -156,16 +156,19 @@
                 <td>Identification Comment:</td>
                 <td>{{componentDetails.identificationSourceComment}}</td>
               </tr>
-              <tr>
-                <td>
-                  <button class='btn' ng-click='viewDetails()' ng-if='viewDetailsSupported'>View Details</button>
-                </td>
-                <td>
-                  <button class='btn' ng-disabled='!canMigrate()' ng-click='markUpgrade()' ng-if='migrateSupported'>
-                    Migrate
-                  </button>
-                </td>
-              </tr>
+              <tfoot>
+                <!-- Links rather than buttons for JavaFX 7, in tfoot to avoid bold font styling -->
+                <tr>
+                  <td>
+                    <a class='btn' ng-click='viewDetails()' ng-if='viewDetailsSupported' href='#'>View Details</a>
+                  </td>
+                  <td>
+                    <a class='btn' ng-disabled='!canMigrate()' ng-click='markUpgrade()' ng-if='migrateSupported' href='#'>
+                      Migrate
+                    </a>
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

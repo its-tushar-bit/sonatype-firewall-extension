@@ -5,23 +5,27 @@
     text-transform: capitalize;
 }
 #infoPanelArtifactTable tr td:first-child {
-    font-size:11px;
-    color:#333333;
-    text-align: right;
-    vertical-align: top;
-    width: 120px;
+  font-family: Arial;
+  font-size: 12px;
+  color: #333333;
+  text-align: right;
+  vertical-align: top;
+  width: 136px;
 }
 
 #infoPanelArtifactTable tr td:last-child {
-    font-family:Arial;
-    font-size:12px;
-    font-weight:bold;
-    font-style:normal;
-    text-decoration:none;
-    color:#333333;
-    padding-left: 5px;
-    width: 200px;
-    word-wrap: break-word;
+  padding-left: 5px;
+  width: 200px;
+}
+
+#infoPanelArtifactTable tbody tr td:last-child {
+  font-family:Arial;
+  font-size:12px;
+  font-weight:bold;
+  font-style:normal;
+  text-decoration:none;
+  color:#333333;
+  word-wrap: break-word;
 }
 #infoPanelArtifactTable .license {
 	display: inline-block;
@@ -107,7 +111,7 @@
 	background-repeat:no-repeat;
 	width:328px;
 	min-height:50px;
-	padding-left:40px;
+	padding-left:24px;
 }
 
 .cip-box {

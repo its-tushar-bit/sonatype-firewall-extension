@@ -5,8 +5,15 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.List;
+
+import com.yammer.dropwizard.validation.Validator;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 
 public class InsightConfigTest
 {
@@ -47,5 +54,18 @@ public class InsightConfigTest
 
     config.setCdnUrl(null);
     Assert.assertEquals(false, config.isValidCdnUrl());
+  }
+
+  @Test
+  public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
+    Validator validator = new Validator();
+    InsightConfig config = new InsightConfig();
+    config.setUserAgentSuffix("\nInjected-Header: Value");
+    List<String> errors = validator.validate(config);
+    assertThat(errors, hasSize(1));
+    assertThat(errors.get(0), containsString("userAgentSuffix")); // validator messages are localized...
+    config.setUserAgentSuffix("Valid User Agent Suffix (Custom/1.0, Bla)");
+    errors = validator.validate(config);
+    assertThat(errors, hasSize(0));
   }
 }

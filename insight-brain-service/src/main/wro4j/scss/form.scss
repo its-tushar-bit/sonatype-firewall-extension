@@ -256,8 +256,11 @@
 .list-editor-form input[type=text] {
   width: 440px !important;
 }
-.list-editor-form select {
-  width: 459px !important;
+.modal .list-editor-form input[type=text] {
+  width: 449px !important;
+}
+.modal .list-editor-form select {
+  width: 467px !important;
 }
 .list-editor-well {
   padding: 3px;

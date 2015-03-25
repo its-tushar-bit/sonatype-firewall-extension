@@ -1,8 +1,15 @@
-.glyphicons-sonatype:before {
+.glyphicons-sonatype:before, .glyphicons-sonatype-hover:hover:before {
   *zoom: 1;
   font: 14px/28px 'Glyphicons';
   font-style: normal;
   color: #1d1d1b;
+}
+.glyphicons-sonatype-hover:hover:before {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: inherit;
+  font-size: inherit;
+  opacity:0.4;
 }
 
 .glyphicons-sonatype.bin:before {
@@ -31,7 +38,7 @@
   content: "\2709";
 }
 
-.glyphicons-sonatype.bell:before {
+.glyphicons-sonatype.bell:before, .glyphicons-sonatype-hover.bell:hover:before {
   content: "\E334"
 }
 

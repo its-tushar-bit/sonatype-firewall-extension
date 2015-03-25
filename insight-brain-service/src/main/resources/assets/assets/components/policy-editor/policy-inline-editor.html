@@ -75,24 +75,26 @@
         </tr>
         <tr>
           <th>Stage</th>
-          <th style="text-align:center;">Warn</th>
-          <th style="text-align:center;">Fail</th>
-          <th style="border-right: 1px solid #ddd;">Notifications</th>
+          <th>Warn</th>
+          <th>Fail</th>
+          <th>Notifications</th>
         </tr>
       </thead>
       <tr ng-repeat="actionStage in actionStages">
         <td>{{actionStage.name}}</td>
-        <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;" ng-click='toggleWarnAction(actionStage)'
+        <td ng-click='toggleWarnAction(actionStage)'
             class="sonatype-icons-hover" ng-class="{'warn': !showWarningIcon(actionStage)}">
             <i ng-show='showWarningIcon(actionStage)' class='sonatype-icons warn'></i>
         </td>
-        <td style="text-align:center;cursor:pointer;vertical-align:middle;" ng-click='toggleFailureAction(actionStage)'
+        <td ng-click='toggleFailureAction(actionStage)'
             class="sonatype-icons-hover" ng-class="{'fail': !showFailureIcon(actionStage)}">
           <i ng-show='showFailureIcon(actionStage)' class='sonatype-icons fail'></i>
         </td>
-        <td style="width:200px; cursor:pointer;" ng-click='editNotification(actionStage)' title="Edit Notifications">
-          <div style="width:200px;">
-            <i class="glyphicons-sonatype bell small" style="padding-right:5px;"></i>
+        <td ng-click='editNotification(actionStage)'
+            class="glyphicons-sonatype-hover" title="Edit Notifications"
+            ng-class="{'bell': getEmailList(actionStage).length + getRolesList(actionStage).length == 0 }">
+          <div ng-if="getEmailList(actionStage).length + getRolesList(actionStage).length">
+            <i class="glyphicons-sonatype bell" style="padding-right:5px;"></i>
             {{getEmailList(actionStage).length + getRolesList(actionStage).length}}
           </div>
         </td>
@@ -101,10 +103,14 @@
       <div style="padding-bottom: 10px;" ng-if="isPolicyMonitoringLicensed()">
         <h5>Monitoring Notifications</h5>
         <div style="padding-bottom: 5px;">If you have enabled monitoring, who should be notified?</div>
-        <div style="padding-left: 5px; border: 1px solid #ddd; background-color: white; cursor:pointer;"
-             ng-click='editMonitoringNotificationActions()' title="Edit Notifications">
-          <i class="glyphicons-sonatype bell small" style="padding-left:5px;padding-right:5px;"></i>
-          {{getMonitoringEmailList().length + getMonitoringRoleList().length}}
+        <div style="height:26px;padding-left: 5px; border: 1px solid #ddd; background-color: white; cursor:pointer;"
+             ng-click='editMonitoringNotificationActions()'
+             class="glyphicons-sonatype-hover" title="Edit Notifications"
+             ng-class="{'bell': getMonitoringEmailList().length + getMonitoringRoleList().length == 0 }">
+          <div ng-if="getMonitoringEmailList().length + getMonitoringRoleList().length">
+            <i class="glyphicons-sonatype bell" style="vertical-align:text-top;padding-left:5px;padding-right:5px;"></i>
+            {{getMonitoringEmailList().length + getMonitoringRoleList().length}}
+          </div>
         </div>
       </div>
     <div clm-alerts='alerts'></div>

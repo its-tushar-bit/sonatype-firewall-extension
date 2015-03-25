@@ -452,15 +452,24 @@
         validationHelper.revalidateChildren(angular.element('#notification-editor'));
       }
 
+      function setEmailFormPristine() {
+        var emailForm = angular.element('form[name="emailForm"]');
+        if (emailForm && emailForm.length > 0) {
+          emailForm.controller('form').$setPristine();
+        }
+      }
+
       $scope.addEmail = function() {
         $scope.notifications.emails.push($scope.entries.email);
         $scope.entries.email = '';
+        setEmailFormPristine();
       };
 
       $scope.addRole = function() {
         $scope.notifications.roles.push($scope.entries.role);
         $scope.entries.role = null;
         setAvailableRoles();
+        setEmailFormPristine();
       };
 
       $scope.remove = function(item, group) {
@@ -471,6 +480,7 @@
         }
         setAvailableRoles();
         rerunValidators();
+        setEmailFormPristine();
       };
 
       $scope.save = function() {

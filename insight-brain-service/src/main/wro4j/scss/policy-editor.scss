@@ -13,32 +13,32 @@
     </tr>
     <tr>
       <th>Stage</th>
-      <th style="text-align:center;">Warn</th>
-      <th style="text-align:center;">Fail</th>
-      <th style="border-right: 1px solid #ddd;">Roles</th>
+      <th>Warn</th>
+      <th>Fail</th>
+      <th>Notifications</th>
     </tr>
   </thead>
   <tr>
     <td>Build</td>
-    <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;">
+    <td>
       <i class='sonatype-icons warn'></i>
     </td>
-    <td style="text-align:center;cursor:pointer;vertical-align:middle;" class="sonatype-icons-hover fail"></td>
-    <td style="width:200px; cursor:pointer;" title="Edit Notifications">
-      <div style="width:200px;">
-        <i class="glyphicons-sonatype bell small" style="padding-right:5px;"></i>2
+    <td class="sonatype-icons-hover fail"></td>
+    <td title="Edit Notifications">
+      <div>
+        <i class="glyphicons-sonatype bell" style="padding-right:5px;"></i>2
       </div>
     </td>
   </tr>
   <tr>
     <td>Release</td>
-    <td style="height: 22px;text-align:center;cursor:pointer;vertical-align:middle;" class="sonatype-icons-hover warn"></td>
-    <td style="text-align:center;cursor:pointer;vertical-align:middle;">
+    <td class="sonatype-icons-hover warn"></td>
+    <td>
       <i class='sonatype-icons fail'></i>
     </td>
-    <td style="width:200px; cursor:pointer;" title="Edit Notifications">
-      <div style="width:200px;">
-        <i class="glyphicons-sonatype bell small" style="padding-right:5px;"></i>7
+    <td title="Edit Notifications">
+      <div>
+        <i class="glyphicons-sonatype bell" style="padding-right:5px;"></i>7
       </div>
     </td>
   </tr>
@@ -61,12 +61,28 @@ table.policy-actions .action-header {
   color: #444;
   line-height: 16px;
 }
-table.policy-actions>tbody>tr>td:nth-child(2):hover {
-  background-color: #FFF;
+table.policy-actions>thead>tr>th:nth-child(2),
+table.policy-actions>thead>tr>th:nth-child(3),
+table.policy-actions>thead>tr>th:nth-child(4) {
+  text-align:center;
 }
-table.policy-actions>tbody>tr>td:nth-child(3):hover {
-  background-color: #FFF;
+table.policy-actions>tbody>tr>td {
+  vertical-align: middle;
+
+  &:nth-child(2), &:nth-child(3), &:nth-child(4) {
+    height: 30px;
+    text-align:center;
+    cursor:pointer;
+
+    i {
+      vertical-align: middle;
+    }
+
+    &:hover {
+      background-color: #FFF;
+    }
+  }
 }
-table.policy-actions td:last-child {
+table.policy-actions td:last-child, table.policy-actions th:last-child {
   border-right: $gray-border;
 }

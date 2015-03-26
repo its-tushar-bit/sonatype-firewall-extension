@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -111,7 +112,7 @@ public class ApiComponentEvaluationServiceV2
     validateRequest(evaluationRequest);
 
     ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO = createEvaluationTicket(applicationId);
-    executor.submit(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest));
+    executor.submit(new SystemRunnable(new ComponentEvaluationTask(evaluationTicketDTO, evaluationRequest)));
 
     return evaluationTicketDTO;
   }

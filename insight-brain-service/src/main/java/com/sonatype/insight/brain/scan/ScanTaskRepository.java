@@ -19,6 +19,7 @@ import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -60,7 +61,7 @@ public class ScanTaskRepository
     scanTask.init(app, binFile, filename, stage, sendNotifications);
     scanTasks.put(scanTask.getId(), scanTask);
     log.debug("Scheduling scan task {}", scanTask.getId());
-    executor.submit(scanTask);
+    executor.submit(new SystemRunnable(scanTask));
     return scanTask;
   }
 

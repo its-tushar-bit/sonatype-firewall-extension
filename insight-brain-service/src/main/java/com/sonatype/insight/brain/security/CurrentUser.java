@@ -36,6 +36,10 @@ public class CurrentUser
     return ((UserPrincipal) principal).getUsername();
   }
 
+  public boolean isAnonymous() {
+    return SecurityUtils.getSubject().getPrincipal() == null;
+  }
+
   /**
    * Makes a best effort at getting the IP of the user who initiated the given request.
    */

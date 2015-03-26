@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2011-2015 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+public class SystemRunnable
+    implements Runnable
+{
+  private final Runnable wrapped;
+
+  public SystemRunnable(Runnable wrapped) {
+    this.wrapped = wrapped;
+  }
+
+  @Override
+  public void run() {
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+      wrapped.run();
+    }
+  }
+}

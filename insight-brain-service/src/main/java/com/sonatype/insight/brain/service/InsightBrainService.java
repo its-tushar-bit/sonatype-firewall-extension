@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
+import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
@@ -93,7 +95,10 @@ public class InsightBrainService
 
   @Override
   public void run(InsightConfig configuration, Environment environment) throws Exception {
+    MDCUsernameScope.forSystem();
+
     printVersion();
+
     super.run(configuration, environment);
 
     LicenseDataUpdater.setUpdater(getInstance(DefaultLicenseDataUpdater.class));
@@ -217,6 +222,7 @@ public class InsightBrainService
     env.addFilter(getInstance(TraceMethodBlockFilter.class), TraceMethodBlockFilter.URL_PATTERN);
     env.addFilter(getInstance(GuiceShiroFilter.class), "/*");
     env.addFilter(getInstance(IndexCacheControlFilter.class), IndexCacheControlFilter.URL_PATTERN);
+    env.addFilter(getInstance(AuthenticationLoggingFilter.class), AuthenticationLoggingFilter.URL_PATTERN);
 
     log.info("Server base URL: {}", config.getBaseUrl());
     log.debug("HDS address: {}", config.getSaasAddress());

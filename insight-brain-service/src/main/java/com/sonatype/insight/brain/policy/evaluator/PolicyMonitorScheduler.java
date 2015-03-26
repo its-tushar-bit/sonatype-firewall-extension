@@ -16,6 +16,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseListener;
+import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -60,7 +61,7 @@ public class PolicyMonitorScheduler
     }
     DateTime dateTime = determineNextExecutionTime();
     executor = newExecutor();
-    executor.scheduleAtFixedRate(new Runnable()
+    executor.scheduleAtFixedRate(new SystemRunnable(new Runnable()
     {
       @Override
       public void run() {
@@ -69,7 +70,7 @@ public class PolicyMonitorScheduler
           log.info("Next Policy Monitor execution scheduled for {}", determineNextExecutionTime());
         }
       }
-    }, dateTime.getMillis() - System.currentTimeMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
+    }), dateTime.getMillis() - System.currentTimeMillis(), TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
     log.info("First Policy Monitor execution scheduled for {}", dateTime);
   }
 

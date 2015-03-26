@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -59,6 +60,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
@@ -146,6 +148,9 @@ public class TemporaryEntity
 
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
+  private final UserViewedProductNotificationDAO userViewedNotificationMappingDAO =
+      new UserViewedProductNotificationDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -160,6 +165,8 @@ public class TemporaryEntity
 
   private Collection<DashboardFilter> dashboardFilters;
 
+  private Collection<UserViewedProductNotification> userViewedNotificationMappings;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -169,6 +176,7 @@ public class TemporaryEntity
     ldapServers = new ArrayList<>();
     claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
+    userViewedNotificationMappings = new ArrayList<>();
   }
 
   @Override
@@ -211,6 +219,10 @@ public class TemporaryEntity
       if ((claimedComponent = hashComponentIdentifierDAO.getById(claimedComponent.getId())) != null) {
         hashComponentIdentifierDAO.delete(claimedComponent);
       }
+    }
+
+    for (UserViewedProductNotification userViewedNotificationMapping : userViewedNotificationMappings) {
+      userViewedNotificationMappingDAO.delete(userViewedNotificationMapping);
     }
   }
 
@@ -805,5 +817,17 @@ public class TemporaryEntity
         componentIdentifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), proprietary, pathnames);
     appComponentDAO.insert(applicationComponent);
     return applicationComponent;
+  }
+
+  public UserViewedProductNotification newUserViewedNotificationMapping(final String username,
+      final String notificationId)
+  {
+    UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification();
+    userViewedNotificationMapping.setUsername(username);
+    userViewedNotificationMapping.setNotificationId(notificationId);
+
+    userViewedNotificationMappingDAO.insert(userViewedNotificationMapping);
+    userViewedNotificationMappings.add(userViewedNotificationMapping);
+    return userViewedNotificationMapping;
   }
 }

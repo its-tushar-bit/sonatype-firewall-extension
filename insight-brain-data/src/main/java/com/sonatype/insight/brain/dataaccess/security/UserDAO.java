@@ -12,9 +12,11 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -176,6 +178,13 @@ public class UserDAO
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername(tx, entity.getUsername());
     if (dashboardFilter != null) {
       dashboardFilterDAO.delete(tx, dashboardFilter);
+    }
+
+    // Cascade to user viewed notification mapping
+    UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
+    for (UserViewedProductNotification userViewedNotificationMapping :
+        userViewedNotificationMappingDAO.getByUsername(tx, entity.getUsername())) {
+      userViewedNotificationMappingDAO.delete(tx, userViewedNotificationMapping);
     }
 
     super.delete(tx, entity);

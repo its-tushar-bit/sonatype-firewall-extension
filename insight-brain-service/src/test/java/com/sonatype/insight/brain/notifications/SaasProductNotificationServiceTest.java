@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2011-2015 Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.notifications;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.notification.ProductNotification;
+import com.sonatype.clm.dto.model.notification.ProductNotificationList;
+import com.sonatype.clm.dto.model.notification.ProductNotificationType;
+import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import com.google.inject.Binder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class SaasProductNotificationServiceTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private SaasProductNotificationService saasNotificationService;
+
+  @Mock
+  private SaasClient mockSaasClient;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(SaasClient.class).toInstance(mockSaasClient);
+  }
+
+  @Test
+  public void testGetNotifications() throws Exception {
+    SaasProductNotificationService saasProductNotificationServiceSpy = spy(saasNotificationService);
+
+    List<ProductNotification> expectedNotifications = new ArrayList<>();
+    ProductNotification notification = new ProductNotification();
+    notification.setId(UUID.randomUUID().toString());
+    notification.setSummaryText("Summary");
+    notification.setDetailHtml("Details");
+    notification.setType(ProductNotificationType.DEFAULT);
+    notification.setDateCreated(new Date().getTime());
+    expectedNotifications.add(notification);
+    ProductNotificationList expectedProductNotificationList = new ProductNotificationList();
+    expectedProductNotificationList.setProductNotifications(expectedNotifications);
+    when(mockSaasClient.get(eq(ProductNotificationList.class),
+        eq(SaasProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH),
+        anyMapOf(String.class, String.class))).thenReturn(expectedProductNotificationList);
+
+    List<ProductNotification> retrievedNotifications = saasProductNotificationServiceSpy.getNotifications();
+    assertNotifications(retrievedNotifications, expectedNotifications);
+    verify(saasProductNotificationServiceSpy, times(1)).isCacheExpired();
+    verify(saasProductNotificationServiceSpy, times(1)).getNotificationsFromHds();
+
+    reset(saasProductNotificationServiceSpy);
+
+    // Now verify cached values used
+    when(saasProductNotificationServiceSpy.isCacheExpired()).thenReturn(false);
+    retrievedNotifications = saasProductNotificationServiceSpy.getNotifications();
+    assertNotifications(retrievedNotifications, expectedNotifications);
+    verify(saasProductNotificationServiceSpy, times(1)).isCacheExpired();
+    verify(saasProductNotificationServiceSpy, times(0)).getNotificationsFromHds();
+  }
+
+  private void assertNotifications(final List<ProductNotification> retrievedNotifications,
+      final List<ProductNotification> expectedNotifications)
+  {
+    assertThat(retrievedNotifications.size(), is(expectedNotifications.size()));
+    for (int i = 0; i < retrievedNotifications.size(); i++) {
+      assertThat(retrievedNotifications.get(i).getId(), is(expectedNotifications.get(i).getId()));
+      assertThat(retrievedNotifications.get(i).getSummaryText(), is(expectedNotifications.get(i).getSummaryText()));
+      assertThat(retrievedNotifications.get(i).getDetailHtml(), is(expectedNotifications.get(i).getDetailHtml()));
+      assertThat(retrievedNotifications.get(i).getType(), is(expectedNotifications.get(i).getType()));
+      assertThat(retrievedNotifications.get(i).getDateCreated(), is(expectedNotifications.get(i).getDateCreated()));
+    }
+  }
+}

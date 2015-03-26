@@ -10,10 +10,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
@@ -642,6 +644,21 @@ public class UserDAOTest
 
     new UserDAO().delete(user);
     Assert.assertThat(dashboardFilterDAO.getByUsername(user.getUsername()), nullValue());
+  }
+
+  @Test
+  public void testDeleteCascadesToUserViewedNotificationMapping() {
+    User user = createUser("testDeleteCascadesToMembershipMappings");
+    UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification();
+    userViewedNotificationMapping.setUsername(user.getUsername());
+    userViewedNotificationMapping.setNotificationId("dummyNotificationId");
+
+    UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
+    userViewedNotificationMappingDAO.insert(userViewedNotificationMapping);
+
+    new UserDAO().delete(user);
+
+    assertThat(userViewedNotificationMappingDAO.getByUsername(user.getUsername()), is(empty()));
   }
 
   @Test

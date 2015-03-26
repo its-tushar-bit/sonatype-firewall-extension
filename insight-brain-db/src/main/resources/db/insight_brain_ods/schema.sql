@@ -379,3 +379,11 @@ CREATE TABLE last_policy_evaluation (
   CONSTRAINT last_policy_evaluation_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
   CONSTRAINT last_policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
+
+CREATE TABLE user_viewed_product_notification (
+  user_viewed_product_notification_id varchar(50) NOT NULL,
+  username varchar(60) NOT NULL, -- The internal name of the User (CLM User or LDAP user)
+  notification_id varchar(50) NOT NULL,
+  CONSTRAINT notification_viewed_pk PRIMARY KEY (user_viewed_product_notification_id),
+  CONSTRAINT notification_viewed_uk UNIQUE KEY (notification_id, username)
+);

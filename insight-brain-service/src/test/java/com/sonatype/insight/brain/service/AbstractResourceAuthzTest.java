@@ -108,6 +108,15 @@ public abstract class AbstractResourceAuthzTest
     return response;
   }
 
+  // Sometimes, simply being able to log in, is all the authorization you need...
+  protected void testAuthcPost(String url, String body) throws Exception {
+    Response response = RestAccess.post(url, body);
+    assertResponseStatus(401, response);
+
+    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), body);
+    assertResponseStatus(200, response);
+  }
+
   protected Response testAuthzDelete(String url) throws Exception {
     Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(403, response);

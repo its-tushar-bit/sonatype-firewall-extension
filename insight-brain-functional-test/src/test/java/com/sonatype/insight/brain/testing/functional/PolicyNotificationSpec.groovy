@@ -76,25 +76,30 @@ extends BaseSpec {
     when: 'A role is added'
     NotificationsModule notificationModal = notificationModal
     waitFor { notificationModal.roleSelect.displayed }
-    notificationModal.roleSelect.value('0');
+    int roleOptionsSize = notificationModal.roleOptions.size()
+    String firstRole = notificationModal.roleOptions[1].text()
+    notificationModal.roleSelect.value('0')
     notificationModal.addRoleButton.click()
 
     then: 'Role is shown in the list of notified roles'
     waitFor { notificationModal.selectedRoles.size() == 1 }
-    notificationModal.selectedRoles[0].text() == 'Developer'
+    notificationModal.selectedRoles[0].text() == firstRole
 
     and: 'Expect added role to be removed from select list'
-    notificationModal.roleOptions.size() == 2
-    notificationModal.roleOptions[0].text() == '-- Select Role --'
-    notificationModal.roleOptions[1].text() == 'Owner'
+    notificationModal.roleOptions.size() == roleOptionsSize - 1
+    for (int i = 0; i< notificationModal.roleOptions.size(); i++) {
+      notificationModal.roleOptions[i].text() != firstRole
+    }
   }
 
   def 'Disables role selector when there are no available roles'() {
     when: 'Last role is added'
     NotificationsModule notificationModal = notificationModal
     waitFor { notificationModal.roleSelect.displayed }
-    notificationModal.roleSelect.value('0');
-    notificationModal.addRoleButton.click()
+    while (notificationModal.roleOptions.size() > 1) {
+      notificationModal.roleSelect.value('0');
+      notificationModal.addRoleButton.click()
+    }
 
     then: 'Role selector is disabled'
     notificationModal.roleSelect.enabled == false
@@ -108,7 +113,7 @@ extends BaseSpec {
     modal.saveButton.click()
 
     then: 'Policy Editor shows updated notification counts'
-    policyEditor.actions[0].notificationCount == "3"
+    policyEditor.actions[0].notificationCount == "4"
 
     when: 'Policy is saved and refreshed'
     policyEditor.buttons.save.click()
@@ -120,7 +125,7 @@ extends BaseSpec {
     policyEditor.editButton.click()
 
     then: 'Policy editor still shows notification counts'
-    waitFor { policyEditor.actions[0].notificationCount == '3' }
+    waitFor { policyEditor.actions[0].notificationCount == '4' }
 
     when: 'Notifications editor is opened'
     ActionModule firstStage = policyEditor.actions[0]
@@ -130,7 +135,8 @@ extends BaseSpec {
 
     then: 'Notifications show up in modal'
     modal.selectedEmails[0].text() == 'test@sonatype.com'
-    modal.selectedRoles[0].text() == 'Developer'
-    modal.selectedRoles[1].text() == 'Owner'
+    modal.selectedRoles[0].text() == 'Application Evaluator'
+    modal.selectedRoles[1].text() == 'Developer'
+    modal.selectedRoles[2].text() == 'Owner'
   }
 }

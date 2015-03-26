@@ -30,7 +30,7 @@ public class ApplicationSummaryServiceTest
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
-    ApplicationSummaryList applicationListDTO = service.getApplications();
+    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION);
     assertThat(applicationListDTO, notNullValue());
     assertThat(applicationListDTO.getApplicationSummaries(), hasSize(3));
     assertThat(applicationListDTO.getApplicationSummaries().get(0).getId(), is(app0.getId()));

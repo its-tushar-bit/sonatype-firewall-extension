@@ -49,12 +49,15 @@ public abstract class AbstractResourceAuthzTest
   }
 
   protected void grantWritePermission(String contextId) {
-    Role role = tempEntity.newRole(false /* global */, Permission.WRITE);
-    tempEntity.newMembershipMapping(contextId, role.getId(), authorized.getUsername());
+    grantPermission(contextId, Permission.WRITE);
   }
 
   protected void grantReadPermission(String contextId) {
-    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    grantPermission(contextId, Permission.READ);
+  }
+
+  protected void grantPermission(String contextId, Permission permission) {
+    Role role = tempEntity.newRole(false /* global */, permission);
     tempEntity.newMembershipMapping(contextId, role.getId(), authorized.getUsername());
   }
 

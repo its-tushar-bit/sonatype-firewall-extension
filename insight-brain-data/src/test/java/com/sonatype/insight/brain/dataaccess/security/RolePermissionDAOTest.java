@@ -58,12 +58,12 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testOwnerRoleHasReadWritePermission() throws Exception {
+  public void testOwnerRoleHasExpectedPermissions() throws Exception {
     Role role = roleDAO.getByName("Owner");
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms, is(notNullValue()));
-    assertThat(perms, containsInAnyOrder(Permission.WRITE, Permission.READ));
+    assertThat(perms, containsInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION));
   }
 
   @Test

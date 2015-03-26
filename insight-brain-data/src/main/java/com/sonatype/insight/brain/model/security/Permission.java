@@ -26,6 +26,10 @@ public enum Permission
   /**
    * View policy definition and consume policy evaluation results.
    */
-  READ
+  READ,
 
+  /**
+   * Evaluate policies on applications.
+   */
+  EVALUATE_APPLICATION
 }

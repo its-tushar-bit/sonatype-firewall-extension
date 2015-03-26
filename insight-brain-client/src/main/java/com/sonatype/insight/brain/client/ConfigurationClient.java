@@ -78,12 +78,26 @@ public class ConfigurationClient
 
   /**
    * The list of application summaries from the CLM server. This method requires authentication and it returns only the
-   * applications the user is authorized to see.
+   * applications for which the user has READ permission.
+   *
+   * @deprecated To be removed once we update all clients that use this method.
    *
    * @since 1.11.0
    */
+  @Deprecated
   public ApplicationSummaryList getApplications() throws IOException {
     Result result = get(path("rest/integration/applications"));
+    return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
+  }
+
+  /**
+   * The list of application summaries from the CLM server for which the user can submit an application scan for
+   * evaluation.
+   *
+   * @since 1.14.0
+   */
+  public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
+    Result result = get(path("rest/integration/applications?goal=EVALUATE_APPLICATION"));
     return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
   }
 

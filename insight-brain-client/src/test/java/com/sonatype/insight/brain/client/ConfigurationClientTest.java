@@ -19,6 +19,9 @@ import com.sonatype.insight.brain.client.ConfigurationClient.Context;
 import com.sonatype.insight.brain.dataaccess.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
@@ -189,13 +192,7 @@ public class ConfigurationClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
     ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config).getApplications();
-
-    assertThat(applicationSummaryList, notNullValue());
-    assertThat(applicationSummaryList.getApplicationSummaries(), hasSize(1));
-    ApplicationSummary applicationSummary = applicationSummaryList.getApplicationSummaries().get(0);
-    assertThat(applicationSummary.getId(), is(application.getId()));
-    assertThat(applicationSummary.getPublicId(), is(application.getPublicId()));
-    assertThat(applicationSummary.getName(), is(application.getName()));
+    assertApplicationSummaryList(applicationSummaryList, application);
   }
 
   @Test
@@ -212,6 +209,42 @@ public class ConfigurationClientTest
     }
   }
 
+  private void assertApplicationSummaryList(ApplicationSummaryList actual, Application expected) {
+    assertThat(actual, notNullValue());
+    assertThat(actual.getApplicationSummaries(), hasSize(1));
+    ApplicationSummary applicationSummary = actual.getApplicationSummaries().get(0);
+    assertThat(applicationSummary.getId(), is(expected.getId()));
+    assertThat(applicationSummary.getPublicId(), is(expected.getPublicId()));
+    assertThat(applicationSummary.getName(), is(expected.getName()));
+  }
+
+  @Test
+  public void testGetApplicationsForApplicationEvaluation() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("valid-id");
+    User user = tempEntity.newUser("username");
+    Role role = tempEntity.newRole(false /* global */, Permission.EVALUATE_APPLICATION);
+    tempEntity.newMembershipMapping(application.getId(), role.getId(), user.getUsername());
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse(user.getUsername() + ":" + user.getPassword()));
+    ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config)
+        .getApplicationsForApplicationEvaluation();
+    assertApplicationSummaryList(applicationSummaryList, application);
+  }
+
+  @Test
+  public void testGetApplicationsForApplicationEvaluation_BadAuth() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
+    try {
+      new ConfigurationClient(config).getApplicationsForApplicationEvaluation();
+      fail("Request should have failed due to bad authentication");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode(), is(401));
+      assertThat(e.getMessage(), is("Unauthorized"));
+    }
+  }
 
   @Test
   public void testGetLicensedStages_ContextAll() throws Exception {

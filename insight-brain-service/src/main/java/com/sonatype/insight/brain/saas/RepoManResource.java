@@ -41,7 +41,7 @@ public class RepoManResource
   @PUT
   @Path("scan/{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
   public ScanReceipt uploadScan(
       @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
       final String applicationPublicId,

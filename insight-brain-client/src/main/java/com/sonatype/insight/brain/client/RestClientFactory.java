@@ -37,8 +37,8 @@ public class RestClientFactory
       this.config = config;
     }
 
-    public ApplicationSummaryList getApplications() throws IOException {
-      return new ConfigurationClient(config).getApplications();
+    public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
+      return new ConfigurationClient(config).getApplicationsForApplicationEvaluation();
     }
 
     public ProprietaryConfig getProprietaryConfiguration() throws IOException {

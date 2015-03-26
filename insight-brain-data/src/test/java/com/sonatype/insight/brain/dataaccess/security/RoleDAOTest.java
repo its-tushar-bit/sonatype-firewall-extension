@@ -63,11 +63,14 @@ public class RoleDAOTest
   public void testGetApplicationRoles() throws Exception {
     List<Role> roles = roleDAO.getApplicationRoles();
     assertThat(roles, is(notNullValue()));
-    assertThat(roles, hasSize(2));
+    assertThat(roles, hasSize(3));
     Role role = roles.get(0);
-    assertThat(role.getName(), is("Developer"));
+    assertThat(role.getName(), is("Application Evaluator"));
     assertThat(role.isGlobal(), is(false));
     role = roles.get(1);
+    assertThat(role.getName(), is("Developer"));
+    assertThat(role.isGlobal(), is(false));
+    role = roles.get(2);
     assertThat(role.getName(), is("Owner"));
     assertThat(role.isGlobal(), is(false));
   }

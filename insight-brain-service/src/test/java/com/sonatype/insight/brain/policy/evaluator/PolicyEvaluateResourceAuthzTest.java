@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -18,9 +19,9 @@ public class PolicyEvaluateResourceAuthzTest
 {
   @Test
   public void testEvaluate_Authorized() throws Exception {
-    grantWritePermission();
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
-    String scanId = "testEvaluate_UnauthorizedAnonymousAllowed";
+    String scanId = "testEvaluate";
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 

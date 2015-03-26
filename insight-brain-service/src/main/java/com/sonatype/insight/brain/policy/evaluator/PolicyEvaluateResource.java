@@ -56,7 +56,7 @@ public class PolicyEvaluateResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
   public PolicyEvaluationResult evaluate(
       @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
       final String applicationPublicId,

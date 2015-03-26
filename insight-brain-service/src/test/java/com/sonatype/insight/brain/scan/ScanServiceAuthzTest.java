@@ -10,6 +10,7 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -49,7 +50,7 @@ public class ScanServiceAuthzTest
 
   @Test
   public void testScanBinary_Authorized() throws Exception {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     scanService.scanBinary(app.getPublicId(), getBundle("app01.zip"), "app.zip", new Stage(Stage.ID_BUILD), false);
   }
 
@@ -66,7 +67,7 @@ public class ScanServiceAuthzTest
 
   @Test
   public void testGetTicket_Authorized() throws Exception {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     try {
       scanService.getTicket(app.getPublicId(), "any-ticket-id");
     }

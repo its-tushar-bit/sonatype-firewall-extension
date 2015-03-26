@@ -70,7 +70,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     log.info("Validating application ID {} with CLM server {}...", params.getApplicationId(), params.getServerUrl());
     Collection<String> appIds = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
     try {
-      ApplicationSummaryList list = restClient.getApplications();
+      ApplicationSummaryList list = restClient.getApplicationsForApplicationEvaluation();
       if (list != null) {
         for (ApplicationSummary application : list.getApplicationSummaries()) {
           appIds.add(application.getPublicId());

@@ -10,9 +10,13 @@ import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application rest resource for integration with other tools such as Sonar
@@ -23,7 +27,11 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 @Path(ApplicationSummaryResource.SERVICE_PATH)
 public class ApplicationSummaryResource
 {
+  private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryResource.class);
+
   public static final String SERVICE_PATH = "rest/integration/applications";
+
+  static final String GOAL_PARAM = "goal";
 
   private final ApplicationSummaryService applicationSummaryService;
 
@@ -33,11 +41,15 @@ public class ApplicationSummaryResource
   }
 
   /**
-   * Gets all applications the current user has read access to, sorted by (case-insensitive) name.
+   * Gets all applications for which the current user has permissions required for the specified goal, sorted by
+   * (case-insensitive) name.
+   * 
+   * @param goal The goal for getting the list of applications. Defaults to READ permission for backward compatibility.
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationSummaryList getApplications() {
-    return applicationSummaryService.getApplications();
+  public ApplicationSummaryList getApplications(@QueryParam(GOAL_PARAM) Goal goal) {
+    log.debug("Received request to get applications for goal {}", goal);
+    return applicationSummaryService.getApplications(goal);
   }
 }

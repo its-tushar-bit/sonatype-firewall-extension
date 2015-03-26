@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.api.v1.ApiOrganizationResource;
 import com.sonatype.insight.brain.api.v1.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiTagDTO;
-import com.sonatype.insight.brain.api.v1.ApiOrganizationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -113,7 +113,6 @@ public abstract class AbstractApiOrganizationResourceTest
 
     // Note: Org roles are same as app roles in DTO
     final List<Role> orgRoles = roleDAO.getApplicationRoles();
-    assertThat(orgRoles, hasSize(2));
 
     ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
         ApiRoleMemberMappingListDTO.class);
@@ -169,7 +168,6 @@ public abstract class AbstractApiOrganizationResourceTest
 
     // Note: Org roles are same as app roles in DTO
     final List<Role> orgRoles = roleDAO.getApplicationRoles();
-    assertThat(orgRoles, hasSize(2));
 
     ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
         ApiRoleMemberMappingListDTO.class);

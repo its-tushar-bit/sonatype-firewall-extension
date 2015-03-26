@@ -53,7 +53,7 @@ class ScanService
    * Initiates scanning of the provided application bundle and policy evaluation for the specified stage, providing the
    * caller with a ticket that can be used to query for the status/completion of the process.
    */
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
       InputStream is, String filename, Stage stage, boolean sendNotifications) throws IOException
   {
@@ -71,7 +71,7 @@ class ScanService
   /**
    * @throws NotFoundException if there is no ticket for the given ticketId
    */
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ScanTicket getTicket(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId, String ticketId)
       throws NotFoundException
   {

@@ -19,7 +19,7 @@ extends BaseSpec {
   def setupSpec() {
     createUser()
     org = temporaryEntity.newOrganization('AppEvaluationOrg')
-    grantPermissions(getUsername(), org.getId(), Permission.WRITE, Permission.READ)
+    grantPermissions(getUsername(), org.getId(), Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION)
 
     for (i in 1..5) {
       def name = "AppEvaluationApp$i"

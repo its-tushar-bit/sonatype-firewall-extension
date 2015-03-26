@@ -17,6 +17,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.v1.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v1.ApiApplicationResource;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationTagDTO;
@@ -26,7 +27,6 @@ import com.sonatype.insight.brain.api.v1.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v1.service.ApiApplicationTagAdapter;
-import com.sonatype.insight.brain.api.v1.ApiApplicationResource;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -365,7 +365,6 @@ public abstract class AbstractApiApplicationResourceTest
     assertResponseStatus(200, response);
 
     final List<Role> appRoles = roleDAO.getApplicationRoles();
-    assertThat(appRoles, hasSize(2));
 
     ApiRoleMemberMappingListDTO roleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
@@ -419,7 +418,6 @@ public abstract class AbstractApiApplicationResourceTest
     assertResponseStatus(200, response);
 
     final List<Role> appRoles = roleDAO.getApplicationRoles();
-    assertThat(appRoles, hasSize(2));
 
     ApiRoleMemberMappingListDTO roleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
@@ -495,13 +493,13 @@ public abstract class AbstractApiApplicationResourceTest
 
     ApiRoleListDTO appRoles = fromJson(response, ApiRoleListDTO.class);
     assertThat(appRoles, notNullValue());
-    assertThat(appRoles.roles, hasSize(2));
+    assertThat(appRoles.roles, hasSize(3));
 
     Set<String> roleNames = new HashSet<>();
     for (ApiRoleDTO appRole : appRoles.roles) {
       roleNames.add(appRole.name);
     }
-    assertThat(roleNames, hasItems("Owner", "Developer"));
+    assertThat(roleNames, hasItems("Owner", "Developer", "Application Evaluator"));
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {

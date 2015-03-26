@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.report;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -77,7 +78,7 @@ public class ReportResourceAuthzTest
     mockReport(scanId, "/ReportResourceTest/report.zip");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
     String url = getRestUrl(ReportResource.SERVICE_PATH + "/reevaluatePolicy", app.getPublicId(), scanId);
     testAuthzGet(url);

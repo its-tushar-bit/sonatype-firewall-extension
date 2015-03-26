@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
 
@@ -16,7 +17,7 @@ public class CIResourceAuthzTest
 {
   @Test
   public void testScan() throws Exception {
-    grantWritePermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     testAuthzPut(getServiceURL() + "/scan/" + app.getPublicId(), "");
   }
 

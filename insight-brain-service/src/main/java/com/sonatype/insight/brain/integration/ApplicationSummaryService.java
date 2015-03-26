@@ -42,14 +42,37 @@ public class ApplicationSummaryService
     this.applicationDAO = applicationDAO;
   }
 
-  public ApplicationSummaryList getApplications() {
-    List<Application> apps = new ArrayList<>(getAccessibleApplications());
-    Collections.sort(apps, APP_COMPARATOR);
-    return applicationAdapter.convert(apps);
+  public ApplicationSummaryList getApplications(Goal goal) {
+    if (goal == null) {
+      goal = Goal.EVALUATE_COMPONENT;
+    }
+
+    List<Application> result;
+    switch (goal) {
+      case EVALUATE_APPLICATION:
+        result = getApplicationsForEvaluateApplication();
+        break;
+      default:
+        result = getApplicationsForRead();
+        break;
+    }
+    return toApplicationSummaryList(result);
   }
 
-  @AuthzFilter(permission = Permission.WRITE, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
-  protected List<Application> getAccessibleApplications() {
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  protected List<Application> getApplicationsForRead() {
     return applicationDAO.getAll();
+  }
+
+  @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  protected List<Application> getApplicationsForEvaluateApplication() {
+    return applicationDAO.getAll();
+  }
+
+  private ApplicationSummaryList toApplicationSummaryList(List<Application> apps) {
+    // The input list may be immutable
+    apps = new ArrayList<>(apps);
+    Collections.sort(apps, APP_COMPARATOR);
+    return applicationAdapter.convert(apps);
   }
 }

@@ -234,7 +234,7 @@ public class ReportResource
    */
   @GET
   @Path("reevaluatePolicy")
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public Response reevaluatePolicy(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException

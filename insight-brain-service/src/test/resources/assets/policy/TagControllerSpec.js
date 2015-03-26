@@ -220,7 +220,7 @@ describe('TagController.js', function() {
         testScope.tags[0].id)).respond(204);
       scope.deleteTag(testScope.tags[0], { stopPropagation : angular.noop });
       expect(dialogScope.body).toContain('It is in use by the following applications: applicationName, applicationName2.');
-      dialogScope.buttons[1].click();
+      dialogScope.buttons[0].click();
       $httpBackend.flush();
       expect(testScope.tags.length).toEqual(1);
     }));

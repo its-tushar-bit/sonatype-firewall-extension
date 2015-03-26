@@ -50,7 +50,8 @@
           title : 'Delete Policy',
           body : 'Are you sure you want to delete the Policy named "' + policy.name + '"? This action is not reversible.',
           buttons : [{
-            name : 'Cancel'
+            name : 'Cancel',
+            type : 'cancel'
           },{
             name : 'Delete',
             type : 'danger',

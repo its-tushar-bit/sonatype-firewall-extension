@@ -163,7 +163,8 @@
           title: 'Delete Tag',
           buttons: [
             {
-              name: 'Cancel'
+              name: 'Cancel',
+              type : 'cancel'
             }
           ]
         };

@@ -55,8 +55,8 @@
   ]);
 
   licenseGroupModule.controller('LicenseThreatGroupController', [
-    '$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'ownerChange', 'ErrorDialog',
-    function($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, ownerChange, ErrorDialog) {
+    '$scope', '$http', '$q', 'CLMLocations', 'CLMAppLocations', 'licenseStore', 'licenseGroupStore', 'ownerChange', 'ErrorDialog', 'Dialog',
+    function($scope, $http, $q, CLMLocations, CLMAppLocations, licenseStore, licenseGroupStore, ownerChange, ErrorDialog, Dialog) {
       function sortLicense(a, b) {
         if (a.id < b.id) {
           return -1;
@@ -65,10 +65,6 @@
           return 1;
         }
         return 0;
-      }
-
-      function deselect() {
-        $scope.selectedGroup = null;
       }
 
       $scope.allLicenses = null;
@@ -143,27 +139,35 @@
       };
 
       $scope.confirmDeleteLicenseGroup = function(group) {
-        $scope.selectedGroup = angular.extend({ id: null, applicationId: null, name: '', threatLevel: 5 }, group);
-        $scope.deletedEnabled = true;
-        $('#deleteLicenseGroupModal').modal('show');
+        var selectedGroup = angular.extend({ id: null, applicationId: null, name: '', threatLevel: 5 }, group);
+        Dialog.open({
+          title: 'Delete License Threat Group',
+          body : '<p>Are you sure you want to delete the license threat group <strong>' + $('<div/>').text(selectedGroup.name).html() + '</strong>?</p>',
+          buttons: [{
+            name: 'Cancel',
+            type: 'cancel',
+            dismiss: true
+          }, {
+            name: 'Delete',
+            type: 'danger'
+          }]
+        }).result.then(function () {
+          deleteLicenseGroup(selectedGroup);
+        });
       };
 
-      $scope.deleteLicenseGroup = function() {
-        $scope.deletedEnabled = false;
-        $http['delete'](CLMAppLocations.getDeleteLicenseGroupUrl($scope.selectedGroup)).success(function() {
+      function deleteLicenseGroup(selectedGroup) {
+        $http['delete'](CLMAppLocations.getDeleteLicenseGroupUrl(selectedGroup)).success(function() {
           angular.forEach($scope.licenseGroups, function(licenseCandidate, key) {
-            if (licenseCandidate.id === $scope.selectedGroup.id) {
+            if (licenseCandidate.id === selectedGroup.id) {
               $scope.licenseGroups.splice(key, 1);
               return false;
             }
           });
-          deselect();
-          $('#deleteLicenseGroupModal').modal('hide');
         }).error(function() {
-          $('#deleteLicenseGroupModal').modal('hide');
           ErrorDialog.open(arguments);
         });
-      };
+      }
 
       $scope.$on('pageChangeStarted', function(event) {
         var dirty = false;

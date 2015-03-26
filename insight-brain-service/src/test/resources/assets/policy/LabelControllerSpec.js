@@ -178,12 +178,16 @@ describe('LabelController.js', function() {
       expect(scope.$emit).toHaveBeenCalledWith('labels.cancelEditLabel');
     });
 
-    it('Can delete a label', inject(function($httpBackend, CLMAppLocations) {
+    it('Can delete a label', inject(function($httpBackend, CLMAppLocations, Dialog) {
+      var callback;
+      spyOn(Dialog, 'open').andReturn({ result : { then : function () { callback = arguments[0]; } } });
       $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl() + '/' +
           testScope.applicableLabels[0].labels[0].id)).respond(204);
+
       scope.deleteLabel(testScope.applicableLabels[0].labels[0], { stopPropagation : angular.noop });
-      dialogScope.doDeleteLabel();
+      callback();
       $httpBackend.flush();
+
       expect(testScope.applicableLabels[0].labels.length).toEqual(1);
     }));
 

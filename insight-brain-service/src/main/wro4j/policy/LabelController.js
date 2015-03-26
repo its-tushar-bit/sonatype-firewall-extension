@@ -28,8 +28,8 @@
   }
 
   labelModule.controller('LabelController', [
-    '$scope', '$http', '$q', '$modal', 'Dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange', '$state',
-    function($scope, $http, $q, $modal, Dialog, clmAppLocations, messages, clmResource, LabelStore, ownerChange, $state) {
+    '$scope', '$http', '$q', 'Dialog', 'CLMAppLocations', 'Messages', 'CLMResource', 'LabelStore', 'ownerChange', '$state',
+    function($scope, $http, $q, Dialog, clmAppLocations, messages, clmResource, LabelStore, ownerChange, $state) {
       $scope.alerts = [];
 
       function deselect() {
@@ -110,21 +110,18 @@
 
       $scope.deleteLabel = function(label, $event) {
         $event.stopPropagation();
-        $modal.open({
-          scope: $scope,
-          backdrop: 'static',
-          templateUrl: 'delete-label-modal',
-          controller: [
-            '$scope', function(modalScope) {
-              modalScope.label = label;
-              modalScope.cancel = function() {
-                modalScope.$close();
-              };
-              modalScope.doDeleteLabel = function() {
-                modalScope.$close(true);
-              };
-            }
-          ]
+        Dialog.open({
+          title : 'Delete Label',
+          body : 'Are you sure you want to delete the label <strong>' + $('<div/>').text(label.label).html() +
+                 '</strong>? This will delete all associated component labels, if any.',
+          buttons :  [{
+            name: 'Cancel',
+            type: 'cancel',
+            dismiss: true
+          }, {
+            name: 'Delete',
+            type: 'danger'
+          }]
         }).result.then(function () {
           label.$delete().then(function () {
             if ($scope.selectedLabel && label.id === $scope.selectedLabel.id) {

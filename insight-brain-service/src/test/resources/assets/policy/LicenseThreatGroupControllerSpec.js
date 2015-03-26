@@ -86,15 +86,20 @@ describe('LicenseThreatGroup', function() {
       $httpBackend.flush();
       expect(childScope.hide).toHaveBeenCalled();
     }));
-    it('shows the Delete modal', function() {
+
+    it('shows the Delete modal', inject(function($httpBackend, Dialog, CLMAppLocations) {
+      var callback;
+      spyOn(Dialog, 'open').andReturn({ result : { then : function (cb) { callback = cb; } } });
       scope.confirmDeleteLicenseGroup(mockGroup);
-      expect(scope.deletedEnabled).toBeTruthy();
-    });
-    it('deletes a group.', inject(function($httpBackend, CLMAppLocations) {
+      expect(Dialog.open).toHaveBeenCalled();
+
+      var args = Dialog.open.calls[0].args[0];
+      expect(args.title).toEqual('Delete License Threat Group');
+      expect(args.body.indexOf(mockGroup.name) > 0).toBeTruthy();
+
       $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getDeleteLicenseGroupUrl(mockGroup))).respond({});
 
-      scope.confirmDeleteLicenseGroup(mockGroup);
-      scope.deleteLicenseGroup();
+      callback();
 
       $httpBackend.flush();
     }));

@@ -44,18 +44,11 @@ public class LabelResourceAuthzTest
 
   @Test
   public void testGetApplicableContexts() throws Exception {
-    grantReadPermission(app.getId());
+    grantWritePermission(app.getId());
     Label label = tempEntity.newLabel(app.getId());
 
     String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_APPLICATION,
         app.getPublicId(), label.getId());
-    testAuthzGet(url);
-
-    grantReadPermission(org.getId());
-    label = tempEntity.newLabel(org.getId());
-
-    url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_ORGANIZATION,
-        org.getId(), label.getId());
     testAuthzGet(url);
   }
 

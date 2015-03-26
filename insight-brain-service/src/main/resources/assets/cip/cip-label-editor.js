@@ -96,7 +96,7 @@
               selectedOwner: ComponentLabelEditorComponent.applicationId + '$$application'
             };
             $scope.labelOwners = [];
-            $http.get(CLM.path + 'rest/label/' + label.ownerType + '/' + label.ownerId + '/applicable/context/' +
+            $http.get(CLM.path + 'rest/label/application/' + ComponentLabelEditorComponent.applicationId + '/applicable/context/' +
                     label.id).success(function(data) {
               $scope.labelLoading = false;
               function processItem(item) {

@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.label;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -36,10 +38,12 @@ import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +58,13 @@ public class LabelResource
   private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
 
   private LabelDAO labelDAO = new LabelDAO();
+
+  private PermissionService permissionService;
+
+  @Inject
+  public LabelResource(PermissionService permissionService) {
+    this.permissionService = permissionService;
+  }
 
   /**
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
@@ -127,30 +138,33 @@ public class LabelResource
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
   @Path("applicable/context/{labelId}")
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.WRITE)
   public ApplicableContext getApplicableContexts(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("labelId") String labelId)
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String ownerId,
+      @PathParam("labelId") String labelId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     Label label = labelDAO.getByIdNotNull(labelId);
-    if (!internalOwnerId.equals(label.getOwnerId())) {
-      throw new NotFoundException("Cannot find a label with ID " + labelId + " for " + ownerType + " ID " + ownerId);
-    }
 
     ApplicableContext context;
 
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application app = new ApplicationDAO().getByIdNotNull(label.getOwnerId());
-      context = new ApplicableContext(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION);
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    Application application = applicationDAO.getById(label.getOwnerId());
+    if (application != null) {
+      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
-    else {
-      Organization org = new OrganizationDAO().getByIdNotNull(label.getOwnerId());
-      context = new ApplicableContext(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION);
+
+    Organization organization = new OrganizationDAO().getByIdNotNull(label.getOwnerId());
+    if (permissionService.hasPermissions(SecurityUtils.getSubject(), IdUtils.TYPE_ORGANIZATION, organization.getId(),
+        Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
+      context = new ApplicableContext(organization.getId(), organization.getName(), IdUtils.TYPE_ORGANIZATION);
       context.setChildren(new ArrayList<ApplicableContext>());
-      for (Application app : new ApplicationDAO().getByOrganizationId(org.getId())) {
+      for (Application app : applicationDAO.getByOrganizationId(organization.getId())) {
         context.getChildren().add(new ApplicableContext(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION));
       }
+    }
+    else {
+      application = applicationDAO.getByPublicIdNotNull(ownerId);
+      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
     return context;

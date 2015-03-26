@@ -25,8 +25,12 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Assert;
@@ -410,7 +414,7 @@ public class LabelResourceTest
     Label orgLabel = tempEntity.newLabel(org.getId(), "orgLabel");
     Label appLabel = tempEntity.newLabel(app.getId(), "appLabel");
 
-    Response response = AuthedRestAccess.get(getContextsURL(APP, app.getPublicId(), appLabel.getId()));
+    Response response = AuthedRestAccess.get(getContextsURL(app.getPublicId(), appLabel.getId()));
     assertResponseStatus(200, response);
     ApplicableContext context = fromJson(response, ApplicableContext.class);
     Assert.assertThat(context, is(notNullValue()));
@@ -419,7 +423,7 @@ public class LabelResourceTest
     Assert.assertThat(context.getType(), is(APP));
     Assert.assertThat(context.getChildren(), is(nullValue()));
 
-    response = AuthedRestAccess.get(getContextsURL(ORG, org.getId(), orgLabel.getId()));
+    response = AuthedRestAccess.get(getContextsURL(app.getPublicId(), orgLabel.getId()));
     assertResponseStatus(200, response);
     context = fromJson(response, ApplicableContext.class);
     Assert.assertThat(context, is(notNullValue()));
@@ -435,10 +439,21 @@ public class LabelResourceTest
     Assert.assertThat(context.getType(), is(APP));
     Assert.assertThat(context.getChildren(), is(nullValue()));
 
-    response = AuthedRestAccess.get(getContextsURL(ORG, org.getId(), appLabel.getId()));
-    assertResponseStatus(404, response);
-    Assert.assertThat(response.getResponseBody(), is("Cannot find a label with ID " + appLabel.getId()
-        + " for organization ID " + org.getId()));
+    // Test that a user with application WRITE permissions can only see contexts for which they have WRITE permissions
+    // (i.e. the application context).
+    User applicationUser = tempEntity.newUser();
+    Role writeRole = tempEntity.newRole(false /* global */, Permission.WRITE);
+    tempEntity.newMembershipMapping(app.getId(), writeRole.getId(), applicationUser.getUsername());
+
+    response = RestAccess.get(getContextsURL(app.getPublicId(), orgLabel.getId()), applicationUser.getUsername(),
+        applicationUser.getPassword());
+    assertResponseStatus(200, response);
+    context = fromJson(response, ApplicableContext.class);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(app.getPublicId()));
+    Assert.assertThat(context.getName(), is(app.getName()));
+    Assert.assertThat(context.getType(), is(APP));
+    Assert.assertThat(context.getChildren(), is(nullValue()));
   }
 
   private void assertLabel(String ownerId, String label, Color color, Label actual) {
@@ -469,7 +484,7 @@ public class LabelResourceTest
     return getRestBaseUrl() + LabelResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
   }
 
-  private String getContextsURL(final String ownerType, final String ownerId, final String labelId) {
-    return getServiceURL(ownerType, ownerId) + "/applicable/context/" + labelId;
+  private String getContextsURL(final String ownerId, final String labelId) {
+    return getServiceURL(APP, ownerId) + "/applicable/context/" + labelId;
   }
 }

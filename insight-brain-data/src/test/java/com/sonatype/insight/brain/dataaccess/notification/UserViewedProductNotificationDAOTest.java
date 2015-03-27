@@ -53,4 +53,19 @@ public class UserViewedProductNotificationDAOTest
     notificationViewedList = userViewedNotificationMappingDAO.getByUsername(username);
     assertThat(notificationViewedList.size(), is(0));
   }
+
+  @Test
+  public void testGetByUsernameAndNotificationId() {
+    tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID().toString());
+    tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
+    UserViewedProductNotification expected =
+        tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
+
+    UserViewedProductNotification retrieved =
+        userViewedNotificationMappingDAO
+            .getByUsernameAndNotificationId(expected.getUsername(), expected.getNotificationId());
+
+    assertThat(retrieved.getUsername(), is(expected.getUsername()));
+    assertThat(retrieved.getNotificationId(), is(expected.getNotificationId()));
+  }
 }

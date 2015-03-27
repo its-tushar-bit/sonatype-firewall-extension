@@ -58,10 +58,11 @@ public class ProductNotificationService
     }
 
     String username = currentUser.getUsername();
-    UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification();
-    userViewedNotificationMapping.setNotificationId(notificationDTO.id);
-    userViewedNotificationMapping.setUsername(username);
-    notificationViewedDAO.insert(userViewedNotificationMapping);
+    if (notificationViewedDAO.getByUsernameAndNotificationId(username, notificationDTO.id) == null) {
+      UserViewedProductNotification userViewedNotificationMapping = new UserViewedProductNotification(username,
+          notificationDTO.id);
+      notificationViewedDAO.insert(userViewedNotificationMapping);
+    }
     notificationDTO.viewed = true;
     return notificationDTO;
   }

@@ -127,6 +127,21 @@ public class ProductNotificationServiceTest
     assertNotification(returnNotificationListDTO.notifications.get(0), notifications.get(0), true);
   }
 
+  @Test
+  public void testSetNotificationViewed_SameNotificationTwice() {
+    List<ProductNotification> notifications = createNotification(1);
+    when(saasNotificationService.getNotifications()).thenReturn(notifications);
+
+    ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
+        Collections.<String>emptySet());
+    ProductNotificationDTO returnedValue =
+        notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
+    assertNotification(returnedValue, notifications.get(0), true);
+
+    returnedValue = notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
+    assertNotification(returnedValue, notifications.get(0), true);
+  }
+
   private List<ProductNotification> createNotification(final int numberOfNotification) {
     List<ProductNotification> notifications = new ArrayList<>();
     for (int i = 0; i < numberOfNotification; i++) {

@@ -29,6 +29,15 @@ public class UserViewedProductNotificationDAO
     }
   }
 
+  public UserViewedProductNotification getByUsernameAndNotificationId(final String username,
+      final String notificationId)
+  {
+    String sQuery = "SELECT entity FROM UserViewedProductNotification entity WHERE entity.username=?1" + //
+        " AND entity.notificationId=?2";
+
+    return get(sQuery, username, notificationId);
+  }
+
   @Override
   public void update(TransactionContext tx, UserViewedProductNotification entity) {
     throw new UnsupportedOperationException(

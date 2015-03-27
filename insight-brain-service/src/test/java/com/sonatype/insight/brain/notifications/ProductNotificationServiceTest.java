@@ -133,6 +133,7 @@ public class ProductNotificationServiceTest
       ProductNotification notification = new ProductNotification();
       notification.setId(UUID.randomUUID().toString());
       notification.setSummaryText("Test Summary");
+      notification.setSummaryUrl("Test Url");
       notification.setDetailHtml("Test Details");
       notification.setType(ProductNotificationType.DEFAULT);
       notification.setDateCreated(new Date().getTime());
@@ -146,6 +147,7 @@ public class ProductNotificationServiceTest
   {
     assertThat(notificationDTO.id, is(notification.getId()));
     assertThat(notificationDTO.summaryText, is(notification.getSummaryText()));
+    assertThat(notificationDTO.summaryUrl, is(notification.getSummaryUrl()));
     assertThat(notificationDTO.detailHtml, is(notification.getDetailHtml()));
     assertThat(notificationDTO.type, is(notification.getType()));
     assertThat(notificationDTO.dateCreated, is(notification.getDateCreated()));

@@ -19,6 +19,8 @@ public class ProductNotificationDTO
 
   public String summaryText;
 
+  public String summaryUrl;
+
   public String detailHtml;
 
   public long dateCreated;

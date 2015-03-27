@@ -106,6 +106,7 @@ public class ProductNotificationService
       ProductNotificationDTO notificationDTO = new ProductNotificationDTO();
       notificationDTO.id = notification.getId();
       notificationDTO.summaryText = notification.getSummaryText();
+      notificationDTO.summaryUrl = notification.getSummaryUrl();
       notificationDTO.detailHtml = notification.getDetailHtml();
       notificationDTO.type = notification.getType();
       notificationDTO.dateCreated = notification.getDateCreated();

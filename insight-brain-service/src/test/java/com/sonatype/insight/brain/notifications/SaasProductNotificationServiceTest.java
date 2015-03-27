@@ -58,6 +58,7 @@ public class SaasProductNotificationServiceTest
     ProductNotification notification = new ProductNotification();
     notification.setId(UUID.randomUUID().toString());
     notification.setSummaryText("Summary");
+    notification.setSummaryUrl("Summary Url");
     notification.setDetailHtml("Details");
     notification.setType(ProductNotificationType.DEFAULT);
     notification.setDateCreated(new Date().getTime());
@@ -90,6 +91,7 @@ public class SaasProductNotificationServiceTest
     for (int i = 0; i < retrievedNotifications.size(); i++) {
       assertThat(retrievedNotifications.get(i).getId(), is(expectedNotifications.get(i).getId()));
       assertThat(retrievedNotifications.get(i).getSummaryText(), is(expectedNotifications.get(i).getSummaryText()));
+      assertThat(retrievedNotifications.get(i).getSummaryUrl(), is(expectedNotifications.get(i).getSummaryUrl()));
       assertThat(retrievedNotifications.get(i).getDetailHtml(), is(expectedNotifications.get(i).getDetailHtml()));
       assertThat(retrievedNotifications.get(i).getType(), is(expectedNotifications.get(i).getType()));
       assertThat(retrievedNotifications.get(i).getDateCreated(), is(expectedNotifications.get(i).getDateCreated()));

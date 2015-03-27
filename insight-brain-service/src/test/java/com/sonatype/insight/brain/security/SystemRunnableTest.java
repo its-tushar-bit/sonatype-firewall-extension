@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Collections;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -15,10 +14,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.MDC;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.Is.is;
 
 public class SystemRunnableTest
@@ -32,13 +29,13 @@ public class SystemRunnableTest
   @Before
   public void setup() {
     MDC.remove(MDCUsernameScope.USERNAME);
-    assertThat(MDC.getCopyOfContextMap(), anyOf(is(nullValue()), equalTo(Collections.EMPTY_MAP)));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
   }
 
   @After
   public void cleanup() {
     MDC.remove(MDCUsernameScope.USERNAME);
-    assertThat(MDC.getCopyOfContextMap(), anyOf(is(nullValue()), equalTo(Collections.EMPTY_MAP)));
+    assertThat(MDC.get(MDCUsernameScope.USERNAME), is(nullValue()));
   }
 
   @Test

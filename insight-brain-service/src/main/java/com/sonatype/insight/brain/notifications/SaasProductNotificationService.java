@@ -87,15 +87,21 @@ public class SaasProductNotificationService
       readWriteLock.writeLock().lock();
       if (isCacheExpired()) {
         log.info("Updating notification cache from HDS");
-        ProductNotificationList productNotificationList = getNotificationsFromHds();
-        if (productNotificationList != null) {
+        try {
+          ProductNotificationList productNotificationList = saasClient.get(ProductNotificationList.class,
+              HDS_PRODUCT_NOTIFICATION_PATH, Collections.<String, String>emptyMap());
           Set<String> notificationIds = new HashSet<>();
           notifications.clear();
-          for (ProductNotification notification : productNotificationList.getProductNotifications()) {
-            notifications.put(new Date(notification.getDateCreated()), notification);
-            notificationIds.add(notification.getId());
+          if (productNotificationList != null) {
+            for (ProductNotification notification : productNotificationList.getProductNotifications()) {
+              notifications.put(new Date(notification.getDateCreated()), notification);
+              notificationIds.add(notification.getId());
+            }
           }
           deleteOldUserViewedProductNotification(notificationIds);
+        }
+        catch (Exception e) {
+          log.error(e.getMessage(), e);
         }
       }
     }
@@ -110,20 +116,6 @@ public class SaasProductNotificationService
         notificationViewedDAO.delete(notification);
       }
     }
-  }
-
-  @VisibleForTesting
-  protected ProductNotificationList getNotificationsFromHds() {
-    ProductNotificationList productNotificationList = null;
-    try {
-      productNotificationList = saasClient.get(ProductNotificationList.class,
-          HDS_PRODUCT_NOTIFICATION_PATH, Collections.<String, String>emptyMap());
-    }
-    catch (IOException e) {
-      log.error(e.getMessage(), e);
-    }
-
-    return productNotificationList;
   }
 
   @VisibleForTesting

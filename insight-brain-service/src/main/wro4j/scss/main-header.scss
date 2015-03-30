@@ -1,0 +1,170 @@
+$main-header-color: #CCCCCC;
+$notification-panel-border: 1px solid #CACACA;
+$notification-panel-background-color: #FEFEFE;
+$notification-panel-background-color-rgba: rgba(254, 254, 254, 0.2);
+$notification-item-border: 1px solid #F5F5F5;
+$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
+.notification-menu {
+  font-family: Proxima Nova Semibold;
+  float: left;
+  margin-right: 20px;
+  padding-right: 20px;
+  padding-left: 20px;
+  border-right: 1px solid $main-header-color;
+
+  .alert {
+    padding: 8px;
+    margin-bottom: 0px;
+    border-radius: 0px;
+  }
+
+  .dropdown.pull-right > .dropdown-menu-arrow::before {
+    border-bottom: 8px solid rgba(0,0,0, 0.2);
+    border-left: 10px solid transparent;
+    top: -8px;
+    border-right: 10px solid transparent;
+  }
+
+  .count-circle {
+    left: 8px;
+    top: 18px;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+  }
+
+  .count-circle.exclamation {
+    color: #B94A48;
+    background-color: #F2DEDE;
+    font-weight: bold;
+    font-size: 16px;
+    border: solid thin #B94A48;
+  }
+
+  .dropdown {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .dropdown-menu {
+    -webkit-box-shadow: $dropdown-menu-box-shadow;
+    -moz-box-shadow: $dropdown-menu-box-shadow;
+    box-shadow: $dropdown-menu-box-shadow;
+    border: $notification-panel-border;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+  }
+
+  //This is simply for the icon that shows in the header
+  i::before {
+    color: $main-header-color !important;
+  }
+
+  ul:first-child {
+    padding-bottom: 12px;
+  }
+
+  li.disabled {
+    background-color: $notification-panel-background-color !important;
+    border-bottom: $notification-panel-border;
+    font-size: 14px;
+    padding-left: 8px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    color: #575757 !important;
+  }
+
+  .dropdown-contents {
+    height: auto;
+    max-height: 318px;
+    overflow-x: hidden;
+    width: 540px;
+    margin-left: 0px;
+  }
+
+  .dropdown-contents a {
+    color: #070707;
+  }
+
+  .viewed {
+    color: #575757 !important;
+  }
+
+  .dropdown-contents li {
+    background-color: $notification-panel-background-color !important;
+    border-bottom: $notification-item-border;
+    padding: 8px;
+  }
+
+  .dropdown-contents li:hover {
+    background-color: #F5F5F5 !important;
+    cursor: pointer;
+  }
+
+  .dropdown-menu-arrow::before {
+    border-bottom: 8px solid $notification-panel-background-color-rgba;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    top: -8px;
+  }
+
+  .dropdown-menu-arrow::after {
+    border-bottom: 8px solid $notification-panel-background-color;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    top: -8px;
+  }
+
+  .notification-age {
+    display: inline-block;
+    font-size: 20px;
+    padding-right: 8px;
+    line-height: 20px;
+    width: 35px;
+    text-align: right;
+    vertical-align: top;
+  }
+
+  .notification-age-read {
+    font-family: Proxima Nova Regular;
+  }
+
+  .notification-age-label {
+    display: inline-block;
+    font-family: Proxima Nova Regular;
+    width: 30px;
+    padding-right: 16px;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    vertical-align: top;
+    text-align: left;
+  }
+
+  .notification-text {
+    display: inline-block;
+    font-family: Proxima Nova Regular;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    width: 399px;
+    padding-right: 8px;
+    vertical-align: top;
+  }
+
+  .notification-icon {
+    display: inline-block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    vertical-align: top;
+  }
+
+  .notification-icon::before {
+    font-size: 16px;
+    line-height: 16px;
+    padding-right: 8px;
+  }
+}

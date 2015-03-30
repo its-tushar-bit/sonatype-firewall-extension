@@ -75,6 +75,7 @@
     <css>/scss/dashboard.scss</css>
     <css>/scss/threatBars.scss</css>
     <css>/scss/policy-editor.scss</css>
+    <css>/scss/main-header.scss</css>
   </group>
 
   <group name='css'>

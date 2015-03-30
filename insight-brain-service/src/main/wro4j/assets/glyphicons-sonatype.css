@@ -122,3 +122,7 @@
 .glyphicons-sonatype.cup:before {
   content: "\E075";
 }
+
+.glyphicons-sonatype.inbox:before {
+  content: "\e131";
+}

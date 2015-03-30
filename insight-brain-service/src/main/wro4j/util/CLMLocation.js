@@ -173,6 +173,12 @@
         },
         getComponentNameUrl: function(hash) {
           return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
+        },
+        getNotificationUrl: function() {
+          return baseUrl.get() + '/rest/productNotifications';
+        },
+        getNotificationViewedUrl: function() {
+          return baseUrl.get() + '/rest/productNotifications/viewed';
         }
       };
     }

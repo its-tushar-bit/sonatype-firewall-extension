@@ -58,6 +58,47 @@
     };
   }]);
 
+  module.controller('Notifications', ['$scope', '$http', 'CLMLocations', 'timeAgoService', function($scope, $http, CLMLocations, timeAgoService){
+    function processNotifications(notifications) {
+      $scope.unreadNotificationCount = 0;
+      angular.forEach(notifications, function(notification){
+        if (!notification.viewed) {
+          $scope.unreadNotificationCount++;
+        }
+
+        var timeParts = timeAgoService.renderDate(notification.dateCreated);
+
+        notification.age = timeParts.age;
+        notification.ageQualifier = timeParts.qualifier;
+      });
+    }
+
+    $scope.markAsRead = function(notification) {
+      if (!notification.viewed) {
+        $http.post(CLMLocations.getNotificationViewedUrl(), {
+          id: notification.id
+        }).success(function() {
+          notification.viewed = true;
+          $scope.unreadNotificationCount--;
+        });
+      }
+    };
+
+    processNotifications($scope.notifications);
+
+    $scope.loading = true;
+
+    $http.get(CLMLocations.getNotificationUrl()).success(function (data) {
+      $scope.loading = false;
+      $scope.notifications = data.notifications;
+      processNotifications($scope.notifications);
+    }).error(function () {
+      $scope.loading = false;
+      $scope.errorText = 'Unable to load notification content from server';
+      $scope.unreadNotificationCount = '!';
+    });
+  }]);
+
   module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', 'ProductFeatures', 'PermissionService', function($scope, $state, currentUser, ProductFeatures, PermissionService) {
     $scope.$state = $state;
     

@@ -1126,23 +1126,54 @@ var AngularStateUtils = {
     return new ElapsedTimeFilterFactory(rules);
   });
 
+  services.service('timeAgoService', function() {
+    var rules = angular.extend({
+      seconds: 'Just now',
+      diffFunction: function(date) { return new Date().getTime() - date; }
+    }, {
+      year: 'year',
+      month: 'month',
+      day: 'day',
+      hour: 'hour',
+      minute: 'min',
+      seconds: 'Just now',
+      highlightMultiples: true,
+      separator: ' ',
+      suffix: ' ago'
+    });
+
+    return {
+      renderDate: new ElapsedTimeFunctionFactory(rules)
+    };
+  });
+
+  function ElapsedTimeFilterFactory(rules) {
+    return function(date) {
+      var timeAgo = new ElapsedTimeFunctionFactory(rules)(date);
+      return timeAgo.age + rules.separator + timeAgo.qualifier;
+    };
+  }
+
   /**
    * Factory function to share elapsed time calculations while allowing for separate output formats.
    * @param rules
    * @returns {Function}
    * @constructor
    */
-  function ElapsedTimeFilterFactory(rules){
+  function ElapsedTimeFunctionFactory(rules){
     return function(date) {
-      var ago = '',
-        diff,
+      var diff,
         unit,
         val,
         localRules = rules;
 
       if (!date) {
-        return ago;
+        return {
+          age: '',
+          qualifier: ''
+        };
       }
+
       diff = localRules.diffFunction(date);
 
       if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
@@ -1166,7 +1197,10 @@ var AngularStateUtils = {
         unit = localRules.minute;
       }
       else {
-        return localRules.seconds;
+        return {
+          age: '',
+          qualifier: localRules.seconds
+        };
       }
       val = Math.floor(val);
       if (rules.highlightMultiples) {
@@ -1174,7 +1208,11 @@ var AngularStateUtils = {
           unit += 's';
         }
       }
-      return val + localRules.separator + unit + localRules.suffix;
+
+      return {
+        age: val,
+        qualifier: unit + localRules.suffix
+      };
     };
   }
 

@@ -160,6 +160,32 @@
               </ul>
             </div>
           </div>
+          <div id="notification-menu" class="notification-menu" ng-controller="Notifications">
+            <div class="dropdown pull-right">
+              <a id="notification-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#">
+                <i class='glyphicons-sonatype medium inbox'></i>
+                <div ng-if="unreadNotificationCount" class="count-circle pull-right" ng-class="{'exclamation': errorText}">{{unreadNotificationCount}}</div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-arrow">
+                <li class="disabled">Notifications</li>
+                <li><ul class="dropdown-contents">
+                  <li ng-if="loading && !errorText">
+                    <div class="alert alert-info">Loading notification content from server...</div>
+                  </li>
+                  <li ng-if="errorText">
+                    <div class="alert alert-danger">{{errorText}}</div>
+                  </li>
+                  <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="markAsRead(notification)">
+                    <a class="notification-link" ng-class="{'viewed': notification.viewed}" ng-href="{{notification.summaryUrl}}" target="_blank">
+                      <div class="notification-age" ng-class="{'notification-age-read': notification.viewed}">{{notification.age}}</div>
+                      <div class="notification-age-label">{{notification.ageQualifier}}</div>
+                      <div class="notification-text">{{notification.summaryText}}</div>
+                    </a>
+                  </li>
+                </ul></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>

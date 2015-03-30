@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.notification;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -67,5 +69,22 @@ public class UserViewedProductNotificationDAOTest
 
     assertThat(retrieved.getUsername(), is(expected.getUsername()));
     assertThat(retrieved.getNotificationId(), is(expected.getNotificationId()));
+  }
+
+  @Test
+  public void testGetAll() {
+    UserViewedProductNotification expected1 =
+        tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID().toString());
+    UserViewedProductNotification expected2 =
+        tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
+
+    List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO.getAll();
+    assertThat(notificationViewedList.size(), is(2));
+    List<String> userAndNotificationId = new ArrayList<>();
+    for (UserViewedProductNotification notificationViewed : notificationViewedList) {
+      userAndNotificationId.add(notificationViewed.getUsername() + notificationViewed.getNotificationId());
+    }
+    assertThat(userAndNotificationId, containsInAnyOrder(expected1.getUsername()+ expected1.getNotificationId(),
+        expected2.getUsername() + expected2.getNotificationId()));
   }
 }

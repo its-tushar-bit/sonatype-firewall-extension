@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +25,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationList;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.saas.SaasClient;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -57,10 +61,14 @@ public class SaasProductNotificationService
 
   private final SaasClient saasClient;
 
+  private final UserViewedProductNotificationDAO notificationViewedDAO;
+
   @Inject
-  public SaasProductNotificationService(final SaasClient saasClient) {
+  public SaasProductNotificationService(final SaasClient saasClient,
+      final UserViewedProductNotificationDAO notificationViewedDAO) {
     this.saasClient = saasClient;
     this.expirationTime = new Date();
+    this.notificationViewedDAO = notificationViewedDAO;
   }
 
   public List<ProductNotification> getNotifications() {
@@ -81,15 +89,26 @@ public class SaasProductNotificationService
         log.info("Updating notification cache from HDS");
         ProductNotificationList productNotificationList = getNotificationsFromHds();
         if (productNotificationList != null) {
+          Set<String> notificationIds = new HashSet<>();
           notifications.clear();
           for (ProductNotification notification : productNotificationList.getProductNotifications()) {
             notifications.put(new Date(notification.getDateCreated()), notification);
+            notificationIds.add(notification.getId());
           }
+          deleteOldUserViewedProductNotification(notificationIds);
         }
       }
     }
     finally {
       readWriteLock.writeLock().unlock();
+    }
+  }
+
+  private void deleteOldUserViewedProductNotification(final Set<String> notificationIdsToKeep) {
+    for (UserViewedProductNotification notification : notificationViewedDAO.getAll()) {
+      if (!notificationIdsToKeep.contains(notification.getNotificationId())) {
+        notificationViewedDAO.delete(notification);
+      }
     }
   }
 

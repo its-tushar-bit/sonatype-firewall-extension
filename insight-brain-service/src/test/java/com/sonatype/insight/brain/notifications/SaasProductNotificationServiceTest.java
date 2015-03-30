@@ -15,6 +15,8 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationList;
 import com.sonatype.clm.dto.model.notification.ProductNotificationType;
+import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -41,6 +43,9 @@ public class SaasProductNotificationServiceTest
   @Inject
   private SaasProductNotificationService saasNotificationService;
 
+  @Inject
+  private UserViewedProductNotificationDAO notificationViewedDAO;
+
   @Mock
   private SaasClient mockSaasClient;
 
@@ -54,16 +59,8 @@ public class SaasProductNotificationServiceTest
   public void testGetNotifications() throws Exception {
     SaasProductNotificationService saasProductNotificationServiceSpy = spy(saasNotificationService);
 
-    List<ProductNotification> expectedNotifications = new ArrayList<>();
-    ProductNotification notification = new ProductNotification();
-    notification.setId(UUID.randomUUID().toString());
-    notification.setSummaryText("Summary");
-    notification.setSummaryUrl("Summary Url");
-    notification.setDetailHtml("Details");
-    notification.setType(ProductNotificationType.DEFAULT);
-    notification.setDateCreated(new Date().getTime());
-    expectedNotifications.add(notification);
-    ProductNotificationList expectedProductNotificationList = new ProductNotificationList();
+    ProductNotificationList expectedProductNotificationList = createNotifications();
+    List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
     expectedProductNotificationList.setProductNotifications(expectedNotifications);
     when(mockSaasClient.get(eq(ProductNotificationList.class),
         eq(SaasProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH),
@@ -82,6 +79,63 @@ public class SaasProductNotificationServiceTest
     assertNotifications(retrievedNotifications, expectedNotifications);
     verify(saasProductNotificationServiceSpy, times(1)).isCacheExpired();
     verify(saasProductNotificationServiceSpy, times(0)).getNotificationsFromHds();
+  }
+
+  @Test
+  public void testGetNotifications_NotificationsViewedUpdatedWhenCacheUpdated() throws Exception {
+    SaasProductNotificationService saasProductNotificationServiceSpy = spy(saasNotificationService);
+
+    ProductNotificationList expectedProductNotificationList = createNotifications();
+    List<ProductNotification> expectedNotifications = expectedProductNotificationList.getProductNotifications();
+    expectedProductNotificationList.setProductNotifications(expectedNotifications);
+    when(mockSaasClient.get(eq(ProductNotificationList.class),
+        eq(SaasProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH),
+        anyMapOf(String.class, String.class))).thenReturn(expectedProductNotificationList);
+
+    tempEntity.newUserViewedNotificationMapping(USERNAME, expectedNotifications.get(0).getId());
+
+    List<ProductNotification> retrievedNotifications = saasProductNotificationServiceSpy.getNotifications();
+    assertNotifications(retrievedNotifications, expectedNotifications);
+    verify(saasProductNotificationServiceSpy, times(1)).isCacheExpired();
+    verify(saasProductNotificationServiceSpy, times(1)).getNotificationsFromHds();
+
+    List<UserViewedProductNotification> userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
+    assertThat(userViewedProductNotifications.size(), is(1));
+
+    reset(saasProductNotificationServiceSpy);
+
+    // Now verify cached is updated with new values
+    expectedProductNotificationList = createNotifications();
+    expectedNotifications = expectedProductNotificationList.getProductNotifications();
+    expectedProductNotificationList.setProductNotifications(expectedNotifications);
+    when(mockSaasClient.get(eq(ProductNotificationList.class),
+        eq(SaasProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH),
+        anyMapOf(String.class, String.class))).thenReturn(expectedProductNotificationList);
+    when(saasProductNotificationServiceSpy.isCacheExpired()).thenReturn(true);
+
+    retrievedNotifications = saasProductNotificationServiceSpy.getNotifications();
+    assertNotifications(retrievedNotifications, expectedNotifications);
+    verify(saasProductNotificationServiceSpy, times(1)).isCacheExpired();
+    verify(saasProductNotificationServiceSpy, times(1)).getNotificationsFromHds();
+    // This should have been removed as part of the cache update
+    userViewedProductNotifications = notificationViewedDAO.getByUsername(USERNAME);
+    assertThat(userViewedProductNotifications.size(), is(0));
+  }
+
+
+  private ProductNotificationList createNotifications() {
+    List<ProductNotification> expectedNotifications = new ArrayList<>();
+    ProductNotification notification = new ProductNotification();
+    notification.setId(UUID.randomUUID().toString());
+    notification.setSummaryText("Summary");
+    notification.setSummaryUrl("Summary Url");
+    notification.setDetailHtml("Details");
+    notification.setType(ProductNotificationType.DEFAULT);
+    notification.setDateCreated(new Date().getTime());
+    expectedNotifications.add(notification);
+    ProductNotificationList expectedProductNotificationList = new ProductNotificationList();
+    expectedProductNotificationList.setProductNotifications(expectedNotifications);
+    return expectedProductNotificationList;
   }
 
   private void assertNotifications(final List<ProductNotification> retrievedNotifications,

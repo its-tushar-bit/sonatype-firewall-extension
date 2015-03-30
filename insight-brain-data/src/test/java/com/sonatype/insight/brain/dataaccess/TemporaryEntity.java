@@ -222,7 +222,10 @@ public class TemporaryEntity
     }
 
     for (UserViewedProductNotification userViewedNotificationMapping : userViewedNotificationMappings) {
-      userViewedNotificationMappingDAO.delete(userViewedNotificationMapping);
+      if ((userViewedNotificationMapping = userViewedNotificationMappingDAO.getByUsernameAndNotificationId(
+          userViewedNotificationMapping.getUsername(), userViewedNotificationMapping.getNotificationId())) != null) {
+        userViewedNotificationMappingDAO.delete(userViewedNotificationMapping);
+      }
     }
   }
 

@@ -38,6 +38,11 @@ public class UserViewedProductNotificationDAO
     return get(sQuery, username, notificationId);
   }
 
+  public List<UserViewedProductNotification> getAll() {
+    String sQuery = "SELECT entity FROM UserViewedProductNotification entity";
+    return getList(sQuery);
+  }
+
   @Override
   public void update(TransactionContext tx, UserViewedProductNotification entity) {
     throw new UnsupportedOperationException(

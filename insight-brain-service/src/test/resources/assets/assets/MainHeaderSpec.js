@@ -126,14 +126,14 @@ describe('mainHeader', function() {
     }));
 
     it('validate age calculations', inject(function($httpBackend, CLMLocations, $rootScope, $controller) {
-      var oneDayAgo = new Date().getTime() - 24 * 60 * 60 * 1000,
-          oneHourAgo = new Date().getTime() - 60 * 60 * 1000,
-          oneMinuteAgo = new Date().getTime() - 60 * 1000,
-          oneSecondAgo = new Date().getTime() - 1000,
-          tenDaysAgo = new Date().getTime() - 10 * 24 * 60 * 60 * 1000,
-          tenHoursAgo = new Date().getTime() - 10 * 60 * 60 * 1000,
-          tenMinutesAgo = new Date().getTime() - 10 * 60 * 1000,
-          tenSecondsAgo = new Date().getTime() - 10 * 1000;
+      var oneDayAgo = new Date().getTime() - 24 * 60 * 60 * 1000 - 1,
+          oneHourAgo = new Date().getTime() - 60 * 60 * 1000 - 1,
+          oneMinuteAgo = new Date().getTime() - 60 * 1000 - 1,
+          oneSecondAgo = new Date().getTime() - 1000 - 1,
+          tenDaysAgo = new Date().getTime() - 10 * 24 * 60 * 60 * 1000 - 1,
+          tenHoursAgo = new Date().getTime() - 10 * 60 * 60 * 1000 - 1,
+          tenMinutesAgo = new Date().getTime() - 10 * 60 * 1000 - 1,
+          tenSecondsAgo = new Date().getTime() - 10 * 1000 - 1;
 
       $httpBackend.expectGET(CLMLocations.getNotificationUrl()).respond({
         notifications: [{

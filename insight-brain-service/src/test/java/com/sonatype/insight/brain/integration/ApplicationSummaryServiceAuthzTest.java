@@ -25,22 +25,28 @@ public class ApplicationSummaryServiceAuthzTest
   private ApplicationSummaryService service;
 
   @Test
-  public void testGetApplications_Anonymous() {
+  public void testGetApplications_Anonymous_NullGoal() {
     ApplicationSummaryList list = service.getApplications(null /* goal */);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(1));
-
-    list = service.getApplications(Goal.EVALUATE_APPLICATION);
-    assertThat(list, is(notNullValue()));
-    assertThat(list.getApplicationSummaries(), hasSize(1));
-
-    list = service.getApplications(Goal.EVALUATE_COMPONENT);
     assertThat(list, is(notNullValue()));
     assertThat(list.getApplicationSummaries(), hasSize(1));
   }
 
   @Test
-  public void testGetApplications_Authorized_NullPermission() {
+  public void testGetApplications_Anonymous_EVALUATE_APPLICATION() {
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
+    assertThat(list, is(notNullValue()));
+    assertThat(list.getApplicationSummaries(), hasSize(1));
+  }
+
+  @Test
+  public void testGetApplications_Anonymous_EVALUATE_COMPONENT() {
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
+    assertThat(list, is(notNullValue()));
+    assertThat(list.getApplicationSummaries(), hasSize(0));
+  }
+
+  @Test
+  public void testGetApplications_Authorized_NullGoal() {
     grantReadPermission(app.getId());
     ApplicationSummaryList list = service.getApplications(null /* goal */);
     assertThat(list, is(notNullValue()));
@@ -49,7 +55,7 @@ public class ApplicationSummaryServiceAuthzTest
 
   @Test
   public void testGetApplications_Authorized_EVALUATE_COMPONENT() {
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
     assertThat(list, is(notNullValue()));
     assertThat(list.getApplicationSummaries(), hasSize(1));
@@ -64,17 +70,25 @@ public class ApplicationSummaryServiceAuthzTest
   }
 
   @Test
-  public void testGetApplications_Unauthorized() {
+  public void testGetApplications_Unauthorized_NullGoal() {
     login();
     ApplicationSummaryList list = service.getApplications(null /* goal */);
     assertThat(list, is(notNullValue()));
     assertThat(list.getApplicationSummaries(), hasSize(0));
+  }
 
-    list = service.getApplications(Goal.EVALUATE_APPLICATION);
+  @Test
+  public void testGetApplications_Unauthorized_EVALUATE_APPLICATION() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
     assertThat(list, is(notNullValue()));
     assertThat(list.getApplicationSummaries(), hasSize(0));
+  }
 
-    list = service.getApplications(Goal.EVALUATE_COMPONENT);
+  @Test
+  public void testGetApplications_Unauthorized_EVALUATE_COMPONENT() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
     assertThat(list, is(notNullValue()));
     assertThat(list.getApplicationSummaries(), hasSize(0));
   }

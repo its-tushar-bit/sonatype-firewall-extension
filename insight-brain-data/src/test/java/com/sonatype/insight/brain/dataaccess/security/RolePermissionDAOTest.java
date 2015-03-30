@@ -63,7 +63,10 @@ public class RolePermissionDAOTest
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms, is(notNullValue()));
-    assertThat(perms, containsInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION));
+    assertThat(
+        perms,
+        containsInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
+            Permission.EVALUATE_COMPONENT));
   }
 
   @Test
@@ -72,7 +75,7 @@ public class RolePermissionDAOTest
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms, is(notNullValue()));
-    assertThat(perms, containsInAnyOrder(Permission.READ));
+    assertThat(perms, containsInAnyOrder(Permission.READ, Permission.EVALUATE_COMPONENT));
   }
 
   @Test

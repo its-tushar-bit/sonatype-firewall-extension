@@ -44,7 +44,9 @@ public class ApplicationSummaryResource
    * Gets all applications for which the current user has permissions required for the specified goal, sorted by
    * (case-insensitive) name.
    * 
-   * @param goal The goal for getting the list of applications. Defaults to READ permission for backward compatibility.
+   * @param goal The goal for getting the list of applications. Defaults to READ permission for backward compatibility
+   *          (Jenkins/Hudson plugin <= 2.12.1, Bamboo plugin <=1.0.0, Eclipse plugin <= 2.8.0, SonarQube plugin <=
+   *          1.0.2, Nexus plugins <= 3.0.0).
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)

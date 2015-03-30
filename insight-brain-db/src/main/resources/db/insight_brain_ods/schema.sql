@@ -156,6 +156,7 @@ INSERT INTO role (role_id, name, name_lowercase_no_whitespace, description, glob
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, description, global) VALUES ('1cddabf7fdaa47d6833454af10e0a3ef', 'Owner', 'owner', 'Allows to manage policies.', FALSE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, description, global) VALUES ('1da70fae1fd54d6cb7999871ebdb9a36', 'Developer', 'developer', 'Allows to evaluate policies on components.', FALSE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, description, global) VALUES ('2cb71b3468d649789163ea2e212b541e', 'Application Evaluator', 'applicationevaluator', 'Allows to evaluate policies on applications.', FALSE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, description, global) VALUES ('90c7c98683b4471cb77a916744540bcc', 'Component Evaluator', 'componentevaluator', 'Allows to evaluate policies on components.', FALSE);
 
 CREATE TABLE role_permission (
   role_permission_id varchar(50) NOT NULL,
@@ -170,14 +171,19 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c5c83c335e74a138ee1ae8fa7869da7', '1b92fae3e55a411793a091fb821c422d', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1cd867a40a574ce0b46dd22c9d650d1d', '1b92fae3e55a411793a091fb821c422d', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('99fe1291b1274b169ce5c854dd856ad8', '1b92fae3e55a411793a091fb821c422d', 'EVALUATE_APPLICATION');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('d9373880213342f2b4e56e3dea94f50c', '1b92fae3e55a411793a091fb821c422d', 'EVALUATE_COMPONENT');
 -- Owner role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c8d6f420845466bbc1eb5eaf6d4baa2', '1cddabf7fdaa47d6833454af10e0a3ef', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c2587ba144341fd9d937dd36c850f5a', '1cddabf7fdaa47d6833454af10e0a3ef', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('465f023ab44040deb2c5a3b7c3dd3c77', '1cddabf7fdaa47d6833454af10e0a3ef', 'EVALUATE_APPLICATION');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('33fbb19ce93e4420a0ebcd846b0705d5', '1cddabf7fdaa47d6833454af10e0a3ef', 'EVALUATE_COMPONENT');
 -- Developer role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1a6a3ba60818476781a6a2cb9adcb7f6', '1da70fae1fd54d6cb7999871ebdb9a36', 'READ');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('61159b674eb94cdcb00ebdec77a47373', '1da70fae1fd54d6cb7999871ebdb9a36', 'EVALUATE_COMPONENT');
 -- Application Evaluator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('ea7bb57e93e241acbf8da5ebcb5b0074', '2cb71b3468d649789163ea2e212b541e', 'EVALUATE_APPLICATION');
+-- Component Evaluator role
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f198535bdf2549d38417534e38ae3cda', '90c7c98683b4471cb77a916744540bcc', 'EVALUATE_COMPONENT');
 
 CREATE TABLE membership_mapping (
   membership_mapping_id varchar(50) NOT NULL,

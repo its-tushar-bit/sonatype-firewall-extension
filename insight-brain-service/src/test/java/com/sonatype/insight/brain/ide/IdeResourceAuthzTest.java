@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
@@ -16,7 +17,7 @@ public class IdeResourceAuthzTest
   public void testDoScan() throws Exception {
     String hash = "0123456789";
     setSaasResponseForURI("rest/ide/scan/simple/" + hash, "{}", 200);
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     String url = getRestUrl(IdeResource.SERVICE_PATH + "/scan/simple/{appPublicId}/{hash}", app.getPublicId(), hash);
     testAuthzGet(url);
@@ -26,7 +27,7 @@ public class IdeResourceAuthzTest
   public void testPostScan() throws Exception {
     String hash = "0123456789";
     setSaasResponseForURI("rest/ide/scan/enhanced/" + hash, "{}", 200);
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     String url = getRestUrl(IdeResource.SERVICE_PATH + "/scan/enhanced/{appPublicId}/{hash}", app.getPublicId(), hash);
     String json = "{}";

@@ -80,7 +80,7 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Path("{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public NamedComponentDetails getComponentDetails(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -168,7 +168,7 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Path("{applicationPublicId}/list")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentDetailsList getComponentDetailsList(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -207,7 +207,7 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
   @Path("licenses/{applicationPublicId}")
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentLicenses getLicenses(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException

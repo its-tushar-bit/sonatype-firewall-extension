@@ -113,7 +113,7 @@ extends BaseSpec {
     modal.saveButton.click()
 
     then: 'Policy Editor shows updated notification counts'
-    policyEditor.actions[0].notificationCount == "4"
+    policyEditor.actions[0].notificationCount == "5"
 
     when: 'Policy is saved and refreshed'
     policyEditor.buttons.save.click()
@@ -125,7 +125,7 @@ extends BaseSpec {
     policyEditor.editButton.click()
 
     then: 'Policy editor still shows notification counts'
-    waitFor { policyEditor.actions[0].notificationCount == '4' }
+    waitFor { policyEditor.actions[0].notificationCount == '5' }
 
     when: 'Notifications editor is opened'
     ActionModule firstStage = policyEditor.actions[0]
@@ -136,7 +136,8 @@ extends BaseSpec {
     then: 'Notifications show up in modal'
     modal.selectedEmails[0].text() == 'test@sonatype.com'
     modal.selectedRoles[0].text() == 'Application Evaluator'
-    modal.selectedRoles[1].text() == 'Developer'
-    modal.selectedRoles[2].text() == 'Owner'
+    modal.selectedRoles[1].text() == 'Component Evaluator'
+    modal.selectedRoles[2].text() == 'Developer'
+    modal.selectedRoles[3].text() == 'Owner'
   }
 }

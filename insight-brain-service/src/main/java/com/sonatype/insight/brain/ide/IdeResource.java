@@ -105,7 +105,7 @@ public class IdeResource
   @GET
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public IdeMatchedComponent doScan(
       @PathParam("scanType") String scanType,
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,

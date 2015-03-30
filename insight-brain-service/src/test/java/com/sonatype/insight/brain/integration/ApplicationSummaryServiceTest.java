@@ -25,12 +25,21 @@ public class ApplicationSummaryServiceTest
   private ApplicationSummaryService service;
 
   @Test
-  public void testGetApplications_SortedByCaseInsensitiveName() throws Exception {
+  public void testGetApplications_SortedByCaseInsensitiveName_EVALUATE_APPLICATION() throws Exception {
+    testGetApplications_SortedByCaseInsensitiveName(Goal.EVALUATE_APPLICATION);
+  }
+
+  @Test
+  public void testGetApplications_SortedByCaseInsensitiveName_EVALUATE_COMPONENT() throws Exception {
+    testGetApplications_SortedByCaseInsensitiveName(Goal.EVALUATE_COMPONENT);
+  }
+
+  private void testGetApplications_SortedByCaseInsensitiveName(Goal goal) throws Exception {
     Application app1 = tempEntity.newApplicationWithParent("y", "AA");
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION);
+    ApplicationSummaryList applicationListDTO = service.getApplications(goal);
     assertThat(applicationListDTO, notNullValue());
     assertThat(applicationListDTO.getApplicationSummaries(), hasSize(3));
     assertThat(applicationListDTO.getApplicationSummaries().get(0).getId(), is(app0.getId()));

@@ -31,5 +31,10 @@ public enum Permission
   /**
    * Evaluate policies on applications.
    */
-  EVALUATE_APPLICATION
+  EVALUATE_APPLICATION,
+
+  /**
+   * Evaluate policies on components.
+   */
+  EVALUATE_COMPONENT
 }

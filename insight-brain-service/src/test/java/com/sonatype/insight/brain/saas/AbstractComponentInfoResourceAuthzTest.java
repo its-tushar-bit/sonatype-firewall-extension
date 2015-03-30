@@ -10,6 +10,7 @@ import java.util.Collections;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.eclipse.jetty.util.UrlEncoded;
@@ -30,7 +31,7 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     setSaasResponseForURI("rest/" + getTool() + "/componentDetails/list?componentIdentifier="
         + getComponentIdentifierParam(groupId, artifactId, version), toJson(componentDetailsList), 200);
 
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     String url = getRestUrl(getResourcePath() + "/{applicationPublicId}/list", app.getPublicId())
         + "?componentIdentifier=" + getComponentIdentifierParam(groupId, artifactId, version);
@@ -43,7 +44,7 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String artifactId = "aid";
     String version = "1.0";
 
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     String url = getRestUrl(getResourcePath() + "/{applicationPublicId}", app.getPublicId()) + "?componentIdentifier="
         + getComponentIdentifierParam(groupId, artifactId, version);
@@ -56,7 +57,7 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String artifactId = "aid";
     String version = "1.0";
 
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
     String url = getRestUrl(getResourcePath() + "/licenses/{applicationPublicId}", app.getPublicId())
         + "?componentIdentifier=" + getComponentIdentifierParam(groupId, artifactId, version);

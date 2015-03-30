@@ -493,13 +493,13 @@ public abstract class AbstractApiApplicationResourceTest
 
     ApiRoleListDTO appRoles = fromJson(response, ApiRoleListDTO.class);
     assertThat(appRoles, notNullValue());
-    assertThat(appRoles.roles, hasSize(3));
+    assertThat(appRoles.roles, hasSize(4));
 
     Set<String> roleNames = new HashSet<>();
     for (ApiRoleDTO appRole : appRoles.roles) {
       roleNames.add(appRole.name);
     }
-    assertThat(roleNames, hasItems("Owner", "Developer", "Application Evaluator"));
+    assertThat(roleNames, hasItems("Owner", "Developer", "Application Evaluator", "Component Evaluator"));
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {

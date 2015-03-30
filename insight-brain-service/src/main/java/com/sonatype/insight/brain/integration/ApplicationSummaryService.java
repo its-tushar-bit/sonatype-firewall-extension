@@ -44,13 +44,17 @@ public class ApplicationSummaryService
 
   public ApplicationSummaryList getApplications(Goal goal) {
     if (goal == null) {
-      goal = Goal.EVALUATE_COMPONENT;
+      // For back compatibility only
+      goal = Goal.READ;
     }
 
     List<Application> result;
     switch (goal) {
       case EVALUATE_APPLICATION:
         result = getApplicationsForEvaluateApplication();
+        break;
+      case EVALUATE_COMPONENT:
+        result = getApplicationsForEvaluateComponent();
         break;
       default:
         result = getApplicationsForRead();
@@ -64,8 +68,19 @@ public class ApplicationSummaryService
     return applicationDAO.getAll();
   }
 
+  /**
+   * @since 1.14.0
+   */
   @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
   protected List<Application> getApplicationsForEvaluateApplication() {
+    return applicationDAO.getAll();
+  }
+
+  /**
+   * @since 1.14.0
+   */
+  @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getApplicationsForEvaluateComponent() {
     return applicationDAO.getAll();
   }
 

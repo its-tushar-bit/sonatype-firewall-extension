@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.integration;
 
+/**
+ * @since 1.14.0
+ */
 public enum Goal
 {
-  EVALUATE_APPLICATION, EVALUATE_COMPONENT
+  EVALUATE_APPLICATION, EVALUATE_COMPONENT, READ
 }

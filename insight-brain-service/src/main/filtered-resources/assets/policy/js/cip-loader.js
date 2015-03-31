@@ -128,7 +128,7 @@
                   if (!modalDiv) {
                     modalDiv = $(
                             '<div class="modal" id="loginModal">'
-                                    + '<form name="loginForm" class="form-horizontal" style="margin-bottom:0px;">'
+                                    + '<form name="loginForm" class="form-horizontal">'
                                     + '<div class="modal-header">' + '<h3>User Login</h3>' + '</div>'
                                     + '<div class="modal-body">' + '<div class="control-group">'
                                     + '<label class="control-label" for="login-username">Username</label>'

@@ -153,3 +153,7 @@ form.form-horizontal .control-label {
 	border-bottom : 1px solid #e5e5e5;
 	padding : 10px;
 }
+
+.modal > form.form-horizontal {
+  margin-bottom : 0px
+}

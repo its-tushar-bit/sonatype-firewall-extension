@@ -20,7 +20,7 @@ class UserOptionsModule
   static base = { $('#user-menu') }
 
   static content = {
-    displayName(wait: true) { $('.user-name') }
+    displayName(wait: true) { $('#user-name') }
     optionsDropdown(wait: true) { $('#user-menu-dropdown-toggle') }
     logout(wait: true, to: ReportViolationsPage) { $('#logout') }
     openChangePassword(wait: true) { $('#change-password') }

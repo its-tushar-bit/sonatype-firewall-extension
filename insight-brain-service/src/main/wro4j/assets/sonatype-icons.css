@@ -9,22 +9,19 @@
   content: '\e607';
 }
 .sonatype-icon-menu:before {
-  font-size: 28px !important;
+  font-size: 16px !important;
   padding-right: 10px !important;
-  line-height: 28px !important;
+  line-height: 18px !important;
   vertical-align: middle;
 }
 .sonatype-icons.add-organization:before {
   content: '\e60e';
-  font-size: 30px !important;
 }
 .sonatype-icons.add-application:before {
   content: '\e008';
-  line-height: 32px;
 }
 .sonatype-icons.add-policy:before {
   content: '\e60d';
-  font-size: 32px !important;
 }
 .sonatype-icons.add-label:before {
   content: '\e60a';

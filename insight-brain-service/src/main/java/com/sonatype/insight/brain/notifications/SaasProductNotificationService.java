@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.notifications;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

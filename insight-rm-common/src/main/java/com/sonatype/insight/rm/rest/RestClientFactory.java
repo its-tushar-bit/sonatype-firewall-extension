@@ -68,9 +68,9 @@ public class RestClientFactory
     }
 
     @Override
-    public ApplicationSummaryList getApplicationSummaryList() throws IOException {
+    public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
       try {
-        return newConfigurationClient(config).getApplications();
+        return newConfigurationClient(config).getApplicationsForApplicationEvaluation();
       }
       catch (IOException e) {
         throw handleError(e);
@@ -130,16 +130,6 @@ public class RestClientFactory
     public AppSpecificClient(final Configuration config, final String appId) {
       super(config);
       this.appId = appId;
-    }
-
-    @Override
-    public void validateApplicationId() throws IOException {
-      try {
-        newConfigurationClient(config).validateApplicationId(appId);
-      }
-      catch (IOException e) {
-        throw handleError(e);
-      }
     }
 
     @Override

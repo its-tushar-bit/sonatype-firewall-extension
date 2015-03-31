@@ -92,13 +92,13 @@ public class RestClientFactoryTest
     applicationSummaryList.setApplicationSummaries(summaries);
 
     ConfigurationClient configClient = mock(ConfigurationClient.class);
-    when(configClient.getApplications()).thenReturn(applicationSummaryList);
+    when(configClient.getApplicationsForApplicationEvaluation()).thenReturn(applicationSummaryList);
 
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
 
-    assertSame(applicationSummaryList, client.getApplicationSummaryList());
+    assertSame(applicationSummaryList, client.getApplicationsForApplicationEvaluation());
   }
 
 }

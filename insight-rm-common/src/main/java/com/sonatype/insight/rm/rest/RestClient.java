@@ -24,7 +24,7 @@ public interface RestClient
 
     void validateConfiguration() throws IOException;
 
-    ApplicationSummaryList getApplicationSummaryList() throws IOException;
+    ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException;
 
     ProprietaryConfig getProprietaryConfiguration() throws IOException;
 
@@ -39,8 +39,6 @@ public interface RestClient
 
   interface App
   {
-
-    void validateApplicationId() throws IOException;
 
     ScanReceipt uploadScan(File scanFile) throws IOException;
 

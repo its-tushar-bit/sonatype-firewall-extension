@@ -18,7 +18,7 @@
 
   <properties>
     <freemarker.version>2.3.19</freemarker.version>
-    <wro4j.version>1.7.6</wro4j.version>
+    <wro4j.version>1.7.7</wro4j.version>
     <licensing.version>1.4</licensing.version>
     <!-- AngularJS at latest version before 1.2.20 which introduces a bug with setUrl.
          See https://github.com/sonatype/insight-brain/pull/1037. -->

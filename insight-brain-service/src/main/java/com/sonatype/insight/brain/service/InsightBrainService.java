@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.saas.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.CLMShiroAopModule;
 import com.sonatype.insight.brain.security.CLMShiroModule;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -105,7 +105,7 @@ public class InsightBrainService
 
     getInstance(DataMigrator.class).migrate();
 
-    new Thread()
+    new Thread("Startup license data updater")
     {
       @Override
       public void run() {

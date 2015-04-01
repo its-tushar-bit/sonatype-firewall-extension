@@ -49,7 +49,7 @@ public class ApplicationSummaryService
   private List<Application> getApplicationsForGoal(Goal goal) {
     if (goal == null) {
       // For back compatibility only
-      goal = Goal.READ;
+      return getApplicationsForRead();
     }
     switch (goal) {
       case EVALUATE_APPLICATION:

@@ -43,24 +43,22 @@ public class ApplicationSummaryService
   }
 
   public ApplicationSummaryList getApplications(Goal goal) {
+    return toApplicationSummaryList(getApplicationsForGoal(goal));
+  }
+
+  private List<Application> getApplicationsForGoal(Goal goal) {
     if (goal == null) {
       // For back compatibility only
       goal = Goal.READ;
     }
-
-    List<Application> result;
     switch (goal) {
       case EVALUATE_APPLICATION:
-        result = getApplicationsForEvaluateApplication();
-        break;
+        return getApplicationsForEvaluateApplication();
       case EVALUATE_COMPONENT:
-        result = getApplicationsForEvaluateComponent();
-        break;
+        return getApplicationsForEvaluateComponent();
       default:
-        result = getApplicationsForRead();
-        break;
+        return getApplicationsForRead();
     }
-    return toApplicationSummaryList(result);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)

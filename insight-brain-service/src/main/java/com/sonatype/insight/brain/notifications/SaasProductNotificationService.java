@@ -12,8 +12,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -47,14 +45,7 @@ public class SaasProductNotificationService
 
   private final Date expirationTime;
 
-  // Provide comparator to sort newest first
-  private final SortedMap<Date, ProductNotification> notifications = new TreeMap<>(new Comparator<Date>()
-  {
-    @Override
-    public int compare(final Date o1, final Date o2) {
-      return o2.compareTo(o1);
-    }
-  });
+  private final List<ProductNotification> notifications = new ArrayList<>();
 
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
@@ -74,7 +65,7 @@ public class SaasProductNotificationService
     updateCacheIfExpired();
     try {
       readWriteLock.readLock().lock();
-      return new ArrayList<>(notifications.values());
+      return new ArrayList<>(notifications);
     }
     finally {
       readWriteLock.readLock().unlock();
@@ -93,9 +84,16 @@ public class SaasProductNotificationService
           notifications.clear();
           if (productNotificationList != null) {
             for (ProductNotification notification : productNotificationList.getProductNotifications()) {
-              notifications.put(new Date(notification.getDateCreated()), notification);
+              notifications.add(notification);
               notificationIds.add(notification.getId());
             }
+            Collections.sort(notifications, new Comparator<ProductNotification>()
+            {
+              @Override
+              public int compare(final ProductNotification o1, final ProductNotification o2) {
+                return Long.compare(o2.getDateCreated(), o1.getDateCreated());
+              }
+            });
           }
           deleteOldUserViewedProductNotification(notificationIds);
         }

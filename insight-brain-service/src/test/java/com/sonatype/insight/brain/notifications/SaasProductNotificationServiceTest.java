@@ -168,14 +168,24 @@ public class SaasProductNotificationServiceTest
 
   private ProductNotificationList createNotifications() {
     List<ProductNotification> expectedNotifications = new ArrayList<>();
+    long dateCreated = new Date().getTime();
     ProductNotification notification = new ProductNotification();
     notification.setId(UUID.randomUUID().toString());
-    notification.setSummaryText("Summary");
-    notification.setSummaryUrl("Summary Url");
-    notification.setDetailHtml("Details");
+    notification.setSummaryText("Summary1");
+    notification.setSummaryUrl("Summary Url1");
+    notification.setDetailHtml("Details1");
     notification.setType(ProductNotificationType.DEFAULT);
-    notification.setDateCreated(new Date().getTime());
+    notification.setDateCreated(dateCreated);
     expectedNotifications.add(notification);
+
+    notification.setId(UUID.randomUUID().toString());
+    notification.setSummaryText("Summary2");
+    notification.setSummaryUrl("Summary Url2");
+    notification.setDetailHtml("Details2");
+    notification.setType(ProductNotificationType.DEFAULT);
+    notification.setDateCreated(dateCreated);
+    expectedNotifications.add(notification);
+
     ProductNotificationList expectedProductNotificationList = new ProductNotificationList();
     expectedProductNotificationList.setProductNotifications(expectedNotifications);
     return expectedProductNotificationList;

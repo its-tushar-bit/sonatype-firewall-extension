@@ -101,6 +101,17 @@ public class ConfigurationClient
     return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
   }
 
+  /**
+   * Gets the list of application summaries from the CLM server for which the user can retrieve a summary of a recent
+   * policy evaluation (see {@link PolicyClient#getPolicyEvaluationSummary(Stage)}).
+   * 
+   * @since 1.14.0
+   */
+  public ApplicationSummaryList getApplicationsForEvaluationSummary() throws IOException {
+    Result result = get(path("rest/integration/applications?goal=SUMMARIZE_EVALUATION"));
+    return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
+  }
+
   public void validateConfiguration() throws IOException {
     final Result result = get(path("rest/config/proprietary"));
     final String text = result.text();

@@ -70,6 +70,14 @@ public class ApplicationSummaryServiceAuthzTest
   }
 
   @Test
+  public void testGetApplications_Authorized_SUMMARIZE_EVALUATION() {
+    grantPermission(app.getId(), Permission.READ);
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
+    assertThat(list, is(notNullValue()));
+    assertThat(list.getApplicationSummaries(), hasSize(1));
+  }
+
+  @Test
   public void testGetApplications_Unauthorized_NullGoal() {
     login();
     ApplicationSummaryList list = service.getApplications(null /* goal */);
@@ -89,6 +97,14 @@ public class ApplicationSummaryServiceAuthzTest
   public void testGetApplications_Unauthorized_EVALUATE_COMPONENT() {
     login();
     ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
+    assertThat(list, is(notNullValue()));
+    assertThat(list.getApplicationSummaries(), hasSize(0));
+  }
+
+  @Test
+  public void testGetApplications_Unauthorized_SUMMARIZE_EVALUATION() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
     assertThat(list, is(notNullValue()));
     assertThat(list.getApplicationSummaries(), hasSize(0));
   }

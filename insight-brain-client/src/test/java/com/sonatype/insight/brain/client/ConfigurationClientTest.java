@@ -247,6 +247,20 @@ public class ConfigurationClientTest
   }
 
   @Test
+  public void testGetApplicationsForEvaluationSummary() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("valid-id");
+    User user = tempEntity.newUser("username");
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(application.getId(), role.getId(), user.getUsername());
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse(user.getUsername() + ":" + user.getPassword()));
+    ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config)
+        .getApplicationsForEvaluationSummary();
+    assertApplicationSummaryList(applicationSummaryList, application);
+  }
+
+  @Test
   public void testGetLicensedStages_ContextAll() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);

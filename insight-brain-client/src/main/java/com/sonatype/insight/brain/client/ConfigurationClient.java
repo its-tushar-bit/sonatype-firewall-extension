@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
@@ -46,19 +45,6 @@ public class ConfigurationClient
   }
 
   /**
-   * @deprecated as of version 1.11.0 use {@link #getApplications()} instead. This method does not require
-   *             authentication (while {@link #getApplications()} does).
-   */
-  @Deprecated
-  @SuppressWarnings("unchecked")
-  public Map<String, String> getApplicationIdNameMap() throws IOException {
-    Result result = get(path("rest/application/services/names"));
-    Map<String, String> applicationsById = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-    applicationsById.putAll(JsonUtils.parse(result.text(), Map.class));
-    return applicationsById;
-  }
-
-  /**
    * @since 1.13
    */
   public List<Stage> getLicensedStages(final Context context) throws IOException {
@@ -74,20 +60,6 @@ public class ConfigurationClient
     }
     Stage[] stageArray = JsonUtils.parse(jsonResult, Stage[].class);
     return Arrays.asList(stageArray);
-  }
-
-  /**
-   * The list of application summaries from the CLM server. This method requires authentication and it returns only the
-   * applications for which the user has READ permission.
-   *
-   * @deprecated To be removed once we update all clients that use this method.
-   *
-   * @since 1.11.0
-   */
-  @Deprecated
-  public ApplicationSummaryList getApplications() throws IOException {
-    Result result = get(path("rest/integration/applications"));
-    return JsonUtils.parse(result.text(), ApplicationSummaryList.class);
   }
 
   /**

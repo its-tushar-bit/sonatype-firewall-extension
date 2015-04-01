@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
@@ -168,44 +167,6 @@ public class ConfigurationClientTest
     }
     catch (IOException e) {
       Assert.assertEquals("Invalid application ID unknown-id.", e.getMessage());
-    }
-  }
-
-  @Test
-  public void testGetApplicationIdNameMap() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("valid-id");
-
-    @SuppressWarnings("deprecation")
-    Map<String, String> map = new ConfigurationClient(getCLMServer().getClientConfiguration())
-        .getApplicationIdNameMap();
-
-    assertEquals(1, map.size());
-    assertTrue(map.containsKey("valid-id"));
-    assertEquals(app.getName(), map.get("valid-id"));
-    assertEquals(app.getName(), map.get("VALID-ID"));
-  }
-
-  @Test
-  public void testGetApplications() throws Exception {
-    Application application = tempEntity.newApplicationWithParent("valid-id");
-
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
-    ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config).getApplications();
-    assertApplicationSummaryList(applicationSummaryList, application);
-  }
-
-  @Test
-  public void testGetApplications_BadAuth() throws Exception {
-    Configuration config = getCLMServer().getClientConfiguration();
-    config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
-    try {
-      new ConfigurationClient(config).getApplications();
-      fail("Request should have failed due to bad authentication");
-    }
-    catch (HttpResponseException e) {
-      assertThat(e.getStatusCode(), is(401));
-      assertThat(e.getMessage(), is("Unauthorized"));
     }
   }
 

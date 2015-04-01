@@ -107,24 +107,26 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationNames_Authorized() throws Exception {
-    grantReadPermission(app.getId());
-    Map<String, String> applicationNames = applicationService.getApplicationNames();
+  public void testGetApplicationNamesForEvaluateComponent_Authorized() throws Exception {
+    tempEntity.newApplication(app.getOrganizationId());
+
+    grantEvaluateComponentPermission(app.getId());
+    Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
     assertThat(applicationNames.size(), is(1));
     assertThat(applicationNames.get(app.getPublicId()), is(app.getName()));
   }
 
   @Test
-  public void testGetApplicationNames_Unauthorized() throws Exception {
+  public void testGetApplicationNamesForEvaluateComponent_Unauthorized() throws Exception {
     login();
-    Map<String, String> applicationNames = applicationService.getApplicationNames();
+    Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
     assertThat(applicationNames.size(), is(0));
   }
 
   @Test
-  public void testGetApplicationNames_UnauthenticatedAnonymousAllowed() throws Exception {
+  public void testGetApplicationNamesForEvaluateComponent_UnauthenticatedAnonymousAllowed() throws Exception {
     // This will return unfiltered as anonymous is on for this resource
-    Map<String, String> applicationNames = applicationService.getApplicationNames();
+    Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
     assertThat(applicationNames.size(), is(1));
     assertThat(applicationNames.get(app.getPublicId()), is(app.getName()));
   }

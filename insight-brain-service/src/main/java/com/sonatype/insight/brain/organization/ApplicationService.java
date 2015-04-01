@@ -67,6 +67,15 @@ public class ApplicationService
 
   /**
    * @since 1.14.0
+   *        Allows anonymous access. Only for use by the clients that evaluate components.
+   */
+  @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
+  protected List<Application> getApplicationsForEvaluateComponent() {
+    return applicationDAO.getAll();
+  }
+
+  /**
+   * @since 1.14.0
    * Allows anonymous access. Only for use by the clients.
    */
   @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
@@ -76,8 +85,8 @@ public class ApplicationService
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
-  public Map<String, String> getApplicationNames() {
-    List<Application> applications = getApplicationsAllowAnonymous();
+  public Map<String, String> getApplicationNamesForEvaluateComponent() {
+    List<Application> applications = getApplicationsForEvaluateComponent();
     Map<String, String> applicationPublicIDNamePairs = new LinkedHashMap<>();
 
     for (Application application : applications) {
@@ -86,15 +95,6 @@ public class ApplicationService
     }
 
     return applicationPublicIDNamePairs;
-  }
-
-  /**
-   * @since 1.14.0
-   * Allows anonymous access. Only for use by the clients.
-   */
-  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION, anonymousAllowed = true)
-  protected List<Application> getApplicationsAllowAnonymous() {
-    return applicationDAO.getAll();
   }
 
   @Authorize(permission = Permission.READ)

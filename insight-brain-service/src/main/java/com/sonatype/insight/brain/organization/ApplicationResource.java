@@ -134,8 +134,8 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_NAMES)
   @Produces(MediaType.APPLICATION_JSON)
-  public Map<String, String> getApplicationNames() {
-    return applicationService.getApplicationNames();
+  public Map<String, String> getApplicationNamesForEvaluateComponent() {
+    return applicationService.getApplicationNamesForEvaluateComponent();
   }
 
   /**

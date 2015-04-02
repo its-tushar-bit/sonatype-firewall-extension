@@ -42,6 +42,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
 @Named
 public class DashboardFilterService
 {
@@ -155,6 +157,8 @@ public class DashboardFilterService
     FilterSummaryDTO summary = new FilterSummaryDTO();
 
     Collection<Application> readableApplications = applicationService.getApplications();
+    log.debug("getFilterSummary: Found {} readable applications in {} ms.", readableApplications.size(),
+        System.currentTimeMillis() - start);
     summary.totalApplications = readableApplications.size();
 
     Collection<Application> matchedApplications = readableApplications;
@@ -173,6 +177,8 @@ public class DashboardFilterService
         matchedApplications = appsById.values();
       }
     }
+    log.debug("getFilterSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
+        matchedApplications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
     summary.matchedApplications = matchedApplications.size();
 
     Collection<StageType> allStageTypes = dashboardUtils.getStageTypes(null);

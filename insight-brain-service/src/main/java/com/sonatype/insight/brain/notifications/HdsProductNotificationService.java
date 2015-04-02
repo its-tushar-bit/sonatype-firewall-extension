@@ -35,9 +35,9 @@ import org.slf4j.LoggerFactory;
  */
 @Singleton
 @Named
-public class SaasProductNotificationService
+public class HdsProductNotificationService
 {
-  private static final Logger log = LoggerFactory.getLogger(SaasProductNotificationService.class);
+  private static final Logger log = LoggerFactory.getLogger(HdsProductNotificationService.class);
 
   public static final String HDS_PRODUCT_NOTIFICATION_PATH = "rest/productNotifications";
 
@@ -54,7 +54,7 @@ public class SaasProductNotificationService
   private final UserViewedProductNotificationDAO notificationViewedDAO;
 
   @Inject
-  public SaasProductNotificationService(final SaasClient saasClient,
+  public HdsProductNotificationService(final SaasClient saasClient,
       final UserViewedProductNotificationDAO notificationViewedDAO) {
     this.saasClient = saasClient;
     this.expirationTime = new Date();

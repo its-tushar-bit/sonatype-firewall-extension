@@ -34,13 +34,13 @@ public class ProductNotificationResourceTest
 {
   @Before
   public void resetMock() {
-    reset(mockSaasProductNotificationService);
+    reset(mockHdsProductNotificationService);
   }
 
   @Test
   public void testGetNotifications() throws Exception {
     List<ProductNotification> notifications = createNotifications(2);
-    when(mockSaasProductNotificationService.getNotifications()).thenReturn(notifications);
+    when(mockHdsProductNotificationService.getNotifications()).thenReturn(notifications);
 
     // Get first page of notifications
     int pageSize = 10;
@@ -63,7 +63,7 @@ public class ProductNotificationResourceTest
   @Test
   public void testPostNotificationViewed() throws Exception {
     List<ProductNotification> notifications = createNotifications(1);
-    when(mockSaasProductNotificationService.getNotifications()).thenReturn(notifications);
+    when(mockHdsProductNotificationService.getNotifications()).thenReturn(notifications);
 
     int pageSize = 10;
     Response response = AuthedRestAccess.get(getServiceURL(pageSize, 1));

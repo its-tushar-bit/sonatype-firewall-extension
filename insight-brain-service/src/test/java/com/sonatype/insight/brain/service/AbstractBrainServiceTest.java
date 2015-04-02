@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.notifications.SaasProductNotificationService;
+import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -76,7 +76,7 @@ public abstract class AbstractBrainServiceTest
   private static TestCLMServer testCLMServer;
 
   // The mock service that would normally talk to HDS for product notifications
-  protected static SaasProductNotificationService mockSaasProductNotificationService;
+  protected static HdsProductNotificationService mockHdsProductNotificationService;
 
   @Before
   public void initTest() throws Throwable {
@@ -118,8 +118,8 @@ public abstract class AbstractBrainServiceTest
       protected void configure() {
         bind(ProductLicenseManager.class).toInstance(licenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        mockSaasProductNotificationService = mock(SaasProductNotificationService.class);
-        bind(SaasProductNotificationService.class).toInstance(mockSaasProductNotificationService);
+        mockHdsProductNotificationService = mock(HdsProductNotificationService.class);
+        bind(HdsProductNotificationService.class).toInstance(mockHdsProductNotificationService);
       }
     });
     return modules;

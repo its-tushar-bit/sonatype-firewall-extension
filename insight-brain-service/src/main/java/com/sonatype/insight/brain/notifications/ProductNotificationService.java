@@ -29,24 +29,24 @@ import com.google.common.annotations.VisibleForTesting;
 @Named
 public class ProductNotificationService
 {
-  private final SaasProductNotificationService saasNotificationService;
+  private final HdsProductNotificationService hdsNotificationService;
 
   private final UserViewedProductNotificationDAO notificationViewedDAO;
 
   private final CurrentUser currentUser;
 
   @Inject
-  public ProductNotificationService(final SaasProductNotificationService saasNotificationService,
+  public ProductNotificationService(final HdsProductNotificationService hdsNotificationService,
       final UserViewedProductNotificationDAO notificationViewedDAO,
       final CurrentUser currentUser)
   {
-    this.saasNotificationService = saasNotificationService;
+    this.hdsNotificationService = hdsNotificationService;
     this.notificationViewedDAO = notificationViewedDAO;
     this.currentUser = currentUser;
   }
 
   public ProductNotificationListDTO getNotifications(final int pagesSize, final int page) {
-    List<ProductNotification> notificationList = saasNotificationService.getNotifications();
+    List<ProductNotification> notificationList = hdsNotificationService.getNotifications();
 
     Set<String> viewedNotificationSet = getNotificationViewedIdSet();
     return convert(getPage(notificationList, pagesSize, page), viewedNotificationSet);

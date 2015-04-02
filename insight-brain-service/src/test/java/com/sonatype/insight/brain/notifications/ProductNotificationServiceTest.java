@@ -39,18 +39,18 @@ public class ProductNotificationServiceTest
   private ProductNotificationService notificationsService;
 
   @Mock
-  private SaasProductNotificationService saasNotificationService;
+  private HdsProductNotificationService hdsNotificationService;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.bind(SaasProductNotificationService.class).toInstance(saasNotificationService);
+    binder.bind(HdsProductNotificationService.class).toInstance(hdsNotificationService);
   }
 
   @Test
   public void testGetNotification_PageSizeGreaterThanNumItems() {
     List<ProductNotification> notifications = createNotification(1);
-    when(saasNotificationService.getNotifications()).thenReturn(notifications);
+    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     int pageSize = 2;
     ProductNotificationListDTO notificationListDTO = notificationsService.getNotifications(pageSize, 1);
@@ -66,7 +66,7 @@ public class ProductNotificationServiceTest
   @Test
   public void testGetNotification_Pagination() {
     List<ProductNotification> notifications = createNotification(5);
-    when(saasNotificationService.getNotifications()).thenReturn(notifications);
+    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     int pageSize = 2;
     for (int page = 1; page <= 2; page++) {
@@ -97,7 +97,7 @@ public class ProductNotificationServiceTest
         tempEntity.newUserViewedNotificationMapping(USERNAME, notification.getId());
       }
     }
-    when(saasNotificationService.getNotifications()).thenReturn(notifications);
+    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     int page = 1;
     ProductNotificationListDTO notificationListDTO = notificationsService.getNotifications(numNotifications, page);
@@ -112,7 +112,7 @@ public class ProductNotificationServiceTest
   @Test
   public void testSetNotificationViewed() {
     List<ProductNotification> notifications = createNotification(1);
-    when(saasNotificationService.getNotifications()).thenReturn(notifications);
+    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
         Collections.<String>emptySet());
@@ -130,7 +130,7 @@ public class ProductNotificationServiceTest
   @Test
   public void testSetNotificationViewed_SameNotificationTwice() {
     List<ProductNotification> notifications = createNotification(1);
-    when(saasNotificationService.getNotifications()).thenReturn(notifications);
+    when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
         Collections.<String>emptySet());

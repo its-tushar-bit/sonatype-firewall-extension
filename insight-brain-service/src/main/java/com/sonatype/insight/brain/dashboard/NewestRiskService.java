@@ -36,6 +36,8 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
 @Named
 public class NewestRiskService
 {
@@ -74,11 +76,16 @@ public class NewestRiskService
     long start = System.currentTimeMillis();
 
     List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    log.debug("getNewestRisks: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
+        applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
+
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter);
 
     List<NewestRiskDTO> result = new ArrayList<>();
+    int policyEvaluationCount = 0;
+    int policyViolationCount = 0;
 
     for (Application app : applications) {
       List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
@@ -91,12 +98,14 @@ public class NewestRiskService
         if (policyEvaluation == null) {
           continue;
         }
+        policyEvaluationCount++;
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
         policyViolations = dashboardUtils.filter(policyViolations, filter);
         if (policyViolations.isEmpty()) {
           continue;
         }
+        policyViolationCount += policyViolations.size();
 
         Map<PolicyViolation, PolicyViolation> firstOccurrencePolicyViolationsByLastPolicyViolations = getFirstOccurrencePolicyViolationsForLastPolicyViolations(
             app.getId(), stageType.getId(), policyViolations);
@@ -130,6 +139,8 @@ public class NewestRiskService
     result = filter(result);
     Collections.sort(result, NewestRiskDTOComparator.INSTANCE);
     result.subList(Math.min(result.size(), maxResults), result.size()).clear();
+    log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
+        policyViolationCount);
 
     log.debug("getNewestRisks finished in {}", System.currentTimeMillis() - start);
 

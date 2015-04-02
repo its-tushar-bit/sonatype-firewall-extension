@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -256,8 +257,8 @@ public final class Report
       }
     }
 
-    cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licenses));
-    cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialMatched));
+    saveReportEntry(reportFile, "licenses.json", licenses);
+    saveReportEntry(reportFile, "partialmatched.json", partialMatched);
     writeLicenseThreatsToReportFile(application, reportFile);
 
     final ObjectNode data = JsonUtils.parse(extractEntry(reportFile, "data.json").buf);
@@ -270,7 +271,7 @@ public final class Report
     fill(data.putArray("licensePunchCard"), licensePunchCard);
     filterKeyFindings(data, security);
 
-    cache(getCacheFile(reportFile, "data.json"), JsonUtils.generate(data));
+    saveReportEntry(reportFile, "data.json", data);
 
     final StringBuilder badges = new StringBuilder("[");
     badges.append(securityAlerts).append(',');
@@ -335,20 +336,10 @@ public final class Report
     }
   }
 
-  /**
-   * Applies changes to component data (bom/license/security/partialmatched) including claiming components
-   */
-  private static void applyComponentRelatedChanges(final Application application, final File reportFile,
-      final JsonStore auditStore) throws IOException
-  {
-    long start = System.currentTimeMillis();
-
+  private static Map<String, HashComponentIdentifier> applyClaimedComponents(ContainerNode<?> bomJsonData) {
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
-    Map<String, HashComponentIdentifier> claimedHashes = new LinkedHashMap<>();
-    Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
-    ReportEntry bomReportEntry = extractEntry(reportFile, "bom.json");
-    ContainerNode<?> bomJsonData = JsonUtils.parse(bomReportEntry.buf);
+    Map<String, HashComponentIdentifier> claimedComponentsByHash = new LinkedHashMap<>();
     for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
       String hash = bomJsonNode.get("hash").asText();
       HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
@@ -371,8 +362,17 @@ public final class Report
         bomObjectNode.put("relativePopularity", NullNode.getInstance());
         bomObjectNode.put("identificationSource", IdentificationSource.MANUAL.getId());
         bomObjectNode.put("comment", hashComponentIdentifier.getComment());
-        claimedHashes.put(hash, hashComponentIdentifier);
+        claimedComponentsByHash.put(hash, hashComponentIdentifier);
       }
+    }
+
+    return claimedComponentsByHash;
+  }
+
+  private static Set<ComponentIdentifier> fixBomComponentIdentifiers(ContainerNode<?> bomJsonData) {
+    Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
+    for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
+      ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
 
       ComponentIdentifierAdapter.injectComponentIdentifier(bomObjectNode);
       ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
@@ -380,53 +380,63 @@ public final class Report
       componentIdentifiers.add(componentIdentifier);
     }
 
-    // now apply any data edits (e.g. modified flag)
-    auditStore.augment(bomJsonData, "bom.json");
+    return componentIdentifiers;
+  }
 
-    // save the claimed changes
-    cache(getCacheFile(reportFile, "bom.json"), JsonUtils.generate(bomJsonData));
+  private static void fixComponentIdentifiers(ContainerNode<?> jsonData, Set<ComponentIdentifier> componentIdentifiers)
+  {
+    ArrayNode aaData = (ArrayNode) jsonData.get("aaData");
+    Iterator<JsonNode> iterJsonData = aaData.iterator();
+    while (iterJsonData.hasNext()) {
+      ObjectNode jsonNode = (ObjectNode) iterJsonData.next();
+      ComponentIdentifierAdapter.injectComponentIdentifier(jsonNode);
+      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
 
-    // Apply license overrides and remove all entries from licenses.json that don't have a correspondent record in
-    // bom.json.
-    // Must start from un-edited data.
+      if (!componentIdentifiers.contains(componentIdentifier)) {
+        // License/security data for a component that is not in this report. Remove it.
+        iterJsonData.remove();
+      }
+      else {
+        ComponentDisplayNameUtil.injectDisplayName(jsonNode);
+      }
+    }
+  }
+
+  private static void applyLicenseOverrides(ContainerNode<?> licensesJsonData, Application application)
+  {
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    ReportEntry licensesReportEntry = extractEntry(reportFile, "licenses.json");
-    ContainerNode<?> licensesJsonData = JsonUtils.parse(licensesReportEntry.buf);
+
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
-      ComponentIdentifierAdapter.injectComponentIdentifier(licenseJsonNode);
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
+      LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
+      if (licenseOverride != null) {
+        licenseJsonNode.put("status", licenseOverride.getStatus().getName());
+        if (!licenseOverride.getLicenseIds().isEmpty()) {
+          ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
 
-      if (!componentIdentifiers.contains(componentIdentifier)) {
-        // License data for a GAV that is not in this report. Remove it.
-        iterLicenseData.remove();
-      }
-      else {
-        ComponentDisplayNameUtil.injectDisplayName(licenseJsonNode);
-
-        LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
-        if (licenseOverride != null) {
-          licenseJsonNode.put("status", licenseOverride.getStatus().getName());
-          if (!licenseOverride.getLicenseIds().isEmpty()) {
-            ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
-
-            for (String licenseId : licenseOverride.getLicenseIds()) {
-              licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
-            }
-
+          for (String licenseId : licenseOverride.getLicenseIds()) {
+            licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
           }
-          if (licenseOverride.getComment() != null) {
-            licenseJsonNode.put("comment", licenseOverride.getComment());
-          }
+
+        }
+        if (licenseOverride.getComment() != null) {
+          licenseJsonNode.put("comment", licenseOverride.getComment());
         }
       }
     }
+  }
 
-    // add claimed components with license overrides
-    for (HashComponentIdentifier hashComponentIdentifier : claimedHashes.values()) {
+  private static void addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
+      Collection<HashComponentIdentifier> hashComponentIdentifiers, Application application)
+  {
+    LicenseDAO licenseDAO = new LicenseDAO();
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
+    for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
       LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO,
           hashComponentIdentifier.getComponentIdentifier());
       if (licenseOverride != null) {
@@ -457,45 +467,16 @@ public final class Report
         }
       }
     }
+  }
 
-    // finally save the changes
-    cache(getCacheFile(reportFile, "licenses.json"), JsonUtils.generate(licensesJsonData));
-
-    // Remove all entries from security.json that don't have a correspondent record in bom.json
-
-    // must start from un-edited data
-    ReportEntry securityReportEntry = extractEntry(reportFile, "security.json");
-    ContainerNode<?> securityJsonData = JsonUtils.parse(securityReportEntry.buf);
-    Iterator<JsonNode> iterSecurityData = securityJsonData.get("aaData").iterator();
-    while (iterSecurityData.hasNext()) {
-      ObjectNode jsonNode = (ObjectNode) iterSecurityData.next();
-      ComponentIdentifierAdapter.injectComponentIdentifier(jsonNode);
-      ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(jsonNode);
-
-      if (!componentIdentifiers.contains(componentIdentifier)) {
-        iterSecurityData.remove();
-      }
-      else {
-        ComponentDisplayNameUtil.injectDisplayName(jsonNode);
-      }
-    }
-
-    // now apply any data edits
-    auditStore.augment(securityJsonData, "security.json");
-
-    // finally save the changes
-    cache(getCacheFile(reportFile, "security.json"), JsonUtils.generate(securityJsonData));
-
-    // Remove all entries from partialmatched.json that were claimed as exact match
-
-    // must start from un-edited data
-    ReportEntry partialmatchedReportEntry = extractEntry(reportFile, "partialmatched.json");
-    ContainerNode<?> partialmatchedJsonData = JsonUtils.parse(partialmatchedReportEntry.buf);
+  private static void removeClaimedComponentsFromPartialMatched(ContainerNode<?> partialmatchedJsonData,
+      Map<String, HashComponentIdentifier> claimedComponentsByHash)
+  {
     Iterator<JsonNode> iterPartialMatchData = partialmatchedJsonData.get("aaData").iterator();
     while (iterPartialMatchData.hasNext()) {
       JsonNode jsonNode = iterPartialMatchData.next();
       String hash = jsonNode.path("hash").asText();
-      if (claimedHashes.containsKey(hash)) {
+      if (claimedComponentsByHash.containsKey(hash)) {
         iterPartialMatchData.remove();
       }
       else {
@@ -507,14 +488,57 @@ public final class Report
         }
       }
     }
+  }
 
+  /**
+   * Applies changes to component data (bom/license/security/partialmatched) including claiming components
+   */
+  private static void applyComponentRelatedChanges(final Application application, final File reportFile,
+      final JsonStore auditStore) throws IOException
+  {
+    long start = System.currentTimeMillis();
+
+    ContainerNode<?> bomJsonData = loadReportEntry(reportFile, "bom.json");
+    Map<String, HashComponentIdentifier> claimedComponentsByHash = applyClaimedComponents(bomJsonData);
+    Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
+    // now apply any data edits (e.g. modified flag)
+    auditStore.augment(bomJsonData, "bom.json");
+    saveReportEntry(reportFile, "bom.json", bomJsonData);
+
+    // Must start from un-edited license data.
+    ContainerNode<?> licensesJsonData = loadReportEntry(reportFile, "licenses.json");
+    fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
+    applyLicenseOverrides(licensesJsonData, application);
+    ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
+    addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application);
+    saveReportEntry(reportFile, "licenses.json", licensesJsonData);
+
+    // must start from un-edited data
+    ContainerNode<?> securityJsonData = loadReportEntry(reportFile, "security.json");
+    fixComponentIdentifiers(securityJsonData, componentIdentifiers);
+    // now apply any data edits
+    auditStore.augment(securityJsonData, "security.json");
+    saveReportEntry(reportFile, "security.json", securityJsonData);
+
+    // must start from un-edited data
+    ContainerNode<?> partialmatchedJsonData = loadReportEntry(reportFile, "partialmatched.json");
+    removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
     // now apply any data edits
     auditStore.augment(partialmatchedJsonData, "partialmatched.json");
-
-    // finally save the changes
-    cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialmatchedJsonData));
+    saveReportEntry(reportFile, "partialmatched.json", partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private static ContainerNode<?> loadReportEntry(File reportFile, String entryFileName) throws IOException {
+    ReportEntry reportEntry = extractEntry(reportFile, entryFileName);
+    return JsonUtils.parse(reportEntry.buf);
+  }
+
+  private static void saveReportEntry(File reportFile, String entryFileName, ContainerNode<?> jsonData)
+      throws IOException
+  {
+    cache(getCacheFile(reportFile, entryFileName), JsonUtils.generate(jsonData));
   }
 
   private static LicenseOverride getLicenseOverride(final Application application,
@@ -543,7 +567,7 @@ public final class Report
       licenseTable.put(multiLicense.getShortDisplayName(), threatLevel);
     }
     licenseThreatsJson.put("aaData", licenseTable);
-    cache(getCacheFile(reportFile, "licensethreats.json"), JsonUtils.generate(licenseThreatsJson));
+    saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
   }
 
   /**
@@ -665,7 +689,7 @@ public final class Report
     final ReportEntry entry = extractEntry(reportFile, name); // must start from un-edited data
     if (entry != null) {
       table = auditStore.augment(JsonUtils.parse(entry.buf), name);
-      cache(getCacheFile(reportFile, name), JsonUtils.generate(table));
+      saveReportEntry(reportFile, name, table);
     }
     return table;
   }

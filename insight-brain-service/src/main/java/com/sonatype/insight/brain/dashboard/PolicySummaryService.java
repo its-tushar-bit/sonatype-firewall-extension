@@ -35,6 +35,8 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
 @Named
 public class PolicySummaryService
 {
@@ -138,6 +140,9 @@ public class PolicySummaryService
     long start = System.currentTimeMillis();
 
     List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    log.debug("getPolicySummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
+        applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
+
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Set<String> stageTypeIds = dashboardUtils.getStageIds(stageTypes);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
@@ -155,11 +160,14 @@ public class PolicySummaryService
     DescriptiveStatistics ageWaivedStatistics = new DescriptiveStatistics();
     DescriptiveStatistics ageFixedStatistics = new DescriptiveStatistics();
     DescriptiveStatistics ageUnresolvedStatistics = new DescriptiveStatistics();
+    int policyEvaluationCount = 0;
+    int policyViolationCount = 0;
     for (Application app : applications) {
       PolicyViolationHistory policyViolationHistory = new PolicyViolationHistory();
 
       List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getByApplicationIdAndStageIds(app.getId(),
           stageTypeIds);
+      policyEvaluationCount += policyEvaluations.size();
       for (PolicyEvaluation policyEvaluation : policyEvaluations) {
         if (policyEvaluation.getTime().getTime() > now) {
           // This policy evaluation is after we started calculating the policy summary. In order to be consistent,
@@ -170,6 +178,7 @@ public class PolicySummaryService
         int weekIndex = getPolicySummaryWeekFromTime(now, policyEvaluation.getTime().getTime());
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(policyEvaluation.getId());
+        policyViolationCount += policyViolations.size();
         policyViolations = dashboardUtils.filter(policyViolations, filter);
 
         PolicyViolationDiff diff = PolicyViolationDigester.digestPolicyViolations(
@@ -236,6 +245,9 @@ public class PolicySummaryService
         }
       }
     }
+
+    log.debug("getPolicySummary: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
+        policyViolationCount);
 
     result.currentUnresolved = result.totalNew - result.totalWaived - result.totalFixed;
     for (int iWeek = 0; iWeek < POLICY_SUMMARY_WEEKS; iWeek++) {

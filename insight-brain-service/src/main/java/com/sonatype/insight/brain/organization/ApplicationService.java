@@ -89,8 +89,8 @@ public class ApplicationService
     List<Application> applications = getApplicationsForEvaluateComponent();
     Map<String, String> applicationPublicIDNamePairs = new LinkedHashMap<>();
 
+    log.debug("getApplicationNamesForEvaluateComponent: Found {} applications.", applications.size());
     for (Application application : applications) {
-      log.debug("Found application with public id {}", application.getPublicId());
       applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
     }
 

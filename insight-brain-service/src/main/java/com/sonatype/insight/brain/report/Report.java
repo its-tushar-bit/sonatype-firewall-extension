@@ -341,6 +341,8 @@ public final class Report
   private static void applyComponentRelatedChanges(final Application application, final File reportFile,
       final JsonStore auditStore) throws IOException
   {
+    long start = System.currentTimeMillis();
+
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
     Map<String, HashComponentIdentifier> claimedHashes = new LinkedHashMap<>();
@@ -511,6 +513,8 @@ public final class Report
 
     // finally save the changes
     cache(getCacheFile(reportFile, "partialmatched.json"), JsonUtils.generate(partialmatchedJsonData));
+
+    log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
   }
 
   private static LicenseOverride getLicenseOverride(final Application application,

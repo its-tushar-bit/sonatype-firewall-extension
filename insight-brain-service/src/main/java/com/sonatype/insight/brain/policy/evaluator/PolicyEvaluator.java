@@ -97,7 +97,8 @@ public class PolicyEvaluator
     toPolicyResults(policies, policyWaiverResults.getActiveFacts(), stage, forMonitoring, policyResults);
     toPolicyResults(policies, policyWaiverResults.getWaivedFacts(), stage, forMonitoring, policyResults);
 
-    log.debug("Evaluated policies in {} millisecs", System.currentTimeMillis() - start);
+    log.debug("Evaluated {} policies on {} components in {} ms", policies.size(), components.size(),
+        System.currentTimeMillis() - start);
 
     return policyResults;
   }

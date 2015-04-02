@@ -130,8 +130,9 @@
             $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, data.ticketId);
             doPoll();
           }).error(function () {
-            $scope.state = 'ready';
-            setError(messages.getHttpErrorMessage(arguments));
+            $scope.evaluationStatus.error = messages.getHttpErrorMessage(arguments);
+            $scope.evaluationStatus.currentStepName = 'Done';
+            setError($scope.evaluationStatus.error);
           });
         }
         else {

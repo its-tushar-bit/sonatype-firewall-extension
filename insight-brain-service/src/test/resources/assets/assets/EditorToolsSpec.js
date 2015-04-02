@@ -155,7 +155,7 @@ describe('EditorToolsSpec', function() {
         validateInitialState();
         $httpBackend.flush();
         
-        expect(scope.state).toEqual('ready');
+        expect(scope.state).toEqual('polling');
         expect(scope.alerts.length).toEqual(1);
         expect(scope.alerts[0].msg).toEqual('Some failure');
       }));

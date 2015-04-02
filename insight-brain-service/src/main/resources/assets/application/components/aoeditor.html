@@ -60,8 +60,8 @@
           <div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
         </div>
         <div class='modal-footer'>
-          <div clm-alerts="alerts"></div>
-          <button id='evaluate-bundle-close' class='btn btn-link btn-cancel pull-left' type='button' ng-disabled='!pollingUrl' ng-click='$close()'>Close</button>
+          <div id='evaluate-alerts' clm-alerts="alerts"></div>
+          <button id='evaluate-bundle-close' class='btn btn-link btn-cancel pull-left' type='button' ng-disabled='!pollingUrl && !evaluationStatus.error' ng-click='$close()'>Close</button>
           <a id='evaluate-bundle-view' class='btn btn-primary pull-right' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
         </div>
       </div>

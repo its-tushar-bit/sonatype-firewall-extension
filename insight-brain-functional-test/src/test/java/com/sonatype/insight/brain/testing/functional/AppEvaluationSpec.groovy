@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.model.security.User
 
 import org.apache.commons.io.IOUtils
 
@@ -35,6 +37,42 @@ extends BaseSpec {
     loginAsUserVia()
   }
 
+  def "validate exceptions prior to polling are displayed"() {
+    setup:
+    User readOnlyUser = temporaryEntity.newUser("readOnlyUser")
+    Role role = temporaryEntity.newRole(false /* global */, Permission.READ)
+    temporaryEntity.newMembershipMapping(org.getId(), role.getId(), readOnlyUser.getUsername())
+    userOptions.logoutClick()
+    loginAsUserVia(readOnlyUser.getUsername(), readOnlyUser.getPassword())
+    
+    when: 'User accesses organization'
+    OrganizationManagementPage orgManPage = to OrganizationManagementPage
+    waitFor { orgManPage.organization("AppEvaluationOrg").displayed }
+    orgManPage.organization("AppEvaluationOrg").click()
+
+    then: 'User at organization page and app eval button is visible'
+    OrganizationPage orgPage = at(OrganizationPage)
+    orgPage.tools.appEvalButton.displayed
+
+    when: 'User uploads app using app eval button'
+    orgPage.tools.appEvalButton.click()
+    waitFor { orgPage.tools.appEval.dialog.displayed }
+    orgPage.tools.appEval.application.value('AppEvaluationApp1')
+    orgPage.tools.appEval.stage.value('3')
+    orgPage.tools.appEval.file.value(
+        new File(getClass().getResource('/AppEvaluationSpec/some.file').toURI()).getAbsoluteFile().getAbsolutePath())
+    waitFor { !orgPage.tools.appEval.upload.disabled }
+    orgPage.tools.appEval.upload.click()
+
+
+    then: 'Status is set to Done and an error is displayed'
+    waitFor { orgPage.tools.appEval.status.text() == 'Done' }
+    orgPage.tools.appEval.viewReport.@disabled == 'true'
+    orgPage.tools.appEval.alerts.displayed
+    waitFor { !orgPage.tools.appEval.close.disabled }
+    orgPage.tools.appEval.close.click()
+  }
+  
   def "validate application evaluation available from organization screen"() {
     when: 'User accesses organization'
     OrganizationManagementPage orgManPage = to OrganizationManagementPage

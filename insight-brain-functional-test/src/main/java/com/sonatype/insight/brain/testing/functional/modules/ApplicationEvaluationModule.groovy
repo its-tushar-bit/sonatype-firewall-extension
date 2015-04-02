@@ -25,6 +25,7 @@ class ApplicationEvaluationModule
     close(required: false) { $('#evaluate-bundle-close') }
     upload(required: false) { $('#evaluate-bundle-upload') }
     cancel(required: false) { $('#evaluate-bundle-cancel') }
+    alerts(required: false) { $('#evaluate-alerts') }
   }
 
   def getSelectedApplicationOption() {

@@ -23,6 +23,8 @@ import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
 @Named
 public class ComponentSummaryService
 {
@@ -56,6 +58,9 @@ public class ComponentSummaryService
 
     Collection<String> appIds = Collections2.transform(
         applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds), DashboardUtils.hasIdIdSelector);
+    log.debug("getComponentSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
+        appIds.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
+
     Collection<String> stageTypeIds = dashboardUtils.getStageIds(dashboardUtils.getStageTypes(stageIds));
     List<ApplicationComponent> components = applicationComponentDAO.getNonProprietaryByApplicationIdsAndStageTypeIds(
         appIds, stageTypeIds);

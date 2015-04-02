@@ -211,6 +211,8 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
 
     a {
       color: #070707;
+      padding: 8px;   // here to avoid dead zones on click targets
+      display: block; // for top & bottom padding
     }
 
     li {
@@ -219,7 +221,6 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
       line-height: 18px;
       background-color: $header-dropdown-panel-background-color !important;
       border-bottom: $notification-item-border;
-      padding: 8px;
       white-space: nowrap;
       word-wrap: break-word;
 

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.saas.CIResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
@@ -55,6 +56,27 @@ public class ApplicationResourceTest
     application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
 
     Response response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
+    assertResponseStatus(200, response);
+    assertThat(response.getResponseBody(), equalTo("OK"));
+
+    applicationDAO.delete(application);
+
+    // validate service always returns 200, the actual result is in the response body
+    response = AuthedRestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
+    assertResponseStatus(200, response);
+    assertThat(response.getResponseBody(), equalTo("Invalid application ID " + applicationPublicId + "."));
+  }
+
+  @Test
+  public void testValidate_Anonymous() throws Exception {
+    final String applicationPublicId = "ApplicationResourceTest-testValidate-AppId";
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    Application application = applicationDAO.getByPublicId(applicationPublicId);
+    Assert.assertNull(application);
+
+    application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
+
+    Response response = RestAccess.get(getValidateApplicationIdServiceURL(applicationPublicId));
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("OK"));
 
@@ -541,6 +563,24 @@ public class ApplicationResourceTest
     tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
     Response response = AuthedRestAccess.get(getServiceURL() + "/services/names");
+    assertResponseStatus(200, response);
+
+    @SuppressWarnings("unchecked")
+    Map<String, String> applicationNames = fromJson(response, Map.class);
+    Assert.assertNotNull(applicationNames);
+
+    Assert.assertEquals(applicationNames.toString(), 1, applicationNames.size());
+    Assert.assertTrue(applicationNames.containsKey(applicationPublicId));
+    Assert.assertTrue(applicationNames.containsValue(applicationName));
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_Anonymous() throws Exception {
+    final String applicationPublicId = "ApplicationResourceTest-getApplicationNamesTest-AppId";
+    final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
+    tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
+
+    Response response = RestAccess.get(getServiceURL() + "/services/names");
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")

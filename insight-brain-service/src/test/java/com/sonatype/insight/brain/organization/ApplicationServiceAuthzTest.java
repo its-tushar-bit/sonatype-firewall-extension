@@ -124,14 +124,6 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_UnauthenticatedAnonymousAllowed() throws Exception {
-    // This will return unfiltered as anonymous is on for this resource
-    Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
-    assertThat(applicationNames.size(), is(1));
-    assertThat(applicationNames.get(app.getPublicId()), is(app.getName()));
-  }
-
-  @Test
   public void testValidateApplicationPublicId_Authorized() throws Exception {
     grantWritePermission(app.getId());
     String value = applicationService.validateApplicationPublicId(app.getPublicId());
@@ -142,13 +134,6 @@ public class ApplicationServiceAuthzTest
   public void testValidateApplicationPublicId_Unauthorized() throws Exception {
     grantReadPermission(app.getId());
     applicationService.validateApplicationPublicId(app.getPublicId());
-  }
-
-  @Test
-  public void testValidateApplicationPublicId_UnauthenticatedAnonymousAllowed() throws Exception {
-    // This will succeed as anonymous is on for this resource
-    String value = applicationService.validateApplicationPublicId(app.getPublicId());
-    assertThat(value, is("OK"));
   }
 
   @Test

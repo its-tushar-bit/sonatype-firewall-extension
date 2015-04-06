@@ -65,11 +65,33 @@ public class ApplicationSummaryResourceTest
   // Need to test anonymous access in the resource tests
   @Test
   public void testGetApplications_EvaluateApplication_Anonymous() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplication(organization.getId());
+    Application application = tempEntity.newApplicationWithParent("testPublicId");
 
     Response response = RestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
         + Goal.EVALUATE_APPLICATION);
+    assertResponseStatus(200, response);
+
+    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    assertApplicationSummaryList(applicationListDTO, application);
+  }
+
+  @Test
+  public void testGetApplications_EvaluateComponent_Anonymous() throws Exception {
+    tempEntity.newApplicationWithParent("testPublicId");
+
+    Response response = RestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
+        + Goal.EVALUATE_COMPONENT);
+    assertResponseStatus(200, response);
+
+    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    assertThat(applicationListDTO.getApplicationSummaries().size(), is(0));
+  }
+
+  @Test
+  public void testGetApplications_NoGoal_Anonymous() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("testPublicId");
+
+    Response response = RestAccess.get(getServicePath());
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);

@@ -23,10 +23,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class JsonFileStore
     implements JsonStore
 {
+  private static final Logger log = LoggerFactory.getLogger(JsonFileStore.class);
+
   private static final ConcurrentMap<String, CountingLock> LOCK_TABLE = new ConcurrentHashMap<String, CountingLock>();
 
   private final File folder;
@@ -135,10 +139,14 @@ public final class JsonFileStore
     try {
       T table = key;
       for (final String path : paths) {
+        long start = System.currentTimeMillis();
+
         final File file = new File(folder, path);
         if (file.canRead()) {
           table = augmentTable(table, (ArrayNode) JsonUtils.read(file));
         }
+
+        log.debug("Augmented {} in {} ms.", path, System.currentTimeMillis() - start);
       }
       return table;
     }

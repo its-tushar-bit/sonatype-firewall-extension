@@ -287,6 +287,8 @@ public final class Report
 
   @VisibleForTesting
   static Map<ComponentIdentifier, Set<Integer>> parseDependencyDepths(JsonNode dependenciesJson) {
+    long start = System.currentTimeMillis();
+
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = new LinkedHashMap<>();
     JsonNode componentDepths = dependenciesJson.path("componentDepths");
     JsonNode gavDepths = dependenciesJson.path("gavDepths");
@@ -317,6 +319,10 @@ public final class Report
         depthsByIdentifier.put(componentIdentifier, depths);
       }
     }
+
+    log.debug("parseDependencyDepths: {} depthsByIdentifier, {} ms.", depthsByIdentifier.size(),
+        System.currentTimeMillis() - start);
+
     return depthsByIdentifier;
   }
 
@@ -340,7 +346,8 @@ public final class Report
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash = new LinkedHashMap<>();
-    for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
+    JsonNode aaData = bomJsonData.get("aaData");
+    for (JsonNode bomJsonNode : aaData) {
       String hash = bomJsonNode.get("hash").asText();
       HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
       ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
@@ -366,12 +373,15 @@ public final class Report
       }
     }
 
+    log.debug("applyClaimedComponents: {} components, {} claimed.", aaData.size(), claimedComponentsByHash.size());
+
     return claimedComponentsByHash;
   }
 
   private static Set<ComponentIdentifier> fixBomComponentIdentifiers(ContainerNode<?> bomJsonData) {
     Set<ComponentIdentifier> componentIdentifiers = new LinkedHashSet<>();
-    for (JsonNode bomJsonNode : bomJsonData.get("aaData")) {
+    JsonNode aaData = bomJsonData.get("aaData");
+    for (JsonNode bomJsonNode : aaData) {
       ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
 
       ComponentIdentifierAdapter.injectComponentIdentifier(bomObjectNode);
@@ -380,6 +390,8 @@ public final class Report
       componentIdentifiers.add(componentIdentifier);
     }
 
+    log.debug("fixBomComponentIdentifiers: {} components.", aaData.size());
+
     return componentIdentifiers;
   }
 
@@ -387,6 +399,7 @@ public final class Report
   {
     ArrayNode aaData = (ArrayNode) jsonData.get("aaData");
     Iterator<JsonNode> iterJsonData = aaData.iterator();
+    int removedCount = 0;
     while (iterJsonData.hasNext()) {
       ObjectNode jsonNode = (ObjectNode) iterJsonData.next();
       ComponentIdentifierAdapter.injectComponentIdentifier(jsonNode);
@@ -395,11 +408,14 @@ public final class Report
       if (!componentIdentifiers.contains(componentIdentifier)) {
         // License/security data for a component that is not in this report. Remove it.
         iterJsonData.remove();
+        removedCount++;
       }
       else {
         ComponentDisplayNameUtil.injectDisplayName(jsonNode);
       }
     }
+
+    log.debug("fixComponentIdentifiers: {} components, {} removed.", aaData.size(), removedCount);
   }
 
   private static void applyLicenseOverrides(ContainerNode<?> licensesJsonData, Application application)
@@ -409,11 +425,13 @@ public final class Report
 
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     Iterator<JsonNode> iterLicenseData = licensesAaData.iterator();
+    int licenseOverrideCount = 0;
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
       LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
       if (licenseOverride != null) {
+        licenseOverrideCount++;
         licenseJsonNode.put("status", licenseOverride.getStatus().getName());
         if (!licenseOverride.getLicenseIds().isEmpty()) {
           ArrayNode licenseOverrideNode = licenseJsonNode.putArray("overriddenLicenses");
@@ -421,13 +439,14 @@ public final class Report
           for (String licenseId : licenseOverride.getLicenseIds()) {
             licenseOverrideNode.add(licenseDAO.getByIdNotNull(licenseId).getShortDisplayName());
           }
-
         }
         if (licenseOverride.getComment() != null) {
           licenseJsonNode.put("comment", licenseOverride.getComment());
         }
       }
     }
+
+    log.debug("applyLicenseOverrides: {} components, {} overrides.", licensesAaData.size(), licenseOverrideCount);
   }
 
   private static void addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
@@ -436,10 +455,12 @@ public final class Report
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
+    int licenseOverrideCount = 0;
     for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
       LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO,
           hashComponentIdentifier.getComponentIdentifier());
       if (licenseOverride != null) {
+        licenseOverrideCount++;
         ObjectNode licenseJsonNode = licensesAaData.addObject();
         licenseJsonNode.put("hash", hashComponentIdentifier.getHash());
         ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
@@ -467,16 +488,20 @@ public final class Report
         }
       }
     }
+    log.debug("addLicenseOverridesForClaimedComponents: {} overrides.", licenseOverrideCount);
   }
 
   private static void removeClaimedComponentsFromPartialMatched(ContainerNode<?> partialmatchedJsonData,
       Map<String, HashComponentIdentifier> claimedComponentsByHash)
   {
-    Iterator<JsonNode> iterPartialMatchData = partialmatchedJsonData.get("aaData").iterator();
+    JsonNode aaData = partialmatchedJsonData.get("aaData");
+    Iterator<JsonNode> iterPartialMatchData = aaData.iterator();
+    int removedCount = 0;
     while (iterPartialMatchData.hasNext()) {
       JsonNode jsonNode = iterPartialMatchData.next();
       String hash = jsonNode.path("hash").asText();
       if (claimedComponentsByHash.containsKey(hash)) {
+        removedCount++;
         iterPartialMatchData.remove();
       }
       else {
@@ -488,6 +513,8 @@ public final class Report
         }
       }
     }
+
+    log.debug("removeClaimedComponentsFromPartialMatched: {} partial matches, {} removed.", aaData.size(), removedCount);
   }
 
   /**
@@ -531,14 +558,24 @@ public final class Report
   }
 
   private static ContainerNode<?> loadReportEntry(File reportFile, String entryFileName) throws IOException {
+    long start = System.currentTimeMillis();
+
     ReportEntry reportEntry = extractEntry(reportFile, entryFileName);
-    return JsonUtils.parse(reportEntry.buf);
+    ContainerNode<?> result = JsonUtils.parse(reportEntry.buf);
+
+    log.debug("loadReportEntry: {} in {} ms.", entryFileName, System.currentTimeMillis() - start);
+
+    return result;
   }
 
   private static void saveReportEntry(File reportFile, String entryFileName, ContainerNode<?> jsonData)
       throws IOException
   {
+    long start = System.currentTimeMillis();
+
     cache(getCacheFile(reportFile, entryFileName), JsonUtils.generate(jsonData));
+
+    log.debug("saveReportEntry: {} in {} ms.", entryFileName, System.currentTimeMillis() - start);
   }
 
   private static LicenseOverride getLicenseOverride(final Application application,

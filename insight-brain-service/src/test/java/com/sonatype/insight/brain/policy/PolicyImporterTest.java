@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,6 +15,8 @@ import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -26,12 +29,15 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -295,6 +301,48 @@ public class PolicyImporterTest
     catch (BadRequestException e) {
       assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported."));
     }
+  }
+
+  @Test
+  public void testImport_LicenseThreatGroupUnassignedCondition() throws Exception {
+    Policy policy = new Policy("testPolicyId", "testPolicyName");
+    policy.setOwnerId(fromOrg.getId());
+    Constraint constraint = new Constraint("testConstraintId", "testConstraintName", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is",
+        LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID));
+    policy.addConstraint(constraint);
+
+    PolicyExportResult exportDTO = emptyExportDTO();
+    exportDTO.policies = Lists.newArrayList(policy);
+    exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(fromOrg.getId());
+    exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(fromOrg.getId());
+    exportDTO = detachObjects(exportDTO);
+
+    Organization toOrg = tempEntity.newOrganization();
+
+    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
+    policyImporter.importOrganization(toOrg, exportDTO);
+
+    List<Policy> importedPolicies = new PolicyDAO().getByOwnerId(toOrg.getId());
+    assertThat(importedPolicies, hasSize(1));
+    policy = importedPolicies.get(0);
+    List<Constraint> constraints = policy.getConstraints();
+    assertThat(constraints, hasSize(1));
+    List<Condition> conditions = constraints.get(0).getConditions();
+    assertThat(conditions, hasSize(1));
+    Condition condition = conditions.get(0);
+    assertThat(condition.getConditionTypeId(), is(LicenseThreatGroupConditionType.ID));
+    assertThat(condition.getOperator(), is("is"));
+    assertThat(condition.getValue(), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID));
+  }
+
+  /**
+   * Serialize the exportDTO through json to ensure that all objects are detached from the db and that they are created
+   * fresh as they are when imported from json.
+   */
+  private PolicyExportResult detachObjects(PolicyExportResult policyExportResult) throws IOException {
+    String s = JsonUtils.format(policyExportResult);
+    return JsonUtils.parse(s, PolicyExportResult.class);
   }
 
   private PolicyExportResult emptyExportDTO() {

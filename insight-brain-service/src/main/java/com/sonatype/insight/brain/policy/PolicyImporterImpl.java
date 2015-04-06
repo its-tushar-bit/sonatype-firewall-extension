@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -216,7 +217,9 @@ public class PolicyImporterImpl
         for (Constraint constraint : policy.getConstraints()) {
           for (Condition condition : constraint.getConditions()) {
             if (LicenseThreatGroupConditionType.ID.equals(condition.getConditionTypeId())) {
-              condition.setValue(idMap.get(condition.getValue()));
+              if (!LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(condition.getValue())) {
+                condition.setValue(idMap.get(condition.getValue()));
+              }
             }
           }
         }

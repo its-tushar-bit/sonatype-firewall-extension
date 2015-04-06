@@ -78,6 +78,7 @@ public class CLMShiroModule
   private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
     String clientAuthFilterName = anonymousClientAccessAllowed ? "authcBasic[permissive]" : "authcBasic";
 
+    manager.createChain("/rest/integration/applications", clientAuthFilterName);
     manager.createChain("/rest/report/*/*/embedReport/**", clientAuthFilterName);
     manager.createChain("/rest/application/services/names", clientAuthFilterName);
     manager.createChain("/rest/application/validate/*", clientAuthFilterName);

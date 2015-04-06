@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -55,6 +56,20 @@ public class ApplicationSummaryResourceTest
     Application application = tempEntity.newApplication(organization.getId());
 
     Response response = AuthedRestAccess.get(getServicePath());
+    assertResponseStatus(200, response);
+
+    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    assertApplicationSummaryList(applicationListDTO, application);
+  }
+
+  // Need to test anonymous access in the resource tests
+  @Test
+  public void testGetApplications_EvaluateApplication_Anonymous() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    Response response = RestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
+        + Goal.EVALUATE_APPLICATION);
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);

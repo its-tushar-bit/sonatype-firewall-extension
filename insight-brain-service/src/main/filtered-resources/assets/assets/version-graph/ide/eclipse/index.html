@@ -28,7 +28,17 @@
       $(document).bind('contextmenu', function(e) {
         return false;
       });
+      $(document).ready(function () {
+        if (navigator.platform === 'MacIntel') {
+          $('html').addClass('macos');
+        }
+      });
     </script>
+    <style>
+      .macos .btn.disabled {
+        opacity : 1.0;
+      }
+    </style>
     <!--[if lt IE 9]><script src="../../protovis-msie.min.js?${build.timestamp}"></script><![endif]-->
   </head>
   <body ng-include='"../../version-graph.html?${build.timestamp}"'>

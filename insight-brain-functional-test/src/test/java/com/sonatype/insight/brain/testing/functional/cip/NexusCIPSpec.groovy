@@ -95,7 +95,7 @@ class NexusCIPSpec
 
     and: 'a "View Details" button is present and enabled'
       cip.viewDetails.displayed
-      cip.viewDetails.getAttribute('disabled') == ''
+      !cip.viewDetails.hasClass('disabled')
 
     and: 'a "Migrate" button is absent'
       !cip.migrate.present

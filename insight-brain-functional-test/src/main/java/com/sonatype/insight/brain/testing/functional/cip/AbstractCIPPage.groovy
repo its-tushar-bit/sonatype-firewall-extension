@@ -74,8 +74,8 @@ extends Module {
     matchState { $('#artifactInfoSimilarityScoreRow td:last-child').text() }
     identificationSource { $('#artifactInfoIdentificatonSource td:last-child').text() }
     website(required: false) { $('#artifactWebsite a') }
-    viewDetails { $('[ng-click="viewDetails()"]') }
-    migrate(required: false) { $('[ng-click="markUpgrade()"]') } // only present in Eclipse
+    viewDetails { $('#view-details-button') }
+    migrate(required: false) { $('#migrate-button') } // only present in Eclipse
   }
 
   def getNameField(String field) {

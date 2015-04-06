@@ -160,10 +160,15 @@
                 <!-- Links rather than buttons for JavaFX 7, in tfoot to avoid bold font styling -->
                 <tr>
                   <td>
-                    <a class='btn' ng-click='viewDetails()' ng-if='viewDetailsSupported' href='#'>View Details</a>
+                    <a class='btn' href='#' id='view-details-button'
+                       ng-click='viewDetails()'
+                       ng-if='viewDetailsSupported'>View Details</a>
                   </td>
                   <td>
-                    <a class='btn' ng-disabled='!canMigrate()' ng-click='markUpgrade()' ng-if='migrateSupported' href='#'>
+                    <a class='btn' href='#' id='migrate-button'
+                       ng-class='{ disabled : !canMigrate()}'
+                       ng-click='canMigrate() && markUpgrade()'
+                       ng-if='migrateSupported'>
                       Migrate
                     </a>
                   </td>

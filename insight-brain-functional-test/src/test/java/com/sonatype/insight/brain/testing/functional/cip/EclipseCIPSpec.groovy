@@ -74,11 +74,11 @@ class EclipseCIPSpec
 
     and: 'a "View Details" button is present and enabled'
       cip.viewDetails.displayed
-      cip.viewDetails.getAttribute('disabled') == ''
+      !cip.viewDetails.hasClass('disabled')
 
     and: 'a "Migrate" button is present and disabled'
       cip.migrate.displayed
-      cip.migrate.getAttribute('disabled') == 'true'
+      cip.migrate.hasClass('disabled')
 
     and: 'the version graph is present and has a fixed height'
       verifyVersionGraph(versionGraph)

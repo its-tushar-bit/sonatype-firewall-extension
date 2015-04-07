@@ -24,6 +24,15 @@
     <button type='submit' class="btn btn-primary pull-right" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
   </form>
 </script>
+<script type='text/ng-template' id='dropdown-detail-panel-template'>
+  <div ng-transclude></div>
+  <ul ng-if="item.selected" class="dropdown-sub-menu">
+    <li class="disabled">{{item.summaryText}}</li>
+    <li class="detail-html-container">
+      <div ng-bind-html="item.detailHtml"></div>
+    </li>
+  </ul>
+</script>
 <div class="header navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container-fluid">
@@ -187,12 +196,12 @@
                   <li ng-if="errorText">
                     <div class="alert alert-danger">{{errorText}}</div>
                   </li>
-                  <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="markAsRead(notification)">
-                    <a class="notification-link" ng-class="{'viewed': notification.viewed}" ng-href="{{notification.summaryUrl}}" target="_blank">
-                      <div class="notification-age" ng-class="{'notification-age-read': notification.viewed}">{{notification.age}}</div>
+                  <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="markAsRead(notification)" class="notification-link" ng-class="{'viewed': notification.viewed, 'selected': notification.selected}">
+                    <div dropdown-detail-panel items="notifications" item="notification">
+                      <div class="notification-age">{{notification.age}}</div>
                       <div class="notification-age-label">{{notification.ageQualifier}}</div>
                       <div class="notification-text">{{notification.summaryText}}</div>
-                    </a>
+                    </div>
                   </li>
                 </ul></li>
               </ul>

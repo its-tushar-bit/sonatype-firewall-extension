@@ -92,8 +92,30 @@ describe('mainHeader', function() {
   }));
 
   describe('Main Header Notification Controller', function () {
-    it('initial load of data', inject(function($httpBackend, CLMLocations, $rootScope, $controller) {
+    var notificationScope;
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
+      notificationScope = $rootScope.$new();
+
+      $httpBackend.expectGET(CLMLocations.getNotificationUrl()).respond({
+        notifications: []
+      });
+
+      $controller('Notifications', {
+        $scope: notificationScope
+      });
+
+      $httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      if (notificationScope) {
+        notificationScope.$destroy();
+      }
+    });
+
+    it('test loading data', inject(function($httpBackend, CLMLocations) {
       var tenDaysAgo = new Date().getTime() - 10 * 24 * 60 * 60 * 1000;
+
       $httpBackend.expectGET(CLMLocations.getNotificationUrl()).respond({
         notifications: [{
           id: '1234',
@@ -105,27 +127,26 @@ describe('mainHeader', function() {
         }]
       });
 
-      scope = $rootScope.$new();
+      notificationScope.getNotifications();
 
-      $controller('Notifications', {
-        $scope: scope
-      });
+      expect(notificationScope.loading).toEqual(true);
 
       $httpBackend.flush();
 
-      expect(scope.unreadNotificationCount).toEqual(1);
-      expect(scope.notifications.length).toEqual(1);
-      expect(scope.notifications[0].id).toEqual('1234');
-      expect(scope.notifications[0].type).toEqual('default');
-      expect(scope.notifications[0].summaryText).toEqual('summary');
-      expect(scope.notifications[0].detailHtml).toEqual('detail');
-      expect(scope.notifications[0].dateCreated).toEqual(tenDaysAgo);
-      expect(scope.notifications[0].viewed).toEqual(false);
-      expect(scope.notifications[0].age).toEqual(10);
-      expect(scope.notifications[0].ageQualifier).toEqual('days ago');
+      expect(notificationScope.loading).toEqual(false);
+      expect(notificationScope.unreadNotificationCount).toEqual(1);
+      expect(notificationScope.notifications.length).toEqual(1);
+      expect(notificationScope.notifications[0].id).toEqual('1234');
+      expect(notificationScope.notifications[0].type).toEqual('default');
+      expect(notificationScope.notifications[0].summaryText).toEqual('summary');
+      expect(notificationScope.notifications[0].detailHtml).toEqual('detail');
+      expect(notificationScope.notifications[0].dateCreated).toEqual(tenDaysAgo);
+      expect(notificationScope.notifications[0].viewed).toEqual(false);
+      expect(notificationScope.notifications[0].age).toEqual(10);
+      expect(notificationScope.notifications[0].ageQualifier).toEqual('days ago');
     }));
 
-    it('validate age calculations', inject(function($httpBackend, CLMLocations, $rootScope, $controller) {
+    it('validate age calculations', inject(function($httpBackend, CLMLocations) {
       var oneDayAgo = new Date().getTime() - 24 * 60 * 60 * 1000 - 1,
           oneHourAgo = new Date().getTime() - 60 * 60 * 1000 - 1,
           oneMinuteAgo = new Date().getTime() - 60 * 1000 - 1,
@@ -195,33 +216,29 @@ describe('mainHeader', function() {
         }]
       });
 
-      scope = $rootScope.$new();
-
-      $controller('Notifications', {
-        $scope: scope
-      });
+      notificationScope.getNotifications();
 
       $httpBackend.flush();
 
-      expect(scope.notifications[0].age).toEqual(1);
-      expect(scope.notifications[0].ageQualifier).toEqual('day ago');
-      expect(scope.notifications[1].age).toEqual(1);
-      expect(scope.notifications[1].ageQualifier).toEqual('hour ago');
-      expect(scope.notifications[2].age).toEqual(1);
-      expect(scope.notifications[2].ageQualifier).toEqual('min ago');
-      expect(scope.notifications[3].age).toEqual('');
-      expect(scope.notifications[3].ageQualifier).toEqual('Just now');
-      expect(scope.notifications[4].age).toEqual(10);
-      expect(scope.notifications[4].ageQualifier).toEqual('days ago');
-      expect(scope.notifications[5].age).toEqual(10);
-      expect(scope.notifications[5].ageQualifier).toEqual('hours ago');
-      expect(scope.notifications[6].age).toEqual(10);
-      expect(scope.notifications[6].ageQualifier).toEqual('mins ago');
-      expect(scope.notifications[7].age).toEqual('');
-      expect(scope.notifications[7].ageQualifier).toEqual('Just now');
+      expect(notificationScope.notifications[0].age).toEqual(1);
+      expect(notificationScope.notifications[0].ageQualifier).toEqual('day ago');
+      expect(notificationScope.notifications[1].age).toEqual(1);
+      expect(notificationScope.notifications[1].ageQualifier).toEqual('hour ago');
+      expect(notificationScope.notifications[2].age).toEqual(1);
+      expect(notificationScope.notifications[2].ageQualifier).toEqual('min ago');
+      expect(notificationScope.notifications[3].age).toEqual('');
+      expect(notificationScope.notifications[3].ageQualifier).toEqual('Just now');
+      expect(notificationScope.notifications[4].age).toEqual(10);
+      expect(notificationScope.notifications[4].ageQualifier).toEqual('days ago');
+      expect(notificationScope.notifications[5].age).toEqual(10);
+      expect(notificationScope.notifications[5].ageQualifier).toEqual('hours ago');
+      expect(notificationScope.notifications[6].age).toEqual(10);
+      expect(notificationScope.notifications[6].ageQualifier).toEqual('mins ago');
+      expect(notificationScope.notifications[7].age).toEqual('');
+      expect(notificationScope.notifications[7].ageQualifier).toEqual('Just now');
     }));
 
-    it('validate mark as read', inject(function($httpBackend, CLMLocations, $rootScope, $controller) {
+    it('validate mark as read', inject(function($httpBackend, CLMLocations) {
       var notification = {
         id: '1',
         type: 'default',
@@ -229,26 +246,23 @@ describe('mainHeader', function() {
         detailHtml: 'detail http://something',
         dateCreated: new Date().getTime(),
         viewed: false
-      }
+      };
+
       $httpBackend.expectGET(CLMLocations.getNotificationUrl()).respond({
         notifications: [notification]
       });
 
-      scope = $rootScope.$new();
-
-      $controller('Notifications', {
-        $scope: scope
-      });
+      notificationScope.getNotifications();
 
       $httpBackend.flush();
 
-      expect(scope.unreadNotificationCount).toEqual(1);
-      expect(scope.notifications[0].viewed).toEqual(false);
+      expect(notificationScope.unreadNotificationCount).toEqual(1);
+      expect(notificationScope.notifications[0].viewed).toEqual(false);
       $httpBackend.expectPOST(CLMLocations.getNotificationViewedUrl(), {id:'1'}).respond(200);
-      scope.markAsRead(scope.notifications[0]);
+      notificationScope.markAsRead(notificationScope.notifications[0]);
       $httpBackend.flush();
-      expect(scope.unreadNotificationCount).toEqual(0);
-      expect(scope.notifications[0].viewed).toEqual(true);
+      expect(notificationScope.unreadNotificationCount).toEqual(0);
+      expect(notificationScope.notifications[0].viewed).toEqual(true);
     }));
   });
 

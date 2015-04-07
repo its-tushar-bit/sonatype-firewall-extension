@@ -7,7 +7,8 @@
 (function() {
   'use strict';
 
-  var module = angular.module('MainHeader', ['ui.router', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule', 'PermissionServiceModule']);
+  var module = angular.module('MainHeader',
+      ['ui.router', 'AngularCommon', 'CLMLocation', 'ProductFeaturesModule', 'PermissionServiceModule', 'ngSanitize']);
 
   module.controller('LogoutController', ['$scope', '$http', 'CLMLocations', function ($scope, $http, CLMLocations) {
       $scope.logout = function () {
@@ -58,7 +59,8 @@
     };
   }]);
 
-  module.controller('Notifications', ['$scope', '$http', 'CLMLocations', 'timeAgoService', function($scope, $http, CLMLocations, timeAgoService){
+  module.controller('Notifications', ['$scope', '$http', 'CLMLocations', 'timeAgoService', 'Messages',
+      function($scope, $http, CLMLocations, timeAgoService, Messages) {
     function processNotifications(notifications) {
       $scope.unreadNotificationCount = 0;
       angular.forEach(notifications, function(notification){
@@ -84,19 +86,22 @@
       }
     };
 
-    processNotifications($scope.notifications);
+    $scope.getNotifications = function() {
+      $scope.loading = true;
 
-    $scope.loading = true;
+      $http.get(CLMLocations.getNotificationUrl()).success(function (data) {
+        $scope.loading = false;
+        $scope.notifications = data.notifications;
+        processNotifications($scope.notifications);
+      }).error(function () {
+        $scope.loading = false;
+        $scope.errorText = 'An error occurred while loading notifications. (' + Messages.getHttpErrorMessage(arguments) + ')';
+        $scope.unreadNotificationCount = '!';
+      });
+    };
 
-    $http.get(CLMLocations.getNotificationUrl()).success(function (data) {
-      $scope.loading = false;
-      $scope.notifications = data.notifications;
-      processNotifications($scope.notifications);
-    }).error(function () {
-      $scope.loading = false;
-      $scope.errorText = 'Unable to load notification content from server';
-      $scope.unreadNotificationCount = '!';
-    });
+    //call on init so that we have a notification count
+    $scope.getNotifications();
   }]);
 
   module.controller('mainHeaderController', ['$scope', '$state', 'CurrentUser', 'ProductFeatures', 'PermissionService', function($scope, $state, currentUser, ProductFeatures, PermissionService) {
@@ -126,6 +131,32 @@
       templateUrl : '../assets/components/main-header/main-header.html?' + clmBuildTimestamp
     };
   });
+
+  module.directive('dropdownDetailPanel', [function() {
+    return {
+      templateUrl : 'dropdown-detail-panel-template',
+      transclude : true,
+      scope : {
+        items : '=',
+        item : '='
+      },
+      link: function($scope, element) {
+        element.parent().on('click', function() {
+          AngularUtils.safeApply($scope, function() {
+            angular.forEach($scope.items, function(item){
+              if ($scope.item.id === item.id) {
+                item.selected = !item.selected;
+              }
+              else {
+                item.selected = false;
+              }
+            });
+          });
+          return false;
+        });
+      }
+    };
+  }]);
 
   module.factory('CurrentUser', ['$http', '$q', 'CLMLocations', function ($http, $q, clmLocations) {
     var deferred = $q.defer();

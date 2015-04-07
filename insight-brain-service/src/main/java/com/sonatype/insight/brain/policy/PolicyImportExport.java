@@ -52,10 +52,9 @@ import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
  * @since 1.7
  */
 @Named
-public class PolicyImporterImpl
-    implements PolicyImporter
+public class PolicyImportExport
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyImporterImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(PolicyImportExport.class);
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
@@ -78,11 +77,23 @@ public class PolicyImporterImpl
   private final BaseUrl baseUrl;
 
   @Inject
-  public PolicyImporterImpl(BaseUrl baseUrl) {
+  public PolicyImportExport(BaseUrl baseUrl) {
     this.baseUrl = baseUrl;
   }
 
-  @Override
+  /**
+   * <p>
+   * Import policies into an Application. Existing polices are deleted from the application. Application Labels will be
+   * merged if they match (case-insensitive by name) existing data; this preserves any related ComponentLabels.
+   * </p>
+   * <p>
+   * License Threat Groups and associated Licenses are all deleted as part of the import.
+   * </p>
+   * 
+   * @param application application to import policy to
+   * @param exportDTO data to import
+   * @return result embedding the url of the application
+   */
   public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO) {
     checkAppImportPreconditions(application, exportDTO);
 
@@ -115,7 +126,21 @@ public class PolicyImporterImpl
     return createResult(application.getName(), application.getPublicId(), TYPE_APPLICATION);
   }
 
-  @Override
+  /**
+   * <p>
+   * Import policies into an Organization. Existing polices are deleted from the organization and all child
+   * applications. This includes deletion of data from child Applications(License Threat Groups and associated
+   * Licenses). Organization Labels will be merged if they match (case-insensitive by name) existing data; this
+   * preserves any related ComponentLabels.
+   * </p>
+   * <p>
+   * License Threat Groups and associated Licenses are all deleted as part of the import.
+   * </p>
+   * 
+   * @param organization org to import policy to
+   * @param exportDTO data to import
+   * @return result embedding the url of the organization
+   */
   public PolicyImportResult importOrganization(Organization organization, PolicyExportResult exportDTO) {
     checkOrgImportPreconditions(organization, exportDTO);
 
@@ -408,5 +433,27 @@ public class PolicyImporterImpl
     if (reference == null) {
       throw new BadRequestException(errorMessage + errorMessageArg);
     }
+  }
+
+  PolicyExportResult exportApplication(Application application) {
+    return export(application.getId());
+  }
+
+  PolicyExportResult exportOrganization(Organization organization) {
+    String orgId = organization.getId();
+    PolicyExportResult policyExportResult = export(orgId);
+    policyExportResult.policyTags = new PolicyTagDAO().getByOrganizationId(orgId);
+    policyExportResult.tags = new TagDAO().getAppliedToPolicyByOrganizationId(orgId);
+    return policyExportResult;
+  }
+
+  private PolicyExportResult export(String ownerId) {
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.policies = new PolicyDAO().getByOwnerId(ownerId);
+    policyExportResult.labels = new LabelDAO().getByOwnerId(ownerId);
+    policyExportResult.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(ownerId);
+    policyExportResult.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(ownerId);
+
+    return policyExportResult;
   }
 }

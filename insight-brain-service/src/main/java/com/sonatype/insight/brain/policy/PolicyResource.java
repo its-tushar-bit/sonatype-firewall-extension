@@ -29,12 +29,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -68,13 +64,13 @@ public class PolicyResource
   private static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain" +
       " it is a properly formatted policy import json file?";
 
-  private final PolicyImporter policyImporter;
+  private final PolicyImportExport policyImportExport;
 
   private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
 
   @Inject
-  public PolicyResource(PolicyImporter policyImporter) {
-    this.policyImporter = policyImporter;
+  public PolicyResource(PolicyImportExport policyImportExport) {
+    this.policyImportExport = policyImportExport;
   }
 
   @GET
@@ -208,19 +204,12 @@ public class PolicyResource
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.policies = new PolicyDAO().getByOwnerId(internalOwnerId);
-    exportDTO.labels = new LabelDAO().getByOwnerId(internalOwnerId);
-    exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(internalOwnerId);
-    exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(internalOwnerId);
-
-    //Export policy tag data for organizations only
     if(IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
-      exportDTO.policyTags = new PolicyTagDAO().getByOrganizationId(internalOwnerId);
-      exportDTO.tags = new TagDAO().getAppliedToPolicyByOrganizationId(internalOwnerId);
+      return policyImportExport.exportOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId));
     }
-
-    return exportDTO;
+    else {
+      return policyImportExport.exportApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId));
+    }
   }
 
   @PUT
@@ -264,9 +253,9 @@ public class PolicyResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (TYPE_ORGANIZATION.equals(ownerType)) {
-      return policyImporter.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+      return policyImportExport.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
     }
-    return policyImporter.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
+    return policyImportExport.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);
   }
 
   private PolicyExportResult readPolicyExportResult(InputStream stream) throws IOException {

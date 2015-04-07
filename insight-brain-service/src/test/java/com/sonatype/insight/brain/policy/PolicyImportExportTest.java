@@ -7,16 +7,16 @@ package com.sonatype.insight.brain.policy;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.core.UriInfo;
 
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -31,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
-import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -47,10 +47,9 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static com.sonatype.insight.brain.Assert.assertTag;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -61,7 +60,7 @@ import static org.mockito.Mockito.when;
 /**
  * @since 1.7
  */
-public class PolicyImporterTest
+public class PolicyImportExportTest
 {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -72,7 +71,7 @@ public class PolicyImporterTest
   @Mock
   private UriInfo uriInfo;
 
-  private PolicyImporterImpl policyImporter;
+  private PolicyImportExport policyImportExport;
 
   private Organization fromOrg;
 
@@ -86,23 +85,30 @@ public class PolicyImporterTest
     insightConfig = new InsightConfig();
     insightConfig.setBaseUrl("base");
     insightConfig.setSonatypeWork(temporaryFolder.getRoot().getAbsolutePath());
-    policyImporter = new PolicyImporterImpl(new BaseUrl(insightConfig, uriInfo));
+    policyImportExport = new PolicyImportExport(new BaseUrl(insightConfig, uriInfo));
     fromOrg = tempEntity.newOrganization();
     fromApp = tempEntity.newApplication(fromOrg.getId());
+    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
+  }
+
+  private void deleteFromOrg() {
+    new ApplicationDAO().delete(fromApp);
+    new OrganizationDAO().delete(fromOrg);
   }
 
   @Test
-  public void testImportAndMergeLabelsForOrg() {
-    PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.labels = createLabels(fromOrg.getId());
-    exportDTO.policies = createPolicies(fromOrg.getId(), exportDTO.labels.get(0).getId());
+  public void testImportAndMergeLabelsForOrg() throws Exception {
+    List<Label> orgLabels = createLabels(fromOrg.getId());
+    createPolicy(fromOrg.getId(), orgLabels.get(0).getId(), "Org Policy");
+    PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
+    exportDTO = detachObjects(exportDTO);
+    deleteFromOrg();
 
     Organization toOrg = tempEntity.newOrganization();
 
     LabelDAO labelDAO = new LabelDAO();
-    Label oldLabelToUpdate = new Label(toOrg.getId(), exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
+    Label oldLabelToUpdate = new Label(toOrg.getId(), orgLabels.get(0).getLabel().toLowerCase(), Color.white);
     oldLabelToUpdate.setDescription("anything");
-    oldLabelToUpdate.setId("label1Old");
     labelDAO.insert(oldLabelToUpdate);
 
     Label oldLabelToKeep = new Label(toOrg.getId(), "keepMe", Color.red);
@@ -112,7 +118,7 @@ public class PolicyImporterTest
 
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
       tx.begin();
-      policyImporter.importAndMergeLabels(tx, exportDTO, oldLabels, null, toOrg.getId());
+      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, null, toOrg.getId());
       tx.commit();
     }
 
@@ -126,45 +132,45 @@ public class PolicyImporterTest
     Label updatedLabel = labels.get(1);
     assertThat(updatedLabel.getColor(), is(Color.black)); // updated
     assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
-    assertThat(updatedLabel.getId(), is("label1Old")); // id remains the same
+    assertThat(updatedLabel.getId(), is(oldLabelToUpdate.getId())); // id remains the same
     assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
 
     Label importedLabel = labels.get(2);
     assertThat(importedLabel.getColor(), is(Color.blue));
     assertThat(importedLabel.getLabel(), is("LABEL2"));
 
-    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is("label1Old"));
+    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
+        is(oldLabelToUpdate.getId()));
   }
 
   @Test
-  public void testImportAndMergeLabelsForApp() {
-    PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.labels = createLabels(fromApp.getId());
+  public void testImportAndMergeLabelsForApp() throws Exception {
+    List<Label> appLabels = createLabels(fromApp.getId());
+    Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), "orgLabel", Color.black);
 
-    exportDTO.policies = createPolicies(fromApp.getId(), exportDTO.labels.get(0).getId());
-    exportDTO.policies.addAll(createPolicies(fromApp.getId(), "orgLabelId")); // add policy referring to an org label
+    createPolicy(fromApp.getId(), appLabels.get(0).getId(), "App Policy 1");
+    createPolicy(fromApp.getId(), fromOrgLabel.getId(), "App Policy 2");
+    PolicyExportResult exportDTO = policyImportExport.exportApplication(fromApp);
+    exportDTO = detachObjects(exportDTO);
+    deleteFromOrg();
 
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
 
-    LabelDAO labelDAO = new LabelDAO();
-    Label orgLabel = new Label(toOrg.getId(), "orgLabel", Color.black);
-    orgLabel.setId("orgLabelId");
-    labelDAO.insert(orgLabel);
+    tempEntity.newLabel(toOrg.getId(), "orgLabel", Color.black);
 
-    Label oldLabelToUpdate = new Label(toApp.getId(), exportDTO.labels.get(0).getLabel().toLowerCase(), Color.white);
+    LabelDAO labelDAO = new LabelDAO();
+    Label oldLabelToUpdate = new Label(toApp.getId(), appLabels.get(0).getLabel().toLowerCase(), Color.white);
     oldLabelToUpdate.setDescription("anything");
-    oldLabelToUpdate.setId("label1Old");
     labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToKeep = new Label(toApp.getId(), "keepMe", Color.red);
-    labelDAO.insert(oldLabelToKeep);
+    Label oldLabelToKeep = tempEntity.newLabel(toApp.getId(), "keepMe", Color.red);
     
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
       tx.begin();
-      policyImporter.importAndMergeLabels(tx, exportDTO, oldLabels, toApp.getId(), toOrg.getId());
+      policyImportExport.importAndMergeLabels(tx, exportDTO, oldLabels, toApp.getId(), toOrg.getId());
       tx.commit();
     }
 
@@ -178,57 +184,45 @@ public class PolicyImporterTest
     Label updatedLabel = labels.get(1);
     assertThat(updatedLabel.getColor(), is(Color.black)); // updated
     assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
-    assertThat(updatedLabel.getId(), is("label1Old")); // id remains the same
+    assertThat(updatedLabel.getId(), is(oldLabelToUpdate.getId())); // id remains the same
     assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
 
     Label importedLabel = labels.get(2);
     assertThat(importedLabel.getColor(), is(Color.blue));
     assertThat(importedLabel.getLabel(), is("LABEL2"));
 
-    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(), is("label1Old"));
-    assertThat(exportDTO.policies.get(1).getConstraints().get(0).getConditions().get(0).getValue(), is(orgLabel.getId()));
+    assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
+        is(oldLabelToUpdate.getId()));
+    assertThat(exportDTO.policies.get(1).getConstraints().get(0).getConditions().get(0).getValue(), is(nullValue()));
   }
 
   @Test
   public void testDeletionOfPolicyWaiversFromApp(){
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
-    Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
     
-    List<Policy> policies = createPolicies(toApp.getId(), appLabel.getId());
-    new PolicyDAO().insert(policies.get(0));
-    Policy appPolicy = policies.get(0);
+    Policy appPolicy = tempEntity.newPolicy(toApp.getId(), "Policy Name");
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
-    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
 
     //only interested in the deletion so import an empty DTO
-    policyImporter.importApplication(toApp, emptyExportDTO());
+    policyImportExport.importApplication(toApp, emptyExportDTO());
 
     verify(uriInfo).getRequestUri();
-    assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
+    assertThat(new PolicyWaiverDAO().getByOwnerId(toApp.getId()), is(empty()));
   }
 
   @Test
   public void testDeletionOfPolicyWaiversFromOrg(){
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
-    Label orgLabel = tempEntity.newLabel(toOrg.getId(), Color.black);
-    Label appLabel = tempEntity.newLabel(toApp.getId(), Color.black);
-    List<Policy> orgPolicies = createPolicies(toOrg.getId(), orgLabel.getId());
-    PolicyDAO policyDAO = new PolicyDAO();
-    policyDAO.insert(orgPolicies.get(0));
-    Policy orgPolicy = orgPolicies.get(0);
-    List<Policy> appPolicies = createPolicies(toApp.getId(), appLabel.getId());
-    policyDAO.insert(appPolicies.get(0));
-    Policy appPolicy = appPolicies.get(0);
+    Policy orgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy Name");
+    Policy appPolicy = tempEntity.newPolicy(toApp.getId(), "App Policy Name");
     tempEntity.newWaiver("hash", orgPolicy.getId(), toOrg.getId());
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
-    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
 
     //only interested in the deletion so import an empty DTO
-    policyImporter.importOrganization(toOrg, emptyExportDTO());
+    policyImportExport.importOrganization(toOrg, emptyExportDTO());
 
     verify(uriInfo).getRequestUri();
     assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));
@@ -236,66 +230,71 @@ public class PolicyImporterTest
   }
 
   @Test
-  public void testImportAndMergeTags_UpdateTag() {
-    Tag tag = tempEntity.newTag(fromOrg.getId(), "TAG NAME", Color.yellow);
-    Tag newTag = new Tag("orgId", "tagname", "updated description", Color.black);
-    newTag.setId("tagId");
-    PolicyTag policyTag = new PolicyTag("policyId", "tagId");
+  public void testImportAndMergeTags_UpdateTag() throws Exception {
+    Tag fromTag = tempEntity.newTag(fromOrg.getId(), "tagname", Color.black);
+    Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
+    tempEntity.newPolicyTag(policy.getId(), fromTag.getId());
 
-    PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.tags = Arrays.asList(newTag);
-    exportDTO.policyTags = Arrays.asList(policyTag);
+    PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
+    exportDTO = detachObjects(exportDTO);
+    deleteFromOrg();
 
-    TagDAO tagDAO = new TagDAO();
-    try (TransactionContext tx = tagDAO.createTransactionContext()) {
-      tx.begin();
-      policyImporter.importAndMergeTags(tx, exportDTO, fromOrg.getId());
-      tx.commit();
-    }
-
-    assertTag(newTag, tagDAO.getById(tag.getId()));
-    assertThat(exportDTO.policyTags.get(0).getTagId(), is(tag.getId()));
-  }
-
-  @Test
-  public void testImportAndMergeTags_NewTag() {
-    Tag newTag = new Tag("orgId", "updatedName", "updated description", Color.black);
-    newTag.setId("tagId");
-    PolicyTag policyTag = new PolicyTag("policyId", "tagId");
-
-    PolicyExportResult exportDTO = new PolicyExportResult();
-    exportDTO.tags = Arrays.asList(newTag);
-    exportDTO.policyTags = Arrays.asList(policyTag);
+    Organization toOrg = tempEntity.newOrganization();
+    Tag toTag = tempEntity.newTag(toOrg.getId(), "TAG NAME", Color.yellow);
 
     TagDAO tagDAO = new TagDAO();
     try (TransactionContext tx = tagDAO.createTransactionContext()) {
       tx.begin();
-      policyImporter.importAndMergeTags(tx, exportDTO, fromOrg.getId());
+      policyImportExport.importAndMergeTags(tx, exportDTO, toOrg.getId());
       tx.commit();
     }
 
-    assertThat(tagDAO.getByOrganizationId(fromOrg.getId()), hasSize(1));
-    assertThat(exportDTO.policyTags.get(0).getTagId(), is(not("tagId")));
+    assertTag(fromTag, tagDAO.getById(toTag.getId()));
+    assertThat(exportDTO.policyTags.get(0).getTagId(), is(toTag.getId()));
   }
 
   @Test
-  public void testImportPolicyTagsToApplication() {
-    PolicyExportResult policyExportResult = emptyExportDTO();
-    policyExportResult.tags = Arrays.asList(tempEntity.newTag(fromOrg.getId(), "tagName"));
+  public void testImportAndMergeTags_NewTag() throws Exception {
+    Tag tag = tempEntity.newTag(fromOrg.getId(), "Tag Name", Color.black);
+    Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
+    tempEntity.newPolicyTag(policy.getId(), tag.getId());
+
+    PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
+    exportDTO = detachObjects(exportDTO);
+    deleteFromOrg();
+
+    Organization toOrg = tempEntity.newOrganization();
+
+    TagDAO tagDAO = new TagDAO();
+    try (TransactionContext tx = tagDAO.createTransactionContext()) {
+      tx.begin();
+      policyImportExport.importAndMergeTags(tx, exportDTO, toOrg.getId());
+      tx.commit();
+    }
+
+    List<Tag> tags = tagDAO.getByOrganizationId(toOrg.getId());
+    assertThat(tags, hasSize(1));
+    assertTag(tag, tags.get(0));
+    assertThat(tags.get(0).getId(), is(not(tag.getId())));
+    assertThat(exportDTO.policyTags.get(0).getTagId(), is(tags.get(0).getId()));
+  }
+
+  @Test
+  public void testImportPolicyTagsToApplication() throws IOException {
+    // Remove the license threat groups because we don't want errors about them.
+    LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+    for (LicenseThreatGroup licenseThreatGroup : ltgDAO.getByOwnerId(fromOrg.getId())) {
+      ltgDAO.delete(licenseThreatGroup);
+    }
+
+    Tag tag = tempEntity.newTag(fromOrg.getId(), "tagName");
+    Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
+    tempEntity.newPolicyTag(policy.getId(), tag.getId());
+    PolicyExportResult policyExportResult = policyImportExport.exportOrganization(fromOrg);
+    policyExportResult = detachObjects(policyExportResult);
 
     try {
-      policyImporter.importApplication(fromApp, policyExportResult);
-      fail("Import should have thrown an exception due to tag data");
-    }
-    catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("Importing policies with applied tags to an application is not supported."));
-    }
-
-    policyExportResult = emptyExportDTO();
-    policyExportResult.policyTags = Arrays.asList(new PolicyTag());
-
-    try {
-      policyImporter.importApplication(fromApp, policyExportResult);
+      policyImportExport.importApplication(fromApp, policyExportResult);
       fail("Import should have thrown an exception due to tag data");
     }
     catch (BadRequestException e) {
@@ -311,17 +310,15 @@ public class PolicyImporterTest
     constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is",
         LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID));
     policy.addConstraint(constraint);
+    new PolicyDAO().insert(policy);
 
-    PolicyExportResult exportDTO = emptyExportDTO();
-    exportDTO.policies = Lists.newArrayList(policy);
-    exportDTO.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(fromOrg.getId());
-    exportDTO.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(fromOrg.getId());
+    PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
     exportDTO = detachObjects(exportDTO);
+    deleteFromOrg();
 
     Organization toOrg = tempEntity.newOrganization();
 
-    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
-    policyImporter.importOrganization(toOrg, exportDTO);
+    policyImportExport.importOrganization(toOrg, exportDTO);
 
     List<Policy> importedPolicies = new PolicyDAO().getByOwnerId(toOrg.getId());
     assertThat(importedPolicies, hasSize(1));
@@ -337,8 +334,8 @@ public class PolicyImporterTest
   }
 
   /**
-   * Serialize the exportDTO through json to ensure that all objects are detached from the db and that they are created
-   * fresh as they are when imported from json.
+   * Serialize the PolicyExportResult through json to ensure that all objects are detached from the db and that they are
+   * created fresh as they are when imported from json.
    */
   private PolicyExportResult detachObjects(PolicyExportResult policyExportResult) throws IOException {
     String s = JsonUtils.format(policyExportResult);
@@ -356,20 +353,26 @@ public class PolicyImporterTest
     return policyExportResult;
   }
 
-  private List<Policy> createPolicies(String ownerId, String labelId) {
-    Policy policy = new Policy(ownerId, ownerId);
+  private List<Policy> createPolicy(String ownerId, String labelId, String policyName) {
+    Policy policy = new Policy(null, policyName);
     policy.setOwnerId(ownerId);
-    Constraint constraint = new Constraint(ownerId, ownerId, LogicalOperator.AND);
+    Constraint constraint = new Constraint(null, tempEntity.uuid(), LogicalOperator.AND);
     constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
     policy.addConstraint(constraint);
+    new PolicyDAO().insert(policy);
     return Lists.newArrayList(policy);
   }
 
   private List<Label> createLabels(String ownerId) {
-    Label label1 = new Label(ownerId, "LABEL1", Color.black);
-    label1.setId("label1");
-    Label label2 = new Label(ownerId, "LABEL2", Color.blue);
-    label2.setId("label2");
+    Label label1 = tempEntity.newLabel(ownerId, "LABEL1", Color.black);
+    Label label2 = tempEntity.newLabel(ownerId, "LABEL2", Color.blue);
     return Lists.newArrayList(label1, label2);
+  }
+
+  public static void assertTag(Tag expected, Tag actual) {
+    assertThat(actual.getName(), is(expected.getName()));
+    assertThat(actual.getNameLowercaseNoWhitespace(), is(expected.getNameLowercaseNoWhitespace()));
+    assertThat(actual.getDescription(), is(expected.getDescription()));
+    assertThat(actual.getColor(), is(expected.getColor()));
   }
 }

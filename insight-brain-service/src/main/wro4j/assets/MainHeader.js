@@ -154,6 +154,14 @@
           });
           return false;
         });
+
+        // Dropdown can be closed by both the dropdown toggle and by clicking on the page. Both these elements emit
+        // a click.dropdown.data-api event which can be captured to deselect all dropdown items.
+        element.parents('.dropdown').children('a[data-toggle="dropdown"]').first().add(angular.element('html')).on('click.dropdown.data-api', function() {
+          AngularUtils.safeApply($scope, function() {
+            $scope.item.selected = false;
+          });
+        });
       }
     };
   }]);

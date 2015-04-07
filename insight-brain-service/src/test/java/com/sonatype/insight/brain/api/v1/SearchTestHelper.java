@@ -67,6 +67,15 @@ public class SearchTestHelper
     app1ComponentInfos.add(new ComponentInfo("1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"),
         app1TomcatUtilPolicyViolationInfos));
+    app1ComponentInfos.add(new ComponentInfo("2aa135385b1f449292e8",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"),
+        app1TomcatUtilPolicyViolationInfos));
+    app1ComponentInfos.add(new ComponentInfo("c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"),
+        app1TomcatUtilPolicyViolationInfos));
+    app1ComponentInfos.add(new ComponentInfo("a18da38b875b4658b4e9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"),
+        app1TomcatUtilPolicyViolationInfos));
     List<PolicyViolationInfo> app1SimpleJsonPolicyViolationInfos = new ArrayList<>();
     app1SimpleJsonPolicyViolationInfos.add(new PolicyViolationInfo("1st Policy", "Match State was exact", 8));
     app1ComponentInfos.add(new ComponentInfo("2143b68270b82576110f",
@@ -82,6 +91,15 @@ public class SearchTestHelper
     app2TomcatUtilPolicyViolationInfos.add(new PolicyViolationInfo("2st Policy", "Found red Label", 4));
     app2ComponentInfos.add(new ComponentInfo("1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"),
+        app2TomcatUtilPolicyViolationInfos));
+    app2ComponentInfos.add(new ComponentInfo("2aa135385b1f449292e8",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"),
+        app2TomcatUtilPolicyViolationInfos));
+    app2ComponentInfos.add(new ComponentInfo("c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"),
+        app2TomcatUtilPolicyViolationInfos));
+    app2ComponentInfos.add(new ComponentInfo("a18da38b875b4658b4e9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"),
         app2TomcatUtilPolicyViolationInfos));
     List<PolicyViolationInfo> app2SimpleJsonPolicyViolationInfos = new ArrayList<>();
     app2SimpleJsonPolicyViolationInfos.add(new PolicyViolationInfo("2st Policy", "Found red Label", 4));

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v1;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +75,17 @@ public class ApiSearchResourceTest
     assertThat(result.threatLevel, is(threatLevel));
   }
 
+  private void sortResultsByAppIdAndHash(ApiSearchResultsDTO resultsDTO) {
+    Collections.sort(resultsDTO.results, new Comparator<ApiSearchResultDTO>() {
+      @Override
+      public int compare(final ApiSearchResultDTO o1, final ApiSearchResultDTO o2) {
+        String applicationIdHash1 = o1.applicationId + o1.hash;
+        String applicationIdHash2 = o2.applicationId + o2.hash;
+        return applicationIdHash1.compareTo(applicationIdHash2);
+      }
+    });
+  }
+
   @Test
   public void testSearchComponent_MissingStageId() throws Exception {
     Response response = AuthedRestAccess.get(getSearchUrl("", "12345678901234567890"));
@@ -135,6 +148,7 @@ public class ApiSearchResourceTest
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
+    sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd", "tomcat",
         "tomcat-util", "5.5.23", 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd", "tomcat",
@@ -165,13 +179,27 @@ public class ApiSearchResourceTest
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(3));
+    assertThat(results.results, hasSize(9));
+    sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd", "tomcat",
-        "tomcat-util", "5.5.23", 8);
-    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "a397f601582e5ccd4b1a", "tomcat",
-        "servlets-default", "5.5.4", null);
-    assertSearchResult(results.results.get(2), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd", "tomcat",
-        "tomcat-util", "5.5.23", 4);
+        "tomcat-util", "5.5.23", 8); // jar
+    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8",
+        "tomcat", "tomcat-util", "5.5.23", 8); // zip
+    assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9",
+        "tomcat", "tomcat-util", "5.5.23", 8); // sources, zip
+    assertSearchResult(results.results.get(3), "search-app-1", "SEARCH-APP-1", "a397f601582e5ccd4b1a", "tomcat",
+        "servlets-default", "5.5.4", null); // jar
+    assertSearchResult(results.results.get(4), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        "tomcat", "tomcat-util", "5.5.23", 8); // sources, jar
+
+    assertSearchResult(results.results.get(5), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd", "tomcat",
+        "tomcat-util", "5.5.23", 4); // jar
+    assertSearchResult(results.results.get(6), "search-app-2", "SEARCH-APP-2", "2aa135385b1f449292e8", "tomcat",
+        "tomcat-util", "5.5.23", 4); // zip
+    assertSearchResult(results.results.get(7), "search-app-2", "SEARCH-APP-2", "a18da38b875b4658b4e9", "tomcat",
+        "tomcat-util", "5.5.23", 4); // sources, zip
+    assertSearchResult(results.results.get(8), "search-app-2", "SEARCH-APP-2", "c85713867bef4a3b91c9", "tomcat",
+        "tomcat-util", "5.5.23", 4); // sources, jar
   }
 
   @Test
@@ -185,6 +213,7 @@ public class ApiSearchResourceTest
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
+    sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd", "tomcat",
         "tomcat-util", "5.5.23", 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd", "tomcat",

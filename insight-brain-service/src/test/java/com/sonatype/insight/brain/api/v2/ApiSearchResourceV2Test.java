@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +87,18 @@ public class ApiSearchResourceV2Test
       assertThat(result.componentIdentifier, is(nullValue()));
     }
     assertThat(result.threatLevel, is(threatLevel));
+  }
+
+  private void sortResultsByAppIdAndHash(ApiSearchResultsDTOV2 resultsDTO) {
+    Collections.sort(resultsDTO.results, new Comparator<ApiSearchResultDTOV2>()
+    {
+      @Override
+      public int compare(final ApiSearchResultDTOV2 o1, final ApiSearchResultDTOV2 o2) {
+        String applicationIdHash1 = o1.applicationId + o1.hash;
+        String applicationIdHash2 = o2.applicationId + o2.hash;
+        return applicationIdHash1.compareTo(applicationIdHash2);
+      }
+    });
   }
 
   @Test
@@ -193,13 +207,47 @@ public class ApiSearchResourceV2Test
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
-    assertThat(results.results, hasSize(3));
+    assertThat(results.results, hasSize(9));
+    sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
-    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "a397f601582e5ccd4b1a",
+    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"), 8);
+    assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"), 8);
+    assertSearchResult(results.results.get(3), "search-app-1", "SEARCH-APP-1", "a397f601582e5ccd4b1a",
         ComponentIdentifier.createMavenCoordinates("tomcat", "servlets-default", "5.5.4", "", "jar"), null);
-    assertSearchResult(results.results.get(2), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
+    assertSearchResult(results.results.get(4), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
+
+    assertSearchResult(results.results.get(5), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 4);
+    assertSearchResult(results.results.get(6), "search-app-2", "SEARCH-APP-2", "2aa135385b1f449292e8",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "zip"), 4);
+    assertSearchResult(results.results.get(7), "search-app-2", "SEARCH-APP-2", "a18da38b875b4658b4e9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "zip"), 4);
+    assertSearchResult(results.results.get(8), "search-app-2", "SEARCH-APP-2", "c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 4);
+  }
+
+  @Test
+  public void testSearchComponent_ByGavec() throws Exception {
+    helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
+    helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*",
+        "sources", "jar");
+    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, componentIdentifier));
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    assertThat(results, is(notNullValue()));
+    assertThat(results.results, is(notNullValue()));
+    assertThat(results.results, hasSize(2));
+    sortResultsByAppIdAndHash(results);
+    assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 8);
+    assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "c85713867bef4a3b91c9",
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "sources", "jar"), 4);
   }
 
   @Test
@@ -214,6 +262,7 @@ public class ApiSearchResourceV2Test
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
+    sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "2143b68270b82576110f",
         ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "2143b68270b82576110f",
@@ -232,6 +281,7 @@ public class ApiSearchResourceV2Test
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
+    sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd",
         ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), 8);
     assertSearchResult(results.results.get(1), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd",

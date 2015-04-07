@@ -89,7 +89,11 @@ public class ArtifactCoordinate
               matches(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID),
                   otherComponentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)) &&
               matches(componentIdentifier.get(ComponentIdentifier.VERSION),
-                  otherComponentIdentifier.get(ComponentIdentifier.VERSION)));
+                  otherComponentIdentifier.get(ComponentIdentifier.VERSION)) &&
+              matches(componentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION),
+                  otherComponentIdentifier.get(ComponentIdentifier.MAVEN_EXTENSION)) &&
+              matches(componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER),
+                  otherComponentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER)));
     }
 
     for (Entry<String, String> coord : componentIdentifier.getCoordinates().entrySet()) {

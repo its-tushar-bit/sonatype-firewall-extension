@@ -4,12 +4,29 @@
 #infoPanelArtifactTable .content-name td:first-child {
     text-transform: capitalize;
 }
-#infoPanelArtifactTable tr td:first-child {
-  font-family: Arial;
-  font-size: 12px;
+#infoPanelArtifactTable tbody {
   color: #333333;
-  text-align: right;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+/* "View Details" and "Migrate" buttons had faint button text on MacOS w/out the font-family below. */
+#infoPanelArtifactTable .btn {
+  font-family: Arial, sans-serif;
+}
+
+#infoPanelArtifactTable tbody tr td:first-child {
   vertical-align: top;
+}
+
+#infoPanelArtifactTable tbody tr td:last-child {
+  font-weight:bold;
+  font-style:normal;
+  text-decoration:none;
+  word-wrap: break-word;
+}
+
+#infoPanelArtifactTable tr td:first-child {
+  text-align: right;
   width: 136px;
 }
 
@@ -18,18 +35,9 @@
   width: 200px;
 }
 
-#infoPanelArtifactTable tbody tr td:last-child {
-  font-family:Arial;
-  font-size:12px;
-  font-weight:bold;
-  font-style:normal;
-  text-decoration:none;
-  color:#333333;
-  word-wrap: break-word;
-}
 #infoPanelArtifactTable .license {
-	display: inline-block;
-	margin-right: 1ex;
+  display: inline-block;
+  margin-right: 1ex;
 }
 
 .clm-chiclet {

@@ -59,14 +59,15 @@
     };
   }]);
 
-  module.controller('Notifications', ['$scope', '$http', 'CLMLocations', 'timeAgoService', 'Messages',
-      function($scope, $http, CLMLocations, timeAgoService, Messages) {
+  module.controller('Notifications', ['$scope', '$http', '$sce', 'CLMLocations', 'timeAgoService', 'Messages',
+      function($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
     function processNotifications(notifications) {
       $scope.unreadNotificationCount = 0;
       angular.forEach(notifications, function(notification){
         if (!notification.viewed) {
           $scope.unreadNotificationCount++;
         }
+        notification.detailHtml = $sce.trustAsHtml(notification.detailHtml);
 
         var timeParts = timeAgoService.renderDate(notification.dateCreated);
 

@@ -28,7 +28,7 @@
   <div ng-transclude></div>
   <ul ng-if="item.selected" class="dropdown-sub-menu">
     <li class="disabled">{{item.summaryText}}</li>
-    <li class="detail-html-container">
+    <li id="detail-html-container">
       <div ng-bind-html="item.detailHtml"></div>
     </li>
   </ul>

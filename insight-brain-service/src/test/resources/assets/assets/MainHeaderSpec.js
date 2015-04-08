@@ -139,7 +139,7 @@ describe('mainHeader', function() {
       expect(notificationScope.notifications[0].id).toEqual('1234');
       expect(notificationScope.notifications[0].type).toEqual('default');
       expect(notificationScope.notifications[0].summaryText).toEqual('summary');
-      expect(notificationScope.notifications[0].detailHtml).toEqual('detail');
+      expect(notificationScope.notifications[0].detailHtml.toString()).toEqual('detail');
       expect(notificationScope.notifications[0].dateCreated).toEqual(tenDaysAgo);
       expect(notificationScope.notifications[0].viewed).toEqual(false);
       expect(notificationScope.notifications[0].age).toEqual(10);

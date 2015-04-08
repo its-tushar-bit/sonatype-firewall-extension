@@ -275,6 +275,7 @@ public class Policy
     return PolicyThreatCategory.getCategory(threatCategories);
   }
 
+  @JsonIgnore
   public String getDroolsCode() {
     return droolsCode;
   }

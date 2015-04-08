@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
@@ -31,6 +32,7 @@ import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertVal
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasNoErrors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 public class PolicyTest
 {
@@ -321,5 +323,13 @@ public class PolicyTest
     notifyAction.setTarget("tester@sonatype.com");
     result = policy.validate(applicationId);
     assertValidationResultHasNoErrors(result);
+  }
+
+  @Test
+  public void testGetDroolsCode_ExcludedFromJson() throws Exception {
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    policy.setDroolsCode("unwanted");
+    policy = JsonUtils.parse(JsonUtils.format(policy), Policy.class);
+    assertThat(policy.getDroolsCode(), is(nullValue()));
   }
 }

@@ -142,6 +142,11 @@
       },
       link: function($scope, element) {
         element.parent().on('click', function() {
+          // Do not hide or toggle detail panel when clicking on the detail panel
+          if (angular.element('.dropdown-sub-menu:hover').length > 0) {
+            return false;
+          }
+
           AngularUtils.safeApply($scope, function() {
             angular.forEach($scope.items, function(item){
               if ($scope.item.id === item.id) {

@@ -80,4 +80,31 @@ class NotificationSpec
     then: 'The detail panel is removed'
       waitFor { !notificationMenu.notificationList[1].detailHeader.displayed }
   }
+
+  def 'Notification detail panel remains when clicking on it'() {
+    when: 'We click the first notification item'
+      notificationMenu.notificationList[0].click()
+
+    then: 'We are presented with the detail view'
+      waitFor { notificationMenu.notificationList[0].detailHeader.text() == 'summary1' }
+      notificationMenu.notificationList[0].detailBody.text() == 'detail1'
+
+    and: 'We click on the detail body'
+      notificationMenu.notificationList[0].detailBody.click()
+
+    then: 'The detail panel remains'
+      notificationMenu.notificationList[0].detailBody.displayed
+
+    and: 'We click on the detail header'
+      notificationMenu.notificationList[0].detailHeader.click()
+
+    then: 'The detail panel remains'
+      notificationMenu.notificationList[0].detailBody.displayed
+
+    when: 'We click the same notification'
+      notificationMenu.notificationList[0].click()
+
+    then: 'The detail panel is removed'
+      waitFor { !notificationMenu.notificationList[0].detailHeader.displayed }
+  }
 }

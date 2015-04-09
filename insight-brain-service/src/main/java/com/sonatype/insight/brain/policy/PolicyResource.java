@@ -266,7 +266,7 @@ public class PolicyResource
       parse = JsonUtils.parse(importBytes, PolicyExportResult.class);
     }
     catch (IOException e) {
-      log.error("Policy file import failure, unable to marshal to json", e);
+      log.error("Policy file import failure, unable to marshal from json", e);
       throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
     }
     // Any random json file can be uploaded and result in an empty PolicyImportResult; ensure that we can parse

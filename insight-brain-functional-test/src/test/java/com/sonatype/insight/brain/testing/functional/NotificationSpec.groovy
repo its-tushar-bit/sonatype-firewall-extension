@@ -5,15 +5,17 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.testing.functional.BaseSpec
+import com.sonatype.insight.brain.testing.functional.modules.NotificationItemModule
+import com.sonatype.insight.brain.testing.functional.modules.NotificationModule
 
-import spock.lang.Ignore
+import org.openqa.selenium.interactions.Actions
 import spock.lang.Stepwise
 
 @Stepwise
 class NotificationSpec
     extends BaseSpec
 {
+  static NotificationModule notificationMenu
 
   def setupSpec() {
     Date now = new Date()
@@ -32,7 +34,8 @@ class NotificationSpec
         '"detailHtml" : "detail2",' +
         '"dateCreated" : ' + tenHoursAgo +
         '}]}', 200)
-    loginAsAdminVia()
+    DashboardPage dashboardPage = loginAsAdminVia(DashboardPage)
+    notificationMenu = dashboardPage.notificationMenu
   }
 
   def "Notification count is shown"() {
@@ -83,32 +86,32 @@ class NotificationSpec
       waitFor { !notificationMenu.notificationList[1].detailHeader.displayed }
   }
 
-  // Test fails on CI due to hover state not enabling on click.
-  @Ignore
   def 'Notification detail panel remains when clicking on it'() {
     when: 'We click the first notification item'
-      notificationMenu.notificationList[0].click()
+      NotificationItemModule firstNotificationItem = notificationMenu.notificationList[0]
+      firstNotificationItem.click()
 
     then: 'We are presented with the detail view'
-      waitFor { notificationMenu.notificationList[0].detailHeader.text() == 'summary1' }
-      notificationMenu.notificationList[0].detailBody.text() == 'detail1'
+      waitFor { firstNotificationItem.detailHeader.text() == 'summary1' }
+      firstNotificationItem.detailBody.text() == 'detail1'
 
-    and: 'We click on the detail body'
-      notificationMenu.notificationList[0].detailBody.click()
-
-    then: 'The detail panel remains'
-      notificationMenu.notificationList[0].detailBody.displayed
-
-    and: 'We click on the detail header'
-      notificationMenu.notificationList[0].detailHeader.click()
+    when: 'We click on the detail body'
+      def actions = new Actions(driver)
+      actions.moveToElement(firstNotificationItem.detailBody.firstElement(), 10, 10).click().build().perform()
 
     then: 'The detail panel remains'
-      notificationMenu.notificationList[0].detailBody.displayed
+      firstNotificationItem.detailBody.displayed
+
+    when: 'We click on the detail header'
+      actions.moveToElement(firstNotificationItem.detailHeader.firstElement(), 10, 10).click().build().perform()
+
+    then: 'The detail panel remains'
+      firstNotificationItem.detailHeader.displayed
 
     when: 'We click the same notification'
-      notificationMenu.notificationList[0].click()
+      actions.moveToElement(firstNotificationItem.firstElement(), 10, 10).click().build().perform()
 
     then: 'The detail panel is removed'
-      waitFor { !notificationMenu.notificationList[0].detailHeader.displayed }
+      waitFor { !firstNotificationItem.detailHeader.displayed }
   }
 }

@@ -370,14 +370,17 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     position: absolute;
   }
 
+  .dropdown-sub-menu li, .dropdown-sub-menu li:hover {
+    background-color: #fefefe !important;
+    cursor: auto !important;
+  }
+
   #detail-html-container {
     width: 500px;
     height: 318px;
     overflow: auto;
     white-space: normal !important;
     padding: 8px;
-    background-color: #fefefe !important;
-    cursor: auto;
   }
 }
 

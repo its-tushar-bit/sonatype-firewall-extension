@@ -226,7 +226,7 @@ public class PolicyImportExportTest
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
 
     //only interested in the deletion so import an empty DTO
-    policyImportExport.importApplication(toApp, emptyExportDTO());
+    policyImportExport.importApplication(toApp, new PolicyExportResult());
 
     verify(uriInfo).getRequestUri();
     assertThat(new PolicyWaiverDAO().getByOwnerId(toApp.getId()), is(empty()));
@@ -243,7 +243,7 @@ public class PolicyImportExportTest
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
     //only interested in the deletion so import an empty DTO
-    policyImportExport.importOrganization(toOrg, emptyExportDTO());
+    policyImportExport.importOrganization(toOrg, new PolicyExportResult());
 
     verify(uriInfo).getRequestUri();
     assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));
@@ -358,17 +358,6 @@ public class PolicyImportExportTest
   private PolicyExportResult detachObjects(PolicyExportResult policyExportResult) throws IOException {
     String s = JsonUtils.format(policyExportResult);
     return JsonUtils.parse(s, PolicyExportResult.class);
-  }
-
-  private PolicyExportResult emptyExportDTO() {
-    PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.licenseThreatGroups = Collections.emptyList();
-    policyExportResult.licenseThreatGroupLicenses = Collections.emptyList();
-    policyExportResult.labels = Collections.emptyList();
-    policyExportResult.policies = Collections.emptyList();
-    policyExportResult.tags = Collections.emptyList();
-    policyExportResult.policyTags = Collections.emptyList();
-    return policyExportResult;
   }
 
   private List<Policy> createPolicy(String ownerId, String labelId, String policyName) {
@@ -503,8 +492,8 @@ public class PolicyImportExportTest
     Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.white);
     tempEntity.newComponentLabel(fromApp.getId(), appLabel.getId());
 
-    // import a policy with no data to the app
-    policyImportExport.importApplication(fromApp, emptyExportDTO());
+    // import an empty PolicyExportResult to the app
+    policyImportExport.importApplication(fromApp, new PolicyExportResult());
 
     // verify that org data is untouched
     // 127 at time of writing, should only break if we remove many
@@ -536,8 +525,8 @@ public class PolicyImportExportTest
     Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.white);
     tempEntity.newComponentLabel(fromApp.getId(), appLabel.getId());
 
-    // import a policy with no data to the org
-    policyImportExport.importOrganization(fromOrg, emptyExportDTO());
+    // import an empty PolicyExportResult to the org
+    policyImportExport.importOrganization(fromOrg, new PolicyExportResult());
 
     // verify that we delete all data from the org
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromOrg.getId()), is(empty()));

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy;
 
 import java.net.URI;
-import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.UriInfo;
@@ -72,35 +71,24 @@ public class PolicyImportExportAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testImportApplication_Unauthorized() throws Exception {
     login();
-    policyImportExport.importApplication(app, emptyExportDTO());
+    policyImportExport.importApplication(app, new PolicyExportResult());
   }
 
   @Test
   public void testImportApplication_Authorized() throws Exception {
     grantWritePermission(app.getId());
-    policyImportExport.importApplication(app, emptyExportDTO());
+    policyImportExport.importApplication(app, new PolicyExportResult());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testImportOrganization_Unauthorized() throws Exception {
     login();
-    policyImportExport.importOrganization(org, emptyExportDTO());
+    policyImportExport.importOrganization(org, new PolicyExportResult());
   }
 
   @Test
   public void testImportOrganization_Authorized() throws Exception {
     grantWritePermission(org.getId());
-    policyImportExport.importOrganization(org, emptyExportDTO());
-  }
-
-  private PolicyExportResult emptyExportDTO() {
-    PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.licenseThreatGroups = Collections.emptyList();
-    policyExportResult.licenseThreatGroupLicenses = Collections.emptyList();
-    policyExportResult.labels = Collections.emptyList();
-    policyExportResult.policies = Collections.emptyList();
-    policyExportResult.tags = Collections.emptyList();
-    policyExportResult.policyTags = Collections.emptyList();
-    return policyExportResult;
+    policyImportExport.importOrganization(org, new PolicyExportResult());
   }
 }

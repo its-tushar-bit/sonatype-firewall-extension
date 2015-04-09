@@ -47,6 +47,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
+import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -261,31 +262,29 @@ public class PolicyResource
     finally {
       IOUtil.close(stream);
     }
-    PolicyExportResult parse;
+    PolicyExportResult policyExportResult;
     try {
-      parse = JsonUtils.parse(importBytes, PolicyExportResult.class);
+      policyExportResult = JsonUtils.parse(importBytes, PolicyExportResult.class);
     }
     catch (IOException e) {
       log.error("Policy file import failure, unable to marshal from json", e);
       throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
     }
-    // Any random json file can be uploaded and result in an empty PolicyImportResult; ensure that we can parse
-    // relevant data in expected format, for which minimally these should be empty collections.
-    // Explicitly NOT checking tags and policyTags, as these are not required to be in the json
-    if(parse.policies == null || parse.labels == null || parse.licenseThreatGroupLicenses == null ||
-        parse.licenseThreatGroups == null){
+    // Any random json file can be uploaded and result in an empty PolicyImportResult. It does not make sense to import
+    // policies from a file without policies.
+    if (CollectionUtils.isEmpty(policyExportResult.policies)) {
       throw new BadRequestException(BAD_FORMAT_FILE_UPLOAD);
     }
 
     // Ensure that tags are not null. The importer expects non-null fields
-    if(parse.tags == null) {
-      parse.tags = new ArrayList<>();
+    if (policyExportResult.tags == null) {
+      policyExportResult.tags = new ArrayList<>();
     }
-    if(parse.policyTags == null) {
-      parse.policyTags = new ArrayList<>();
+    if (policyExportResult.policyTags == null) {
+      policyExportResult.policyTags = new ArrayList<>();
     }
 
-    return parse;
+    return policyExportResult;
   }
 
   public static class ApplicablePolicies

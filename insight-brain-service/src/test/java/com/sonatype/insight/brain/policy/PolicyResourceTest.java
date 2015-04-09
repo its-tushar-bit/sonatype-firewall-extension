@@ -5,23 +5,19 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
@@ -30,7 +26,6 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.RestAccess;
 
-import com.google.common.collect.Lists;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
@@ -57,8 +52,8 @@ public class PolicyResourceTest
   @Test
   public void testAppImport_InsertFailure() throws Exception {
     String applicationPublicId = "PolicyResourceTest-testAppImport_Insert";
-    Response response = AuthedRestAccess.post(getServiceURL(APP, applicationPublicId),
-        toJson(createPolicyExportResult()));
+    Response response = AuthedRestAccess
+        .post(getServiceURL(APP, applicationPublicId), toJson(new PolicyExportResult()));
     // ensure that we cannot import to an App that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Could not find an application with public ID " + applicationPublicId
@@ -68,7 +63,7 @@ public class PolicyResourceTest
   @Test
   public void testOrgImport_InsertFailure() throws Exception {
     String orgId = "PolicyResourceTest-testOrgImport_Insert";
-    Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), toJson(createPolicyExportResult()));
+    Response response = AuthedRestAccess.post(getServiceURL(ORG, orgId), toJson(new PolicyExportResult()));
     // ensure that we cannot import to an Org that does not exist
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Cannot find organization with ID " + orgId + "."));
@@ -311,14 +306,9 @@ public class PolicyResourceTest
    * Expected to return a validation error text response and HTTP 200 in the case of an error uploading to IE.
    */
   @Test
-  public void testImportToApplicationWithTagsForIE() throws Exception {
+  public void testImportPoliciesForIEReturnsErrorMessage() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testAppPublicId");
-    PolicyExportResult export = createPolicyExportResult();
-    Tag tag = new Tag("orgId", "tagName", "tagDescription", Color.black);
-    tag.setId(id());
-    export.tags = Arrays.asList(tag);
-    PolicyTag policyTag = new PolicyTag("policyId", tag.getId());
-    export.policyTags = Arrays.asList(policyTag);
+    PolicyExportResult export = new PolicyExportResult();
 
     String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import/ie", IdUtils.TYPE_APPLICATION, app.getPublicId());
     AsyncHttpClient.BoundRequestBuilder builder =  AuthedRestAccess.getClient().preparePost(url);
@@ -328,7 +318,7 @@ public class PolicyResourceTest
     Response response = builder.execute().get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(),
-        is("Importing policies with applied tags to an application is not supported."));
+        is("The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?"));
   }
 
   @Test
@@ -357,19 +347,6 @@ public class PolicyResourceTest
 
   private String getServiceURL(final String ownerType, final String ownerId, final String policyId) {
     return getServiceURL(ownerType, ownerId) + "/" + policyId;
-  }
-
-  private PolicyExportResult createPolicyExportResult() {
-    PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.licenseThreatGroupLicenses = Lists.newArrayList();
-    policyExportResult.licenseThreatGroups = Lists.newArrayList();
-    policyExportResult.policies = Lists.newArrayList();
-    policyExportResult.labels = Lists.newArrayList();
-    return policyExportResult;
-  }
-
-  private String id(){
-    return UUID.randomUUID().toString();
   }
 
   @Test

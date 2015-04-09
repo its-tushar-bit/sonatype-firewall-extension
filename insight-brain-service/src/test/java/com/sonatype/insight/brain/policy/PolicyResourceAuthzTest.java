@@ -116,10 +116,7 @@ public class PolicyResourceAuthzTest
     grantWritePermission(org.getId());
 
     PolicyExportResult export = new PolicyExportResult();
-    export.labels = Collections.emptyList();
-    export.licenseThreatGroups = Collections.emptyList();
-    export.licenseThreatGroupLicenses = Collections.emptyList();
-    export.policies = Collections.emptyList();
+    export.policies = Collections.singletonList(tempEntity.newPolicy(org.getId(), "name"));
     new ApplicationDAO().delete(app);
 
     String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import/ie", IdUtils.TYPE_ORGANIZATION, org.getId());

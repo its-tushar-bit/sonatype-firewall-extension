@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.label.Label;
@@ -16,21 +17,21 @@ import com.sonatype.insight.brain.model.tag.Tag;
 
 public class PolicyExportResult
 {
-  public List<Policy> policies;
+  public List<Policy> policies = Collections.emptyList();
 
-  public List<Label> labels;
+  public List<Label> labels = Collections.emptyList();
 
-  public List<LicenseThreatGroup> licenseThreatGroups;
+  public List<LicenseThreatGroup> licenseThreatGroups = Collections.emptyList();
 
-  public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
-
-  /**
-   * @since 1.9
-   */
-  public List<Tag> tags;
+  public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses = Collections.emptyList();
 
   /**
    * @since 1.9
    */
-  public List<PolicyTag> policyTags;
+  public List<Tag> tags = Collections.emptyList();
+
+  /**
+   * @since 1.9
+   */
+  public List<PolicyTag> policyTags = Collections.emptyList();
 }

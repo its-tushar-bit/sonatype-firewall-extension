@@ -12,6 +12,7 @@
 /* "View Details" and "Migrate" buttons had faint button text on MacOS w/out the font-family below. */
 #infoPanelArtifactTable .btn {
   font-family: Arial, sans-serif;
+  /* These buttons are in the table footer, and are not tbody children. font-size is inherited from Bootstrap. */
 }
 
 #infoPanelArtifactTable tbody tr td:first-child {

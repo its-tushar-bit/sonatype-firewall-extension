@@ -112,43 +112,6 @@ public class PolicyResourceAuthzTest
   }
 
   @Test
-  public void testExportPolicies() throws Exception {
-    grantReadPermission(app.getId());
-
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/export", IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzGet(url);
-  }
-
-  @Test
-  public void testImportPolicies_ToExistingApp() throws Exception {
-    grantWritePermission(app.getId());
-
-    PolicyExportResult export = new PolicyExportResult();
-    export.labels = Collections.emptyList();
-    export.licenseThreatGroups = Collections.emptyList();
-    export.licenseThreatGroupLicenses = Collections.emptyList();
-    export.policies = Collections.emptyList();
-
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import", IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzPut(url, toJson(export));
-  }
-
-  @Test
-  public void testImportPolicies_ToExistingOrg() throws Exception {
-    grantWritePermission(org.getId());
-
-    PolicyExportResult export = new PolicyExportResult();
-    export.labels = Collections.emptyList();
-    export.licenseThreatGroups = Collections.emptyList();
-    export.licenseThreatGroupLicenses = Collections.emptyList();
-    export.policies = Collections.emptyList();
-    new ApplicationDAO().delete(app);
-
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import", IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzPut(url, toJson(export));
-  }
-
-  @Test
   public void testImportPolicies_IE9() throws Exception {
     grantWritePermission(org.getId());
 

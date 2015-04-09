@@ -197,10 +197,8 @@ public class PolicyResource
   @GET
   @Path("export")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public PolicyExportResult exportPolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public PolicyExportResult exportPolicies(@PathParam("ownerType") final String ownerType,
+      @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -215,11 +213,8 @@ public class PolicyResource
   @PUT
   @Path("import")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public PolicyImportResult importPolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-      @Context HttpServletRequest servletRequest) throws IOException
+  public PolicyImportResult importPolicies(@PathParam("ownerType") final String ownerType,
+      @PathParam("ownerId") String ownerId, @Context HttpServletRequest servletRequest) throws IOException
   {
     return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
   }

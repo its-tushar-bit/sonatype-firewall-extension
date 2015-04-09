@@ -35,8 +35,11 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -94,7 +97,10 @@ public class PolicyImportExport
    * @param exportDTO data to import
    * @return result embedding the url of the application
    */
-  public PolicyImportResult importApplication(Application application, PolicyExportResult exportDTO) {
+  @Authorize(permission = Permission.WRITE)
+  PolicyImportResult importApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application,
+      PolicyExportResult exportDTO)
+  {
     checkAppImportPreconditions(application, exportDTO);
 
     String appId = application.getId();
@@ -141,7 +147,10 @@ public class PolicyImportExport
    * @param exportDTO data to import
    * @return result embedding the url of the organization
    */
-  public PolicyImportResult importOrganization(Organization organization, PolicyExportResult exportDTO) {
+  @Authorize(permission = Permission.WRITE)
+  PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
+      PolicyExportResult exportDTO)
+  {
     checkOrgImportPreconditions(organization, exportDTO);
 
     String orgId = organization.getId();
@@ -435,11 +444,13 @@ public class PolicyImportExport
     }
   }
 
-  PolicyExportResult exportApplication(Application application) {
+  @Authorize(permission = Permission.READ)
+  PolicyExportResult exportApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     return export(application.getId());
   }
 
-  PolicyExportResult exportOrganization(Organization organization) {
+  @Authorize(permission = Permission.READ)
+  PolicyExportResult exportOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
     String orgId = organization.getId();
     PolicyExportResult policyExportResult = export(orgId);
     policyExportResult.policyTags = new PolicyTagDAO().getByOrganizationId(orgId);

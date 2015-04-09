@@ -783,6 +783,7 @@
         <configuration>
           <minimize>${wro4j.minimize}</minimize>
           <wroFile>${basedir}/wro.xml</wroFile>
+          <parallelProcessing>true</parallelProcessing>
           <extraConfigFile>${basedir}/wro.properties</extraConfigFile>
           <wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
           <ignoreMissingResources>false</ignoreMissingResources>

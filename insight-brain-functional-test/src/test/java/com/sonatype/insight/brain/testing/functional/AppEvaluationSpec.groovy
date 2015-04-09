@@ -56,7 +56,7 @@ extends BaseSpec {
 
     when: 'User uploads app using app eval button'
     orgPage.tools.appEvalButton.click()
-    waitFor { orgPage.tools.appEval.dialog.displayed }
+    waitFor { orgPage.tools.appEval.application.displayed }
     orgPage.tools.appEval.application.value('AppEvaluationApp1')
     orgPage.tools.appEval.stage.value('3')
     orgPage.tools.appEval.file.value(
@@ -86,8 +86,10 @@ extends BaseSpec {
     when: 'User clicks on the app eval button'
     orgPage.tools.appEvalButton.click()
 
-    then: 'User see the app eval dialog and no application is selected'
+    then: 'User see the app eval dialog'
     waitFor { orgPage.tools.appEval.dialog.displayed }
+
+    and: 'no application is selected'
     waitFor { orgPage.tools.appEval.application.value() == '' }
 
     and: 'Four choices are available for the stage'
@@ -111,9 +113,11 @@ extends BaseSpec {
     when: 'User clicks on the app eval button'
     appPage.tools.appEvalButton.click()
 
-    then: 'User see the app eval dialog and an application is selected'
+    then: 'User see the app eval dialog'
     waitFor { appPage.tools.appEval.dialog.displayed }
-    appPage.tools.appEval.application.value() == '1'
+
+    and: 'an application is selected'
+    waitFor { appPage.tools.appEval.application.value() == '1' }
     appPage.tools.appEval.getSelectedApplicationOption() == "AppEvaluationApp2"
 
     and: 'Four choices are available for the stage'
@@ -132,7 +136,7 @@ extends BaseSpec {
     ApplicationPage appPage = at(ApplicationPage)
     appPage.tools.appEvalButton.displayed
     appPage.tools.appEvalButton.click()
-    waitFor { appPage.tools.appEval.dialog.displayed }
+    waitFor { appPage.tools.appEval.stage.displayed }
     appPage.tools.appEval.stage.value('3')
     // integrating the file input with Angular is, interesting, populating this last to check UI responds
     // properly/immediately

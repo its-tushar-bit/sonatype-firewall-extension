@@ -208,12 +208,6 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     margin-left: 0;
     list-style: none;
 
-    a {
-      color: #070707;
-      padding: 8px;   // here to avoid dead zones on click targets
-      display: block; // for top & bottom padding
-    }
-
     li {
       font-family: Proxima Nova Regular;
       font-size: 14px;
@@ -222,6 +216,12 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
       border-bottom: $notification-item-border;
       white-space: nowrap;
       word-wrap: break-word;
+
+      & > a {
+        color: #070707;
+        padding: 8px;   // here to avoid dead zones on click targets
+        display: block; // for top & bottom padding
+      }
 
       * {
         vertical-align: top;

@@ -31,7 +31,7 @@ class NotificationSpec
         '"id" : "2",' +
         '"type" : "DEFAULT",' +
         '"summaryText" : "summary2",' +
-        '"detailHtml" : "detail2",' +
+        '"detailHtml" : "<a href=\'http://www.google.com\'>detail2</a>",' +
         '"dateCreated" : ' + tenHoursAgo +
         '}]}', 200)
     DashboardPage dashboardPage = loginAsAdminVia(DashboardPage)
@@ -113,5 +113,21 @@ class NotificationSpec
 
     then: 'The detail panel is removed'
       waitFor { !firstNotificationItem.detailHeader.displayed }
+  }
+
+  def 'Clicking on link in detail panel opens in a new window'() {
+    when: 'We click on the second notification item'
+      NotificationItemModule secondNotificationItem = notificationMenu.notificationList[1]
+      secondNotificationItem.click()
+
+    and: 'We click on the second notification detail link'
+      def actions = new Actions(driver)
+      actions.moveToElement(secondNotificationItem.detailedBodyLinks.firstElement(), 10, 10).click().build().perform()
+
+    then: 'A link opens in a new tab'
+      waitFor { getAvailableWindows().size() == 2 }
+      withWindow(close: true, availableWindows[1]) {
+        waitFor { driver.currentUrl.contains('google.com') }
+      }
   }
 }

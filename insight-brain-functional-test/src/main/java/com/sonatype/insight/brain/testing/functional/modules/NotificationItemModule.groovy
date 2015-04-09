@@ -16,5 +16,6 @@ class NotificationItemModule
     summary { $('.notification-text') }
     detailHeader(required: false) { $('.dropdown-sub-menu .disabled') }
     detailBody(required: false) { $('#detail-html-container div') }
+    detailedBodyLinks(required: false) { detailBody.find('a') }
   }
 }

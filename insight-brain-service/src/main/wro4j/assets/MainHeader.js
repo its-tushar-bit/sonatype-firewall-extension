@@ -145,6 +145,11 @@
         element.parent().on('click', function() {
           // Do not hide or toggle detail panel when clicking on the detail panel
           if (angular.element('.dropdown-sub-menu:hover').length > 0) {
+            var hoverLink = angular.element('.dropdown-sub-menu:hover a:hover');
+            if (hoverLink.length > 0) {
+              window.open(hoverLink.attr('href'), '_blank');
+            }
+
             return false;
           }
 

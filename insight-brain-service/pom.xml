@@ -32,7 +32,7 @@
     <phantomjs-maven-plugin.version>0.2.1</phantomjs-maven-plugin.version>
     <phantomjs.version>1.9.7</phantomjs.version>
     <phantomjs.baseUrl>https://bitbucket.org/ariya/phantomjs/downloads/</phantomjs.baseUrl>
-    <wro4j.brain.resources>${project.build.directory}/generated/assets/assets/</wro4j.brain.resources>
+    <wro4j.brain.resources>${project.build.directory}/generated/assets/</wro4j.brain.resources>
     <wro4j.minimize>true</wro4j.minimize>
   </properties>
 
@@ -753,8 +753,8 @@
             <configuration>
               <options>camelcase,curly,indent=2,eqeqeq,forin,immed,noarg,quotmark='single',undef,unused,strict,trailing,browser,jquery</options>
               <targetGroups>configuration,core,dashboard,policy,report,util,style</targetGroups>
-              <cssDestinationFolder>${wro4j.brain.resources}css/</cssDestinationFolder>
-              <jsDestinationFolder>${wro4j.brain.resources}js/</jsDestinationFolder>
+              <cssDestinationFolder>${wro4j.brain.resources}assets/css/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}assets/js/</jsDestinationFolder>
             </configuration>
           </execution>
           <execution>
@@ -765,7 +765,7 @@
             </goals>
             <configuration>
               <targetGroups>cip</targetGroups>
-              <cssDestinationFolder>${project.build.directory}/generated/assets/cip/</cssDestinationFolder>
+              <cssDestinationFolder>${wro4j.brain.resources}cip/</cssDestinationFolder>
             </configuration>
           </execution>
           <execution>
@@ -776,7 +776,7 @@
             </goals>
             <configuration>
               <targetGroups>version-graph,viewdetails</targetGroups>
-              <destinationFolder>${wro4j.brain.resources}version-graph/</destinationFolder>
+              <destinationFolder>${wro4j.brain.resources}assets/version-graph/</destinationFolder>
             </configuration>
           </execution>
         </executions>
@@ -913,7 +913,7 @@
       </activation>
       <properties>
         <wro4j.minimize>false</wro4j.minimize>
-        <wro4j.brain.resources>${project.build.directory}/classes/assets/assets/</wro4j.brain.resources>
+        <wro4j.brain.resources>${project.build.directory}/classes/assets/</wro4j.brain.resources>
       </properties>
     </profile>
     <profile>

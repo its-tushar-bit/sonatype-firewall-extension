@@ -259,10 +259,11 @@ describe('mainHeader', function() {
       expect(notificationScope.unreadNotificationCount).toEqual(1);
       expect(notificationScope.notifications[0].viewed).toEqual(false);
       $httpBackend.expectPOST(CLMLocations.getNotificationViewedUrl(), {id:'1'}).respond(200);
-      notificationScope.markAsRead(notificationScope.notifications[0]);
+      notificationScope.openDetail(notificationScope.notifications[0]);
       $httpBackend.flush();
       expect(notificationScope.unreadNotificationCount).toEqual(0);
       expect(notificationScope.notifications[0].viewed).toEqual(true);
+      expect(notificationScope.selectedNotification).toEqual(notificationScope.notifications[0]);
     }));
   });
 

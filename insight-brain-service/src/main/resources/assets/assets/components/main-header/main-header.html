@@ -183,7 +183,7 @@
           </div>
           <div id="notification-menu" class="header-dropdown-menu notification-menu" ng-controller="Notifications">
             <div class="dropdown pull-right">
-              <a id="notification-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#">
+              <a id="notification-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#" ng-click="clearSelected()">
                 <i class='glyphicons-sonatype medium inbox'></i>
                 <div ng-if="unreadNotificationCount" class="count-circle pull-right" ng-class="{'exclamation': errorText}">{{unreadNotificationCount}}</div>
               </a>
@@ -196,12 +196,18 @@
                   <li ng-if="errorText">
                     <div class="alert alert-danger">{{errorText}}</div>
                   </li>
-                  <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="markAsRead(notification)" class="notification-link" ng-class="{'viewed': notification.viewed, 'selected': notification.selected}">
-                    <div dropdown-detail-panel items="notifications" item="notification">
-                      <div class="notification-age">{{notification.age}}</div>
-                      <div class="notification-age-label">{{notification.ageQualifier}}</div>
-                      <div class="notification-text">{{notification.summaryText}}</div>
-                    </div>
+                  <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="openDetail(notification); $event.stopPropagation();" class="notification-link" ng-class="{'viewed': notification.viewed, 'selected': selectedNotification == notification}">
+                    <div class="notification-age">{{notification.age}}</div>
+                    <div class="notification-age-label">{{notification.ageQualifier}}</div>
+                    <div class="notification-text">{{notification.summaryText}}</div>
+                  </li>
+                  <li ng-if="selectedNotification" ng-click="$event.stopPropagation();">
+                    <ul class="dropdown-sub-menu">
+                      <li class="disabled">{{selectedNotification.summaryText}}</li>
+                      <li id="detail-html-container">
+                        <div ng-bind-html="selectedNotification.detailHtml"></div>
+                      </li>
+                    </ul>
                   </li>
                 </ul></li>
               </ul>

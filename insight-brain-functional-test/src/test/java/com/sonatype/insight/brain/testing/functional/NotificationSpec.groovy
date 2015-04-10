@@ -31,7 +31,7 @@ class NotificationSpec
         '"id" : "2",' +
         '"type" : "DEFAULT",' +
         '"summaryText" : "summary2",' +
-        '"detailHtml" : "<a href=\'http://www.google.com/ncr\'>detail2</a>",' +
+        '"detailHtml" : "<a href=\'http://www.google.com/ncr\' target=\'_blank\'>detail2</a>",' +
         '"dateCreated" : ' + tenHoursAgo +
         '}]}', 200)
     DashboardPage dashboardPage = loginAsAdminVia(DashboardPage)
@@ -63,8 +63,8 @@ class NotificationSpec
       notificationMenu.notificationList[0].click()
 
     then: 'We are presented with the detail view'
-      waitFor { notificationMenu.notificationList[0].detailHeader.text() == 'summary1' }
-      notificationMenu.notificationList[0].detailBody.text() == 'detail1'
+      waitFor { notificationMenu.detailHeader.text() == 'summary1' }
+      notificationMenu.detailBody.text() == 'detail1'
 
     and: 'The notification count has gone down'
       waitFor { notificationMenu.notificationCount.text() == '1' }
@@ -73,8 +73,8 @@ class NotificationSpec
       notificationMenu.notificationList[1].click()
 
     then: 'We are presented with the other detail view'
-      waitFor { notificationMenu.notificationList[1].detailHeader.text() == 'summary2' }
-      notificationMenu.notificationList[1].detailBody.text() == 'detail2'
+      waitFor { notificationMenu.detailHeader.text() == 'summary2' }
+      notificationMenu.detailBody.text() == 'detail2'
 
     and: 'The notificiation count is gone'
       waitFor { !notificationMenu.notificationCount.displayed }
@@ -83,7 +83,7 @@ class NotificationSpec
       notificationMenu.notificationList[1].click()
 
     then: 'The detail panel is removed'
-      waitFor { !notificationMenu.notificationList[1].detailHeader.displayed }
+      waitFor { !notificationMenu.detailHeader.displayed }
   }
 
   def 'Notification detail panel remains when clicking on it'() {
@@ -92,27 +92,27 @@ class NotificationSpec
       firstNotificationItem.click()
 
     then: 'We are presented with the detail view'
-      waitFor { firstNotificationItem.detailHeader.text() == 'summary1' }
-      firstNotificationItem.detailBody.text() == 'detail1'
+      waitFor { notificationMenu.detailHeader.text() == 'summary1' }
+      notificationMenu.detailBody.text() == 'detail1'
 
     when: 'We click on the detail body'
       def actions = new Actions(driver)
-      actions.moveToElement(firstNotificationItem.detailBody.firstElement(), 10, 10).click().build().perform()
+      actions.moveToElement(notificationMenu.detailBody.firstElement(), 10, 10).click().build().perform()
 
     then: 'The detail panel remains'
-      firstNotificationItem.detailBody.displayed
+      notificationMenu.detailBody.displayed
 
     when: 'We click on the detail header'
-      actions.moveToElement(firstNotificationItem.detailHeader.firstElement(), 10, 10).click().build().perform()
+      actions.moveToElement(notificationMenu.detailHeader.firstElement(), 10, 10).click().build().perform()
 
     then: 'The detail panel remains'
-      firstNotificationItem.detailHeader.displayed
+      notificationMenu.detailHeader.displayed
 
     when: 'We click the same notification'
       actions.moveToElement(firstNotificationItem.firstElement(), 10, 10).click().build().perform()
 
     then: 'The detail panel is removed'
-      waitFor { !firstNotificationItem.detailHeader.displayed }
+      waitFor { !notificationMenu.detailHeader.displayed }
   }
 
   def 'Clicking on link in detail panel opens in a new window'() {
@@ -122,7 +122,7 @@ class NotificationSpec
 
     and: 'We click on the second notification detail link'
       def actions = new Actions(driver)
-      actions.moveToElement(secondNotificationItem.detailedBodyLinks.firstElement(), 10, 10).click().build().perform()
+      actions.moveToElement(notificationMenu.detailedBodyLinks.firstElement(), 10, 10).click().build().perform()
 
     then: 'A link opens in a new tab'
       waitFor { getAvailableWindows().size() == 2 }

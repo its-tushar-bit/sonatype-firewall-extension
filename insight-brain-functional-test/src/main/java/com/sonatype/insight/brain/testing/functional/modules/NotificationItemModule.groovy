@@ -14,8 +14,5 @@ class NotificationItemModule
     age { $('.notification-age') }
     ageLabel { $('.notification-age-label') }
     summary { $('.notification-text') }
-    detailHeader(required: false) { $('.dropdown-sub-menu .disabled') }
-    detailBody(required: false) { $('#detail-html-container div') }
-    detailedBodyLinks(required: false) { detailBody.find('a') }
   }
 }

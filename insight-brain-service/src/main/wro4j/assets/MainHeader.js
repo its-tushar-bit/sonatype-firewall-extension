@@ -76,15 +76,27 @@
       });
     }
 
-    $scope.markAsRead = function(notification) {
-      if (!notification.viewed) {
-        $http.post(CLMLocations.getNotificationViewedUrl(), {
-          id: notification.id
-        }).success(function() {
-          notification.viewed = true;
-          $scope.unreadNotificationCount--;
-        });
+    $scope.openDetail = function(notification) {
+      if ($scope.selectedNotification && $scope.selectedNotification === notification) {
+        $scope.selectedNotification = null;
       }
+      else {
+        $scope.selectedNotification = notification;
+        if (!notification.viewed) {
+          $http.post(CLMLocations.getNotificationViewedUrl(), {
+            id: notification.id
+          }).success(function() {
+            notification.viewed = true;
+            $scope.unreadNotificationCount--;
+          });
+        }
+      }
+
+      return false;
+    };
+
+    $scope.clearSelected = function() {
+      $scope.selectedNotification = null;
     };
 
     $scope.getNotifications = function() {
@@ -132,50 +144,6 @@
       templateUrl : '../assets/components/main-header/main-header.html?' + clmBuildTimestamp
     };
   });
-
-  module.directive('dropdownDetailPanel', [function() {
-    return {
-      templateUrl : 'dropdown-detail-panel-template',
-      transclude : true,
-      scope : {
-        items : '=',
-        item : '='
-      },
-      link: function($scope, element) {
-        element.parent().on('click', function() {
-          // Do not hide or toggle detail panel when clicking on the detail panel
-          if (angular.element('.dropdown-sub-menu:hover').length > 0) {
-            var hoverLink = angular.element('.dropdown-sub-menu:hover a:hover');
-            if (hoverLink.length > 0) {
-              window.open(hoverLink.attr('href'), '_blank');
-            }
-
-            return false;
-          }
-
-          AngularUtils.safeApply($scope, function() {
-            angular.forEach($scope.items, function(item){
-              if ($scope.item.id === item.id) {
-                item.selected = !item.selected;
-              }
-              else {
-                item.selected = false;
-              }
-            });
-          });
-          return false;
-        });
-
-        // Dropdown can be closed by both the dropdown toggle and by clicking on the page. Both these elements emit
-        // a click.dropdown.data-api event which can be captured to deselect all dropdown items.
-        element.parents('.dropdown').children('a[data-toggle="dropdown"]').first().add(angular.element('html')).on('click.dropdown.data-api', function() {
-          AngularUtils.safeApply($scope, function() {
-            $scope.item.selected = false;
-          });
-        });
-      }
-    };
-  }]);
 
   module.factory('CurrentUser', ['$http', '$q', 'CLMLocations', function ($http, $q, clmLocations) {
     var deferred = $q.defer();

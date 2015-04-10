@@ -28,7 +28,7 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     width: 24px;
   }
 
-  a {
+  .dropdown-toggle, .dropdown-contents > li > a {
     color: $main-header-color;
 
     &:hover {
@@ -332,7 +332,7 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   .dropdown-sub-menu {
-    right: 100%;
+    right: 360px;
     position: absolute;
     top: 0px;
     margin-right: 12px;

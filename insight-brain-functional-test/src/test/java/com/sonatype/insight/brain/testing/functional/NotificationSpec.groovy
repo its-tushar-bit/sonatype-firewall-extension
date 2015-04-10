@@ -31,7 +31,7 @@ class NotificationSpec
         '"id" : "2",' +
         '"type" : "DEFAULT",' +
         '"summaryText" : "summary2",' +
-        '"detailHtml" : "<a href=\'http://www.google.com\'>detail2</a>",' +
+        '"detailHtml" : "<a href=\'http://www.google.com/ncr\'>detail2</a>",' +
         '"dateCreated" : ' + tenHoursAgo +
         '}]}', 200)
     DashboardPage dashboardPage = loginAsAdminVia(DashboardPage)

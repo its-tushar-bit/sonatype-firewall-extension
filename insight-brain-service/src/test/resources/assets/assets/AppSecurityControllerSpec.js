@@ -1,6 +1,6 @@
 describe('AppSecurityControllerSpec', function() {
   beforeEach(module('ApplicationSecurityModule', 'HttpInterceptors', 'CLMAppLocation', function ($provide) {
-    $provide.value('$modal', {});
+    $provide.value('Dialog', {});
     $provide.value('OrganizationId', '');
     $provide.value('ApplicationId', {
       encoded: function(){ 

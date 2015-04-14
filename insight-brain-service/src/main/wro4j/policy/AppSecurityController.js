@@ -74,7 +74,7 @@
     $scope.doLoad();
   }]);
 
-  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', '$modal', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, $modal, clmAppLocations, Messages) {
+  appSecurityModule.controller('AppSecurityEditorController', ['$scope', '$http', '$timeout', 'Dialog', 'CLMAppLocations', 'Messages', function ($scope, $http, $timeout, Dialog, clmAppLocations, Messages) {
     $scope.alerts = [];
 
     $scope.groupings = groupings;
@@ -82,16 +82,19 @@
 
     $scope.cancel = function () {
       if ($scope.isDirty()) {
-        $modal.open({
-          backdrop : 'static',
-          template :  '<div class="modal-header"><h3>Unsaved Changes</h3></div>' +
-            '<div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>' +
-            '<div class="modal-footer">' +
-            '<button type="button" class="btn" ng-click="$dismiss(false)">Cancel</button>' +
-            '<button type="button" class="btn btn-danger" ng-click="$close(true)">Continue</button>' +
-            '</div>'
-        }).result.then(function () {
-          $scope.hide();
+        Dialog.open({
+          title: 'Unsaved Changes',
+          body: 'This role may contain unsaved changes, continuing will discard them.',
+          buttons: [{
+            name: 'Cancel',
+            type: 'cancel'
+          }, {
+            name: 'Continue',
+            type: 'danger',
+            click: function() {
+              $scope.hide();
+            }
+          }]
         });
       } else {
         $scope.hide();

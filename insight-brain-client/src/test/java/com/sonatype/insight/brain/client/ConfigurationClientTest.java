@@ -101,6 +101,19 @@ public class ConfigurationClientTest
   }
 
   @Test
+  public void testValidateConfiguration_BadUrl() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerUrl("FFFF");
+    try {
+      new ConfigurationClient(config).validateConfiguration();
+      fail("Expected IllegalArgumentException");
+    }
+    catch (IllegalArgumentException e) {
+      assertThat(e.getMessage(), is("Invalid URL: FFFF"));
+    }
+  }
+
+  @Test
   public void testValidateConfiguration_BadPort() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://localhost:65535/");

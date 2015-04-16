@@ -166,6 +166,9 @@ describe('proprietaryConfigEditor', function() {
     element = $compile('<div proprietary-config-editor prefixes="packages" regexes="regexes"></div>')(scope);
     $httpBackend.flush();
     editorScope = scope.$$childHead;
+    scope.$apply(function () {
+      editorScope.qux = 'mcgenius';
+    });
   }));
 
   afterEach(inject(function($httpBackend) {
@@ -202,8 +205,9 @@ describe('proprietaryConfigEditor', function() {
   // See https://issues.sonatype.org/browse/CLM-844
   it('Reruns validation when source array resets', function() {
     spyOn(editorScope, 'validatePackage').andCallThrough();
-    scope.packages = ['baz'];
-    scope.$digest();
+    scope.$apply(function () {
+      scope.packages = ['baz'];
+    });
     expect(editorScope.validatePackage).toHaveBeenCalled();
   });
 });

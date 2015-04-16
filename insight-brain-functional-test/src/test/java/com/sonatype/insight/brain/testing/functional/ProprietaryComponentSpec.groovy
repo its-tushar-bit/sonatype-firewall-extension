@@ -121,8 +121,8 @@ class ProprietaryComponentSpec
   }
 
   def "Packages which have a bad prefix should be rejected"() {
-    when: 'we add a package containing a wildcard'
-      input <<  '.'
+    when: 'we add a package containing a bad prefix'
+      input.value('.')
 
     then: 'an error is shown and the Reset button is enabled'
       popoverText(input) == 'Invalid package prefix:\ne.g. com.sonatype'

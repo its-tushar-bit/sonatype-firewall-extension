@@ -18,29 +18,40 @@ describe('ValidatorsSpec', function() {
     }));
 
     it('is invalid when a duplicate entry is input', function() {
-      formController.input.$setViewValue('foo');
-      expect(formController.$valid).toBe(false);
-      expect(formController.input.$valid).toBe(false);
-      expect(formController.input.$error.unique).toBe(true);
+      scope.$apply(function () {
+        formController.input.$setViewValue('foo');
+      });
+      expect(formController.$valid).toBeFalsy();
+      expect(formController.input.$valid).toBeFalsy();
+      expect(formController.input.$error.unique).toBeTruthy();
     });
 
     it('is valid when a duplicate entry is changed to non duplicate', function() {
-      formController.input.$setViewValue('foo');
-      expect(formController.$valid).toBe(false);
-      formController.input.$setViewValue('bar');
-      expect(formController.$valid).toBe(true);
-      expect(formController.input.$valid).toBe(true);
-      expect(formController.input.$error.unique).toBe(false);
+      scope.$apply(function () {
+        formController.input.$setViewValue('foo');
+      });
+      expect(formController.$valid).toBeFalsy();
+
+      scope.$apply(function () {
+        formController.input.$setViewValue('bar');
+      });
+      expect(formController.$valid).toBeTruthy();
+      expect(formController.input.$valid).toBeTruthy();
+      expect(formController.input.$error.unique).toBeFalsy();
     });
 
     it('is valid when the duplicate entry is removed from the array', function() {
-      formController.input.$setViewValue('foo');
-      expect(formController.$valid).toBe(false);
-      scope.array.splice(0, 1);
-      scope.$digest();
-      expect(formController.$valid).toBe(true);
-      expect(formController.input.$valid).toBe(true);
-      expect(formController.input.$error.unique).toBe(false);
+      scope.$apply(function () {
+        formController.input.$setViewValue('foo');
+      });
+      expect(formController.$valid).toBeFalsy();
+
+      scope.$apply(function () {
+        scope.array.splice(0, 1);
+      });
+      expect(formController.$valid).toBeTruthy();
+      expect(formController.input.$valid).toBeTruthy();
+      expect(formController.input.$error.unique).toBeFalsy();
     });
   });
 
@@ -61,10 +72,13 @@ describe('ValidatorsSpec', function() {
           $compile('<form><input name="input" type="text" input-validator="validator" ng-model="model.value"></form>')(scope);
 
         var formController = element.controller('form');
-        formController.input.$setViewValue('foo');
-        expect(formController.$valid).toBe(testCase);
-        expect(formController.input.$valid).toBe(testCase);
-        expect(formController.input.$error.validity).toBe(!testCase);
+
+        scope.$apply(function () {
+          formController.input.$setViewValue('foo');
+        });
+        expect(formController.$valid)[testCase ? 'toBeTruthy' : 'toBeFalsy']();
+        expect(formController.input.$valid)[testCase ? 'toBeTruthy' : 'toBeFalsy']();
+        expect(formController.input.$error.validity)[!testCase ? 'toBeTruthy' : 'toBeFalsy']();
       }));
     });
   });

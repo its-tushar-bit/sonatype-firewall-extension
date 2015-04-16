@@ -371,8 +371,8 @@ describe('DashboardModule', function() {
         '<span sort-columns="-foobar" sort-inverted="true">foobar</span>' +
         '</div>')(scope);
       fooScope = scope.$$childHead;
-      barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
-      invertedScope = barScope.$$nextSibling.$$nextSibling;
+      barScope = scope.$$childHead.$$nextSibling;
+      invertedScope = barScope.$$nextSibling;
     }));
 
     it('tests', function () {
@@ -458,7 +458,7 @@ describe('DashboardModule', function() {
       $compile('<div sortable="bar,foo">' +
         '<span sort-columns="foo">foo</span><span sort-columns="-bar,foo">bar</span></div>')(scope);
       fooScope = scope.$$childHead;
-      barScope = scope.$$childHead.$$nextSibling.$$nextSibling;
+      barScope = scope.$$childHead.$$nextSibling;
     }));
 
     it('tests', function () {

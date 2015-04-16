@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var labelTemplate = {id: null, ownerId: null, label: '', labelLowercase: null, color: 'white', description: null};
+  var labelTemplate = {id: null, ownerId: null, label: null, labelLowercase: null, color: 'white', description: null};
 
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'Stores']);
 
@@ -197,11 +197,10 @@
     return {
       require: 'ngModel',
       link: function(scope, element, attrs, ctrl) {
-        ctrl.$parsers.unshift(function(newValue) {
+        ctrl.$validators.uniqueLabel = function (newValue) {
           // If we have a null or empty value then we don't have a duplicate.
           if (!newValue) {
-            ctrl.$setValidity('uniqueLabel', true);
-            return newValue;
+            return true;
           }
 
           var unique = true;
@@ -214,10 +213,8 @@
             });
           });
 
-          ctrl.$setValidity('uniqueLabel', unique);
-
-          return (unique) ? newValue : undefined;
-        });
+          return unique;
+        };
       }
     };
   });

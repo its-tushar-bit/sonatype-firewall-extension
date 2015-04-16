@@ -366,7 +366,7 @@ describe('AngularCommon', function() {
     });
   });
 
-  describe('autofill', function () {
+  xdescribe('autofill', function () {
     var element = null,
         plainElement = null,
         input = null,

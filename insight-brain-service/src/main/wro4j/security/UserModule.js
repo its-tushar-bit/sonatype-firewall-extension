@@ -213,6 +213,30 @@
     };
   });
 
+  module.directive('clmMatch', function () {
+    return {
+      require : 'ngModel',
+      link : function(scope, element, attrs, ctrl) {
+        function emptyString(val) {
+          if (val === '' || val === null) {
+            return undefined;
+          }
+          return val;
+        }
+
+        ctrl.$validators.match = function (value) {
+          return emptyString(value) === emptyString(scope.$eval(attrs.clmMatch));
+        };
+
+        scope.$watch(function () {
+          return scope.$eval(attrs.clmMatch);
+        }, function () {
+          ctrl.$$parseAndValidate();
+        });
+      }
+    };
+  });
+
   module.directive('expandUserOnEvent', function() {
     return {
       restrict: 'A',

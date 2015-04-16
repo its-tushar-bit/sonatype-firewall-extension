@@ -265,13 +265,15 @@
         me.generateIcon($scope.selectedOrganization.name);
       };
 
-      $scope.fileChanged = function(element) {
-        $scope.$apply(function() {
-          $scope.userIconSource = me.getIconSource(element, '../assets/img/defaulticon_organization.png');
+      $scope.$watch('selectedFile', function (newValue, oldValue) {
+        var element = angular.element('#file');
+
+        if (oldValue !== newValue) {
+          $scope.userIconSource = me.getIconSource(element[0], '../assets/img/defaulticon_organization.png');
           $scope.hasRobotSource = false;
           $scope.iconChanged = true;
-        });
-      };
+        }
+      });
 
       $scope.encodeURIComponent = window.encodeURIComponent;
 

@@ -1,4 +1,6 @@
 /* global beforeEach, module, jasmine, afterEach, inject, describe, it, expect, SpecUtil */
+window.angularDebug = true;
+
 describe('mainModuleSpec', function() {
   'use strict';
   var scope, state;

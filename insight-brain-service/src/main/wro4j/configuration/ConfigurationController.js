@@ -144,8 +144,8 @@
           rerunValidators();
         };
 
-        $scope.$watch('prefixes', rerunValidators);
-        $scope.$watch('regexes', rerunValidators);
+        $scope.$watch('prefixes', rerunValidators, true);
+        $scope.$watch('regexes', rerunValidators, true);
       }
     };
   }]);

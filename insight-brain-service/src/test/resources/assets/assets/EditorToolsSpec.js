@@ -34,7 +34,7 @@ describe('EditorToolsSpec', function() {
       scope.$destroy();
     }
   });
-  
+
   describe('Bundle Upload', function(){
     beforeEach(inject(function ($controller, $httpBackend, CLMLocations) {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
@@ -62,12 +62,12 @@ describe('EditorToolsSpec', function() {
       });
       $httpBackend.flush();
     }));
-    
+
     afterEach(inject(function($httpBackend){
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     }));
-    
+
     it('Test initial state', function () {
       expect(scope.isFormValid()).toBeFalsy();
       expect(scope.error).toBeFalsy();
@@ -81,62 +81,54 @@ describe('EditorToolsSpec', function() {
       expect(scope.stages[2].id).toEqual('release');
       expect(scope.stages[3].id).toEqual('operate');
     });
-    
-    it('Test validation', function () {
-      var origElement = angular.element;
-      spyOn(angular, 'element').andReturn([{
-        files: [{
-          name: 'testfile'
-        }],
-        value: 'testfile'
-      }]);
 
-      scope.fileChanged();
+    it('Test validation', function () {
+      scope.$apply(function() {
+        scope.bundle.file = 'testfile';
+      });
       expect(scope.isFormValid()).toBeFalsy();
-      
+
       scope.bundle.applicationPublicId = '0';
       expect(scope.isFormValid()).toBeFalsy();
-      
+
       scope.bundle.stage = 'develop';
       expect(scope.isFormValid()).toBeTruthy();
-      //put original method in place
-      angular.element = origElement;
     });
-    
+
     it('Test reportUrl is empty when no scanId (and vice versa)', function() {
       scope.evaluationStatus = {
         applicationPublicId : 'appIdtest',
         scanId: 'scanIdtest'
       };
-      
+
       expect(scope.getReportUrl()).toEqual('index.html#/reports/appIdtest/scanIdtest');
-      
+
       scope.evaluationStatus.scanId = null;
-      
+
       expect(scope.getReportUrl()).toEqual('');
     });
-    
+
     describe('Bundle submit', function(){
-      var origElement;
       beforeEach(inject(function ($window) {
         $window.FormData = function(){
           this.append = function(){};
         };
-        origElement = angular.element;
-        spyOn(angular, 'element').andReturn([{
-          files: [{
-            name: 'testfile'
-          }],
-          value: 'testfile'
-        }]);
-        scope.fileChanged();
+        var original = angular.element;
+        spyOn(angular, 'element').andCallFake(function (selector) {
+          if (selector === '#bundleFile') {
+            return [{
+              files: [{
+                name: 'testfile'
+              }],
+              value: 'testfile'
+            }];
+          }
+          return original(selector);
+        });
+        scope.bundle.file = 'testfile';
         scope.bundle.stage = 'release';
       }));
-      
-      afterEach(inject(function($httpBackend){
-        angular.element = origElement;
-      }));
-      
+
       function validateInitialState() {
         expect(scope.state).toEqual('polling');
         expect(scope.evaluationStatus.currentStep).toEqual(1);
@@ -147,19 +139,19 @@ describe('EditorToolsSpec', function() {
         expect(scope.bundle.applicationName).toEqual('1');
         expect(scope.pollingUrl).toBeNull();
       }
-      
+
       it('Test submit failure', inject(function(CLMLocations, $httpBackend){
         $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true))).respond(500, 'Some failure');
-        
+
         scope.doSubmit();
         validateInitialState();
         $httpBackend.flush();
-        
+
         expect(scope.state).toEqual('polling');
         expect(scope.alerts.length).toEqual(1);
         expect(scope.alerts[0].msg).toEqual('Some failure');
       }));
-      
+
       it('Test submit success', inject(function(CLMLocations, $httpBackend, $timeout){
         scope.bundle.notify = false;
         $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', false))).respond({
@@ -173,14 +165,14 @@ describe('EditorToolsSpec', function() {
           currentStep: 1,
           totalSteps: 1
         });
-        
+
         $httpBackend.flush();
-        
+
         expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
-        
+
         $timeout.flush();
       }));
-      
+
       it('Test evaluation polling loop', inject(function(CLMLocations, $httpBackend, $timeout){
         $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true))).respond({
           ticketId: 'ticket'
@@ -204,7 +196,7 @@ describe('EditorToolsSpec', function() {
         $httpBackend.flush();
         expect(scope.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'));
       }));
-      
+
       it('Test evaluation error', inject(function(CLMLocations, $httpBackend, $timeout){
         $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getBundleUploadUrl('bom1-12345678', 'release', true))).respond({
           ticketId: 'ticket'
@@ -223,7 +215,7 @@ describe('EditorToolsSpec', function() {
         expect(scope.alerts.length).toEqual(1);
         expect(scope.alerts[0].msg).toEqual('something aint right');
       }));
-      
+
       it('uses proper URL for state polling by IE9', inject(function(CLMLocations, $httpBackend){
         scope.uploaded({ticketId: 'ticket'}, true);
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({
@@ -236,7 +228,7 @@ describe('EditorToolsSpec', function() {
       }));
     });
   });
-  
+
   describe('Policy import', function(){
     beforeEach(inject(function ($controller, $window) {
       $controller('ImportPolicyController', {
@@ -246,7 +238,7 @@ describe('EditorToolsSpec', function() {
 
       FakeReader.prototype.readAsText = function () {};
     }));
-    
+
     it('Initial State', inject(function ($timeout) {
       var spy = spyOn(angular, 'element'),
           selectedFiles = [];
@@ -382,7 +374,7 @@ describe('EditorToolsSpec', function() {
         expect(directiveScope.check('._ -')).toEqual(null);
         scope.$digest();
         expect(scope.$invalid).not.toBeTruthy();
-        
+
         expect(directiveScope.check('Foo&Bar')).toEqual('Use valid characters: alphanumeric, "_", ".", "-", or spaces');
         scope.$digest();
         expect(scope.$invalid).toBeTruthy();
@@ -417,14 +409,14 @@ describe('EditorToolsSpec', function() {
           expect(scope.$invalid).toBeTruthy();
         });
       });
-      
+
       describe('No Spaces', function () {
         it('Spaces Validation', function () {
           directiveScope.noSpaces = 'true';
           expect(directiveScope.check('f oo')).toEqual('Spaces or tabs are not allowed');
           scope.$digest();
           expect(scope.$invalid).toBeTruthy();
-          
+
           directiveScope.noSpaces = 'true';
           expect(directiveScope.check('Foo&Bar')).toEqual('Use valid characters: alphanumeric, "_", ".", or "-"');
           scope.$digest();

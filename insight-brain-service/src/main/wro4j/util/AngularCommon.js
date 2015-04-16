@@ -176,33 +176,29 @@ var AngularStateUtils = {
               idFieldParser = $parse(attr.isDuplicateIdField),
               caseSensitive = attr.isDuplicateCaseSensitive;
 
-          var validator = function(value) {
+          ctrl.$validators.duplicate = function(value) {
             if (!value) {
-              ctrl.$setValidity('duplicate', true);
-              return undefined;
+              return true;
             }
             var modelIdValue = idFieldParser($parse(modelObject)(scope)),
                 array = arrayNameParser(scope);
 
-            var passed = jQuery.grep(array,function(item) {
+            var passed = jQuery.grep(array, function(item) {
               if (!caseSensitive || caseSensitive === 'false') {
                 return idFieldParser(item) !== modelIdValue && modelFieldParser(item) &&
-                  modelFieldParser(item).toLowerCase() === value.toLowerCase();
+                    modelFieldParser(item).toLowerCase() === value.toLowerCase();
               } else {
                 return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;
               }
             }).length <= 0;
-            ctrl.$setValidity('duplicate', passed);
 
-            return passed ? value : undefined;
+            return passed;
           };
-
-          ctrl.$parsers.push(validator);
 
           // Allows validation to be invoked by code or user input
           scope.$watch(attr.ngModel, function(newValue) {
-            if (typeof newValue !== 'undefined') {
-              validator(newValue);
+            if (typeof newValue !== 'undefined' && newValue !== null) {
+              ctrl.$$parseAndValidate();
             }
           });
         }
@@ -290,6 +286,9 @@ var AngularStateUtils = {
         }
 
         scope.disabled = false;
+        scope.cancelText = 'Cancel';
+        scope.acceptText = 'Save';
+
         attrs.$observe('cancelText', function (newVal) {
           scope.cancelText = newVal || 'Cancel';
         });
@@ -396,16 +395,13 @@ var AngularStateUtils = {
         require: 'ngModel',
         restrict: 'A',
         link: function(scope, elem, attr, ctrl) {
-          var validator = function(value) {
-            var passed = !value || !value.match(invalidNameCharactersRegex);
-            ctrl.$setValidity('validNameCharacters', passed);
-            return passed ? value : undefined;
+          ctrl.$validators.validNameCharacters = function(value) {
+            return !value || !value.match(invalidNameCharactersRegex);
           };
-          ctrl.$parsers.push(validator);
           // Allows validation to be invoked by code or user input
           scope.$watch(attr.ngModel, function(newValue) {
-            if (typeof newValue !== 'undefined') {
-              validator(newValue);
+            if (typeof newValue !== 'undefined' && newValue !== null) {
+              ctrl.$$parseAndValidate();
             }
           });
         }
@@ -425,7 +421,7 @@ var AngularStateUtils = {
         require: 'ngModel',
         restrict: 'A',
         link: function(scope, elem, attr, ctrl) {
-          function checkWhitespace(value) {
+          function checkWhitespaceValidator(value) {
             if (typeof value === 'undefined') {
               if (elem.data('editable')) {
                 value = elem.data('editable').input.$input.val();
@@ -437,8 +433,13 @@ var AngularStateUtils = {
             var whitespacePass = value.match(/^ | {2,}|\t| $/);
             suggestionModel.assign(scope,
                 (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
-            ctrl.$setValidity('spaces', !whitespacePass);
-            return whitespacePass ? value : undefined;
+            return whitespacePass;
+          }
+
+          function checkWhitespace(value) {
+            var valid = checkWhitespaceValidator(value);
+            ctrl.$setValidity('spaces', !valid);
+            return valid;
           }
 
           var failed = null;
@@ -450,11 +451,13 @@ var AngularStateUtils = {
               });
             }
           });
+
           elem.on('blur', function() {
             scope.$apply(function() {
               failed = checkWhitespace();
             });
           });
+
           elem.on('click.editable', function() {
             $timeout(function() {
               if (elem.data('editable')) {
@@ -477,7 +480,6 @@ var AngularStateUtils = {
 
           // Allows validation to be invoked by code or user input
           scope.$watch(attr.ngModel, function(newValue) {
-            newValue = newValue || '';
             checkWhitespace(newValue);
           });
         }

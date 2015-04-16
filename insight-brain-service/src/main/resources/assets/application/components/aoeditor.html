@@ -68,7 +68,7 @@
       <div ng-switch-default>
         <form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload class="clm-form well clm-well">
             <div clm-control-group for="bundleFile" label="Select the file you want evaluated">
-                <input type='file' ng-model='bundle.file' id='bundleFile' name='file' onchange="angular.element(this).scope().fileChanged(this)">
+                <input type='file' file-model='bundle.file' id='bundleFile' name='file'>
             </div>
             <div clm-control-group for="bundleApplication" label="Which application is this file associated with?">
                 <select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
@@ -235,7 +235,7 @@
           <form id='iconUploadForm' name='iconUploadForm' ng-upload action='{{ao.addSync}}' class='form' style='margin: 0px;' method='post'>
             <label for='file' firefox-input-click>Choose Icon</label>
             <input style='position:absolute;left:-9999em;' id="file" type="file" name="file" accept='image/*'
-                onchange='angular.element(this).scope().fileChanged(this)' />
+                file-model='selectedFile' />
             <input type='submit' upload-submit='iconUploadComplete(content, completed)' ng-show='false' />
             <a ng-click='generateIcon()'>Want a robot?</a>
             <input name='{{ao.type}}Id' value='{{ao.getId()}}' type='hidden'/>

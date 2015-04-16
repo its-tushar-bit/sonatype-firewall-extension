@@ -15,22 +15,19 @@
       require: 'ngModel',
       priority: 99,
       link: function(scope, elm, attrs, ctrl) {
-        var validate = function(newValue) {
+        ctrl.$validators.unique = function(newValue) {
           var array = $parse(attrs.uniqueValidator)(scope);
-          var unique = angular.isArray(array) && array.indexOf(newValue) === -1;
-          ctrl.$setValidity('unique', unique);
-
-          return unique ? newValue : undefined;
+          return angular.isArray(array) && array.indexOf(newValue) === -1;
         };
 
-        ctrl.$parsers.unshift(validate);
-
-        scope.$watch(attrs.uniqueValidator, function(newValue, oldValue) {
+        scope.$watch(function () {
+          return $parse(attrs.uniqueValidator)(scope);
+        }, function(newValue, oldValue) {
           // Account for "reset" events
           if (angular.isArray(newValue) && oldValue !== undefined) {
-            validate(elm.val());
+            ctrl.$$parseAndValidate();
           }
-        });
+        }, true);
       }
     };
   }]);
@@ -68,7 +65,7 @@
           var formElement = angular.element(form);
           var formController = formElement.controller('form');
           angular.forEach(formElement.find('input'), function(input) {
-            formController[input.name].$setViewValue(formController[input.name].$viewValue);
+            formController[input.name].$$parseAndValidate();
           });
         });
       }

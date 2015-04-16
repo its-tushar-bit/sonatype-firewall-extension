@@ -27,7 +27,6 @@
     '$q',
     function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
             StageTypeStore, $q) {
-      var fileElement = null;
       $scope.currentState = 'init';
 
       function setError(message) {
@@ -100,17 +99,12 @@
         return CLMLocations.getBundleUploadUrl($scope.bundle.applicationPublicId, $scope.bundle.stage, $scope.bundle.notify);
       }
 
-      $scope.fileChanged = function(file) {
-        AngularUtils.safeApply($scope, function() {
-          fileElement = angular.element(file)[0];
-        });
-      };
-
       $scope.getProgressWidth = function () {
         return $scope.evaluationStatus ? ($scope.evaluationStatus.currentStep / $scope.evaluationStatus.totalSteps * 100) : '0';
       };
 
       $scope.doSubmit = function () {
+        var fileElement = angular.element('#bundleFile')[0];
         $scope.state = 'polling';
         $scope.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
         $scope.error = null;
@@ -153,7 +147,7 @@
       };
 
       $scope.isFormValid = function() {
-        return fileElement && fileElement.value && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
+        return $scope.bundle.file && $scope.bundle.applicationPublicId && $scope.bundle.stage && $scope.bundle.notify;
       };
 
       // Handler for ng-upload progress
@@ -181,6 +175,21 @@
       doLoad();
     }
   ]);
+  
+  module.directive('fileModel', [function () {
+    return {
+      scope : {
+        fileModel : '='
+      },
+      link : function (scope, element) {
+        element.on('change', function () {
+          AngularUtils.safeApply(scope, function () {
+            scope.fileModel = element.val();
+          });
+        });
+      }
+    };
+  }]);
 
   module.directive('clmEditable', ['$parse', 'regexFactory', function ($parse, regexFactory) {
     var invalidCharsRegex = new RegExp('[^-\\. _' + regexFactory.allLetters().source + '0-9]', 'i');

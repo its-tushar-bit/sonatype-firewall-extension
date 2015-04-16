@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, $ */
+/* global angular, $, angularDebug */
 (function() {
   'use strict';
   var masterModalShown = false;
@@ -63,6 +63,7 @@
        * https://github.com/angular/angular.js/issues/3889
        */
       $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|blob):|data:image\//);
+      $compileProvider.debugInfoEnabled(angularDebug);
     }
   ]).service('licenseChecker', [
     '$http', '$q', 'CLMLocations', function($http, $q, CLMLocations) {

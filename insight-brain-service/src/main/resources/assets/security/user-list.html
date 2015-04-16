@@ -93,8 +93,8 @@
           <div clm-control-group for="passwordValidate" label="Validate Password">
             <input clm-input id="passwordValidate" name="passwordValidate" type="password" ng-required="!user.id"
                    placeholder="ex. correcthorsebatterystaple" ng-model="user.passwordValidate"
-                   ui-validate=" '$value==user.password' " ui-validate-watch=" 'user.password' "
-                   messages="{validator: 'Passwords must match!'}">
+                   clm-match="user.password"
+                   messages="{ match : 'Passwords must match!'}">
           </div>
         </div>
       </div>

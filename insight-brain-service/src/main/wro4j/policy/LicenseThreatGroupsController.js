@@ -29,7 +29,7 @@
     'CLMAppLocations', 'CachedStore', function(CLMAppLocations, CachedStore) {
       var licenseGroupStoreTemplate = {
         id: 'id',
-        template: { id: null, ownerId: null, name: '', threatLevel: 5 },
+        template: { id: null, ownerId: null, name: null, threatLevel: 5 },
         getUrl: CLMAppLocations.getLicenseGroupsUrl,
         relationalConfigs: {
           'licenses': {

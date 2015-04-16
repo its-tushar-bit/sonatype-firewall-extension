@@ -280,40 +280,29 @@
           me.generateIcon($scope.selectedApplication.name);
         };
 
-        $scope.fileChanged = function(element) {
-          if (element.files && element.files.length > 0) {
-            $scope.hasRobotSource = false;
-            var file = element.files[0],
-                src;
-            if (window.URL) {
-              src = window.URL.createObjectURL(file);
-            }
-            else if (window.webkitURL) {
-              src = window.webkitURL.createObjectURL(file);
-            }
-            if (src) {
-              $scope.$apply(function() {
+        $scope.$watch('selectedFile', function (newValue, oldValue) {
+          var element = angular.element('#file'),
+              src;
+          if (newValue !== oldValue) {
+            if (newValue) {
+              $scope.hasRobotSource = false;
+              src = me.getIconSource(element[0], null);
+              if (src) {
                 $scope.userIconSource = src;
                 $scope.hasRobotSource = false;
-              });
-            }
-            else {
-              $scope.$apply(function() {
+              }
+              else {
                 $scope.userIconSource = '../assets/img/defaulticon_application.png';
                 $scope.hasRobotSource = false;
-              });
+              }
             }
-          }
-          else {
-            $scope.$apply(function() {
+            else {
               $scope.userIconSource = '../assets/img/defaulticon_application.png';
               $scope.hasRobotSource = false;
-            });
-          }
-          $scope.$apply(function() {
+            }
             $scope.iconChanged = true;
-          });
-        };
+          }
+        });
 
         $scope.encodeURIComponent = window.encodeURIComponent;
 

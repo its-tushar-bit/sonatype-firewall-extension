@@ -78,7 +78,10 @@ describe('Tests for the LdapConfigurationController', function() {
 
       httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond(
         function(method, url, data) {
-          return [200, angular.extend(angular.fromJson(data), {id: 'id1'}), {}];
+          return [200, {
+            id: 'id1',
+            name: angular.fromJson(data).name
+          }, {}];
         });
       scope.save();
       expect(scope.saving).toBeTruthy();
@@ -95,7 +98,11 @@ describe('Tests for the LdapConfigurationController', function() {
 
       httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond(
         function(method, url, data) {
-          return [200, angular.fromJson(data), {}];
+          var ldapConfig = angular.fromJson(data);
+          return [200, {
+            id: ldapConfig.id,
+            name: ldapConfig.name
+          }, {}];
         });
       scope.save();
       expect(scope.saving).toBeTruthy();
@@ -184,7 +191,7 @@ describe('Tests for the LdapConfigurationController', function() {
       httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
-        }, angular.copy(data)), {}];
+        }, angular.copy(scope.ldapConn)), {}];
       });
       scope.save();
       expect(scope.saving).toBeTruthy();
@@ -203,7 +210,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.isDirty()).toBeTruthy();
 
       httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
-        return [200, angular.copy(data), {}];
+        return [200, angular.copy(scope.ldapConn), {}];
       });
       scope.save();
       expect(scope.saving).toBeTruthy();
@@ -393,7 +400,7 @@ describe('Tests for the LdapConfigurationController', function() {
       httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
         return [200, angular.extend({
           id: 'id1'
-        }, angular.copy(data)), {}];
+        }, angular.copy(scope.ldapUserMapping)), {}];
       });
       scope.save();
       expect(scope.saving).toBeTruthy();
@@ -410,7 +417,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(scope.isDirty()).toBeTruthy();
 
       httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
-        return [200, angular.copy(data), {}];
+        return [200, angular.copy(scope.ldapUserMapping), {}];
       });
       scope.save();
       expect(scope.saving).toBeTruthy();

@@ -8,18 +8,22 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -346,6 +350,35 @@ public class LicenseOverrideDAOTest
     // Find by GAV
     foundLicenseOverride = dao.getByOwnerIdAndComponentIdentifier(applicationId, gavIdentifier);
     assertThat(foundLicenseOverride, is(nullValue()));
+  }
+
+  @Test
+  public void testGetByComponentIdentifier_MavenGavecAndGav() {
+    ComponentIdentifier gavIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    LicenseOverride gavLicenseOverride = tempEntity.newLicenseOverride(applicationId, gavIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    ComponentIdentifier gavecIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Application application2 = tempEntity.newApplication(organization.getId());
+    LicenseOverride gavecLicenseOverride = tempEntity.newLicenseOverride(application2.getId(), gavecIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    LicenseOverrideDAO dao = new LicenseOverrideDAO();
+
+    // Find by GAVEC (expect only GAVEC matching)
+    List<LicenseOverride> licenseOverrideList;
+    try (TransactionContext tx = new LicenseOverrideLicenseInternalDAO().createTransactionContext()) {
+      licenseOverrideList = dao.getByComponentIdentifier(tx, gavecIdentifier);
+    }
+    assertThat(licenseOverrideList, hasSize(1));
+    assertThat(licenseOverrideList.get(0).getId(), is(gavecLicenseOverride.getId()));
+
+    // Find by GAV (expect only GAV matching)
+    try (TransactionContext tx = new LicenseOverrideLicenseInternalDAO().createTransactionContext()) {
+      licenseOverrideList = dao.getByComponentIdentifier(tx, gavIdentifier);
+    }
+    assertThat(licenseOverrideList, hasSize(1));
+    assertThat(licenseOverrideList.get(0).getId(), is(gavLicenseOverride.getId()));
   }
 
   @Test

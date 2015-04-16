@@ -12,15 +12,26 @@ import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 public class HashComponentIdentifierDAO
     extends AbstractOperationalSqlDAO<HashComponentIdentifier>
 {
+  public static final String NOT_FOUND_MESSAGE = "There is no claimed component with hash ";
+
   @Override
   protected HashComponentIdentifier getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM HashComponentIdentifier entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
+  }
+
+  public HashComponentIdentifier getByHashNotNull(String hash) {
+    HashComponentIdentifier hashComponentIdentifier = getByHash(hash);
+    if (hashComponentIdentifier == null) {
+      throw new NotFoundException(NOT_FOUND_MESSAGE + hash + ".");
+    }
+    return hashComponentIdentifier;
   }
 
   public HashComponentIdentifier getByHash(String hash) {

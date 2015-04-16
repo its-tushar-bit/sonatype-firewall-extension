@@ -13,7 +13,11 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -23,6 +27,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -111,6 +116,43 @@ public class HashComponentIdentifierResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
+  }
+
+  @Test
+  public void testUpdateClaimedComponentWithOverriddenLicense() throws Exception {
+    Date createTime = new Date();
+    hashComponentIdentifier.setComment(comment);
+    hashComponentIdentifier.setCreateTime(createTime);
+
+    // component must be unknown or we cannot claim it
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
+
+    // create the claimed component
+    Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
+    assertResponseStatus(200, response);
+    HashComponentIdentifierDTO serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
+    assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);
+
+    // Create the license override
+    Application application = tempEntity.newApplicationWithParent("testPublicId", "testName");
+    LicenseOverride expectedLicenseOverride = tempEntity.newLicenseOverride(application.getId(),
+        hashComponentIdentifier.getComponentIdentifier(), LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    // update the claimed component
+    ComponentIdentifier updatedComponentIdentifier = COMPONENT_IDENTIFIER.createAlternativeVersion("updated-version");
+    hashComponentIdentifier.setComponentIdentifier(updatedComponentIdentifier);
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
+    response = AuthedRestAccess.put(getServiceURL(), toJson(hashComponentIdentifier));
+    assertResponseStatus(200, response);
+    serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
+    assertHashComponentIdentifierDTO(hash, updatedComponentIdentifier, comment, createTime, serverResponse);
+
+    // Now check the license overrides
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride override =
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), updatedComponentIdentifier);
+    assertThat(override, notNullValue());
+    assertThat(override.getId(), is(expectedLicenseOverride.getId()));
   }
 
   private void assertHashComponentIdentifier(String hash, ComponentIdentifier componentIdentifier, String comment,

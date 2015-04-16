@@ -51,6 +51,20 @@ public class LicenseOverrideDAO
     return new LicenseOverride(licenseOverride, getLicenseIds(licenseOverride.getId()));
   }
 
+  public List<LicenseOverride> getByComponentIdentifier(final TransactionContext tx,
+      final ComponentIdentifier componentIdentifier)
+  {
+    List<LicenseOverrideInternal> licenseOverrideInternalList =
+        licenseOverrideInternalDAO.getByComponentIdentifier(tx, componentIdentifier);
+    List<LicenseOverride> licenseOverrideList = new ArrayList<>(licenseOverrideInternalList.size());
+    for (LicenseOverrideInternal licenseOverrideInternal : licenseOverrideInternalList) {
+      licenseOverrideList.add(new LicenseOverride(licenseOverrideInternal,
+          getLicenseIds(tx, licenseOverrideInternal.getId())));
+    }
+
+    return licenseOverrideList;
+  }
+
   public List<LicenseOverride> getByOwnerId(TransactionContext tx, String ownerId) {
     List<LicenseOverrideInternal> internalOverrides = licenseOverrideInternalDAO.getByOwnerId(tx, ownerId);
     List<LicenseOverride> overrides = new ArrayList<>();

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.component;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -25,9 +26,12 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
@@ -45,10 +49,15 @@ public class HashComponentIdentifierResource
 
   private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
+  private final LicenseOverrideDAO licenseOverrideDAO;
+
   @Inject
-  public HashComponentIdentifierResource(SaasClient saasClient, HashComponentIdentifierDAO hashComponentIdentifierDAO) {
+  public HashComponentIdentifierResource(final SaasClient saasClient,
+      final HashComponentIdentifierDAO hashComponentIdentifierDAO, final LicenseOverrideDAO licenseOverrideDAO)
+  {
     this.client = saasClient;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
+    this.licenseOverrideDAO = licenseOverrideDAO;
   }
 
   /**
@@ -80,9 +89,23 @@ public class HashComponentIdentifierResource
     ensureUnknownComponent(hashComponentIdentifier);
 
     HashComponentIdentifier existingHashComponentIdentifier = hashComponentIdentifierDAO
-        .getByHash(hashComponentIdentifier.getHash());
-    hashComponentIdentifier.setId(existingHashComponentIdentifier.getId());
-    hashComponentIdentifierDAO.update(hashComponentIdentifier);
+        .getByHashNotNull(hashComponentIdentifier.getHash());
+
+    try (TransactionContext tx = hashComponentIdentifierDAO.createTransactionContext()) {
+      tx.begin();
+      // update the component identifier
+      hashComponentIdentifier.setId(existingHashComponentIdentifier.getId());
+      hashComponentIdentifierDAO.update(tx, hashComponentIdentifier);
+
+      // Now get the existing license overrides and update them
+      List<LicenseOverride> licenseOverrideList =
+          licenseOverrideDAO.getByComponentIdentifier(tx, existingHashComponentIdentifier.getComponentIdentifier());
+      for (LicenseOverride licenseOverride : licenseOverrideList) {
+        licenseOverride.setComponentIdentifier(hashComponentIdentifier.getComponentIdentifier());
+        licenseOverrideDAO.update(tx, licenseOverride);
+      }
+      tx.commit();
+    }
 
     ReportService.flushReportChanges();
 

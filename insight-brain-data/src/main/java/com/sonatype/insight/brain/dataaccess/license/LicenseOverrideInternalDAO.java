@@ -60,6 +60,16 @@ public class LicenseOverrideInternalDAO
     return licenseOverride;
   }
 
+  public List<LicenseOverrideInternal> getByComponentIdentifier(final TransactionContext tx,
+      final ComponentIdentifier componentIdentifier)
+  {
+    String sQuery = "SELECT entity FROM LicenseOverrideInternal entity " +
+        "WHERE entity.componentIdFormat=?1 and entity.componentIdCoordinatesJson=?2";
+
+    return getList(tx, sQuery, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+  }
+
   public List<LicenseOverrideInternal> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM LicenseOverrideInternal entity WHERE entity.ownerId=?1";
     return getList(tx, sQuery, ownerId);

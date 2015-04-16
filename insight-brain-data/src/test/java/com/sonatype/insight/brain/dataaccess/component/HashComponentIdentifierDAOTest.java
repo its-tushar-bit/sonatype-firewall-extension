@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
@@ -66,17 +67,44 @@ public class HashComponentIdentifierDAOTest
   }
 
   @Test
+  public void testGetByHashNotNull() throws Exception {
+    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
+
+    String hash = "11111111111111111111";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    HashComponentIdentifier expectedHashComponentIdentifier = tempEntity.newClaimedComponent(hash, componentIdentifier);
+    Date createTime = expectedHashComponentIdentifier.getCreateTime();
+
+    HashComponentIdentifier actualHashComponentIdentifier = dao.getByHashNotNull(hash);
+    assertNotNull(actualHashComponentIdentifier);
+    assertHashComponentIdentifier(hash, componentIdentifier, createTime, actualHashComponentIdentifier);
+  }
+
+  @Test
+  public void testGetByHashNotNull_DoesNotExist() throws Exception {
+    HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
+    String hash = "11111111111111111111";
+    try {
+      dao.getByHashNotNull(hash);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is(HashComponentIdentifierDAO.NOT_FOUND_MESSAGE + hash + "."));
+    }
+  }
+
+  @Test
   public void testGetByComponentIdentifier() throws Exception {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
+    String hash = "11111111111111111111";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    HashComponentIdentifier expectedHashComponentIdentifier = tempEntity.newClaimedComponent(hash, componentIdentifier);
+    Date createTime = expectedHashComponentIdentifier.getCreateTime();
 
-    dao.insert(new HashComponentIdentifier("11111111111111111111", componentIdentifier));
-
-    HashComponentIdentifier hashComponentIdentifier = dao.getByComponentIdentifier(componentIdentifier);
-    assertNotNull(hashComponentIdentifier);
-
-    dao.delete(hashComponentIdentifier);
+    HashComponentIdentifier actualHashComponentIdentifier = dao.getByComponentIdentifier(componentIdentifier);
+    assertNotNull(actualHashComponentIdentifier);
+    assertHashComponentIdentifier(hash, componentIdentifier, createTime, actualHashComponentIdentifier);
   }
 
   private void assertHashComponentIdentifier(String hash, ComponentIdentifier componentIdentifier, Date createTime,

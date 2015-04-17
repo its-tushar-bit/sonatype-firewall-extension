@@ -290,7 +290,7 @@ public class ReportResource
   @GET
   @Path(DOWNLOAD_BUNDLE_PATH)
   @Produces("application/zip")
-  @Authorize(permission = Permission.READ)
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public Response downloadBundle(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("scanId") final String scanId) throws IOException
@@ -308,7 +308,7 @@ public class ReportResource
     ContactDTO contact = applicationAdapter.getContact(app.getContactInternalName());
     File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
-    ApiReportDataDTOV2 reportData = reportDataService.getData(applicationPublicId, scanId);
+    ApiReportDataDTOV2 reportData = reportDataService.getDataNoAuth(applicationPublicId, scanId);
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
 

@@ -65,7 +65,7 @@ public class ReportResourceAuthzTest
     String scanId = "scanId";
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    grantReadPermission(app.getId());
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
     String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH, app.getPublicId(),
         scanId);

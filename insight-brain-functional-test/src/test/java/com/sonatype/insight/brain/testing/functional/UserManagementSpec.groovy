@@ -197,6 +197,7 @@ class UserManagementSpec
   def "The newly added user can be edited"() {
     setup: 'log back in as an admin'
       loginAsAdminVia(UserManagementPage)
+      waitFor { header(0).displayed }
 
     when: 'hovering over the header of the user in the list'
       interact {

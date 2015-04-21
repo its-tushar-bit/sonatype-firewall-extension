@@ -366,46 +366,6 @@ describe('AngularCommon', function() {
     });
   });
 
-  xdescribe('autofill', function () {
-    var element = null,
-        plainElement = null,
-        input = null,
-        plainInput = null,
-        plainScope = null;
-
-    beforeEach(inject(function ($compile, $rootScope) {
-      scope = $rootScope.$new();
-      plainScope = $rootScope.$new();
-      element = $compile('<form name="myForm"><input name="myInput" autofill ng-model="inputVal"></form>')(scope);
-      plainElement = $compile('<form name="myForm"><input name="myInput" ng-model="inputVal"></form>')(plainScope);
-      angular.element('body').append(element);
-      angular.element('body').append(plainElement);
-      input = angular.element('input', element);
-      plainInput = angular.element('input',plainElement);
-    }));
-
-    afterEach(function () {
-      element.remove();
-      plainElement.remove();
-    });
-    
-    it('autofill handled', inject(function($timeout){
-      //here we have an input with our directive
-      input.val('testValue');
-      //and an input without our directive
-      plainInput.val('testValue');
-      //initially both will not be set
-      expect(scope.inputVal).not.toEqual('testValue');
-      expect(plainScope.inputVal).not.toEqual('testValue');
-      //wait for our timeout to run
-      $timeout.flush();
-      //and you'll see that our directive properly updated the model
-      expect(scope.inputVal).toEqual('testValue');
-      //and the plain input did not!
-      expect(plainScope.inputVal).not.toEqual('testValue');
-    }));
-  });
-
   describe('"truncate" filter', function() {
     var truncate;
     beforeEach(inject(function($filter) {

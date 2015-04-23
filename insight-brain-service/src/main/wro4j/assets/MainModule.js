@@ -35,7 +35,7 @@
   };
 
   angular.module('InitModule', [
-    'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices',
+    'ui.router', 'ui.bootstrap', 'CLMLocation', 'CommonServices', 'ngAria',
     'ReportModule', 'Report', 'MainHeader', 'ngRoute', 'UnauthenticatedResponseHttpInterceptor', 'xeditable',
     'ProductFeaturesModule', 'HttpInterceptors', 'DashboardModule', 'FormsModule'
   ], [

@@ -101,8 +101,11 @@ public class ApiReportDataServiceV2
       }
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
-        component.licenseData = licenseDataAdapter.convertToDTO(comp);
+        component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
+        data.matchSummary.knownComponentCount++;
       }
+      data.matchSummary.totalComponentCount++;
+
       data.components.add(component);
     }
 

@@ -34,6 +34,9 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.component.HashComponentIdentifierResource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -82,7 +85,16 @@ import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1065,7 +1077,15 @@ public class ReportResourceTest
         assertNotNull(zip.getEntry("data/report.pdf"));
         assertNull(zip.getEntry("detail.rptdesign"));
         assertNull(zip.getEntry("data/index.html"));
-        assertNotNull(zip.getEntry("data/components.json"));
+
+        ZipEntry componentEntry = zip.getEntry("data/components.json");
+        assertNotNull(componentEntry);
+        ApiReportDataDTOV2 components = JsonUtils.parse(zip.getInputStream(componentEntry), ApiReportDataDTOV2.class);
+
+        assertEquals(5, components.matchSummary.knownComponentCount);
+        assertEquals(29, components.matchSummary.totalComponentCount);
+        assertComponent("tomcat", "tomcat-util", "5.5.23", "Weak Copyleft", 2, components.components);
+
         assertNotNull(zip.getEntry("data/release-graph/maven/"
             + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"));
         assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
@@ -1114,6 +1134,41 @@ public class ReportResourceTest
         assertThat(detailsFromList.getLicenseThreatLevel(), is(2));
       }
     }
+  }
+
+  private static void assertComponent(String groupId, String artifactId, String version, String threatGroup,
+      int threatLevel, List<ApiReportComponentDTOV2> components)
+  {
+    for (ApiReportComponentDTOV2 candidate : components) {
+      Map<String, String> coordinates = candidate.componentIdentifier == null ? null
+          : candidate.componentIdentifier.getCoordinates();
+
+      if (coordinates != null && groupId.equals(coordinates.get("groupId"))
+          && artifactId.equals(coordinates.get("artifactId"))
+          && version.equals(coordinates.get("version"))) {
+        for (ApiLicenseThreatDTOV2 effectiveLicense : candidate.licenseData.effectiveLicenseThreats) {
+          if (threatGroup.equals(effectiveLicense.licenseThreatGroupName)) {
+            assertThat(effectiveLicense.licenseThreatGroupLevel, is(threatLevel));
+
+            if (threatLevel > 7) {
+              assertThat(effectiveLicense.licenseThreatGroupCategory, is("critical"));
+            }
+            else if (threatLevel > 3) {
+              assertThat(effectiveLicense.licenseThreatGroupCategory, is("severe"));
+            }
+            else if (threatLevel > 0) {
+              assertThat(effectiveLicense.licenseThreatGroupCategory, is("moderate"));
+            }
+            else {
+              assertThat(effectiveLicense.licenseThreatGroupCategory, is("no-threat"));
+            }
+            return;
+          }
+        }
+        Assert.fail("Failed to find LTG");
+      }
+    }
+    Assert.fail("Failed to find component");
   }
 
   private ComponentDetails findDetailsForComponent(ComponentDetailsList list, ComponentIdentifier componentIdentifier) {

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
 
 /**
@@ -22,7 +21,7 @@ public class ApiReportComponentDTOV2 extends ApiComponentDTOV2
   // occurrences of component, in no particular order
   public List<String> pathnames = new ArrayList<>();
 
-  public ApiLicenseDataDTO licenseData;
+  public ApiLicenseDataDTOV2 licenseData;
 
   public ApiSecurityDataDTO securityData;
 }

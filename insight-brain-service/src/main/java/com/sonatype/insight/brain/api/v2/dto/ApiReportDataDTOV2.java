@@ -18,4 +18,8 @@ public class ApiReportDataDTOV2
   // components in app, in no particular order
   public List<ApiReportComponentDTOV2> components = new ArrayList<>();
 
+  /**
+   * @since 1.14.1
+   */
+  public ApiMatchStateSummaryDTOV2 matchSummary = new ApiMatchStateSummaryDTOV2();
 }

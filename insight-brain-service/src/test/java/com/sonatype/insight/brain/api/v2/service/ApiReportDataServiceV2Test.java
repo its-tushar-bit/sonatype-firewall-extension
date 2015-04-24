@@ -121,6 +121,9 @@ public class ApiReportDataServiceV2Test
     assertThat(data.components, is(notNullValue()));
     assertThat(data.components, hasSize(2));
 
+    assertThat(data.matchSummary.totalComponentCount, is(2));
+    assertThat(data.matchSummary.knownComponentCount, is(1));
+
     ApiReportComponentDTOV2 component = data.components.get(0);
     assertThat(component.hash, is("1249e25aebb15358bedd"));
     assertThat(component.matchState, is("exact"));

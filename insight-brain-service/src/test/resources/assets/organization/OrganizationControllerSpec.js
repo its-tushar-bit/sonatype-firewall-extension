@@ -287,7 +287,7 @@ describe('Tests for the OrganizationController', function() {
         expect(modalSpy.mostRecentCall.args[0].templateUrl).toEqual('delete-org-modal-template');
 
         scope.$apply(function () {
-          modalDeferred.reject(['foo', 400, null, null]);
+          modalDeferred.reject([['foo', 400, null, null]]);
         });
         expect(spy).toHaveBeenCalledWith(['foo', 400, null, null]);
       }));

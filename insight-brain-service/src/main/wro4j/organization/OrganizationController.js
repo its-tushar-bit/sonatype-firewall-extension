@@ -373,7 +373,7 @@
           $state.transitionTo('management.organization');
         }, function (error) {
           if (error) {
-            ErrorDialog.open(error);
+            ErrorDialog.open(error[0]);
           }
         });
       };

@@ -409,7 +409,7 @@ describe('ApplicationEditorController', function() {
       expect(modalSpy).toHaveBeenCalled();
 
       scope.$apply(function () {
-        modalDeferred.reject(serverFailure);
+        modalDeferred.reject([serverFailure]);
       });
 
       expect(spy).toHaveBeenCalledWith(serverFailure);

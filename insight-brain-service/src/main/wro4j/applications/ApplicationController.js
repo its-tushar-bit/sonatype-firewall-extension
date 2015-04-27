@@ -377,7 +377,7 @@
             $state.transitionTo('management.application');
           }, function (error) {
             if (error) {
-              ErrorDialog.open(error);
+              ErrorDialog.open(error[0]);
             }
           });
         };

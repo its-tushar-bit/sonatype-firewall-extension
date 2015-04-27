@@ -407,6 +407,31 @@ table th#affected-apps {
   margin-left: 28px;
 }
 
+@-webkit-keyframes visibility {
+  from { opacity : 0; }
+  to { opacity : 1; }
+}
+
+@keyframes visibility {
+  from { opacity : 0; }
+  to { opacity : 1; }
+}
+
+.dashboard-loading {
+  opacity : 0;
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-name : visibility;
+  -webkit-animation-delay : 1s;
+  -webkit-animation-duration : 0.1s;
+  -webkit-animation-fill-mode: forwards;
+
+  animation-timing-function: linear;
+  animation-name : visibility;
+  animation-delay : 1s;
+  animation-duration : 0.1s;
+  animation-fill-mode: forwards;
+}
+
 .wrap-force-break {
   word-spacing: -0.1em;
 }

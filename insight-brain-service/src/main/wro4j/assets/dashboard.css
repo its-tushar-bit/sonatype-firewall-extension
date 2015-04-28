@@ -295,7 +295,7 @@ table th#affected-apps {
 }
 
 /* only stripe the first column of the heat-mapped tables, excepting those with the .stage class */
-.table-risk tr:nth-child(odd):not(.stage) > td:nth-child(1), .table-risk-component tr:nth-child(odd):not(.stage) > td:nth-child(2) {
+.table-risk tr.striped > td:nth-child(1), .table-risk-component tr:nth-child(odd):not(.stage) > td:nth-child(2) {
   background-color: #E8E8E8;
 }
 

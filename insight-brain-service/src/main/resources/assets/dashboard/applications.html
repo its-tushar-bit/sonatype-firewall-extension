@@ -21,7 +21,8 @@
           </th>
         </tr>
         </thead>
-        <tr ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
+        <tr ng-repeat-start="application in applications"
+            ng-class="{ striped : striped[$index] }">
           <td><i class="glyphicons-halflings-sonatype lighter"
                  ng-class="{ clickable : canExpand(application),
                              expand : canExpand(application),

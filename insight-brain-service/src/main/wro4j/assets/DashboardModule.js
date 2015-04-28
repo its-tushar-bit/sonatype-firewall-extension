@@ -423,7 +423,26 @@
     });
   }]);
 
-  dashboardModule.controller('applicationRiskTable', ['$scope', function ($scope) {
+  dashboardModule.controller('applicationRiskTable', ['$scope', '$filter', function ($scope, $filter) {
+    function updateApplications() {
+      $scope.applications = $filter('orderBy')($filter('limitTo')($scope.data, $scope.maxResults), $scope.getSortField());
+      updateStripes();
+    }
+    function updateStripes() {
+      $scope.striped = [];
+      var striped = false;
+      angular.forEach($scope.applications, function (application, index) {
+        $scope.striped[index] = (index === 0) || (!striped || $scope.isExpanded($scope.applications[index - 1]));
+        striped = $scope.striped[index];
+      });
+    }
+
+    $scope.$watch('data', updateApplications);
+    $scope.$watch(function () {
+      return $scope.getSortField()[0];
+    }, updateApplications);
+
+    $scope.$watch('expanded', updateStripes, true);
     $scope.encodeURIComponent = window.encodeURIComponent;
 
     $scope.expanded = {};

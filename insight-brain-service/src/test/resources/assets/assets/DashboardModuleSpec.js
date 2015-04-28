@@ -18,7 +18,7 @@ describe('DashboardModule', function() {
     if (scope) {
       scope.$destroy();
     }
-    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingExpectation(false);
     $httpBackend.verifyNoOutstandingRequest();
   }));
 

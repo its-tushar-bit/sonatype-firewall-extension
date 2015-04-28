@@ -21,13 +21,12 @@
           </th>
         </tr>
         </thead>
-        <tr
-                ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
+        <tr ng-repeat-start="application in data | limitTo: maxResults | orderBy:getSortField()">
           <td><i class="glyphicons-halflings-sonatype lighter"
                  ng-class="{ clickable : canExpand(application),
-                                    'expand' : canExpand(application),
-                                    'collapse' : isExpanded(application),
-                                    'emptyIconGlyph' : !canExpand(application) }"
+                             expand : canExpand(application),
+                             collapse : isExpanded(application),
+                             emptyIconGlyph : !canExpand(application) }"
                  ng-click='expand(application)'></i> {{application.applicationName}}</td>
           <td class="total-risk"
               alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"

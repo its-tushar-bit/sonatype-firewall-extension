@@ -108,4 +108,12 @@ public class RoleDAO
     String sQuery = "SELECT entity FROM Role entity WHERE entity.global=FALSE ORDER BY entity.name";
     return getList(sQuery);
   }
+
+  /**
+   * Gets all roles sorted by 'nameLowercaseNoWhitespace'
+   */
+  public List<Role> getAll() {
+    String sQuery = "SELECT entity FROM Role entity ORDER BY entity.nameLowercaseNoWhitespace";
+    return getList(sQuery);
+  }
 }

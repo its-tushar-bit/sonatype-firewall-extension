@@ -13,6 +13,8 @@ import javax.persistence.Table;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * A role a user might have.
  * 
@@ -35,6 +37,7 @@ public class Role
   @Column(name = "name")
   private String name;
 
+  @JsonIgnore
   @Column(name = "name_lowercase_no_whitespace")
   private String nameLowercaseNoWhitespace;
 

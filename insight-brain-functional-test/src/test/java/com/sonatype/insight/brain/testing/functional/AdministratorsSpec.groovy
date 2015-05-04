@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.model.security.User
 import spock.lang.Stepwise
 
 @Stepwise
-class GlobalRolesSpec
+class AdministratorsSpec
     extends BaseSpec
 {
   def setupSpec() {
@@ -22,7 +22,7 @@ class GlobalRolesSpec
     user = new User(username: "test-b", password: "secret", firstName: "Jane", lastName: "Doe", email: "jane@doe.net")
     userDAO.insert(user);
 
-    loginAsAdminVia(GlobalRolesPage)
+    loginAsAdminVia(AdministratorsPage)
   }
 
   def cleanupSpec() {
@@ -48,9 +48,9 @@ class GlobalRolesSpec
       waitFor { roleRow.queryHelpPopover.displayed }
   }
   
-  def "Entering the page shows the global roles"() {
-    when: "navigating to the global roles page"
-      to GlobalRolesPage
+  def "Entering the page shows the administrators"() {
+    when: "navigating to the administrators page"
+      to AdministratorsPage
 
     then: "the default roles along with builtin users"
       def roleRow = mapping.role("Administrator")

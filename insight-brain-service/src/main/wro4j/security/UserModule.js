@@ -8,14 +8,14 @@
   'use strict';
   angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule', 'PermissionServiceModule'], ['$stateProvider',
       function($stateProvider) {
-        $stateProvider.state('globalroles', {
-          url: '/globalroles',
+        $stateProvider.state('administrators', {
+          url: '/administrators',
           template : '<div authorization-wrapper="isAuthorized">' +
-                       '<div class="mid-content"><h1 class="page-title"><div class="container globalrole">Global Roles</div></h1></div>' +
+                       '<div class="mid-content"><h1 class="page-title"><div class="container globalrole">Administrators</div></h1></div>' +
                        '<div class="container globalrole" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
                      '</div>',
           data : {
-            title : 'Global Roles'
+            title : 'Administrators'
           },
           controller : 'AppSecurityController',
           resolve : {

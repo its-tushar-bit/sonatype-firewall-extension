@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.testing.functional.modules.RoleMappingModule
 
 
-class GlobalRolesPage
+class AdministratorsPage
     extends BasePage
 {
-  static url = "assets/index.html#/globalroles"
+  static url = "assets/index.html#/administrators"
 
   static at = { $('#security').displayed }
 

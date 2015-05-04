@@ -113,7 +113,7 @@ public class RoleDAO
    * Gets all roles sorted by 'nameLowercaseNoWhitespace'
    */
   public List<Role> getAll() {
-    String sQuery = "SELECT entity FROM Role entity ORDER BY entity.nameLowercaseNoWhitespace";
+    String sQuery = "SELECT entity FROM Role entity ORDER BY entity.sortOrder";
     return getList(sQuery);
   }
 }

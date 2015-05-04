@@ -113,9 +113,9 @@ public class RoleDAOTest
     List<Role> roles = roleDAO.getAll();
     assertThat(roles, hasSize(5));
     assertThat(roles.get(0).getName(), is("Administrator"));
-    assertThat(roles.get(1).getName(), is("Application Evaluator"));
-    assertThat(roles.get(2).getName(), is("Component Evaluator"));
-    assertThat(roles.get(3).getName(), is("Developer"));
-    assertThat(roles.get(4).getName(), is("Owner"));
+    assertThat(roles.get(1).getName(), is("Owner"));
+    assertThat(roles.get(2).getName(), is("Developer"));
+    assertThat(roles.get(3).getName(), is("Application Evaluator"));
+    assertThat(roles.get(4).getName(), is("Component Evaluator"));
   }
 }

@@ -37,6 +37,9 @@ public class Role
   @Column(name = "name")
   private String name;
 
+  @Column(name = "sort_order")
+  private int sortOrder = 0;
+
   @JsonIgnore
   @Column(name = "name_lowercase_no_whitespace")
   private String nameLowercaseNoWhitespace;
@@ -64,6 +67,14 @@ public class Role
   public void setName(String name) {
     nameLowercaseNoWhitespace = NameHelper.normalize(name);
     this.name = name;
+  }
+
+  public int getSortOrder() {
+    return sortOrder;
+  }
+
+  public void setSortOrder(final int sortOrder) {
+    this.sortOrder = sortOrder;
   }
 
   @SuppressWarnings("unused")

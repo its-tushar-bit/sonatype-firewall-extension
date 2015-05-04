@@ -70,7 +70,7 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testDeveloperRoleHasOnlyReadPermission() throws Exception {
+  public void testDeveloperRoleHasExpectedPermissions() throws Exception {
     Role role = roleDAO.getByName("Developer");
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());

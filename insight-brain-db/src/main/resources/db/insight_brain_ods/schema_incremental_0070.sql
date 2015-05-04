@@ -1,4 +1,4 @@
--- Since 1.14.0
+-- Since 1.15.0
 SET SCHEMA insight_brain_ods;
 
 -- add new columns

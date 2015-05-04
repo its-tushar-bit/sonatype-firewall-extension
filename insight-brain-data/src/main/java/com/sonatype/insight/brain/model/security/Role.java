@@ -38,7 +38,7 @@ public class Role
   private String name;
 
   @Column(name = "sort_order")
-  private int sortOrder = 0;
+  private int sortOrder;
 
   @JsonIgnore
   @Column(name = "name_lowercase_no_whitespace")

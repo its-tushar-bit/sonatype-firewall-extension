@@ -376,12 +376,12 @@ table th#affected-apps {
 }
 
 .clm-arc.application path {
-  fill: #BC0430 !important;
+  fill: #bc012f !important;
 }
 
 .clm-arc.violation path {
   fill: #f4f4f4 !important;
-  stroke: #BC0430 !important;
+  stroke: #bc012f !important;
 }
 
 .dashboard-label-wrapper {

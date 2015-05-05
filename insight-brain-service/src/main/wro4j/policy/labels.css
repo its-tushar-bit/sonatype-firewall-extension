@@ -76,7 +76,7 @@ form[name="labelEditor"] .clmLabel {
   border: 1px solid #000 !important;
 }
 .greenLabel, .greenLabel:hover, .greenLabel::before {
-	background-color: #0B9743 !important;
+	background-color: #099843 !important;
 }
 .greenLabel:hover {
 	border-color: #04642A;

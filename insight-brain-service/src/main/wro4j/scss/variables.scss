@@ -1,3 +1,36 @@
+/*
+  ##UI Palette
+*/
+$off-black: #070707;
+$slate: #575757;
+$off-white: #fefefe;
+
+$grey-4: #cacaca;
+$grey-3: #dedede;
+$grey-2: #eaeaea;
+$grey-1: #f5f5f5;
+
+$link-blue: #2476c3;
+$deep-blue: #0046b1;
+$dark-blue: #006bbf;
+$light-blue: #97cbee;
+
+$dark-purple: #885195;
+$medium-purple: #b087ba;
+$light-purple: #dbc6df;
+
+$dark-green: #099843;
+$light-green: #b6e9ab;
+
+$dark-red: #bc012f;
+$light-red: #edb1af;
+
+$orange: #f4861d;
+$yellow: #f5c648;
+
+$valid-green: #84c900;
+$invalid-red: #c70000;
+
 //Global stuff
 $main-background-color: white;
 
@@ -18,17 +51,4 @@ $threat-levels: ("critical", #FFF, $critical-color),
   ("moderate", #444, $moderate-color),
   ("none", #FFF, $none-color);
 
-//Form stuff
-$input-valid-color: #84C900;
-$input-invalid-color: #C70000;
-
 $medium-gray: #C1C1C1;
-
-
-// Policy Summary Colours
-$policy-summary-green : #0B9743;
-$policy-summary-light-green : #B6E9AB;
-$policy-summary-red: #BC0430;
-$policy-summary-light-red: #EDB2AF;
-$policy-summary-blue: #006BBF;
-$policy-summary-light-blue: #96CAEE;

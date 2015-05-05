@@ -26,21 +26,6 @@
 }
 
 /*
-  Component Matching Colors
-```
-  <h5>$exact-color</h5>
-  <div style='height:20px;width:20px;' class='match-exact'></div>
-  <h5>$partial-color</h5>
-  <div style='height:20px;width:20px;' class='match-partial'></div>
-  <h5>$none-color</h5>
-  <div style='height:20px;width:20px;' class='match-none'></div>
-```
-*/
-$exact-color: #875393;
-$partial-color: #b087b9;
-$none-color: #dac5df;
-
-/*
   #Dashboard Viewing Summary
 */
 
@@ -159,15 +144,15 @@ $none-color: #dac5df;
 }
 
 .match-exact {
-  background-color: $exact-color;
+  background-color: $dark-purple;
 }
 
 .match-partial {
-  background-color: $partial-color;
+  background-color: $medium-purple;
 }
 
 .match-none {
-  background-color: $none-color;
+  background-color: $light-purple;
 }
 
 /*
@@ -533,32 +518,32 @@ $policy-summary-table-row-height: 25px;
   .natural {
     .delta-column {
       .up:before {
-        color : $policy-summary-green;
+        color : $dark-green;
       }
       .down:before {
-        color : $policy-summary-red;
+        color : $dark-red;
       }
     }
     .sparkline {
       .fill.up {
-        fill : $policy-summary-light-green;
+        fill : $light-green;
       }
       .line.up {
-        stroke : $policy-summary-green;
+        stroke : $dark-green;
       }
       .fill.down {
-        fill : $policy-summary-light-red;
+        fill : $light-red;
       }
       .line.down {
-        stroke : $policy-summary-red;
+        stroke : $dark-red;
       }
     }
     .chart {
       .bar.up {
-        fill : $policy-summary-green;
+        fill : $dark-green;
       }
       .bar.down {
-        fill : $policy-summary-red;
+        fill : $dark-red;
       }
     }
   }
@@ -566,32 +551,32 @@ $policy-summary-table-row-height: 25px;
   .inverse {
     .delta-column {
       .up:before {
-        color : $policy-summary-red;
+        color : $dark-red;
       }
       .down:before {
-        color : $policy-summary-green;
+        color : $dark-green;
       }
     }
     .sparkline {
       .fill.up {
-        fill : $policy-summary-light-red;
+        fill : $light-red;
       }
       .line.up {
-        stroke : $policy-summary-red;
+        stroke : $dark-red;
       }
       .fill.down {
-        fill : $policy-summary-light-green;
+        fill : $light-green;
       }
       .line.down {
-        stroke : $policy-summary-green;
+        stroke : $dark-green;
       }
     }
     .chart {
       .bar.up {
-        fill : $policy-summary-red;
+        fill : $dark-red;
       }
       .bar.down {
-        fill : $policy-summary-green;
+        fill : $dark-green;
       }
     }
   }
@@ -599,20 +584,20 @@ $policy-summary-table-row-height: 25px;
   .neutral {
     .delta-column {
       .up:before {
-        color : $policy-summary-blue;
+        color : $dark-blue;
       }
     }
     .sparkline {
       .fill.up, .fill.down {
-        fill : $policy-summary-light-blue;
+        fill : $light-blue;
       }
       .line.up, .line.down {
-        stroke : $policy-summary-blue;
+        stroke : $dark-blue;
       }
     }
     .chart {
       .bar {
-        fill : $policy-summary-blue;
+        fill : $dark-blue;
       }
     }
   }

@@ -125,7 +125,7 @@ describe('DashboardModule', function() {
             moderateRisk:11,
             lowRisk:7
           }
-        },
+        }
       ]
     }, {
       prefix: 'component',
@@ -165,7 +165,7 @@ describe('DashboardModule', function() {
         });
       });
     })
-  })
+  });
 
   describe('Risk Table Directives', function () {
     var directives = [{

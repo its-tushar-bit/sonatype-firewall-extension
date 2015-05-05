@@ -80,7 +80,7 @@
         },
         
         getRoleListUrl : function() {
-          return baseUrl.get() + '/rest/role';
+          return baseUrl.get() + '/rest/security/roles';
         },
 
         getPermissionUrl : function() {

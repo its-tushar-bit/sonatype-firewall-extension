@@ -7,7 +7,7 @@
 (function() {
   'use strict';
   angular.module('managementApp',
-    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'LdapConfiguration']);
+    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'RoleModule', 'LdapConfiguration']);
 }());
 
 (function() {

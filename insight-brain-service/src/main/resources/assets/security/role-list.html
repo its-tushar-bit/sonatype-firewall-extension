@@ -1,0 +1,25 @@
+<div class='mid-content'>
+  <div load-wrapper="error" reload="doLoad()">
+    <div authorization-wrapper="isAuthorized">
+      <h1 class='page-title'>
+        <div class='container roles'>Roles</div>
+      </h1>
+      <div class='container roles'>
+        <div class="role-items">
+          <h5 ng-hide='roles'>
+            <i class='icon-time'></i> Loading...
+          </h5>
+          <div ng-show='roles' ng-repeat="role in roles" class="role-item" ng-click="roleClick(role)">
+            <div class="role-summary">
+              <h3>{{role.name}}</h3>
+              <div>{{role.description}}</div>
+            </div>
+            <div class="role-detail-button">
+              <i class="icon-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

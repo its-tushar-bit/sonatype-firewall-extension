@@ -20,7 +20,6 @@ public class PermissionDTO
 
   public boolean allowed;
 
-  @SuppressWarnings("UnusedDeclaration")
   public PermissionDTO() {
   }
 

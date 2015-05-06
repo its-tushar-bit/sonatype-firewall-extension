@@ -17,7 +17,6 @@ public class RolePermissionDTO
 
   public String roleId;
 
-  @SuppressWarnings("UnusedDeclaration")
   public RolePermissionDTO() {
   }
 

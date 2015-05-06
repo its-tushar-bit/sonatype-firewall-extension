@@ -16,7 +16,6 @@ public class PermissionCategoryDTO
 
   public List<PermissionDTO> permissions;
 
-  @SuppressWarnings("unused")
   public PermissionCategoryDTO() {
   }
 

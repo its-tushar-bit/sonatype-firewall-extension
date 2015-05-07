@@ -24,9 +24,10 @@ class RoleManagementSpec
 
     and: 'the list of roles is sorted properly'
     roleName(0) == 'Administrator'
-    roleName(1) == 'Owner'
-    roleName(2) == 'Developer'
-    roleName(3) == 'Application Evaluator'
-    roleName(4) == 'Component Evaluator'
+    roleName(1) == 'CLM Administrator'
+    roleName(2) == 'Owner'
+    roleName(3) == 'Developer'
+    roleName(4) == 'Application Evaluator'
+    roleName(5) == 'Component Evaluator'
   }
 }

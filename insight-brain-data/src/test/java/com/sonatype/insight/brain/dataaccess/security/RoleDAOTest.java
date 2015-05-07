@@ -53,9 +53,12 @@ public class RoleDAOTest
   public void testGetGlobalRoles() throws Exception {
     List<Role> roles = roleDAO.getGlobalRoles();
     assertThat(roles, is(notNullValue()));
-    assertThat(roles, hasSize(1));
+    assertThat(roles, hasSize(2));
     Role role = roles.get(0);
     assertThat(role.getName(), is("Administrator"));
+    assertThat(role.isGlobal(), is(true));
+    role = roles.get(1);
+    assertThat(role.getName(), is("CLM Administrator"));
     assertThat(role.isGlobal(), is(true));
   }
 
@@ -111,11 +114,12 @@ public class RoleDAOTest
   @Test
   public void testGetAll() {
     List<Role> roles = roleDAO.getAll();
-    assertThat(roles, hasSize(5));
+    assertThat(roles, hasSize(6));
     assertThat(roles.get(0).getName(), is("Administrator"));
-    assertThat(roles.get(1).getName(), is("Owner"));
-    assertThat(roles.get(2).getName(), is("Developer"));
-    assertThat(roles.get(3).getName(), is("Application Evaluator"));
-    assertThat(roles.get(4).getName(), is("Component Evaluator"));
+    assertThat(roles.get(1).getName(), is("CLM Administrator"));
+    assertThat(roles.get(2).getName(), is("Owner"));
+    assertThat(roles.get(3).getName(), is("Developer"));
+    assertThat(roles.get(4).getName(), is("Application Evaluator"));
+    assertThat(roles.get(5).getName(), is("Component Evaluator"));
   }
 }

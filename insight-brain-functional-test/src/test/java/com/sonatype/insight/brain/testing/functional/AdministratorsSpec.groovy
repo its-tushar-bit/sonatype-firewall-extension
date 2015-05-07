@@ -53,11 +53,14 @@ class AdministratorsSpec
       to AdministratorsPage
 
     then: "the default roles along with builtin users"
+      mapping.roles.size() == 2
       def roleRow = mapping.role("Administrator")
       roleRow.displayed
       roleRow.memberNames == ["Admin BuiltIn"]
       !roleRow.editor.displayed
-      mapping.roles.size() == 1
+      def clmRoleRow = mapping.role("CLM Administrator")
+      clmRoleRow.displayed
+      !clmRoleRow.editor.displayed
   }
 
   def "Clicking the edit button opens the form"() {

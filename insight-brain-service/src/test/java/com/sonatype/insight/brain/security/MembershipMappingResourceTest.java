@@ -337,9 +337,14 @@ public class MembershipMappingResourceTest
       assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
       assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
       assertThat(membersByOwner.members, is(notNullValue()));
-      assertThat(membersByOwner.members, hasSize(1));
-      assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
-          "admin@localhost", "CLM");
+      if (Role.ADMIN_ROLE_ID.equals(role.getId())) {
+        assertThat(membersByOwner.members, hasSize(1));
+        assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
+            "admin@localhost", "CLM");
+      }
+      else {
+        assertThat(membersByOwner.members, hasSize(0));
+      }
     }
 
     return roles;

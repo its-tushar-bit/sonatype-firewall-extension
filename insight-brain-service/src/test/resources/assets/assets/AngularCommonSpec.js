@@ -2,6 +2,25 @@ describe('AngularCommon', function() {
   var scope, compile, httpBackend, regex, form;
 
   beforeEach(module('AngularCommon', 'CommonServices'));
+  beforeEach(function() {
+    module(function($provide) {
+      $provide.value('$state', {
+        $current: {
+          name: 'dashboard.component',
+          data: {
+            crumb: 'Component Details'
+          },
+          parent: {
+            name: 'dashboard',
+            data: {
+              crumb: 'Dashboard'
+            }
+          }
+        }
+      });
+    });
+  });
+
   beforeEach(inject(function($httpBackend, $rootScope, $compile, regexFactory, $timeout) {
     scope = $rootScope.$new();
     compile = $compile;
@@ -602,5 +621,33 @@ describe('AngularCommon', function() {
       var testCase = testCases[i];
       validateFilter(testCase.input, testCase.expected);
     }
+  });
+
+  describe('breadcrumb', function() {
+    var scope;
+
+    beforeEach(inject(function($rootScope, $compile) {
+      var parentScope = $rootScope.$new();
+
+      $compile(angular.element('<div breadcrumb></div>'))(parentScope);
+      parentScope.$digest();
+      scope = parentScope.$$childHead;
+    }));
+
+    it('builds list of parent states', function() {
+      scope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: '' });
+
+      expect(scope.states.length).toBe(2);
+      expect(scope.states[0].state).toBe('dashboard.overview.newest-risk');
+      expect(scope.states[1].state).toBe('dashboard.component');
+    });
+
+    it('maintains previous parent states when navigating away', function() {
+      scope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: 'dashboard.overview.components' });
+
+      expect(scope.states.length).toBe(2);
+      expect(scope.states[0].state).toBe('dashboard.overview.components');
+      expect(scope.states[1].state).toBe('dashboard.component');
+    });
   });
 });

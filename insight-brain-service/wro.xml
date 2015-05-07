@@ -73,6 +73,7 @@
     <css>/scss/icons.scss</css>
     <css>/scss/form.scss</css>
     <css>/scss/chiclet.scss</css>
+    <css>/scss/content.scss</css>
     <css>/scss/dashboard.scss</css>
     <css>/scss/threatBars.scss</css>
     <css>/scss/policy-editor.scss</css>
@@ -106,6 +107,7 @@
   <group name='lib'>
     <group-ref>bootstrap-css</group-ref>
     <css>/lib/bootstrap/bootstrap-slider-2.0.0.css</css>
+    <css>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css</css>
     <css>/lib/glyphicons/glyphicons.css</css>
     <css>/lib/glyphicons/halflings.css</css>
     <css>/lib/X-editable/xeditable.css</css>
@@ -135,7 +137,7 @@
     <js>/util/ProductFeatures.js</js>
     <js>/util/Stores.js</js>
     <js>/util/PermissionService.js</js>
-    <js>/util/BootstrapSliderModule.js</js>
+    <js>/util/BootstrapAddonsModule.js</js>
     <js>/util/Validators.js</js>
   </group>
 

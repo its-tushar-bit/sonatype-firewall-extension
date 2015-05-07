@@ -8,7 +8,7 @@
   'use strict';
 
   var filterModule = angular.module('FilterModule',
-      ['CommonServices', 'AngularCommon', 'CLMLocation', 'Stores', 'BootstrapSlider']);
+      ['CommonServices', 'AngularCommon', 'CLMLocation', 'Stores', 'BootstrapAddons']);
 
   filterModule.controller('FilterController', [
     '$scope', '$http', '$q', 'Dialog', 'CLMLocations', 'ApplicationStore', 'StageTypeStore', 'OrganizationStore',

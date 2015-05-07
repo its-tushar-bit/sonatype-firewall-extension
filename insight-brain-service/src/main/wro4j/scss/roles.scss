@@ -30,12 +30,10 @@ $role-list-width: 606px;
 }
 
 .role-item {
-  display: table-row;
   cursor: pointer;
 }
 
 .role-summary {
-  display: table-cell;
   border-bottom: $small-gray-border;
   padding-bottom: 8px;
   vertical-align: middle;
@@ -51,7 +49,6 @@ $role-list-width: 606px;
 }
 
 .role-detail-button {
-  display: table-cell;
   vertical-align: middle;
   padding-left: 8px;
 }

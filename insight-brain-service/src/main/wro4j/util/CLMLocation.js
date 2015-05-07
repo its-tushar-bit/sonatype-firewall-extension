@@ -87,6 +87,10 @@
           return baseUrl.get() + '/rest/user/permissions';
         },
 
+        getRolePermissionUrl : function(roleId) {
+          return baseUrl.get() + '/rest/security/permissions/' + encodeURIComponent(roleId);
+        },
+
         getChangeMyPasswordUrl : function () {
           return baseUrl.get() + '/rest/user/password';
         },

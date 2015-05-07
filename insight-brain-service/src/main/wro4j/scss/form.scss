@@ -60,7 +60,129 @@
 .clm-primary-buttons-wide {
   padding-right: 10px;
 }
+/*
+  ##Toggle Switches
+  Toggle switches use the [Bootstrap Toggle](http://www.bootstraptoggle.com/) plugin. Height is set programmatically
+  to 32px using "height: '24px'", where there is 8px of margins.
 
+  ```
+    <div class="checkbox toggle-checkbox">
+      <label>
+        <input type="checkbox" toggle-checkbox data-on="Can" data-off="Cannot" ng-model="permission.value">
+        Do Action
+      </label>
+    </div>
+  ```
+*/
+.toggle-checkbox {
+  padding-left: 24px;
+}
+
+.toggle-checkbox .toggle-handle {
+  padding: 4px 7px;
+}
+
+.toggle-checkbox .btn {
+  background-image: none;
+  box-shadow: none;
+  border-color: $link-blue;
+  font-family: Proxima Nova Semibold, serif;
+  font-size: 14px;
+}
+
+.toggle-checkbox .toggle {
+  margin-right: 16px;
+  border-width: 2px;
+}
+
+.toggle-checkbox .toggle:not([disabled='disabled']):hover {
+  border-color: $deep-blue;
+}
+
+.toggle-checkbox .btn-default {
+  color: $link-blue;
+  background-color: $off-white;
+}
+
+.toggle-checkbox .btn-primary {
+  color: $off-white;
+  background-color: $link-blue;
+  text-shadow: none;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'], .toggle-checkbox .toggle[disabled='disabled'] .btn {
+  border-color: $light-blue;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'], .toggle-checkbox .toggle[disabled='disabled'] * {
+  cursor: not-allowed;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'] .btn-default {
+  color: $light-blue;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'] .btn-primary {
+  background-color: $light-blue;
+}
+
+/*
+  ##Inline Controls with Description
+
+  ```
+    <table class="inline-control-table">
+      <tbody>
+        <tr>
+          <td>
+            <h3>Header One</h3>
+          </td>
+        </tr>
+        <tr>
+          <td class='inline-control'>
+            <label for='foo'>Foo</label>
+            <input type='text' id='foo' placeholder='ex. Foo'>
+          </td>
+          <td>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ullamcorper velit. Etiam in lacus ac nunc feugiat luctus.
+          </td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td>
+            <h3>Header Two</h3>
+          <td>
+        </tr>
+        <tr>
+          <td class='inline-control'>
+            <label for='bar'>Bar</label>
+            <input type='text' id='bar' placeholder='ex. Bar'>
+          </td>
+          <td>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ullamcorper velit. Etiam in lacus ac nunc feugiat luctus.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  ```
+*/
+.inline-table {
+  border-spacing: 0 5px;
+  border-collapse: separate;
+}
+.inline-table label {
+  margin: 0;
+}
+.inline-control {
+  white-space: nowrap;
+  padding-right: 24px;
+}
+//
+//.inline-control-group:after {
+//  content: "";
+//  clear: both;
+//  display: table;
+//}
 /*
   ##Validation popovers
   Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input

@@ -740,6 +740,53 @@ var AngularStateUtils = {
       }
     };
   }]);
+
+  angularCommon.directive('breadcrumb', ['$state', function($state) {
+    var defaultState = 'dashboard.overview.newest-risk';
+    var parentStates = [defaultState, 'dashboard.overview.components'];
+    return {
+      scope: {
+        stateOverride: '=?'
+      },
+      template: '<p class="nav-crumb"><span ng-repeat="state in states">' +
+                  '<span ng-if="!$first" ng-class="{ \'last-crumb\': $last }">/</span>' +
+                    '<a ng-if="!$last" ui-sref="{{state.state}}">' +
+                      '<i ng-if="state.icon" class="{{state.icon}}">&nbsp;</i>{{state.name}}' +
+                    '</a>' +
+                  '<span ng-if="$last" class="last-crumb">' +
+                    '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{stateOverride ? stateOverride : state.name}}' +
+                  '</span>' +
+                '</p>',
+      link: function(scope) {
+        function loadCurrentState(event, toState, toParams, fromState) {
+          var state = $state.$current;
+          var states = [];
+          while (state && state.name) {
+            // dashboard is an abstract state that can represented by parent states navigated from or the default state
+            if (state.name === 'dashboard') {
+              states.unshift({
+                name: state.data.crumb,
+                icon: 'sonatype-icons dashboard',
+                state: fromState && $.inArray(fromState.name, parentStates) !== -1 ? fromState.name : defaultState
+              });
+            }
+            // dashboard.overview is an abstract state that can be ignored in favor of its parent
+            else if (state.name !== 'dashboard.overview') {
+              states.unshift({
+                name: state.data.crumb,
+                state: state.name
+              });
+            }
+            state = state.parent;
+          }
+          scope.states = states;
+        }
+
+        scope.$on('$stateChangeSuccess', loadCurrentState);
+        loadCurrentState();
+      }
+    };
+  }]);
   
   angularCommon.service('Dialog', ['$modal', function ($modal) {
     function wrapClick(fn, scope, dismiss) {

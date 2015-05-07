@@ -8,14 +8,15 @@
 (function() {
   'use strict';
 
-  var module = angular.module('RoleModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule'], [
+  var module = angular.module('RoleModule', ['ui.router', 'ui.router.state', 'BootstrapAddons', 'SecurityModule', 'CLMLocation', 'ResourceModule'], [
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('roles', {
         url: '/roles',
         controller: 'RoleListController',
         templateUrl: '../security-assets/role-list.html?' + clmBuildTimestamp,
         data: {
-          title: 'Roles'
+          title: 'Roles',
+          crumb: 'Roles'
         },
         resolve: {
           'hasAdminPermission': [
@@ -23,6 +24,15 @@
               return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
             }
           ]
+        }
+      }).state('roles.editor', {
+        url: '/{roleId}',
+        parent: 'roles',
+        controller: 'RoleEditorController',
+        templateUrl: '../security-assets/role-editor.html?' + clmBuildTimestamp,
+        data: {
+          title: 'Role Editor',
+          crumb: 'Editor'
         }
       });
     }
@@ -57,10 +67,38 @@
           });
         }
       };
-      $scope.roleClick = function() {
-        //TODO: part of seperate task
-      };
       $scope.isAuthorized = hasAdminPermission;
+
+      $scope.doLoad();
+    }
+  ]);
+
+  module.controller('RoleEditorController', [
+    '$scope', '$stateParams', '$q', '$http', 'CLMLocations', 'RoleStore', 'hasAdminPermission',
+    function($scope, $stateParams, $q, $http, CLMLocations, RoleStore, hasAdminPermission) {
+
+      $scope.doLoad = function() {
+        if (hasAdminPermission) {
+          var promises = [
+            RoleStore.get(),
+            $http.get(CLMLocations.getRolePermissionUrl($stateParams.roleId))
+          ];
+          $q.all(promises).then(function(results) {
+            var roles = results[0];
+            var permissions = results[1].data;
+
+            angular.forEach(roles, function(role) {
+              if (role.id === $stateParams.roleId) {
+                $scope.role = role;
+              }
+            });
+
+            $scope.permissionCategories = permissions.permissionCategories;
+          }, function (error) {
+            $scope.error = error;
+          });
+        }
+      };
 
       $scope.doLoad();
     }

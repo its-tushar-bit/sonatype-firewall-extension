@@ -1,5 +1,5 @@
 <div class='mid-content'>
-  <div load-wrapper="error" reload="doLoad()">
+  <div load-wrapper="error" reload="doLoad()" ng-if="$state.is('roles')">
     <div authorization-wrapper="isAuthorized">
       <h1 class='page-title'>
         <div class='container roles'>Roles</div>
@@ -9,17 +9,24 @@
           <h5 ng-hide='roles'>
             <i class='icon-time'></i> Loading...
           </h5>
-          <div ng-show='roles' ng-repeat="role in roles" class="role-item" ng-click="roleClick(role)">
-            <div class="role-summary">
-              <h3>{{role.name}}</h3>
-              <div>{{role.description}}</div>
-            </div>
-            <div class="role-detail-button">
-              <i class="icon-chevron-right"></i>
-            </div>
-          </div>
+          <table ng-show='roles'>
+            <tbody>
+              <tr ng-repeat="role in roles" class="role-item" ui-sref="roles.editor({roleId: role.id})">
+                <td class="role-summary">
+                  <h3>{{role.name}}</h3>
+                  <div>{{role.description}}</div>
+                </td>
+                <td>
+                  <div class="role-detail-button">
+                    <i class="icon-chevron-right"></i>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
+  <div ui-view></div>
 </div>

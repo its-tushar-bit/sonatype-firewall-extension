@@ -38,7 +38,8 @@
       templateUrl: '../dashboard-assets/dashboard.html?' + clmBuildTimestamp,
       abstract: true,
       data : {
-        title : 'Dashboard'
+        title : 'Dashboard',
+        crumb: 'Dashboard'
       }
     }).state('dashboard.overview', {
       parent: 'dashboard',
@@ -49,20 +50,32 @@
     }).state('dashboard.overview.newest-risk', {
       parent: 'dashboard.overview',
       url: '/newest-risk',
-      templateUrl: '../dashboard-assets/newest-risk.html?' + clmBuildTimestamp
+      templateUrl: '../dashboard-assets/newest-risk.html?' + clmBuildTimestamp,
+      data: {
+        crumb: 'Newest Risk'
+      }
     }).state('dashboard.overview.components', {
       parent: 'dashboard.overview',
       url: '/components',
-      templateUrl: '../dashboard-assets/components.html?' + clmBuildTimestamp
+      templateUrl: '../dashboard-assets/components.html?' + clmBuildTimestamp,
+      data: {
+        crumb: 'By Component'
+      }
     }).state('dashboard.overview.applications', {
       parent: 'dashboard.overview',
       url: '/applications',
-      templateUrl: '../dashboard-assets/applications.html?' + clmBuildTimestamp
+      templateUrl: '../dashboard-assets/applications.html?' + clmBuildTimestamp,
+      data: {
+        crumb: 'By Application'
+      }
     }).state('dashboard.component', {
       parent: 'dashboard',
       url: '/component/{hash}',
       controller: 'componentController',
-      templateUrl: '../dashboard-assets/component.html?' + clmBuildTimestamp
+      templateUrl: '../dashboard-assets/component.html?' + clmBuildTimestamp,
+      data: {
+        crumb: 'Component Details'
+      }
     });
   }]);
 
@@ -271,61 +284,6 @@
   dashboardModule.directive('applicationRiskTable', getTableDirective('getApplicationRisksUrl'));
 
   dashboardModule.directive('componentRiskTable', getTableDirective('getComponentRisksUrl'));
-
-  dashboardModule.directive('breadcrumb', ['$state', function($state) {
-    var stateLookup = {
-      'dashboard.overview.components': {
-        name: 'By Component'
-      },
-      'dashboard.overview.applications': {
-        name: 'By Application'
-      },
-      'dashboard.overview.newest-risk': {
-        name: 'Newest Risk'
-      },
-      'dashboard.component': {
-        name: 'Component Details'
-      }
-    };
-    var defaultState = 'dashboard.overview.newest-risk';
-    var parentStates = [defaultState, 'dashboard.overview.components'];
-    return {
-      template: '<p class="nav-crumb"><span ng-repeat="state in states">' +
-                  '<span ng-if="!$first" ng-class="{ \'last-crumb\': $last }">/</span>' +
-                  '<a ng-if="!$last" ui-sref="{{state.state}}">' +
-                    '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
-                  '</a>' +
-                  '<span ng-if="$last" class="last-crumb">' +
-                    '<i ng-if="state.icon" class="{{state.icon}}"></i>&nbsp;{{state.name}}' +
-                '</span></p>',
-      link: function(scope) {
-        function loadCurrentState(event, toState, toParams, fromState) {
-          var state = $state.$current;
-          var states = [];
-          while (state && state.name) {
-            // dashboard is an abstract state that can represented by parent states navigated from or the default state
-            if (state.name === 'dashboard') {
-              states.unshift({
-                name: 'Dashboard',
-                icon: 'sonatype-icons dashboard',
-                state: $.inArray(fromState.name, parentStates) !== -1 ? fromState.name : defaultState
-              });
-            }
-            // dashboard.overview is an abstract state that can be ignored in favor of its parent
-            else if (state.name !== 'dashboard.overview') {
-              states.unshift(angular.extend(stateLookup[state.name], {
-                state: state.name
-              }));
-            }
-            state = state.parent;
-          }
-          scope.states = states;
-        }
-
-        scope.$on('$stateChangeSuccess', loadCurrentState);
-      }
-    };
-  }]);
 
   /**
    * Remove stages which are not part of the filter

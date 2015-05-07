@@ -29,4 +29,43 @@ extends BaseSpec {
     roleName(4) == 'Application Evaluator'
     roleName(5) == 'Component Evaluator'
   }
+
+  def 'Clicking on a role should display the role editor.'() {
+    when: 'clicking on the developer role'
+    RoleManagementPage roleManagementPage = at RoleManagementPage
+    roleManagementPage.roleItems[2].click()
+
+    then: 'the read only role editor is shown'
+    waitFor {
+      roleManagementPage.permissionCategories.size() == 2
+    }
+
+    roleManagementPage.pageTitle.text() == 'Developer'
+
+    PermissionCategory policyCategory = roleManagementPage.permissionCategory('Policy')
+    policyCategory.permissions.size() == 4
+
+    Permission evaluateAppPermission = policyCategory.permission('Evaluate Application')
+    !evaluateAppPermission.toggleSwitch.isOn()
+    !evaluateAppPermission.toggleSwitch.isEnabled()
+
+    Permission evaluateComponentPermission = policyCategory.permission('Evaluate Component')
+    evaluateComponentPermission.toggleSwitch.isOn()
+    !evaluateComponentPermission.toggleSwitch.isEnabled()
+
+    Permission viewPermission = policyCategory.permission('View')
+    viewPermission.toggleSwitch.isOn()
+    !viewPermission.toggleSwitch.isEnabled()
+
+    Permission writePermission = policyCategory.permission('Write')
+    !writePermission.toggleSwitch.isOn()
+    !writePermission.toggleSwitch.isEnabled()
+
+    PermissionCategory systemCategory = roleManagementPage.permissionCategory('System Configuration')
+    systemCategory.permissions.size() == 1
+
+    Permission administratorPermission = systemCategory.permission('Administrator')
+    !administratorPermission.toggleSwitch.isOn()
+    !administratorPermission.toggleSwitch.isEnabled()
+  }
 }

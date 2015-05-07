@@ -326,40 +326,6 @@ describe('DashboardModule', function() {
     }));
   });
 
-  describe('breadcrumb', function() {
-    var scope;
-
-    beforeEach(inject(function($rootScope, $state, $compile, $httpBackend) {
-      scope = $rootScope.$new();
-
-      $httpBackend.expectGET('../dashboard-assets/dashboard.html?').respond('<div></div>');
-      $httpBackend.expectGET('../dashboard-assets/component.html?').respond('<div></div>');
-      scope.$apply(function() {
-        $state.go('dashboard.component');
-      });
-      $httpBackend.flush();
-
-      $compile(angular.element('<div breadcrumb></div>'))(scope);
-      scope.$digest();
-    }));
-
-    it('builds list of parent states', function() {
-      scope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: '' });
-
-      expect(scope.states.length).toBe(2);
-      expect(scope.states[0].state).toBe('dashboard.overview.newest-risk');
-      expect(scope.states[1].state).toBe('dashboard.component');
-    });
-
-    it('maintains previous parent states when navigating away', function() {
-      scope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: 'dashboard.overview.components' });
-
-      expect(scope.states.length).toBe(2);
-      expect(scope.states[0].state).toBe('dashboard.overview.components');
-      expect(scope.states[1].state).toBe('dashboard.component');
-    });
-  });
-
   describe('sortable', function() {
     var barScope, fooScope, invertedScope;
 

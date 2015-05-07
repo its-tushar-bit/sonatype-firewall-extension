@@ -59,15 +59,26 @@ public class AuthorizationCheckerTest
   }
 
   @Test
-  public void testIsPermitted_AdminHasFullAccess() {
+  public void testIsPermitted_AdminHasConfigureSystemAccess() {
     User user = tempEntity.newUser();
     newMembershipMapping(user, MembershipMapping.GLOBAL_CONTEXT_ID, roleDAO.getByName("Administrator").getId());
     Collection<String> contextIds = Arrays.asList("app", "org", MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal admin = newPrincipal(user);
+    assertThat(checker.isPermitted(admin, Permission.CONFIGURE_SYSTEM, contextIds), is(true));
+  }
+
+  @Test
+  public void testIsPermitted_ClmAdminHasClmAccess() {
+    User user = tempEntity.newUser();
+    newMembershipMapping(user, MembershipMapping.GLOBAL_CONTEXT_ID, roleDAO.getByName("CLM Administrator").getId());
+    Collection<String> contextIds = Arrays.asList("app", "org", MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    UserPrincipal admin = newPrincipal(user);
     assertThat(checker.isPermitted(admin, Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(admin, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(admin, Permission.CONFIGURE_SYSTEM, contextIds), is(true));
+    assertThat(checker.isPermitted(admin, Permission.EVALUATE_APPLICATION, contextIds), is(true));
+    assertThat(checker.isPermitted(admin, Permission.EVALUATE_COMPONENT, contextIds), is(true));
   }
 
   @Test

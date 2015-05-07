@@ -171,10 +171,11 @@ CREATE TABLE role_permission (
 );
 -- Administrator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1b68169c84874c69b4ac30a391b46212', '1b92fae3e55a411793a091fb821c422d', 'CONFIGURE_SYSTEM');
-INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c5c83c335e74a138ee1ae8fa7869da7', '1b92fae3e55a411793a091fb821c422d', 'WRITE');
-INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1cd867a40a574ce0b46dd22c9d650d1d', '1b92fae3e55a411793a091fb821c422d', 'READ');
-INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('99fe1291b1274b169ce5c854dd856ad8', '1b92fae3e55a411793a091fb821c422d', 'EVALUATE_APPLICATION');
-INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('d9373880213342f2b4e56e3dea94f50c', '1b92fae3e55a411793a091fb821c422d', 'EVALUATE_COMPONENT');
+-- CLM Administrator role
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1539fa2c5afd4cd4b7102ef6c8d0bf6b', 'b9646757e98e486da7d730025f5245f8', 'WRITE');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('c49843ffa4ae4bb68c3e35b25244486e', 'b9646757e98e486da7d730025f5245f8', 'READ');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('6da52edbbc554b3ab4dd502e30a80acd', 'b9646757e98e486da7d730025f5245f8', 'EVALUATE_APPLICATION');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('e07e0e487c074a4fa95a1abde2f68aed', 'b9646757e98e486da7d730025f5245f8', 'EVALUATE_COMPONENT');
 -- Owner role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c8d6f420845466bbc1eb5eaf6d4baa2', '1cddabf7fdaa47d6833454af10e0a3ef', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c2587ba144341fd9d937dd36c850f5a', '1cddabf7fdaa47d6833454af10e0a3ef', 'READ');
@@ -199,6 +200,7 @@ CREATE TABLE membership_mapping (
   CONSTRAINT membership_mapping_role_fk FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 INSERT INTO membership_mapping (membership_mapping_id, context_id, role_id, member_name, member_type) VALUES ('1d5d75c5a86742549bbf3767a985c6ee', 'global', '1b92fae3e55a411793a091fb821c422d', 'admin', 'USER');
+INSERT INTO membership_mapping (membership_mapping_id, context_id, role_id, member_name, member_type) VALUES ('c20a1df68fa948b787f3d1962411fb50', 'global', 'b9646757e98e486da7d730025f5245f8', 'admin', 'USER');
 
 CREATE TABLE ldap_server (
   ldap_server_id varchar(50) NOT NULL,

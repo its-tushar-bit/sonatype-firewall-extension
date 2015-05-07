@@ -18,8 +18,10 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -49,12 +51,22 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testAdminRoleHasAllPermissions() throws Exception {
+  public void testAdminRoleHasConfigureSystemPermissions() throws Exception {
     Role role = roleDAO.getByName("Administrator");
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, is(notNullValue()));
-    assertThat(perms, containsInAnyOrder(Permission.values()));
+    assertThat(perms, hasSize(1));
+    assertThat(perms, contains(Permission.CONFIGURE_SYSTEM));
+  }
+
+  @Test
+  public void testClmAdminRoleHasClmPermissions() throws Exception {
+    Role role = roleDAO.getByName("CLM Administrator");
+    assertThat(role, is(notNullValue()));
+    Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
+    assertThat(perms, hasSize(4));
+    assertThat(perms, containsInAnyOrder(Permission.READ, Permission.WRITE, Permission.EVALUATE_APPLICATION,
+        Permission.EVALUATE_COMPONENT));
   }
 
   @Test

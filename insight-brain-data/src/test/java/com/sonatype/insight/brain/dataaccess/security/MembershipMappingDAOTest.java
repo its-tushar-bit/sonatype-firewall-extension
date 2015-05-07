@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -135,16 +136,21 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testAdminUserMappedToAdminRole() throws Exception {
+  public void testAdminUserMappedToAdminAndClmAdminRoles() throws Exception {
     List<MembershipMapping> memberships = membershipDAO.getByContextIdAndUser(MembershipMapping.GLOBAL_CONTEXT_ID,
         "admin");
     assertThat(memberships, is(notNullValue()));
-    assertThat(memberships, hasSize(1));
-    MembershipMapping membership = memberships.get(0);
-    assertThat(membership.getMemberType(), is(MemberType.USER));
-    Role role = roleDAO.getById(membership.getRoleId());
-    assertThat(role, is(notNullValue()));
-    assertThat(role.getName(), is("Administrator"));
+    assertThat(memberships, hasSize(2));
+    List<String> globalRoleNames = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      MembershipMapping membership = memberships.get(i);
+      assertThat(membership.getMemberType(), is(MemberType.USER));
+      Role role = roleDAO.getById(membership.getRoleId());
+      assertThat(role, is(notNullValue()));
+      globalRoleNames.add(role.getName());
+    }
+    assertThat(globalRoleNames, containsInAnyOrder("Administrator", "CLM Administrator"));
+
   }
 
   @Test

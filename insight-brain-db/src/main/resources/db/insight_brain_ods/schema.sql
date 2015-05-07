@@ -154,11 +154,11 @@ CREATE TABLE role (
   CONSTRAINT role_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
 );
 
-INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('1b92fae3e55a411793a091fb821c422d', 'Administrator', 'administrator', 100, 'Allows full access to the CLM server.', TRUE);
-INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('1cddabf7fdaa47d6833454af10e0a3ef', 'Owner', 'owner', 200, 'Allows to manage policies.', FALSE);
-INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('1da70fae1fd54d6cb7999871ebdb9a36', 'Developer', 'developer', 300, 'Allows to evaluate policies on components.', FALSE);
-INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('2cb71b3468d649789163ea2e212b541e', 'Application Evaluator', 'applicationevaluator', 400, 'Allows to evaluate policies on applications.', FALSE);
-INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('90c7c98683b4471cb77a916744540bcc', 'Component Evaluator', 'componentevaluator', 500, 'Allows to evaluate policies on components.', FALSE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('1b92fae3e55a411793a091fb821c422d', 'Administrator', 'administrator', 100, 'Can manage any element of the CLM Server. Can evaluate Applications and individual components.', TRUE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('1cddabf7fdaa47d6833454af10e0a3ef', 'Owner', 'owner', 200, 'Can manage any element within the scope of their assigned Organization or Application. Can evaluate Applications and individual components.', FALSE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('1da70fae1fd54d6cb7999871ebdb9a36', 'Developer', 'developer', 300, 'Can view any element within the scope of their assigned Organization or Application. Can evaluate individual components.', FALSE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('2cb71b3468d649789163ea2e212b541e', 'Application Evaluator', 'applicationevaluator', 400, 'Can submit Applications for evaluation and retrieve corresponding summary-level results within the scope of their assigned Organization or Application.', FALSE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global) VALUES ('90c7c98683b4471cb77a916744540bcc', 'Component Evaluator', 'componentevaluator', 500, 'Can submit individual components for evaluation and retrieve corresponding summary-level results within the scope of their assigned Organization or Application.', FALSE);
 
 CREATE TABLE role_permission (
   role_permission_id varchar(50) NOT NULL,

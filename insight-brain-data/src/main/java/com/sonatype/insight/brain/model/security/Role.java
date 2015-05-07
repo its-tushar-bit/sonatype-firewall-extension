@@ -50,6 +50,9 @@ public class Role
   @Column(name = "global")
   private boolean global;
 
+  @Column(name = "built_in", insertable = false, updatable = false)
+  private boolean builtIn;
+
   @Override
   public String getId() {
     return id;
@@ -96,6 +99,10 @@ public class Role
 
   public void setGlobal(boolean global) {
     this.global = global;
+  }
+
+  public boolean isBuiltIn() {
+    return builtIn;
   }
 
   @Override

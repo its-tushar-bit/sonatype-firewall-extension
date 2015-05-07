@@ -12,12 +12,14 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
@@ -41,7 +43,40 @@ public class RoleDAO
   }
 
   @Override
+  public void insert(TransactionContext tx, Role entity) {
+    if (entity.isBuiltIn()) {
+      throw new BadRequestException("Cannot add built-in role '" + entity.getName() + "'.");
+    }
+
+    NameHelper.validate(entity.getName());
+    if (getByName(tx, entity.getName()) != null) {
+      throw new InvalidNameException("A role with the same name already exists.");
+    }
+
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, Role entity) {
+    if (entity.isBuiltIn()) {
+      throw new BadRequestException("Cannot change built-in role '" + entity.getName() + "'.");
+    }
+
+    NameHelper.validate(entity.getName());
+    Role existing = getByName(tx, entity.getName());
+    if (existing != null && !existing.getId().equals(entity.getId())) {
+      throw new InvalidNameException("A role with the same name already exists.");
+    }
+
+    super.update(tx, entity);
+  }
+
+  @Override
   public void delete(TransactionContext tx, Role entity) {
+    if (entity.isBuiltIn()) {
+      throw new BadRequestException("Cannot delete built-in role '" + entity.getName() + "'.");
+    }
+
     // Cascade to permissions
     RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(tx, entity.getId())) {
@@ -89,8 +124,14 @@ public class RoleDAO
    * Gets the role with the given name.
    */
   public Role getByName(String name) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByName(tx, name);
+    }
+  }
+
+  private Role getByName(TransactionContext tx, String name) {
     String sQuery = "SELECT entity FROM Role entity WHERE entity.nameLowercaseNoWhitespace=?1";
-    return get(sQuery, NameHelper.normalize(name));
+    return get(tx, sQuery, NameHelper.normalize(name));
   }
 
   /**

@@ -10,12 +10,15 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
+import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
@@ -24,6 +27,8 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 
 public class RoleDAOTest
     extends AbstractDbDAOTest
@@ -104,5 +109,141 @@ public class RoleDAOTest
     assertThat(roles.get(3).getName(), is("Developer"));
     assertThat(roles.get(4).getName(), is("Application Evaluator"));
     assertThat(roles.get(5).getName(), is("Component Evaluator"));
+  }
+
+  @Test
+  public void testCRUD() {
+    Role role = newRole("custom");
+    role = roleDAO.getByIdNotNull(role.getId());
+    assertThat(role.isBuiltIn(), is(false));
+    assertThat(role.getName(), is("custom"));
+    assertThat(role.getDescription(), is(nullValue()));
+
+    role.setName("Updated Name");
+    role.setDescription("Updated Description");
+    roleDAO.update(role);
+    role = roleDAO.getByIdNotNull(role.getId());
+    assertThat(role.getName(), is("Updated Name"));
+    assertThat(role.getDescription(), is("Updated Description"));
+
+    roleDAO.delete(role);
+    assertThat(roleDAO.getById(role.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testValidateEmptyName_Insert() {
+    Role role = new Role();
+    role.setName("");
+    try {
+      roleDAO.insert(role);
+      fail("Expected exception");
+    }
+    catch (InvalidNameException e) {
+      assertThat(e.getMessage(), is("Name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNameInvalidChars_Insert() {
+    Role role = new Role();
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      role.setName(name);
+      try {
+        roleDAO.insert(role);
+        fail("Expected exception");
+      }
+      catch (InvalidNameException e) {
+        assertThat(e.getMessage(), is("Name contains an invalid character: '" + name + "'."));
+      }
+    }
+  }
+
+  @Test
+  public void testDuplicateName_Insert() {
+    Role role = new Role();
+    role.setName("applicationEVALUATOR");
+    try {
+      roleDAO.insert(role);
+      fail("Expected exception");
+    }
+    catch (InvalidNameException e) {
+      assertThat(e.getMessage(), is("A role with the same name already exists."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyName_Update() {
+    Role role = newRole("Test");
+    role.setName("");
+    try {
+      roleDAO.update(role);
+      fail("Expected exception");
+    }
+    catch (InvalidNameException e) {
+      assertThat(e.getMessage(), is("Name is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNameInvalidChars_Update() {
+    Role role = newRole("Test");
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      role.setName(name);
+      try {
+        roleDAO.update(role);
+        fail("Expected exception");
+      }
+      catch (InvalidNameException e) {
+        assertThat(e.getMessage(), is("Name contains an invalid character: '" + name + "'."));
+      }
+    }
+  }
+
+  @Test
+  public void testDuplicateName_Update() {
+    Role role = newRole("Test");
+    role.setName("applicationEVALUATOR");
+    try {
+      roleDAO.update(role);
+      fail("Expected exception");
+    }
+    catch (InvalidNameException e) {
+      assertThat(e.getMessage(), is("A role with the same name already exists."));
+    }
+  }
+
+  @Test
+  public void testBuiltInRoles() {
+    List<Role> roles = roleDAO.getAll();
+    assertThat(roles, hasSize(6));
+    for (Role role : roles) {
+      assertThat(role.toString(), role.isBuiltIn(), is(true));
+    }
+  }
+
+  @Test
+  public void testBuiltInRoleCannotBeDeleted() {
+    Role role = roleDAO.getByName("Owner");
+    assertThat(role.isBuiltIn(), is(true));
+    try {
+      roleDAO.delete(role);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot delete built-in role 'Owner'."));
+    }
+  }
+
+  @Test
+  public void testBuiltInRoleCannotBeUpdated() {
+    Role role = roleDAO.getByName("Owner");
+    assertThat(role.isBuiltIn(), is(true));
+    try {
+      roleDAO.update(role);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot change built-in role 'Owner'."));
+    }
   }
 }

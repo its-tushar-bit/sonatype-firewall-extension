@@ -9,8 +9,7 @@ import spock.lang.Stepwise
 
 @Stepwise
 class RoleManagementSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   def setupSpec() {
     loginAsAdminVia(RoleManagementPage)
   }

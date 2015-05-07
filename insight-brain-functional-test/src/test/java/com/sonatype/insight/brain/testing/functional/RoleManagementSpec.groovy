@@ -33,7 +33,7 @@ extends BaseSpec {
   def 'Clicking on a role should display the role editor.'() {
     when: 'clicking on the developer role'
     RoleManagementPage roleManagementPage = at RoleManagementPage
-    roleManagementPage.roleItems[2].click()
+    roleManagementPage.roleItems[3].click()
 
     then: 'the read only role editor is shown'
     waitFor {

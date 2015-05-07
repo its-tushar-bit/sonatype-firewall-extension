@@ -50,7 +50,7 @@ public class ProductLicenseResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public String installLicense(@FormDataParam("file") InputStream is,
       @AuthzErrorMsg @QueryParam("forceSuccess") boolean forceSuccess)
   {
@@ -90,7 +90,7 @@ public class ProductLicenseResource
   }
 
   @DELETE
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void uninstallLicense() throws LicensingException {
     licenseManager.uninstallLicense();
     log.info("CLM License successfully uninstalled");

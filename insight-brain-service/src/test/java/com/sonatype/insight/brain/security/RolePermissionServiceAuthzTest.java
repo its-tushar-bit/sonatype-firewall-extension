@@ -25,7 +25,7 @@ public class RolePermissionServiceAuthzTest
 
   @Test
   public void testPermissionsForRole_Authorized() {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
     RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForRole(Role.ADMIN_ROLE_ID);
     assertThat(rolePermission.permissionCategories, not(empty()));
     assertThat(rolePermission.permissionCategories.get(0).permissions, not(empty()));

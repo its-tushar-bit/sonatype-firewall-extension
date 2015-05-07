@@ -20,7 +20,7 @@
           controller : 'AppSecurityController',
           resolve : {
             'hasPermission' : ['PermissionService', function (PermissionService) {
-              return PermissionService.isAuthorized(['ADMIN'], true);
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
             }]
           }
         });
@@ -41,7 +41,7 @@
               },
               resolve : {
                 'hasAdminPermission' : ['PermissionService', function (PermissionService) {
-                  return PermissionService.isAuthorized(['ADMIN'], true);
+                  return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
                 }]
               }
             });

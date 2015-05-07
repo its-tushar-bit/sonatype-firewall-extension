@@ -20,7 +20,7 @@
         resolve: {
           'hasAdminPermission': [
             'PermissionService', function(PermissionService) {
-              return PermissionService.isAuthorized(['ADMIN'], true);
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
             }
           ]
         }

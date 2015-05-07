@@ -25,10 +25,10 @@ public class PermissionResourceTest
   public void testAdminUserWithAdminPerm() throws Exception {
     Response response = AuthedRestAccess
         .put(getRestUrl(PermissionResource.SERVICE_PATH, IdUtils.TYPE_GLOBAL, "*"),
-            toJson(Collections.singleton(Permission.ADMIN)));
+            toJson(Collections.singleton(Permission.CONFIGURE_SYSTEM)));
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(fromJson(response, Permission[].class));
-    Assert.assertTrue(permissions.contains(Permission.ADMIN));
+    Assert.assertTrue(permissions.contains(Permission.CONFIGURE_SYSTEM));
   }
 
   @Test
@@ -36,10 +36,10 @@ public class PermissionResourceTest
     tempEntity.newUser("testNonAdminUser");
     Response response = AuthedRestAccess
         .put(getRestUrl(PermissionResource.SERVICE_PATH, IdUtils.TYPE_GLOBAL, "*"),
-            toJson(Collections.singleton(Permission.ADMIN)),
+            toJson(Collections.singleton(Permission.CONFIGURE_SYSTEM)),
             "testNonAdminUser", "secret");
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(fromJson(response, Permission[].class));
-    Assert.assertFalse(permissions.contains(Permission.ADMIN));
+    Assert.assertFalse(permissions.contains(Permission.CONFIGURE_SYSTEM));
   }
 }

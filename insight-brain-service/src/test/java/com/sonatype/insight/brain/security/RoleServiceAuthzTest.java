@@ -28,7 +28,7 @@ public class RoleServiceAuthzTest
 
   @Test
   public void testGetAllRoles_Authorized() {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
     List<Role> roles = roleService.getAllRoles();
     assertThat(roles, notNullValue());
     assertThat(roles, not(empty()));

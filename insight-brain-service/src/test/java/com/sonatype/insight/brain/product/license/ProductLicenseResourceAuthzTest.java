@@ -15,7 +15,7 @@ public class ProductLicenseResourceAuthzTest
 {
   @Test
   public void testInstallLicense() throws Exception {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
 
     Response response = uploadLicense(null /* queryParams */, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(403, response);
@@ -28,7 +28,7 @@ public class ProductLicenseResourceAuthzTest
   public void testUninstallLicense() throws Exception {
     installLicense();
 
-    grantAdminPermission();
+    grantConfigureSystemPermission();
 
     String url = getRestUrl(ProductLicenseResource.SERVICE_PATH);
     testAuthzDelete(url);

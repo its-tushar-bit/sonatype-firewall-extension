@@ -67,7 +67,7 @@ public class AuthorizationCheckerTest
     UserPrincipal admin = newPrincipal(user);
     assertThat(checker.isPermitted(admin, Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(admin, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(admin, Permission.ADMIN, contextIds), is(true));
+    assertThat(checker.isPermitted(admin, Permission.CONFIGURE_SYSTEM, contextIds), is(true));
   }
 
   @Test
@@ -81,7 +81,7 @@ public class AuthorizationCheckerTest
     UserPrincipal owner = newPrincipal(user);
     assertThat(checker.isPermitted(owner, Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.ADMIN, contextIds), is(false));
+    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
   }
 
   @Test
@@ -95,7 +95,7 @@ public class AuthorizationCheckerTest
     UserPrincipal developer = newPrincipal(user);
     assertThat(checker.isPermitted(developer, Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(developer, Permission.WRITE, contextIds), is(false));
-    assertThat(checker.isPermitted(developer, Permission.ADMIN, contextIds), is(false));
+    assertThat(checker.isPermitted(developer, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
   }
 
   @Test
@@ -133,7 +133,7 @@ public class AuthorizationCheckerTest
     UserPrincipal owner = newPrincipal(user, "group");
     assertThat(checker.isPermitted(owner, Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.ADMIN, contextIds), is(false));
+    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
   }
 
   @Test
@@ -147,7 +147,7 @@ public class AuthorizationCheckerTest
     UserPrincipal owner = newPrincipal(user);
     assertThat(checker.isPermitted(owner, Permission.READ, contextIds), is(true));
     assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.ADMIN, contextIds), is(false));
+    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
   }
 
   @Test

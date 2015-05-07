@@ -39,8 +39,8 @@ public class PermissionServiceTest
     prepareMocks(User.ADMIN_USERNAME);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.ADMIN)), true,
-        Permission.ADMIN);
+        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)), true,
+        Permission.CONFIGURE_SYSTEM);
   }
 
   @Test
@@ -48,8 +48,8 @@ public class PermissionServiceTest
     prepareMocks("nonadmin");
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.ADMIN)), false,
-        Permission.ADMIN);
+        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)), false,
+        Permission.CONFIGURE_SYSTEM);
   }
 
   @Test
@@ -57,8 +57,8 @@ public class PermissionServiceTest
     prepareMocks(null);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.ADMIN)), false,
-        Permission.ADMIN);
+        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)), false,
+        Permission.CONFIGURE_SYSTEM);
   }
 
   @Test

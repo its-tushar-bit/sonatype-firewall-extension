@@ -170,7 +170,7 @@ CREATE TABLE role_permission (
   CONSTRAINT role_permission_role_fk FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 -- Administrator role
-INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1b68169c84874c69b4ac30a391b46212', '1b92fae3e55a411793a091fb821c422d', 'ADMIN');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1b68169c84874c69b4ac30a391b46212', '1b92fae3e55a411793a091fb821c422d', 'CONFIGURE_SYSTEM');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1c5c83c335e74a138ee1ae8fa7869da7', '1b92fae3e55a411793a091fb821c422d', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1cd867a40a574ce0b46dd22c9d650d1d', '1b92fae3e55a411793a091fb821c422d', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('99fe1291b1274b169ce5c854dd856ad8', '1b92fae3e55a411793a091fb821c422d', 'EVALUATE_APPLICATION');

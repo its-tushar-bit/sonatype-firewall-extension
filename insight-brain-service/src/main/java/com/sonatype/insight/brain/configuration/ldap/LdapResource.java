@@ -56,7 +56,7 @@ public class LdapResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<LdapServer> getAll() {
     List<LdapServer> result = new ArrayList<>();
     for (LdapServer server : serverDao.getAll()) {
@@ -71,7 +71,7 @@ public class LdapResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapServer addLdapServer(LdapServer server) {
     serverDao.insert(server);
     return server;
@@ -83,7 +83,7 @@ public class LdapResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapServer updateLdapServer(LdapServer server) {
     serverDao.update(server);
     return server;
@@ -94,7 +94,7 @@ public class LdapResource
    */
   @DELETE
   @Path("{ldapServerId}")
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteLdapServer(@PathParam("ldapServerId") final String serverId) {
     serverDao.delete(serverDao.getByIdNotNull(serverId));
   }
@@ -107,7 +107,7 @@ public class LdapResource
   @GET
   @Path("{ldapServerId}/connection")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
     return ldapManager.loadConnection(serverId);
   }
@@ -119,7 +119,7 @@ public class LdapResource
   @Path("{ldapServerId}/connection")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnection updateLdapConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     validateServerId(serverId, conn);
     return ldapManager.saveConnection(conn);
@@ -133,7 +133,7 @@ public class LdapResource
   @GET
   @Path("{ldapServerId}/userMapping")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapUserMapping getUserMapping(@PathParam("ldapServerId") String serverId) {
     LdapUserMapping umap = umapDao.getByServerId(serverId);
     if (umap == null) {
@@ -150,7 +150,7 @@ public class LdapResource
   @Path("{ldapServerId}/userMapping")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapUserMapping updateUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
     validateServerId(serverId, umap);
 
@@ -170,7 +170,7 @@ public class LdapResource
   @Path("{ldapServerId}/testConnection")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnectionStatus testConnection(@PathParam("ldapServerId") String serverId, LdapConnection conn) {
     validateServerId(serverId, conn);
 
@@ -192,7 +192,7 @@ public class LdapResource
   @Path("{ldapServerId}/testUserMapping")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<LdapUser> testUserMapping(@PathParam("ldapServerId") String serverId, LdapUserMapping umap) {
     validateServerId(serverId, umap);
 
@@ -215,7 +215,7 @@ public class LdapResource
   @Path("{ldapServerId}/testLogin")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnectionStatus testLogin(@PathParam("ldapServerId") String serverId, LdapTestLoginRequest request) {
     LdapUserMapping umap = request.getUserMapping();
     validateServerId(serverId, umap);

@@ -27,7 +27,7 @@ public class RoleService
     this.roleDAO = roleDAO;
   }
 
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<Role> getAllRoles() {
     return roleDAO.getAll();
   }

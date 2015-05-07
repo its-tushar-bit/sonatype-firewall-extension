@@ -69,8 +69,8 @@ public class AbstractServiceAuthzTest
     }
   }
 
-  protected void grantAdminPermission() {
-    Role role = tempEntity.newRole(true /* global */, Permission.ADMIN);
+  protected void grantConfigureSystemPermission() {
+    Role role = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
     login();
   }

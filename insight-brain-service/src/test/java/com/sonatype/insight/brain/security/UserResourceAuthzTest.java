@@ -19,7 +19,7 @@ public class UserResourceAuthzTest
 {
   @Test
   public void testGetAll() throws Exception {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
 
     String url = getRestUrl(UserResource.SERVICE_PATH);
     testAuthzGet(url);
@@ -47,7 +47,7 @@ public class UserResourceAuthzTest
 
   @Test
   public void testAddUser() throws Exception {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
 
     User user = new User("testAddUser", "testAddUser", "testAddUser", "testAddUser", "testAddUser@sonatype.com");
     String url = getRestUrl(UserResource.SERVICE_PATH);
@@ -58,7 +58,7 @@ public class UserResourceAuthzTest
 
   @Test
   public void testUpdateUser() throws Exception {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
 
     User user = tempEntity.newUser("testUpdateUser");
     String url = getRestUrl(UserResource.SERVICE_PATH);
@@ -67,7 +67,7 @@ public class UserResourceAuthzTest
 
   @Test
   public void testDeleteUser() throws Exception {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
 
     User user = tempEntity.newUser("testDeleteUser");
     String url = getRestUrl(UserResource.SERVICE_PATH + "/{userId}", user.getId());
@@ -76,7 +76,7 @@ public class UserResourceAuthzTest
   
   @Test
   public void testResetPassword() throws Exception {
-    grantAdminPermission();
+    grantConfigureSystemPermission();
     
     User user = tempEntity.newUser("testUpdateUser");
     String url = getRestUrl(UserResource.SERVICE_PATH + "/{userId}/reset", user.getId());

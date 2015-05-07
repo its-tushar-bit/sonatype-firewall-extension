@@ -12,11 +12,8 @@ package com.sonatype.insight.brain.model.security;
  */
 public enum Permission
 {
-
-  /**
-   * Administer system.
-   */
-  ADMIN("Administer", Permission.CATEGORY_SYSTEM_CONFIGURATION, "View and edit everything in the system."),
+  CONFIGURE_SYSTEM("Configure System", Permission.CATEGORY_SYSTEM_CONFIGURATION,
+      "Configure LDAP, product license, users and other global aspects."),
 
   /**
    * Manages policies, role-to-user membership mappings, etc. for org/app.

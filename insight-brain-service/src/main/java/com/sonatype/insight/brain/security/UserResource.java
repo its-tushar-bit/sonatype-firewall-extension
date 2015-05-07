@@ -108,7 +108,7 @@ public class UserResource
 
   @GET
   @Produces({ MediaType.APPLICATION_JSON })
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<User> getAll() {
     List<User> users = new UserDAO().getAll();
     for (User user : users) {
@@ -120,7 +120,7 @@ public class UserResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public User addUser(User user) {
     user.setId(null);
     user.setPassword(clmRealm.encryptPassword(user.getPassword()));
@@ -134,7 +134,7 @@ public class UserResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public User updateUser(User user) {
     UserDAO dao = new UserDAO();
 
@@ -157,7 +157,7 @@ public class UserResource
 
   @DELETE
   @Path("{userId}")
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteUser(@PathParam("userId") String userId) {
     UserDAO dao = new UserDAO();
 
@@ -218,7 +218,7 @@ public class UserResource
   @PUT
   @Path(RESET_PASSWORD_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.ADMIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ChangePasswordDTO resetPassword(@PathParam("userId") String userId) {
     UserDAO dao = new UserDAO();
     User user = dao.getByIdNotNull(userId);

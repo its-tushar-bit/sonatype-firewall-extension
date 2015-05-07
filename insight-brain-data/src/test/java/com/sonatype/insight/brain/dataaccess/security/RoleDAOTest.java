@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.NotifyAction;
@@ -18,7 +17,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,21 +30,8 @@ public class RoleDAOTest
 {
   private RoleDAO roleDAO = new RoleDAO();
 
-  private List<Role> rolesToDelete = new ArrayList<>();
-
   private Role newRole(String name) {
-    Role role = new Role();
-    role.setName(name);
-    roleDAO.insert(role);
-    rolesToDelete.add(role);
-    return role;
-  }
-
-  @After
-  public void exit() throws Exception {
-    for (Role role : rolesToDelete) {
-      roleDAO.delete(role);
-    }
+    return tempEntity.newRole(name, false);
   }
 
   @Test
@@ -87,7 +72,6 @@ public class RoleDAOTest
     Role role = newRole("cascade");
     rolePermissionDAO.insert(new RolePermission(role.getId(), Permission.values()[0]));
     roleDAO.delete(role);
-    rolesToDelete.remove(role);
     assertThat(rolePermissionDAO.getPermissionsForRole(role.getId()), is(empty()));
   }
 
@@ -104,7 +88,6 @@ public class RoleDAOTest
     policyDAO.update(policyWithNotifyActions);
 
     roleDAO.delete(role);
-    rolesToDelete.remove(role);
 
     policyWithNotifyActions = policyDAO.getById(policyWithNotifyActions.getId());
     assertThat(policyWithNotifyActions.getActions(BuildStageType.ID), hasSize(0));

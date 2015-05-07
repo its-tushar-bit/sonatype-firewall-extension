@@ -69,7 +69,7 @@
   </group>
 
   <group name='newcss'>
-    <css>/scss/variables.scss</css>
+    <css>/scss/global.scss</css>
     <css>/scss/icons.scss</css>
     <css>/scss/form.scss</css>
     <css>/scss/chiclet.scss</css>
@@ -167,7 +167,7 @@
 
   <group name='viewdetails'>
     <group-ref>bootstrap-css</group-ref>
-    <css>/scss/variables.scss</css>
+    <css>/scss/global.scss</css>
     <css>/scss/threatBars.scss</css>
     <css>/version-graph/viewdetails.css</css>
   </group>

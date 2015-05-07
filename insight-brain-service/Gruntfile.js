@@ -135,7 +135,7 @@
       concat: {
         styleguide: {
           options: {
-            banner: '/*\n#Import Common CSS\n*/\n@import "../../../scss/bootstrap.scss";\n@import "../../../../src/main/wro4j/scss/variables";\n'
+            banner: '/*\n###Import Common CSS\n*/\n@import "../../../scss/bootstrap.scss";\n@import "../../../../src/main/wro4j/scss/global";\n'
           },
           expand: true,
           cwd: '<%= config.assets %>/scss',

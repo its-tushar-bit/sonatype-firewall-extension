@@ -55,7 +55,7 @@ extends BaseSpec {
     to AdministratorsPage
 
     then: "the default roles along with builtin users"
-    mapping.roles.size() == 2
+    waitFor { mapping.roles.size() == 2 }
     def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.displayed
     roleRow.memberNames == ["Admin BuiltIn"]

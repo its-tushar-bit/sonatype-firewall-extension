@@ -21,6 +21,10 @@ public enum Permission
   READ("View", Permission.CATEGORY_POLICY,
       "View policies, organizations, applications, etc."),
 
+  MANAGE_PROPRIETARY("Manage", Permission.CATEGORY_POLICY, "Proprietary Components"),
+  /**
+   * Evaluate policies on applications.
+   */
   EVALUATE_APPLICATION("Evaluate Application", Permission.CATEGORY_POLICY, "Evaluate policies on applications."),
 
   EVALUATE_COMPONENT("Evaluate Component", Permission.CATEGORY_POLICY, "Evaluate policies on components.");

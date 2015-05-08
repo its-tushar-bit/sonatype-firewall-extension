@@ -61,7 +61,7 @@ public class ProprietaryConfigResource
   @Path("update")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Authorize(permission = Permission.MANAGE_PROPRIETARY)
   public void update(@QueryParam("where") final String where, @Context final HttpServletRequest request,
       final ProprietaryConfig config)
   {

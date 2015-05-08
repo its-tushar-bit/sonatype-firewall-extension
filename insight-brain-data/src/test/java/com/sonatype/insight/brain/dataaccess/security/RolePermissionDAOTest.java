@@ -64,9 +64,9 @@ public class RolePermissionDAOTest
     Role role = roleDAO.getByName("CLM Administrator");
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, hasSize(4));
+    assertThat(perms, hasSize(5));
     assertThat(perms, containsInAnyOrder(Permission.READ, Permission.WRITE, Permission.EVALUATE_APPLICATION,
-        Permission.EVALUATE_COMPONENT));
+        Permission.EVALUATE_COMPONENT, Permission.MANAGE_PROPRIETARY));
   }
 
   @Test

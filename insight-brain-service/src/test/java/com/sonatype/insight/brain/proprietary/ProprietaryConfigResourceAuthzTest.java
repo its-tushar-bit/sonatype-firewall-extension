@@ -34,7 +34,7 @@ public class ProprietaryConfigResourceAuthzTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
 
-    grantConfigureSystemPermission();
+    grantManageProprietaryPermission();
 
     String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH + "/update");
 

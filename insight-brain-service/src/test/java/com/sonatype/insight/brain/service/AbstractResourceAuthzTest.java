@@ -43,6 +43,11 @@ public abstract class AbstractResourceAuthzTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
   }
 
+  protected void grantManageProprietaryPermission() {
+    Role role = tempEntity.newRole(true /* global */, Permission.MANAGE_PROPRIETARY);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());
+  }
+
   protected void grantWritePermission() {
     Role role = tempEntity.newRole(true /* global */, Permission.WRITE);
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), authorized.getUsername());

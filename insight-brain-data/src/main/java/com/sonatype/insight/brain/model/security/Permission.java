@@ -15,26 +15,14 @@ public enum Permission
   CONFIGURE_SYSTEM("Configure System", Permission.CATEGORY_SYSTEM_CONFIGURATION,
       "Configure LDAP, product license, users and other global aspects."),
 
-  /**
-   * Manages policies, role-to-user membership mappings, etc. for org/app.
-   */
   WRITE("Write", Permission.CATEGORY_POLICY,
       "Add, delete and edit policies, organizations, applications, etc."),
 
-  /**
-   * View policy definition and consume policy evaluation results.
-   */
   READ("View", Permission.CATEGORY_POLICY,
       "View policies, organizations, applications, etc."),
 
-  /**
-   * Evaluate policies on applications.
-   */
   EVALUATE_APPLICATION("Evaluate Application", Permission.CATEGORY_POLICY, "Evaluate policies on applications."),
 
-  /**
-   * Evaluate policies on components.
-   */
   EVALUATE_COMPONENT("Evaluate Component", Permission.CATEGORY_POLICY, "Evaluate policies on components.");
 
   private static final String CATEGORY_SYSTEM_CONFIGURATION = "System Configuration";

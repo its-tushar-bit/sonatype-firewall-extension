@@ -62,10 +62,14 @@ extends BaseSpec {
     !writePermission.toggleSwitch.isEnabled()
 
     PermissionCategory systemCategory = roleManagementPage.permissionCategory('System Configuration')
-    systemCategory.permissions.size() == 1
+    systemCategory.permissions.size() == 2
 
     Permission administratorPermission = systemCategory.permission('Administrator')
     !administratorPermission.toggleSwitch.isOn()
     !administratorPermission.toggleSwitch.isEnabled()
+
+    Permission permission = systemCategory.permission('Manage')
+    !permission.toggleSwitch.isOn()
+    !permission.toggleSwitch.isEnabled()
   }
 }

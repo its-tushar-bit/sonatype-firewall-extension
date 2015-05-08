@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -42,14 +43,16 @@ public class RoleDAOTest
   @Test
   public void testGetGlobalRoles() throws Exception {
     List<Role> roles = roleDAO.getGlobalRoles();
-    assertThat(roles, is(notNullValue()));
-    assertThat(roles, hasSize(2));
-    Role role = roles.get(0);
-    assertThat(role.getName(), is("Administrator"));
-    assertThat(role.isGlobal(), is(true));
-    role = roles.get(1);
-    assertThat(role.getName(), is("CLM Administrator"));
-    assertThat(role.isGlobal(), is(true));
+    int roleCount = roles.size();
+    assertThat(roleCount, is(greaterThanOrEqualTo(2)));
+    for (Role role : roles) {
+      assertThat(role.isGlobal(), is(true));
+    }
+
+    Role role = tempEntity.newRole("AAA", true);
+    roles = roleDAO.getGlobalRoles();
+    assertThat(roles, hasSize(roleCount + 1));
+    assertThat(roles.get(0).getName(), is(role.getName()));
   }
 
   @Test
@@ -102,13 +105,16 @@ public class RoleDAOTest
   @Test
   public void testGetAll() {
     List<Role> roles = roleDAO.getAll();
-    assertThat(roles, hasSize(6));
-    assertThat(roles.get(0).getName(), is("Administrator"));
-    assertThat(roles.get(1).getName(), is("CLM Administrator"));
-    assertThat(roles.get(2).getName(), is("Owner"));
-    assertThat(roles.get(3).getName(), is("Developer"));
-    assertThat(roles.get(4).getName(), is("Application Evaluator"));
-    assertThat(roles.get(5).getName(), is("Component Evaluator"));
+    int roleCount = roles.size();
+    assertThat(roleCount, is(greaterThanOrEqualTo(6)));
+
+    Role roleGlobal = tempEntity.newRole("AAA Global", true /* global */);
+    Role roleNonGlobal = tempEntity.newRole("AAA Non Global", false /* global */);
+    roles = roleDAO.getAll();
+    assertThat(roles, hasSize(roleCount + 2));
+    assertThat(roles.get(0).getName(), is(roleGlobal.getName()));
+    roles = roleDAO.getAll();
+    assertThat(roles.get(1).getName(), is(roleNonGlobal.getName()));
   }
 
   @Test

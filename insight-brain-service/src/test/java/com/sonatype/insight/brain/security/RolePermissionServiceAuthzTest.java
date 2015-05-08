@@ -26,7 +26,7 @@ public class RolePermissionServiceAuthzTest
   @Test
   public void testPermissionsForRole_Authorized() {
     grantConfigureSystemPermission();
-    RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForRole(Role.ADMIN_ROLE_ID);
+    RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(rolePermission.permissionCategories, not(empty()));
     assertThat(rolePermission.permissionCategories.get(0).permissions, not(empty()));
   }
@@ -34,11 +34,11 @@ public class RolePermissionServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testPermissionsForRole_Unauthorized() {
     login();
-    rolePermissionService.getPermissionsForRole(Role.ADMIN_ROLE_ID);
+    rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testPermissionsForRole_Unauthenticated() {
-    rolePermissionService.getPermissionsForRole(Role.ADMIN_ROLE_ID);
+    rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
   }
 }

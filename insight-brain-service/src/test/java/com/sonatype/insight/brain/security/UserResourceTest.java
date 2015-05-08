@@ -295,7 +295,7 @@ public class UserResourceTest
     user = fromJson(response, User.class);
     usersToDelete.add(user);
     MembershipMapping membershipMapping = new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
-        Role.ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
+        Role.SYSTEM_ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
     new MembershipMappingDAO().insert(membershipMapping);
 
     // log the user in

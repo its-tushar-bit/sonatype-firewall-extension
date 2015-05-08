@@ -22,7 +22,7 @@ extends BaseSpec {
     roleItems.size() > 0
 
     and: 'the list of roles is sorted properly'
-    roleName(0) == 'Administrator'
+    roleName(0) == 'System Administrator'
     roleName(1) == 'CLM Administrator'
     roleName(2) == 'Owner'
     roleName(3) == 'Developer'

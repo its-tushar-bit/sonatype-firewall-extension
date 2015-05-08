@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO
 import com.sonatype.insight.brain.dataaccess.security.UserDAO
+import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.model.security.User
 
 import spock.lang.Stepwise
@@ -13,6 +15,8 @@ import spock.lang.Stepwise
 @Stepwise
 class AdministratorsSpec
 extends BaseSpec {
+  Role systemAdminRole = new RoleDAO().getById(Role.SYSTEM_ADMIN_ROLE_ID)
+
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
     User user = new User(username: "test-a", password: "secret", firstName: "John", lastName: "Doe",
@@ -35,7 +39,7 @@ extends BaseSpec {
 
   def "Help context is displayed for user search field"() {
     when: "hovering over query help icon"
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.editButton.click()
     waitFor { roleRow.queryHelp.displayed }
     interact { moveToElement(roleRow.queryHelp) }
@@ -51,7 +55,7 @@ extends BaseSpec {
 
     then: "the default roles along with builtin users"
     mapping.roles.size() == 2
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.displayed
     roleRow.memberNames == ["Admin BuiltIn"]
     !roleRow.editor.displayed
@@ -62,7 +66,7 @@ extends BaseSpec {
 
   def "Clicking the edit button opens the form"() {
     when: "hovering over a role"
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     interact { moveToElement(roleRow) }
 
     then: "the edit button is visible"
@@ -82,7 +86,7 @@ extends BaseSpec {
 
   def "Search input filters the list of available users"() {
     when: "entering first name prefix"
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.queryInput.value("Jan*")
 
     and: "clicking the search button"
@@ -111,7 +115,7 @@ extends BaseSpec {
 
   def "Adding an available user moves him to the applied list"() {
     when: "clicking an available user"
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.availableMember("John Doe").click()
 
     then: "the user is moved from the available list to the applied list"
@@ -136,7 +140,7 @@ extends BaseSpec {
 
   def "Removing an applied user moves him to the available list"() {
     when: "clicking an applied user"
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.appliedMember("Jane Doe").click()
 
     then: "the user is moved from the applied list to the available list"
@@ -152,10 +156,10 @@ extends BaseSpec {
 
   def "Saving the changes updates the mapping"() {
     when: "clicking the save button"
-    def roleRow = mapping.role("Administrator")
+    def roleRow = mapping.role(systemAdminRole.getName())
     roleRow.confirmButton.click()
     //make sure we grab latest dom, as the save will rebuild it
-    roleRow = mapping.role("Administrator");
+    roleRow = mapping.role(systemAdminRole.getName());
 
     then: "the edit form is closed and the added member shown in the list"
     !roleRow.editor.displayed

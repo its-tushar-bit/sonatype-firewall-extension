@@ -155,7 +155,7 @@ CREATE TABLE role (
   CONSTRAINT role_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
 );
 
-INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('1b92fae3e55a411793a091fb821c422d', 'Administrator', 'administrator', 100, 'Can manage any element of the CLM Server. Can evaluate Applications and individual components.', TRUE, TRUE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('1b92fae3e55a411793a091fb821c422d', 'System Administrator', 'systemadministrator', 100, 'Can manage LDAP, product license, users and other global aspects.', TRUE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('b9646757e98e486da7d730025f5245f8', 'CLM Administrator', 'clmadministrator', 150, 'Can manage all CLM like Policy Entities within the system. Can evaluate Applications and individual components.', TRUE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('1cddabf7fdaa47d6833454af10e0a3ef', 'Owner', 'owner', 200, 'Can manage any element within the scope of their assigned Organization or Application. Can evaluate Applications and individual components.', FALSE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('1da70fae1fd54d6cb7999871ebdb9a36', 'Developer', 'developer', 300, 'Can view any element within the scope of their assigned Organization or Application. Can evaluate individual components.', FALSE, TRUE);

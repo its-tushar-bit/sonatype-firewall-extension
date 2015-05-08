@@ -85,7 +85,7 @@ public class NotifyActionTypeTest
     assertValidationResultHasErrors(result, "Invalid action 'Notify': Invalid target type: 'Not a target type'");
 
     // Fix the action and validate again
-    action.setTarget(Role.ADMIN_ROLE_ID);
+    action.setTarget(Role.SYSTEM_ADMIN_ROLE_ID);
     action.setTargetType(NotifyActionType.TARGET_TYPE_ROLE);
     result = actionType.validateAction(action);
     assertValidationResultHasNoErrors(result);
@@ -98,7 +98,7 @@ public class NotifyActionTypeTest
     assertValidationResultHasErrors(result, "Invalid action 'Notify': A valid role ID is required");
 
     // Fix the action and validate again
-    action.setTarget(Role.ADMIN_ROLE_ID);
+    action.setTarget(Role.SYSTEM_ADMIN_ROLE_ID);
     result = actionType.validateAction(action);
     assertValidationResultHasNoErrors(result);
   }
@@ -110,7 +110,7 @@ public class NotifyActionTypeTest
     assertValidationResultHasErrors(result, "Invalid action 'Notify': A valid role ID is required");
 
     // Fix the action and validate again
-    action.setTarget(Role.ADMIN_ROLE_ID);
+    action.setTarget(Role.SYSTEM_ADMIN_ROLE_ID);
     result = actionType.validateAction(action);
     assertValidationResultHasNoErrors(result);
   }
@@ -122,7 +122,7 @@ public class NotifyActionTypeTest
     assertValidationResultHasErrors(result, "Invalid action 'Notify': A valid role ID is required instead of: Hamlet");
 
     // Fix the action and validate again
-    action.setTarget(Role.ADMIN_ROLE_ID);
+    action.setTarget(Role.SYSTEM_ADMIN_ROLE_ID);
     result = actionType.validateAction(action);
     assertValidationResultHasNoErrors(result);
   }

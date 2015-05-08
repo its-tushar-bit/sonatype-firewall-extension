@@ -30,7 +30,7 @@ public class RolePermissionServiceTest
 
   @Test
   public void testGetAllPermissionsForRole() {
-    RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForRole(Role.ADMIN_ROLE_ID);
+    RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
     RolePermissionDTO expected = getExpectedRolePermissions();
     assertThat(rolePermissions.permissionCategories.size(), is(expected.permissionCategories.size()));
     for (int i = 0; i < rolePermissions.permissionCategories.size(); i++) {
@@ -52,7 +52,7 @@ public class RolePermissionServiceTest
       permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, true));
     }
 
-    RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(Role.ADMIN_ROLE_ID);
+    RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(Role.SYSTEM_ADMIN_ROLE_ID);
     for (String category : permissionsByCategoryMap.keySet()) {
       List<PermissionDTO> permissions = permissionsByCategoryMap.get(category);
       Collections.sort(permissions, RolePermissionService.PERMISSION_COMPARATOR);

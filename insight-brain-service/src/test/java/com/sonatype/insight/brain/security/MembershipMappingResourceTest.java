@@ -202,7 +202,7 @@ public class MembershipMappingResourceTest
 
     // Create
     response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID),
         toJson(
             Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
                 newMember(MemberType.GROUP, "Alpha"))));
@@ -217,8 +217,8 @@ public class MembershipMappingResourceTest
     assertThat(applicable.membersByRole, is(notNullValue()));
     assertThat(applicable.membersByRole, hasSize(roles.size()));
 
-    MembersByRole membersByRole = applicable.membersByRole.get(0);
-    assertThat(membersByRole.roleId, is(roles.get(0).getId()));
+    MembersByRole membersByRole = applicable.membersByRole.get(1);
+    assertThat(membersByRole.roleId, is(Role.SYSTEM_ADMIN_ROLE_ID));
     assertThat(membersByRole.membersByOwner, is(notNullValue()));
     assertThat(membersByRole.membersByOwner, hasSize(1));
     MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
@@ -237,7 +237,7 @@ public class MembershipMappingResourceTest
 
     // Reset Initial State
     response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID),
         toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
     assertResponseStatus(204, response);
   }
@@ -346,15 +346,15 @@ public class MembershipMappingResourceTest
   }
 
   @Test
-  public void testAdministratorRoleCantBeRevokedFromAllUsers() throws Exception {
-    Role admin = roleDAO.getByName("Administrator");
-    assertThat(admin, is(notNullValue()));
+  public void testSystemAdministratorRoleCantBeRevokedFromAllUsers() throws Exception {
+    Role systemAdminRole = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
+    assertThat(systemAdminRole, is(notNullValue()));
 
     Response response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, admin.getId()),
+        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, systemAdminRole.getId()),
         toJson(Collections.emptyList()));
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("There must be at least one user in the administrator role."));
+    assertThat(response.getResponseBody(), is("There must be at least one user in the System Administrator role."));
   }
 
   private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,

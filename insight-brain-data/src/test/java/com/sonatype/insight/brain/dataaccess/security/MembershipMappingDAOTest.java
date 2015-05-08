@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -136,9 +137,9 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testAdminUserMappedToAdminAndClmAdminRoles() throws Exception {
+  public void testAdminUserMappedToSystemAdminAndClmAdminRoles() throws Exception {
     List<MembershipMapping> memberships = membershipDAO.getByContextIdAndUser(MembershipMapping.GLOBAL_CONTEXT_ID,
-        "admin");
+        User.ADMIN_USERNAME);
     assertThat(memberships, is(notNullValue()));
     assertThat(memberships, hasSize(2));
     List<String> globalRoleNames = new ArrayList<>();
@@ -149,7 +150,7 @@ public class MembershipMappingDAOTest
       assertThat(role, is(notNullValue()));
       globalRoleNames.add(role.getName());
     }
-    assertThat(globalRoleNames, containsInAnyOrder("Administrator", "CLM Administrator"));
+    assertThat(globalRoleNames, containsInAnyOrder("System Administrator", "CLM Administrator"));
 
   }
 

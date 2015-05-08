@@ -187,8 +187,8 @@ public class MembershipMappingService
 
     final Role role = validateRole(ownerType, roleId);
 
-    if (members.isEmpty() && isAdminRole(role)) {
-      throw new BadRequestException("There must be at least one user in the administrator role.");
+    if (members.isEmpty() && isSystemAdminRole(role)) {
+      throw new BadRequestException("There must be at least one user in the System Administrator role.");
     }
 
     final String internalOwnerId = ownerMapper.getInternalOwnerId(ownerType, ownerId);
@@ -214,8 +214,8 @@ public class MembershipMappingService
     return role;
   }
 
-  private boolean isAdminRole(final Role role) {
-    return role.isGlobal() && "Administrator".equals(role.getName());
+  private boolean isSystemAdminRole(final Role role) {
+    return role.isGlobal() && Role.SYSTEM_ADMIN_ROLE_ID.equals(role.getId());
   }
 
   /**

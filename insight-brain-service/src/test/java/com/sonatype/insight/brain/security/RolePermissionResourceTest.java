@@ -23,11 +23,11 @@ public class RolePermissionResourceTest
   @Test
   public void testGetPermissionsForRole() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl(RolePermissionResource.SERVICE_PATH + "/{roleId}",
-        Role.ADMIN_ROLE_ID));
+        Role.SYSTEM_ADMIN_ROLE_ID));
     assertResponseStatus(200, response);
     System.out.println(response.getResponseBody());
     RolePermissionDTO rolePermissions = fromJson(response, RolePermissionDTO.class);
-    assertThat(rolePermissions.roleId, is(Role.ADMIN_ROLE_ID));
+    assertThat(rolePermissions.roleId, is(Role.SYSTEM_ADMIN_ROLE_ID));
     assertThat(rolePermissions.permissionCategories, not(empty()));
     assertThat(rolePermissions.permissionCategories.get(0).permissions, not(empty()));
   }

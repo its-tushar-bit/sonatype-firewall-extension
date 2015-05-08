@@ -26,9 +26,9 @@ public class Role
     implements HasStringId
 {
   /**
-   * The id of the Administrator role in the role database table.
+   * The id of the System Administrator role in the role database table.
    */
-  public static final String ADMIN_ROLE_ID = "1b92fae3e55a411793a091fb821c422d";
+  public static final String SYSTEM_ADMIN_ROLE_ID = "1b92fae3e55a411793a091fb821c422d";
 
   @Id
   @Column(name = "role_id")

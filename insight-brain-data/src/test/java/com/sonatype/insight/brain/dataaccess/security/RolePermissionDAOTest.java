@@ -51,8 +51,8 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testAdminRoleHasConfigureSystemPermissions() throws Exception {
-    Role role = roleDAO.getByName("Administrator");
+  public void testSystemAdminRoleHasConfigureSystemPermissions() throws Exception {
+    Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms, hasSize(1));

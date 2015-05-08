@@ -4,7 +4,7 @@ SET SCHEMA insight_brain_ods;
 -- Administrator role
 DELETE FROM role_permission WHERE role_permission_id = '1c5c83c335e74a138ee1ae8fa7869da7';
 DELETE FROM role_permission WHERE role_permission_id = '1cd867a40a574ce0b46dd22c9d650d1d';
-DELETE FROM role_permission WHERE role_permission_id ='99fe1291b1274b169ce5c854dd856ad8';
+DELETE FROM role_permission WHERE role_permission_id = '99fe1291b1274b169ce5c854dd856ad8';
 DELETE FROM role_permission WHERE role_permission_id = 'd9373880213342f2b4e56e3dea94f50c';
 
 -- CLM Administrator role

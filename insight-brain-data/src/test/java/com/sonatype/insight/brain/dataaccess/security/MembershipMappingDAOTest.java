@@ -142,15 +142,15 @@ public class MembershipMappingDAOTest
         User.ADMIN_USERNAME);
     assertThat(memberships, is(notNullValue()));
     assertThat(memberships, hasSize(2));
-    List<String> globalRoleNames = new ArrayList<>();
+    List<String> globalRoleIds = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       MembershipMapping membership = memberships.get(i);
       assertThat(membership.getMemberType(), is(MemberType.USER));
       Role role = roleDAO.getById(membership.getRoleId());
       assertThat(role, is(notNullValue()));
-      globalRoleNames.add(role.getName());
+      globalRoleIds.add(role.getId());
     }
-    assertThat(globalRoleNames, containsInAnyOrder("System Administrator", "CLM Administrator"));
+    assertThat(globalRoleIds, containsInAnyOrder(Role.SYSTEM_ADMIN_ROLE_ID, Role.CLM_ADMIN_ROLE_ID));
 
   }
 

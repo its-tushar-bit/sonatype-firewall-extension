@@ -71,7 +71,7 @@ public class AuthorizationCheckerTest
   @Test
   public void testIsPermitted_ClmAdminHasClmAccess() {
     User user = tempEntity.newUser();
-    newMembershipMapping(user, MembershipMapping.GLOBAL_CONTEXT_ID, roleDAO.getByName("CLM Administrator").getId());
+    newMembershipMapping(user, MembershipMapping.GLOBAL_CONTEXT_ID, Role.CLM_ADMIN_ROLE_ID);
     Collection<String> contextIds = Arrays.asList("app", "org", MembershipMapping.GLOBAL_CONTEXT_ID);
 
     UserPrincipal admin = newPrincipal(user);

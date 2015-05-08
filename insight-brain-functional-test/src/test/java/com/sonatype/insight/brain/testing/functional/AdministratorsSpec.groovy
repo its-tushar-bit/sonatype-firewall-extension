@@ -16,6 +16,7 @@ import spock.lang.Stepwise
 class AdministratorsSpec
 extends BaseSpec {
   Role systemAdminRole = new RoleDAO().getById(Role.SYSTEM_ADMIN_ROLE_ID)
+  Role clmAdminRole = new RoleDAO().getById(Role.CLM_ADMIN_ROLE_ID)
 
   def setupSpec() {
     UserDAO userDAO = new UserDAO()
@@ -59,7 +60,7 @@ extends BaseSpec {
     roleRow.displayed
     roleRow.memberNames == ["Admin BuiltIn"]
     !roleRow.editor.displayed
-    def clmRoleRow = mapping.role("CLM Administrator")
+    def clmRoleRow = mapping.role(clmAdminRole.getName())
     clmRoleRow.displayed
     !clmRoleRow.editor.displayed
   }

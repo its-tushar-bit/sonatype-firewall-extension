@@ -61,7 +61,7 @@ public class RolePermissionDAOTest
 
   @Test
   public void testClmAdminRoleHasClmPermissions() throws Exception {
-    Role role = roleDAO.getByName("CLM Administrator");
+    Role role = roleDAO.getById(Role.CLM_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms, hasSize(5));

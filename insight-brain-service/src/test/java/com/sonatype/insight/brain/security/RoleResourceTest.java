@@ -37,6 +37,7 @@ public class RoleResourceTest
     Response response = AuthedRestAccess.post(getRestUrl(RoleResource.SERVICE_PATH), toJson(role));
     assertResponseStatus(200, response);
     Role newRole = fromJson(response, Role.class);
+    tempEntity.register(newRole);
     assertThat(newRole.getId(), is(notNullValue()));
     assertThat(newRole.getName(), is(role.getName()));
     assertThat(newRole.getDescription(), is(role.getDescription()));

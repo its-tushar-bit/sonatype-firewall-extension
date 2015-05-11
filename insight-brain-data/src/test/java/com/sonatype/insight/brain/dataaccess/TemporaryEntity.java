@@ -302,6 +302,10 @@ public class TemporaryEntity
     Collections.addAll(orgs, organizations);
   }
 
+  public void register(Role... roles) {
+    Collections.addAll(this.roles, roles);
+  }
+
   public void register(HashComponentIdentifier... hashComponentIdentifiers) {
     Collections.addAll(claimedComponents, hashComponentIdentifiers);
   }

@@ -1,29 +1,35 @@
 .claimComponent {
-	padding: 5px; 
+  padding: 5px;
 }
+
 .claimComponent .validation-error {
-	color: #FF0000;
-	font-size: 12px;
-	vertical-align: middle;
-	padding-left: 105px;
-	max-width: 280px;
+  color: #FF0000;
+  font-size: 12px;
+  vertical-align: middle;
+  padding-left: 105px;
+  max-width: 280px;
 }
+
 .claimComponent form {
-	margin: 0px;
+  margin: 0px;
 }
+
 .claimComponent .control-group {
-	margin-bottom: 10px;
+  margin-bottom: 10px;
 }
+
 .claimComponent td {
-	vertical-align: top;
-	width: 50%;
+  vertical-align: top;
+  width: 50%;
 }
+
 #informationPanel .claimComponent .alert {
-	margin:auto;
-	margin-top:20px;
-	padding-top:5px;
-	width:50%;
+  margin: auto;
+  margin-top: 20px;
+  padding-top: 5px;
+  width: 50%;
 }
+
 .btn.btn-link.btn-cancel {
   margin-right: 8px;
 }

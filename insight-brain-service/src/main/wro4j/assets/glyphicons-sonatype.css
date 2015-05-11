@@ -4,12 +4,13 @@
   font-style: normal;
   color: #1d1d1b;
 }
+
 .glyphicons-sonatype-hover:hover:before {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: inherit;
   font-size: inherit;
-  opacity:0.4;
+  opacity: 0.4;
 }
 
 .glyphicons-sonatype.bin:before {
@@ -19,6 +20,7 @@
 .glyphicons-sonatype.medium:before {
   font-size: 18px;
 }
+
 .glyphicons-sonatype.small:before {
   font-size: 10px;
   padding-right: 10px;
@@ -47,10 +49,10 @@
 }
 
 .glyphicons-halflings-sonatype:before {
-    *zoom: 1;
-    font: 12px/1em 'Glyphicons Halflings';
-    font-style: normal;
-    color: #1d1d1b;
+  *zoom: 1;
+  font: 12px/1em 'Glyphicons Halflings';
+  font-style: normal;
+  color: #1d1d1b;
 }
 
 .glyphicons-halflings-sonatype.expand:before {
@@ -81,6 +83,7 @@
 .glyphicons-sonatype.cogwheel:before {
   content: '\e137'
 }
+
 .glyphicons-sonatype.help:before {
   content: '\e195'
 }

@@ -6,36 +6,21 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO
-import com.sonatype.insight.brain.dataaccess.security.UserDAO
 import com.sonatype.insight.brain.model.security.Role
-import com.sonatype.insight.brain.model.security.User
 
 import spock.lang.Stepwise
 
 @Stepwise
 class AdministratorsSpec
 extends BaseSpec {
-  Role systemAdminRole = new RoleDAO().getById(Role.SYSTEM_ADMIN_ROLE_ID)
-  Role clmAdminRole = new RoleDAO().getById(Role.CLM_ADMIN_ROLE_ID)
+  private static Role systemAdminRole = new RoleDAO().getById(Role.SYSTEM_ADMIN_ROLE_ID)
+  private static Role clmAdminRole = new RoleDAO().getById(Role.CLM_ADMIN_ROLE_ID)
 
   def setupSpec() {
-    UserDAO userDAO = new UserDAO()
-    User user = new User(username: "test-a", password: "secret", firstName: "John", lastName: "Doe",
-    email: "john@doe.net")
-    userDAO.insert(user);
-    user = new User(username: "test-b", password: "secret", firstName: "Jane", lastName: "Doe", email: "jane@doe.net")
-    userDAO.insert(user);
+    temporaryEntity.newUser("test-a", "secret", "John", "Doe", "john@doe.net")
+    temporaryEntity.newUser("test-b", "secret", "Jane", "Doe", "jane@doe.net")
 
     loginAsAdminVia(AdministratorsPage)
-  }
-
-  def cleanupSpec() {
-    UserDAO userDAO = new UserDAO();
-    userDAO.getAll().each { user ->
-      if (user.username.startsWith("test")) {
-        userDAO.delete(user);
-      }
-    }
   }
 
   def "Help context is displayed for user search field"() {

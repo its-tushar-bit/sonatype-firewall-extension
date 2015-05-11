@@ -19,7 +19,7 @@
           crumb: 'Roles'
         },
         resolve: {
-          'hasAdminPermission': [
+          'isAuthorized': [
             'PermissionService', function(PermissionService) {
               return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
             }
@@ -55,9 +55,9 @@
 
   module.controller('RoleListController', [
     'RoleStore', 'Messages', '$scope',
-    '$modal', '$q', 'hasAdminPermission', function(RoleStore, messages, $scope, $modal, $q, hasAdminPermission) {
+    '$modal', '$q', 'isAuthorized', function(RoleStore, messages, $scope, $modal, $q, isAuthorized) {
       $scope.doLoad = function() {
-        if (hasAdminPermission) {
+        if (isAuthorized) {
           $scope.error = null;
 
           RoleStore.refresh().then(function(results) {
@@ -67,18 +67,18 @@
           });
         }
       };
-      $scope.isAuthorized = hasAdminPermission;
+      $scope.isAuthorized = isAuthorized;
 
       $scope.doLoad();
     }
   ]);
 
   module.controller('RoleEditorController', [
-    '$scope', '$stateParams', '$q', '$http', 'CLMLocations', 'RoleStore', 'hasAdminPermission',
-    function($scope, $stateParams, $q, $http, CLMLocations, RoleStore, hasAdminPermission) {
+    '$scope', '$stateParams', '$q', '$http', 'CLMLocations', 'RoleStore', 'isAuthorized',
+    function($scope, $stateParams, $q, $http, CLMLocations, RoleStore, isAuthorized) {
 
       $scope.doLoad = function() {
-        if (hasAdminPermission) {
+        if (isAuthorized) {
           var promises = [
             RoleStore.get(),
             $http.get(CLMLocations.getRolePermissionUrl($stateParams.roleId))

@@ -8,12 +8,12 @@ describe('UserModuleSpec.js', function() {
       userScope = $rootScope.$new();
       $controller('UserController', {
         $scope: userScope,
-        hasAdminPermission : true
+        isAuthorized : true
       });
       listScope = $rootScope.$new();
       $controller('UserListController', {
         $scope: listScope,
-        hasAdminPermission : true
+        isAuthorized : true
       });
       userScope.context = listScope.context;
     });

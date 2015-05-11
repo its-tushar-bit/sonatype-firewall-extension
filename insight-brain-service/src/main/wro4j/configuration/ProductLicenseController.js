@@ -11,15 +11,15 @@
       ['AngularCommon', 'ngUpload', 'CLMLocation']);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'hasAdminPermission',
-    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, hasAdminPermission) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'isAuthorized',
+    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, isAuthorized) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
-      $scope.isAuthorized = hasAdminPermission;
+      $scope.isAuthorized = isAuthorized;
 
       $scope.doLoad = function() {
-        if (hasAdminPermission) {
+        if (isAuthorized) {
           $scope.error = null;
           $http.get($scope.summaryUrl).success(function(data) {
             $scope.license = data;

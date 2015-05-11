@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.testing.functional.modules.GlobalCreateModule
 import com.sonatype.insight.brain.testing.functional.modules.HelpModule
 import com.sonatype.insight.brain.testing.functional.modules.LoginModule
 import com.sonatype.insight.brain.testing.functional.modules.NotificationModule
+import com.sonatype.insight.brain.testing.functional.modules.SystemConfigModule
 import com.sonatype.insight.brain.testing.functional.modules.UserOptionsModule
 
 import geb.Page
@@ -27,6 +28,7 @@ abstract class BasePage
     userOptions { module UserOptionsModule }
     helpLinks { module HelpModule }
     globalCreate { module GlobalCreateModule }
+    systemConfig(required: false) { module SystemConfigModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
   }
 }

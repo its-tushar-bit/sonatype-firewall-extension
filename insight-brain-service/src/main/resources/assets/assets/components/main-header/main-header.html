@@ -44,31 +44,31 @@
         </span>
       </span>
       <div class="pull-right">
-        <div class="header-dropdown-menu" ng-if="isAdmin">
+        <div id="system-configuration-menu" class="header-dropdown-menu" ng-if="hasAnyPermission()">
           <div class="dropdown pull-right">
-            <a class="dropdown-toggle" data-toggle="dropdown">
+            <a id="system-configuration-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
               <i class='glyphicons-sonatype medium cogwheel'></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-arrow">
               <li class="disabled">SYSTEM&nbsp;PREFERENCES</li>
               <li>
                 <ul class="dropdown-contents">
-                  <li ng-class="{'active': $state.is('users') }">
+                  <li id="system-configuration-users" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('users') }">
                     <a href='index.html#/users'>Users</a>
                   </li>
-                  <li ng-class="{'active': $state.is('roles') }">
+                  <li id="system-configuration-roles" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('roles') }">
                     <a href='index.html#/roles'>Roles</a>
                   </li>
-                  <li ng-class="{'active': $state.is('administrators') }">
+                  <li id="system-configuration-administrators" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('administrators') }">
                     <a href='index.html#/administrators'>Administrators</a>
                   </li>
-                  <li ng-class="{'active': $state.is('productlicense') }">
+                  <li id="system-configuration-product-license" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('productlicense') }">
                     <a href='index.html#/productlicense'>Product License</a>
                   </li>
-                  <li ng-class="{'active': $state.is('proprietarycomponents') }">
+                  <li id="system-configuration-proprietary" ng-if="permissions.MANAGE_PROPRIETARY" ng-class="{'active': $state.is('proprietarycomponents') }">
                     <a href='index.html#/proprietarycomponents'>Proprietary Components</a>
                   </li>
-                  <li ng-class="{'active': $state.includes('ldap') }">
+                  <li id="system-configuration-ldap" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.includes('ldap') }">
                     <a href='index.html#/ldap'>LDAP</a>
                   </li>
                 </ul>

@@ -20,7 +20,7 @@ describe('Proprietary components', function() {
     it('Success', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
+      controller = $controller('ProprietaryConfigurationController', { $scope: scope, isAuthorized : true });
       $httpBackend.flush();
 
       expect(scope.packages).toEqual(['foo']);
@@ -31,7 +31,7 @@ describe('Proprietary components', function() {
     it('Error from the server', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(500, 'A Random Error');
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
+      controller = $controller('ProprietaryConfigurationController', { $scope: scope, isAuthorized : true });
       $httpBackend.flush();
       expect(scope.packages).toBeUndefined();
       expect(scope.regexes).toBeUndefined();
@@ -43,7 +43,7 @@ describe('Proprietary components', function() {
     scope = $rootScope.$new();
 
     $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
-    controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
+    controller = $controller('ProprietaryConfigurationController', { $scope: scope, isAuthorized : true });
     $httpBackend.flush();
 
     expect(scope.packages).toEqual(['foo']);
@@ -62,7 +62,7 @@ describe('Proprietary components', function() {
     it('Success', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
+      controller = $controller('ProprietaryConfigurationController', { $scope: scope, isAuthorized : true });
       $httpBackend.flush();
 
       scope.packages.push('bar');
@@ -83,7 +83,7 @@ describe('Proprietary components', function() {
     it('Error saving changes', inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
-      controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
+      controller = $controller('ProprietaryConfigurationController', { $scope: scope, isAuthorized : true });
       $httpBackend.flush();
 
       scope.packages.push('bar');
@@ -105,7 +105,7 @@ describe('Proprietary components', function() {
     beforeEach(inject(function($controller, $rootScope, $httpBackend, CLMLocations) {
         scope = $rootScope.$new();
         $httpBackend.expectGET(CLMLocations.getProprietaryConfig()).respond(proprietaryConfig);
-        controller = $controller('ProprietaryConfigurationController', { $scope: scope, hasAdminPermission : true });
+        controller = $controller('ProprietaryConfigurationController', { $scope: scope, isAuthorized : true });
         $httpBackend.flush();
         expect(scope.isDirty()).toBeFalsy();
       }

@@ -29,7 +29,7 @@ describe('AppSecurityControllerSpec', function() {
       });
       $controller('AppSecurityController', {
         $scope : scope,
-        hasPermission : true
+        isAuthorized : true
       });
       $httpBackend.flush();
       expect(scope.context.roles.length).toEqual(2);

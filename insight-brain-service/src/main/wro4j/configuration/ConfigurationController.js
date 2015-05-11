@@ -24,7 +24,7 @@
           title : 'Product License'
         },
         resolve : {
-          'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+          'isAuthorized' : ['PermissionService', function (PermissionService) {
             return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
           }]
         }
@@ -36,8 +36,8 @@
           title : 'Proprietary Configuration'
         },
         resolve : {
-          'hasAdminPermission' : ['PermissionService', function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          'isAuthorized' : ['PermissionService', function (PermissionService) {
+            return PermissionService.isAuthorized(['MANAGE_PROPRIETARY'], true);
           }]
         }
       });
@@ -45,11 +45,11 @@
   ]);
 
   module.controller('ProprietaryConfigurationController', [
-    '$scope', '$http', 'CLMLocations', 'Messages', 'hasAdminPermission', function($scope, $http, clmLocations, Messages, hasAdminPermission) {
-      $scope.isAuthorized = hasAdminPermission;
+    '$scope', '$http', 'CLMLocations', 'Messages', 'isAuthorized', function($scope, $http, clmLocations, Messages, isAuthorized) {
+      $scope.isAuthorized = isAuthorized;
 
       $scope.doLoad = function() {
-        if (hasAdminPermission) {
+        if (isAuthorized) {
           $http.get(clmLocations.getProprietaryConfig()).success(function(data) {
             $scope.proprietary = data;
             $scope.reset();

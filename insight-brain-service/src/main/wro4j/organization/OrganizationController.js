@@ -91,7 +91,7 @@
         controller: 'AppSecurityController',
         templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp,
         resolve : {
-          hasPermission : function () {
+          isAuthorized : function () {
             return true;
           }
         }

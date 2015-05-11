@@ -44,7 +44,8 @@ describe('mainHeader', function() {
       return {
         isAuthorized: fn,
         requireAuthorization: fn,
-        requireAuthorizationIf: fn
+        requireAuthorizationIf: fn,
+        getValidPermissions: fn
       };
     }]);
 

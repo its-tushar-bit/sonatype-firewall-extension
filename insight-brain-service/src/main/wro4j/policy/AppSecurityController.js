@@ -41,13 +41,13 @@
 
   var appSecurityModule = angular.module('ApplicationSecurityModule', ['CommonServices', 'ui.utils', 'ngSanitize']);
 
-  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', 'hasPermission', function($scope, $http, clmAppLocations, hasPermission) {
+  appSecurityModule.controller('AppSecurityController', ['$scope', '$http', 'CLMAppLocations', 'isAuthorized', function($scope, $http, clmAppLocations, isAuthorized) {
     $scope.groupings = groupings;
     $scope.showGrouping = showGroupings;
-    $scope.isAuthorized = hasPermission;
+    $scope.isAuthorized = isAuthorized;
 
     $scope.doLoad = function() {
-      if (hasPermission) {
+      if (isAuthorized) {
         $scope.error = null;
 
         $http.get(clmAppLocations.getRoleMappingUrl()).success(function(data) {

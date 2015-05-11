@@ -10,14 +10,29 @@
   var module = angular.module('PermissionServiceModule', ['CLMAppLocation']);
 
   module.service('PermissionService', [
-    '$http', 'CLMAppLocations', '$rootScope', '$q', function($http, CLMAppLocations, $rootScope, $q) {
-
+    '$http', 'CLMAppLocations', '$q', function($http, CLMAppLocations, $q) {
       return {
-        isAuthorized : function (permissions, globalContext) {
+        isAuthorized: function(permissions, globalContext, any) {
           var deferred = $q.defer();
 
           $http.put(CLMAppLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
-            deferred.resolve(angular.equals(permissions, data.data));
+            if (any) {
+              deferred.resolve(data.data.length > 0);
+            }
+            else {
+              deferred.resolve(permissions.length === data.data.length);
+            }
+          }, function() {
+            deferred.reject(arguments);
+          });
+
+          return deferred.promise;
+        },
+        getValidPermissions: function(permissions, globalContext) {
+          var deferred = $q.defer();
+
+          $http.put(CLMAppLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
+            deferred.resolve(data.data);
           }, function() {
             deferred.reject(arguments);
           });

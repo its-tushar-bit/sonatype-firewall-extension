@@ -23,7 +23,7 @@
         title : 'LDAP Configuration'
       },
       resolve : {
-        'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+        'isAuthorized' : ['PermissionService', function (PermissionService) {
           return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
         }]
       }
@@ -121,8 +121,8 @@
   }
   
   module.controller('LdapConfigurationController', [
-    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'hasAdminPermission',
-    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, hasAdminPermission) {
+    '$scope', '$state', '$modal', 'Dialog', 'LdapConfigurationStore', 'CLMLocations', 'ErrorDialog', 'isAuthorized',
+    function($scope, $state, $modal, Dialog, ldapStore, clmLocations, ErrorDialog, isAuthorized) {
       function isDirty() {
         if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
           return true;
@@ -148,7 +148,7 @@
         }
       }
 
-      $scope.isAuthorized = hasAdminPermission;
+      $scope.isAuthorized = isAuthorized;
 
       // used by nested scopes to calculate REST endpoint URL
       $scope.getConfigLdapUrl = function (resource) {
@@ -213,7 +213,7 @@
       $scope.setCurrentTab = setCurrentTab;
 
       $scope.doLoad = function () {
-        if (hasAdminPermission) {
+        if (isAuthorized) {
           $scope.loadError = null;
 
           ldapStore.get().then(function(results) {

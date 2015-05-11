@@ -19,7 +19,7 @@
           },
           controller : 'AppSecurityController',
           resolve : {
-            'hasPermission' : ['PermissionService', function (PermissionService) {
+            'isAuthorized' : ['PermissionService', function (PermissionService) {
               return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
             }]
           }
@@ -40,7 +40,7 @@
                 title : 'Users'
               },
               resolve : {
-                'hasAdminPermission' : ['PermissionService', function (PermissionService) {
+                'isAuthorized' : ['PermissionService', function (PermissionService) {
                   return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
                 }]
               }
@@ -65,16 +65,16 @@
   }]);
 
   module.controller('UserListController', ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', 'hasAdminPermission', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, hasAdminPermission) {
+      '$modal', '$q', 'isAuthorized', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, isAuthorized) {
         var username = null;
 
         $scope.context = {
           userEditMap: {},
           users: []
         };
-        $scope.isAuthorized = hasAdminPermission;
+        $scope.isAuthorized = isAuthorized;
         $scope.doLoad = function() {
-          if (hasAdminPermission) {
+          if (isAuthorized) {
             $scope.error = null;
 
             $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {

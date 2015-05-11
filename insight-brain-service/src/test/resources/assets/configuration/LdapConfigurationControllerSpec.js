@@ -49,7 +49,7 @@ describe('Tests for the LdapConfigurationController', function() {
       $controller('LdapConfigurationController', {
         $scope: scope,
         $state: state,
-        hasAdminPermission : true
+        isAuthorized : true
       });
 
       httpBackend.flush();

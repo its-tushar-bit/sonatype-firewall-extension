@@ -128,12 +128,22 @@
       return clmServerVersion;
     };
 
+    $scope.hasAnyPermission = function() {
+      return !angular.equals({}, $scope.permissions);
+    };
+
     $scope.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
 
     $scope.isDashboardLicensed = ProductFeatures.isDashboardLicensed;
 
-    PermissionService.isAuthorized(['CONFIGURE_SYSTEM']).then(function(isAuthorized) {
-      $scope.isAdmin = isAuthorized;
+    $scope.permissions = {};
+
+    PermissionService.getValidPermissions([
+      'CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY'
+    ]).then(function(permissions) {
+      angular.forEach(permissions, function(permission){
+        $scope.permissions[permission] = true;
+      });
     });
   }]);
 

@@ -48,6 +48,30 @@ describe('PermissionService.js', function() {
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
+    it('Multiple Perms in different order, Allowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond(['ADMIN2', 'ADMIN']);
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Multiple Perms with any flag enabled, Allowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond(['ADMIN']);
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true, true).then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Multiple Perms with any flag enabled, Disallowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond([]);
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true, true).then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(false);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
     it('Server Error', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
       $httpBackend.expectPUT(CLMAppLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond(500, 'foo');
       PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);

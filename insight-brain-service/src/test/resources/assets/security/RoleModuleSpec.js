@@ -39,7 +39,7 @@ describe('RoleModuleSpec.js', function() {
         $stateParams: {
           roleId: roles[0].id
         },
-        hasAdminPermission: true
+        isAuthorized: true
       });
 
       $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roles);

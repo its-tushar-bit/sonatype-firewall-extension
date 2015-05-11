@@ -31,4 +31,23 @@ public class RoleService
   public List<Role> getAllRoles() {
     return roleDAO.getAll();
   }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public Role addRole(Role role) {
+    role.setId(null);
+    roleDAO.insert(role);
+    return role;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public Role updateRole(Role role) {
+    roleDAO.update(role);
+    return role;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteRole(String roleId) {
+    Role role = roleDAO.getByIdNotNull(roleId);
+    roleDAO.delete(role);
+  }
 }

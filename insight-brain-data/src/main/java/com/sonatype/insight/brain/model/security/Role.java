@@ -58,6 +58,14 @@ public class Role
   @Column(name = "built_in", insertable = false, updatable = false)
   private boolean builtIn;
 
+  public Role() {
+  }
+
+  public Role(String name, String description) {
+    setName(name);
+    setDescription(description);
+  }
+
   @Override
   public String getId() {
     return id;

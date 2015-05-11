@@ -44,4 +44,55 @@ public class RoleServiceAuthzTest
   public void testGetAllRoles_Unauthenticated() {
     roleService.getAllRoles();
   }
+
+  @Test
+  public void testAddRole_Authorized() {
+    grantConfigureSystemPermission();
+    roleService.addRole(new Role("Name", "Description"));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddRole_Unauthorized() {
+    login();
+    roleService.addRole(new Role("Name", "Description"));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddRole_Unauthenticated() {
+    roleService.addRole(new Role("Name", "Description"));
+  }
+
+  @Test
+  public void testUpdateRole_Authorized() {
+    grantConfigureSystemPermission();
+    roleService.updateRole(tempEntity.newRole(false));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateRole_Unauthorized() {
+    login();
+    roleService.updateRole(tempEntity.newRole(false));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateRole_Unauthenticated() {
+    roleService.updateRole(tempEntity.newRole(false));
+  }
+
+  @Test
+  public void testDeleteRole_Authorized() {
+    grantConfigureSystemPermission();
+    roleService.deleteRole(tempEntity.newRole(false).getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteRole_Unauthorized() {
+    login();
+    roleService.deleteRole(tempEntity.newRole(false).getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteRole_Unauthenticated() {
+    roleService.deleteRole(tempEntity.newRole(false).getId());
+  }
 }

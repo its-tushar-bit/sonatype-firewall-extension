@@ -9,8 +9,13 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -36,5 +41,25 @@ public class RoleResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<Role> getAllRoles() {
     return roleService.getAllRoles();
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Role addRole(Role role) {
+    return roleService.addRole(role);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Role updateRole(Role role) {
+    return roleService.updateRole(role);
+  }
+
+  @DELETE
+  @Path("{roleId}")
+  public void deleteRole(@PathParam("roleId") String roleId) {
+    roleService.deleteRole(roleId);
   }
 }

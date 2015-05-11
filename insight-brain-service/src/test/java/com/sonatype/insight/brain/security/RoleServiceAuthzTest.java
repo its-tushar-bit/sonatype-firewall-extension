@@ -48,7 +48,9 @@ public class RoleServiceAuthzTest
   @Test
   public void testAddRole_Authorized() {
     grantConfigureSystemPermission();
-    roleService.addRole(new Role("Name", "Description"));
+    Role role = new Role("Name", "Description");
+    tempEntity.register(role);
+    roleService.addRole(role);
   }
 
   @Test(expected = UnauthorizedException.class)

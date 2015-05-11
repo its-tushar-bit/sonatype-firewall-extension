@@ -72,29 +72,30 @@ public class MembershipMappingServiceAuthzTest
   public void testSetMembershipMappingForRolesByInternalId_Authorized() {
     grantWritePermission(app.getId());
     membershipMappingService.setMembershipMappingForRolesByInternalId("application", app.getId(),
-        Collections.<String, List<Member>>emptyMap());
+        Collections.<String, List<Member>> emptyMap());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testSetMembershipMappingForRolesByInternalId_Unauthenticated() {
     membershipMappingService.setMembershipMappingForRolesByInternalId("application", app.getId(),
-        Collections.<String, List<Member>>emptyMap());
+        Collections.<String, List<Member>> emptyMap());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testSetMembershipMappingForRolesByInternalId_Unauthorized() {
     login();
     membershipMappingService.setMembershipMappingForRolesByInternalId("application", app.getId(),
-        Collections.<String, List<Member>>emptyMap());
+        Collections.<String, List<Member>> emptyMap());
   }
 
   @Test
   public void testSetMembershipMappingForRoleByPublicId_Authorized() {
     grantWritePermission(app.getId());
     try {
-      membershipMappingService
-          .setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "", Collections.<Member>emptyList());
-    } catch (NotFoundException ignore) {
+      membershipMappingService.setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "",
+          Collections.<Member> emptyList());
+    }
+    catch (NotFoundException ignore) {
       // This is an expected exception as the roleId is empty string
     }
   }
@@ -102,13 +103,13 @@ public class MembershipMappingServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testSetMembershipMappingForRoleByPublicId_Unauthenticated() {
     membershipMappingService.setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "",
-        Collections.<Member>emptyList());
+        Collections.<Member> emptyList());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testSetMembershipMappingForRoleByPublicId_Unauthorized() {
     login();
     membershipMappingService.setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "",
-        Collections.<Member>emptyList());
+        Collections.<Member> emptyList());
   }
 }

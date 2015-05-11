@@ -53,7 +53,6 @@ public class MembershipMappingService
 
   private final OwnerMapper internalMapper = new InternalIdOwnerMapper();
 
-
   @Inject
   public MembershipMappingService(final ApplicationDAO appDAO, OrganizationDAO orgDAO, final RoleDAO roleDAO,
       final MembershipMappingDAO memberMapDAO, UserDirectory userDirectory)
@@ -67,8 +66,7 @@ public class MembershipMappingService
 
   @Authorize(permission = Permission.READ)
   public ApplicableMembershipMappings getApplicableMembershipMappingsByInternalId(
-      @AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId)
+      @AuthzContext(AuthzContext.Key.TYPE) final String ownerType, @AuthzContext(Key.INTERNAL_ID) final String ownerId)
   {
     return getApplicableMembershipMappings(ownerType, ownerId, internalMapper);
   }
@@ -82,7 +80,7 @@ public class MembershipMappingService
   }
 
   private ApplicableMembershipMappings getApplicableMembershipMappings(final String ownerType, final String ownerId,
-                                                                       final OwnerMapper ownerMapper)
+      final OwnerMapper ownerMapper)
   {
     log.debug("Getting all applicable membership mappings for {} id {}", ownerType, ownerId);
 
@@ -112,8 +110,8 @@ public class MembershipMappingService
     switch (ownerType) {
       case IdUtils.TYPE_APPLICATION:
         Application app = appDAO.getByIdNotNull(internalOwnerId);
-        for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION,
-            memberAttributeResolver, roles).entrySet()) {
+        for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(),
+            IdUtils.TYPE_APPLICATION, memberAttributeResolver, roles).entrySet()) {
           entry.getValue().ownerId = ownerMapper.getExternalId(app);
           membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
         }
@@ -146,10 +144,8 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void setMembershipMappingForRolesByInternalId(
-      @AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      final Map<String, List<Member>> roleToMembers)
+  public void setMembershipMappingForRolesByInternalId(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId, final Map<String, List<Member>> roleToMembers)
   {
     try (TransactionContext tx = memberMapDAO.createTransactionContext()) {
       tx.begin();
@@ -165,10 +161,8 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void setMembershipMappingForRoleByPublicId(
-      @AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-      final String roleId, final List<Member> members)
+  public void setMembershipMappingForRoleByPublicId(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String roleId, final List<Member> members)
   {
     try (TransactionContext tx = memberMapDAO.createTransactionContext()) {
       tx.begin();
@@ -179,9 +173,8 @@ public class MembershipMappingService
     }
   }
 
-
-  private void setMembershipMappingForRole(final TransactionContext tx, final String ownerType,
-      final String ownerId, final String roleId, final List<Member> members, final OwnerMapper ownerMapper)
+  private void setMembershipMappingForRole(final TransactionContext tx, final String ownerType, final String ownerId,
+      final String roleId, final List<Member> members, final OwnerMapper ownerMapper)
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, ownerId, roleId);
 
@@ -240,8 +233,7 @@ public class MembershipMappingService
   }
 
   private Map<String, MembersByOwner> loadMembers(final String ownerId, final String ownerName, final String ownerType,
-                                                  final MemberAttributeResolver memberAttributeResolver,
-                                                  final List<Role> roles)
+      final MemberAttributeResolver memberAttributeResolver, final List<Role> roles)
   {
     final Map<String, MembersByOwner> byRole = new LinkedHashMap<>();
     for (final MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {
@@ -254,7 +246,7 @@ public class MembershipMappingService
       byOwner.members.add(member);
     }
 
-    //go through and make sure each role contains the owner, even if its empty list
+    // go through and make sure each role contains the owner, even if its empty list
     for (final Role role : roles) {
       MembersByOwner byOwner = byRole.get(role.getId());
       if (byOwner == null) {

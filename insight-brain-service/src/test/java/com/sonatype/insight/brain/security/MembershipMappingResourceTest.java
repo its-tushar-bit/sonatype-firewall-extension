@@ -78,8 +78,7 @@ public class MembershipMappingResourceTest
     // Initial state
     Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = fromJson(response,
-        ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
 
@@ -123,8 +122,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(),
-        userB.calculateDisplayName(), userB.getEmail(), "CLM");
+    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
+        userB.getEmail(), "CLM");
 
     // Update
     response = AuthedRestAccess.put(
@@ -154,8 +153,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_APPLICATION));
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userA.getUsername(),
-        userA.calculateDisplayName(), userA.getEmail(), "CLM");
+    assertMember(membersByOwner.members.get(0), MemberType.USER, userA.getUsername(), userA.calculateDisplayName(),
+        userA.getEmail(), "CLM");
 
     membersByOwner = membersByRole.membersByOwner.get(1);
     assertThat(membersByOwner.ownerId, is(org.getId()));
@@ -163,8 +162,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(),
-        userB.calculateDisplayName(), userB.getEmail(), "CLM");
+    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
+        userB.getEmail(), "CLM");
 
     membersByRole = applicable.membersByRole.get(1);
     assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
@@ -176,8 +175,8 @@ public class MembershipMappingResourceTest
     assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_APPLICATION));
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(),
-        userB.calculateDisplayName(), userB.getEmail(), "CLM");
+    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
+        userB.getEmail(), "CLM");
 
     membersByOwner = membersByRole.membersByOwner.get(1);
     assertThat(membersByOwner.ownerId, is(org.getId()));
@@ -203,9 +202,8 @@ public class MembershipMappingResourceTest
     // Create
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID),
-        toJson(
-            Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
-                newMember(MemberType.GROUP, "Alpha"))));
+        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
+            newMember(MemberType.GROUP, "Alpha"))));
     assertResponseStatus(204, response);
 
     // Read for created data
@@ -251,7 +249,8 @@ public class MembershipMappingResourceTest
     // Create
     response = AuthedRestAccess.put(
         getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, userB.getUsername()))));
+        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME),
+            newMember(MemberType.USER, userB.getUsername()))));
     assertResponseStatus(204, response);
 
     // Read for created data
@@ -277,8 +276,8 @@ public class MembershipMappingResourceTest
     Collections.sort(membersByOwner.members, new MemberComparator());
     assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
         "admin@localhost", "CLM");
-    assertMember(membersByOwner.members.get(1), MemberType.USER, userB.getUsername(),
-        userB.calculateDisplayName(), userB.getEmail(), "CLM");
+    assertMember(membersByOwner.members.get(1), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
+        userB.getEmail(), "CLM");
 
     // Update
     response = AuthedRestAccess.put(
@@ -314,11 +313,9 @@ public class MembershipMappingResourceTest
     assertResponseStatus(204, response);
   }
 
-
   private List<Role> testInitialGlobalState(Response response) throws IOException {
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = fromJson(response,
-        ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
 
@@ -358,26 +355,30 @@ public class MembershipMappingResourceTest
   }
 
   private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,
-                            String realm)
+      String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(internalName));
     assertThat(member.getDisplayName(), is(displayName));
     if (StringUtils.isNotEmpty(email)) {
       assertThat(member.getEmail(), is(email));
-    } else {
+    }
+    else {
       assertThat(member.getEmail(), is(nullValue()));
     }
     assertThat(member.getRealm(), is(realm));
   }
 
-  private static class MemberComparator implements Comparator<Member> {
+  private static class MemberComparator
+      implements Comparator<Member>
+  {
     @Override
     public int compare(final Member member, final Member otherMember) {
       int nameComp = member.getDisplayName().compareTo(otherMember.getDisplayName());
       if (nameComp != 0) {
         return nameComp;
-      } else {
+      }
+      else {
         return member.getType().compareTo(otherMember.getType());
       }
     }

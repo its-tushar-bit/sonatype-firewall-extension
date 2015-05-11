@@ -42,9 +42,8 @@ public class MembershipMappingResource
    * from parent organizations.
    */
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
-  public ApplicableMembershipMappings getApplicableMembershipMappings(
-      @PathParam("ownerType") final String ownerType,
+  @Produces({ MediaType.APPLICATION_JSON })
+  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") final String ownerId)
   {
     return membershipMappingService.getApplicableMembershipMappingsByPublicId(ownerType, ownerId);
@@ -55,11 +54,9 @@ public class MembershipMappingResource
    */
   @PUT
   @Path(ROLE_PATH)
-  @Consumes({MediaType.APPLICATION_JSON})
-  public void setMembershipMappingForRole(
-      @PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") final String ownerId, @PathParam("roleId") final String roleId,
-      final List<Member> members)
+  @Consumes({ MediaType.APPLICATION_JSON })
+  public void setMembershipMappingForRole(@PathParam("ownerType") final String ownerType,
+      @PathParam("ownerId") final String ownerId, @PathParam("roleId") final String roleId, final List<Member> members)
   {
     membershipMappingService.setMembershipMappingForRoleByPublicId(ownerType, ownerId, roleId, members);
   }

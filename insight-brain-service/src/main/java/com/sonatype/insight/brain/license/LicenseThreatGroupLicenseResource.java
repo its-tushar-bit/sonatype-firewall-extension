@@ -32,7 +32,7 @@ public class LicenseThreatGroupLicenseResource
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,

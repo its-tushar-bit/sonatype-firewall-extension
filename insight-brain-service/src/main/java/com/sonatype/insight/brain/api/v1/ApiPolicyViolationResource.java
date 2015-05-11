@@ -42,7 +42,7 @@ public class ApiPolicyViolationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Consumes({MediaType.APPLICATION_JSON})
+  @Consumes(MediaType.APPLICATION_JSON)
   public ApiApplicationViolationListDTO getPolicyViolations(@QueryParam("p") final Set<String> policyIds) {
     return apiPolicyViolationService.getPolicyViolations(policyIds);
   }

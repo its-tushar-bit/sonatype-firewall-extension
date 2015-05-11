@@ -205,7 +205,7 @@ public abstract class AbstractComponentInfoResource
    * @since 1.6
    */
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("licenses/{applicationPublicId}")
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentLicenses getLicenses(

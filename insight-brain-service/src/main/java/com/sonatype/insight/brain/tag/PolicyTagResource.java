@@ -41,14 +41,14 @@ public class PolicyTagResource
   }
 
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<Tag> getPolicyTags(@QueryParam("orgId") String orgId, @PathParam("policyId") String policyId) {
     return tagService.getPolicyTags(orgId, policyId);
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   public Tag addPolicyTag(@QueryParam("orgId") String orgId, @PathParam("policyId") String policyId, Tag tag) {
     return tagService.addPolicyTag(orgId, policyId, tag);
   }

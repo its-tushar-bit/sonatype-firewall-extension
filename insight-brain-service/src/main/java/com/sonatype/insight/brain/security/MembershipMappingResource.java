@@ -42,7 +42,7 @@ public class MembershipMappingResource
    * from parent organizations.
    */
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") final String ownerId)
   {
@@ -54,7 +54,7 @@ public class MembershipMappingResource
    */
   @PUT
   @Path(ROLE_PATH)
-  @Consumes({ MediaType.APPLICATION_JSON })
+  @Consumes(MediaType.APPLICATION_JSON)
   public void setMembershipMappingForRole(@PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") final String ownerId, @PathParam("roleId") final String roleId, final List<Member> members)
   {

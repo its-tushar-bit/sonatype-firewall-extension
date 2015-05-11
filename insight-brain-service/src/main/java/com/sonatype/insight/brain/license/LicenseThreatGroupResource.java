@@ -50,7 +50,7 @@ public class LicenseThreatGroupResource
   private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public List<LicenseThreatGroup> getLicenseThreatGroups(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
@@ -66,7 +66,7 @@ public class LicenseThreatGroupResource
    */
   @GET
   @Path("applicable")
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,

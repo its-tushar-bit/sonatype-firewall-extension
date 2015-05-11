@@ -50,7 +50,7 @@ public class PolicyMonitoringResource
    * whether or not these values are stored.
    */
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
   @Authorize(permission = Permission.READ)
   public ApplicablePolicyMonitors getApplicable(

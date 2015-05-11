@@ -122,14 +122,14 @@ public class ApiApplicationResource
 
   @GET
   @Path(ROLE_PATH)
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public ApiRoleListDTO getApplicationRoles() {
     return apiApplicationService.getApplicationRoles();
   }
 
   @GET
   @Path(ROLE_MEMBERS_PATH)
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
       @PathParam("applicationId") final String applicationId)
   {
@@ -140,7 +140,7 @@ public class ApiApplicationResource
 
   @PUT
   @Path(ROLE_MEMBERS_PATH)
-  @Consumes({MediaType.APPLICATION_JSON})
+  @Consumes(MediaType.APPLICATION_JSON)
   public void setMembershipMappingForRole(
       @PathParam("applicationId") final String applicationId,
       final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)

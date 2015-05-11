@@ -63,7 +63,7 @@ public class ApiOrganizationResource
 
   @GET
   @Path(ROLE_MEMBERS_PATH)
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
       @PathParam("organizationId") final String organizationId)
   {
@@ -74,7 +74,7 @@ public class ApiOrganizationResource
 
   @PUT
   @Path(ROLE_MEMBERS_PATH)
-  @Consumes({MediaType.APPLICATION_JSON})
+  @Consumes(MediaType.APPLICATION_JSON)
   public void setMembershipMappingForRole(
       @PathParam("organizationId") final String organizationId,
       final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)

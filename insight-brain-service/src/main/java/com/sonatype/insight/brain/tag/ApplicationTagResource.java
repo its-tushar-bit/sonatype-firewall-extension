@@ -40,7 +40,7 @@ public class ApplicationTagResource
   }
 
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<Tag> getAppliedTags(@PathParam("applicationPublicId") String applicationPublicId) {
     return tagService.getAppliedApplicationTags(applicationPublicId);
   }

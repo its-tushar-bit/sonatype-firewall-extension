@@ -140,7 +140,7 @@ public class LicenseOverrideResource
   }
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public AppliedLicenseOverrides getAppliedLicenseOverrides(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,

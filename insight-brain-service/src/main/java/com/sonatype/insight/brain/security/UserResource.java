@@ -82,7 +82,7 @@ public class UserResource
    */
   @GET
   @Path("{ownerType: global|application|organization}/{ownerId}/query")
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public FindMembersDTO findMembers(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @QueryParam("q") String query,
@@ -107,7 +107,7 @@ public class UserResource
   }
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public List<User> getAll() {
     List<User> users = new UserDAO().getAll();

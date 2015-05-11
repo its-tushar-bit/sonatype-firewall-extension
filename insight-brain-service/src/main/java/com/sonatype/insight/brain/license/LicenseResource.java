@@ -28,7 +28,7 @@ public class LicenseResource
   private LicenseDAO licenseDAO = new LicenseDAO();
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   public List<License> getLicenses(@DefaultValue("false") @QueryParam("filterSynthetic") boolean filterSynthetic) {
     List<License> licenses = licenseDAO.getAll();
     if (filterSynthetic) {

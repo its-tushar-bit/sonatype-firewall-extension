@@ -44,35 +44,35 @@ public class TagResource
 
   @GET
   @Path(USED_BY_APPLICATION_PATH)
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<Tag> getTagsUsedByApplications() {
     return service.getTagsUsedByApplications();
   }
 
   @GET
   @Path(ORGANIZATION_PATH)
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   public List<Tag> getTags(@PathParam("organizationId") String organizationId) {
     return service.getTags(organizationId);
   }
 
   @GET
   @Path(APPLICATION_PATH + "/applicable")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<Tag> getTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationId) {
     return service.getTagsByApplicationPublicId(applicationId);
   }
 
   @GET
   @Path(ORGANIZATION_PATH + "/applied")
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationTag> getApplicationTagsByOrgId(@PathParam("organizationId") String organizationId) {
     return service.getApplicationTagsByOrgId(organizationId);
   }
 
   @GET
   @Path(ORGANIZATION_PATH + "/policy")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<PolicyTag> getPolicyTagsByOrgId(@PathParam("organizationId") String organizationId) {
     return service.getPolicyTagsByOrgId(organizationId);
   }

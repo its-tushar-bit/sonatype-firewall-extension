@@ -72,7 +72,7 @@ public class LabelResource
    * @since 1.6
    */
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
@@ -90,7 +90,7 @@ public class LabelResource
    * @since 1.6
    */
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
   @Authorize(permission = Permission.READ)
   public ApplicableLabels getApplicableLabels(
@@ -136,7 +136,7 @@ public class LabelResource
    * @since 1.6
    */
   @GET
-  @Produces({ MediaType.APPLICATION_JSON })
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable/context/{labelId}")
   @Authorize(permission = Permission.WRITE)
   public ApplicableContext getApplicableContexts(

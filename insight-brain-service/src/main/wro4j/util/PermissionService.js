@@ -52,7 +52,7 @@
                    '<div ng-if="!authed" class="container">' +
                      '<div class="alert alert-error clm-error">' +
                        '<p><strong>Error</strong></p>' +
-                       '<p>It appears you do not have permission to access this page.  If you believe this to be incorrect please contact your CLM administrator.</p>' +
+                       '<p>It appears you do not have permission to access this page.  If you believe this to be incorrect please contact your administrator.</p>' +
                      '</div>' +
                    '</div>' +
                  '</div>',

@@ -156,7 +156,7 @@ class UserManagementSpec
       summary.find('td', text: 'user').displayed
       summary.find('td', text: 'addusertest@email.com').displayed
       currentUsers.size() == 1
-      currentUsers.text() == 'admin (Admin BuiltIn)'
+      currentUsers.text() == 'ADMIN (ADMIN BUILTIN)'
   }
 
   def "A user's password can be reset"() {
@@ -242,7 +242,7 @@ class UserManagementSpec
       summary.find('td', text: 'testupdateLastName').displayed
       summary.find('td', text: 'emailLastName@email.com').displayed
       currentUsers.size() == 1
-      currentUsers.text() == 'admin (Admin BuiltIn)'
+      currentUsers.text() == 'ADMIN (ADMIN BUILTIN)'
   }
 
   def "The newly added user can be deleted"() {

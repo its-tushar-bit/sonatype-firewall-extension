@@ -35,7 +35,13 @@ public class RoleDAO
   }
 
   public Role getByIdNotNull(String id) {
-    Role role = getById(id);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdNotNull(tx, id);
+    }
+  }
+
+  private Role getByIdNotNull(TransactionContext tx, String id) {
+    Role role = getById(tx, id);
     if (role == null) {
       throw new NotFoundException("Cannot find a role with ID " + id + ".");
     }
@@ -58,8 +64,10 @@ public class RoleDAO
 
   @Override
   public void update(TransactionContext tx, Role entity) {
-    if (entity.isBuiltIn()) {
-      throw new BadRequestException("Cannot change built-in role '" + entity.getName() + "'.");
+    // NOTE: We can't trust the caller-supplied built-in flag
+    Role current = getByIdNotNull(tx, entity.getId());
+    if (current.isBuiltIn()) {
+      throw new BadRequestException("Cannot change built-in role '" + current.getName() + "'.");
     }
 
     NameHelper.validate(entity.getName());
@@ -73,8 +81,10 @@ public class RoleDAO
 
   @Override
   public void delete(TransactionContext tx, Role entity) {
-    if (entity.isBuiltIn()) {
-      throw new BadRequestException("Cannot delete built-in role '" + entity.getName() + "'.");
+    // NOTE: We can't trust the caller-supplied built-in flag
+    Role current = getByIdNotNull(tx, entity.getId());
+    if (current.isBuiltIn()) {
+      throw new BadRequestException("Cannot delete built-in role '" + current.getName() + "'.");
     }
 
     // Cascade to permissions

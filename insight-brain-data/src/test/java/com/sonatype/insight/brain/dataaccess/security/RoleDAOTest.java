@@ -229,8 +229,12 @@ public class RoleDAOTest
 
   @Test
   public void testBuiltInRoleCannotBeDeleted() {
-    Role role = roleDAO.getByName("Owner");
-    assertThat(role.isBuiltIn(), is(true));
+    Role builtInRole = roleDAO.getByName("Owner");
+    assertThat(builtInRole.isBuiltIn(), is(true));
+    Role role = new Role("Name", "Description");
+    // the protection must be based on the identifier, all other properties can be fudged
+    role.setId(builtInRole.getId());
+    assertThat(role.isBuiltIn(), is(false));
     try {
       roleDAO.delete(role);
       fail("Expected exception");
@@ -242,8 +246,12 @@ public class RoleDAOTest
 
   @Test
   public void testBuiltInRoleCannotBeUpdated() {
-    Role role = roleDAO.getByName("Owner");
-    assertThat(role.isBuiltIn(), is(true));
+    Role builtInRole = roleDAO.getByName("Owner");
+    assertThat(builtInRole.isBuiltIn(), is(true));
+    Role role = new Role("Name", "Description");
+    // the protection must be based on the identifier, all other properties can be fudged
+    role.setId(builtInRole.getId());
+    assertThat(role.isBuiltIn(), is(false));
     try {
       roleDAO.update(role);
       fail("Expected exception");

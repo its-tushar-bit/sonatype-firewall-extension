@@ -52,13 +52,12 @@
   }());
 
   (function() {
-    var style = '<style type="text/css">body { font-family: ',
+    var style = '<style type="text/css">',
         head = document.head || document.getElementsByTagName("head")[0];
 
     if (query.fontName) {
-      style += query.fontName + ',';
+      style += 'body { font-family: ' + query.fontName + ',Arial, Helvetica, sans-serif;}';
     }
-    style += 'Arial, Helvetica, sans-serif;}';
     style += '.table th, .table td {';
     if (query.fontSize) {
       style += 'font-size:' + query.fontSize + 'pt;';

@@ -178,7 +178,7 @@
 }
 
 table.policy-violation-table tr td:nth-child(2) {
-  font-weight: bold;
+  font-family: Proxima Nova Bold, sans-serif;
 }
 
 table.table-risk thead th:nth-child(1n + 2) {
@@ -186,7 +186,7 @@ table.table-risk thead th:nth-child(1n + 2) {
 }
 
 table.table-risk tr.stage td:first-child {
-  font-weight : bold;
+  font-family: Proxima Nova Bold, sans-serif;
   text-align : right;
 }
 
@@ -294,7 +294,7 @@ table th#affected-apps {
 
 
 .latest-risk {
-  font-weight: bolder;
+  font-family: Proxima Nova Bold, sans-serif;
 }
 
 .accordion-column {
@@ -484,7 +484,7 @@ table th#affected-apps {
 
 .component-violations-table .threat-column {
   width: 20px;
-  font-weight: bold;
+  font-family: Proxima Nova Bold, sans-serif;
 }
 
 .share-risk-header, .component-violations-table .share-risk-column {

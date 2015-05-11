@@ -194,14 +194,14 @@
     var invalidCharsRegex = new RegExp('[^-\\. _' + regexFactory.allLetters().source + '0-9]', 'i');
     var spaceRegex = new RegExp('\\s', 'i');
     return {
-      template : '<span><span ng-click="myForm.$show()"' +
+      template : '<span ng-click="myForm.$show()"' +
           'editable-text="model[modelField]"' +
           'blur="submit"' +
           'onbeforesave="check($data)"' +
           'onshow="onShow()"' +
           'buttons="no"' +
           'e-form="myForm"' +
-          'e-placeholder="{{emptyText}}">{{model[modelField] || emptyText}}</span></span>',
+          'e-placeholder="{{emptyText}}">{{model[modelField] || emptyText}}</span>',
       restrict : 'A',
       scope : {
         duplicateArray : '=',

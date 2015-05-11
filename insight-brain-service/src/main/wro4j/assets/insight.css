@@ -26,7 +26,7 @@ table.clm-table thead tr th {
     font-size: 12px;
     text-align: left;
 	cursor: default;
-    font-weight: bold;
+    font-family: Proxima Nova Bold, sans-serif;
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;

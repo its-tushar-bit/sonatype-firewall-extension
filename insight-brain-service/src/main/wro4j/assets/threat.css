@@ -15,7 +15,7 @@
 }
 [class*="threat-level-"] {
 	vertical-align: top;
-	font-weight: bold;
+        font-family: Proxima Nova Bold, sans-serif;
 	color: #fff;
 	line-height: 20px;
 	border: 0;
@@ -37,7 +37,7 @@
 	padding: 0;
 }
 .threat-level-dropdown .dropdown-menu>li>a, .label-drop-down .dropdown-menu>li>a {
-	font-weight: bold;
+        font-family: Proxima Nova Bold, sans-serif;
 	color: #FFF;
 	padding: 3px 10px;
 	border: 1px solid rgba(0,0,0,.2);

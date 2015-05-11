@@ -291,7 +291,7 @@ $filter-item-top-bottom-padding: 10px;
 }
 
 .filter-item-header {
-  font-weight: bold;
+  @extend .bold;
   font-size: 16px;
   padding-top: 6px;
   padding-bottom: 6px;
@@ -307,8 +307,8 @@ $filter-item-top-bottom-padding: 10px;
   position: relative;
   background-color: #2476FC;
   color: white;
-  font-weight: bold;
   text-align: center;
+  @extend .bold;
   @include border-radius(50%)
 }
 
@@ -441,10 +441,10 @@ $policy-summary-table-row-height: 25px;
   }
 
   &.table td {
+    @extend .bold;
     padding: 5px 2px;
     line-height: $policy-summary-table-row-height;
     font-size: 1.1em;
-    font-weight: bold;
     min-width: 40px;
   }
 
@@ -499,7 +499,7 @@ $policy-summary-table-row-height: 25px;
       fill: white;
     }
     .guide-text {
-      font-weight: bold;
+      @extend .bold;
       fill: black;
       cursor: default;
     }

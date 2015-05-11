@@ -17,7 +17,7 @@
 }
 .policies .constraints td.header, .policies .actions td.header {
 	min-width: 100px;
-	font-weight: bold;
+        font-family: Proxima Nova Bold, sans-serif;
 }
 .policies .actions .action-item {
 	border-left: 1px solid #ffffff;

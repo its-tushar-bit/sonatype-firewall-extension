@@ -21,7 +21,6 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   img {
-    vertical-align: -5px;
     height: 24px;
     width: 24px;
   }
@@ -38,6 +37,7 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     padding: 8px 19px 6px 21px;
     color: #FFFFFF;
     text-shadow: none;
+    line-height: 24px;
   }
 
   .navbar-inner {
@@ -55,7 +55,6 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     font-size:10px;
     line-height:10px;
     text-shadow: none;
-    font-weight: bold;
   }
 }
 
@@ -146,9 +145,9 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   .dropdown > a > span {
+    @extend .bold;
     vertical-align: 3px;
     padding-left: 10px;
-    font-weight: bold;
   }
 
   .count-circle {
@@ -160,9 +159,9 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   .count-circle.exclamation {
+    @extend .bold;
     color: #B94A48;
     background-color: #F2DEDE;
-    font-weight: bold;
     font-size: 16px;
     border: solid thin #B94A48;
   }

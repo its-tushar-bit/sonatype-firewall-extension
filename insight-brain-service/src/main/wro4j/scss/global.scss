@@ -1,4 +1,145 @@
 /*
+  #Typography
+*/
+/*
+  ##Fonts
+  Font weight should be applied extending the ```.bold```, ```.semi-bold```, and ```.regular``` classes, using the
+  appropriate font face rather than forcing the browser to render a weight.
+
+  ```
+    <table>
+      <tbody>
+        <tr>
+          <td style='width: 100px'>FONT</td>
+          <td>Proxima Nova</td>
+        </tr>
+        <tr>
+          <td>H1</td>
+          <td><h1>Bold 26px, Line-Height 28px</h1></td>
+        </tr>
+        <tr>
+          <td>H2</td>
+          <td><h2>Bold 20px, Line-Height 24px</td>
+        <tr>
+        <tr>
+          <td>H3</td>
+          <td><h3>Bold 18px, Line-Height 21px</td>
+        </tr>
+        <tr>
+          <td>H4</td>
+          <td><h4>Semibold All-Caps 14px, Line-Height 16px</td>
+        </tr>
+        <tr>
+          <td>BODY</td>
+          <td>Regular 14px, Line-Height 18px</td>
+        </tr>
+      </tbody>
+    </table>
+  ```
+*/
+@font-face {
+  font-family: Proxima Nova Regular;
+  src: url('../fonts/proximanova-reg-webfont.eot');
+  src: url('../fonts/proximanova-reg-webfont.woff') format('woff'),
+  url('../fonts/proximanova-reg-webfont.ttf') format('truetype'),
+  url('../fonts/proximanova-reg-webfont.svg#webfont') format('svg');
+}
+@font-face {
+  font-family: Proxima Nova Bold;
+  font-weight: bold;
+  src: url('../fonts/proximanova-bold-webfont.eot');
+  src: url('../fonts/proximanova-bold-webfont.woff') format('woff'),
+  url('../fonts/proximanova-bold-webfont.ttf') format('truetype'),
+  url('../fonts/proximanova-bold-webfont.svg#webfont') format('svg');
+}
+@font-face {
+  font-family: Proxima Nova Semibold;
+  font-weight: bold;
+  src: url('../fonts/proximanova-sbold-webfont.eot');
+  src: url('../fonts/proximanova-sbold-webfont.woff') format('woff'),
+  url('../fonts/proximanova-sbold-webfont.ttf') format('truetype'),
+  url('../fonts/proximanova-sbold-webfont.svg#webfont') format('svg');
+}
+.bold {
+  font-family: Proxima Nova Bold, sans-serif;
+}
+.semi-bold {
+  font-family: Proxima Nova Semibold, sans-serif;
+}
+.regular {
+  font-family: Proxima Nova Regular, sans-serif;
+}
+h1 {
+  @extend .bold;
+  font-size: 26px;
+  line-height: 28px;
+  margin-bottom: 24px;
+}
+h2 {
+  @extend .bold;
+  font-size: 20px;
+  line-height: 24px;
+  margin-bottom: 16px;
+}
+h3 {
+  @extend .bold;
+  font-size: 18px;
+  line-height: 21px;
+  margin-bottom: 8px;
+}
+h4 {
+  @extend .semi-bold;
+  font-size: 14px;
+  line-height: 16px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+li {
+  line-height: 24px;
+}
+body {
+  @extend .regular;
+  font-size: 14px;
+  line-height: 18px;
+}
+/*
+  ##Spacing
+
+  ```
+    <h1>Continuous Governance - Reducing risk throughout your software supply chain</h1>
+    <p>Leverage the best component-based application development standards across the software lifecycle to reduce risk and speed delivery.</p>
+    <p>Determine specific components and their dependencies by name, including any associated security, license and quality risks.</p>
+    <h2>Quickly and easily eliminate open source risk in your applications.</h2>
+    <p>Catch vulnerabilities at any stage of the SDLC including consumption, development, continuous integration (CI), staging and production.</p>
+    <h3>Precisely Identify Components & Risks</h3>
+    <p>Patent-pending advanced binary fingerprinting identifies all open source software and proprietary components, as well as their dependencies.</p>
+    <h4>Essential Requirements</h4>
+    <p>Sonatype has options that will allow you to experience CLM on your own, on your schedule.</p>
+    <ul>
+      <li>Faster builds</li>
+      <li>Better visibility</li>
+      <li>Better quality</li>
+    </ul>
+    <p>Sonatype has options that will allow you to experience CLM on your own, on your schedule.</p>
+  ```
+*/
+p {
+  margin-top: 16px;
+}
+p + h2, ul + h2 {
+  margin-top: 32px;
+}
+p + h3, p + h4, ul + h3, ul + h4 {
+  margin-top: 24px;
+}
+p + ul {
+  margin-top: 20px;
+}
+ul + p {
+  margin-top: 20px;
+}
+
+/*
   #Colors
 */
 /*

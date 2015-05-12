@@ -170,7 +170,7 @@ CREATE TABLE role_permission (
   CONSTRAINT role_permission_uk UNIQUE KEY (role_id, permission),
   CONSTRAINT role_permission_role_fk FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
--- Administrator role
+-- System Administrator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1b68169c84874c69b4ac30a391b46212', '1b92fae3e55a411793a091fb821c422d', 'CONFIGURE_SYSTEM');
 -- CLM Administrator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1539fa2c5afd4cd4b7102ef6c8d0bf6b', 'b9646757e98e486da7d730025f5245f8', 'WRITE');

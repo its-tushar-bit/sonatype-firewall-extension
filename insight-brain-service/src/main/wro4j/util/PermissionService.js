@@ -12,16 +12,11 @@
   module.service('PermissionService', [
     '$http', 'CLMAppLocations', '$q', function($http, CLMAppLocations, $q) {
       return {
-        isAuthorized: function(permissions, globalContext, any) {
+        isAuthorized: function(permissions, globalContext) {
           var deferred = $q.defer();
 
           $http.put(CLMAppLocations.getPermissionTestUrl(globalContext), permissions).then(function(data) {
-            if (any) {
-              deferred.resolve(data.data.length > 0);
-            }
-            else {
-              deferred.resolve(permissions.length === data.data.length);
-            }
+            deferred.resolve(permissions.length === data.data.length);
           }, function() {
             deferred.reject(arguments);
           });

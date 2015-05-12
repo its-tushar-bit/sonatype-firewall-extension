@@ -238,7 +238,10 @@
      */
     labelsApp.directive('tip', function() {
       return function(scope, element, attrs) {
-        $(element).tipsy({fade: true, gravity: $.fn.tipsy.autoWE, html: true, opacity: 1.0, delayOut: 0});
+        /**
+         * Note: Setting html:false to prevent XSS attacks. See CLM-4637 for more details.
+         */
+        $(element).tipsy({fade: true, gravity: $.fn.tipsy.autoWE, html: false, opacity: 1.0, delayOut: 0});
       };
     });
     labelsApp.directive('spinner', function() {

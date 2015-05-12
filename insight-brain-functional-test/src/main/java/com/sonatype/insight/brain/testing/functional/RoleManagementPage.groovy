@@ -32,7 +32,7 @@ class PermissionCategory
   static content = {
     groupName { $('h3') }
     permissions { moduleList Permission, $('tr[ng-repeat="permission in permissionCategory.permissions"]') }
-    permission { String name -> module Permission, permissions.find { it.toggleSwitch.label.text() == name } }
+    permission { index -> module Permission, permissions.getAt(index) }
   }
 }
 
@@ -41,6 +41,8 @@ class Permission
 {
   static content = {
     toggleSwitch { module ToggleSwitch, $('.toggle-checkbox') }
+    name { $('label > span') }
+    description { $('td', 1) }
   }
 }
 

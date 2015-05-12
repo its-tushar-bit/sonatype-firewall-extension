@@ -12,24 +12,24 @@ package com.sonatype.insight.brain.model.security;
  */
 public enum Permission
 {
-  CONFIGURE_SYSTEM("Configure System", Permission.CATEGORY_SYSTEM_CONFIGURATION,
-      "Configure LDAP, product license, users and other global aspects."),
+  CONFIGURE_SYSTEM("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS,
+      "System Configuration and Users"),
 
-  WRITE("Write", Permission.CATEGORY_POLICY,
-      "Add, delete and edit policies, organizations, applications, etc."),
+  MANAGE_PROPRIETARY("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "Proprietary Components"),
 
-  READ("View", Permission.CATEGORY_POLICY,
-      "View policies, organizations, applications, etc."),
+  WRITE("Edit", Permission.CATEGORY_CLM_PERMISSIONS,
+      "CLM elements within your assigned organization or application"),
 
-  MANAGE_PROPRIETARY("Manage", Permission.CATEGORY_SYSTEM_CONFIGURATION, "Proprietary Components"),
+  READ("View", Permission.CATEGORY_CLM_PERMISSIONS,
+      "CLM elements within your assigned organization or application"),
 
-  EVALUATE_APPLICATION("Evaluate Application", Permission.CATEGORY_POLICY, "Evaluate policies on applications."),
+  EVALUATE_APPLICATION("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Applications within your assigned organization or application"),
 
-  EVALUATE_COMPONENT("Evaluate Component", Permission.CATEGORY_POLICY, "Evaluate policies on components.");
+  EVALUATE_COMPONENT("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Individual components within your assigned organization or application");
 
-  private static final String CATEGORY_SYSTEM_CONFIGURATION = "System Configuration";
+  private static final String CATEGORY_ADMINISTRATOR_PERMISSIONS = "Administrator";
 
-  private static final String CATEGORY_POLICY = "Policy";
+  private static final String CATEGORY_CLM_PERMISSIONS = "CLM";
 
   private final String displayName;
 

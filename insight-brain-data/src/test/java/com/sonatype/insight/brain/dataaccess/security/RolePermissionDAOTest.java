@@ -18,6 +18,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -53,7 +54,7 @@ public class RolePermissionDAOTest
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, containsInAnyOrder(Permission.CONFIGURE_SYSTEM));
+    assertThat(perms, contains(Permission.CONFIGURE_SYSTEM));
   }
 
   @Test
@@ -61,8 +62,8 @@ public class RolePermissionDAOTest
     Role role = roleDAO.getById(Role.CLM_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, containsInAnyOrder(Permission.READ, Permission.WRITE, Permission.EVALUATE_APPLICATION,
-        Permission.EVALUATE_COMPONENT, Permission.MANAGE_PROPRIETARY));
+    assertThat(perms, contains(Permission.MANAGE_PROPRIETARY, Permission.WRITE, Permission.READ,
+        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT));
   }
 
   @Test

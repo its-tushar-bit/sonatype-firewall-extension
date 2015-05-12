@@ -38,13 +38,13 @@ public class RolePermissionService
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(roleId);
     Set<Permission> permissionsForRole = rolePermissionDAO.getPermissionsForRole(roleId);
     ListMultimap<String, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
+
     for (Permission perm : EnumSet.allOf(Permission.class)) {
       permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissionsForRole.contains(perm)));
     }
 
     for (String category : permissionsByCategoryMap.keySet()) {
       List<PermissionDTO> permissions = permissionsByCategoryMap.get(category);
-      Collections.sort(permissions, PERMISSION_COMPARATOR);
       PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(category);
       permissionCategoryDTO.permissions = permissions;
       rolePermissionDTO.permissionCategories.add(permissionCategoryDTO);
@@ -54,15 +54,7 @@ public class RolePermissionService
     return rolePermissionDTO;
   }
 
-  static final Comparator<PermissionDTO> PERMISSION_COMPARATOR =
-      new Comparator<PermissionDTO>()
-      {
-        @Override
-        public int compare(final PermissionDTO o1, final PermissionDTO o2) {
-          return o1.displayName.compareToIgnoreCase(o2.displayName);
-        }
-      };
-
+  //just so happens that alpha sort works for now
   static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR =
       new Comparator<PermissionCategoryDTO>()
       {

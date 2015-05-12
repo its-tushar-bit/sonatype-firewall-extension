@@ -55,7 +55,6 @@ public class RolePermissionServiceTest
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(Role.SYSTEM_ADMIN_ROLE_ID);
     for (String category : permissionsByCategoryMap.keySet()) {
       List<PermissionDTO> permissions = permissionsByCategoryMap.get(category);
-      Collections.sort(permissions, RolePermissionService.PERMISSION_COMPARATOR);
       PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(category);
       permissionCategoryDTO.permissions = permissions;
       rolePermissionDTO.permissionCategories.add(permissionCategoryDTO);

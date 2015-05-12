@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.dataaccess.security.UserDAO
-import com.sonatype.insight.brain.model.security.User
 import com.sonatype.insight.brain.security.CLMRealm
 
 
@@ -14,23 +12,10 @@ class ChangePasswordSpec
 extends BaseSpec {
   //simple setup, login as this new user and go to the management page
   def setupSpec() {
-    UserDAO userDAO = new UserDAO()
-    User user = new User(username: "testchangepass", password: new CLMRealm().encryptPassword("secret"),
-    firstName: "John", lastName: "Doe", email: "john@doe.net")
-    userDAO.insert(user);
+    temporaryEntity.newUser("testchangepass", new CLMRealm().encryptPassword("secret"), "John", "Doe", "john@doe.net")
     via ReportViolationsPage
     login.login("testchangepass", "secret")
     verifyAt()
-  }
-
-  //make sure to cleanup our mess!
-  def cleanupSpec() {
-    UserDAO userDAO = new UserDAO();
-    userDAO.getAll().each { user ->
-      if (user.username == "testchangepass") {
-        userDAO.delete(user);
-      }
-    }
   }
 
   def "can change password"() {

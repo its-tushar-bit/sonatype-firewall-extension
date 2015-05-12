@@ -12,6 +12,7 @@ package com.sonatype.insight.brain.model.security;
  */
 public enum Permission
 {
+  // The order of permissions here determines the order in the UI
   CONFIGURE_SYSTEM("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS,
       "System Configuration and Users"),
 

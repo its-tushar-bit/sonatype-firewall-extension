@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,6 +18,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import com.sonatype.insight.brain.utils.IdUtils;
 
 /**
  * Manages role membership mappings for authorization.
@@ -38,19 +42,20 @@ public class MembershipMappingResource
   }
 
   /**
-   * Gets the applicable membership mappings for a given application/organization, that is including mappings inherited
-   * from parent organizations.
+   * Gets the applicable role membership mappings for a given application/organization or at global level (including
+   * mappings inherited from parent organizations).
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") final String ownerId)
   {
-    return membershipMappingService.getApplicableMembershipMappingsByPublicId(ownerType, ownerId);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return membershipMappingService.getApplicableMembershipMappings(ownerType, internalOwnerId);
   }
 
   /**
-   * Updates the membership mapping for a given application/organization and role to the given members.
+   * Updates the role membership mappings for a given application/organization or global level.
    */
   @PUT
   @Path(ROLE_PATH)
@@ -58,6 +63,9 @@ public class MembershipMappingResource
   public void setMembershipMappingForRole(@PathParam("ownerType") final String ownerType,
       @PathParam("ownerId") final String ownerId, @PathParam("roleId") final String roleId, final List<Member> members)
   {
-    membershipMappingService.setMembershipMappingForRoleByPublicId(ownerType, ownerId, roleId, members);
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    Map<String, List<Member>> membersByRoleId = new HashMap<>();
+    membersByRoleId.put(roleId, members);
+    membershipMappingService.setMembershipMappings(ownerType, internalOwnerId, membersByRoleId);
   }
 }

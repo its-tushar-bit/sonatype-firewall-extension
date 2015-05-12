@@ -67,8 +67,8 @@ public class ApiOrganizationResource
   public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
       @PathParam("organizationId") final String organizationId)
   {
-    final ApplicableMembershipMappings mappings = membershipMappingService
-        .getApplicableMembershipMappingsByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId);
+    final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
+        IdUtils.TYPE_ORGANIZATION, organizationId);
     return apiMemberMappingAdapter.convert(mappings, IdUtils.TYPE_ORGANIZATION);
   }
 
@@ -80,7 +80,6 @@ public class ApiOrganizationResource
       final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
     Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
-    membershipMappingService
-        .setMembershipMappingForRolesByInternalId(IdUtils.TYPE_ORGANIZATION, organizationId, roleToMembers);
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_ORGANIZATION, organizationId, roleToMembers);
   }
 }

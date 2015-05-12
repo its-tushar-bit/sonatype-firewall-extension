@@ -11,7 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -25,91 +25,113 @@ public class MembershipMappingServiceAuthzTest
   private MembershipMappingService membershipMappingService;
 
   @Test
-  public void testGetApplicationMembershipMappingsByPublicId_Authorized() {
+  public void testGetApplicableMembershipMappings_Application_Authorized() {
     grantReadPermission(app.getId());
-    membershipMappingService.getApplicableMembershipMappingsByPublicId("application", app.getPublicId());
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_APPLICATION, app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationMembershipMappingsByPublicId_Unauthenticated() {
-    membershipMappingService.getApplicableMembershipMappingsByPublicId("application", app.getPublicId());
+  public void testGetApplicableMembershipMappings_Application_Unauthenticated() {
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_APPLICATION, app.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableMembershipMappings_Application_Unauthorized() {
+    login();
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_APPLICATION, app.getId());
   }
 
   @Test
-  public void testGetOrganizationMembershipMappingsByPublicId_Authorized() {
+  public void testGetApplicableMembershipMappings_Organization_Authorized() {
     grantReadPermission(org.getId());
-    membershipMappingService.getApplicableMembershipMappingsByPublicId("organization", org.getId());
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_ORGANIZATION, org.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetOrganizatioMembershipMappingsByPublicId_Unauthenticated() {
-    membershipMappingService.getApplicableMembershipMappingsByPublicId("organization", org.getId());
+  public void testGetApplicableMembershipMappings_Organization_Unauthenticated() {
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_ORGANIZATION, org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableMembershipMappings_Organization_Unauthorized() {
+    login();
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_ORGANIZATION, org.getId());
   }
 
   @Test
-  public void testGetApplicationMembershipMappingsByInternalId_Authorized() {
-    grantReadPermission(app.getId());
-    membershipMappingService.getApplicableMembershipMappingsByInternalId("application", app.getId());
+  public void testGetApplicableMembershipMappings_Global_Authorized() {
+    grantConfigureSystemPermission();
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_GLOBAL, "ownerId");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationMembershipMappingsByInternalId_Unauthenticated() {
-    membershipMappingService.getApplicableMembershipMappingsByInternalId("application", app.getId());
+  public void testGetApplicableMembershipMappings_Global_Unauthenticated() {
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_GLOBAL, "ownerId");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableMembershipMappings_Global_Unauthorized() {
+    login();
+    membershipMappingService.getApplicableMembershipMappings(IdUtils.TYPE_GLOBAL, "ownerId");
   }
 
   @Test
-  public void testGetOrganizationMembershipMappingsByInternalId_Authorized() {
-    grantReadPermission(org.getId());
-    membershipMappingService.getApplicableMembershipMappingsByInternalId("organization", org.getId());
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetOrganizatioMembershipMappingsByInternalId_Unauthenticated() {
-    membershipMappingService.getApplicableMembershipMappingsByInternalId("organization", org.getId());
-  }
-
-  @Test
-  public void testSetMembershipMappingForRolesByInternalId_Authorized() {
+  public void testSetMembershipMappings_Application_Authorized() {
     grantWritePermission(app.getId());
-    membershipMappingService.setMembershipMappingForRolesByInternalId("application", app.getId(),
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_APPLICATION, app.getId(),
         Collections.<String, List<Member>> emptyMap());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSetMembershipMappingForRolesByInternalId_Unauthenticated() {
-    membershipMappingService.setMembershipMappingForRolesByInternalId("application", app.getId(),
+  public void testSetMembershipMappings_Application_Unauthenticated() {
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_APPLICATION, app.getId(),
         Collections.<String, List<Member>> emptyMap());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSetMembershipMappingForRolesByInternalId_Unauthorized() {
+  public void testSetMembershipMappings_Application_Unauthorized() {
     login();
-    membershipMappingService.setMembershipMappingForRolesByInternalId("application", app.getId(),
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_APPLICATION, app.getId(),
         Collections.<String, List<Member>> emptyMap());
   }
 
   @Test
-  public void testSetMembershipMappingForRoleByPublicId_Authorized() {
-    grantWritePermission(app.getId());
-    try {
-      membershipMappingService.setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "",
-          Collections.<Member> emptyList());
-    }
-    catch (NotFoundException ignore) {
-      // This is an expected exception as the roleId is empty string
-    }
+  public void testSetMembershipMappings_Organization_Authorized() {
+    grantWritePermission(org.getId());
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_ORGANIZATION, org.getId(),
+        Collections.<String, List<Member>> emptyMap());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSetMembershipMappingForRoleByPublicId_Unauthenticated() {
-    membershipMappingService.setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "",
-        Collections.<Member> emptyList());
+  public void testSetMembershipMappings_Organization_Unauthenticated() {
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_ORGANIZATION, org.getId(),
+        Collections.<String, List<Member>> emptyMap());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSetMembershipMappingForRoleByPublicId_Unauthorized() {
+  public void testSetMembershipMappings_Organization_Unauthorized() {
     login();
-    membershipMappingService.setMembershipMappingForRoleByPublicId("application", app.getPublicId(), "",
-        Collections.<Member> emptyList());
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_ORGANIZATION, org.getId(),
+        Collections.<String, List<Member>> emptyMap());
+  }
+
+  @Test
+  public void testSetMembershipMappings_Global_Authorized() {
+    grantConfigureSystemPermission();
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_GLOBAL, "ownerId",
+        Collections.<String, List<Member>> emptyMap());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetMembershipMappings_Global_Unauthenticated() {
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_GLOBAL, "ownerId",
+        Collections.<String, List<Member>> emptyMap());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetMembershipMappings_Global_Unauthorized() {
+    login();
+    membershipMappingService.setMembershipMappings(IdUtils.TYPE_GLOBAL, "ownerId",
+        Collections.<String, List<Member>> emptyMap());
   }
 }

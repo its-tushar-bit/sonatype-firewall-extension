@@ -10,8 +10,7 @@ import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.model.security.User
 
 class SystemConfigurationPermissionSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   def setup() {
     productLicenseManager.reset()
     clmLicenseManager.installLicense(null)

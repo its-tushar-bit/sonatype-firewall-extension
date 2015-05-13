@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.model.security.MembershipMapping
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.model.security.User
@@ -27,11 +28,11 @@ extends BaseSpec {
     waitFor { helpLinks.dropdown.present && !systemConfig.present }
   }
 
-  def "cog icon and proper items shown for system_config privileged user"() {
-    given: "a system_config privileged user"
+  def "cog icon and proper items shown for CONFIGURE_SYSTEM privileged user"() {
+    given: "a CONFIGURE_SYSTEM privileged user"
     User systemPrivilegedUser = temporaryEntity.newUser()
     Role role = temporaryEntity.newRole(true, Permission.CONFIGURE_SYSTEM)
-    temporaryEntity.newMembershipMapping("global", role.getId(), systemPrivilegedUser.getUsername())
+    temporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), systemPrivilegedUser.getUsername())
 
     when: "who logs into the system"
     loginAsUserVia(systemPrivilegedUser.getUsername(), systemPrivilegedUser.getPassword())
@@ -42,7 +43,7 @@ extends BaseSpec {
     when: "user clicks on the cog menu"
     systemConfig.dropdown.click()
 
-    then: "user sees all menu items except proprietary"
+    then: "user sees all menu items except roles and proprietary"
     waitFor { systemConfig.manageUsers.present }
     systemConfig.manageRoles.present
     systemConfig.manageAdministrators.present
@@ -51,11 +52,11 @@ extends BaseSpec {
     !systemConfig.manageProprietary.present
   }
 
-  def "cog icon and proper items shown for manage_proprietary privileged user"() {
-    given: "a manage_proprietary privileged user"
+  def "cog icon and proper items shown for MANAGE_PROPRIETARY privileged user"() {
+    given: "a MANAGE_PROPRIETARY privileged user"
     User proprietaryPrivilegedUser = temporaryEntity.newUser()
     Role role = temporaryEntity.newRole(true, Permission.MANAGE_PROPRIETARY)
-    temporaryEntity.newMembershipMapping("global", role.getId(), proprietaryPrivilegedUser.getUsername())
+    temporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), proprietaryPrivilegedUser.getUsername())
 
     when: "who logs into the system"
     loginAsUserVia(proprietaryPrivilegedUser.getUsername(), proprietaryPrivilegedUser.getPassword())

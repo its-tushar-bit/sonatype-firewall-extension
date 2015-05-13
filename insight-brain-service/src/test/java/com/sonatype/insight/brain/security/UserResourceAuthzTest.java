@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -28,20 +27,17 @@ public class UserResourceAuthzTest
   @Test
   public void testFindUsers() throws Exception {
     grantWritePermission(app.getId());
-    String url = getRestUrl(
-        UserResource.SERVICE_PATH + "/{ownerType: global|application|organization}/{ownerId}/query",
-        IdUtils.TYPE_APPLICATION, app.getPublicId())
-        + "?q=name";
+    String url = getRestUrl(UserResource.SERVICE_PATH + "/{ownerType: application|organization}/{ownerId}/query",
+        IdUtils.TYPE_APPLICATION, app.getPublicId()) + "?q=name";
     testAuthzGet(url);
 
     grantWritePermission(org.getId());
-    url = getRestUrl(UserResource.SERVICE_PATH + "/{ownerType: global|application|organization}/{ownerId}/query",
+    url = getRestUrl(UserResource.SERVICE_PATH + "/{ownerType: application|organization}/{ownerId}/query",
         IdUtils.TYPE_ORGANIZATION, org.getId()) + "?q=name";
     testAuthzGet(url);
 
-    grantWritePermission();
-    url = getRestUrl(UserResource.SERVICE_PATH + "/{ownerType: global|application|organization}/{ownerId}/query",
-        IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID) + "?q=name";
+    grantConfigureSystemPermission();
+    url = getRestUrl(UserResource.SERVICE_PATH + "/global/something/query") + "?q=name";
     testAuthzGet(url);
   }
 

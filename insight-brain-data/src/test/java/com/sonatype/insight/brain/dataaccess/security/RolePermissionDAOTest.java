@@ -54,7 +54,7 @@ public class RolePermissionDAOTest
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, contains(Permission.CONFIGURE_SYSTEM));
+    assertThat(perms, contains(Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES));
   }
 
   @Test
@@ -62,8 +62,10 @@ public class RolePermissionDAOTest
     Role role = roleDAO.getById(Role.CLM_ADMIN_ROLE_ID);
     assertThat(role, is(notNullValue()));
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
-    assertThat(perms, contains(Permission.MANAGE_PROPRIETARY, Permission.WRITE, Permission.READ,
-        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT));
+    assertThat(
+        perms,
+        contains(Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.MANAGE_PROPRIETARY, Permission.WRITE,
+            Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT));
   }
 
   @Test

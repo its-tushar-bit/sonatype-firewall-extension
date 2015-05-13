@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -28,7 +29,7 @@ public class RoleServiceAuthzTest
 
   @Test
   public void testGetAllRoles_Authorized() {
-    grantConfigureSystemPermission();
+    grantGlobalPermission(Permission.VIEW_ROLES);
     List<Role> roles = roleService.getAllRoles();
     assertThat(roles, notNullValue());
     assertThat(roles, not(empty()));
@@ -47,7 +48,7 @@ public class RoleServiceAuthzTest
 
   @Test
   public void testAddRole_Authorized() {
-    grantConfigureSystemPermission();
+    grantGlobalPermission(Permission.EDIT_ROLES);
     Role role = new Role("Name", "Description");
     tempEntity.register(role);
     roleService.addRole(role);
@@ -66,7 +67,7 @@ public class RoleServiceAuthzTest
 
   @Test
   public void testUpdateRole_Authorized() {
-    grantConfigureSystemPermission();
+    grantGlobalPermission(Permission.EDIT_ROLES);
     roleService.updateRole(tempEntity.newRole(false));
   }
 
@@ -83,7 +84,7 @@ public class RoleServiceAuthzTest
 
   @Test
   public void testDeleteRole_Authorized() {
-    grantConfigureSystemPermission();
+    grantGlobalPermission(Permission.EDIT_ROLES);
     roleService.deleteRole(tempEntity.newRole(false).getId());
   }
 

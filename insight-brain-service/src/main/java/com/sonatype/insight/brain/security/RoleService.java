@@ -27,25 +27,25 @@ public class RoleService
     this.roleDAO = roleDAO;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Authorize(permission = Permission.VIEW_ROLES)
   public List<Role> getAllRoles() {
     return roleDAO.getAll();
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Authorize(permission = Permission.EDIT_ROLES)
   public Role addRole(Role role) {
     role.setId(null);
     roleDAO.insert(role);
     return role;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Authorize(permission = Permission.EDIT_ROLES)
   public Role updateRole(Role role) {
     roleDAO.update(role);
     return role;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Authorize(permission = Permission.EDIT_ROLES)
   public void deleteRole(String roleId) {
     Role role = roleDAO.getByIdNotNull(roleId);
     roleDAO.delete(role);

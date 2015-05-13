@@ -54,7 +54,7 @@
                   <li id="system-configuration-users" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('users') }">
                     <a href='index.html#/users'>Users</a>
                   </li>
-                  <li id="system-configuration-roles" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('roles') }">
+                  <li id="system-configuration-roles" ng-if="permissions.VIEW_ROLES" ng-class="{'active': $state.is('roles') }">
                     <a href='index.html#/roles'>Roles</a>
                   </li>
                   <li id="system-configuration-administrators" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('administrators') }">

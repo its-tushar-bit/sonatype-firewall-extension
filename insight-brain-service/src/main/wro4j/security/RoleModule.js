@@ -21,7 +21,7 @@
         resolve: {
           'isAuthorized': [
             'PermissionService', function(PermissionService) {
-              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+              return PermissionService.isAuthorized(['VIEW_ROLES'], true);
             }
           ]
         }

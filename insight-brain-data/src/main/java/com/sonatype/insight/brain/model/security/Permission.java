@@ -16,6 +16,10 @@ public enum Permission
   CONFIGURE_SYSTEM("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS,
       "System Configuration and Users"),
 
+  EDIT_ROLES("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "Custom Roles"),
+
+  VIEW_ROLES("View", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "All Roles"),
+  
   MANAGE_PROPRIETARY("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "Proprietary Components"),
 
   WRITE("Edit", Permission.CATEGORY_CLM_PERMISSIONS, "CLM elements"),

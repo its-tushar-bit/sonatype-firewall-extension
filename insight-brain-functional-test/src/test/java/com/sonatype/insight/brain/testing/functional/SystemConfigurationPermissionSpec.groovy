@@ -45,7 +45,7 @@ extends BaseSpec {
 
     then: "user sees all menu items except roles and proprietary"
     waitFor { systemConfig.manageUsers.present }
-    systemConfig.manageRoles.present
+    !systemConfig.manageRoles.present
     systemConfig.manageAdministrators.present
     systemConfig.manageProductLicense.present
     systemConfig.manageLdap.present
@@ -74,5 +74,29 @@ extends BaseSpec {
     !systemConfig.manageAdministrators.present
     !systemConfig.manageProductLicense.present
     !systemConfig.manageLdap.present
+  }
+
+  def "cog icon and proper items shown for VIEW_ROLES privileged user"() {
+    given: "a VIEW_ROLES privileged user"
+    User privilegedUser = temporaryEntity.newUser()
+    Role role = temporaryEntity.newRole(true, Permission.VIEW_ROLES)
+    temporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), privilegedUser.getUsername())
+
+    when: "who logs into the system"
+    loginAsUserVia(privilegedUser.getUsername(), privilegedUser.getPassword())
+
+    then: "can see the cog menu"
+    waitFor { systemConfig.dropdown.present }
+
+    when: "user clicks on the cog menu"
+    systemConfig.dropdown.click()
+
+    then: "user sees only the Roles menu item"
+    waitFor { systemConfig.manageRoles.present }
+    !systemConfig.manageUsers.present
+    !systemConfig.manageAdministrators.present
+    !systemConfig.manageProductLicense.present
+    !systemConfig.manageLdap.present
+    !systemConfig.manageProprietary.present
   }
 }

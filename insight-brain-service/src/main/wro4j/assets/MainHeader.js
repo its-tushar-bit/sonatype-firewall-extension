@@ -139,7 +139,7 @@
     $scope.permissions = {};
 
     PermissionService.getValidPermissions([
-      'CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY'
+      'CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES'
     ]).then(function(permissions) {
       angular.forEach(permissions, function(permission){
         $scope.permissions[permission] = true;

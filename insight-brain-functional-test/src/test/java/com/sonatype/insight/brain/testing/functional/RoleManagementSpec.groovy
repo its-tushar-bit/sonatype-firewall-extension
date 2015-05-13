@@ -70,7 +70,7 @@ extends BaseSpec {
     writePermission.description.text() == 'CLM elements'
 
     PermissionCategory systemCategory = roleManagementPage.permissionCategory('Administrator')
-    systemCategory.permissions.size() == 2
+    systemCategory.permissions.size() == 4
 
     Permission administratorPermission = systemCategory.permission(0)
     !administratorPermission.toggleSwitch.isOn()
@@ -78,7 +78,7 @@ extends BaseSpec {
     administratorPermission.name.text() == 'Edit'
     administratorPermission.description.text() == 'System Configuration and Users'
 
-    Permission permission = systemCategory.permission(1)
+    Permission permission = systemCategory.permission(3)
     !permission.toggleSwitch.isOn()
     !permission.toggleSwitch.isEnabled()
     permission.name.text() == 'Edit'

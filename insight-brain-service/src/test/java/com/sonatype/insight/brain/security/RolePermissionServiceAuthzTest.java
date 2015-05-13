@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -25,7 +26,7 @@ public class RolePermissionServiceAuthzTest
 
   @Test
   public void testPermissionsForRole_Authorized() {
-    grantConfigureSystemPermission();
+    grantGlobalPermission(Permission.VIEW_ROLES);
     RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(rolePermission.permissionCategories, not(empty()));
     assertThat(rolePermission.permissionCategories.get(0).permissions, not(empty()));

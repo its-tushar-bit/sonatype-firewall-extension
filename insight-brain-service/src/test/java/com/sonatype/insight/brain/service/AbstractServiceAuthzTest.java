@@ -70,15 +70,11 @@ public class AbstractServiceAuthzTest
   }
 
   protected void grantConfigureSystemPermission() {
-    Role role = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
-    login();
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
   }
 
   protected void grantWritePermission() {
-    Role role = tempEntity.newRole(true /* global */, Permission.WRITE);
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
-    login();
+    grantGlobalPermission(Permission.WRITE);
   }
 
   protected void grantWritePermission(String contextId) {
@@ -96,6 +92,12 @@ public class AbstractServiceAuthzTest
   protected void grantPermission(String contextId, Permission permission) {
     Role role = tempEntity.newRole(false /* global */, permission);
     tempEntity.newMembershipMapping(contextId, role.getId(), user.getUsername());
+    login();
+  }
+
+  protected void grantGlobalPermission(Permission permission) {
+    Role role = tempEntity.newRole(true /* global */, permission);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
     login();
   }
 }

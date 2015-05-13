@@ -33,7 +33,7 @@ public class RolePermissionService
     this.rolePermissionDAO = rolePermissionDAO;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  @Authorize(permission = Permission.VIEW_ROLES)
   public RolePermissionDTO getPermissionsForRole(final String roleId) {
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(roleId);
     Set<Permission> permissionsForRole = rolePermissionDAO.getPermissionsForRole(roleId);

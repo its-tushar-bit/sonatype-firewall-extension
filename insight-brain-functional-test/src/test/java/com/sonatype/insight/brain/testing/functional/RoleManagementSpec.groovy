@@ -49,25 +49,25 @@ extends BaseSpec {
     !evaluateAppPermission.toggleSwitch.isOn()
     !evaluateAppPermission.toggleSwitch.isEnabled()
     evaluateAppPermission.name.text() == 'Evaluate'
-    evaluateAppPermission.description.text() == 'Applications within your assigned organization or application'
+    evaluateAppPermission.description.text() == 'Applications'
 
     Permission evaluateComponentPermission = policyCategory.permission(3)
     evaluateComponentPermission.toggleSwitch.isOn()
     !evaluateComponentPermission.toggleSwitch.isEnabled()
     evaluateComponentPermission.name.text() == 'Evaluate'
-    evaluateComponentPermission.description.text() == 'Individual components within your assigned organization or application'
+    evaluateComponentPermission.description.text() == 'Individual components'
 
     Permission viewPermission = policyCategory.permission(1)
     viewPermission.toggleSwitch.isOn()
     !viewPermission.toggleSwitch.isEnabled()
     viewPermission.name.text() == 'View'
-    viewPermission.description.text() == 'CLM elements within your assigned organization or application'
+    viewPermission.description.text() == 'CLM elements'
 
     Permission writePermission = policyCategory.permission(0)
     !writePermission.toggleSwitch.isOn()
     !writePermission.toggleSwitch.isEnabled()
     writePermission.name.text() == 'Edit'
-    writePermission.description.text() == 'CLM elements within your assigned organization or application'
+    writePermission.description.text() == 'CLM elements'
 
     PermissionCategory systemCategory = roleManagementPage.permissionCategory('Administrator')
     systemCategory.permissions.size() == 2

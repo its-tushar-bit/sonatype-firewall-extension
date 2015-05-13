@@ -94,6 +94,8 @@ public class UserResource
 
   /**
    * Retrieves a list of users that can be used to assign role-to-user memberships for global roles.
+   * 
+   * @since 1.15.0
    */
   @GET
   @Path("global/{notUsed}/query")

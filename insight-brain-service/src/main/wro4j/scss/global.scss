@@ -121,6 +121,10 @@ body {
       <li>Better quality</li>
     </ul>
     <p>Sonatype has options that will allow you to experience CLM on your own, on your schedule.</p>
+    <h1>Another Header</h1>
+    <div>
+      <p>With an embedded paragraph below it. No top margin here as it should bleed into the header bottom margin.</p>
+    </div>
   ```
 */
 p {
@@ -137,6 +141,9 @@ p + ul {
 }
 ul + p {
   margin-top: 20px;
+}
+h1 + div > *:first-child, h2 + div > *:first-child, h3 + div > *:first-child, h4 + div > *:first-child {
+  margin-top: 0;
 }
 
 /*

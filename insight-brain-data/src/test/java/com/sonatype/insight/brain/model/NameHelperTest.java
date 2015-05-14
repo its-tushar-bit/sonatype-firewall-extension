@@ -30,7 +30,7 @@ public class NameHelperTest
   // The names must be case-insensitive unique in order to avoid test failures due to entity names being
   // case-insensitive unique.
   public static final String[] VALID_NAMES = { "abcdefghijklmnopqrstuvwxyz", "BACDEFGHIJKLMNOPQRSTUVWXYZ",
-      "1234567890", "-", ".", "_", "a b" };
+      "1234567890", "-", "a.", "_", "a b" };
 
   @Test
   public void validateNameCanNotBeBlank() throws Exception {

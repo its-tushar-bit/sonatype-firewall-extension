@@ -349,6 +349,9 @@ public class ApplicationDAO
     if (WHITESPACE_PATTERN.matcher(publicId).find()) {
       throw new InvalidApplicationException("Public ID cannot contain whitespaces.");
     }
+    if (".".equals(publicId) || "..".equals(publicId)) {
+      throw new InvalidApplicationException("Public ID cannot be '.' or '..'");
+    }
   }
 
   public List<Application> getByOrganizationIdAndLabelLowercase(TransactionContext tx, String organizationId,

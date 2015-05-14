@@ -263,6 +263,30 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidatePublicIdIsDot_Insert() {
+    Application app = new Application(".", "name", organization.getId());
+    try {
+      applicationDAO.insert(app);
+      fail("Expected InvalidApplicationException");
+    }
+    catch (InvalidApplicationException expected) {
+      assertThat(expected.getMessage(), is("Public ID cannot be '.' or '..'"));
+    }
+  }
+
+  @Test
+  public void testValidatePublicIdIsDotDot_Insert() {
+    Application app = new Application("..", "name", organization.getId());
+    try {
+      applicationDAO.insert(app);
+      fail("Expected InvalidApplicationException");
+    }
+    catch (InvalidApplicationException expected) {
+      assertThat(expected.getMessage(), is("Public ID cannot be '.' or '..'"));
+    }
+  }
+
+  @Test
   public void testPublicIdIsCaseInsensitive() {
     String appPublicId = "testPublicIdIsCaseInsensitive";
 

@@ -189,7 +189,7 @@ public class MembershipMappingResourceTest
   @Test
   public void testLdap_GlobalRoles() throws Exception {
     embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+    embeddedLdapServer.loadData("/MembershipMappingResourceTest/ldap_users.ldif");
 
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());

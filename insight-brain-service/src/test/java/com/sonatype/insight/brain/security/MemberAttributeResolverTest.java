@@ -62,7 +62,7 @@ public class MemberAttributeResolverTest extends InjectedTest
   @Test
   public void testResolveLDAPUserAndGroup() throws Exception {
     embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+    embeddedLdapServer.loadData("/MemberAttributeResolverTest/ldap_users.ldif");
 
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
@@ -92,7 +92,7 @@ public class MemberAttributeResolverTest extends InjectedTest
   @Test
   public void testCLMUserShading() throws Exception {
     embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+    embeddedLdapServer.loadData("/MemberAttributeResolverTest/ldap_users.ldif");
 
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());

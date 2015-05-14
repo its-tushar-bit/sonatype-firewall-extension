@@ -6,38 +6,32 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.ldap.TestLdapServer;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.UserResource.ChangePasswordDTO;
-import com.sonatype.insight.brain.security.UserResource.FindMembersDTO;
+import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
+import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionResource;
 import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 import org.apache.commons.lang.StringUtils;
-import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -49,65 +43,12 @@ import static org.junit.Assert.assertThat;
 public class UserResourceTest
     extends AbstractResourceTest
 {
-  private List<User> usersToDelete = new ArrayList<>();
-
-  @Rule
-  public TestLdapServer embeddedLdapServer = new TestLdapServer();
-
-  private ApplicationDAO applicationDao = new ApplicationDAO();
-
-  @After
-  public void after() throws Exception {
-    UserDAO dao = new UserDAO();
-    for (User user : usersToDelete) {
-      user = dao.getById(user.getId());
-      if (user != null) {
-        dao.delete(user);
-      }
-    }
-  }
-
   private List<User> fromResponse(Response response) {
     User[] users = fromJson(response, User[].class);
     if (users == null) {
       return null;
     }
     return Arrays.asList(users);
-  }
-
-  @Test
-  public void testNullOrEmptyPassword() throws Exception {
-    // Add a user with null password
-    User user = new User("testNullPassword", null /* password */, "testNullPasswordFirstName",
-        "testNullPasswordLastName", "testNullPassword@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("The password is required."));
-
-    // Add a user with empty password
-    user = new User("testNullPassword", " " /* password */, "testNullPasswordFirstName",
-        "testNullPasswordLastName", "testNullPassword@sonatype.com");
-    response = AuthedRestAccess.post(getServiceURL(), toJson(user));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("The password is required."));
-
-    // Create a valid user
-    user = new User("testNullPassword", "testNullPassword", "testNullPasswordFirstName", "testNullPasswordLastName",
-        "testNullPassword@sonatype.com");
-    response = AuthedRestAccess.post(getServiceURL(), toJson(user));
-    assertResponseStatus(200, response);
-    usersToDelete.add(user);
-
-    // Update to null password
-    user.setPassword(null);
-    response = AuthedRestAccess.put(getServiceURL(), toJson(user));
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("The password is required."));
-
-    // Update to empty password
-    user.setPassword(" ");
-    assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("The password is required."));
   }
 
   @Test
@@ -126,15 +67,15 @@ public class UserResourceTest
     response = AuthedRestAccess.post(getServiceURL(), toJson(user));
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
-    usersToDelete.add(user);
+    tempEntity.register(user);
     assertThat(user.getId(), notNullValue());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
     UserDAO dao = new UserDAO();
     user = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPassword()), is(not(UserService.FAKE_PASSWORD)));
     assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
@@ -145,8 +86,8 @@ public class UserResourceTest
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
 
     // Update, no password change
     user.setFirstName("testCRUDFirstNameUpdated");
@@ -154,11 +95,11 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
     user = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPassword()), is(not(UserService.FAKE_PASSWORD)));
     assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
@@ -169,8 +110,8 @@ public class UserResourceTest
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
 
     // Update, password change
     user.setPassword("testCRUDPasswordUpdated");
@@ -178,11 +119,11 @@ public class UserResourceTest
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
-    assertThat(String.valueOf(user.getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
     user = dao.getByIdNotNull(user.getId());
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), notNullValue());
-    assertThat(String.valueOf(user.getPassword()), is(not(UserResource.FAKE_PASSWORD)));
+    assertThat(String.valueOf(user.getPassword()), is(not(UserService.FAKE_PASSWORD)));
     assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPasswordUpdated")));
 
     // Get all
@@ -193,8 +134,8 @@ public class UserResourceTest
     assertThat(users, hasSize(2));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", users.get(1));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
-    assertThat(String.valueOf(users.get(1).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
 
     // Delete
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
@@ -207,7 +148,7 @@ public class UserResourceTest
     assertThat(users, notNullValue());
     assertThat(users, hasSize(1));
     assertThat(User.ADMIN_USERNAME, is(users.get(0).getUsername()));
-    assertThat(String.valueOf(users.get(0).getPassword()), is(UserResource.FAKE_PASSWORD));
+    assertThat(String.valueOf(users.get(0).getPassword()), is(UserService.FAKE_PASSWORD));
   }
 
   @Test
@@ -217,7 +158,7 @@ public class UserResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
-    usersToDelete.add(user);
+    tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
     Cookie adminCookie = extractSessionCookie(response);
 
@@ -249,7 +190,7 @@ public class UserResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
-    usersToDelete.add(user);
+    tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
     
     // create another user
@@ -257,7 +198,7 @@ public class UserResourceTest
     response = AuthedRestAccess.post(getServiceURL(), toJson(user2));
     assertResponseStatus(200, response);
     user2 = fromJson(response, User.class);
-    usersToDelete.add(user2);
+    tempEntity.register(user2);
     assertThat(user2.getId(), is(notNullValue()));
     
     // log the first user in to create a session
@@ -293,7 +234,7 @@ public class UserResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
-    usersToDelete.add(user);
+    tempEntity.register(user);
     MembershipMapping membershipMapping = new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         Role.SYSTEM_ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
     new MembershipMappingDAO().insert(membershipMapping);
@@ -311,102 +252,6 @@ public class UserResourceTest
   }
 
   @Test
-  public void testDeleteUserNoLdapRemovesContact() throws Exception {
-    // Create a user
-    final String clmUserName = "test-user";
-    final User user = tempEntity.newUser(clmUserName);
-
-    // Create an application with the user as the contact
-    Application application = createApplication(user);
-    // Check to see that the contact is the userName
-    assertThat(application.getContactInternalName(), is(clmUserName));
-
-    // Delete the user
-    final Response response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
-    assertResponseStatus(204, response);
-
-    // Check to see if the contact has also been deleted
-    application = applicationDao.getById(application.getId());
-    assertThat(application, notNullValue());
-    assertThat(application.getContactInternalName(), is(nullValue()));
-  }
-
-  @Test
-  public void testDeleteUserNoLdapMatchRemovesContact() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
-
-    final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    final String clmUserName = "clm-test-user";
-
-    // Make sure the clm user is not in LDAP
-    Response response = AuthedRestAccess.get(getSearchUrl(clmUserName));
-    final FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
-    final List<Member> dtoMembers = dto.getMembers();
-    final Member[] members = dtoMembers.toArray(new Member[dtoMembers.size()]);
-    assertThat(members, emptyArray());
-
-    // Add the user to CLM
-    final User user = tempEntity.newUser(clmUserName);
-
-    // Create an application with the user as the contact
-    Application application = createApplication(user);
-    // Check to see that the contact is the userName
-    assertThat(application.getContactInternalName(), is(clmUserName));
-
-    // Delete the user
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
-    assertResponseStatus(204, response);
-
-    // Check to see if the application contact has also been deleted
-    application = applicationDao.getById(application.getId());
-    assertThat(application, notNullValue());
-    assertThat(application.getContactInternalName(), is(nullValue()));
-  }
-
-  @Test
-  public void testDeleteUserWithLdapMatchDoesNotRemoveContact() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
-
-    final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    final String clmAndLDapUserName = "testuser";
-
-    // Check LDAP for the user
-    Response response = AuthedRestAccess.get(getSearchUrl("John Doe"));
-    assertMember(response, null, MemberType.USER, clmAndLDapUserName, "John Doe", "test.user@company.com", "LDAP");
-
-    // Create the same user in CLM
-    final User user = tempEntity.newUser(clmAndLDapUserName);
-
-    // Create an application with the user as the contact
-    Application application = createApplication(user);
-    // Check to see that the contact is the userName
-    assertThat(application.getContactInternalName(), is(clmAndLDapUserName));
-
-    // Delete the user
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
-    assertResponseStatus(204, response);
-
-    // Check to see if the application contact has not been deleted
-    application = applicationDao.getById(application.getId());
-    assertThat(application, notNullValue());
-    assertThat(application.getContactInternalName(), is(clmAndLDapUserName));
-  }
-
-  private Application createApplication(User contactUser) {
-    // Create an organization and application
-    final Organization organization = tempEntity.newOrganization("ApplicationResourceTest");
-    return tempEntity.newApplication("My App", "my-app", organization.getId(), contactUser.getUsername());
-  }
-
-  @Test
   public void testChangeMyPassword() throws Exception {
     // Add user so we can change his password
     User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
@@ -414,7 +259,7 @@ public class UserResourceTest
     Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
-    usersToDelete.add(user);
+    tempEntity.register(user);
 
     String changePasswordUrl = getServiceURL() + "/password";
 
@@ -453,94 +298,17 @@ public class UserResourceTest
   }
 
   @Test
-  public void testFindCLMUsers() throws Exception {
-    Response response = AuthedRestAccess.get(getSearchUrl(""));
-    assertResponseStatus(400, response);
-
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME + "*"));
+  public void testFindMembersForGlobalRoles() throws Exception {
+    Response response = AuthedRestAccess.get(getFindMembersForGlobalRolesUrl(User.ADMIN_USERNAME + "*"));
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
+  }
 
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1)
-        + "*"));
+  @Test
+  public void testFindMembersForNonGlobalRoles() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Response response = AuthedRestAccess.get(getFindMembersForNonGlobalRolesUrl(IdUtils.TYPE_ORGANIZATION, org.getId(),
+        User.ADMIN_USERNAME + "*"));
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
-
-    response = AuthedRestAccess.get(getSearchUrl("nobody-has-such-a-name-really"));
-    assertResponseStatus(200, response);
-
-    FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
-    assertThat(dto.getError(), nullValue());
-
-    Member[] users = dto.getMembers().toArray(new Member[0]);
-    assertThat(users, is(notNullValue()));
-    assertThat(users.length, is(0));
-  }
-
-  @Test
-  public void testFindLdapUser() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    Response response = AuthedRestAccess.get(getSearchUrl("John Doe"));
-    assertMember(response, null, MemberType.USER, "testuser", "John Doe", "test.user@company.com", "LDAP");
-
-    tempEntity.newUser("testuser");
-
-    // Test shading. testuser loaded from "/UserResourceTest/ldap_users.ldif" should not be returned
-    response = AuthedRestAccess.get(getSearchUrl("John Doe"));
-    assertMember(response, null, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
-  }
-
-  @Test
-  public void testFindLdapGroup() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    Response response = AuthedRestAccess.get(getSearchUrl("Alpha"));
-    assertMember(response, null, MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
-  }
-
-  @Test
-  public void testFindLdapUserAndGroupWithSameName() throws Exception {
-    embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
-
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    Response response = AuthedRestAccess.get(getSearchUrl("Beta"));
-    assertResponseStatus(200, response);
-    FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
-    Member[] members = dto.getMembers().toArray(new Member[0]);
-    assertThat(members, is(notNullValue()));
-    assertThat("Found members:" + Arrays.toString(members), members.length, is(2));
-
-    assertMember(members[0], MemberType.USER, "Beta", "Beta", "beta.user@company.com", "LDAP");
-    assertMember(members[1], MemberType.GROUP, "Beta", "Beta", null, "LDAP");
-  }
-
-  @Test
-  public void testNoLdapConnection() throws Exception {
-    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    Response response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME) + "*");
-
-    // Should not try to use Ldap until server is added and configured
-    assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
-
-    tempEntity.newLdapConnection(ldapServer.getId());
-    tempEntity.newLdapUserMapping(ldapServer.getId());
-
-    response = AuthedRestAccess.get(getSearchUrl(User.ADMIN_USERNAME) + "*");
-    assertMember(response, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
-        "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
   private void assertUser(String username, String firstName, String lastName, String email, User actual) {
@@ -554,8 +322,15 @@ public class UserResourceTest
     return getRestBaseUrl() + UserResource.SERVICE_PATH;
   }
 
-  private String getSearchUrl(String query) throws Exception {
+  private String getFindMembersForGlobalRolesUrl(String query) throws UnsupportedEncodingException {
     return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + URLEncoder.encode(query, "UTF-8");
+  }
+
+  private String getFindMembersForNonGlobalRolesUrl(String ownerType, String ownerId, String query)
+      throws UnsupportedEncodingException
+  {
+    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/" + ownerType + "/" + ownerId + "/query?q="
+        + URLEncoder.encode(query, "UTF-8");
   }
 
   private void assertMember(Response response, String error, MemberType type, String name, String displayName,

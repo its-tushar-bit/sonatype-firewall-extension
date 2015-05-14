@@ -353,7 +353,7 @@ public abstract class AbstractApiApplicationResourceTest
   @Test
   public void testLdapAppRoles() throws Exception {
     embeddedLdapServer.start();
-    embeddedLdapServer.loadData("/UserResourceTest/ldap_users.ldif");
+    embeddedLdapServer.loadData("/AbstractApiApplicationResourceTest/ldap_users.ldif");
 
     final LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());

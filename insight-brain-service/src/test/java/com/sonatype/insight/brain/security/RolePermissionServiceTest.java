@@ -46,6 +46,23 @@ public class RolePermissionServiceTest
     }
   }
 
+  @Test
+  public void testGetAllPermissionsForNewRole() {
+    RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForNewRole();
+    RolePermissionDTO expected = getExpectedRolePermissions();
+    assertThat(rolePermissions.permissionCategories.size(), is(expected.permissionCategories.size()));
+    for (int i = 0; i < rolePermissions.permissionCategories.size(); i++) {
+      PermissionCategoryDTO actualCategory = rolePermissions.permissionCategories.get(i);
+      PermissionCategoryDTO expectedCategory = rolePermissions.permissionCategories.get(i);
+      assertThat(actualCategory.displayName, is(expectedCategory.displayName));
+      assertThat(actualCategory.permissions, hasSize(expectedCategory.permissions.size()));
+      for (int j = 0; j < actualCategory.permissions.size(); j++) {
+        assertThat(actualCategory.permissions.get(j).displayName, is(expectedCategory.permissions.get(j).displayName));
+        assertThat(actualCategory.permissions.get(j).description, is(expectedCategory.permissions.get(j).description));
+      }
+    }
+  }
+
   private RolePermissionDTO getExpectedRolePermissions() {
     ListMultimap<String, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
     for (Permission perm : EnumSet.allOf(Permission.class)) {

@@ -35,4 +35,10 @@ public class RolePermissionResource
   public RolePermissionDTO getPermissionsForRole(@PathParam("roleId") final String roleId) {
     return rolePermissionService.getPermissionsForRole(roleId);
   }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public RolePermissionDTO getPermissions() {
+    return rolePermissionService.getPermissionsForNewRole();
+  }
 }

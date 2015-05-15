@@ -1091,6 +1091,9 @@ var AngularStateUtils = {
         if (!args) {
           return;
         }
+        if (typeof args === 'string') {
+          return args;
+        }
         if (angular.isArray(args) || args.toString() === '[object Arguments]') {
           args = {
             status: args[1],

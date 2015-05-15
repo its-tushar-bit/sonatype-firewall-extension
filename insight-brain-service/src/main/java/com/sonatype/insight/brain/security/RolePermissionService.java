@@ -34,24 +34,35 @@ public class RolePermissionService
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
+  public RolePermissionDTO getPermissionsForNewRole() {
+    RolePermissionDTO rolePermissionDTO = new RolePermissionDTO();
+    buildDTO(rolePermissionDTO, EnumSet.noneOf(Permission.class));
+    return rolePermissionDTO;
+  }
+
+  @Authorize(permission = Permission.VIEW_ROLES)
   public RolePermissionDTO getPermissionsForRole(final String roleId) {
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(roleId);
     Set<Permission> permissionsForRole = rolePermissionDAO.getPermissionsForRole(roleId);
+    buildDTO(rolePermissionDTO, permissionsForRole);
+    return rolePermissionDTO;
+
+  }
+
+  private void buildDTO(RolePermissionDTO rolePermissionDTO, Set<Permission> permissions) {
     ListMultimap<String, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
 
     for (Permission perm : EnumSet.allOf(Permission.class)) {
-      permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissionsForRole.contains(perm)));
+      permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissions.contains(perm)));
     }
 
     for (String category : permissionsByCategoryMap.keySet()) {
-      List<PermissionDTO> permissions = permissionsByCategoryMap.get(category);
+      List<PermissionDTO> categoryPermissions = permissionsByCategoryMap.get(category);
       PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(category);
-      permissionCategoryDTO.permissions = permissions;
+      permissionCategoryDTO.permissions = categoryPermissions;
       rolePermissionDTO.permissionCategories.add(permissionCategoryDTO);
     }
     Collections.sort(rolePermissionDTO.permissionCategories, PERMISSION_CATEGORY_COMPARATOR);
-
-    return rolePermissionDTO;
   }
 
   // just so happens that alpha sort works for now

@@ -51,7 +51,7 @@ public class UserSessionResource
   /**
    * Logout the currently logged in user.
    * 
-   * Conciously not doing this in a RESTful manner.  The use of a separate resource path is because we want to allow
+   * Conciously not doing this in a RESTful manner. The use of a separate resource path is because we want to allow
    * anonymous access but Shiro doesn't have the capability to apply different authc per HTTP method.
    * See https://issues.apache.org/jira/browse/SHIRO-200 .
    */
@@ -62,7 +62,7 @@ public class UserSessionResource
   }
 
   /**
-   * Get the authentication status of the current account. 
+   * Get the authentication status of the current account.
    */
   @Produces(MediaType.APPLICATION_JSON)
   @GET
@@ -80,9 +80,9 @@ public class UserSessionResource
     private String username;
 
     private String displayName;
-    
+
     private boolean isAuthenticated;
-    
+
     private boolean isClmUser;
 
     /**
@@ -99,22 +99,23 @@ public class UserSessionResource
     public static AuthenticationStatus fromSubject(Subject subject) {
       AuthenticationStatus status = new AuthenticationStatus();
       status.setAuthenticated(subject.isAuthenticated());
-      
-      // Supply username if it's available.  Will be useful when a user is remembered but not authenticated.
-      if(subject.getPrincipal() != null) {
+
+      // Supply username if it's available. Will be useful when a user is remembered but not authenticated.
+      if (subject.getPrincipal() != null) {
         Object principal = subject.getPrincipal();
         if (principal instanceof UserPrincipal) {
           status.setUsername(((UserPrincipal) principal).getUsername());
-          status.setDisplayName(((UserPrincipal)principal).getDisplayName());
+          status.setDisplayName(((UserPrincipal) principal).getDisplayName());
           status.setClmUser(((UserPrincipal) principal).isClmUser());
-        } else {
+        }
+        else {
           status.setUsername(subject.getPrincipal().toString());
         }
       }
 
       return status;
     }
-    
+
     public void setUsername(String username) {
       this.username = username;
     }

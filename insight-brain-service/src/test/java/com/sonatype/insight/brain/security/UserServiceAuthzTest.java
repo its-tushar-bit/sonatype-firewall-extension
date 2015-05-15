@@ -180,7 +180,7 @@ public class UserServiceAuthzTest
     User user = tempEntity.newUser("testDeleteUser");
     userService.deleteUser(user.getId());
   }
-  
+
   @Test
   public void testResetPassword_Authorized() throws Exception {
     grantConfigureSystemPermission();

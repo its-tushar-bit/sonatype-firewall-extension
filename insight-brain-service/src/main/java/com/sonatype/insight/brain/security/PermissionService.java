@@ -22,8 +22,7 @@ import org.apache.shiro.subject.Subject;
 @Named
 public class PermissionService
 {
-  public Set<Permission> hasPermissions(Subject subject, String ownerType, String ownerId,
-                                        Set<Permission> permissions)
+  public Set<Permission> hasPermissions(Subject subject, String ownerType, String ownerId, Set<Permission> permissions)
   {
     EnumSet<Permission> result = EnumSet.noneOf(Permission.class);
 
@@ -31,12 +30,12 @@ public class PermissionService
       Map<Key, ContextParameter> contextMap;
       switch (ownerType) {
         case IdUtils.TYPE_APPLICATION:
-          contextMap = Collections
-              .singletonMap(Key.APPLICATION_ID, new ContextParameter(Key.APPLICATION_ID, ownerId, false));
+          contextMap = Collections.singletonMap(Key.APPLICATION_ID, new ContextParameter(Key.APPLICATION_ID, ownerId,
+              false));
           break;
         case IdUtils.TYPE_ORGANIZATION:
-          contextMap = Collections
-              .singletonMap(Key.ORGANIZATION_ID, new ContextParameter(Key.ORGANIZATION_ID, ownerId, false));
+          contextMap = Collections.singletonMap(Key.ORGANIZATION_ID, new ContextParameter(Key.ORGANIZATION_ID, ownerId,
+              false));
           break;
         default:
           contextMap = Collections.emptyMap();

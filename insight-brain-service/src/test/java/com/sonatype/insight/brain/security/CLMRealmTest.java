@@ -54,8 +54,7 @@ public class CLMRealmTest
   public void testDoGetAuthenticationInfo_ValidUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "admin123".toCharArray());
-    AuthenticationInfo authenticationInfo = realm
-        .doGetAuthenticationInfo(usernamePasswordToken);
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertNotNull(principalCollection);
     assertFalse(principalCollection.isEmpty());
@@ -76,15 +75,14 @@ public class CLMRealmTest
   @Test
   public void testDoGetAuthenticationInfo_UnknownUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("Yeti", "admin123".toCharArray());
-    AuthenticationInfo authenticationInfo = realm
-        .doGetAuthenticationInfo(usernamePasswordToken);
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     assertThat(authenticationInfo, nullValue());
   }
 
   /**
    * testing internals
    * auth info indicates account found
-   * call to auth does not compare the credentials, that's left to Shiro and the public method 
+   * call to auth does not compare the credentials, that's left to Shiro and the public method
    * auth info comprised of:
    * - 1 principal
    * - principal is from the clm realm
@@ -95,8 +93,7 @@ public class CLMRealmTest
   public void testDoGetAuthenticationInfo_WrongPassword() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "Oops! Wrong password!".toCharArray());
-    AuthenticationInfo authenticationInfo = realm
-        .doGetAuthenticationInfo(usernamePasswordToken);
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertNotNull(principalCollection);
     assertFalse(principalCollection.isEmpty());
@@ -146,15 +143,14 @@ public class CLMRealmTest
   /**
    * testing public api
    * principal is populated with the username
-   * expect that public access preserves the information populated privately; note we expect this, but don't really 
+   * expect that public access preserves the information populated privately; note we expect this, but don't really
    * care since we don't use the extra info
    */
   @Test
   public void testGetAuthenticationInfo_ValidUser() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(User.ADMIN_USERNAME,
         "admin123".toCharArray());
-    AuthenticationInfo authenticationInfo = realm
-        .getAuthenticationInfo(usernamePasswordToken);
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
     assertNotNull(principalCollection);
     assertFalse(principalCollection.isEmpty());

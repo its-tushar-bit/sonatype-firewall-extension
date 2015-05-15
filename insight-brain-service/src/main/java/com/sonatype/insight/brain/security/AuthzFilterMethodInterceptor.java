@@ -51,7 +51,7 @@ class AuthzFilterMethodInterceptor
       AuthzFilter anno = getAnnotation(mi);
       if (anno != null) {
         Object principal = getSubject().getPrincipal();
-        UserPrincipal user = (UserPrincipal)((principal != null) ? principal : null);
+        UserPrincipal user = (UserPrincipal) ((principal != null) ? principal : null);
         if (!isAnonymous(user, anno)) {
           result = authzChecker.filterByPermission(user, anno.permission(), result, anno.context());
         }

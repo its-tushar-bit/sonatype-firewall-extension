@@ -103,7 +103,7 @@ class AuthorizeMethodInterceptor
       }
       throw new UnauthenticatedException("Anonymous access forbidden", newAuthzException(mi));
     }
-    UserPrincipal user = (UserPrincipal)principal;
+    UserPrincipal user = (UserPrincipal) principal;
     Map<AuthzContext.Key, ContextParameter> contextParameters = getContextParameters(mi);
     if (!authzChecker.isPermitted(user, anno.permission(), contextParameters)) {
       throw new UnauthorizedException("Insufficient permissions", newAuthzException(mi));

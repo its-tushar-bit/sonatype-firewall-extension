@@ -54,13 +54,12 @@ public class RolePermissionService
     return rolePermissionDTO;
   }
 
-  //just so happens that alpha sort works for now
-  static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR =
-      new Comparator<PermissionCategoryDTO>()
-      {
-        @Override
-        public int compare(final PermissionCategoryDTO o1, final PermissionCategoryDTO o2) {
-          return o1.displayName.compareToIgnoreCase(o2.displayName);
-        }
-      };
+  // just so happens that alpha sort works for now
+  static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR = new Comparator<PermissionCategoryDTO>()
+  {
+    @Override
+    public int compare(final PermissionCategoryDTO o1, final PermissionCategoryDTO o2) {
+      return o1.displayName.compareToIgnoreCase(o2.displayName);
+    }
+  };
 }

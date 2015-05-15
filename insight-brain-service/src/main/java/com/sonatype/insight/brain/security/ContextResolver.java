@@ -170,7 +170,8 @@ class ContextResolver
           String id;
           if (parameters.get(Key.ID) != null) {
             id = get(parameters, Key.ID, String.class);
-          } else {
+          }
+          else {
             id = get(parameters, Key.INTERNAL_ID, String.class);
           }
           return ORGANIZATION_ID.resolveContextIds(id);

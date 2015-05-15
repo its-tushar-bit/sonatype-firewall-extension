@@ -148,12 +148,12 @@ public class UserServiceTest
     final Organization organization = tempEntity.newOrganization();
     return tempEntity.newApplication("My App", "my-app", organization.getId(), contactUser.getUsername());
   }
-  
+
   @Test
   public void testResetPassword() throws Exception {
     User user = tempEntity.newUser("testResetPassword");
     user.setPassword("testResetPasswordPassword");
-    
+
     ChangePasswordDTO dto = userService.resetPassword(user.getId());
     assertThat(dto.newPassword.length(), is(12));
     assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
@@ -269,7 +269,8 @@ public class UserServiceTest
   {
     if (!StringUtils.isBlank(error)) {
       assertThat(findMembersDTO.getError(), is(error));
-    } else {
+    }
+    else {
       assertThat(findMembersDTO.getError(), nullValue());
     }
 
@@ -280,7 +281,7 @@ public class UserServiceTest
   }
 
   private void assertMember(final Member member, final MemberType type, final String name, final String displayName,
-                            final String email, final String realm)
+      final String email, final String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(name));

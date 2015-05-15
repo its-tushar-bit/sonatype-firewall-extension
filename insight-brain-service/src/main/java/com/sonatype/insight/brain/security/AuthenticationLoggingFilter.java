@@ -38,8 +38,8 @@ public class AuthenticationLoggingFilter
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
       throws IOException, ServletException
   {
-    try (MDCUsernameScope mdcUsernameScope = currentUser.isAnonymous() ?
-        MDCUsernameScope.forAnonymous() : MDCUsernameScope.forUser(currentUser.getUsername())) {
+    try (MDCUsernameScope mdcUsernameScope = currentUser.isAnonymous() ? MDCUsernameScope.forAnonymous()
+        : MDCUsernameScope.forUser(currentUser.getUsername())) {
       chain.doFilter(request, response);
     }
   }

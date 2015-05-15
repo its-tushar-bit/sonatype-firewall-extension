@@ -87,7 +87,7 @@ public class UserSessionResourceTest
     // logged out by default, so 401 expected
     Response response = status(null);
     assertResponseStatus(401, response);
-    
+
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
@@ -109,7 +109,7 @@ public class UserSessionResourceTest
 
   @Test
   public void testLogoutNoAuth() throws Exception {
-    //no cookie, no auth
+    // no cookie, no auth
     Response response = logout(null);
     assertResponseStatus(204, response);
   }

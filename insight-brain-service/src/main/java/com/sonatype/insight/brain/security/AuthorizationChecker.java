@@ -51,15 +51,14 @@ public class AuthorizationChecker
    * Determines whether the given user has the specified permission in the supplied context or any of its ancestor
    * contexts.
    */
-  public boolean isPermitted(UserPrincipal user, Permission permission, Map<AuthzContext.Key,
-      ContextParameter> contextParameters)
+  public boolean isPermitted(UserPrincipal user, Permission permission,
+      Map<AuthzContext.Key, ContextParameter> contextParameters)
   {
     if (contextParameters.size() == 1 && contextParameters.values().iterator().next().multiple) {
       return checkIsPermittedMultiple(user, permission, contextParameters);
     }
     else {
       return checkIsPermittedSingle(user, permission, contextParameters);
-
     }
   }
 
@@ -68,7 +67,7 @@ public class AuthorizationChecker
   {
     ContextParameter parameter = contextParameters.values().iterator().next();
     if (parameter.object == null) {
-      //anyone can see nothing
+      // anyone can see nothing
       return true;
     }
     else if (parameter.object instanceof Collection<?>) {
@@ -100,7 +99,6 @@ public class AuthorizationChecker
     return isPermitted(user, permission, contextIds);
   }
 
-
   /**
    * Determines whether the given user has the specified permission in any of the supplied contexts.
    */
@@ -121,7 +119,8 @@ public class AuthorizationChecker
    * permission.
    */
   @SuppressWarnings("unchecked")
-  public Collection<?> filterByPermission(UserPrincipal user, Permission permission, Object entities, Context contextEntity)
+  public Collection<?> filterByPermission(UserPrincipal user, Permission permission, Object entities,
+      Context contextEntity)
   {
     Collection<Object> filtered = newCollection(entities);
     if (user != null) {

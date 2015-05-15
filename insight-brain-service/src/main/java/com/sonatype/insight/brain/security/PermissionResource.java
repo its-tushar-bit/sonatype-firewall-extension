@@ -40,7 +40,7 @@ public class PermissionResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Set<Permission> validatePermission(@PathParam("ownerType") final String ownerType,
-                                            @PathParam("ownerId") final String ownerId, Set<Permission> permissions)
+      @PathParam("ownerId") final String ownerId, Set<Permission> permissions)
   {
     if (permissions == null || permissions.isEmpty()) {
       throw new BadRequestException("Must specify permissions to check.");

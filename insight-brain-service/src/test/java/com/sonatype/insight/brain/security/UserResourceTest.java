@@ -182,7 +182,7 @@ public class UserResourceTest
     AuthenticationStatus status = fromJson(response, AuthenticationStatus.class);
     assertThat(status.isAuthenticated(), is(true));
   }
-  
+
   @Test
   public void testDelete_NoNPEWhenUserDeleted() throws Exception {
     // create some user
@@ -192,36 +192,38 @@ public class UserResourceTest
     user = fromJson(response, User.class);
     tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
-    
+
     // create another user
-    User user2 = new User("test-user-two", "test-password-two", "testFirstNameTwo", "testLastNameTwo", "test2@sonatype.com");
+    User user2 = new User("test-user-two", "test-password-two", "testFirstNameTwo", "testLastNameTwo",
+        "test2@sonatype.com");
     response = AuthedRestAccess.post(getServiceURL(), toJson(user2));
     assertResponseStatus(200, response);
     user2 = fromJson(response, User.class);
     tempEntity.register(user2);
     assertThat(user2.getId(), is(notNullValue()));
-    
+
     // log the first user in to create a session
     response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
         "test-password");
     assertResponseStatus(204, response);
-    
+
     // log the second user in to create another session then log them out
     response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user2.getUsername(),
         "test-password-two");
     assertResponseStatus(204, response);
     Cookie userCookie = extractSessionCookie(response);
-    response = RestAccess.delete(getRestBaseUrl() + UserSessionResource.LOGOUT_SERVICE_PATH, null, null, null, userCookie);
+    response = RestAccess.delete(getRestBaseUrl() + UserSessionResource.LOGOUT_SERVICE_PATH, null, null, null,
+        userCookie);
     assertResponseStatus(204, response);
-    
+
     // access an anonymous resource to create a third session
     response = RestAccess.get(getRestBaseUrl() + VersionResource.SERVICE_PATH);
     assertResponseStatus(200, response);
-    
+
     // now delete the first user
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
     assertResponseStatus(204, response);
-    
+
     // now delete the second user, if this passes, we are all set, this is where the NPE was occurring prior to fix
     response = AuthedRestAccess.delete(getServiceURL() + "/" + user2.getId());
     assertResponseStatus(204, response);
@@ -268,30 +270,28 @@ public class UserResourceTest
     dto.oldPassword = "badPass";
     dto.newPassword = "doesntmatter";
 
-    response = AuthedRestAccess.put(changePasswordUrl, toJson(dto), user.getUsername(),
-        "testChangePasswordPassword");
+    response = AuthedRestAccess.put(changePasswordUrl, toJson(dto), user.getUsername(), "testChangePasswordPassword");
     assertResponseStatus(400, response);
     assertEquals("Current password is wrong.", response.getResponseBody());
 
     // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword";
 
-    response = AuthedRestAccess.put(changePasswordUrl, toJson(dto), user.getUsername(),
-        "testChangePasswordPassword");
+    response = AuthedRestAccess.put(changePasswordUrl, toJson(dto), user.getUsername(), "testChangePasswordPassword");
     assertResponseStatus(204, response);
   }
-  
+
   @Test
   public void testResetPassword() throws Exception {
     // Add user so we can change his password
     User user = tempEntity.newUser("testResetPassword");
     user.setPassword("testResetPasswordPassword");
-    
+
     String url = getServiceURL() + "/" + user.getId() + "/reset";
 
     Response response = AuthedRestAccess.put(url, null);
     assertResponseStatus(200, response);
-    
+
     ChangePasswordDTO dto = fromJson(response, ChangePasswordDTO.class);
     assertThat(dto.newPassword.length(), is(12));
     assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
@@ -334,7 +334,7 @@ public class UserResourceTest
   }
 
   private void assertMember(Response response, String error, MemberType type, String name, String displayName,
-                            String email, String realm) throws IOException
+      String email, String realm) throws IOException
   {
     assertResponseStatus(200, response);
 
@@ -342,7 +342,8 @@ public class UserResourceTest
 
     if (!StringUtils.isBlank(error)) {
       assertThat(dto.getError(), is(error));
-    } else {
+    }
+    else {
       assertThat(dto.getError(), nullValue());
     }
 
@@ -353,7 +354,7 @@ public class UserResourceTest
   }
 
   private void assertMember(final Member member, final MemberType type, final String name, final String displayName,
-                            final String email, final String realm)
+      final String email, final String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(name));

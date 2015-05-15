@@ -25,7 +25,8 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
-public class MemberAttributeResolverTest extends InjectedTest
+public class MemberAttributeResolverTest
+    extends InjectedTest
 {
   @Inject
   private UserDirectory userDirectory;
@@ -118,14 +119,15 @@ public class MemberAttributeResolverTest extends InjectedTest
   }
 
   private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,
-                            String realm)
+      String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(internalName));
     assertThat(member.getDisplayName(), is(displayName));
     if (StringUtils.isNotEmpty(email)) {
       assertThat(member.getEmail(), is(email));
-    } else {
+    }
+    else {
       assertThat(member.getEmail(), is(nullValue()));
     }
     assertThat(member.getRealm(), is(realm));

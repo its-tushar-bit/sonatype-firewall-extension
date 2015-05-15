@@ -37,14 +37,13 @@ public class UserResource
   private static final String MY_PASSWORD_PATH = "/password";
 
   public static final String PASSWORD_PATH = "/{userId}/password";
-  
+
   public static final String RESET_PASSWORD_PATH = "/{userId}/reset";
 
   private final UserService userService;
 
   @Inject
-  public UserResource(UserService userService)
-  {
+  public UserResource(UserService userService) {
     this.userService = userService;
   }
 
@@ -107,7 +106,7 @@ public class UserResource
   public void changeMyPassword(ChangePasswordDTO password) {
     userService.changeMyPassword(password);
   }
-  
+
   @PUT
   @Path(RESET_PASSWORD_PATH)
   @Produces(MediaType.APPLICATION_JSON)

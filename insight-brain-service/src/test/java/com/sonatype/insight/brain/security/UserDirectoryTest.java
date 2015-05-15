@@ -90,7 +90,8 @@ public class UserDirectoryTest
         Sets.newHashSet(createUser("clmbob"), createUser("testuser"), createGroup("Alpha"))).get();
 
     assertThat(members, hasSize(3));
-    assertThat(names,
+    assertThat(
+        names,
         containsInAnyOrder(members.get(0).getInternalName(), members.get(1).getInternalName(), members.get(2)
             .getInternalName()));
 
@@ -161,7 +162,7 @@ public class UserDirectoryTest
     Set<String> names = Sets.newHashSet("clmbob", "testuser", "Alpha");
     UserDirectory.QueryResult result = userDirectory.getUsersByName(names);
     List<Member> members = result.get();
-    
+
     // Verify that the CLM user has been returned.
     assertThat(members, hasSize(1));
     assertThat(names, hasItems(members.get(0).getInternalName()));

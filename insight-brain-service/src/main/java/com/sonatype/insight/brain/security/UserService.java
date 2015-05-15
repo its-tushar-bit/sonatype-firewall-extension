@@ -48,8 +48,7 @@ public class UserService
   private final UserDirectory userDirectory;
 
   @Inject
-  public UserService(CLMRealm clmRealm, SessionDAO sessionDAO, UserDirectory userDirectory)
-  {
+  public UserService(CLMRealm clmRealm, SessionDAO sessionDAO, UserDirectory userDirectory) {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
     this.userDirectory = userDirectory;
@@ -156,8 +155,8 @@ public class UserService
     for (Session session : sessionDAO.getActiveSessions()) {
       Subject subject = new Subject.Builder().session(session).buildSubject();
       Object principal = subject.getPrincipal();
-      //if the principal is null, then session either has an anonymous Subject, 
-      //or the subject has already been invalidated by shiro
+      // if the principal is null, then session either has an anonymous Subject,
+      // or the subject has already been invalidated by shiro
       if (principal != null && user.getUsername().equalsIgnoreCase(principal.toString())) {
         subject.logout();
       }
@@ -187,7 +186,7 @@ public class UserService
 
     dao.update(user);
   }
-  
+
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   ChangePasswordDTO resetPassword(String userId) {
     UserDAO dao = new UserDAO();
@@ -198,10 +197,10 @@ public class UserService
     user.setPassword(clmRealm.encryptPassword(password));
 
     dao.update(user);
-    
+
     ChangePasswordDTO dto = new ChangePasswordDTO();
     dto.newPassword = password;
-    
+
     return dto;
   }
 

@@ -59,23 +59,25 @@ public class CLMShiroModule
     manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing if not authenticated
+    manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing
+                                                              // if not authenticated
     manager.createChain("/rest/version", "anon"); // product version info
     manager.createChain("/about", "anon"); // about product release static link
     manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", "anon"); // only redirects
     manager.createChain("/**/*", "authcBasic");
-    //change the auth type so browsers dont prompt for login details
-    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme("nonBrowserPromptingBasic");
+    // change the auth type so browsers dont prompt for login details
+    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic"))
+        .setAuthcScheme("nonBrowserPromptingBasic");
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(CLMRealm.class);
     bindRealm().to(LdapRealm.class);
     binder().requestInjection(new SessionCookieCustomizer());
   }
-  
+
   // to be removed once all clients use authentication
-  private void addTemporaryAnonymousPaths( DefaultFilterChainManager manager ) {
+  private void addTemporaryAnonymousPaths(DefaultFilterChainManager manager) {
     String clientAuthFilterName = anonymousClientAccessAllowed ? "authcBasic[permissive]" : "authcBasic";
 
     manager.createChain("/rest/integration/applications", clientAuthFilterName);
@@ -104,7 +106,7 @@ public class CLMShiroModule
      * NOTE: Not using bindWebSecurityManager() as in ShiroWebModule to avoid
      * https://issues.apache.org/jira/browse/SHIRO-435.
      */
-    bind.to( WebSecurityManager.class );
+    bind.to(WebSecurityManager.class);
   }
 
   protected void bindWebSecurityManager(AnnotatedBindingBuilder<? super WebSecurityManager> bind) {

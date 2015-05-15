@@ -86,7 +86,8 @@ public class AuthenticationLoggingFilterTest
   private void prepareMocks(String username) {
     if (!StringUtils.isBlank(username)) {
       when(currentUser.getUsername()).thenReturn(username);
-    } else {
+    }
+    else {
       when(currentUser.isAnonymous()).thenReturn(true);
     }
     filter = new AuthenticationLoggingFilter(currentUser);
@@ -98,8 +99,8 @@ public class AuthenticationLoggingFilterTest
     private String mdcUsername;
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response)
-        throws IOException, ServletException
+    public void doFilter(final ServletRequest request, final ServletResponse response) throws IOException,
+        ServletException
     {
       mdcUsername = MDC.get(MDCUsernameScope.USERNAME);
     }

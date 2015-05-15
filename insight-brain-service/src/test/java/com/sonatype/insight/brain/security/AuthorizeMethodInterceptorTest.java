@@ -107,8 +107,9 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMapOf(AuthzContext.Key.class, ContextParameter.class)))
-        .thenReturn(true);
+    when(
+        authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class),
+            anyMapOf(AuthzContext.Key.class, ContextParameter.class))).thenReturn(true);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "test"));
   }
@@ -126,7 +127,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(false);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
+        .thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     try {
       interceptor.invoke(invoc);
@@ -142,7 +144,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubErrorMessage", Boolean.TYPE));
     when(invoc.getArguments()).thenReturn(new Object[] { Boolean.TRUE });
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(false);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
+        .thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "Insufficient permissions"));
 
@@ -161,7 +164,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubErrorMessage"));
     when(invoc.getArguments()).thenReturn(new Object[] {});
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(false);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
+        .thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "Insufficient permissions"));
   }
@@ -170,7 +174,8 @@ public class AuthorizeMethodInterceptorTest
   public void testInvoke_NoPrincipal() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class))).thenReturn(true);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
+        .thenReturn(true);
     try {
       interceptor.invoke(invoc);
       fail("Should have thrown UnauthenticatedException");

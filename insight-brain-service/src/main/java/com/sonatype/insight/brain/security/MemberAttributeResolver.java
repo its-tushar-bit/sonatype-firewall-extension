@@ -88,7 +88,8 @@ public class MemberAttributeResolver
     return unresolvedMembers;
   }
 
-  private static class MemberKey {
+  private static class MemberKey
+  {
     private final String name;
     private final MemberType type;
 
@@ -105,7 +106,7 @@ public class MemberAttributeResolver
       if (!(o instanceof MemberKey)) {
         return false;
       }
-      MemberKey key = (MemberKey)o;
+      MemberKey key = (MemberKey) o;
       return key.name.equals(name) && key.type.equals(type);
     }
 

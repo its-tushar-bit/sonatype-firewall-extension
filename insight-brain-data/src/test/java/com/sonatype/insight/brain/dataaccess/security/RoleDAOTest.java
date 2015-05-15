@@ -254,6 +254,19 @@ public class RoleDAOTest
   }
 
   @Test
+  public void testBuiltInRoleCannotBeInserted() {
+    Role role = new Role("Test", "Description");
+    role.setBuiltIn(true);
+    try {
+      roleDAO.insert(role);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot add built-in role 'Test'."));
+    }
+  }
+
+  @Test
   public void testCustomRoleCannotBeGlobal_Insert() {
     Role role = new Role("Name", "Description");
     role.setGlobal(true);
@@ -276,6 +289,19 @@ public class RoleDAOTest
     }
     catch (BadRequestException e) {
       assertThat(e.getMessage(), is("Cannot change custom role 'Name' to global scope."));
+    }
+  }
+
+  @Test
+  public void testCustomRoleCannotBeChangedToBuiltIn() {
+    Role role = newRole("Name");
+    role.setBuiltIn(true);
+    try {
+      roleDAO.update(role);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot change custom role 'Name' to built-in."));
     }
   }
 }

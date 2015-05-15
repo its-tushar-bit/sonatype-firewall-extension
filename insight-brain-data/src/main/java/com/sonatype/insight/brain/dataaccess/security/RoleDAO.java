@@ -85,6 +85,9 @@ public class RoleDAO
     if (entity.isGlobal()) {
       throw new BadRequestException("Cannot change custom role '" + current.getName() + "' to global scope.");
     }
+    if (entity.isBuiltIn()) {
+      throw new BadRequestException("Cannot change custom role '" + current.getName() + "' to built-in.");
+    }
 
     NameHelper.validate(entity.getName());
     Role existing = getByName(tx, entity.getName());

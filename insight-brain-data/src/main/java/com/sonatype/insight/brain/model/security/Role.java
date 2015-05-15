@@ -118,6 +118,10 @@ public class Role
     return builtIn;
   }
 
+  public void setBuiltIn(boolean builtIn) {
+    this.builtIn = builtIn;
+  }
+
   @Override
   public String toString() {
     return getName();

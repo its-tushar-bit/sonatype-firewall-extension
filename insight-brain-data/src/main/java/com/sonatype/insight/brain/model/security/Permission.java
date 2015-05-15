@@ -13,10 +13,9 @@ package com.sonatype.insight.brain.model.security;
 public enum Permission
 {
   // The order of permissions here determines the order in the UI
-  CONFIGURE_SYSTEM("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS,
-      "System Configuration and Users"),
+  CONFIGURE_SYSTEM("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "System Configuration and Users", false /* allowedInCustomRoles */),
 
-  EDIT_ROLES("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "Custom Roles"),
+  EDIT_ROLES("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "Custom Roles", false /* allowedInCustomRoles */),
 
   VIEW_ROLES("View", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "All Roles"),
   
@@ -40,10 +39,19 @@ public enum Permission
 
   private final String description;
 
+  private final boolean allowedInCustomRoles;
+
   private Permission(final String displayName, final String category, final String description) {
+    this(displayName, category, description, true /* allowedInCustomRoles */);
+  }
+
+  private Permission(final String displayName, final String category, final String description,
+      final boolean allowedInCustomRoles)
+  {
     this.displayName = displayName;
     this.category = category;
     this.description = description;
+    this.allowedInCustomRoles = allowedInCustomRoles;
   }
 
   public String getDisplayName() {
@@ -56,5 +64,9 @@ public enum Permission
 
   public String getDescription() {
     return description;
+  }
+
+  public boolean isAllowedInCustomRoles() {
+    return allowedInCustomRoles;
   }
 }

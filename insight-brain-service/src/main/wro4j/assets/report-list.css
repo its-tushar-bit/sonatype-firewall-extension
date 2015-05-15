@@ -1,5 +1,5 @@
 #report-list-table .stage-column {
-  min-width: 141px;
+  min-width: 155px;
 }
 
 #report-list-table #report-list-header-contact {
@@ -12,10 +12,6 @@
 
 #report-list-header-app {
   min-width: 114px
-}
-
-#report-list-table {
-  font-size: 12px;
 }
 
 #report-list-table td {

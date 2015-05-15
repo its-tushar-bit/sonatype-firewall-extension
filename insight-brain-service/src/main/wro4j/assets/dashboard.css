@@ -47,10 +47,6 @@
     width: 90px !important;
   }
 
-  .dashboard-content table {
-    font-size: 12px !important;
-  }
-
   table.table-risk th.total-risk {
     font-size: 12px !important;
     padding: 0 0px;
@@ -185,10 +181,6 @@
 
 .dashboard-content a:hover, .dashboard-content a:hover i:before {
   color: #2476FC;
-}
-
-.dashboard-content table {
-  font-size: 14px;
 }
 
 .dashboard-tables {

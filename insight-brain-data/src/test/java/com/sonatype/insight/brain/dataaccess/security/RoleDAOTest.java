@@ -48,11 +48,6 @@ public class RoleDAOTest
     for (Role role : roles) {
       assertThat(role.isGlobal(), is(true));
     }
-
-    Role role = tempEntity.newRole("AAA", true);
-    roles = roleDAO.getGlobalRoles();
-    assertThat(roles, hasSize(roleCount + 1));
-    assertThat(roles.get(0).getName(), is(role.getName()));
   }
 
   @Test
@@ -108,13 +103,10 @@ public class RoleDAOTest
     int roleCount = roles.size();
     assertThat(roleCount, is(greaterThanOrEqualTo(6)));
 
-    Role roleGlobal = tempEntity.newRole("AAA Global", true /* global */);
     Role roleNonGlobal = tempEntity.newRole("AAA Non Global", false /* global */);
     roles = roleDAO.getAll();
-    assertThat(roles, hasSize(roleCount + 2));
-    assertThat(roles.get(0).getName(), is(roleGlobal.getName()));
-    roles = roleDAO.getAll();
-    assertThat(roles.get(1).getName(), is(roleNonGlobal.getName()));
+    assertThat(roles, hasSize(roleCount + 1));
+    assertThat(roles.get(0).getName(), is(roleNonGlobal.getName()));
   }
 
   @Test
@@ -258,6 +250,32 @@ public class RoleDAOTest
     }
     catch (BadRequestException e) {
       assertThat(e.getMessage(), is("Cannot change built-in role 'Owner'."));
+    }
+  }
+
+  @Test
+  public void testCustomRoleCannotBeGlobal_Insert() {
+    Role role = new Role("Name", "Description");
+    role.setGlobal(true);
+    try {
+      roleDAO.insert(role);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot add custom role 'Name' at global scope."));
+    }
+  }
+
+  @Test
+  public void testCustomRoleCannotBeGlobal_Update() {
+    Role role = newRole("Name");
+    role.setGlobal(true);
+    try {
+      roleDAO.update(role);
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot change custom role 'Name' to global scope."));
     }
   }
 }

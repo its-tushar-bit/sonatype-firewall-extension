@@ -102,7 +102,7 @@ public class TemporaryEntity
 
   private final UserDAO userDAO = new UserDAO();
 
-  private final RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO(true);
 
   private final RolePermissionDAO rolePermDAO = new RolePermissionDAO();
 

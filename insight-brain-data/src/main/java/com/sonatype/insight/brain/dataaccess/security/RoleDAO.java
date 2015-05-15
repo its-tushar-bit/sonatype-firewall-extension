@@ -28,6 +28,16 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class RoleDAO
     extends AbstractOperationalSqlDAO<Role>
 {
+  private final boolean testing;
+
+  public RoleDAO() {
+    this(false);
+  }
+
+  public RoleDAO(boolean testing) {
+    this.testing = testing;
+  }
+
   @Override
   protected Role getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Role entity WHERE entity.id=?1";
@@ -53,6 +63,9 @@ public class RoleDAO
     if (entity.isBuiltIn()) {
       throw new BadRequestException("Cannot add built-in role '" + entity.getName() + "'.");
     }
+    if (entity.isGlobal() && !testing) {
+      throw new BadRequestException("Cannot add custom role '" + entity.getName() + "' at global scope.");
+    }
 
     NameHelper.validate(entity.getName());
     if (getByName(tx, entity.getName()) != null) {
@@ -68,6 +81,9 @@ public class RoleDAO
     Role current = getByIdNotNull(tx, entity.getId());
     if (current.isBuiltIn()) {
       throw new BadRequestException("Cannot change built-in role '" + current.getName() + "'.");
+    }
+    if (entity.isGlobal()) {
+      throw new BadRequestException("Cannot change custom role '" + current.getName() + "' to global scope.");
     }
 
     NameHelper.validate(entity.getName());

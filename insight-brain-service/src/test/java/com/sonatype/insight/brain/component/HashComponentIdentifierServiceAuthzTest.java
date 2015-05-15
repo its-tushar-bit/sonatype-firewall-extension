@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.component;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+
+import com.google.inject.Binder;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class HashComponentIdentifierServiceAuthzTest
+    extends AbstractServiceAuthzTest
+{
+  private static final String HASH = "test-abcdef";
+
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
+      ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.0", "jdk15", "jar");
+
+  private final ComponentSummary componentSummary = new ComponentSummary();
+
+  @Inject
+  private HashComponentIdentifierService hashComponentIdentifierService;
+
+  @Inject
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  @Mock
+  private SaasClient mockSaasClient;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(SaasClient.class).toInstance(mockSaasClient);
+  }
+
+  @Before
+  public void resetMockSaasClient() throws Exception {
+    reset(mockSaasClient);
+    when(mockSaasClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+        anyMapOf(String.class, String.class))).thenReturn(componentSummary);
+  }
+
+  @After
+  public void cleanup() {
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(HASH);
+    if (hashComponentIdentifier != null) {
+      hashComponentIdentifierDAO.delete(hashComponentIdentifier);
+    }
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSet_Unauthenticated() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierService.set(hashComponentIdentifier);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSet_Unauthorized() throws Exception {
+    login();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierService.set(hashComponentIdentifier);
+  }
+
+  @Test
+  public void testSet() throws Exception {
+    grantClaimComponentPermission();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+
+    hashComponentIdentifierService.set(hashComponentIdentifier);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdate_Unauthenticated() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierService.update(hashComponentIdentifier);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdate_Unauthorized() throws Exception {
+    login();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierService.update(hashComponentIdentifier);
+  }
+
+  @Test
+  public void testUpdate() throws Exception {
+    grantClaimComponentPermission();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+    hashComponentIdentifier.setComponentIdentifier(COMPONENT_IDENTIFIER.createAlternativeVersion("foo"));
+
+    hashComponentIdentifierService.update(hashComponentIdentifier);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDelete_Unauthenticated() throws Exception {
+    hashComponentIdentifierService.delete(HASH);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDelete_Unauthorized() throws Exception {
+    login();
+    hashComponentIdentifierService.delete(HASH);
+  }
+
+  @Test
+  public void testDelete() throws Exception {
+    grantClaimComponentPermission();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+
+    hashComponentIdentifierService.delete(HASH);
+  }
+}

@@ -1,0 +1,171 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.component;
+
+import java.util.Date;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.google.inject.Binder;
+import org.hamcrest.Matchers;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyMapOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class HashComponentIdentifierServiceTest
+    extends AbstractComponentTest
+{
+  private static final String HASH = "test-abcdef";
+
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
+      ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.0", "jdk15", "jar");
+
+  private static final String COMMENT = "test-comment";
+
+  private static final Date CREATED_TIME = new Date();
+
+  @Inject
+  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
+
+  @Inject
+  private HashComponentIdentifierService hashComponentIdentifierService;
+
+  @Mock
+  private SaasClient mockSaasClient;
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(SaasClient.class).toInstance(mockSaasClient);
+  }
+
+  @Before
+  public void resetMockSaasClient() throws Exception {
+    reset(mockSaasClient);
+  }
+
+  @Test
+  public void testSet_KnownToHDS() throws Exception {
+    when(mockSaasClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+        anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(true));
+
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    try {
+      hashComponentIdentifierService.set(hashComponentIdentifier);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("The 'gid : aid : jar : jdk15 : 1.0' coordinates are already in use."));
+    }
+  }
+
+  @Test
+  public void testSet_NullComponentIdentifier() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, null);
+    try {
+      hashComponentIdentifierService.set(hashComponentIdentifier);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("The component identifier cannot be null."));
+    }
+  }
+
+  @Test
+  public void testSet_InvalidComponentIdentifier() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH,
+        JsonUtils.parse("{\"format\":\"maven\",\"coordinates\":null}", ComponentIdentifier.class));
+    try {
+      hashComponentIdentifierService.set(hashComponentIdentifier);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("A component identifier must have at least one coordinate."));
+    }
+  }
+
+  @Test
+  public void testUpdateClaimedComponentWithOverriddenLicense() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifier.setComment(COMMENT);
+    hashComponentIdentifier.setCreateTime(CREATED_TIME);
+
+    // Component must be unknown or we cannot claim it
+    when(mockSaasClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+        anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(false));
+
+    // Create the claimed component
+    HashComponentIdentifierDTO serverResponse = hashComponentIdentifierService.set(hashComponentIdentifier);
+    assertHashComponentIdentifierDTO(serverResponse, COMPONENT_IDENTIFIER, COMMENT, CREATED_TIME);
+
+    // Create the license override
+    Application application = tempEntity.newApplicationWithParent("testPublicId", "testName");
+    LicenseOverride expectedLicenseOverride = tempEntity.newLicenseOverride(application.getId(),
+        hashComponentIdentifier.getComponentIdentifier(), LicenseOverrideStatus.OVERRIDDEN, "Apache-1.0");
+
+    // Update the claimed component
+    ComponentIdentifier updatedComponentIdentifier = COMPONENT_IDENTIFIER.createAlternativeVersion("updated-version");
+    hashComponentIdentifier.setComponentIdentifier(updatedComponentIdentifier);
+
+    HashComponentIdentifierDTO response = hashComponentIdentifierService.update(hashComponentIdentifier);
+    assertHashComponentIdentifierDTO(response, updatedComponentIdentifier, COMMENT, CREATED_TIME);
+
+    // Now check the license overrides
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride override =
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), updatedComponentIdentifier);
+    assertThat(override, Matchers.notNullValue());
+    assertThat(override.getId(), Matchers.is(expectedLicenseOverride.getId()));
+  }
+
+  private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,
+      final ComponentIdentifier componentIdentifier, final String comment, final Date createTime)
+  {
+    assertThat(hashComponentIdentifierDTO, notNullValue());
+    assertThat(hashComponentIdentifierDTO.hash, is(HASH));
+    assertThat(hashComponentIdentifierDTO.componentIdentifier, is(componentIdentifier));
+    assertThat(hashComponentIdentifierDTO.comment, is(comment));
+    assertThat(hashComponentIdentifierDTO.createTime, is(createTime));
+
+    ComponentDisplayName componentDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
+    assertThat(hashComponentIdentifierDTO.displayName.parts, hasSize(componentDisplayName.parts.size()));
+    for (int i = 0; i < componentDisplayName.parts.size(); i++) {
+      ComponentDisplayNamePart expected = componentDisplayName.parts.get(i);
+      ComponentDisplayNamePart actual = hashComponentIdentifierDTO.displayName.parts.get(i);
+      assertThat(actual.field, Matchers.is(expected.field));
+      assertThat(actual.value, Matchers.is(expected.value));
+    }
+    assertThat(hashComponentIdentifierDTO.coordinates, Matchers.is(componentDisplayName.toString()));
+  }
+}

@@ -89,6 +89,10 @@ public class AbstractServiceAuthzTest
     grantPermission(contextId, Permission.EVALUATE_COMPONENT);
   }
 
+  protected void grantClaimComponentPermission() {
+    grantGlobalPermission(Permission.CLAIM_COMPONENT);
+  }
+
   protected void grantPermission(String contextId, Permission permission) {
     Role role = tempEntity.newRole(false /* global */, permission);
     tempEntity.newMembershipMapping(contextId, role.getId(), user.getUsername());

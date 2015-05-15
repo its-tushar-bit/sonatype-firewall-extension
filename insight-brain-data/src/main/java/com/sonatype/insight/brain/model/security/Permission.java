@@ -21,15 +21,15 @@ public enum Permission
   
   MANAGE_PROPRIETARY("Edit", Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS, "Proprietary Components"),
 
+  CLAIM_COMPONENT("Claim", Permission.CATEGORY_CLM_PERMISSIONS, "Components"),
+
   WRITE("Edit", Permission.CATEGORY_CLM_PERMISSIONS, "CLM elements"),
 
   READ("View", Permission.CATEGORY_CLM_PERMISSIONS, "CLM elements"),
 
   EVALUATE_APPLICATION("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Applications"),
 
-  EVALUATE_COMPONENT("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Individual components"),
-
-  CLAIM_COMPONENT("Claim", Permission.CATEGORY_CLM_PERMISSIONS, "Components");
+  EVALUATE_COMPONENT("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Individual components");
 
   private static final String CATEGORY_ADMINISTRATOR_PERMISSIONS = "Administrator";
 

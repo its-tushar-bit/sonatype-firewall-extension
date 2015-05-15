@@ -45,31 +45,31 @@ extends BaseSpec {
     PermissionCategory policyCategory = roleManagementPage.permissionCategory('CLM')
     policyCategory.permissions.size() == 5
 
-    Permission claimComponentPermission = policyCategory.permission(4)
+    Permission claimComponentPermission = policyCategory.permission(0)
     !claimComponentPermission.toggleSwitch.isOn()
     !claimComponentPermission.toggleSwitch.isEnabled()
     claimComponentPermission.name.text() == 'Claim'
     claimComponentPermission.description.text() == 'Components'
 
-    Permission evaluateAppPermission = policyCategory.permission(2)
+    Permission evaluateAppPermission = policyCategory.permission(3)
     !evaluateAppPermission.toggleSwitch.isOn()
     !evaluateAppPermission.toggleSwitch.isEnabled()
     evaluateAppPermission.name.text() == 'Evaluate'
     evaluateAppPermission.description.text() == 'Applications'
 
-    Permission evaluateComponentPermission = policyCategory.permission(3)
+    Permission evaluateComponentPermission = policyCategory.permission(4)
     evaluateComponentPermission.toggleSwitch.isOn()
     !evaluateComponentPermission.toggleSwitch.isEnabled()
     evaluateComponentPermission.name.text() == 'Evaluate'
     evaluateComponentPermission.description.text() == 'Individual components'
 
-    Permission viewPermission = policyCategory.permission(1)
+    Permission viewPermission = policyCategory.permission(2)
     viewPermission.toggleSwitch.isOn()
     !viewPermission.toggleSwitch.isEnabled()
     viewPermission.name.text() == 'View'
     viewPermission.description.text() == 'CLM elements'
 
-    Permission writePermission = policyCategory.permission(0)
+    Permission writePermission = policyCategory.permission(1)
     !writePermission.toggleSwitch.isOn()
     !writePermission.toggleSwitch.isEnabled()
     writePermission.name.text() == 'Edit'

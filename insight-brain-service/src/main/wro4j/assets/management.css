@@ -62,10 +62,10 @@ a:focus {
 }
 
 .nav-list > li > a {
-  font-size: 85%;
+  font-size: 14px;
   color: #17558E;
   padding: 7px 15px 7px 21px;
-  font-family: Proxima Nova Bold, sans-serif;
+  font-family: Proxima Nova Semibold, sans-serif;
 }
 
 .navigation .nav-list > .active > a, .navigation .nav-list > .active > a:hover, .navigation .nav-list > .active > a:focus, .navigation .nav > li > a:hover, .navigation .nav > li > a:focus {

@@ -65,7 +65,8 @@ public class RolePermissionDAOTest
     assertThat(
         perms,
         contains(Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.MANAGE_PROPRIETARY, Permission.WRITE,
-            Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT));
+            Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT,
+            Permission.CLAIM_COMPONENT));
   }
 
   @Test

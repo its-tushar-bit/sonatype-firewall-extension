@@ -43,7 +43,13 @@ extends BaseSpec {
     roleManagementPage.pageTitle.text() == 'Developer'
 
     PermissionCategory policyCategory = roleManagementPage.permissionCategory('CLM')
-    policyCategory.permissions.size() == 4
+    policyCategory.permissions.size() == 5
+
+    Permission claimComponentPermission = policyCategory.permission(4)
+    !claimComponentPermission.toggleSwitch.isOn()
+    !claimComponentPermission.toggleSwitch.isEnabled()
+    claimComponentPermission.name.text() == 'Claim'
+    claimComponentPermission.description.text() == 'Components'
 
     Permission evaluateAppPermission = policyCategory.permission(2)
     !evaluateAppPermission.toggleSwitch.isOn()

@@ -27,7 +27,9 @@ public enum Permission
 
   EVALUATE_APPLICATION("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Applications"),
 
-  EVALUATE_COMPONENT("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Individual components");
+  EVALUATE_COMPONENT("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Individual components"),
+
+  CLAIM_COMPONENT("Claim", Permission.CATEGORY_CLM_PERMISSIONS, "Components");
 
   private static final String CATEGORY_ADMINISTRATOR_PERMISSIONS = "Administrator";
 

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.component;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.test.RestAccess;
@@ -18,25 +17,67 @@ import org.junit.Test;
 public class HashComponentIdentifierResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-  /**
-   * Only checks existence of authc for now, to be revised once CLM-1140 gets implemented.
-   */
+  private final String HASH = "test-abcdef";
+
+  private final ComponentIdentifier COMPONENT_IDENTIFIER =
+      ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.0", "jdk15", "jar");
+
   @Test
   public void testSet() throws Exception {
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier("test-abcdef",
-        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.0", "jdk15", "jar"));
-    String json = toJson(hashComponentIdentifier);
-    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH);
-
+    grantClaimComponentPermission();
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
-
-    Response response = RestAccess.post(url, json);
-    assertResponseStatus(401, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), json);
-    assertResponseStatus(200, response);
+    // Test creating claimed component
+    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH);
+    Response response = testAuthzPost(url, toJson(hashComponentIdentifier));
     HashComponentIdentifierDTO hashComponentIdentifierDTO = fromJson(response, HashComponentIdentifierDTO.class);
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-    hashComponentIdentifierDAO.delete(hashComponentIdentifierDAO.getByHash(hashComponentIdentifierDTO.hash));
+    hashComponentIdentifier.setId(hashComponentIdentifierDTO.id);
+    tempEntity.register(hashComponentIdentifier);
+  }
+
+  @Test
+  public void testSet_unauthenticated() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH);
+    Response response = RestAccess.post(url, toJson(hashComponentIdentifier));
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testUpdate() throws Exception {
+    grantClaimComponentPermission();
+    // Create new claimed component
+    HashComponentIdentifier hashComponentIdentifier = tempEntity.newClaimedComponent(HASH, COMPONENT_IDENTIFIER);
+    // Test updating
+    hashComponentIdentifier.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid2", "aid2", "2.0",
+        "jdk16", "jar"));
+    mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
+    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH);
+    testAuthzPut(url, toJson(hashComponentIdentifier));
+  }
+
+  @Test
+  public void testUpdate_unauthenticated() throws Exception {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH);
+    Response response = RestAccess.put(url, toJson(hashComponentIdentifier));
+    assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testDelete() throws Exception {
+    grantClaimComponentPermission();
+    // Create new claimed component
+    tempEntity.newClaimedComponent(HASH, COMPONENT_IDENTIFIER);
+    // Test delete
+    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH) + "/" + HASH;
+    testAuthzDelete(url);
+  }
+
+  @Test
+  public void testDelete_unauthenticated() throws Exception {
+    String url = getRestUrl(HashComponentIdentifierResource.SERVICE_PATH) + "/" + HASH;
+    Response response = RestAccess.delete(url);
+    assertResponseStatus(401, response);
   }
 }

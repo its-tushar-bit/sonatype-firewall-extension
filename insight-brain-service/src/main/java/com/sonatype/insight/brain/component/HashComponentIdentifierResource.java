@@ -29,8 +29,10 @@ import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDA
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -64,6 +66,7 @@ public class HashComponentIdentifierResource
    * @since 1.4.1
    */
   @POST
+  @Authorize(permission = Permission.CLAIM_COMPONENT)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public HashComponentIdentifierDTO set(HashComponentIdentifier hashComponentIdentifier) throws IOException {
@@ -81,6 +84,7 @@ public class HashComponentIdentifierResource
   }
 
   @PUT
+  @Authorize(permission = Permission.CLAIM_COMPONENT)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public HashComponentIdentifierDTO update(HashComponentIdentifier hashComponentIdentifier) throws IOException {
@@ -114,6 +118,7 @@ public class HashComponentIdentifierResource
   }
 
   @DELETE
+  @Authorize(permission = Permission.CLAIM_COMPONENT)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{hash}")

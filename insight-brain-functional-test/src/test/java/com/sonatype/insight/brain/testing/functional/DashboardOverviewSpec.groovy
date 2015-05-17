@@ -1030,6 +1030,12 @@ extends BaseSpec {
   }
 
   def 'Heat Map Help Modal'() {
+    setup: 'temporarily hide tooltips'
+    // Clicking the help icons also triggers their tooltips. One of the tooltips is placed so far to the right that it
+    // causes scroll bars and re-layouting of the page which in turn prevents some browsers (Chrome) from properly
+    // clicking the icon to trigger the modal.
+    browser.js.exec('jQuery("head").append("<style id=\'temp-tooltip-hider\'>.tooltip-inner { display: none; }</style>");')
+
     when: 'component heat map help icon is clicked'
     clickComponentHeatMapHelp()
 
@@ -1077,6 +1083,9 @@ extends BaseSpec {
 
     then: 'the help modal closes'
     waitFor { !applicationHeatMapHelp.displayed }
+
+    cleanup: 'unhide tooltips'
+    browser.js.exec('jQuery("#temp-tooltip-hider").remove();')
   }
 
   def clickComponentHeatMapHelp() {

@@ -77,7 +77,7 @@ public class RolePermissionDAOTest
     assertThat(
         perms,
         containsInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
-            Permission.EVALUATE_COMPONENT));
+            Permission.EVALUATE_COMPONENT, Permission.VIEW_ROLES));
   }
 
   @Test

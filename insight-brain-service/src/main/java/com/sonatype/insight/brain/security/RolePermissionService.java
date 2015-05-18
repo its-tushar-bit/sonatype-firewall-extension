@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
@@ -29,31 +30,38 @@ public class RolePermissionService
 {
   private final RolePermissionDAO rolePermissionDAO;
 
+  private final RoleDAO roleDAO;
+
   @Inject
-  public RolePermissionService(final RolePermissionDAO rolePermissionDAO) {
+  public RolePermissionService(final RolePermissionDAO rolePermissionDAO, RoleDAO roleDAO) {
     this.rolePermissionDAO = rolePermissionDAO;
+    this.roleDAO = roleDAO;
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
   public RolePermissionDTO getPermissionsForNewCustomRole() {
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO();
-    buildDTO(rolePermissionDTO, EnumSet.noneOf(Permission.class));
+    buildDTO(rolePermissionDTO, EnumSet.noneOf(Permission.class), true);
     return rolePermissionDTO;
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
   public RolePermissionDTO getPermissionsForRole(final String roleId) {
+    boolean customRole = !roleDAO.getByIdNotNull(roleId).isBuiltIn(); 
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(roleId);
     Set<Permission> permissionsForRole = rolePermissionDAO.getPermissionsForRole(roleId);
-    buildDTO(rolePermissionDTO, permissionsForRole);
+    buildDTO(rolePermissionDTO, permissionsForRole, customRole);
     return rolePermissionDTO;
 
   }
 
-  private void buildDTO(RolePermissionDTO rolePermissionDTO, Set<Permission> permissions) {
+  private void buildDTO(RolePermissionDTO rolePermissionDTO, Set<Permission> permissions, boolean customRole) {
     ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
 
     for (Permission perm : EnumSet.allOf(Permission.class)) {
+      if (customRole && !perm.isAllowedInCustomRoles()) {
+        continue;
+      }
       permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissions.contains(perm)));
     }
 

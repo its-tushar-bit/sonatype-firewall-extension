@@ -50,7 +50,7 @@ public class RolePermissionServiceTest
   }
 
   @Test
-  public void testGetPermissionsForRole() {
+  public void testGetPermissionsForRole_BuiltInRole() {
     RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
 
     assertThat(rolePermissions.roleId, is(Role.SYSTEM_ADMIN_ROLE_ID));
@@ -69,6 +69,25 @@ public class RolePermissionServiceTest
   }
 
   @Test
+  public void testGetPermissionsForRole_CustomRole() {
+    String roleId = tempEntity.newRole(false, Permission.WRITE).getId();
+    RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForRole(roleId);
+
+    assertThat(rolePermissions.roleId, is(roleId));
+    assertThat(rolePermissions.permissionCategories, hasSize(2));
+    assertAllowdPermissions(rolePermissions, Permission.WRITE);
+
+    PermissionCategoryDTO category = rolePermissions.permissionCategories.get(0);
+    assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
+    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.MANAGE_PROPRIETARY);
+
+    category = rolePermissions.permissionCategories.get(1);
+    assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
+    assertListedPermissions(category, Permission.CLAIM_COMPONENT, Permission.WRITE, Permission.READ,
+        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT);
+  }
+
+  @Test
   public void testGetPermissionsForNewCustomRole() {
     RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForNewCustomRole();
 
@@ -78,8 +97,7 @@ public class RolePermissionServiceTest
 
     PermissionCategoryDTO category = rolePermissions.permissionCategories.get(0);
     assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
-    assertListedPermissions(category, Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES,
-        Permission.MANAGE_PROPRIETARY);
+    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.MANAGE_PROPRIETARY);
 
     category = rolePermissions.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));

@@ -44,22 +44,22 @@ public class RolePermissionServiceAuthzTest
   }
 
   @Test
-  public void testPermissionsForNewRole_Authorized() {
+  public void testPermissionsForNewCustomRole_Authorized() {
     grantGlobalPermission(Permission.VIEW_ROLES);
-    RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForNewRole();
+    RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForNewCustomRole();
     assertThat(rolePermission.permissionCategories, not(empty()));
     assertThat(rolePermission.permissionCategories.get(0).permissions, not(empty()));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testPermissionsForNewRole_Unauthorized() {
+  public void testPermissionsForNewCustomRole_Unauthorized() {
     login();
-    rolePermissionService.getPermissionsForNewRole();
+    rolePermissionService.getPermissionsForNewCustomRole();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testPermissionsForNewRole_Unauthenticated() {
-    rolePermissionService.getPermissionsForNewRole();
+  public void testPermissionsForNewCustomRole_Unauthenticated() {
+    rolePermissionService.getPermissionsForNewCustomRole();
   }
 
 }

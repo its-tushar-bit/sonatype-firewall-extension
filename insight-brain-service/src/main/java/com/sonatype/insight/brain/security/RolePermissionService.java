@@ -34,7 +34,7 @@ public class RolePermissionService
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
-  public RolePermissionDTO getPermissionsForNewRole() {
+  public RolePermissionDTO getPermissionsForNewCustomRole() {
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO();
     buildDTO(rolePermissionDTO, EnumSet.noneOf(Permission.class));
     return rolePermissionDTO;

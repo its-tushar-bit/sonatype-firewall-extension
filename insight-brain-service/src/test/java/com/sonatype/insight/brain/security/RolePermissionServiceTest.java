@@ -29,7 +29,7 @@ public class RolePermissionServiceTest
   private RolePermissionService rolePermissionService;
 
   @Test
-  public void testGetAllPermissionsForRole() {
+  public void testGetPermissionsForRole() {
     RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForRole(Role.SYSTEM_ADMIN_ROLE_ID);
     RolePermissionDTO expected = getExpectedRolePermissions();
     assertThat(rolePermissions.permissionCategories.size(), is(expected.permissionCategories.size()));
@@ -47,8 +47,8 @@ public class RolePermissionServiceTest
   }
 
   @Test
-  public void testGetAllPermissionsForNewRole() {
-    RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForNewRole();
+  public void testGetPermissionsForNewCustomRole() {
+    RolePermissionDTO rolePermissions = rolePermissionService.getPermissionsForNewCustomRole();
     RolePermissionDTO expected = getExpectedRolePermissions();
     assertThat(rolePermissions.permissionCategories.size(), is(expected.permissionCategories.size()));
     for (int i = 0; i < rolePermissions.permissionCategories.size(); i++) {

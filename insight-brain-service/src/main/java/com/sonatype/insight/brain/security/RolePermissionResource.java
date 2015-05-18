@@ -38,7 +38,7 @@ public class RolePermissionResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public RolePermissionDTO getPermissions() {
-    return rolePermissionService.getPermissionsForNewRole();
+  public RolePermissionDTO getPermissionsForNewCustomRole() {
+    return rolePermissionService.getPermissionsForNewCustomRole();
   }
 }

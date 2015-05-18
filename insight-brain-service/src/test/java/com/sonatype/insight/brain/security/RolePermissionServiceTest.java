@@ -9,6 +9,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -57,12 +58,12 @@ public class RolePermissionServiceTest
     assertAllowdPermissions(rolePermissions, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
 
     PermissionCategoryDTO category = rolePermissions.permissionCategories.get(0);
-    assertThat(category.displayName, is(Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS));
+    assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
     assertListedPermissions(category, Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES,
         Permission.MANAGE_PROPRIETARY);
 
     category = rolePermissions.permissionCategories.get(1);
-    assertThat(category.displayName, is(Permission.CATEGORY_CLM_PERMISSIONS));
+    assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
     assertListedPermissions(category, Permission.CLAIM_COMPONENT, Permission.WRITE, Permission.READ,
         Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT);
   }
@@ -76,12 +77,12 @@ public class RolePermissionServiceTest
     assertAllowdPermissions(rolePermissions);
 
     PermissionCategoryDTO category = rolePermissions.permissionCategories.get(0);
-    assertThat(category.displayName, is(Permission.CATEGORY_ADMINISTRATOR_PERMISSIONS));
+    assertThat(category.displayName, is(PermissionCategory.ADMINISTRATOR.getDisplayName()));
     assertListedPermissions(category, Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES,
         Permission.MANAGE_PROPRIETARY);
 
     category = rolePermissions.permissionCategories.get(1);
-    assertThat(category.displayName, is(Permission.CATEGORY_CLM_PERMISSIONS));
+    assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
     assertListedPermissions(category, Permission.CLAIM_COMPONENT, Permission.WRITE, Permission.READ,
         Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT);
   }

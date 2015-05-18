@@ -16,6 +16,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PermissionCategory;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -50,15 +51,15 @@ public class RolePermissionService
   }
 
   private void buildDTO(RolePermissionDTO rolePermissionDTO, Set<Permission> permissions) {
-    ListMultimap<String, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
+    ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
 
     for (Permission perm : EnumSet.allOf(Permission.class)) {
       permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissions.contains(perm)));
     }
 
-    for (String category : permissionsByCategoryMap.keySet()) {
+    for (PermissionCategory category : permissionsByCategoryMap.keySet()) {
       List<PermissionDTO> categoryPermissions = permissionsByCategoryMap.get(category);
-      PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(category);
+      PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(category.getDisplayName());
       permissionCategoryDTO.permissions = categoryPermissions;
       rolePermissionDTO.permissionCategories.add(permissionCategoryDTO);
     }

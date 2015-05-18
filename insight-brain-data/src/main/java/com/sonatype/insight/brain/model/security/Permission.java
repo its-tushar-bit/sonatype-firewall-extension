@@ -31,9 +31,9 @@ public enum Permission
 
   EVALUATE_COMPONENT("Evaluate", Permission.CATEGORY_CLM_PERMISSIONS, "Individual components");
 
-  private static final String CATEGORY_ADMINISTRATOR_PERMISSIONS = "Administrator";
+  public static final String CATEGORY_ADMINISTRATOR_PERMISSIONS = "Administrator";
 
-  private static final String CATEGORY_CLM_PERMISSIONS = "CLM";
+  public static final String CATEGORY_CLM_PERMISSIONS = "CLM";
 
   private final String displayName;
 

@@ -66,7 +66,7 @@ public class RolePermissionService
   }
 
   // just so happens that alpha sort works for now
-  static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR = new Comparator<PermissionCategoryDTO>()
+  private static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR = new Comparator<PermissionCategoryDTO>()
   {
     @Override
     public int compare(final PermissionCategoryDTO o1, final PermissionCategoryDTO o2) {

@@ -15,8 +15,10 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 /**
  * @since 1.7
@@ -26,7 +28,7 @@ public class RolePermissionDAO
 {
   private static volatile Map<Permission, Set<String>> roleIdsByPermission;
 
-  private List<RolePermission> getByRoleId(String roleId) {
+  List<RolePermission> getByRoleId(String roleId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRoleId(tx, roleId);
     }
@@ -45,14 +47,45 @@ public class RolePermissionDAO
 
   @Override
   public void update(TransactionContext tx, RolePermission entity) {
-    super.update(tx, entity);
-    roleIdsByPermission = null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void delete(TransactionContext tx, RolePermission entity) {
     super.delete(tx, entity);
     roleIdsByPermission = null;
+  }
+
+  public void setPermissionsForRole(String roleId, Set<Permission> permissions) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+
+      Role role = new RoleDAO().getByIdNotNull(tx, roleId);
+      if (role.isBuiltIn()) {
+        throw new BadRequestException("Cannot change permissions for built-in role '" + role.getName() + "'");
+      }
+
+      Set<Permission> alreadySet = EnumSet.noneOf(Permission.class);
+      for (RolePermission assoc : getByRoleId(tx, roleId)) {
+        if (permissions.contains(assoc.getPermission())) {
+          alreadySet.add(assoc.getPermission());
+        }
+        else {
+          delete(tx, assoc);
+        }
+      }
+      for (Permission permission : permissions) {
+        if (!permission.isAllowedInCustomRoles()) {
+          throw new BadRequestException("Cannot assign permission '" + permission + "' to custom role '"
+              + role.getName() + "'");
+        }
+        if (!alreadySet.contains(permission)) {
+          insert(tx, new RolePermission(roleId, permission));
+        }
+      }
+
+      tx.commit();
+    }
   }
 
   /**

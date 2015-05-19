@@ -50,7 +50,7 @@ public class RoleDAO
     }
   }
 
-  private Role getByIdNotNull(TransactionContext tx, String id) {
+  Role getByIdNotNull(TransactionContext tx, String id) {
     Role role = getById(tx, id);
     if (role == null) {
       throw new NotFoundException("Cannot find a role with ID " + id + ".");

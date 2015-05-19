@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.After;
 import org.junit.Test;
@@ -20,9 +22,11 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.fail;
 
 public class RolePermissionDAOTest
     extends AbstractDbDAOTest
@@ -111,5 +115,62 @@ public class RolePermissionDAOTest
     for (Permission perm : Permission.values()) {
       assertThat(permDAO.getRoleIdsByPermission(perm), not(hasItem(roleId)));
     }
+  }
+
+  @Test
+  public void testUpdateNotSupported() {
+    RolePermission rolePerm = permDAO.getByRoleId(tempEntity.newRole(false, Permission.WRITE).getId()).get(0);
+    rolePerm.setPermission(Permission.READ);
+    try {
+      permDAO.update(rolePerm);
+      fail("Expected exception");
+    }
+    catch (UnsupportedOperationException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testSetPermissionsForRole_BuiltInRolesAreReadOnly() {
+    Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
+    try {
+      permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM));
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot change permissions for built-in role '" + role.getName() + "'"));
+      assertThat(permDAO.getPermissionsForRole(role.getId()), hasSize(2));
+    }
+  }
+
+  @Test
+  public void testSetPermissionsForRole_CustomRolesCannotGetCertainPermissions() {
+    Role role = tempEntity.newRole("Tester", false);
+    try {
+      assertThat(Permission.CONFIGURE_SYSTEM.isAllowedInCustomRoles(), is(false));
+      permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM));
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '"
+          + role.getName() + "'"));
+      assertThat(permDAO.getPermissionsForRole(role.getId()), hasSize(0));
+    }
+  }
+
+  @Test
+  public void testSetPermissionsForRole() {
+    Role role = tempEntity.newRole("Tester", false);
+    Set<Permission> permissions = EnumSet.of(Permission.WRITE, Permission.READ);
+    permDAO.setPermissionsForRole(role.getId(), permissions);
+    assertThat(permDAO.getPermissionsForRole(role.getId()), is(permissions));
+
+    permissions = EnumSet.of(Permission.WRITE, Permission.EVALUATE_APPLICATION);
+    permDAO.setPermissionsForRole(role.getId(), permissions);
+    assertThat(permDAO.getPermissionsForRole(role.getId()), is(permissions));
+
+    permissions.clear();
+    permDAO.setPermissionsForRole(role.getId(), permissions);
+    assertThat(permDAO.getPermissionsForRole(role.getId()), hasSize(0));
   }
 }

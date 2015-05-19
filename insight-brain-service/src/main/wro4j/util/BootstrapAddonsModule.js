@@ -47,6 +47,9 @@
     return {
       restrict: 'A',
       require: 'ngModel',
+      scope: {
+        disabled: '=ngDisabled'
+      },
       link: function($scope, $element, $attr, ngModel) {
         $element.bootstrapToggle({
           height: '24px'
@@ -70,6 +73,9 @@
           if (disabled) {
             $element.prop('disabled', true).change();
           }
+        });
+        $scope.$watch('disabled', function() {
+          $element.prop('disabled', $scope.disabled);
         });
       }
     };

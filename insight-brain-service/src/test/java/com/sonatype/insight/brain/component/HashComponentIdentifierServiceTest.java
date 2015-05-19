@@ -13,7 +13,6 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -54,9 +53,6 @@ public class HashComponentIdentifierServiceTest
   private static final String COMMENT = "test-comment";
 
   private static final Date CREATED_TIME = new Date();
-
-  @Inject
-  private HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Inject
   private HashComponentIdentifierService hashComponentIdentifierService;

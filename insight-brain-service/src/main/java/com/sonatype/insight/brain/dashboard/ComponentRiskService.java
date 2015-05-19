@@ -110,7 +110,7 @@ public class ComponentRiskService
     Collections.sort(dtos, ComponentRiskDTOComparator.INSTANCE);
     dtos.subList(Math.min(dtos.size(), maxResults), dtos.size()).clear();
 
-    log.debug("getComponentRisks finished in {}", System.currentTimeMillis() - start);
+    log.debug("getComponentRisks finished in {} ms", System.currentTimeMillis() - start);
 
     return dtos;
   }

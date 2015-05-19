@@ -142,7 +142,7 @@ public class NewestRiskService
     log.debug("getNewestRisks: Processed {} policy evaluations and {} policy violations.", policyEvaluationCount,
         policyViolationCount);
 
-    log.debug("getNewestRisks finished in {}", System.currentTimeMillis() - start);
+    log.debug("getNewestRisks finished in {} ms", System.currentTimeMillis() - start);
 
     return result;
   }

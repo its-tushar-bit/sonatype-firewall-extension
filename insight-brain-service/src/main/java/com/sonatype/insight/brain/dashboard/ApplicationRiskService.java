@@ -106,7 +106,7 @@ public class ApplicationRiskService
     List<ApplicationRiskScoreDTO> result = sortedApplicationRisks.subList(0,
         Math.min(sortedApplicationRisks.size(), maxResults));
 
-    log.debug("getApplicationRisks finished in {}", System.currentTimeMillis() - start);
+    log.debug("getApplicationRisks finished in {} ms", System.currentTimeMillis() - start);
 
     return result;
   }

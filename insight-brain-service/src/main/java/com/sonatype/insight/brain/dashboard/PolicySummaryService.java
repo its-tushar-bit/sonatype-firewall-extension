@@ -268,7 +268,7 @@ public class PolicySummaryService
       result.agePercentile90Unresolved = (long) ageUnresolvedStatistics.getPercentile(90);
     }
 
-    log.debug("getPolicySummary finished in {}", System.currentTimeMillis() - start);
+    log.debug("getPolicySummary finished in {} ms", System.currentTimeMillis() - start);
 
     return result;
   }

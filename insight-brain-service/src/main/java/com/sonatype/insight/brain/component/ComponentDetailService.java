@@ -36,12 +36,17 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 /**
  * @since 1.11
  */
 public class ComponentDetailService
 {
+  private static final Logger log = LoggerFactory.getLogger(ComponentDetailService.class);
+
   private final ApplicationService appService;
 
   private final ApplicationAdapter appAdapter;
@@ -66,6 +71,8 @@ public class ComponentDetailService
 
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(String hash) {
     validateDashboardLicensed();
+
+    long start = System.currentTimeMillis();
 
     List<ApplicationComponentDetailsDTO> result = new ArrayList<>();
 
@@ -160,6 +167,9 @@ public class ComponentDetailService
       applicationComponentDetails.policyViolations.addAll(policyViolationDTOsByPolicyId.values());
       result.add(applicationComponentDetails);
     }
+
+    log.debug("Loaded component details from {} out of {} applications in {} ms", result.size(), applications.size(),
+        System.currentTimeMillis() - start);
 
     return result;
   }

@@ -84,10 +84,14 @@
   }]);
 
   dashboardModule.directive('pathnamesPopover', function() {
+    var uniqueCounter = 0;
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
         scope.$watch(attrs.pathnamesPopover, function(pathnames) {
+          var uniqueId = 'pathname-popover-' + uniqueCounter;
+          uniqueCounter++;
+
           if (!pathnames) {
             return;
           }
@@ -105,7 +109,7 @@
             // Attach the popover to the body of the document, as certain browsers (IE9) will fail otherwise.
             container: 'body',
             // Add our styling, pathnames-popover and pathnames-popover-content, to the popover template.
-            template: '<div class="popover pathnames-popover"><div class="pathnames-popover-arrow"></div>' +
+            template: '<div data-popup-id="' + uniqueId + '" class="popover pathnames-popover"><div class="pathnames-popover-arrow"></div>' +
               '<div class="popover-inner"><h3 class="popover-title"></h3>' +
               '<div class="popover-content pathnames-popover-content"><p></p></div></div></div>'
           };
@@ -139,13 +143,10 @@
                   return originalPosition;
                 };
               }
-              
+
               element.popover('show');
-              
-              // Because we've used the table element as the popover container,
-              // start selecting from the parent of the tr (td -> tr -> table).
-              // We also only want to select the popover of the current element, not all popovers.
-              var popover = $('.popover:contains(\'' + pathnames[0] + '\')');
+
+              var popover = $('.pathnames-popover[data-popup-id=' + uniqueId + ']');
               popover.on('mouseleave', function() {
                 element.popover('hide');
               });
@@ -155,7 +156,7 @@
           // Also, hide the popover if the mouse leaves the component element and is no
           // longer hovering over the popover.
           element.on('mouseleave', function() {
-            var popover = $('.popover:contains(\'' + pathnames[0] + '\')');
+            var popover = $('.pathnames-popover[data-popup-id=' + uniqueId + ']');
             setTimeout(function() {
               if (popover.length > 0 && !popover.is(':hover')) {
                 element.popover('hide');
@@ -165,7 +166,7 @@
           
           // When the element is removed we need to remove the popover as well.
           scope.$on('$destroy', function() {
-            var popover = $('.popover:contains(\'' + pathnames[0] + '\')');
+            var popover = $('.pathnames-popover[data-popup-id=' + uniqueId + ']');
             if (popover.length > 0) {
               popover.remove();
             }

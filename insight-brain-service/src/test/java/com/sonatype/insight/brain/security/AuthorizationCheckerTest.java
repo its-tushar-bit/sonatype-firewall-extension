@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -138,13 +139,22 @@ public class AuthorizationCheckerTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     User user = tempEntity.newUser();
-    newGroupMapping("group", app.getId(), roleDAO.getByName("Owner").getId());
+    Permission globalPermission = Permission.CONFIGURE_SYSTEM;
+    assertThat(globalPermission.isGlobal(), is(true));
+    Permission nonGlobalPermission = Permission.READ;
+    assertThat(nonGlobalPermission.isGlobal(), is(false));
+    Role role = tempEntity.newRole(false /* global */, globalPermission, nonGlobalPermission);
+    String groupName = "group";
+    newGroupMapping(groupName, app.getId(), role.getId());
     Collection<String> contextIds = Arrays.asList(app.getId());
 
-    UserPrincipal owner = newPrincipal(user, "group");
-    assertThat(checker.isPermitted(owner, Permission.READ, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.WRITE, contextIds), is(true));
-    assertThat(checker.isPermitted(owner, Permission.CONFIGURE_SYSTEM, contextIds), is(false));
+    UserPrincipal userPrincipalNoGroups = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipalNoGroups, globalPermission, contextIds), is(false));
+    assertThat(checker.isPermitted(userPrincipalNoGroups, nonGlobalPermission, contextIds), is(false));
+
+    UserPrincipal userPrincipalWithGroup = newPrincipal(user, groupName);
+    assertThat(checker.isPermitted(userPrincipalWithGroup, globalPermission, contextIds), is(true));
+    assertThat(checker.isPermitted(userPrincipalWithGroup, nonGlobalPermission, contextIds), is(true));
   }
 
   @Test
@@ -218,5 +228,75 @@ public class AuthorizationCheckerTest
       assertThat(perm.toString(), checker.filterByPermission(null, Permission.READ, entities, Context.ORGANIZATION),
           is(empty()));
     }
+  }
+
+  @Test
+  public void testIsPermitted_GlobalPermission_GlobalContext() {
+    // The user has a global permission granted via a role in global context.
+    User user = tempEntity.newUser("AliBaba");
+    Permission permission = Permission.CONFIGURE_SYSTEM;
+    assertThat(permission.isGlobal(), is(true));
+    Role role = tempEntity.newRole(true /* global */, permission);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
+    Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+
+    // Verify the user name is checked case insensitive
+    user.setUsername("aLIbABA");
+    userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+  }
+
+  @Test
+  public void testIsPermitted_GlobalPermission_NonGlobalContext() {
+    // The user has a global permission granted via a role in a non-global context (context==org), which effectively
+    // grants the user that global permission in global context.
+    Organization org = tempEntity.newOrganization();
+    User user = tempEntity.newUser("AliBaba");
+    Permission permission = Permission.CONFIGURE_SYSTEM;
+    assertThat(permission.isGlobal(), is(true));
+    Role role = tempEntity.newRole(false /* global */, permission);
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername());
+    Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+
+    // Verify the user name is checked case insensitive
+    user.setUsername("aLIbABA");
+    userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+  }
+
+  @Test
+  public void testIsPermitted_NonGlobalPermission_GlobalContext() {
+    // The user has a non-global permission granted via a role in global context.
+    User user = tempEntity.newUser();
+    Permission permission = Permission.EVALUATE_APPLICATION;
+    assertThat(permission.isGlobal(), is(false));
+    Role role = tempEntity.newRole(true /* global */, permission);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
+    Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(true));
+  }
+
+  @Test
+  public void testIsPermitted_NonGlobalPermission_NonGlobalContext() {
+    // The user has a non-global permission granted via a role in a non-global context (context==org), which should not
+    // grant the user that permission in global context.
+    Organization org = tempEntity.newOrganization();
+    User user = tempEntity.newUser();
+    Permission permission = Permission.EVALUATE_APPLICATION;
+    assertThat(permission.isGlobal(), is(false));
+    Role role = tempEntity.newRole(false /* global */, permission);
+    tempEntity.newMembershipMapping(org.getId(), role.getId(), user.getUsername());
+    Collection<String> contextIds = Collections.singletonList(MembershipMapping.GLOBAL_CONTEXT_ID);
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.isPermitted(userPrincipal, permission, contextIds), is(false));
   }
 }

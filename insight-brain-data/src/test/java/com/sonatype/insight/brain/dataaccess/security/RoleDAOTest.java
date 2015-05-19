@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
@@ -76,6 +77,15 @@ public class RoleDAOTest
     rolePermissionDAO.insert(new RolePermission(role.getId(), Permission.values()[0]));
     roleDAO.delete(role);
     assertThat(rolePermissionDAO.getPermissionsForRole(role.getId()), is(empty()));
+  }
+
+  @Test
+  public void testDeleteCascadesToMembershipMappings() throws Exception {
+    Role role = newRole("cascade");
+    MembershipMapping membershipMapping = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
+        role.getId(), "username");
+    roleDAO.delete(role);
+    assertThat(new MembershipMappingDAO().getById(membershipMapping.getId()), nullValue());
   }
 
   @Test

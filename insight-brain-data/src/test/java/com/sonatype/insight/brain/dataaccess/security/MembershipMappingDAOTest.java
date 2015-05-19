@@ -8,13 +8,16 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -170,6 +173,42 @@ public class MembershipMappingDAOTest
     }
     catch (UnsupportedOperationException e) {
       // expected
+    }
+  }
+
+  @Test
+  public void testGetByRoleIds() {
+    Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    MembershipMapping membership = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role1.getId(),
+        "username");
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
+    List<MembershipMapping> memberships = membershipDAO.getByRoleIds(Collections.singleton(role1.getId()));
+    assertThat(memberships, hasSize(1));
+    assertThat(memberships.get(0).getId(), is(membership.getId()));
+  }
+
+  @Test
+  public void testGetById() {
+    Role role = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    MembershipMapping membership = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(),
+        "username");
+    MembershipMapping foundMembership = membershipDAO.getById(membership.getId());
+    assertThat(foundMembership, notNullValue());
+    assertThat(foundMembership.getId(), is(membership.getId()));
+  }
+
+  @Test
+  public void testGetByRoleId() {
+    Role role1 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    Role role2 = tempEntity.newRole(true /* global */, Permission.CONFIGURE_SYSTEM);
+    MembershipMapping membership = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role1.getId(),
+        "username");
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role2.getId(), "username");
+    try (TransactionContext tx = membershipDAO.createTransactionContext()) {
+      List<MembershipMapping> foundMemberships = membershipDAO.getByRoleId(tx, role1.getId());
+      assertThat(foundMemberships, hasSize(1));
+      assertThat(foundMemberships.get(0).getId(), is(membership.getId()));
     }
   }
 }

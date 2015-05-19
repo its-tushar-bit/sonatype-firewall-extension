@@ -13,23 +13,23 @@ package com.sonatype.insight.brain.model.security;
 public enum Permission
 {
   // The order of permissions here determines the order in the UI
-  CONFIGURE_SYSTEM("Edit", PermissionCategory.ADMINISTRATOR, "System Configuration and Users", false /* allowedInCustomRoles */),
+  CONFIGURE_SYSTEM("Edit", PermissionCategory.ADMINISTRATOR, "System Configuration and Users", true /* global */, false /* allowedInCustomRoles */),
 
-  EDIT_ROLES("Edit", PermissionCategory.ADMINISTRATOR, "Custom Roles", false /* allowedInCustomRoles */),
+  EDIT_ROLES("Edit", PermissionCategory.ADMINISTRATOR, "Custom Roles", true /* global */, false /* allowedInCustomRoles */),
 
-  VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles"),
+  VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
   
-  MANAGE_PROPRIETARY("Edit", PermissionCategory.ADMINISTRATOR, "Proprietary Components"),
+  MANAGE_PROPRIETARY("Edit", PermissionCategory.ADMINISTRATOR, "Proprietary Components", true /* global */, true /* allowedInCustomRoles */),
 
-  CLAIM_COMPONENT("Claim", PermissionCategory.CLM, "Components"),
+  CLAIM_COMPONENT("Claim", PermissionCategory.CLM, "Components", true /* global */, true /* allowedInCustomRoles */),
 
-  WRITE("Edit", PermissionCategory.CLM, "CLM elements"),
+  WRITE("Edit", PermissionCategory.CLM, "CLM elements", false /* global */, true /* allowedInCustomRoles */),
 
-  READ("View", PermissionCategory.CLM, "CLM elements"),
+  READ("View", PermissionCategory.CLM, "CLM elements", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_APPLICATION("Evaluate", PermissionCategory.CLM, "Applications"),
+  EVALUATE_APPLICATION("Evaluate", PermissionCategory.CLM, "Applications", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual components");
+  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual components", false /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 
@@ -37,18 +37,17 @@ public enum Permission
 
   private final String description;
 
+  private final boolean global;
+
   private final boolean allowedInCustomRoles;
 
-  private Permission(final String displayName, final PermissionCategory category, final String description) {
-    this(displayName, category, description, true /* allowedInCustomRoles */);
-  }
-
   private Permission(final String displayName, final PermissionCategory category, final String description,
-      final boolean allowedInCustomRoles)
+      final boolean global, final boolean allowedInCustomRoles)
   {
     this.displayName = displayName;
     this.category = category;
     this.description = description;
+    this.global = global;
     this.allowedInCustomRoles = allowedInCustomRoles;
   }
 
@@ -66,5 +65,9 @@ public enum Permission
 
   public boolean isAllowedInCustomRoles() {
     return allowedInCustomRoles;
+  }
+
+  public boolean isGlobal() {
+    return global;
   }
 }

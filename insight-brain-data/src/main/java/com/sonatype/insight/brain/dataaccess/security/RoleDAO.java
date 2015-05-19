@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -110,6 +111,12 @@ public class RoleDAO
     RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     for (RolePermission rolePermission : rolePermissionDAO.getByRoleId(tx, entity.getId())) {
       rolePermissionDAO.delete(tx, rolePermission);
+    }
+
+    // Cascade to membership mappings
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByRoleId(tx, entity.getId())) {
+      membershipMappingDAO.delete(membershipMapping);
     }
 
     // Cascade to policy notify actions

@@ -105,9 +105,16 @@ public class AuthorizationChecker
   boolean isPermitted(UserPrincipal user, Permission permission, Iterable<String> contextIds) {
     if (user != null) {
       Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
-      for (String contextId : contextIds) {
-        if (isUserHavingAnyRoleInContext(user, roleIds, contextId)) {
-          return true;
+      if (permission.isGlobal()) {
+        // The permission is global, so the contexts don't really matter.
+        return isUserHavingAnyRoleInAnyContext(user, roleIds);
+      }
+      else {
+        // The permission is non-global, so check it in the given contexts.
+        for (String contextId : contextIds) {
+          if (isUserHavingAnyRoleInContext(user, roleIds, contextId)) {
+            return true;
+          }
         }
       }
     }
@@ -180,6 +187,16 @@ public class AuthorizationChecker
     Collection<MembershipMapping> memberships = membershipDAO.getByContextId(contextId);
     for (MembershipMapping membership : memberships) {
       if (roleIds.contains(membership.getRoleId()) && isUserIncluded(membership, user)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds) {
+    Collection<MembershipMapping> memberships = membershipDAO.getByRoleIds(roleIds);
+    for (MembershipMapping membership : memberships) {
+      if (isUserIncluded(membership, user)) {
         return true;
       }
     }

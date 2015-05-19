@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -20,6 +21,15 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class MembershipMappingDAO
     extends AbstractOperationalSqlDAO<MembershipMapping>
 {
+  /**
+   * @since 1.15.0
+   */
+  @Override
+  protected MembershipMapping getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM MembershipMapping entity WHERE entity.id=?1";
+    return get(tx, sQuery, id);
+  }
+
   /**
    * Gets the membership mappings for a given context.
    */
@@ -125,5 +135,23 @@ public class MembershipMappingDAO
   @Override
   public void update(TransactionContext tx, MembershipMapping entity) {
     throw new UnsupportedOperationException("Use setMembershipMappingsForContextAndRole() instead");
+  }
+
+  /**
+   * @since 1.15.0
+   */
+  public List<MembershipMapping> getByRoleIds(Set<String> roleIds) {
+    String sQuery = "SELECT entity FROM MembershipMapping entity" //
+        + " WHERE entity.roleId IN ?1";
+    return getList(sQuery, roleIds);
+  }
+
+  /**
+   * @since 1.15.0
+   */
+  public List<MembershipMapping> getByRoleId(TransactionContext tx, String roleId) {
+    String sQuery = "SELECT entity FROM MembershipMapping entity" //
+        + " WHERE entity.roleId=?1";
+    return getList(tx, sQuery, roleId);
   }
 }

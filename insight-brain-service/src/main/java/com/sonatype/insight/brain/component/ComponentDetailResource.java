@@ -17,6 +17,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 
+import com.yammer.metrics.annotation.Metered;
+import com.yammer.metrics.annotation.Timed;
+
 /**
  * @since 1.11
  */
@@ -36,6 +39,8 @@ public class ComponentDetailResource
   @GET
   @Path("applications")
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getApplicationDetailsByHashMeter")
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getApplicationDetailsByHash(hash);
   }
@@ -43,6 +48,8 @@ public class ComponentDetailResource
   @GET
   @Path("name")
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @Metered(name = "getComponentNameByHashMeter")
   public ComponentDisplayName getComponentNameByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getComponentNameByHash(hash);
   }

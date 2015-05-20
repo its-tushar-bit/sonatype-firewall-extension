@@ -326,6 +326,32 @@ public class PolicyTest
   }
 
   @Test
+  public void testValidate_threatLevelValidation() {
+    Policy policy = new Policy();
+    Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+
+    policy.setName("testValidate_threatLevelInvalid");
+    policy.setThreatLevel(-1);
+    ValidationResult result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result,
+        "Policy 'testValidate_threatLevelInvalid' has threat level outside of valid range 0-10: -1");
+
+    policy.setThreatLevel(11);
+    result = policy.validate(applicationId);
+    assertValidationResultHasErrors(result, "Policy 'testValidate_threatLevelInvalid' has threat level outside of valid range 0-10: 11");
+
+    policy.setThreatLevel(0);
+    result = policy.validate(applicationId);
+    assertValidationResultHasNoErrors(result);
+
+    policy.setThreatLevel(10);
+    result = policy.validate(applicationId);
+    assertValidationResultHasNoErrors(result);
+  }
+
+  @Test
   public void testGetDroolsCode_ExcludedFromJson() throws Exception {
     Policy policy = new Policy("PolicyId", "Policy Name");
     policy.setDroolsCode("unwanted");

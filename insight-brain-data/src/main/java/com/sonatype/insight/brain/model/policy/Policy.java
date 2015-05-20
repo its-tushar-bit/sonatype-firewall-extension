@@ -213,6 +213,10 @@ public class Policy
       }
     }
 
+    if (getThreatLevel() < 0 || getThreatLevel() > 10) {
+      result.addError("Policy '" + name + "' has threat level outside of valid range 0-10: " + getThreatLevel());
+    }
+
     if (!result.isValid()) {
       log.debug("Validation result: {}", result.toMessageString());
     }

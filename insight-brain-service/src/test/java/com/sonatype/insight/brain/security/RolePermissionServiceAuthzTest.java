@@ -45,7 +45,7 @@ public class RolePermissionServiceAuthzTest
 
   @Test
   public void testPermissionsForNewCustomRole_Authorized() {
-    grantGlobalPermission(Permission.VIEW_ROLES);
+    grantGlobalPermission(Permission.EDIT_ROLES);
     RolePermissionDTO rolePermission = rolePermissionService.getPermissionsForNewCustomRole();
     assertThat(rolePermission.permissionCategories, not(empty()));
     assertThat(rolePermission.permissionCategories.get(0).permissions, not(empty()));

@@ -38,7 +38,7 @@ public class RolePermissionService
     this.roleDAO = roleDAO;
   }
 
-  @Authorize(permission = Permission.VIEW_ROLES)
+  @Authorize(permission = Permission.EDIT_ROLES)
   public RolePermissionDTO getPermissionsForNewCustomRole() {
     RolePermissionDTO rolePermissionDTO = new RolePermissionDTO();
     buildDTO(rolePermissionDTO, EnumSet.noneOf(Permission.class), true);

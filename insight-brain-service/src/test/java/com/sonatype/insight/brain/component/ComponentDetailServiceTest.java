@@ -306,7 +306,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetComponentNameByHash_UnnownHash() throws Exception {
+  public void testGetComponentNameByHash_UnknownHash() throws Exception {
     String hash = "ababababab";
 
     try {

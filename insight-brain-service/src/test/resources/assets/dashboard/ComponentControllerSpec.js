@@ -8,14 +8,7 @@ describe('ComponentController tests', function() {
         publicId: 'appPublicId',
         name: 'appName',
         organizationId: 'appOrgId',
-        organizationName: 'appOrgName',
-        contact: {
-          internalName: 'admin',
-          displayName: 'Admin BuiltIn',
-          email: 'admin@localhost',
-          realm: 'CLM',
-          error: null
-        }
+        organizationName: 'appOrgName'
       },
       policyViolations: [
         {

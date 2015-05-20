@@ -163,7 +163,7 @@ public class ComponentDetailService
         }
       }
 
-      applicationComponentDetails.application = appAdapter.convert(application);
+      applicationComponentDetails.application = appAdapter.convert(application, false);
       applicationComponentDetails.policyViolations.addAll(policyViolationDTOsByPolicyId.values());
       result.add(applicationComponentDetails);
     }

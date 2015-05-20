@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ApplicationAdapterTest
@@ -142,6 +143,19 @@ public class ApplicationAdapterTest
 
     ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application);
     assertApplication(actualApplicationDTO, expectedApplicationDTO);
+  }
+
+  @Test
+  public void testConvertApplication_ExcludeContact() {
+    Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
+
+    ContactDTO expectedContactDTO = null;
+    ApplicationDTO expectedApplicationDTO = createExpectedDTO(applicationName, applicationId, expectedContactDTO);
+
+    ApplicationDTO actualApplicationDTO = applicationAdapter.convert(application, false);
+    assertApplication(actualApplicationDTO, expectedApplicationDTO);
+
+    verifyZeroInteractions(mockUserDirectory);
   }
 
   @Test

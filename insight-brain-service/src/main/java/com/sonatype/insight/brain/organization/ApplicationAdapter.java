@@ -59,12 +59,15 @@ public class ApplicationAdapter
    * @return the application DTO
    */
   public ApplicationDTO convert(Application application) {
+    return convert(application, true);
+  }
 
+  public ApplicationDTO convert(Application application, boolean includeContact) {
     if (application == null) {
       return null;
     }
 
-    final ContactDTO contact = getContact(application.getContactInternalName());
+    final ContactDTO contact = includeContact ? getContact(application.getContactInternalName()) : null;
     return createApplicationDTO(application, contact);
   }
 

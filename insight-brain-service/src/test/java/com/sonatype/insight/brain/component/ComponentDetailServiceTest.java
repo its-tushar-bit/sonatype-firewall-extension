@@ -280,6 +280,22 @@ public class ComponentDetailServiceTest
     assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
   }
 
+  @Test
+  public void testGetApplicationDetailsByHash_ExcludesCostlyContactInfo() {
+    String hash = "ababababab";
+
+    Application app = tempEntity.newApplication("appName", "appId", tempEntity.newOrganization().getId(), "admin");
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+
+    List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
+        .getApplicationDetailsByHash(hash);
+    assertThat(appComponentDetailsDTOs, hasSize(1));
+    ApplicationComponentDetailsDTO appComponentDetailsDTO = appComponentDetailsDTOs.get(0);
+    assertThat(appComponentDetailsDTO.application.getId(), is(app.getId()));
+    assertThat(appComponentDetailsDTO.application.getContact(), is(nullValue()));
+  }
+
   private void assertStageDetails(StageDetailDTO stageDetailDTO, StageType stageType, String actionType, String scanId,
       Long time)
   {

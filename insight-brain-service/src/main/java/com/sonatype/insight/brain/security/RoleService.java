@@ -5,14 +5,25 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.dataaccess.TransactionContext;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 /**
  * @since 1.15.0
@@ -22,27 +33,63 @@ public class RoleService
 {
   private final RoleDAO roleDAO;
 
+  private final RolePermissionDAO rolePermissionDAO;
+
   @Inject
-  public RoleService(final RoleDAO roleDAO) {
+  public RoleService(final RoleDAO roleDAO, final RolePermissionDAO rolePermissionDAO) {
     this.roleDAO = roleDAO;
+    this.rolePermissionDAO = rolePermissionDAO;
+  }
+
+  /**
+   * Note: as an optimization we will not populate the permissions as the UI does not need them for get all.
+   */
+  @Authorize(permission = Permission.VIEW_ROLES)
+  public List<RoleDTO> getAllRoles() {
+    return convertRolesToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
-  public List<Role> getAllRoles() {
-    return roleDAO.getAll();
+  public RoleDTO getRoleById(final String roleId) {
+    Role role = roleDAO.getByIdNotNull(roleId);
+    RoleDTO roleDTO = new RoleDTO(role);
+    roleDTO.permissionCategories = getPermissionsForRole(roleDTO);
+    return roleDTO;
   }
 
   @Authorize(permission = Permission.EDIT_ROLES)
-  public Role addRole(Role role) {
+  public RoleDTO getTemplateForNewRole() {
+    RoleDTO roleDTO = new RoleDTO();
+    roleDTO.permissionCategories = getPermissionsForNewCustomRole();
+    return roleDTO;
+  }
+
+  @Authorize(permission = Permission.EDIT_ROLES)
+  public RoleDTO addRole(RoleDTO roleDTO) {
+    Role role = convertRoleFromDTO(roleDTO);
+    Set<Permission> rolePermissions = convertRolePermissionFromDTO(roleDTO);
     role.setId(null);
-    roleDAO.insert(role);
-    return role;
+    try (TransactionContext tx = roleDAO.createTransactionContext()) {
+      tx.begin();
+      roleDAO.insert(tx, role);
+      rolePermissionDAO.setPermissionsForRole(tx, role.getId(), rolePermissions);
+      tx.commit();
+    }
+    roleDTO.id = role.getId();
+    return roleDTO;
   }
 
   @Authorize(permission = Permission.EDIT_ROLES)
-  public Role updateRole(Role role) {
-    roleDAO.update(role);
-    return role;
+  public RoleDTO updateRole(RoleDTO roleDTO) {
+    Role role = convertRoleFromDTO(roleDTO);
+    Set<Permission> rolePermissions = convertRolePermissionFromDTO(roleDTO);
+    try (TransactionContext tx = roleDAO.createTransactionContext()) {
+      tx.begin();
+      roleDAO.update(tx, role);
+      rolePermissionDAO.setPermissionsForRole(tx, roleDTO.id, rolePermissions);
+      tx.commit();
+    }
+    return roleDTO;
   }
 
   @Authorize(permission = Permission.EDIT_ROLES)
@@ -50,4 +97,77 @@ public class RoleService
     Role role = roleDAO.getByIdNotNull(roleId);
     roleDAO.delete(role);
   }
+
+  private List<RoleDTO> convertRolesToDTO(final List<Role> roles) {
+    List<RoleDTO> roleDTOs = new ArrayList<>(roles.size());
+    for (Role role : roles) {
+      roleDTOs.add(new RoleDTO(role));
+    }
+    return roleDTOs;
+  }
+
+  private Role convertRoleFromDTO(final RoleDTO roleDTO) {
+    Role role = new Role();
+    role.setId(roleDTO.id);
+    role.setName(roleDTO.name);
+    role.setDescription(roleDTO.description);
+    role.setBuiltIn(roleDTO.builtIn);
+    return role;
+  }
+
+  private Set<Permission> convertRolePermissionFromDTO(final RoleDTO roleDTO) {
+    Set<Permission> rolePermissions = EnumSet.noneOf(Permission.class);
+    if (roleDTO.permissionCategories != null) {
+      for (PermissionCategoryDTO permissionCategory : roleDTO.permissionCategories) {
+        if (permissionCategory.permissions != null) {
+          for (PermissionDTO permission : permissionCategory.permissions) {
+            if (permission.allowed) {
+              rolePermissions.add(permission.id);
+            }
+          }
+        }
+      }
+    }
+    return rolePermissions;
+  }
+
+  private List<PermissionCategoryDTO> getPermissionsForRole(final RoleDTO roleDTO) {
+    boolean customRole = !roleDTO.builtIn;
+    Set<Permission> permissionsForRole = rolePermissionDAO.getPermissionsForRole(roleDTO.id);
+    return convertPermissionsToDTO(permissionsForRole, customRole);
+  }
+
+  private List<PermissionCategoryDTO> getPermissionsForNewCustomRole() {
+    return convertPermissionsToDTO(EnumSet.noneOf(Permission.class), true);
+  }
+
+  private List<PermissionCategoryDTO> convertPermissionsToDTO(final Set<Permission> permissions,
+      final boolean customRole) {
+    ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
+    for (Permission perm : EnumSet.allOf(Permission.class)) {
+      if (customRole && !perm.isAllowedInCustomRoles()) {
+        continue;
+      }
+      permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissions.contains(perm)));
+    }
+
+    List<PermissionCategoryDTO> permissionCategories = new ArrayList<>();
+    for (PermissionCategory category : permissionsByCategoryMap.keySet()) {
+      List<PermissionDTO> categoryPermissions = permissionsByCategoryMap.get(category);
+      PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(category.getDisplayName());
+      permissionCategoryDTO.permissions = categoryPermissions;
+      permissionCategories.add(permissionCategoryDTO);
+    }
+    Collections.sort(permissionCategories, PERMISSION_CATEGORY_COMPARATOR);
+    return permissionCategories;
+  }
+
+  // just so happens that alpha sort works for now
+  private static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR = new Comparator<PermissionCategoryDTO>()
+  {
+    @Override
+    public int compare(final PermissionCategoryDTO o1, final PermissionCategoryDTO o2) {
+      return o1.displayName.compareToIgnoreCase(o2.displayName);
+    }
+  };
 }

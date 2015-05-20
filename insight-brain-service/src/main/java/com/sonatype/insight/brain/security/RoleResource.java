@@ -19,8 +19,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.model.security.Role;
-
 /**
  * @since 1.15.0
  */
@@ -29,6 +27,10 @@ import com.sonatype.insight.brain.model.security.Role;
 public class RoleResource
 {
   public static final String SERVICE_PATH = "rest/security/roles";
+
+  public static final String ROLE_ID_PATH = "{roleId}";
+
+  public static final String NEW_PATH = "new";
 
   private final RoleService roleService;
 
@@ -39,26 +41,40 @@ public class RoleResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Role> getAllRoles() {
+  public List<RoleDTO> getAllRoles() {
     return roleService.getAllRoles();
+  }
+
+  @Path(ROLE_ID_PATH)
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public RoleDTO getRoleById(@PathParam("roleId") final String roleId) {
+    return roleService.getRoleById(roleId);
+  }
+
+  @Path(NEW_PATH)
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public RoleDTO getTemplateForNewRole() {
+    return roleService.getTemplateForNewRole();
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Role addRole(Role role) {
+  public RoleDTO addRole(RoleDTO role) {
     return roleService.addRole(role);
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Role updateRole(Role role) {
+  public RoleDTO updateRole(RoleDTO role) {
     return roleService.updateRole(role);
   }
 
   @DELETE
-  @Path("{roleId}")
+  @Path(ROLE_ID_PATH)
   public void deleteRole(@PathParam("roleId") String roleId) {
     roleService.deleteRole(roleId);
   }

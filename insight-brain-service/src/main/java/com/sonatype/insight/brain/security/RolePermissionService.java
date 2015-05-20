@@ -24,6 +24,8 @@ import com.google.common.collect.ListMultimap;
 
 /**
  * @since 1.15.0
+ *
+ * TODO - Remove this after UI refactored to use RoleResource
  */
 @Named
 public class RolePermissionService

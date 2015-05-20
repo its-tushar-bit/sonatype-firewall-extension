@@ -59,32 +59,34 @@ public class RolePermissionDAO
   public void setPermissionsForRole(String roleId, Set<Permission> permissions) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-
-      Role role = new RoleDAO().getByIdNotNull(tx, roleId);
-      if (role.isBuiltIn()) {
-        throw new BadRequestException("Cannot change permissions for built-in role '" + role.getName() + "'");
-      }
-
-      Set<Permission> alreadySet = EnumSet.noneOf(Permission.class);
-      for (RolePermission assoc : getByRoleId(tx, roleId)) {
-        if (permissions.contains(assoc.getPermission())) {
-          alreadySet.add(assoc.getPermission());
-        }
-        else {
-          delete(tx, assoc);
-        }
-      }
-      for (Permission permission : permissions) {
-        if (!permission.isAllowedInCustomRoles()) {
-          throw new BadRequestException("Cannot assign permission '" + permission + "' to custom role '"
-              + role.getName() + "'");
-        }
-        if (!alreadySet.contains(permission)) {
-          insert(tx, new RolePermission(roleId, permission));
-        }
-      }
-
+      setPermissionsForRole(tx, roleId, permissions);
       tx.commit();
+    }
+  }
+
+  public void setPermissionsForRole(TransactionContext tx, String roleId, Set<Permission> permissions) {
+    Role role = new RoleDAO().getByIdNotNull(tx, roleId);
+    if (role.isBuiltIn()) {
+      throw new BadRequestException("Cannot change permissions for built-in role '" + role.getName() + "'");
+    }
+
+    Set<Permission> alreadySet = EnumSet.noneOf(Permission.class);
+    for (RolePermission assoc : getByRoleId(tx, roleId)) {
+      if (permissions.contains(assoc.getPermission())) {
+        alreadySet.add(assoc.getPermission());
+      }
+      else {
+        delete(tx, assoc);
+      }
+    }
+    for (Permission permission : permissions) {
+      if (!permission.isAllowedInCustomRoles()) {
+        throw new BadRequestException("Cannot assign permission '" + permission + "' to custom role '"
+            + role.getName() + "'");
+      }
+      if (!alreadySet.contains(permission)) {
+        insert(tx, new RolePermission(roleId, permission));
+      }
     }
   }
 

@@ -15,6 +15,8 @@ import javax.ws.rs.core.MediaType;
 
 /**
  * @since 1.15.0
+ *
+ * TODO - Remove this after UI refactored to use RoleResource
  */
 @Path(RolePermissionResource.SERVICE_PATH)
 @Named

@@ -5,8 +5,15 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
+
 import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -15,7 +22,9 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -23,44 +32,121 @@ import static org.hamcrest.Matchers.nullValue;
 public class RoleResourceTest
     extends AbstractResourceTest
 {
+  private RoleDAO roleDAO = new RoleDAO();
+
+  private RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
+
   @Test
   public void testGetAllRoles() throws Exception {
     Response response = AuthedRestAccess.get(getRestUrl((RoleResource.SERVICE_PATH)));
     assertResponseStatus(200, response);
-    Role[] roles = fromJson(response, Role[].class);
+    RoleDTO[] roles = fromJson(response, RoleDTO[].class);
     assertThat(roles, not(emptyArray()));
   }
 
   @Test
-  public void testAddRole() throws Exception {
-    Role role = new Role("New Name", "New Description");
-    Response response = AuthedRestAccess.post(getRestUrl(RoleResource.SERVICE_PATH), toJson(role));
+  public void testGetRoleById() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.CLAIM_COMPONENT);
+    Response response = AuthedRestAccess.get(
+        getRestUrl(RoleResource.SERVICE_PATH + "/" + RoleResource.ROLE_ID_PATH, role.getId()));
     assertResponseStatus(200, response);
-    Role newRole = fromJson(response, Role.class);
-    tempEntity.register(newRole);
-    assertThat(newRole.getId(), is(notNullValue()));
-    assertThat(newRole.getName(), is(role.getName()));
-    assertThat(newRole.getDescription(), is(role.getDescription()));
+    RoleDTO roleDTO = fromJson(response, RoleDTO.class);
+    assertThat(roleDTO, notNullValue());
+    assertThat(roleDTO.id, is(role.getId()));
+  }
+
+  @Test
+  public void testGetNewRole() throws Exception {
+    Response response = AuthedRestAccess.get(getRestUrl(RoleResource.SERVICE_PATH + "/" + RoleResource.NEW_PATH));
+    assertResponseStatus(200, response);
+    RoleDTO role = fromJson(response, RoleDTO.class);
+    assertThat(role, notNullValue());
+    assertThat(role.permissionCategories, hasSize(2));
+  }
+
+  @Test
+  public void testAddRole() throws Exception {
+    RoleDTO roleDTO = new RoleDTO();
+    roleDTO.name = "New Name";
+    roleDTO.description = "New Description";
+    roleDTO.permissionCategories = new ArrayList<>();
+    String categoryDisplayName = "TestDisplayName";
+    roleDTO.permissionCategories.add(createPermissionCategoryDTO(categoryDisplayName));
+
+    Response response = AuthedRestAccess.post(getRestUrl(RoleResource.SERVICE_PATH), toJson(roleDTO));
+    assertResponseStatus(200, response);
+    RoleDTO newRoleDTO = fromJson(response, RoleDTO.class);
+    assertThat(newRoleDTO.id, is(notNullValue()));
+    tempEntity.register(roleDAO.getByIdNotNull(newRoleDTO.id));
+
+    assertRoleDTO(newRoleDTO, roleDTO, categoryDisplayName);
+    assertRole(newRoleDTO, Permission.READ, Permission.WRITE);
   }
 
   @Test
   public void testUpdateRole() throws Exception {
     Role role = tempEntity.newRole(false);
-    role.setName("Updated Name");
-    role.setDescription("Updated Description");
-    Response response = AuthedRestAccess.put(getRestUrl(RoleResource.SERVICE_PATH), toJson(role));
+    RoleDTO roleDTO = new RoleDTO(role);
+    roleDTO.name = "Updated Name";
+    roleDTO.description = "Updated Description";
+    roleDTO.permissionCategories = new ArrayList<>();
+    String categoryDisplayName = "TestDisplayName";
+    roleDTO.permissionCategories.add(createPermissionCategoryDTO(categoryDisplayName));
+
+    Response response = AuthedRestAccess.put(getRestUrl(RoleResource.SERVICE_PATH), toJson(roleDTO));
     assertResponseStatus(200, response);
-    Role updatedRole = fromJson(response, Role.class);
-    assertThat(updatedRole.getId(), is(role.getId()));
-    assertThat(updatedRole.getName(), is(role.getName()));
-    assertThat(updatedRole.getDescription(), is(role.getDescription()));
+    RoleDTO updatedRoleDTO = fromJson(response, RoleDTO.class);
+    assertThat(updatedRoleDTO.id, is(roleDTO.id));
+
+    assertRoleDTO(updatedRoleDTO, roleDTO, categoryDisplayName);
+    assertRole(roleDTO, Permission.READ, Permission.WRITE);
   }
 
   @Test
   public void testDeleteRole() throws Exception {
     Role role = tempEntity.newRole(false);
-    Response response = AuthedRestAccess.delete(getRestUrl(RoleResource.SERVICE_PATH + "/{roleId}", role.getId()));
+    Response response = AuthedRestAccess.delete(
+        getRestUrl(RoleResource.SERVICE_PATH + "/" + RoleResource.ROLE_ID_PATH, role.getId()));
     assertResponseStatus(204, response);
     assertThat(new RoleDAO().getById(role.getId()), is(nullValue()));
+  }
+
+  private PermissionCategoryDTO createPermissionCategoryDTO(final String categoryDisplayName) {
+    PermissionCategoryDTO permissionCategoryDTO = new PermissionCategoryDTO(categoryDisplayName);
+    permissionCategoryDTO.permissions = new ArrayList<>();
+    permissionCategoryDTO.permissions.add(new PermissionDTO(Permission.READ, true));
+    permissionCategoryDTO.permissions.add(new PermissionDTO(Permission.WRITE, true));
+    return permissionCategoryDTO;
+  }
+
+  private void assertRoleDTO(final RoleDTO actualRole, final RoleDTO expectedRole,
+      final String expectedPermissionCategoryName)
+  {
+    assertThat(actualRole.name, is(expectedRole.name));
+    assertThat(actualRole.description, is(expectedRole.description));
+    assertThat(actualRole.permissionCategories, hasSize(1));
+
+    PermissionCategoryDTO actualPermissionCategoryDTO = actualRole.permissionCategories.get(0);
+    assertThat(actualPermissionCategoryDTO.displayName, is(expectedPermissionCategoryName));
+    assertThat(actualPermissionCategoryDTO.permissions, hasSize(2));
+    Collections.sort(actualPermissionCategoryDTO.permissions, new Comparator<PermissionDTO>()
+    {
+      @Override
+      public int compare(final PermissionDTO o1, final PermissionDTO o2) {
+        return o1.id.compareTo(o2.id);
+      }
+    });
+
+    assertThat(actualPermissionCategoryDTO.permissions.get(0).id, is(Permission.WRITE));
+    assertThat(actualPermissionCategoryDTO.permissions.get(1).id, is(Permission.READ));
+  }
+
+  private void assertRole(final RoleDTO expected, final Permission... expectedPermissions) {
+    Role updatedRole = roleDAO.getByIdNotNull(expected.id);
+    assertThat(updatedRole.getId(), is(expected.id));
+    assertThat(updatedRole.getName(), is(expected.name));
+    assertThat(updatedRole.getDescription(), is(expected.description));
+    Set<Permission> updatedPermissions = rolePermissionDAO.getPermissionsForRole(expected.id);
+    assertThat(updatedPermissions, containsInAnyOrder(expectedPermissions));
   }
 }

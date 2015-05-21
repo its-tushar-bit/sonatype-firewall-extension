@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,16 +111,34 @@ public class ComponentDetailService
 
         List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationIdAndHash(policyEvaluation.getId(),
             hash);
-        // only set this value if we have violations
-        if (!policyViolations.isEmpty()) {
-          appStageDetailDTO.time = policyEvaluation.getTime().getTime();
-          appStageDetailDTO.scanId = policyEvaluation.getScanId();
+        if (policyViolations.isEmpty()) {
+          continue;
         }
+
+        // only set this value if we have violations
+        appStageDetailDTO.time = policyEvaluation.getTime().getTime();
+        appStageDetailDTO.scanId = policyEvaluation.getScanId();
+
+        List<PolicyViolation> firstOccurrences = policyViolationDAO
+            .getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(application.getId(), stageType.getId(), hash);
+        Map<String, PolicyViolation> firstOccurrencesByPolicyId = new HashMap<>();
+        for (PolicyViolation firstOccurrence : firstOccurrences) {
+          PolicyViolation clash = firstOccurrencesByPolicyId.put(firstOccurrence.getPolicyId(), firstOccurrence);
+          if (clash != null) {
+            throw new IllegalStateException("Duplicate first occurrence for violation, appId = " + application.getId()
+                + ", stageId = " + stageType.getId() + ", policyId = " + firstOccurrence.getPolicyId() + ", hash = "
+                + hash + ", id = " + clash.getId() + " vs " + firstOccurrence.getId());
+          }
+        }
+
         for (PolicyViolation policyViolation : policyViolations) {
           String policyId = policyViolation.getPolicyId();
 
-          PolicyViolation firstOccurrence = policyViolationDAO.getFirstOccurrence(application.getId(),
-              stageType.getId(), policyViolation);
+          PolicyViolation firstOccurrence = firstOccurrencesByPolicyId.get(policyId);
+          if (firstOccurrence == null) {
+            // incomplete data migration between snapshot builds or violations for unhashed components can cause this
+            firstOccurrence = policyViolation;
+          }
 
           Map<String, StageDetailDTO> stageDetailsById = stageDetailsByPolicyId.get(policyId);
           if (stageDetailsById == null) {

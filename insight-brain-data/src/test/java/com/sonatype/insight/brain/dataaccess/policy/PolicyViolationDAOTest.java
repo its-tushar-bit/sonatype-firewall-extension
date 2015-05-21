@@ -155,6 +155,49 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testGetFirstOccurrenceByApplicationIdAndStageTypeIdAndHash() {
+    Policy policy = tempEntity.newPolicy(applicationId, "testGetFirstOccurrenceByApplicationIdAndStageTypeId");
+
+    // Add policy violations for Release stage
+    PolicyEvaluation policyEvaluationRelease = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID,
+        "ScanReleaseId");
+    // Add a policy violation that is not first occurrence
+    tempEntity.newPolicyViolation(policyEvaluationRelease, policy);
+    // Add a policy violation that is first occurrence
+    PolicyViolation firstOccurrencePolicyViolationRelease = tempEntity.newPolicyViolation(policyEvaluationRelease,
+        policy);
+    tempEntity.newFirstOccurrencePolicyViolation(firstOccurrencePolicyViolationRelease.getId(), applicationId,
+        ReleaseStageType.ID);
+    // Add another policy violation that is first occurrence for another hash
+    PolicyViolation firstOccurrencePolicyViolationRelease2 = tempEntity.newPolicyViolation(policyEvaluationRelease,
+        policy, ComponentIdentifier.createNugetCoordinates("n", "1"), "another-hash", "reason");
+    tempEntity.newFirstOccurrencePolicyViolation(firstOccurrencePolicyViolationRelease2.getId(), applicationId,
+        ReleaseStageType.ID);
+
+    // Add policy violations for Build stage
+    PolicyEvaluation policyEvaluationBuild = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID,
+        "ScanBuildId");
+    // Add a policy violation that is not first occurrence
+    tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
+    // Add a policy violation that is first occurrence
+    PolicyViolation firstOccurrencePolicyViolationBuild = tempEntity.newPolicyViolation(policyEvaluationBuild, policy);
+    tempEntity.newFirstOccurrencePolicyViolation(firstOccurrencePolicyViolationBuild.getId(), applicationId,
+        BuildStageType.ID);
+
+    List<PolicyViolation> firstOccurrencePolicyViolationsRelease = new PolicyViolationDAO()
+        .getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(applicationId, ReleaseStageType.ID,
+            firstOccurrencePolicyViolationRelease.getHash());
+    assertThat(firstOccurrencePolicyViolationsRelease, hasSize(1));
+    assertThat(firstOccurrencePolicyViolationsRelease.get(0).getId(), is(firstOccurrencePolicyViolationRelease.getId()));
+  }
+
+  @Test
+  public void testGetFirstOccurrenceByApplicationIdAndStageTypeIdAndHash_ComponentWithoutHash() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    assertThat(dao.getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash("appId", "stageId", null), hasSize(0));
+  }
+
+  @Test
   public void testGetFirstOccurrence_ComponentWithHash() {
     Policy policy = tempEntity.newPolicy(applicationId, "name");
 

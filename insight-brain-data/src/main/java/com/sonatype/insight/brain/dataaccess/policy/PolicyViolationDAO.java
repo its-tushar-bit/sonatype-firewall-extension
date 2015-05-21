@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -69,6 +72,33 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getFirstOccurrenceByApplicationIdAndStageTypeId(tx, appId, stageTypeId);
+    }
+  }
+
+  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId,
+      String hash)
+  {
+    if (hash == null) {
+      // unhashed components can cause violations but can't be tracked specifically
+      return Collections.emptyList();
+    }
+
+    /*
+     * While this can be done via a single JOIN query at the DB layer, analysis has shown this to be inefficiently
+     * executed by H2 (cf. CLM-4703). Hence we gather the data via two separate queries.
+     */
+    try (TransactionContext tx = createTransactionContext()) {
+      List<FirstOccurrencePolicyViolation> firstOccurrences = new FirstOccurrencePolicyViolationDAO()
+          .getByApplicationIdAndStageId(tx, appId, stageTypeId);
+      Collection<String> violationIds = new ArrayList<>();
+      for (FirstOccurrencePolicyViolation firstOccurrence : firstOccurrences) {
+        violationIds.add(firstOccurrence.getId());
+      }
+
+      String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+          " WHERE entity.hash = ?1 AND entity.id IN (?2)" + //
+          " ORDER BY entity.policyId";
+      return getList(tx, sQuery, hash, violationIds);
     }
   }
 

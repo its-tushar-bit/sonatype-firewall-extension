@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -20,6 +22,14 @@ public class FirstOccurrencePolicyViolationDAO
     String sQuery = "SELECT entity FROM FirstOccurrencePolicyViolation entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
+  }
+
+  public List<FirstOccurrencePolicyViolation> getByApplicationIdAndStageId(TransactionContext tx, String applicationId,
+      String stageId)
+  {
+    String sQuery = "SELECT entity FROM FirstOccurrencePolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2";
+    return getList(tx, sQuery, applicationId, stageId);
   }
 
   @Override

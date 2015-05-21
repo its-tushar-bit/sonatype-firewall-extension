@@ -13,6 +13,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
@@ -294,13 +295,13 @@ public class TagDAOTest
 
   @Test
   public void testValidateDescriptionLength_Insert() {
-    String description = StringUtils.repeat("a", TagDAO.MAX_DESC_SIZE);
+    String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     Tag tag = new Tag(organization.getId(), "name", description + "a", Color.yellow);
     try {
       dao.insert(tag);
-      fail("Expected InvalidTagException");
+      fail("Expected BadRequestException");
     }
-    catch (InvalidTagException e) {
+    catch (BadRequestException e) {
       assertThat(e.getMessage(),
           is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
     }
@@ -314,13 +315,13 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
     dao.insert(tag);
 
-    String description = StringUtils.repeat("a", TagDAO.MAX_DESC_SIZE);
+    String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     tag.setDescription(description + "a");
     try {
       dao.update(tag);
-      fail("Expected InvalidTagException");
+      fail("Expected BadRequestException");
     }
-    catch (InvalidTagException e) {
+    catch (BadRequestException e) {
       assertThat(e.getMessage(),
           is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
     }
@@ -334,9 +335,9 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", null /* description */, Color.yellow);
     try {
       dao.insert(tag);
-      fail("Expected InvalidTagException");
+      fail("Expected BadRequestException");
     }
-    catch (InvalidTagException expected) {
+    catch (BadRequestException expected) {
       assertEquals("The description is required.", expected.getMessage());
     }
   }
@@ -349,9 +350,9 @@ public class TagDAOTest
     tag.setDescription(null);
     try {
       dao.update(tag);
-      fail("Expected InvalidTagException");
+      fail("Expected BadRequestException");
     }
-    catch (InvalidTagException expected) {
+    catch (BadRequestException expected) {
       assertEquals("The description is required.", expected.getMessage());
     }
   }
@@ -361,9 +362,9 @@ public class TagDAOTest
     Tag tag = new Tag(organization.getId(), "name", " " /* description */, Color.yellow);
     try {
       dao.insert(tag);
-      fail("Expected InvalidTagException");
+      fail("Expected BadRequestException");
     }
-    catch (InvalidTagException expected) {
+    catch (BadRequestException expected) {
       assertEquals("The description is required.", expected.getMessage());
     }
   }
@@ -376,9 +377,9 @@ public class TagDAOTest
     tag.setDescription(" ");
     try {
       dao.update(tag);
-      fail("Expected InvalidTagException");
+      fail("Expected BadRequestException");
     }
-    catch (InvalidTagException expected) {
+    catch (BadRequestException expected) {
       assertEquals("The description is required.", expected.getMessage());
     }
   }

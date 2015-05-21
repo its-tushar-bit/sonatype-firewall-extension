@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,7 +40,7 @@ public class RoleDAOTest
   private RoleDAO roleDAO = new RoleDAO();
 
   private Role newRole(String name) {
-    return tempEntity.newRole(name, false);
+    return tempEntity.newRole(name, name + " description", false /* global */);
   }
 
   @Test
@@ -125,7 +127,7 @@ public class RoleDAOTest
     role = roleDAO.getByIdNotNull(role.getId());
     assertThat(role.isBuiltIn(), is(false));
     assertThat(role.getName(), is("custom"));
-    assertThat(role.getDescription(), is(nullValue()));
+    assertThat(role.getDescription(), is("custom description"));
 
     role.setName("Updated Name");
     role.setDescription("Updated Description");
@@ -312,6 +314,95 @@ public class RoleDAOTest
     }
     catch (BadRequestException e) {
       assertThat(e.getMessage(), is("Cannot change custom role 'Name' to built-in."));
+    }
+  }
+
+  @Test
+  public void testValidateDescriptionLength_Insert() {
+    String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
+    Role role = new Role("name", description + "a");
+    try {
+      roleDAO.insert(role);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(),
+          is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
+    }
+
+    role.setDescription(description);
+    roleDAO.insert(role);
+    roleDAO.delete(role);
+  }
+
+  @Test
+  public void testValidateDescriptionLength_Update() {
+    Role role = tempEntity.newRole(false /* global */);
+
+    String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
+    role.setDescription(description + "a");
+    try {
+      roleDAO.update(role);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(),
+          is("The description cannot be longer than 255 characters, the one supplied has 256 characters."));
+    }
+
+    role.setDescription(description);
+    roleDAO.update(role);
+  }
+
+  @Test
+  public void testValidateEmptyDescription_Insert() {
+    Role role = new Role("name", " " /* description */);
+    try {
+      roleDAO.insert(role);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("The description is required."));
+    }
+  }
+
+  @Test
+  public void testValidateEmptyDescription_Update() {
+    Role role = tempEntity.newRole(false /* global */);
+
+    role.setDescription(" ");
+    try {
+      roleDAO.update(role);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("The description is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNullDescription_Insert() {
+    Role role = new Role("name", null /* description */);
+    try {
+      roleDAO.insert(role);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("The description is required."));
+    }
+  }
+
+  @Test
+  public void testValidateNullDescription_Update() {
+    Role role = tempEntity.newRole(false /* global */);
+
+    role.setDescription(null);
+    try {
+      roleDAO.update(role);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("The description is required."));
     }
   }
 }

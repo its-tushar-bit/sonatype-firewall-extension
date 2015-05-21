@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
@@ -19,16 +20,12 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.codehaus.plexus.util.StringUtils;
-
 /**
  * @since 1.9
  */
 public class TagDAO
     extends AbstractOperationalSqlDAO<Tag>
 {
-  public static final int MAX_DESC_SIZE = 255;
-
   @Override
   protected Tag getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Tag entity" + //
@@ -93,16 +90,6 @@ public class TagDAO
         " WHERE policyTag.tagId=tag.id AND policyTag.policyId=?1";
     return getList(sQuery, policyId);
   }
-
-  private void validateDescription(String description) {
-    if (StringUtils.isEmpty(description)) {
-      throw new InvalidTagException("The description is required.");
-    }
-    if (description.length() > MAX_DESC_SIZE) {
-      throw new InvalidTagException("The description cannot be longer than " + MAX_DESC_SIZE
-          + " characters, the one supplied has " + description.length() + " characters.");
-    }
-  }
   
   private void validateColor(Color color) {
     if (color == null) {
@@ -113,7 +100,7 @@ public class TagDAO
   @Override
   public void insert(TransactionContext tx, Tag entity) {
     NameHelper.validate(entity.getName());
-    validateDescription(entity.getDescription());
+    DescriptionHelper.validate(entity.getDescription());
     validateColor(entity.getColor());
 
     if (getByOrganizationIdAndName(tx, entity.getOrganizationId(), entity.getName()) != null) {
@@ -126,7 +113,7 @@ public class TagDAO
   @Override
   public void update(TransactionContext tx, Tag entity) {
     NameHelper.validate(entity.getName());
-    validateDescription(entity.getDescription());
+    DescriptionHelper.validate(entity.getDescription());
     validateColor(entity.getColor());
 
     Tag existingEntity = getByOrganizationIdAndName(tx, entity.getOrganizationId(), entity.getName());

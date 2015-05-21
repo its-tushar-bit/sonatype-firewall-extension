@@ -405,8 +405,13 @@ public class TemporaryEntity
   }
 
   public Role newRole(String name, boolean global, Permission... permissions) {
+    return newRole(name, name /* description */, global, permissions);
+  }
+
+  public Role newRole(String name, String description, boolean global, Permission... permissions) {
     Role role = new Role();
     role.setName(name);
+    role.setDescription(description);
     role.setGlobal(global);
     roleDAO.insert(role);
     roles.add(role);

@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -72,6 +73,7 @@ public class RoleDAO
     if (getByName(tx, entity.getName()) != null) {
       throw new InvalidNameException("A role with the same name already exists.");
     }
+    DescriptionHelper.validate(entity.getDescription());
 
     super.insert(tx, entity);
   }
@@ -95,6 +97,7 @@ public class RoleDAO
     if (existing != null && !existing.getId().equals(entity.getId())) {
       throw new InvalidNameException("A role with the same name already exists.");
     }
+    DescriptionHelper.validate(entity.getDescription());
 
     super.update(tx, entity);
   }

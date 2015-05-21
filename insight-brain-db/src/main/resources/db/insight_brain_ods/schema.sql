@@ -148,7 +148,7 @@ CREATE TABLE role (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   sort_order int NOT NULL,
-  description varchar(255) NULL,
+  description varchar(255) NOT NULL,
   global boolean NOT NULL,
   built_in boolean DEFAULT false NOT NULL,
   CONSTRAINT role_pk PRIMARY KEY (role_id),

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -16,7 +14,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,23 +31,6 @@ public class RolePermissionDAOTest
   private RolePermissionDAO permDAO = new RolePermissionDAO();
 
   private RoleDAO roleDAO = new RoleDAO();
-
-  private Collection<Role> rolesToDelete = new ArrayList<>();
-
-  @After
-  public void exit() {
-    for (Role role : rolesToDelete) {
-      roleDAO.delete(role);
-    }
-  }
-
-  private Role newRole(String name) {
-    Role role = new Role();
-    role.setName(name);
-    roleDAO.insert(role);
-    rolesToDelete.add(role);
-    return role;
-  }
 
   @Test
   public void testSystemAdminRoleHasConfigureSystemPermissions() throws Exception {
@@ -95,7 +75,7 @@ public class RolePermissionDAOTest
 
   @Test
   public void testGetRoleIdsByPermission() throws Exception {
-    String roleId = newRole("testing").getId();
+    String roleId = tempEntity.newRole("testing", false /* global */).getId();
     for (Permission perm : Permission.values()) {
       assertThat(permDAO.getRoleIdsByPermission(perm), not(hasItem(roleId)));
     }

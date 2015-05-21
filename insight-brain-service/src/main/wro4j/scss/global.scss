@@ -33,6 +33,10 @@
           <td>BODY</td>
           <td>Regular 14px, Line-Height 18px</td>
         </tr>
+        <tr>
+          <td>FORM LABEL</td>
+          <td><form style="margin-bottom: 0px;"><label style="margin-bottom: 0px;">Semibold, 16px</td>
+        </tr>
       </tbody>
     </table>
   ```
@@ -101,6 +105,10 @@ body {
   @extend .regular;
   font-size: 14px;
   line-height: 18px;
+}
+form label {
+  @extend .semi-bold;
+  font-size: 16px;
 }
 /*
   ##Spacing

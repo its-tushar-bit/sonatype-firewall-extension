@@ -176,5 +176,6 @@
 
 .policy-tag label {
   display: inline;
-  font-weight: normal;
+  font-family: Proxima Nova Regular, sans-serif;
+  font-size: 14px;
 }

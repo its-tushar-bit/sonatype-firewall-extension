@@ -195,7 +195,7 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      results = searchUsersByUsername(ctx, username, attributes, 1);
+      results = searchUsersByUsername(ctx, username, attributes, 1, true);
       if (results.hasMoreElements()) {
         SearchResult result = results.nextElement();
         return createUser(ctx, result.getNameInNamespace(), result.getAttributes(), withMembership);
@@ -229,7 +229,7 @@ class LdapQuery
     try {
       ctx = ctxFactory.getSystemLdapContext();
       String username = "*";
-      results = searchUsersByUsername(ctx, username, attributes, maxResults);
+      results = searchUsersByUsername(ctx, username, attributes, maxResults, false);
       List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
         SearchResult result = results.nextElement();
@@ -253,8 +253,6 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      // TODO: query sanitization will be applied with this ticket
-      // https://issues.sonatype.org/browse/CLM-1083
       results = searchUsersByUsernames(ctx, names, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
@@ -273,8 +271,6 @@ class LdapQuery
     LdapContext ctx = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      // TODO: query sanitization will be applied with this ticket
-      // https://issues.sonatype.org/browse/CLM-1083
       return searchGroupsByGroupnames(ctx, names, maxResults);
     }
     finally {
@@ -302,8 +298,6 @@ class LdapQuery
     NamingEnumeration<SearchResult> results = null;
     try {
       ctx = ctxFactory.getSystemLdapContext();
-      // TODO: query sanitization will be applied with this ticket
-      // https://issues.sonatype.org/browse/CLM-1083
       results = searchUsersByName(ctx, name, attributes, maxResults);
       List<LdapUser> ldapUsers = new ArrayList<>();
       while (results.hasMoreElements()) {
@@ -400,7 +394,8 @@ class LdapQuery
                                                                  long maxResults) throws NamingException
   {
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.putAll(umap.getUserIDAttribute(), Arrays.asList(names));
+    attributeValues.putAll(escapeAttribute(umap.getUserIDAttribute(), false),
+        escapeAttributeList(Arrays.asList(names), false));
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
@@ -410,7 +405,8 @@ class LdapQuery
   private NamingEnumeration<SearchResult> searchUsersByName(LdapContext ctx, String query, String[] attributes, long maxResults) throws NamingException
   {
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.put(umap.getUserRealNameAttribute(), query != null ? query : "");
+    attributeValues.put(escapeAttribute(umap.getUserRealNameAttribute(), false),
+        query != null ? escapeAttribute(query, true) : "");
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
   
@@ -418,10 +414,11 @@ class LdapQuery
    * Search ldap server for all users whose userid attribute matches the supplied name
    */
   private NamingEnumeration<SearchResult> searchUsersByUsername(LdapContext ctx, String username, String[] attributes,
-      long maxResults) throws NamingException
+      long maxResults, boolean exact) throws NamingException
   {
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.put(umap.getUserIDAttribute(), username != null ? username : ""); // mandatory username
+    attributeValues.put(escapeAttribute(umap.getUserIDAttribute(), false),
+        username != null ? escapeAttribute(username, !exact) : ""); // mandatory username
     return searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
   }
 
@@ -437,7 +434,7 @@ class LdapQuery
         case DYNAMIC: {
           String[] attributes = pickAttributes(umap.getUserMemberOfGroupAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
-          attributeValues.put(umap.getUserIDAttribute(), "*");
+          attributeValues.put(escapeAttribute(umap.getUserIDAttribute(), false), "*");
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
@@ -446,7 +443,8 @@ class LdapQuery
         case STATIC: {
           String[] attributes = pickAttributes(umap.getGroupIDAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
-          attributeValues.putAll(umap.getGroupIDAttribute(), Arrays.asList(groupnames));
+          attributeValues.putAll(escapeAttribute(umap.getGroupIDAttribute(), false),
+              escapeAttributeList(Arrays.asList(groupnames), false));
 
           results = searchGroupsByAttributes(ctx, attributeValues, attributes, maxResults);
           return buildGroupsFromStaticSearchResults(results);
@@ -476,8 +474,8 @@ class LdapQuery
         case DYNAMIC: {
           String[] attributes = pickAttributes(umap.getUserMemberOfGroupAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
-          attributeValues.put(umap.getUserIDAttribute(), "*");
-          attributeValues.put(umap.getUserMemberOfGroupAttribute(), groupName);
+          attributeValues.put(escapeAttribute(umap.getUserIDAttribute(), false), "*");
+          attributeValues.put(escapeAttribute(umap.getUserMemberOfGroupAttribute(), false), escapeAttribute(groupName, true));
 
           // Max results is ignored since all users must be returned to deduce unique dynamic groups
           results = searchUsersByAttributes(ctx, attributeValues, attributes, 0);
@@ -503,7 +501,7 @@ class LdapQuery
         case STATIC: {
           String[] attributes = pickAttributes(umap.getGroupIDAttribute());
           Multimap<String, String> attributeValues = ArrayListMultimap.create();
-          attributeValues.put(umap.getGroupIDAttribute(), groupName);
+          attributeValues.put(escapeAttribute(umap.getGroupIDAttribute(), false), escapeAttribute(groupName, true));
 
           results = searchGroupsByAttributes(ctx, attributeValues, attributes, maxResults);
           return buildGroupsFromStaticSearchResults(results);
@@ -607,7 +605,7 @@ class LdapQuery
     StringBuilder ldapFilter = new StringBuilder("(&");
 
     // select user objects
-    ldapFilter.append("(objectClass=").append(umap.getUserObjectClass()).append(')');
+    ldapFilter.append("(objectClass=").append(escapeAttribute(umap.getUserObjectClass(), false)).append(')');
 
     if (attributeValues.size() > 1) {
       ldapFilter.append("(|");
@@ -654,7 +652,7 @@ class LdapQuery
 
     StringBuilder ldapFilter = new StringBuilder("(&");
 
-    ldapFilter.append("(objectClass=").append(umap.getGroupObjectClass()).append(')');
+    ldapFilter.append("(objectClass=").append(escapeAttribute(umap.getGroupObjectClass(), false)).append(')');
 
     if (attributeValues.size() > 1) {
       ldapFilter.append("(|");
@@ -688,24 +686,26 @@ class LdapQuery
     controls.setReturningAttributes(attributes);
 
     String baseDN = StringUtils.defaultString(umap.getGroupBaseDN());
-    String member = umap.getGroupMemberFormat();
+    String member = escapeAttribute(umap.getGroupMemberFormat(), true);
     if (StringUtils.isNotBlank(member)) {
-      member = member.replace("${username}", user.getUsername()).replace("${dn}", user.getDn());
+      member = member.replace("${username}", escapeAttribute(user.getUsername(), false)).replace("${dn}",
+          escapeAttribute(user.getDn(), false));
     }
     else {
-      member = user.getUsername();
+      member = escapeAttribute(user.getUsername(), false);
     }
 
     StringBuilder ldapFilter = new StringBuilder("(&");
 
     // select group objects
-    ldapFilter.append("(objectClass=").append(umap.getGroupObjectClass()).append(')');
+    ldapFilter.append("(objectClass=").append(escapeAttribute(umap.getGroupObjectClass(), false)).append(')');
 
     // select groupids
-    ldapFilter.append('(').append(umap.getGroupIDAttribute()).append("=*)");
+    ldapFilter.append('(').append(escapeAttribute(umap.getGroupIDAttribute(), false)).append("=*)");
 
     // membership filter
-    ldapFilter.append('(').append(umap.getGroupMemberAttribute()).append('=').append(member).append(')');
+    ldapFilter.append('(').append(escapeAttribute(umap.getGroupMemberAttribute(), false)).append('=')
+        .append(member).append(')');
 
     ldapFilter.append(')');
 
@@ -751,7 +751,8 @@ class LdapQuery
   {
     String[] attributes = pickAttributes(umap.getGroupIDAttribute(), umap.getGroupMemberAttribute());
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.putAll(umap.getGroupIDAttribute(), Arrays.asList(groupNames));
+    attributeValues.putAll(escapeAttribute(umap.getGroupIDAttribute(), false), escapeAttributeList(
+        Arrays.asList(groupNames), false));
 
     long limit = maxResults;
     List<LdapUser> users = new ArrayList<>();
@@ -771,7 +772,8 @@ class LdapQuery
     String[] attributes = pickAttributes(umap.getUserIDAttribute(), umap.getUserRealNameAttribute(),
         umap.getUserEmailAttribute());
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
-    attributeValues.putAll(umap.getUserMemberOfGroupAttribute(), Arrays.asList(groupNames));
+    attributeValues.putAll(escapeAttribute(umap.getUserMemberOfGroupAttribute(), false), escapeAttributeList(
+        Arrays.asList(groupNames), false));
     NamingEnumeration<SearchResult> results = searchUsersByAttributes(ctx, attributeValues, attributes, maxResults);
     List<LdapUser> ldapUsers = new ArrayList<>();
     while (results.hasMoreElements()) {
@@ -817,7 +819,7 @@ class LdapQuery
   private List<LdapUser> lookupUsersByDn(LdapContext ctx, Collection<String> dns) throws NamingException {
     List<LdapUser> result = new ArrayList<>(dns.size());
     for (String dn : dns) {
-      dn = sanitizeDn(ctx.getNameInNamespace(), dn);
+      dn = removeContextDn(ctx.getNameInNamespace(), dn);
       try {
         LdapContext member = (LdapContext) ctx.lookup(dn);
         LdapUser user = createUser(ctx, member.getNameInNamespace(), member.getAttributes(""), false);
@@ -849,7 +851,7 @@ class LdapQuery
   /**
    * Remove context DN from given DN so lookups can be performed directly against the current context.
    */
-  private static String sanitizeDn(String contextDn, String dn) {
+  private static String removeContextDn(String contextDn, String dn) {
     if (StringUtils.isBlank(dn)) {
       return "";
     }
@@ -861,6 +863,20 @@ class LdapQuery
     }
 
     return dn;
+  }
+
+  //note i have this method here simply to save from having to type the fully qualified LdapUtils classname all over
+  //the place
+  private String escapeAttribute(String attribute, boolean allowAsterisk) {
+    return com.sonatype.insight.brain.configuration.ldap.LdapUtils.escapeLdapQueryAttribute(attribute, allowAsterisk);
+  }
+
+  private List<String> escapeAttributeList(List<String> attributes, boolean allowAsterisk) {
+    List<String> escapedValues = new ArrayList<>();
+    for (String attribute : attributes) {
+      escapedValues.add(escapeAttribute(attribute, allowAsterisk));
+    }
+    return escapedValues;
   }
 
   /**

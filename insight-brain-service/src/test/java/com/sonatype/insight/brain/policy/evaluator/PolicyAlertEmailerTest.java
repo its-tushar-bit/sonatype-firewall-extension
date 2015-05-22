@@ -302,7 +302,7 @@ public class PolicyAlertEmailerTest
         eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
-    assertEmailAddresses("test.user@company.com", "test.user2@company.com");
+    assertEmailAddresses("test.user@company.com", "test.user2@company.com", "test.user3@company.com");
   }
 
   @Test

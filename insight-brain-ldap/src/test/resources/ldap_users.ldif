@@ -40,6 +40,21 @@ departmentNumber: ab
 departmentNumber: bc
 departmentNumber: bx
 
+dn: uid=test*user,ou=users,dc=company,dc=com
+uid: test*user
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test*User
+userPassword: te*st
+mail: test.user3@company.com
+departmentNumber: ab
+departmentNumber: bc
+departmentNumber: bx
+
 dn: uid=test_sasl_user,ou=system
 uid: test_sasl_user
 givenName: Test

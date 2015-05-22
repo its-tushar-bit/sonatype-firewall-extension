@@ -14,6 +14,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapConnection;
@@ -41,6 +42,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
@@ -215,11 +217,19 @@ public class LdapManagerTest
     LdapUserMapping umap = createUserMapping();
 
     List<LdapUser> users = manager.testUserMapping(umap, -1);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
 
     Collections.sort(users); // sorts on username
 
     LdapUser user = users.get(0);
+    assertThat(user.getUsername(), is("test*user"));
+    assertThat(user.getDn(), is("uid=test*user,ou=users,dc=company,dc=com"));
+    assertThat(user.getRealName(), is("Test*User"));
+    assertThat(user.getEmail(), is("test.user3@company.com"));
+    assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
+    assertThat(user.getMembership(), nullValue());
+
+    user = users.get(1);
     assertThat(user.getUsername(), is("test_user"));
     assertThat(user.getDn(), is("uid=test_user,ou=users,dc=company,dc=com"));
     assertThat(user.getRealName(), is("Test User"));
@@ -227,7 +237,7 @@ public class LdapManagerTest
     assertThat(user.getPassword(), nullValue()); // make sure password is not passed back
     assertThat(user.getMembership(), nullValue());
 
-    user = users.get(1);
+    user = users.get(2);
     assertThat(user.getUsername(), is("test_user2"));
     assertThat(user.getDn(), is("uid=test_user2,ou=users,dc=company,dc=com"));
     assertThat(user.getRealName(), is("Test User 2"));
@@ -246,12 +256,13 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
 
     List<LdapUser> users = manager.testUserMapping(umap, -1);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
 
     Collections.sort(users); // sorts on username
 
-    assertThat(users.get(0).getMembership(), containsInAnyOrder("ab", "abc", "xb"));
-    assertThat(users.get(1).getMembership(), containsInAnyOrder("ab", "bc", "bx"));
+    assertThat(users.get(0).getMembership(), containsInAnyOrder("ab", "bc", "bx"));
+    assertThat(users.get(1).getMembership(), containsInAnyOrder("ab", "abc", "xb"));
+    assertThat(users.get(2).getMembership(), containsInAnyOrder("ab", "bc", "bx"));
   }
 
   @Test
@@ -266,12 +277,13 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("${dn}");
 
     List<LdapUser> users = manager.testUserMapping(umap, -1);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
 
     Collections.sort(users); // sorts on username
 
-    assertThat(users.get(0).getMembership(), containsInAnyOrder("Alpha"));
-    assertThat(users.get(1).getMembership(), containsInAnyOrder("Beta"));
+    assertThat(users.get(0).getMembership(), hasSize(0));
+    assertThat(users.get(1).getMembership(), containsInAnyOrder("Alpha"));
+    assertThat(users.get(2).getMembership(), containsInAnyOrder("Beta"));
 
     umap.setGroupMappingType(LdapGroupMappingType.STATIC);
     umap.setGroupObjectClass("groupOfNames");
@@ -279,12 +291,13 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=${username}");
 
     users = manager.testUserMapping(umap, -1);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
 
     Collections.sort(users); // sorts on username
 
-    assertThat(users.get(0).getMembership(), containsInAnyOrder("Gamma", "Theta", "Omega"));
-    assertThat(users.get(1).getMembership(), containsInAnyOrder("Theta"));
+    assertThat(users.get(0).getMembership(), hasSize(0));
+    assertThat(users.get(1).getMembership(), containsInAnyOrder("Gamma", "Theta", "Omega"));
+    assertThat(users.get(2).getMembership(), containsInAnyOrder("Theta"));
   }
 
   @Test
@@ -339,6 +352,47 @@ public class LdapManagerTest
     }
   }
 
+
+  @Test
+  public void testAuthenticateUser_usernameLeakViaInjection() throws Exception {
+    startLdapServer();
+    setSearchBase();
+    LdapUserMapping umap = createUserMapping();
+    new LdapUserMappingDAO().insert(umap);
+
+    try {
+      //prior to the sanitization of query parameters, an AuthenticationException
+      //would've been thrown here, and it leaked the first user name in the system
+      manager.authenticateUser("*)(uid=*))(|(uid=*", "invalid".toCharArray());
+      fail("authentication should have failed");
+    }
+    catch (NameNotFoundException e) {
+      assertThat(e.getMessage(), not(containsString("test_user")));
+    }
+  }
+
+  @Test(expected = NameNotFoundException.class)
+  public void testAuthenticateUser_wildcardMatchingNotExpected() throws Exception {
+    startLdapServer();
+    setSearchBase();
+    LdapUserMapping umap = createUserMapping();
+    new LdapUserMappingDAO().insert(umap);
+
+    //previous to escaping characters in the ldap query, this auth check would have succeeded
+    //matching against the first test user in the system
+    manager.authenticateUser("test*", "test".toCharArray());
+  }
+
+  @Test
+  public void testAuthenticateUser_wildcardMatchingEscapedValue() throws Exception {
+    startLdapServer();
+    setSearchBase();
+    LdapUserMapping umap = createUserMapping();
+    new LdapUserMappingDAO().insert(umap);
+
+    manager.authenticateUser("test*user", "te*st".toCharArray());
+  }
+
   @Test
   public void testGetUsers() throws Exception {
     startLdapServer();
@@ -356,7 +410,20 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testGetStaticGroups() throws Exception {
+  public void testGetUsers_wildcardMatchingNotExpected() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.getUsers(new String[]{"test_user*"}, 100);
+    assertThat(users.size(), is(0));
+  }
+
+  @Test
+  public void testGetGroups_Static() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -380,7 +447,24 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testGetDynamicGroups() throws Exception {
+  public void testGetGroups_Static_wildcardMatchingNotExpected() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=${username}");
+    userMappingDAO.insert(umap);
+
+    List<LdapGroup> groups = manager.getGroups(new String[]{"*ta"}, 100);
+    assertThat(groups.size(), is(0));
+  }
+
+  @Test
+  public void testGetGroups_Dynamic() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -390,13 +474,28 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.insert(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 100);
+    List<LdapGroup> groups = manager.getGroups(new String[]{"ab", "abc", "bc"}, 100);
     assertThat(groups.size(), is(3));
 
     groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 1);
     assertThat(groups.size(), is(1));
 
     groups = manager.getGroups(new String[]{"foo"}, 100);
+    assertThat(groups.size(), is(0));
+  }
+
+  @Test
+  public void testGetGroups_Dynamic_wildcardMatchingNotExpected() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    userMappingDAO.insert(umap);
+
+    List<LdapGroup> groups = manager.getGroups(new String[]{"ab*"}, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -443,12 +542,12 @@ public class LdapManagerTest
     LdapUserMapping umap = createUserMapping();
 
     List<LdapUser> users = manager.testFindUsersByName(umap, "*" /* name */, 100);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
     List<String> foundNames = new ArrayList<>();
     for (LdapUser user : users) {
       foundNames.add(user.getUsername());
     }
-    assertThat(foundNames, containsInAnyOrder("test_user", "test_user2"));
+    assertThat(foundNames, containsInAnyOrder("test_user", "test_user2", "test*user"));
   }
 
   @Test
@@ -459,14 +558,14 @@ public class LdapManagerTest
     LdapUserMapping umap = createUserMapping();
 
     List<LdapUser> users = manager.testFindUsersByName(umap, "*" /* name */, 100);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
 
     users = manager.testFindUsersByName(umap, "*" /* name */, 1);
     assertThat(users, hasSize(1));
   }
 
   @Test
-  public void testFindStaticGroupsByName_WrongObjectClass() throws Exception {
+  public void testFindGroupsByName_Static_WrongObjectClass() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -478,7 +577,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindStaticGroupsByName_Exact() throws Exception {
+  public void testFindGroupsByName_Static_Exact() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -493,7 +592,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindStaticGroupsByName_CaseInsensitive() throws Exception {
+  public void testFindGroupsByName_Static_CaseInsensitive() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -505,7 +604,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindStaticGroupsByName_MaxResults() throws Exception {
+  public void testFindGroupsByName_Static_MaxResults() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -519,7 +618,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindStaticGroupsByName_Wildcard() throws Exception {
+  public void testFindGroupsByName_Static_Wildcard() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -535,7 +634,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindStaticGroupsByName_NotFound() throws Exception {
+  public void testFindGroupsByName_Static_NotFound() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -628,6 +727,38 @@ public class LdapManagerTest
     assertThat(users, hasSize(2));
   }
 
+
+  @Test
+  public void testFindUsersByGroup_Static_wildcardMatchingNotExpected() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
+    umap.setGroupMappingType(LdapGroupMappingType.STATIC);
+    umap.setGroupObjectClass("groupOfNames");
+    umap.setGroupMemberAttribute("member");
+    umap.setGroupMemberFormat("uid=qwerty${username}zxcvbn,${dn}yuiop${username}");
+    userMappingDAO.insert(umap);
+
+    List<LdapUser> users = manager.findUsersByGroup("Delt*", 100);
+    assertThat(users, hasSize(0));
+  }
+
+  @Test
+  public void testFindUsersByGroup_Dynamic_wildcardMatchingNotExpected() throws Exception {
+    startLdapServer();
+    setSearchBase();
+
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().insert(umap);
+
+    List<LdapUser> users = manager.findUsersByGroup("a*", 100);
+    assertThat(users, hasSize(0));
+  }
+
   private void createStaticGroupMapping() {
     LdapUserMapping umap = createUserMapping();
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
@@ -647,7 +778,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_MaxResults() throws Exception {
+  public void testFindGroupsByName_Dynamic_MaxResults() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -661,7 +792,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_WildcardPrefix() throws Exception {
+  public void testFindGroupsByName_Dynamic_WildcardPrefix() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -677,7 +808,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_WildcardSuffix() throws Exception {
+  public void testFindGroupsByName_Dynamic_WildcardSuffix() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -693,7 +824,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_WildcardPrefixAndSuffix() throws Exception {
+  public void testFindGroupsByName_Dynamic_WildcardPrefixAndSuffix() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -709,7 +840,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_Exact() throws Exception {
+  public void testFindGroupsByName_Dynamic_Exact() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -724,7 +855,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_CaseInsensitive() throws Exception {
+  public void testFindGroupsByName_Dynamic_CaseInsensitive() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -736,7 +867,7 @@ public class LdapManagerTest
   }
 
   @Test
-  public void testFindDynamicGroupsByName_NotFound() throws Exception {
+  public void testFindGroupsByName_Dynamic_NotFound() throws Exception {
     startLdapServer();
     setSearchBase();
 
@@ -914,7 +1045,7 @@ public class LdapManagerTest
     for (LdapUser user1 : users) {
       usernames.add(user1.getUsername());
     }
-    assertThat(usernames, containsInAnyOrder("test_user", "test_user2"));
+    assertThat(usernames, containsInAnyOrder("test_user", "test_user2", "test*user"));
 
     // Group without users
     users = manager.findUsersByGroup("no such group", 0 /* maxResults */);
@@ -930,7 +1061,7 @@ public class LdapManagerTest
 
     // Group with two users
     List<LdapUser> users = manager.findUsersByGroup("ab", 0 /* maxResults */);
-    assertThat(users, hasSize(2));
+    assertThat(users, hasSize(3));
     users = manager.findUsersByGroup("ab", 1 /* maxResults */);
     assertThat(users, hasSize(1));
   }

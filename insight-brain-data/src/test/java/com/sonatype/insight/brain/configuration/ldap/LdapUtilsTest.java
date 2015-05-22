@@ -13,7 +13,6 @@ import static org.hamcrest.Matchers.nullValue;
 
 public class LdapUtilsTest
 {
-
   @Test
   public void testEscapeLdapUrl() {
     // Blank or null URL
@@ -33,5 +32,21 @@ public class LdapUtilsTest
     // Ensure that the bindname extension escapes commas.
     escapedUrl = LdapUtils.escapeLdapUrl("ldap:///??sub??!bindname=cn=Apple Shop,co=Seed");
     assertThat(escapedUrl, is("ldap:///??sub??!bindname=cn=Apple%20Shop%2Cco=Seed"));
+  }
+
+  @Test
+  public void testEscapedQueryAttribute() {
+    //validate each escaped character
+    assertThat(LdapUtils.escapeLdapQueryAttribute("\\()*" + '\u0000'), is("\\5c\\28\\29\\2a\\00"));
+    //as well as the string initially reported
+    assertThat(LdapUtils.escapeLdapQueryAttribute("*)(uid=*))(|(uid=*"), is("\\2a\\29\\28uid=\\2a\\29\\29\\28|\\28uid=\\2a"));
+  }
+
+  @Test
+  public void testEscapedQueryAttribute_allowWildcard() {
+    //validate each escaped character
+    assertThat(LdapUtils.escapeLdapQueryAttribute("\\()*" + '\u0000', true), is("\\5c\\28\\29*\\00"));
+    //as well as the string initially reported
+    assertThat(LdapUtils.escapeLdapQueryAttribute("*)(uid=*))(|(uid=*", true), is("*\\29\\28uid=*\\29\\29\\28|\\28uid=*"));
   }
 }

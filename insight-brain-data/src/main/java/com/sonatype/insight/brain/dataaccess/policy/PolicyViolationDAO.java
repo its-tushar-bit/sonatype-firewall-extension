@@ -64,8 +64,7 @@ public class PolicyViolationDAO
         "   FirstOccurrencePolicyViolation firstOccurrencePolicyViolation" + //
         " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //
         "   AND firstOccurrencePolicyViolation.applicationId=?1" + //
-        "   AND firstOccurrencePolicyViolation.stageTypeId=?2" + //
-        " ORDER BY policyViolation.policyId, policyViolation.hash";
+        "   AND firstOccurrencePolicyViolation.stageTypeId=?2";
     return getList(tx, sQuery, appId, stageTypeId);
   }
 

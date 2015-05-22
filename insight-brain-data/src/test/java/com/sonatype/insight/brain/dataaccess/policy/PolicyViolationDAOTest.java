@@ -199,58 +199,6 @@ public class PolicyViolationDAOTest
   }
 
   @Test
-  public void testGetFirstOccurrence_ComponentWithHash() {
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
-
-    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1", null);
-    tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), applicationId, evaluation1.getStageTypeId());
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "2", "hash-2", null);
-    tempEntity.newFirstOccurrencePolicyViolation(violation2.getId(), applicationId, evaluation1.getStageTypeId());
-
-    PolicyEvaluation evaluation2 = tempEntity
-        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
-
-    PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation1.getStageTypeId(),
-        violation3);
-    assertThat(first, is(notNullValue()));
-    assertThat(first.getId(), is(violation2.getId()));
-  }
-
-  @Test
-  public void testGetFirstOccurrence_ComponentWithoutHash() {
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
-
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
-    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, "groupId", "artifactId", "version",
-        null /* hash */, null /* reason */);
-
-    PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation.getStageTypeId(),
-        violation);
-    assertThat(first, is(notNullValue()));
-    assertThat(first.getId(), is(violation.getId()));
-  }
-
-  @Test
-  public void testGetFirstOccurrence_MissingFirstOccurrenceViolationDueToIncompleteDataMigration() {
-    Policy policy = tempEntity.newPolicy(applicationId, "name");
-
-    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
-    tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1", null);
-    tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "2", "hash-2", null);
-
-    PolicyEvaluation evaluation2 = tempEntity
-        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
-
-    PolicyViolation first = new PolicyViolationDAO().getFirstOccurrence(applicationId, evaluation1.getStageTypeId(),
-        violation3);
-    assertThat(first, is(notNullValue()));
-    assertThat(first.getId(), is(violation3.getId()));
-  }
-
-  @Test
   public void testGetByEvaluationId() {
     Policy policy = tempEntity.newPolicy(applicationId, "name");
 

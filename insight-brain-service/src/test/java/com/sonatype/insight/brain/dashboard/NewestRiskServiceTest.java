@@ -301,6 +301,19 @@ public class NewestRiskServiceTest
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, "g", "a", "v",
         null /* hash */, "reason");
+    tempEntity.newFirstOccurrencePolicyViolation(policyViolation.getId(), app1.getId(), ReleaseStageType.ID);
+
+    List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
+        null, null, null, 1000);
+    assertThat(riskDTOs, hasSize(1));
+    NewestRiskDTO riskDTO = riskDTOs.get(0);
+    assertNewestRiskDTO(riskDTO, app1, policyViolation, evaluation.getTime());
+  }
+
+  @Test
+  public void testGetNewestRisks_ViolationWithoutFirstOccurrence() throws Exception {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
     List<NewestRiskDTO> riskDTOs = newestRiskService.getNewestRisks(null, Collections.singleton(ReleaseStageType.ID),
         null, null, null, 1000);

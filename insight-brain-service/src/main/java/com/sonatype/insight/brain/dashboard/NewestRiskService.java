@@ -159,8 +159,9 @@ public class NewestRiskService
       result.put(samePolicyViolationEntry.getKey(), samePolicyViolationEntry.getValue());
     }
     for (PolicyViolation policyViolation : diff.getCleared()) {
-      PolicyViolation firstOccurrence = policyViolationDAO.getFirstOccurrence(appId, stageTypeId, policyViolation);
-      result.put(policyViolation, firstOccurrence);
+      // PolicyViolation without a corresponding FirstOccurrencePolicyViolation. This can happen only if data was
+      // missing during migration?
+      result.put(policyViolation, policyViolation);
     }
 
     return result;

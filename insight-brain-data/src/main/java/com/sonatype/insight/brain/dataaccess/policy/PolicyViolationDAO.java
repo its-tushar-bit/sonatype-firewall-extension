@@ -130,29 +130,4 @@ public class PolicyViolationDAO
         " ORDER BY entity.policyId";
     return getList(sQuery, evaluationId, hash);
   }
-
-  /**
-   * Gets the violation corresponding to the first occurrence of the given (supposedly recent) violation.
-   */
-  public PolicyViolation getFirstOccurrence(String applicationId, String stageTypeId, PolicyViolation violation) {
-    if (violation.getHash() == null) {
-      return violation;
-    }
-
-    String sQuery = "SELECT policyViolation" + //
-        " FROM PolicyViolation policyViolation, FirstOccurrencePolicyViolation firstOccurrencePolicyViolation" + //
-        " WHERE policyViolation.id=firstOccurrencePolicyViolation.id" + //
-        " AND firstOccurrencePolicyViolation.applicationId=?1 AND firstOccurrencePolicyViolation.stageTypeId=?2" + //
-        " AND policyViolation.policyId=?3 AND policyViolation.hash=?4";
-    PolicyViolation firstViolation = get(sQuery, applicationId, stageTypeId, violation.getPolicyId(),
-        violation.getHash());
-    if (firstViolation == null) {
-      /*
-       * Incomplete data migration between snapshot builds might prevent us from accurately detecting the first
-       * occurrence. In that case, we take the current violation as the first occurrence, the show must go on.
-       */
-      firstViolation = violation;
-    }
-    return firstViolation;
-  }
 }

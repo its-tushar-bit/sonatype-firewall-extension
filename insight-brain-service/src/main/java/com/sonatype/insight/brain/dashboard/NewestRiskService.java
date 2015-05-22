@@ -90,7 +90,6 @@ public class NewestRiskService
     for (Application app : applications) {
       List<PolicyViolation> allUniqueAppPolicyViolations = new ArrayList<>();
       Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
-      Map<String, PolicyEvaluation> policyEvaluationCache = new HashMap<>();
 
       for (StageType stageType : stageTypes) {
         PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
@@ -116,7 +115,7 @@ public class NewestRiskService
           PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
               .get(policyViolation);
           NewestRiskDTO newestRiskDTO = createNewestRiskDTO(app, stageType, policyViolation,
-              firstOccurrencePolicyViolation.getTime().getTime(), getScanId(policyViolation, policyEvaluationCache));
+              firstOccurrencePolicyViolation.getTime().getTime(), policyEvaluation.getScanId());
           newestRiskDTOsByPolicyViolation.put(policyViolation, newestRiskDTO);
           result.add(newestRiskDTO);
         }
@@ -126,7 +125,7 @@ public class NewestRiskService
           PolicyViolation firstOccurrencePolicyViolation = firstOccurrencePolicyViolationsByLastPolicyViolations
               .get(policyViolation);
           addToNewestRiskDTO(newestRiskDTO, stageType, policyViolation, firstOccurrencePolicyViolation.getTime()
-              .getTime(), getScanId(policyViolation, policyEvaluationCache));
+              .getTime(), policyEvaluation.getScanId());
         }
 
         allUniqueAppPolicyViolations.addAll(diff.getAppeared());
@@ -165,15 +164,6 @@ public class NewestRiskService
     }
 
     return result;
-  }
-
-  private String getScanId(PolicyViolation policyViolation, Map<String, PolicyEvaluation> policyEvaluationCache) {
-    PolicyEvaluation policyEvaluation = policyEvaluationCache.get(policyViolation.getPolicyEvaluationId());
-    if (policyEvaluation == null) {
-      policyEvaluation = policyEvaluationDAO.getById(policyViolation.getPolicyEvaluationId());
-      policyEvaluationCache.put(policyEvaluation.getId(), policyEvaluation);
-    }
-    return policyEvaluation.getScanId();
   }
 
   private NewestRiskDTO createNewestRiskDTO(Application app, StageType stageType, PolicyViolation policyViolation,

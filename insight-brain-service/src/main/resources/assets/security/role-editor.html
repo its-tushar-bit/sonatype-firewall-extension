@@ -10,10 +10,10 @@
       <div ng-if='role'>
         <h1 class="page-title">
           <div class="container roles">
-            <span ng-controller="DeleteRoleController" ng-if="dirtyRole.id && !role.builtIn">
-              <button class="btn pull-right" ng-click="deleteRole()"><i class="icon icon-minus-sign"></i> Delete Role</button>
+            <span class='pull-right' ng-controller="DeleteRoleController" ng-if="dirtyRole.id && !role.builtIn">
+              <button class="btn" ng-click="deleteRole()" id='delete-role'><i class="icon icon-minus-sign"></i> Delete Role</button>
             </span>
-            {{::role.name || 'New Role'}}
+            <span id='role-title'>{{::role.name || 'New Role'}}</span>
           </div>
         </h1>
         <div class="container roles">

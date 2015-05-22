@@ -2,28 +2,51 @@
   <div load-wrapper="error" reload="doLoad()" ng-if="$state.is('roles')">
     <div authorization-wrapper="isAuthorized">
       <h1 class='page-title'>
-        <div class='container roles'>Roles</div>
+        <div class='container roles'>
+          <a class='btn pull-right' ui-sref="roles.editor({ roleId : '_new_'})" id='create-role'><i class='icon icon-plus'></i> Create Role</a>
+          Roles
+        </div>
       </h1>
       <div class='container roles'>
         <div class="role-items">
           <h5 ng-hide='roles'>
             <i class='icon-time'></i> Loading...
           </h5>
-          <table ng-show='roles'>
-            <tbody>
-              <tr ng-repeat="role in roles" class="role-item" ui-sref="roles.editor({roleId: role.id})">
-                <td class="role-summary">
-                  <h3>{{role.name}}</h3>
-                  <div>{{role.description}}</div>
-                </td>
-                <td>
-                  <div class="role-detail-button">
-                    <i class="icon-chevron-right"></i>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div ng-show='roles'>
+            <h2>Built-In</h2>
+            <table id='builtin-roles'>
+              <tbody>
+                <tr ng-repeat="role in roles | filter:{ builtIn : true }" class="role-item" ui-sref="roles.editor({roleId: role.id})">
+                  <td class="role-summary">
+                    <h3>{{role.name}}</h3>
+                    <div>{{role.description}}</div>
+                  </td>
+                  <td>
+                    <div class="role-detail-button">
+                      <i class="icon-chevron-right"></i>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <h2>Custom</h2>
+            <p ng-if='(roles | filter:{ builtIn : false }).length === 0'>No custom roles defined. Click "Create Role" in the upper right to add one.</p>
+            <table ng-if='(roles | filter:{ builtIn : false }).length > 0' id='custom-roles'>
+              <tbody>
+                <tr ng-repeat="role in roles | filter:{ builtIn : false }" class="role-item" ui-sref="roles.editor({roleId: role.id})">
+                  <td class="role-summary">
+                    <h3>{{role.name}}</h3>
+                    <div>{{role.description}}</div>
+                  </td>
+                  <td>
+                    <div class="role-detail-button">
+                      <i class="icon-chevron-right"></i>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

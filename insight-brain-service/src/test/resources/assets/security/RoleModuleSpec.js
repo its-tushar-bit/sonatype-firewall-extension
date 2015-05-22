@@ -115,13 +115,13 @@ describe('RoleModuleSpec.js', function() {
         $controller('RoleEditorController', {
           $scope: scope,
           $stateParams: {
-            roleId: 'new'
+            roleId: '_new_'
           },
           isAuthorized: true
         });
 
         $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roles);
-        $httpBackend.expectGET(CLMLocations.getRolePermissionUrl('new')).respond(permissions);
+        $httpBackend.expectGET(CLMLocations.getRolePermissionUrl()).respond(permissions);
         $httpBackend.flush();
       }));
 

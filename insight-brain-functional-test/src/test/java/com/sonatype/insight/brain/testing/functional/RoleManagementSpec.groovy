@@ -16,33 +16,34 @@ extends BaseSpec {
 
   def "Arriving at role management page we should see the list of roles."() {
     when: 'first viewing the page'
-    at RoleManagementPage
+    RoleManagementPage roleManagementPage = at RoleManagementPage
 
     then: 'the list of roles is present'
-    roleItems.size() > 0
+    roleManagementPage.builtinRoles.size() > 0
 
     and: 'the list of roles is sorted properly'
-    roleName(0) == 'System Administrator'
-    roleName(1) == 'CLM Administrator'
-    roleName(2) == 'Owner'
-    roleName(3) == 'Developer'
-    roleName(4) == 'Application Evaluator'
-    roleName(5) == 'Component Evaluator'
+    roleManagementPage.builtinRoles[0].name.text() == 'System Administrator'
+    roleManagementPage.builtinRoles[1].name.text() == 'CLM Administrator'
+    roleManagementPage.builtinRoles[2].name.text() == 'Owner'
+    roleManagementPage.builtinRoles[3].name.text() == 'Developer'
+    roleManagementPage.builtinRoles[4].name.text() == 'Application Evaluator'
+    roleManagementPage.builtinRoles[5].name.text() == 'Component Evaluator'
   }
 
   def 'Clicking on a role should display the role editor.'() {
     when: 'clicking on the developer role'
     RoleManagementPage roleManagementPage = at RoleManagementPage
-    roleManagementPage.roleItems[3].click()
+    roleManagementPage.builtinRoles[3].click()
 
     then: 'the read only role editor is shown'
+    RoleEditorPage roleEditorPage = at RoleEditorPage
     waitFor {
-      roleManagementPage.permissionCategories.size() == 2
+      roleEditorPage.permissionCategories.size() == 2
     }
 
-    roleManagementPage.pageTitle.text() == 'Developer'
+    roleEditorPage.pageTitle.text() == 'Developer'
 
-    PermissionCategory policyCategory = roleManagementPage.permissionCategory('CLM')
+    PermissionCategory policyCategory = roleEditorPage.permissionCategory('CLM')
     policyCategory.permissions.size() == 5
 
     Permission claimComponentPermission = policyCategory.permission(0)
@@ -75,7 +76,7 @@ extends BaseSpec {
     writePermission.name.text() == 'Edit'
     writePermission.description.text() == 'CLM elements'
 
-    PermissionCategory systemCategory = roleManagementPage.permissionCategory('Administrator')
+    PermissionCategory systemCategory = roleEditorPage.permissionCategory('Administrator')
     systemCategory.permissions.size() == 4
 
     Permission administratorPermission = systemCategory.permission(0)
@@ -89,5 +90,78 @@ extends BaseSpec {
     !permission.toggleSwitch.isEnabled()
     permission.name.text() == 'Edit'
     permission.description.text() == 'Proprietary Components'
+  }
+
+  def 'Custom Roles'() {
+    when: 'lingering on the role page'
+    RoleManagementPage roleManagementPage = to RoleManagementPage
+
+    and: 'clicking create role'
+    roleManagementPage.createRole.click()
+
+
+    then: 'on new role editor'
+    RoleEditorPage roleEditorPage = at RoleEditorPage
+    waitFor {
+      roleEditorPage.pageTitle.text() == 'New Role'
+    }
+    roleEditorPage.save.disabled
+
+    when: 'enter the role name'
+    roleEditorPage.nameEditor << 'peon'
+
+    then: 'save button is still disabled'
+    roleEditorPage.save.disabled
+
+    when: 'enter the role description'
+    roleEditorPage.descriptionEditor << 'bottom rung'
+
+    and: 'clicking save'
+    roleEditorPage.save.click()
+
+    then: 'role is saved'
+    at RoleManagementPage
+    roleManagementPage.customRoles.size() == 1
+    roleManagementPage.customRoles[0].name.text() == 'peon'
+    roleManagementPage.customRoles[0].description.text() == 'bottom rung'
+
+    when: 'click on peon role'
+    roleManagementPage.customRoles[0].click();
+
+    then: 'opens role editor'
+    at RoleEditorPage
+    waitFor {
+      roleEditorPage.pageTitle.text() == 'peon'
+    }
+
+    when: 'update fields'
+    roleEditorPage.nameEditor = 'peons'
+    roleEditorPage.descriptionEditor = 'not even on the ladder'
+    roleEditorPage.save.click()
+
+    then: 'updated role is visible'
+    at RoleManagementPage
+    roleManagementPage.customRoles.size() == 1
+    roleManagementPage.customRoles[0].name.text() == 'peons'
+    roleManagementPage.customRoles[0].description.text() == 'not even on the ladder'
+
+    when: 'click on peon role'
+    roleManagementPage.customRoles[0].click();
+
+    then: 'editor opens'
+    at RoleEditorPage
+
+    when: 'clicking delete'
+    roleEditorPage.deleteRole.click();
+
+    then: 'confirmation dialog is shown'
+    waitFor { roleEditorPage.deleteConfirm.displayed }
+
+    when: 'delete role'
+    roleEditorPage.deleteConfirm.click()
+
+    then: 'role is removed'
+    at RoleManagementPage
+    roleManagementPage.customRoles.size() == 0
   }
 }

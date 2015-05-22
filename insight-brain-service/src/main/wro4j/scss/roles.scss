@@ -23,6 +23,15 @@ $role-list-width: 606px;
 .container.roles {
   min-width: $role-list-width;
   width: $role-list-width;
+
+  h2 {
+    margin-bottom: 0px;
+    margin-top: 15px;
+  }
+
+  table {
+    margin-bottom: 20px
+  }
 }
 
 .role-items {
@@ -33,19 +42,24 @@ $role-list-width: 606px;
   cursor: pointer;
 }
 
+tr:first-child .role-summary {
+  border-top: $small-gray-border;
+}
+
 .role-summary {
   border-bottom: $small-gray-border;
   padding-bottom: 8px;
   vertical-align: middle;
   width: 100%;
-}
 
-.role-summary > h3 {
-  margin-bottom: 0px;
-}
+  h3 {
+    line-height: initial;
+    margin: 12px 0px 6px 0px;
+  }
 
-.role-summary > div {
-  margin-left: 24px;
+  & > div {
+    margin-left: 24px;
+  }
 }
 
 .role-detail-button {

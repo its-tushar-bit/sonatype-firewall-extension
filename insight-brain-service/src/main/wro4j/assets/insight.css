@@ -204,6 +204,10 @@ a {
   box-shadow: 0px 1px 0px rgba(255, 255, 255, .6)
 }
 
+.page-title .pull-right {
+  margin-bottom : 5px;
+}
+
 .mid-content .page-title {
   padding-left: 0px;
 }

@@ -90,13 +90,20 @@
       $scope.doLoad = function() {
         if (isAuthorized) {
           var promises = [
-            RoleStore.get(),
-            $http.get(CLMLocations.getRolePermissionUrl($stateParams.roleId))
+            RoleStore.get()
           ];
+
+          if ($stateParams.roleId === '_new_') {
+            promises.push($http.get(CLMLocations.getRolePermissionUrl()));
+          }
+          else {
+            promises.push($http.get(CLMLocations.getRolePermissionUrl($stateParams.roleId)));
+          }
+
           $q.all(promises).then(function(results) {
             var roles = results[0];
             var permissions = results[1].data;
-            if ($stateParams.roleId !== 'new') {
+            if ($stateParams.roleId !== '_new_') {
               angular.forEach(roles, function(role) {
                 if (role.id === $stateParams.roleId) {
                   $scope.role = role;
@@ -112,7 +119,6 @@
             else {
               $scope.dirtyRole = $scope.role = RoleStore.create();
             }
-
 
             $scope.permissionCategories = permissions.permissionCategories;
           }, function (error) {

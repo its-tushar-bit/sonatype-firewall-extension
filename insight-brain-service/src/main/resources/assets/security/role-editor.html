@@ -22,12 +22,12 @@
               <h2>Role Details</h2>
               <div clm-control-group for="roleName" label="Role Name">
                 <input id="roleName" name="roleName" type="text"
-                       ng-required="true" ng-maxlength="60" ng-disabled='role.builtIn'
+                       ng-required="true" maxlength="60" ng-disabled='role.builtIn'
                        clm-input valid-name-characters ng-model="dirtyRole.name" focus-input="role">
               </div>
               <div clm-control-group for="roleDescription" label="Role Description">
                 <textarea id="roleDescription" name="roleDescription"
-                          ng-required="true" ng-maxlength="255" ng-disabled='role.builtIn'
+                          ng-required="true" maxlength="255" ng-disabled='role.builtIn'
                           clm-input ng-model="dirtyRole.description"></textarea>
               </div>
               <h2>Permissions</h2>

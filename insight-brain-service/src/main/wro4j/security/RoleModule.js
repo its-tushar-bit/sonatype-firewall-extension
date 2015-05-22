@@ -89,49 +89,31 @@
 
       $scope.doLoad = function() {
         if (isAuthorized) {
-          var promises = [
-            RoleStore.get()
-          ];
+          var request;
 
           if ($stateParams.roleId === '_new_') {
-            promises.push($http.get(CLMLocations.getRolePermissionUrl()));
+            request = $http.get(CLMLocations.getRoleForNewUrl());
           }
           else {
-            promises.push($http.get(CLMLocations.getRolePermissionUrl($stateParams.roleId)));
+            request = $http.get(CLMLocations.getRoleByIdUrl($stateParams.roleId));
           }
 
-          $q.all(promises).then(function(results) {
-            var roles = results[0];
-            var permissions = results[1].data;
-            if ($stateParams.roleId !== '_new_') {
-              angular.forEach(roles, function(role) {
-                if (role.id === $stateParams.roleId) {
-                  $scope.role = role;
-                }
-              });
-              if ($scope.role) {
-                $scope.dirtyRole = $scope.role.$clone();
-              }
-              else {
-                $scope.error = 'Failed to locate Role';
-              }
-            }
-            else {
-              $scope.dirtyRole = $scope.role = RoleStore.create();
-            }
-
-            $scope.permissionCategories = permissions.permissionCategories;
-          }, function (error) {
-            $scope.error = error;
+          request.success(function (role) {
+            $scope.role = role;
+            $scope.dirtyRole = angular.copy(role);
+          }).error(function () {
+            $scope.error = arguments;
           });
         }
       };
 
       $scope.save = function () {
         $scope.submitActive = true;
-        $scope.dirtyRole.$save().then(function () {
+
+        $http[$scope.role.id ? 'put' : 'post'](CLMLocations.getRoleListUrl(), $scope.dirtyRole).success(function () {
+          RoleStore.refresh();
           $state.go('roles');
-        }, $scope.errorFn);
+        }).error($scope.errorFn);
       };
 
       $scope.cancel = function () {
@@ -142,7 +124,7 @@
     }
   ]);
 
-  module.controller('DeleteRoleController', ['$scope', '$state', 'Dialog', 'Messages', function ($scope, $state, Dialog, Messages) {
+  module.controller('DeleteRoleController', ['$scope', '$state', '$stateParams', 'RoleStore', 'Dialog', 'Messages', function ($scope, $state, $stateParams, RoleStore, Dialog, Messages) {
     function error() {
       Dialog.open({
         title : 'Failed to Delete',
@@ -168,13 +150,17 @@
           type: 'danger'
         }]
       }).result.then(function () {
-        $scope.role.$delete().then(function () {
-          $state.go('roles');
-        }, function (error) {
-          error(error);
-        });
-      }, function () {
-        error(arguments);
+        RoleStore.get().then(function (roles) {
+          angular.forEach(roles, function (role) {
+            if (role.id === $stateParams.roleId) {
+              role.$delete().then(function () {
+                $state.go('roles');
+              }, function (error) {
+                error(error);
+              });
+            }
+          });
+        }, error);
       });
     };
   }]);

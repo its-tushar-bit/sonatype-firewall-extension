@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO
+import com.sonatype.insight.brain.model.security.Role
+
 import spock.lang.Stepwise
 
 @Stepwise
@@ -99,7 +103,6 @@ extends BaseSpec {
     and: 'clicking create role'
     roleManagementPage.createRole.click()
 
-
     then: 'on new role editor'
     RoleEditorPage roleEditorPage = at RoleEditorPage
     waitFor {
@@ -107,7 +110,11 @@ extends BaseSpec {
     }
     roleEditorPage.save.disabled
 
-    when: 'enter the role name'
+    when: 'setting permission for claiming'
+    String permissionDescription = roleEditorPage.permissionCategory('CLM').permission(0).description.text()
+    roleEditorPage.permissionCategory('CLM').permission(0).toggleSwitch.toggle.click()
+
+    and: 'enter the role name'
     roleEditorPage.nameEditor << 'peon'
 
     then: 'save button is still disabled'
@@ -116,7 +123,10 @@ extends BaseSpec {
     when: 'enter the role description'
     roleEditorPage.descriptionEditor << 'bottom rung'
 
-    and: 'clicking save'
+    then: 'save button is enabled'
+    roleEditorPage.save.enabled
+
+    when: 'clicking save'
     roleEditorPage.save.click()
 
     then: 'role is saved'
@@ -124,6 +134,8 @@ extends BaseSpec {
     roleManagementPage.customRoles.size() == 1
     roleManagementPage.customRoles[0].name.text() == 'peon'
     roleManagementPage.customRoles[0].description.text() == 'bottom rung'
+    roleHasPermission('peon', permissionDescription)
+
 
     when: 'click on peon role'
     roleManagementPage.customRoles[0].click();
@@ -163,5 +175,17 @@ extends BaseSpec {
     then: 'role is removed'
     at RoleManagementPage
     roleManagementPage.customRoles.size() == 0
+  }
+
+  boolean roleHasPermission(String roleName, String permission) {
+    Role role = new RoleDAO().getByName(roleName);
+    if (role != null) {
+      for (com.sonatype.insight.brain.model.security.Permission perm : new RolePermissionDAO().getPermissionsForRole(role.getId())) {
+        if (perm.getDescription().equals(permission)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

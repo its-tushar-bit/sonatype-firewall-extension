@@ -31,7 +31,7 @@ extends BasePage {
     save { $('button.btn-primary') }
 
     permissionCategories(required: false) {
-      moduleList PermissionCategory, $('tbody[ng-repeat="permissionCategory in permissionCategories"]')
+      moduleList PermissionCategory, $('tbody[ng-repeat="permissionCategory in dirtyRole.permissionCategories"]')
     }
     permissionCategory { String name ->
       module PermissionCategory, permissionCategories.find { it.groupName.text() == name }

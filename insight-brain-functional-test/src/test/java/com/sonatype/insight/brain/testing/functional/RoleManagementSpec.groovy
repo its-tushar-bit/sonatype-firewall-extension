@@ -131,7 +131,7 @@ extends BaseSpec {
 
     then: 'role is saved'
     at RoleManagementPage
-    roleManagementPage.customRoles.size() == 1
+    waitFor { roleManagementPage.customRoles.size() == 1 }
     roleManagementPage.customRoles[0].name.text() == 'peon'
     roleManagementPage.customRoles[0].description.text() == 'bottom rung'
     roleHasPermission('peon', permissionDescription)
@@ -154,7 +154,7 @@ extends BaseSpec {
     then: 'updated role is visible'
     at RoleManagementPage
     roleManagementPage.customRoles.size() == 1
-    roleManagementPage.customRoles[0].name.text() == 'peons'
+    waitFor { roleManagementPage.customRoles[0].name.text() == 'peons' }
     roleManagementPage.customRoles[0].description.text() == 'not even on the ladder'
 
     when: 'click on peon role'

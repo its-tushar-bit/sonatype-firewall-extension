@@ -91,8 +91,7 @@ public class ApplicationRiskService
         policyThreatLevelFilter);
 
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
-        Sets.newHashSet(Iterables.transform(appsToSearch, DashboardUtils.hasIdIdSelector)),
-        dashboardUtils.getStageIds(stageTypes));
+        dashboardUtils.getApplicationIds(appsToSearch), dashboardUtils.getStageIds(stageTypes));
 
     Map<String, PolicyEvaluation> policyEvaluationsById = mapCollectionById(evaluations);
     List<PolicyViolationDTO> allPolicyViolationDTOs = createAllPolicyViolations(filter, evaluations, appsToSearch,

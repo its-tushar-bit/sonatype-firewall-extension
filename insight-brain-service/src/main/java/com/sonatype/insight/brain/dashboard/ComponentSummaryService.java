@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.organization.ApplicationService;
 
-import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +55,8 @@ public class ComponentSummaryService
 
     ComponentSummaryDTO summary = new ComponentSummaryDTO();
 
-    Collection<String> appIds = Collections2.transform(
-        applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds), DashboardUtils.hasIdIdSelector);
+    Collection<String> appIds = dashboardUtils.getApplicationIds(applicationService.getApplicationsByIdsAndTagIds(
+        applicationIds, tagIds));
     log.debug("getComponentSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
         appIds.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
 

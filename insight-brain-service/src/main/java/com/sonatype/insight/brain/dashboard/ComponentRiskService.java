@@ -181,7 +181,7 @@ public class ComponentRiskService
     final Set<String> stageTypeIdsFiltered = dashboardUtils.getStageIds(stageTypes);
 
     if (!CollectionUtils.isEmpty(tagIds)) {
-      Set<String> applicationIds = new HashSet<>(Lists.transform(applications, DashboardUtils.hasIdIdSelector));
+      Set<String> applicationIds = dashboardUtils.getApplicationIds(applications);
       applications = applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
     }
 
@@ -241,7 +241,7 @@ public class ComponentRiskService
 
     if (!CollectionUtils.isEmpty(tagIds)) {
       List<Application> filteredApplications = applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
-      applicationIds = new HashSet<>(Lists.transform(filteredApplications, DashboardUtils.hasIdIdSelector));
+      applicationIds = dashboardUtils.getApplicationIds(filteredApplications);
     }
 
     for (String applicationId : applicationIds) {

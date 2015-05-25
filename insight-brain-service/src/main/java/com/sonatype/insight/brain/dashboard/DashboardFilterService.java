@@ -183,12 +183,10 @@ public class DashboardFilterService
 
     Collection<StageType> allStageTypes = dashboardUtils.getStageTypes(null);
     summary.totalComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
-        Collections2.transform(readableApplications, DashboardUtils.hasIdIdSelector),
-        dashboardUtils.getStageIds(allStageTypes));
+        dashboardUtils.getApplicationIds(readableApplications), dashboardUtils.getStageIds(allStageTypes));
     Collection<StageType> matchedStageTypes = dashboardUtils.getStageTypes(stageIds);
     summary.matchedComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
-        Collections2.transform(matchedApplications, DashboardUtils.hasIdIdSelector),
-        dashboardUtils.getStageIds(matchedStageTypes));
+        dashboardUtils.getApplicationIds(matchedApplications), dashboardUtils.getStageIds(matchedStageTypes));
 
     Set<String> readablePolicyOwnerIds = getPolicyOwnerIds(readableApplications);
     List<Policy> readablePolicies = policyDAO.getByOwnerIds(readablePolicyOwnerIds);

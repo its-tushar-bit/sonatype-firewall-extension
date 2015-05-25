@@ -74,6 +74,7 @@ public class DiagnosticsCli
         logUniqueCoordinates(connection);
         logAverageColumnSizes(connection);
         logTableSizes(connection);
+        logDatabaseSettings(connection);
       }
     }
   }
@@ -190,6 +191,23 @@ public class DiagnosticsCli
     log.info("Compacting database...");
     try (Statement statement = connection.createStatement()) {
       statement.execute("SHUTDOWN COMPACT");
+    }
+  }
+
+  private void logDatabaseSettings(Connection connection) {
+    try (Statement statement = connection.createStatement()) {
+      try (ResultSet result = statement
+          .executeQuery("SELECT name, value FROM INFORMATION_SCHEMA.SETTINGS ORDER BY name")) {
+        log.info("Database settings:");
+        while (result.next()) {
+          String name = result.getString(1);
+          String value = result.getString(2);
+          log.info("  {}={}", name, value);
+        }
+      }
+    }
+    catch (Exception e) {
+      log.error("Failed to load database settings: " + e.getMessage(), e);
     }
   }
 }

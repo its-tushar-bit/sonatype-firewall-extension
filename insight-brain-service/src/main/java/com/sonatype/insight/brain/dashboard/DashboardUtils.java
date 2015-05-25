@@ -90,12 +90,12 @@ public class DashboardUtils
     return stages;
   }
 
-  Set<String> getStageIds(final Collection<StageType> stageTypes) {
-    Set<String> stageIdsToSearch = new HashSet<>();
+  Set<String> getStageTypeIds(final Collection<StageType> stageTypes) {
+    Set<String> stageTypeIds = new HashSet<>();
     for (StageType stageType : stageTypes) {
-      stageIdsToSearch.add(stageType.getId());
+      stageTypeIds.add(stageType.getId());
     }
-    return stageIdsToSearch;
+    return stageTypeIds;
   }
 
   Set<String> getApplicationIds(Collection<Application> applications) {

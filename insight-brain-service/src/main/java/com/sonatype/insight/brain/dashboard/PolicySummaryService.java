@@ -144,7 +144,7 @@ public class PolicySummaryService
         applications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
 
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Set<String> stageTypeIds = dashboardUtils.getStageIds(stageTypes);
+    Set<String> stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter);
     Long now = System.currentTimeMillis();

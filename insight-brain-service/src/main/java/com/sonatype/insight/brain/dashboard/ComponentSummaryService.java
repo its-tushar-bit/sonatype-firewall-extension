@@ -60,7 +60,7 @@ public class ComponentSummaryService
     log.debug("getComponentSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
         appIds.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
 
-    Collection<String> stageTypeIds = dashboardUtils.getStageIds(dashboardUtils.getStageTypes(stageIds));
+    Collection<String> stageTypeIds = dashboardUtils.getStageTypeIds(dashboardUtils.getStageTypes(stageIds));
     List<ApplicationComponent> components = applicationComponentDAO.getNonProprietaryByApplicationIdsAndStageTypeIds(
         appIds, stageTypeIds);
     Map<String, ApplicationComponent> componentsByHash = new HashMap<>();

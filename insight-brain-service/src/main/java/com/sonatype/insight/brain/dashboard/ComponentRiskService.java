@@ -178,7 +178,7 @@ public class ComponentRiskService
 
     List<Application> applications = applicationService.getApplications();
     final Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageTypeIds);
-    final Set<String> stageTypeIdsFiltered = dashboardUtils.getStageIds(stageTypes);
+    final Set<String> stageTypeIdsFiltered = dashboardUtils.getStageTypeIds(stageTypes);
 
     if (!CollectionUtils.isEmpty(tagIds)) {
       Set<String> applicationIds = dashboardUtils.getApplicationIds(applications);

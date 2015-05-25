@@ -67,7 +67,7 @@ public class NewestRiskService
       Set<StageType> stageTypes)
   {
     Set<String> appIds = dashboardUtils.getApplicationIds(applications);
-    Set<String> stageTypeIds = dashboardUtils.getStageIds(stageTypes);
+    Set<String> stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
 
     Map<String, PolicyEvaluation> lastPolicyEvaluationsMap = new HashMap<>();
     List<PolicyEvaluation> lastPolicyEvaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(appIds,

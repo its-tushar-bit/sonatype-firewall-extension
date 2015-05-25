@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
@@ -20,6 +23,8 @@ import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 public class DashboardUtilsTest
@@ -79,5 +84,27 @@ public class DashboardUtilsTest
         PolicyThreatCategory.LICENSE, PolicyThreatCategory.SECURITY).asPolicyViolationPredicate(),
         new PolicyThreatLevelFilter(2, 5).asPolicyViolationPredicate()));
     assertThat(filtered, contains(v2, v5));
+  }
+
+  @Test
+  public void testGetApplicationIds() {
+    // Empty list
+    List<Application> apps = new ArrayList<Application>();
+    Set<String> appIds = dashboardUtils.getApplicationIds(apps);
+    assertThat(appIds, hasSize(0));
+
+    // One app
+    Application app1 = new Application();
+    app1.setId("app1");
+    apps.add(app1);
+    appIds = dashboardUtils.getApplicationIds(apps);
+    assertThat(appIds, contains(app1.getId()));
+
+    // Two apps
+    Application app2 = new Application();
+    app1.setId("app2");
+    apps.add(app2);
+    appIds = dashboardUtils.getApplicationIds(apps);
+    assertThat(appIds, containsInAnyOrder(app1.getId(), app2.getId()));
   }
 }

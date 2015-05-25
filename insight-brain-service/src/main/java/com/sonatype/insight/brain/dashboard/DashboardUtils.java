@@ -17,6 +17,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -95,6 +96,14 @@ public class DashboardUtils
       stageIdsToSearch.add(stageType.getId());
     }
     return stageIdsToSearch;
+  }
+
+  Set<String> getApplicationIds(Collection<Application> applications) {
+    Set<String> appIds = new HashSet<>();
+    for (Application application : applications) {
+      appIds.add(application.getId());
+    }
+    return appIds;
   }
 
   Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,

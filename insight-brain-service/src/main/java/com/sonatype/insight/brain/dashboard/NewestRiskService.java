@@ -63,6 +63,22 @@ public class NewestRiskService
     this.dashboardUtils = dashboardUtils;
   }
 
+  private Map<String, PolicyEvaluation> getLastPolicyEvaluationsByAppIdAndStageTypeId(List<Application> applications,
+      Set<StageType> stageTypes)
+  {
+    Set<String> appIds = dashboardUtils.getApplicationIds(applications);
+    Set<String> stageTypeIds = dashboardUtils.getStageIds(stageTypes);
+
+    Map<String, PolicyEvaluation> lastPolicyEvaluationsMap = new HashMap<>();
+    List<PolicyEvaluation> lastPolicyEvaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(appIds,
+        stageTypeIds);
+    for (PolicyEvaluation lastPolicyEvaluation : lastPolicyEvaluations) {
+      lastPolicyEvaluationsMap.put(lastPolicyEvaluation.getApplicationId() + lastPolicyEvaluation.getStageTypeId(),
+          lastPolicyEvaluation);
+    }
+    return lastPolicyEvaluationsMap;
+  }
+
   /**
    * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
@@ -83,6 +99,9 @@ public class NewestRiskService
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter);
 
+    Map<String, PolicyEvaluation> lastPolicyEvaluationsByAppIdAndStageTypeId = getLastPolicyEvaluationsByAppIdAndStageTypeId(
+        applications, stageTypes);
+
     List<NewestRiskDTO> result = new ArrayList<>();
     int policyEvaluationCount = 0;
     int policyViolationCount = 0;
@@ -92,8 +111,8 @@ public class NewestRiskService
       Map<PolicyViolation, NewestRiskDTO> newestRiskDTOsByPolicyViolation = new HashMap<>();
 
       for (StageType stageType : stageTypes) {
-        PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
-            stageType.getId());
+        PolicyEvaluation policyEvaluation = lastPolicyEvaluationsByAppIdAndStageTypeId.get(app.getId()
+            + stageType.getId());
         if (policyEvaluation == null) {
           continue;
         }

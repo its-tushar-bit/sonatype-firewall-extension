@@ -89,7 +89,7 @@ public class DashboardUtilsTest
   @Test
   public void testGetApplicationIds() {
     // Empty list
-    List<Application> apps = new ArrayList<Application>();
+    List<Application> apps = new ArrayList<>();
     Set<String> appIds = dashboardUtils.getApplicationIds(apps);
     assertThat(appIds, hasSize(0));
 

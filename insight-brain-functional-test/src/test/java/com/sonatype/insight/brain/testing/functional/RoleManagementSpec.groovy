@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO
+import com.sonatype.insight.brain.model.security.Permission
+import com.sonatype.insight.brain.model.security.PermissionCategory
 import com.sonatype.insight.brain.model.security.Role
 
 import spock.lang.Stepwise
@@ -47,53 +49,53 @@ extends BaseSpec {
 
     roleEditorPage.pageTitle.text() == 'Developer'
 
-    PermissionCategory policyCategory = roleEditorPage.permissionCategory('CLM')
+    DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName)
     policyCategory.permissions.size() == 5
 
-    Permission claimComponentPermission = policyCategory.permission(0)
+    DisplayedPermission claimComponentPermission = policyCategory.permission(0)
     !claimComponentPermission.toggleSwitch.isOn()
     !claimComponentPermission.toggleSwitch.isEnabled()
-    claimComponentPermission.name.text() == 'Claim'
-    claimComponentPermission.description.text() == 'Components'
+    claimComponentPermission.name.text() == Permission.CLAIM_COMPONENT.displayName
+    claimComponentPermission.description.text() == Permission.CLAIM_COMPONENT.description
 
-    Permission evaluateAppPermission = policyCategory.permission(3)
-    !evaluateAppPermission.toggleSwitch.isOn()
-    !evaluateAppPermission.toggleSwitch.isEnabled()
-    evaluateAppPermission.name.text() == 'Evaluate'
-    evaluateAppPermission.description.text() == 'Applications'
-
-    Permission evaluateComponentPermission = policyCategory.permission(4)
-    evaluateComponentPermission.toggleSwitch.isOn()
-    !evaluateComponentPermission.toggleSwitch.isEnabled()
-    evaluateComponentPermission.name.text() == 'Evaluate'
-    evaluateComponentPermission.description.text() == 'Individual Components'
-
-    Permission viewPermission = policyCategory.permission(2)
-    viewPermission.toggleSwitch.isOn()
-    !viewPermission.toggleSwitch.isEnabled()
-    viewPermission.name.text() == 'View'
-    viewPermission.description.text() == 'CLM Elements'
-
-    Permission writePermission = policyCategory.permission(1)
+    DisplayedPermission writePermission = policyCategory.permission(1)
     !writePermission.toggleSwitch.isOn()
     !writePermission.toggleSwitch.isEnabled()
-    writePermission.name.text() == 'Edit'
-    writePermission.description.text() == 'CLM Elements'
+    writePermission.name.text() == Permission.WRITE.displayName
+    writePermission.description.text() == Permission.WRITE.description
 
-    PermissionCategory systemCategory = roleEditorPage.permissionCategory('Administrator')
+    DisplayedPermission viewPermission = policyCategory.permission(2)
+    viewPermission.toggleSwitch.isOn()
+    !viewPermission.toggleSwitch.isEnabled()
+    viewPermission.name.text() == Permission.READ.displayName
+    viewPermission.description.text() == Permission.READ.description
+
+    DisplayedPermission evaluateAppPermission = policyCategory.permission(3)
+    !evaluateAppPermission.toggleSwitch.isOn()
+    !evaluateAppPermission.toggleSwitch.isEnabled()
+    evaluateAppPermission.name.text() == Permission.EVALUATE_APPLICATION.displayName
+    evaluateAppPermission.description.text() == Permission.EVALUATE_APPLICATION.description
+
+    DisplayedPermission evaluateComponentPermission = policyCategory.permission(4)
+    evaluateComponentPermission.toggleSwitch.isOn()
+    !evaluateComponentPermission.toggleSwitch.isEnabled()
+    evaluateComponentPermission.name.text() == Permission.EVALUATE_COMPONENT.displayName
+    evaluateComponentPermission.description.text() == Permission.EVALUATE_COMPONENT.description
+
+    DisplayedPermissionCategory systemCategory = roleEditorPage.permissionCategory(PermissionCategory.ADMINISTRATOR.displayName)
     systemCategory.permissions.size() == 4
 
-    Permission administratorPermission = systemCategory.permission(0)
+    DisplayedPermission administratorPermission = systemCategory.permission(0)
     !administratorPermission.toggleSwitch.isOn()
     !administratorPermission.toggleSwitch.isEnabled()
-    administratorPermission.name.text() == 'Edit'
-    administratorPermission.description.text() == 'System Configuration and Users'
+    administratorPermission.name.text() == Permission.CONFIGURE_SYSTEM.displayName
+    administratorPermission.description.text() == Permission.CONFIGURE_SYSTEM.description
 
-    Permission permission = systemCategory.permission(3)
+    DisplayedPermission permission = systemCategory.permission(3)
     !permission.toggleSwitch.isOn()
     !permission.toggleSwitch.isEnabled()
-    permission.name.text() == 'Edit'
-    permission.description.text() == 'Proprietary Components'
+    permission.name.text() == Permission.MANAGE_PROPRIETARY.displayName
+    permission.description.text() == Permission.MANAGE_PROPRIETARY.description
   }
 
   def 'Custom Roles'() {
@@ -111,8 +113,8 @@ extends BaseSpec {
     roleEditorPage.save.disabled
 
     when: 'setting permission for claiming'
-    String permissionDescription = roleEditorPage.permissionCategory('CLM').permission(0).description.text()
-    roleEditorPage.permissionCategory('CLM').permission(0).toggleSwitch.toggle.click()
+    String permissionDescription = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).description.text()
+    roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).toggleSwitch.toggle.click()
 
     and: 'enter the role name'
     roleEditorPage.nameEditor << 'peon'

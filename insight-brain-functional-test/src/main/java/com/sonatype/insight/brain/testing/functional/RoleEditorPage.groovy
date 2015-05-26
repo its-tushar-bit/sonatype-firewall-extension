@@ -31,24 +31,24 @@ extends BasePage {
     save { $('button.btn-primary') }
 
     permissionCategories(required: false) {
-      moduleList PermissionCategory, $('tbody[ng-repeat="permissionCategory in dirtyRole.permissionCategories"]')
+      moduleList DisplayedPermissionCategory, $('tbody[ng-repeat="permissionCategory in dirtyRole.permissionCategories"]')
     }
     permissionCategory { String name ->
-      module PermissionCategory, permissionCategories.find { it.groupName.text() == name }
+      module DisplayedPermissionCategory, permissionCategories.find { it.groupName.text() == name }
     }
   }
 }
 
-class PermissionCategory
+class DisplayedPermissionCategory
 extends Module {
   static content = {
     groupName { $('h3') }
-    permissions { moduleList Permission, $('tr[ng-repeat="permission in permissionCategory.permissions"]') }
-    permission { index -> module Permission, permissions.getAt(index) }
+    permissions { moduleList DisplayedPermission, $('tr[ng-repeat="permission in permissionCategory.permissions"]') }
+    permission { index -> module DisplayedPermission, permissions.getAt(index) }
   }
 }
 
-class Permission
+class DisplayedPermission
 extends Module {
   static content = {
     toggleSwitch { module ToggleSwitch, $('.toggle-checkbox') }

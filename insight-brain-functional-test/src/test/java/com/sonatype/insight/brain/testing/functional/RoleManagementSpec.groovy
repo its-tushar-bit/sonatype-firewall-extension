@@ -16,6 +16,9 @@ import spock.lang.Stepwise
 @Stepwise
 class RoleManagementSpec
 extends BaseSpec {
+  static final boolean ON = true
+  static final boolean ENABLED = true
+
   def setupSpec() {
     loginAsAdminVia(RoleManagementPage)
   }
@@ -51,51 +54,16 @@ extends BaseSpec {
 
     DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName)
     policyCategory.permissions.size() == 5
-
-    DisplayedPermission claimComponentPermission = policyCategory.permission(0)
-    !claimComponentPermission.toggleSwitch.isOn()
-    !claimComponentPermission.toggleSwitch.isEnabled()
-    claimComponentPermission.name.text() == Permission.CLAIM_COMPONENT.displayName
-    claimComponentPermission.description.text() == Permission.CLAIM_COMPONENT.description
-
-    DisplayedPermission writePermission = policyCategory.permission(1)
-    !writePermission.toggleSwitch.isOn()
-    !writePermission.toggleSwitch.isEnabled()
-    writePermission.name.text() == Permission.WRITE.displayName
-    writePermission.description.text() == Permission.WRITE.description
-
-    DisplayedPermission viewPermission = policyCategory.permission(2)
-    viewPermission.toggleSwitch.isOn()
-    !viewPermission.toggleSwitch.isEnabled()
-    viewPermission.name.text() == Permission.READ.displayName
-    viewPermission.description.text() == Permission.READ.description
-
-    DisplayedPermission evaluateAppPermission = policyCategory.permission(3)
-    !evaluateAppPermission.toggleSwitch.isOn()
-    !evaluateAppPermission.toggleSwitch.isEnabled()
-    evaluateAppPermission.name.text() == Permission.EVALUATE_APPLICATION.displayName
-    evaluateAppPermission.description.text() == Permission.EVALUATE_APPLICATION.description
-
-    DisplayedPermission evaluateComponentPermission = policyCategory.permission(4)
-    evaluateComponentPermission.toggleSwitch.isOn()
-    !evaluateComponentPermission.toggleSwitch.isEnabled()
-    evaluateComponentPermission.name.text() == Permission.EVALUATE_COMPONENT.displayName
-    evaluateComponentPermission.description.text() == Permission.EVALUATE_COMPONENT.description
+    assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.CLAIM_COMPONENT)
+    assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.WRITE)
+    assertPermission(policyCategory.permission(2), ON, !ENABLED, Permission.READ)
+    assertPermission(policyCategory.permission(3), !ON, !ENABLED, Permission.EVALUATE_APPLICATION)
+    assertPermission(policyCategory.permission(4), ON, !ENABLED, Permission.EVALUATE_COMPONENT)
 
     DisplayedPermissionCategory systemCategory = roleEditorPage.permissionCategory(PermissionCategory.ADMINISTRATOR.displayName)
     systemCategory.permissions.size() == 4
-
-    DisplayedPermission administratorPermission = systemCategory.permission(0)
-    !administratorPermission.toggleSwitch.isOn()
-    !administratorPermission.toggleSwitch.isEnabled()
-    administratorPermission.name.text() == Permission.CONFIGURE_SYSTEM.displayName
-    administratorPermission.description.text() == Permission.CONFIGURE_SYSTEM.description
-
-    DisplayedPermission permission = systemCategory.permission(3)
-    !permission.toggleSwitch.isOn()
-    !permission.toggleSwitch.isEnabled()
-    permission.name.text() == Permission.MANAGE_PROPRIETARY.displayName
-    permission.description.text() == Permission.MANAGE_PROPRIETARY.description
+    assertPermission(systemCategory.permission(0), !ON, !ENABLED, Permission.CONFIGURE_SYSTEM)
+    assertPermission(systemCategory.permission(3), !ON, !ENABLED, Permission.MANAGE_PROPRIETARY)
   }
 
   def 'Custom Roles'() {
@@ -189,5 +157,12 @@ extends BaseSpec {
       }
     }
     return false;
+  }
+
+  void assertPermission(DisplayedPermission displayedPermission, boolean isOn, boolean isEnabled, Permission permission) {
+    assert displayedPermission.toggleSwitch.isOn() == isOn
+    assert displayedPermission.toggleSwitch.isEnabled() == isEnabled
+    assert displayedPermission.name.text() == permission.displayName
+    assert displayedPermission.description.text() == permission.description
   }
 }

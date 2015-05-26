@@ -189,7 +189,9 @@ public class InsightBrainService
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());
   }
 
-  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName, String additionalDBParams) {
+  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName, Long cacheSizeInBytes,
+      String additionalDBParams)
+  {
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
     StringBuilder urlBuilder = new StringBuilder()
@@ -198,6 +200,9 @@ public class InsightBrainService
         .append('/')
         .append(databaseName)
         .append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+    if (cacheSizeInBytes != null) {
+      urlBuilder.append(";CACHE_SIZE=").append(cacheSizeInBytes / 1024);
+    }
     if (additionalDBParams != null) {
       urlBuilder.append(";").append(additionalDBParams);
     }
@@ -250,9 +255,15 @@ public class InsightBrainService
   protected List<Module> modules(final InsightConfig config) {
     // NOTE: The ReleaseGraphCacheLoader indirectly uses the ApplicationDAO so we better setup the DB before
     File databaseDir = new File(config.getSonatypeWork(), "data");
-    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm", config.getAdditionalDBParams());
+    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseDir, "dm", null, config.getAdditionalDBParams());
     DatamartProvider.init(dmDatabaseConfig);
-    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods", config.getAdditionalDBParams());
+    // NOTE: H2 uses previous setting if not set in URL, so be explicit about the default size
+    long dbCacheSizeInBytes = 16L * 1024 * 1024;
+    if (config.getDbCacheSizePercent() != null) {
+      dbCacheSizeInBytes = Runtime.getRuntime().maxMemory() * config.getDbCacheSizePercent() / 100;
+    }
+    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseDir, "ods", dbCacheSizeInBytes,
+        config.getAdditionalDBParams());
     OperationalDataStoreProvider.init(odsDatabaseConfig);
 
     return Arrays.<Module> asList(new AbstractModule()

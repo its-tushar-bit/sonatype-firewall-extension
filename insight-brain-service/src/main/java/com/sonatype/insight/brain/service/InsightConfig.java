@@ -65,6 +65,14 @@ public class InsightConfig
   @JsonProperty
   private String additionalDBParams;
 
+  /**
+   * @since 1.14.1
+   */
+  @Min(1)
+  @Max(99)
+  @JsonProperty
+  private Integer dbCacheSizePercent;
+
   @NotNull
   @JsonProperty
   @Min(0)
@@ -213,6 +221,14 @@ public class InsightConfig
 
   public void setAdditionalDBParams(final String additionalDBParams) {
     this.additionalDBParams = additionalDBParams;
+  }
+
+  public Integer getDbCacheSizePercent() {
+    return dbCacheSizePercent;
+  }
+
+  public void setDbCacheSizePercent(Integer dbCacheSizePercent) {
+    this.dbCacheSizePercent = dbCacheSizePercent;
   }
 
   /**

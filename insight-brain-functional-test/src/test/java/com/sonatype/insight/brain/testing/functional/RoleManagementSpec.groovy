@@ -66,19 +66,19 @@ extends BaseSpec {
     evaluateComponentPermission.toggleSwitch.isOn()
     !evaluateComponentPermission.toggleSwitch.isEnabled()
     evaluateComponentPermission.name.text() == 'Evaluate'
-    evaluateComponentPermission.description.text() == 'Individual components'
+    evaluateComponentPermission.description.text() == 'Individual Components'
 
     Permission viewPermission = policyCategory.permission(2)
     viewPermission.toggleSwitch.isOn()
     !viewPermission.toggleSwitch.isEnabled()
     viewPermission.name.text() == 'View'
-    viewPermission.description.text() == 'CLM elements'
+    viewPermission.description.text() == 'CLM Elements'
 
     Permission writePermission = policyCategory.permission(1)
     !writePermission.toggleSwitch.isOn()
     !writePermission.toggleSwitch.isEnabled()
     writePermission.name.text() == 'Edit'
-    writePermission.description.text() == 'CLM elements'
+    writePermission.description.text() == 'CLM Elements'
 
     PermissionCategory systemCategory = roleEditorPage.permissionCategory('Administrator')
     systemCategory.permissions.size() == 4

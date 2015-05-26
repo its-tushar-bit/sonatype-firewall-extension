@@ -23,13 +23,13 @@ public enum Permission
 
   CLAIM_COMPONENT("Claim", PermissionCategory.CLM, "Components", true /* global */, true /* allowedInCustomRoles */),
 
-  WRITE("Edit", PermissionCategory.CLM, "CLM elements", false /* global */, true /* allowedInCustomRoles */),
+  WRITE("Edit", PermissionCategory.CLM, "CLM Elements", false /* global */, true /* allowedInCustomRoles */),
 
-  READ("View", PermissionCategory.CLM, "CLM elements", false /* global */, true /* allowedInCustomRoles */),
+  READ("View", PermissionCategory.CLM, "CLM Elements", false /* global */, true /* allowedInCustomRoles */),
 
   EVALUATE_APPLICATION("Evaluate", PermissionCategory.CLM, "Applications", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual components", false /* global */, true /* allowedInCustomRoles */);
+  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual Components", false /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 

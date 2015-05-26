@@ -35,7 +35,7 @@ public class LdapUtilsTest
   }
 
   @Test
-  public void testEscapedQueryAttribute() {
+  public void testEscapeQueryAttribute() {
     //validate each escaped character
     assertThat(LdapUtils.escapeLdapQueryAttribute("\\()*" + '\u0000'), is("\\5c\\28\\29\\2a\\00"));
     //as well as the string initially reported
@@ -43,7 +43,7 @@ public class LdapUtilsTest
   }
 
   @Test
-  public void testEscapedQueryAttribute_allowWildcard() {
+  public void testEscapeQueryAttribute_allowWildcard() {
     //validate each escaped character
     assertThat(LdapUtils.escapeLdapQueryAttribute("\\()*" + '\u0000', true), is("\\5c\\28\\29*\\00"));
     //as well as the string initially reported

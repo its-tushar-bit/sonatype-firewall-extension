@@ -81,6 +81,7 @@ extends BaseSpec {
       roleEditorPage.pageTitle.text() == 'New Role'
     }
     roleEditorPage.save.disabled
+    !roleEditorPage.deleteRole.present
 
     when: 'setting permission for claiming'
     String permissionDescription = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).description.text()
@@ -124,10 +125,16 @@ extends BaseSpec {
     waitFor {
       roleEditorPage.pageTitle.text() == 'peon'
     }
+    roleEditorPage.save.disabled
 
     when: 'update fields'
     roleEditorPage.nameEditor = 'peons'
     roleEditorPage.descriptionEditor = 'not even on the ladder'
+
+    then: 'save is enabled'
+    waitFor { roleEditorPage.save.enabled }
+
+    when: 'save is clicked'
     roleEditorPage.save.click()
 
     then: 'updated role is visible'
@@ -173,6 +180,7 @@ extends BaseSpec {
     pageTitle.text() == role.getName()
     save.disabled
     nameEditor.disabled
+    deleteRole.disabled
 
     cleanup:
     userOptions.logoutClick()

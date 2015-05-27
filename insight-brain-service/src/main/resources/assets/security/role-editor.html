@@ -10,8 +10,8 @@
       <div ng-if='role'>
         <h1 class="page-title">
           <div class="container roles">
-            <span class='pull-right' ng-controller="DeleteRoleController" ng-if="dirtyRole.id && !readOnly()">
-              <button class="btn" ng-click="deleteRole()" id='delete-role'><i class="icon icon-minus-sign"></i> Delete Role</button>
+            <span class='pull-right' ng-controller="DeleteRoleController" ng-if="dirtyRole.id">
+              <button class="btn" ng-click="deleteRole()" id='delete-role' ng-disabled="readOnly"><i class="icon icon-minus-sign"></i> Delete Role</button>
             </span>
             <span id='role-title'>{{::role.name || 'New Role'}}</span>
           </div>
@@ -59,7 +59,7 @@
             </form>
             <div clm-alerts="editorAlerts"></div>
             <button class="btn btn-link btn-cancel" type="button" ng-click="cancel()">Cancel</button>
-            <button class="btn btn-primary pull-right" ng-disabled="roleEditor.$invalid || submitActive || readOnly" ng-click="save()">Save</button>
+            <button class="btn btn-primary pull-right" ng-disabled="!isDirty() || roleEditor.$invalid || submitActive || readOnly" ng-click="save()">Save</button>
           </div>
         </div>
       </div>

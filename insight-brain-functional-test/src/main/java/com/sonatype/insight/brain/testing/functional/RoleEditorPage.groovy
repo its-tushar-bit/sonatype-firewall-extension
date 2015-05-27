@@ -24,6 +24,7 @@ extends BasePage {
     deleteConfirm (required : false) { $('.modal.in .btn-danger') }
 
     nameEditor { $('input[type=text]') }
+    namePopover (required : false) { $('#roleName-popover') }
 
     descriptionEditor { $('textarea') }
 

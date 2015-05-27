@@ -23,6 +23,7 @@
               <div clm-control-group for="roleName" label="Role Name">
                 <input id="roleName" name="roleName" type="text"
                        ng-required="true" maxlength="60" ng-disabled='readOnly'
+                       is-duplicate is-duplicate-array='roles' is-duplicate-id-field='name' messages="{duplicate: 'Name is already in use'}"
                        clm-input valid-name-characters ng-model="dirtyRole.name" focus-input="role">
               </div>
               <div clm-control-group for="roleDescription" label="Role Description">

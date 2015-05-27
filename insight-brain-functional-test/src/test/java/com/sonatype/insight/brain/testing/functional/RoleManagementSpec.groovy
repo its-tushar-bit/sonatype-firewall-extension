@@ -86,8 +86,15 @@ extends BaseSpec {
     String permissionDescription = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).description.text()
     roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName).permission(0).toggleSwitch.toggle.click()
 
-    and: 'enter the role name'
-    roleEditorPage.nameEditor << 'peon'
+    and: 'enters a duplicate name'
+    roleEditorPage.nameEditor << 'Owner'
+
+    then: 'error is shown'
+    roleEditorPage.namePopover.displayed
+    roleEditorPage.namePopover.text() == 'Name is already in use'
+
+    when: 'enter the role name'
+    roleEditorPage.nameEditor = 'peon'
 
     then: 'save button is still disabled'
     roleEditorPage.save.disabled

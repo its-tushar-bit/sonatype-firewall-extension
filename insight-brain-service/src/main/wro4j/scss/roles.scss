@@ -27,12 +27,15 @@ $role-list-width: 606px;
   h2 {
     margin-bottom: 0px;
     margin-top: 15px;
+  }
+
+  form > h2 {
     border-bottom: $small-gray-border;
     margin-bottom: 12px;
   }
 
   table {
-    margin-bottom: 20px
+    margin-bottom: 36px
   }
 
   .toggle-off.btn {

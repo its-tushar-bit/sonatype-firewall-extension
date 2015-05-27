@@ -66,7 +66,7 @@ public class InsightConfig
   private String additionalDBParams;
 
   /**
-   * @since 1.14.1
+   * @since 1.14.2
    */
   @Min(1)
   @Max(99)

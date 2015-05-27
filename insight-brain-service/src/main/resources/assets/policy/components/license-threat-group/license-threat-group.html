@@ -38,7 +38,7 @@
   <div clm-control-group label="License Threat Group Name">
     <input clm-input id='licenseGroupEditorName' name='name' type='text'
            class='input with-threat-dropdown' maxlength='60' ng-model='selectedGroup.name'
-           required valid-name-characters is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='id'
+           required valid-name-characters is-duplicate is-duplicate-array='licenseGroups' is-duplicate-id-field='name'
            placeholder="ex. Copyleft" focus-input="true"
            messages="{duplicate: 'Name is already in use'}">
     <span threat-box ng-model='selectedGroup.threatLevel' one='1' zero='No Threat' style='margin-left: 5px;'></span>

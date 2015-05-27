@@ -27,9 +27,8 @@
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
-    <phantomjs-maven-plugin.version>0.2.1</phantomjs-maven-plugin.version>
+    <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>1.9.7</phantomjs.version>
-    <phantomjs.baseUrl>https://bitbucket.org/ariya/phantomjs/downloads/</phantomjs.baseUrl>
     <wro4j.brain.resources>${project.build.directory}/generated/assets/</wro4j.brain.resources>
     <wro4j.minimize>true</wro4j.minimize>
     <angular.debug>false</angular.debug>

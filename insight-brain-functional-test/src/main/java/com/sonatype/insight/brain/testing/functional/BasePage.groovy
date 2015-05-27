@@ -30,5 +30,6 @@ abstract class BasePage
     globalCreate { module GlobalCreateModule }
     systemConfig(required: false) { module SystemConfigModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
+    unsavedModal { $('#unsavedModal') }
   }
 }

@@ -21,7 +21,7 @@
         resolve: {
           'isAuthorized': [
             'PermissionService', function(PermissionService) {
-              return PermissionService.isAuthorized(['VIEW_ROLES'], true);
+              return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true);
             }
           ]
         }
@@ -88,7 +88,7 @@
       $scope.editorAlerts = [];
 
       $scope.doLoad = function() {
-        if (isAuthorized) {
+        if (isAuthorized.indexOf('VIEW_ROLES') !== -1) {
           var request;
 
           if ($stateParams.roleId === '_new_') {
@@ -99,11 +99,15 @@
           }
 
           request.success(function (role) {
+            $scope.readOnly = isAuthorized.indexOf('EDIT_ROLES') === -1 || role.builtIn;
             $scope.role = role;
             $scope.dirtyRole = angular.copy(role);
           }).error(function () {
             $scope.error = arguments;
           });
+        }
+        else {
+          $scope.error = 'You do not have permission to view this';
         }
       };
 
@@ -119,6 +123,16 @@
       $scope.cancel = function () {
         $state.go('roles');
       };
+
+      $scope.isDirty = function() {
+        return $scope.dirtyRole ? !angular.equals($scope.dirtyRole, $scope.role) : false;
+      };
+
+      $scope.$on('pageChangeStarted', function(e) {
+        if ($scope.isDirty()) {
+          e.preventDefault();
+        }
+      });
 
       $scope.doLoad();
     }

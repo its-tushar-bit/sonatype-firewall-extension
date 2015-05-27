@@ -18,11 +18,11 @@ class SystemConfigModule
       def navigator = $('#system-configuration-menu-dropdown-toggle')
       BrowserInfo.chrome ? navigator.parent() : navigator
     }
-    manageUsers(required: false) { $('#system-configuration-users') }
-    manageRoles(required: false) { $('#system-configuration-roles') }
-    manageAdministrators(required: false) { $('#system-configuration-administrators') }
-    manageProductLicense(required: false) { $('#system-configuration-product-license') }
-    manageProprietary(required: false) { $('#system-configuration-proprietary') }
-    manageLdap(required: false) { $('#system-configuration-ldap') }
+    manageUsers(required: false) { $('#system-configuration-users > a') }
+    manageRoles(required: false) { $('#system-configuration-roles > a') }
+    manageAdministrators(required: false) { $('#system-configuration-administrators > a') }
+    manageProductLicense(required: false) { $('#system-configuration-product-license > a') }
+    manageProprietary(required: false) { $('#system-configuration-proprietary > a') }
+    manageLdap(required: false) { $('#system-configuration-ldap > a') }
   }
 }

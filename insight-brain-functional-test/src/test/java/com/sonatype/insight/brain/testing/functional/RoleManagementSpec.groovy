@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO
+import com.sonatype.insight.brain.model.security.MembershipMapping
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.PermissionCategory
 import com.sonatype.insight.brain.model.security.Role
+import com.sonatype.insight.brain.model.security.User
 
 import spock.lang.Stepwise
 
@@ -145,6 +147,56 @@ extends BaseSpec {
     then: 'role is removed'
     at RoleManagementPage
     roleManagementPage.customRoles.size() == 0
+  }
+
+  def 'underprivileged user sees readOnly custom roles'() {
+    given:
+    Role role = temporaryEntity.newRole(false, com.sonatype.insight.brain.model.security.Permission.VIEW_ROLES)
+    User user = temporaryEntity.newUser()
+    temporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername())
+    userOptions.logoutClick()
+    loginAsUserVia(user.getUsername(), user.getPassword(), RoleManagementPage)
+    RoleManagementPage roleManagementPage = to RoleManagementPage
+
+    when: 'user clicks on a custom role'
+    customRoles[0].click()
+
+    then: 'user is presented with read only view of the role'
+    at RoleEditorPage
+    pageTitle.text() == role.getName()
+    save.disabled
+    nameEditor.disabled
+
+    cleanup:
+    userOptions.logoutClick()
+    new RoleDAO().delete(role)
+  }
+
+  def 'user presented with unsaved changes dialog'() {
+    given:
+    Role role = temporaryEntity.newRole(false, com.sonatype.insight.brain.model.security.Permission.VIEW_ROLES)
+    loginAsAdminVia(RoleManagementPage)
+    RoleManagementPage roleManagementPage = to RoleManagementPage
+
+    when: 'user clicks on a custom role'
+    customRoles[0].click()
+
+    then: 'user is presented with editable view of the role'
+    at RoleEditorPage
+    pageTitle.text().endsWith(role.getName())
+    waitFor { !nameEditor.disabled }
+
+    when: 'user changes the name and attempts to leave page'
+    nameEditor = 'newname'
+    systemConfig.dropdown.click()
+    waitFor { systemConfig.manageUsers.present }
+    systemConfig.manageUsers.click()
+
+    then: 'user is presented with the unsaved changes dialog'
+    waitFor { unsavedModal.displayed }
+
+    cleanup:
+    new RoleDAO().delete(role)
   }
 
   boolean roleHasPermission(String roleName, String permission) {

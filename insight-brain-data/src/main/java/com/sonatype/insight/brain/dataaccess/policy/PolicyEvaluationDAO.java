@@ -30,16 +30,10 @@ public class PolicyEvaluationDAO
   }
 
   public PolicyEvaluation getLastMonitoringByApplicationIdAndScanId(String appId, String scanId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getLastMonitoringByApplicationIdAndScanId(tx, appId, scanId);
-    }
-  }
-
-  public PolicyEvaluation getLastMonitoringByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.scanId=?2 AND entity.isForMonitoring=true" + //
         " ORDER BY entity.time DESC";
-    return createQuery(sQuery, appId, scanId).forceSingleResult().get(tx);
+    return createQuery(sQuery, appId, scanId).forceSingleResult().get();
   }
 
   public PolicyEvaluation getLastByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
@@ -141,19 +135,11 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getByApplicationIdAndStageIds(String appId, Set<String> stageTypeIds) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationIdAndStageIds(tx, appId, stageTypeIds);
-    }
-  }
-
-  public List<PolicyEvaluation> getByApplicationIdAndStageIds(TransactionContext tx, String appId,
-      Set<String> stageTypeIds)
-  {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
         "   AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time";
-    return getList(tx, sQuery, appId, stageTypeIds);
+    return getList(sQuery, appId, stageTypeIds);
   }
 
   @Override

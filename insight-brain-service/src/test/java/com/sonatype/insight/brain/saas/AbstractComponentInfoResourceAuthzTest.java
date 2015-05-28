@@ -57,7 +57,7 @@ public abstract class AbstractComponentInfoResourceAuthzTest
     String artifactId = "aid";
     String version = "1.0";
 
-    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
+    grantPermission(app.getId(), Permission.READ);
 
     String url = getRestUrl(getResourcePath() + "/licenses/{applicationPublicId}", app.getPublicId())
         + "?componentIdentifier=" + getComponentIdentifierParam(groupId, artifactId, version);

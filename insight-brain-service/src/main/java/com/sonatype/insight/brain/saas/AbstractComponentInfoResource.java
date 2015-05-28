@@ -165,6 +165,12 @@ public abstract class AbstractComponentInfoResource
     return details;
   }
 
+  /**
+   * Returns a list of component details for the given application and component identifier. It does not evaluate
+   * policies and it does not return policy violations.
+   * 
+   * This method is called by the eclipse plugin, so it needs to check the EVALUATE_COMPONENT permission.
+   */
   @GET
   @Path("{applicationPublicId}/list")
   @Produces(MediaType.APPLICATION_JSON)
@@ -207,7 +213,7 @@ public abstract class AbstractComponentInfoResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("licenses/{applicationPublicId}")
-  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @Authorize(permission = Permission.READ)
   public ComponentLicenses getLicenses(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException

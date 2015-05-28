@@ -206,7 +206,7 @@ public abstract class AbstractComponentInfoResource
   }
 
   /**
-   * Returns the declared and observed licenses with their threat levels for a GAV
+   * Returns the declared and observed licenses with their threat levels for a component.
    * 
    * @since 1.6
    */

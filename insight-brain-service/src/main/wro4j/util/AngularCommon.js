@@ -1187,7 +1187,7 @@ var AngularStateUtils = {
       month: 'month',
       day: 'day',
       hour: 'hour',
-      minute: 'min',
+      minute: 'minute',
       seconds: 'Just now',
       highlightMultiples: true,
       separator: ' ',

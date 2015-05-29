@@ -226,7 +226,7 @@ describe('mainHeader', function() {
       expect(notificationScope.notifications[1].age).toEqual(1);
       expect(notificationScope.notifications[1].ageQualifier).toEqual('hour ago');
       expect(notificationScope.notifications[2].age).toEqual(1);
-      expect(notificationScope.notifications[2].ageQualifier).toEqual('min ago');
+      expect(notificationScope.notifications[2].ageQualifier).toEqual('minute ago');
       expect(notificationScope.notifications[3].age).toEqual('');
       expect(notificationScope.notifications[3].ageQualifier).toEqual('Just now');
       expect(notificationScope.notifications[4].age).toEqual(10);
@@ -234,7 +234,7 @@ describe('mainHeader', function() {
       expect(notificationScope.notifications[5].age).toEqual(10);
       expect(notificationScope.notifications[5].ageQualifier).toEqual('hours ago');
       expect(notificationScope.notifications[6].age).toEqual(10);
-      expect(notificationScope.notifications[6].ageQualifier).toEqual('mins ago');
+      expect(notificationScope.notifications[6].ageQualifier).toEqual('minutes ago');
       expect(notificationScope.notifications[7].age).toEqual('');
       expect(notificationScope.notifications[7].ageQualifier).toEqual('Just now');
     }));

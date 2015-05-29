@@ -51,7 +51,7 @@ class NotificationSpec
     then: 'We are presented with the list of notifications'
       waitFor { notificationMenu.notificationList[0].displayed }
       notificationMenu.notificationList[0].age.text() == '10'
-      notificationMenu.notificationList[0].ageLabel.text() == 'mins ago'
+      notificationMenu.notificationList[0].ageLabel.text() == 'minutes ago'
       notificationMenu.notificationList[0].summary.text() == 'summary1'
       notificationMenu.notificationList[1].age.text() == '10'
       notificationMenu.notificationList[1].ageLabel.text() == 'hours ago'

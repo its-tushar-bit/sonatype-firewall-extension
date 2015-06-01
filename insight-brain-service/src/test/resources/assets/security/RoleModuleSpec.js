@@ -47,7 +47,7 @@ describe('RoleModuleSpec.js', function() {
       });
     }
 
-    it('initializes scope with role list if authorized', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
+    it('initializes scope with role list if authorized (read+write)', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
       createController({
         editRoles: true,
         viewRoles: true
@@ -56,6 +56,22 @@ describe('RoleModuleSpec.js', function() {
       $httpBackend.flush();
 
       expect(scope.isAuthorized).toBeTruthy();
+      expect(scope.readOnly).toBeFalsy();
+      expect(scope.roles).not.toBeUndefined();
+      expect(scope.roles.length).toEqual(roleSummaries.length);
+      expect(scope.error).toBeNull();
+    }));
+
+    it('initializes scope with role list if authorized (read-only)', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
+      createController({
+        editRoles: false,
+        viewRoles: true
+      });
+      $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
+      $httpBackend.flush();
+
+      expect(scope.isAuthorized).toBeTruthy();
+      expect(scope.readOnly).toBeTruthy();
       expect(scope.roles).not.toBeUndefined();
       expect(scope.roles.length).toEqual(roleSummaries.length);
       expect(scope.error).toBeNull();

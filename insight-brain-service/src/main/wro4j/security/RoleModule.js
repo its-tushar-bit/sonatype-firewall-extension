@@ -60,7 +60,7 @@
 
   module.controller('RoleListController', [
     'RoleStore', 'Messages', '$scope',
-    '$modal', '$q', 'rolePermissions', function(RoleStore, messages, $scope, $modal, $q, rolePermissions) {
+    '$modal', '$q', '$state', 'rolePermissions', function(RoleStore, messages, $scope, $modal, $q, $state, rolePermissions) {
       $scope.doLoad = function() {
         if (rolePermissions.viewRoles) {
           $scope.error = null;
@@ -72,6 +72,10 @@
           });
         }
       };
+      $scope.newRole = function () {
+        $state.go('roles.editor', { roleId : '_new_'});
+      };
+      $scope.readOnly = !rolePermissions.editRoles;
       $scope.isAuthorized = rolePermissions.viewRoles;
 
       $scope.doLoad();

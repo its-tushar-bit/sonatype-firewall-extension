@@ -172,6 +172,9 @@ extends BaseSpec {
     loginAsUserVia(user.getUsername(), user.getPassword(), RoleManagementPage)
     RoleManagementPage roleManagementPage = to RoleManagementPage
 
+    expect: 'button "Create Role" to be disabled'
+    roleManagementPage.createRole.disabled
+
     when: 'user clicks on a custom role'
     customRoles[0].click()
 

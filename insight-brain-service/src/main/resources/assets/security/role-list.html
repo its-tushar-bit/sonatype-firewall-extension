@@ -3,7 +3,7 @@
     <div authorization-wrapper="isAuthorized">
       <h1 class='page-title'>
         <div class='container roles'>
-          <a class='btn pull-right' ui-sref="roles.editor({ roleId : '_new_'})" id='create-role'><i class='icon icon-plus'></i> Create Role</a>
+          <button class='btn pull-right' ng-click="newRole()" id='create-role' ng-disabled='readOnly'><i class='icon icon-plus'></i> Create Role</button>
           Roles
         </div>
       </h1>

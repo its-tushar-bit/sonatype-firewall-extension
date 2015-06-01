@@ -27,6 +27,52 @@ describe('RoleModuleSpec.js', function() {
         }]
       };
 
+  describe('RoleListController', function() {
+
+    beforeEach(module('RoleModule'));
+
+    afterEach(inject(function($httpBackend) {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    }));
+
+    function createController(rolePermissions) {
+      inject(function ($controller, $rootScope) {
+        scope = $rootScope.$new();
+        $controller('RoleListController', {
+          $scope: scope,
+          rolePermissions: rolePermissions
+        });
+      });
+    }
+
+    it('initializes scope with role list if authorized', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
+      createController({
+        editRoles: true,
+        viewRoles: true
+      });
+      $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
+      $httpBackend.flush();
+
+      expect(scope.isAuthorized).toBeTruthy();
+      expect(scope.roles).not.toBeUndefined();
+      expect(scope.roles.length).toEqual(roleSummaries.length);
+      expect(scope.error).toBeNull();
+    }));
+
+    it('initializes scope without role list if unauthorized', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
+      createController({
+        editRoles: false,
+        viewRoles: false
+      });
+
+      expect(scope.isAuthorized).toBeFalsy();
+      expect(scope.roles).toBeUndefined();
+      expect(scope.error).toBeUndefined();
+    }));
+  });
+
   describe('RoleEditorController', function() {
 
     beforeEach(module('RoleModule'));
@@ -38,7 +84,7 @@ describe('RoleModuleSpec.js', function() {
     }));
 
     describe('Existing Role read only', function() {
-      function createController(isAuthorized) {
+      function createController(rolePermissions) {
         inject(function ($controller, $rootScope) {
           scope = $rootScope.$new();
           $controller('RoleEditorController', {
@@ -46,13 +92,16 @@ describe('RoleModuleSpec.js', function() {
             $stateParams: {
               roleId: 'id'
             },
-            isAuthorized: isAuthorized
+            rolePermissions: rolePermissions
           });
         });
       }
 
       it('built-in role treated as read-only', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
-        createController( ['VIEW_ROLES', 'EDIT_ROLES']);
+        createController({
+          editRoles: true,
+          viewRoles: true
+        });
         $httpBackend.expectGET(CLMLocations.getRoleByIdUrl('id')).respond({
           id: 'id',
           name: 'name',
@@ -63,7 +112,10 @@ describe('RoleModuleSpec.js', function() {
       }));
 
       it('non built-in role treated as read-only without perms', inject(function($httpBackend, CLMLocations, CLMAppLocations) {
-        createController( ['VIEW_ROLES']);
+        createController({
+          editRoles: false,
+          viewRoles: true
+        });
         $httpBackend.expectGET(CLMLocations.getRoleByIdUrl('id')).respond({
           id: 'id',
           name: 'name',
@@ -83,7 +135,10 @@ describe('RoleModuleSpec.js', function() {
           $stateParams: {
             roleId: roleOne.id
           },
-          isAuthorized: ['EDIT_ROLES', 'VIEW_ROLES']
+          rolePermissions: {
+            editRoles: true,
+            viewRoles: true
+          }
         });
 
         $httpBackend.expectGET(CLMLocations.getRoleByIdUrl(roleOne.id)).respond(roleOne);
@@ -168,7 +223,10 @@ describe('RoleModuleSpec.js', function() {
           $stateParams: {
             roleId: '_new_'
           },
-          isAuthorized: ['EDIT_ROLES', 'VIEW_ROLES']
+          rolePermissions: {
+            editRoles: true,
+            viewRoles: true
+          }
         });
 
         $httpBackend.expectGET(CLMLocations.getRoleForNewUrl()).respond({

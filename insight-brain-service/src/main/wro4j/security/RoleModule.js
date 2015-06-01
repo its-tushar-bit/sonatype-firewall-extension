@@ -19,9 +19,14 @@
           crumb: 'Roles'
         },
         resolve: {
-          'isAuthorized': [
+          'rolePermissions': [
             'PermissionService', function(PermissionService) {
-              return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true);
+              return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true).then(function(validPermissions) {
+                return {
+                  viewRoles: validPermissions.indexOf('VIEW_ROLES') >= 0,
+                  editRoles: validPermissions.indexOf('EDIT_ROLES') >= 0
+                };
+              });
             }
           ]
         }
@@ -55,9 +60,9 @@
 
   module.controller('RoleListController', [
     'RoleStore', 'Messages', '$scope',
-    '$modal', '$q', 'isAuthorized', function(RoleStore, messages, $scope, $modal, $q, isAuthorized) {
+    '$modal', '$q', 'rolePermissions', function(RoleStore, messages, $scope, $modal, $q, rolePermissions) {
       $scope.doLoad = function() {
-        if (isAuthorized) {
+        if (rolePermissions.viewRoles) {
           $scope.error = null;
 
           RoleStore.refresh().then(function(results) {
@@ -67,15 +72,15 @@
           });
         }
       };
-      $scope.isAuthorized = isAuthorized;
+      $scope.isAuthorized = rolePermissions.viewRoles;
 
       $scope.doLoad();
     }
   ]);
 
   module.controller('RoleEditorController', [
-    '$scope', '$stateParams', '$q', '$http', '$state', 'CLMLocations', 'RoleStore', 'Messages', 'isAuthorized',
-    function($scope, $stateParams, $q, $http, $state, CLMLocations, RoleStore, Messages, isAuthorized) {
+    '$scope', '$stateParams', '$q', '$http', '$state', 'CLMLocations', 'RoleStore', 'Messages', 'rolePermissions',
+    function($scope, $stateParams, $q, $http, $state, CLMLocations, RoleStore, Messages, rolePermissions) {
       $scope.errorFn = function(error) {
         $scope.submitActive = false;
         $scope.editorAlerts = [{
@@ -88,7 +93,7 @@
       $scope.editorAlerts = [];
 
       $scope.doLoad = function() {
-        if (isAuthorized.indexOf('VIEW_ROLES') !== -1) {
+        if (rolePermissions.viewRoles) {
           var request;
 
           if ($stateParams.roleId === '_new_') {
@@ -99,7 +104,7 @@
           }
 
           request.success(function (role) {
-            $scope.readOnly = isAuthorized.indexOf('EDIT_ROLES') === -1 || role.builtIn;
+            $scope.readOnly = !rolePermissions.editRoles || role.builtIn;
             $scope.role = role;
             $scope.dirtyRole = angular.copy(role);
           }).error(function () {

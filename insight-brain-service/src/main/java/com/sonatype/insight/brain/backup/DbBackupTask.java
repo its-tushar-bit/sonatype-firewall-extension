@@ -23,6 +23,9 @@ import com.yammer.dropwizard.tasks.Task;
 /**
  * Creates a hot backup of the ODS database.
  * 
+ * To trigger a backup using curl:
+ * curl -X POST http://localhost:8071/tasks/backupDb
+ * 
  * @since 1.15.0
  */
 @Named

@@ -15,9 +15,13 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
+import static org.hamcrest.Matchers.is;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 
 public abstract class AbstractDatabaseProviderTest
 {
@@ -32,6 +36,8 @@ public abstract class AbstractDatabaseProviderTest
   }
 
   protected void verifyDatabaseCreation(DatabaseConfig databaseConfig) throws Exception {
+    assertThat(OperationalDataStoreProvider.getDatabaseConfig(), nullValue());
+
     OperationalDataStoreProvider.init(databaseConfig);
     DataSource dataSource = OperationalDataStoreProvider.getDataSource();
     Assert.assertNotNull(dataSource);
@@ -51,6 +57,8 @@ public abstract class AbstractDatabaseProviderTest
     finally {
       conn.close();
     }
+
+    assertThat(OperationalDataStoreProvider.getDatabaseConfig(), is(databaseConfig));
   }
 
   protected void verifyDatabaseCreation_OnDisk(DatabaseConfig databaseConfig, File databaseDir) throws Exception {
@@ -61,6 +69,7 @@ public abstract class AbstractDatabaseProviderTest
     verifyDatabaseCreation(databaseConfig);
     Assert.assertTrue(databaseDir.exists());
     Assert.assertTrue(new File(databaseDir, "test.h2.db").exists());
+    DataSourceFactory.clear_ForTestsOnly();
 
     // Existing database
     DataSourceFactory.clear_ForTestsOnly();

@@ -27,6 +27,8 @@ public class OperationalDataStoreProvider
 
   private static DataSource dataSource;
 
+  private static DatabaseConfig databaseConfig;
+
   private static EntityManagerFactory entityManagerFactory;
 
   private static volatile boolean isInitialized = false;
@@ -34,7 +36,7 @@ public class OperationalDataStoreProvider
   private OperationalDataStoreProvider() {
   }
 
-  public static synchronized void init(DatabaseConfig databaseConfig) {
+  public static synchronized void init(DatabaseConfig _databaseConfig) {
     if (isInitialized) {
       return;
     }
@@ -42,6 +44,7 @@ public class OperationalDataStoreProvider
     log.info("Initializing the {} data store.", ID);
     long start = System.currentTimeMillis();
 
+    databaseConfig = _databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     new H2DatabaseMigrator()
         .migrate(databaseConfig, ID, dataSource, DESIRED_DATABASE_VERSION, 6 /* defaultCurrentVersion */);
@@ -60,6 +63,10 @@ public class OperationalDataStoreProvider
     return dataSource;
   }
 
+  public static DatabaseConfig getDatabaseConfig() {
+    return databaseConfig;
+  }
+
   public static EntityManagerFactory getJPAEntityManagerFactory() {
     if (!isInitialized) {
       init(null /* databaseConfig */);
@@ -70,6 +77,7 @@ public class OperationalDataStoreProvider
   static synchronized void clear_ForTestsOnly() {
     dataSource = null;
     entityManagerFactory = null;
+    databaseConfig = null;
     isInitialized = false;
   }
 }

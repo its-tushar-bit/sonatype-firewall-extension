@@ -29,8 +29,6 @@ public class H2DatabaseMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(H2DatabaseMigrator.class);
 
-  private static final String H2_URL_PREFIX = "jdbc:h2:";
-
   public void migrate(DatabaseConfig databaseConfig, String databaseName, DataSource dataSource, int desiredVersion,
       int defaultCurrentVersion)
   {
@@ -39,10 +37,10 @@ public class H2DatabaseMigrator
       return;
     }
 
-    File databaseDir = getDatabaseDir(databaseConfig);
-    String databaseFilename = databaseDir.getName();
-    databaseDir = databaseDir.getParentFile();
-    File databaseVersionFile = new File(databaseDir, databaseFilename + ".ver");
+    File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
+    String databaseFilename = databasePath.getName();
+    File databaseDir = databasePath.getParentFile();
+    File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(databasePath);
 
     try {
       if (new DataSourceFactory().isNewDataSource(dataSource)) {
@@ -142,19 +140,5 @@ public class H2DatabaseMigrator
       }
       FileUtils.copyFile(file, new File(backupDir, file.getName()));
     }
-  }
-
-  private File getDatabaseDir(DatabaseConfig databaseConfig) {
-    String url = databaseConfig.getUrl();
-    if (!url.startsWith(H2_URL_PREFIX)) {
-      throw new IllegalStateException("Cannot upgrade database with URL '" + url + "'");
-    }
-
-    String databaseDir = url.substring(H2_URL_PREFIX.length());
-    int at = databaseDir.indexOf(';');
-    if (at > 0) {
-      databaseDir = databaseDir.substring(0, at);
-    }
-    return new File(databaseDir);
   }
 }

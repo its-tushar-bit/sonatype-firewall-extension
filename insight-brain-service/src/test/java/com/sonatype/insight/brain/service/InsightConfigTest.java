@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.util.List;
 
 import com.yammer.dropwizard.validation.Validator;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 public class InsightConfigTest
 {
@@ -67,5 +69,24 @@ public class InsightConfigTest
     config.setUserAgentSuffix("Valid User Agent Suffix (Custom/1.0, Bla)");
     errors = validator.validate(config);
     assertThat(errors, hasSize(0));
+  }
+
+  @Test
+  public void testGetDbBackupDir() {
+    InsightConfig config = new InsightConfig();
+    assertThat(config.getDbBackupDir(), is(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR)));
+
+    config.setDbBackupDir("");
+    assertThat(config.getDbBackupDir(), is(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR)));
+
+    String relativePath = "abc";
+    assertThat(new File(relativePath).isAbsolute(), is(false));
+    config.setDbBackupDir(relativePath);
+    assertThat(config.getDbBackupDir(), is(new File(config.getSonatypeWork(), relativePath)));
+
+    String absolutePath = new File("abc").getAbsolutePath();
+    assertThat(new File(absolutePath).isAbsolute(), is(true));
+    config.setDbBackupDir(absolutePath);
+    assertThat(config.getDbBackupDir(), is(new File(absolutePath)));
   }
 }

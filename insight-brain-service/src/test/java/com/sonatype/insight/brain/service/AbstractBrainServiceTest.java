@@ -137,6 +137,14 @@ public abstract class AbstractBrainServiceTest
     return restBaseUrl;
   }
 
+  protected String getAdminBaseUrl() {
+    String url = getCLMServer().getClientConfiguration().getServerAdminUrl();
+    if (!url.endsWith("/")) {
+      url = url + "/";
+    }
+    return url;
+  }
+
   private String expandRestUrl(String templateUrl, Object... paramValues) {
     return UriBuilder.fromPath(templateUrl).build(paramValues).toString();
   }

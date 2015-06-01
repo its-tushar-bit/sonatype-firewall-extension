@@ -19,6 +19,7 @@ import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.validation.ValidationMethod;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,8 @@ public class InsightConfig
     extends Configuration
 {
   private static final Logger log = LoggerFactory.getLogger(InsightConfig.class);
+
+  public static final String DEFAULT_BACKUP_DIR = "db-backup";
 
   {
     setHttpConfiguration(new HttpConfig());
@@ -54,6 +57,15 @@ public class InsightConfig
   @NotNull
   @JsonProperty
   private String sonatypeWork = "sonatype-work/clm-server";
+
+  /**
+   * The directory where db backups are created. If set to a relative path, then it is considered relative to the
+   * {@link sonatypeWork} directory.
+   * 
+   * @since 1.15.0
+   */
+  @JsonProperty
+  private String dbBackupDir = DEFAULT_BACKUP_DIR;
 
   @NotNull
   @JsonProperty
@@ -257,5 +269,25 @@ public class InsightConfig
    */
   public void setUserAgentSuffix(final String userAgentSuffix) {
     this.userAgentSuffix = userAgentSuffix;
+  }
+
+  /**
+   * @since 1.15.0
+   */
+  public File getDbBackupDir() {
+    if (StringUtils.isBlank(dbBackupDir)) {
+      dbBackupDir = DEFAULT_BACKUP_DIR;
+    }
+
+    File result = new File(dbBackupDir);
+    if (!result.isAbsolute()) {
+      result = new File(getSonatypeWork(), dbBackupDir);
+    }
+
+    return result;
+  }
+
+  void setDbBackupDir(String dbBackupDir) {
+    this.dbBackupDir = dbBackupDir;
   }
 }

@@ -41,6 +41,7 @@ http:
   #bindHost: 127.0.0.1  # only bind to loopback
 
 # Notification mail settings.
+# If enabled, ensure that the baseUrl configuration setting is also enabled and correct, because generated emails often contain links to the server.
 #mail:
 
   # The host running the SMTP server to use. 

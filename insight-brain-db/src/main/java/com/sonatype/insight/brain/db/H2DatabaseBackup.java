@@ -116,8 +116,10 @@ public class H2DatabaseBackup
     try {
       StringBuilder instructions = new StringBuilder();
       instructions.append("Backup for database at: ").append(databasePath).append(NEW_LINE).append(NEW_LINE);
-      instructions
-          .append("To restore the database from this backup, unzip the backup zip file into the desired database location.");
+      instructions.append(
+          "To restore the database from this backup, unzip the backup zip file into the desired database location.")
+          .append(NEW_LINE);
+      instructions.append("The CLM server must be stopped before the database is restored.").append(NEW_LINE);
       FileUtils.fileWrite(restoreInstructionsFile, instructions.toString());
     }
     catch (IOException e) {

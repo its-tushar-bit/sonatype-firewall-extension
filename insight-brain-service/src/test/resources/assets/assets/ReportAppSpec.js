@@ -26,9 +26,9 @@ describe('reportApp', function() {
 
     $state.go('violations');
 
-    $httpBackend.expectGET('../report-assets/violations/report-list.html?').respond('<div></div>');
     $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/application/services/summary')).respond(ApplicationMockData.getApplicationSummaryData());
+    $httpBackend.expectGET('../report-assets/violations/report-list.html?').respond('<div></div>');
 
     $controller('ReportViolationsController', { $scope: scope, $state: state });
 

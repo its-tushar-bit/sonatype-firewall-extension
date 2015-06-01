@@ -80,10 +80,16 @@
       };
     }
   ]).service('initService', [
-    'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser', '$q',
-    function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q) {
+    'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser', '$q', '$urlRouter',
+    function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $urlRouter) {
       var savedState = null,
           stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
+            //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
+            //because of this, the $urlRouter will not be updated with the proper current url if the user changes urls
+            //while we are in a blocked state (need to login), this is something our ITs do a fair amount.  So here we
+            //will force the urlRouter to update to whatever is in the address bar, thus not losing what page we go to
+            //when the user logs in
+            $urlRouter.update(true);
             event.preventDefault();
             savedState = {
               toState: toState,

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
@@ -64,13 +65,13 @@ public class H2DatabaseBackupTest
     try (ZipFile dbBackupZipFile = new ZipFile(dbBackupFile)) {
       ZipEntry zipEntryDb = dbBackupZipFile.getEntry("ods.h2.db");
       assertThat("The db file is missing from the db backup", zipEntryDb, notNullValue());
-      assertThat(new String(getZipEntryContent(dbBackupZipFile, zipEntryDb), "UTF-8"),
-          is(FileUtils.fileRead(new File(databaseDir, "ods.h2.db"))));
+      assertThat(getZipEntryContent(dbBackupZipFile, zipEntryDb),
+          is(getFileContent(new File(databaseDir, "ods.h2.db"))));
 
       ZipEntry zipEntryDbVersion = dbBackupZipFile.getEntry("ods.ver");
       assertThat("The db version file is missing from the db backup", zipEntryDbVersion, notNullValue());
       assertThat(new String(getZipEntryContent(dbBackupZipFile, zipEntryDbVersion), "UTF-8"),
-          is(FileUtils.fileRead(databaseVersionFile)));
+          is(FileUtils.fileRead(databaseVersionFile, "UTF-8")));
     }
 
     File restoreIntructionsFile = new File(dbBackupDir, H2DatabaseBackup.RESTORE_FILENAME);
@@ -79,6 +80,12 @@ public class H2DatabaseBackupTest
 
   private byte[] getZipEntryContent(ZipFile zipFile, ZipEntry zipEntry) throws IOException {
     try (InputStream is = zipFile.getInputStream(zipEntry)) {
+      return IOUtil.toByteArray(is);
+    }
+  }
+
+  private byte[] getFileContent(File file) throws IOException {
+    try (InputStream is = new FileInputStream(file)) {
       return IOUtil.toByteArray(is);
     }
   }

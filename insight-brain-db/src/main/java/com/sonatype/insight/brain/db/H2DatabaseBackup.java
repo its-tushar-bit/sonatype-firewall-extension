@@ -120,7 +120,7 @@ public class H2DatabaseBackup
           "To restore the database from this backup, unzip the backup zip file into the desired database location.")
           .append(NEW_LINE);
       instructions.append("The CLM server must be stopped before the database is restored.").append(NEW_LINE);
-      FileUtils.fileWrite(restoreInstructionsFile, instructions.toString());
+      FileUtils.fileWrite(restoreInstructionsFile, "UTF-8", instructions.toString());
     }
     catch (IOException e) {
       throw new RuntimeException(e);

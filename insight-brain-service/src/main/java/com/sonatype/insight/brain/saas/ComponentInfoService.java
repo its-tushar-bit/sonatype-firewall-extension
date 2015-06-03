@@ -16,14 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -49,15 +44,15 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractComponentInfoResource
+@Named
+public class ComponentInfoService
 {
-  private static final Logger log = LoggerFactory.getLogger(AbstractComponentInfoResource.class);
+  private static final Logger log = LoggerFactory.getLogger(ComponentInfoService.class);
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -69,28 +64,23 @@ public abstract class AbstractComponentInfoResource
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
-  @Context
-  private HttpServletRequest request;
+  private String toolName;
 
-  protected AbstractComponentInfoResource(SaasClient client, ComponentDetailsLoader componentDetailsLoader) {
+  @Inject
+  public ComponentInfoService(SaasClient client, ComponentDetailsLoader componentDetailsLoader) {
     this.client = client;
     this.componentDetailsLoader = componentDetailsLoader;
   }
 
-  @GET
-  @Path("{applicationPublicId}")
-  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public NamedComponentDetails getComponentDetails(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-      @QueryParam("matchState") String matchState, @QueryParam("hash") String hash,
-      @QueryParam("proprietary") boolean proprietary) throws IOException
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, ComponentIdentifier identifier,
+      String matchState, String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
 
     NamedComponentDetails details = getEvaluatedComponentDetails(applicationPublicId, matchState, hash, proprietary,
-        identifier);
+        identifier, httpRequest);
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
         - start);
@@ -98,13 +88,14 @@ public abstract class AbstractComponentInfoResource
     return details;
   }
 
-  private NamedComponentDetails getEvaluatedComponentDetails(String applicationPublicId, String matchState, String hash,
-      boolean proprietary, final ComponentIdentifier identifier) throws IOException
+  private NamedComponentDetails getEvaluatedComponentDetails(String applicationPublicId, String matchState,
+      String hash, boolean proprietary, final ComponentIdentifier identifier, HttpServletRequest httpRequest)
+      throws IOException
   {
     NamedComponentDetails componentDetails;
 
     if (identifier != null) {
-      componentDetails = getComponentDetails(matchState, hash, identifier);
+      componentDetails = getComponentDetails(matchState, hash, identifier, httpRequest);
     }
     else {
       // See CLM-4195
@@ -125,8 +116,7 @@ public abstract class AbstractComponentInfoResource
   }
 
   private NamedComponentDetails getComponentDetails(String matchState, final String hash,
-      final ComponentIdentifier identifier)
-      throws IOException
+      final ComponentIdentifier identifier, final HttpServletRequest httpRequest) throws IOException
   {
     return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
@@ -142,7 +132,7 @@ public abstract class AbstractComponentInfoResource
             }
 
             try {
-              componentDetails = client.get(request, NamedComponentDetails.class, "rest/" + getToolName()
+              componentDetails = client.get(httpRequest, NamedComponentDetails.class, "rest/" + toolName
                   + "/componentDetails", queryParams);
               componentDetails.setMatchState(MatchState.EXACT.getId());
             }
@@ -171,22 +161,18 @@ public abstract class AbstractComponentInfoResource
    * 
    * This method is called by the eclipse plugin, so it needs to check the EVALUATE_COMPONENT permission.
    */
-  @GET
-  @Path("{applicationPublicId}/list")
-  @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentDetailsList getComponentDetailsList(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-      @QueryParam("matchState") String matchState) throws IOException
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, ComponentIdentifier identifier,
+      String matchState, HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
     if (identifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    String url = "rest/" + getToolName() + "/componentDetails/list";
-    ComponentDetailsList componentDetailsList = client.get(request, ComponentDetailsList.class, url);
+    String url = "rest/" + toolName + "/componentDetails/list";
+    ComponentDetailsList componentDetailsList = client.get(httpRequest, ComponentDetailsList.class, url);
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
@@ -198,7 +184,6 @@ public abstract class AbstractComponentInfoResource
     log.debug("Loaded component details list in {} ms.", System.currentTimeMillis() - start);
 
     return componentDetailsList;
-
   }
 
   private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
@@ -210,13 +195,10 @@ public abstract class AbstractComponentInfoResource
    * 
    * @since 1.6
    */
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
-  @Path("licenses/{applicationPublicId}")
   @Authorize(permission = Permission.READ)
   public ComponentLicenses getLicenses(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      ComponentIdentifier componentIdentifier, HttpServletRequest httpRequest) throws IOException
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
@@ -226,7 +208,7 @@ public abstract class AbstractComponentInfoResource
 
     ComponentLicenses result = new ComponentLicenses();
 
-    ComponentDetails componentDetails = getComponentDetails(null, null, componentIdentifier);
+    ComponentDetails componentDetails = getComponentDetails(null, null, componentIdentifier, httpRequest);
 
     loadComponent(application, componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
@@ -321,5 +303,7 @@ public abstract class AbstractComponentInfoResource
     public Integer threatLevel;
   }
 
-  protected abstract String getToolName();
+  public void setToolName(String toolName) {
+    this.toolName = toolName;
+  }
 }

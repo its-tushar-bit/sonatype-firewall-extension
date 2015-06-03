@@ -654,6 +654,7 @@ public class TemporaryEntity
   public HashComponentIdentifier newClaimedComponent(String hash, ComponentIdentifier componentIdentifier) {
     HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
     claimedComponent.setComment("testing");
+    claimedComponent.setCreateTime(new Date());
     hashComponentIdentifierDAO.insert(claimedComponent);
     claimedComponents.add(claimedComponent);
     return claimedComponent;

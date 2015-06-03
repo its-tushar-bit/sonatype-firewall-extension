@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.utils;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.saas.AbstractComponentInfoResource.LicenseWithThreatLevel;
+import com.sonatype.insight.brain.saas.ComponentInfoService.LicenseWithThreatLevel;
 
 /**
  * @since 1.12

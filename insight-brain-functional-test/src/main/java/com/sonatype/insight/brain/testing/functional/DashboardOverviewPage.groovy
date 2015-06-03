@@ -59,6 +59,10 @@ class DashboardOverviewPage
     filters { module FilterModule, $('#dashboard-filter-panel') }
 
     applyFilterModal { module ModalModule, title: 'Filter Settings Changed' }
+
+    viewTrendsButton { $('#show-trend-dialog') }
+    viewTrendsDialog { $('#policy-trends-dialog') }
+    trendsDialogCloseButton { $('#policy-trends-dialog-close') }
   }
 }
 

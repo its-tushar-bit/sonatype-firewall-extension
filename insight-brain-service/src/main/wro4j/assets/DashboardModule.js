@@ -79,8 +79,23 @@
     });
   }]);
 
-  dashboardModule.controller('DashboardController', ['$scope', function($scope) {
+  dashboardModule.controller('DashboardController', ['$scope', '$modal', function($scope, $modal) {
     $scope.maxResults = 100;
+    $scope.showTrendDialog = function() {
+
+      $modal.open({
+        backdrop: 'static',
+        keyboard : false,
+        templateUrl : 'policy-trends-dialog',
+        windowClass : 'dashboard-policy-trend-dialog',
+        controller: 'PolicyTrendController',
+        resolve: {
+          filters: function() {
+            return $scope.filters;
+          }
+        }
+      });
+    };
   }]);
 
   dashboardModule.directive('pathnamesPopover', function() {
@@ -635,104 +650,92 @@
     };
   });
 
-  /**
-   * Provides all data required for the policy summary view.
-   */
-  dashboardModule.directive('dashboardPolicySummary', function() {
-    return {
-      restrict: 'A',
-      scope: {
-        filters: '=filters'
-      },
-      templateUrl: 'dashboard-policy-summary',
-      controller: [
-        '$scope', 'CLMLocations', '$http', function($scope, CLMLocations, $http) {
+  dashboardModule.controller('PolicyTrendController', [
+    '$scope', 'CLMLocations', '$http', 'filters', function($scope, CLMLocations, $http, filters) {
+      function delta(counts) {
+        return counts.reduce(function(a, b) {
+          return a + b;
+        });
+      }
 
-          function delta(counts) {
-            return counts.reduce(function(a, b) {
-              return a + b;
-            });
-          }
-
-          function calculateRunningTotals(counts, startValue) {
-            var runningTotals = [startValue];
-            for (var i = 0; i < counts.length; i++) {
-              runningTotals[i+1] = counts[i] + runningTotals[i];
-            }
-            return runningTotals;
-          }
-
-          function generateModel(policySummaryData) {
-            var weeklyDeltaNew = policySummaryData.weeklyDeltaNew,
-              weeklyDeltaFixed = policySummaryData.weeklyDeltaFixed,
-              weeklyDeltaUnresolved = policySummaryData.weeklyDeltaUnresolved,
-              weeklyDeltaWaived = policySummaryData.weeklyDeltaWaived,
-              totalNew = policySummaryData.totalNew,
-              totalFixed = policySummaryData.totalFixed,
-              currentUnresolved = policySummaryData.currentUnresolved,
-              totalWaived = policySummaryData.totalWaived,
-              newDelta = delta(weeklyDeltaNew),
-              fixedDelta = delta(weeklyDeltaFixed),
-              unresolvedDelta = delta(weeklyDeltaUnresolved),
-              waivedDelta = delta(weeklyDeltaWaived);
-            return [
-              {
-                name: 'Pending',
-                counts: currentUnresolved,
-                avg: policySummaryData.ageAverageUnresolved,
-                p90: policySummaryData.agePercentile90Unresolved,
-                delta: unresolvedDelta,
-                barChartData : weeklyDeltaUnresolved,
-                sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
-                naturalOrder: false
-              },
-              {
-                name: 'Waived',
-                counts: totalWaived,
-                avg: policySummaryData.ageAverageWaived,
-                p90: policySummaryData.agePercentile90Waived,
-                delta: waivedDelta,
-                barChartData: weeklyDeltaWaived,
-                sparklineData: calculateRunningTotals(weeklyDeltaWaived, totalWaived - waivedDelta),
-                naturalOrder: false
-              },
-              {
-                name: 'Fixed',
-                counts: totalFixed,
-                avg: policySummaryData.ageAverageFixed,
-                p90: policySummaryData.agePercentile90Fixed,
-                delta: fixedDelta,
-                barChartData : weeklyDeltaFixed,
-                sparklineData: calculateRunningTotals(weeklyDeltaFixed, totalFixed - fixedDelta),
-                naturalOrder: true
-              },
-              {
-                name: 'Discovered',
-                counts: totalNew,
-                delta: newDelta,
-                barChartData : weeklyDeltaNew,
-                sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta)
-              }
-            ];
-          }
-
-          $scope.doLoad = function() {
-            $scope.data = null;
-            $scope.error = null;
-            $http.get(CLMLocations.getPolicySummaryUrl(), {
-              params: filterToParams($scope.filters)
-            }).success(function(data) {
-              $scope.policySummaryData = generateModel(data);
-            }).error(function() {
-              $scope.error = arguments;
-            });
-          };
-
-          watchFilter($scope);
+      function calculateRunningTotals(counts, startValue) {
+        var runningTotals = [startValue];
+        for (var i = 0; i < counts.length; i++) {
+          runningTotals[i + 1] = counts[i] + runningTotals[i];
         }
-      ]
-    };
-  });
+        return runningTotals;
+      }
+
+      function generateModel(policySummaryData) {
+        var weeklyDeltaNew = policySummaryData.weeklyDeltaNew,
+            weeklyDeltaFixed = policySummaryData.weeklyDeltaFixed,
+            weeklyDeltaUnresolved = policySummaryData.weeklyDeltaUnresolved,
+            weeklyDeltaWaived = policySummaryData.weeklyDeltaWaived,
+            totalNew = policySummaryData.totalNew,
+            totalFixed = policySummaryData.totalFixed,
+            currentUnresolved = policySummaryData.currentUnresolved,
+            totalWaived = policySummaryData.totalWaived,
+            newDelta = delta(weeklyDeltaNew),
+            fixedDelta = delta(weeklyDeltaFixed),
+            unresolvedDelta = delta(weeklyDeltaUnresolved),
+            waivedDelta = delta(weeklyDeltaWaived);
+        return [
+          {
+            name: 'Pending',
+            counts: currentUnresolved,
+            avg: policySummaryData.ageAverageUnresolved,
+            p90: policySummaryData.agePercentile90Unresolved,
+            delta: unresolvedDelta,
+            barChartData: weeklyDeltaUnresolved,
+            sparklineData: calculateRunningTotals(weeklyDeltaUnresolved, currentUnresolved - unresolvedDelta),
+            naturalOrder: false
+          },
+          {
+            name: 'Waived',
+            counts: totalWaived,
+            avg: policySummaryData.ageAverageWaived,
+            p90: policySummaryData.agePercentile90Waived,
+            delta: waivedDelta,
+            barChartData: weeklyDeltaWaived,
+            sparklineData: calculateRunningTotals(weeklyDeltaWaived, totalWaived - waivedDelta),
+            naturalOrder: false
+          },
+          {
+            name: 'Fixed',
+            counts: totalFixed,
+            avg: policySummaryData.ageAverageFixed,
+            p90: policySummaryData.agePercentile90Fixed,
+            delta: fixedDelta,
+            barChartData: weeklyDeltaFixed,
+            sparklineData: calculateRunningTotals(weeklyDeltaFixed, totalFixed - fixedDelta),
+            naturalOrder: true
+          },
+          {
+            name: 'Discovered',
+            counts: totalNew,
+            delta: newDelta,
+            barChartData: weeklyDeltaNew,
+            sparklineData: calculateRunningTotals(weeklyDeltaNew, totalNew - newDelta)
+          }
+        ];
+      }
+
+      $scope.doLoad = function() {
+        $scope.data = null;
+        $scope.error = null;
+        $http.get(CLMLocations.getPolicySummaryUrl(), {
+          params: filterToParams($scope.filters)
+        }).success(function(data) {
+          $scope.policySummaryData = generateModel(data);
+        }).error(function() {
+          $scope.error = arguments;
+        });
+      };
+
+      $scope.filters = filters;
+      $scope.doLoad();
+    }
+  ]);
 
   dashboardModule.directive('valueBars',  ['windowEventsFactory', function(windowEventsFactory) {
     return {

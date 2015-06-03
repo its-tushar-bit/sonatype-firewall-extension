@@ -722,36 +722,34 @@ describe('DashboardModule', function() {
 
     beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      scope.filters = commonFilters;
-      $httpBackend.expectGET('dashboard-policy-summary').respond('<div></div>');
       url = CLMLocations.getPolicySummaryUrl() + commonFilterQuery;
     }));
 
-    it('Data loaded from server properly', inject(function($compile, $httpBackend) {
+    it('Data loaded from server properly', inject(function($httpBackend, $controller) {
       $httpBackend.expectGET(url).respond(policySummaryData);
-      $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
+      $controller('PolicyTrendController', { $scope: scope, filters: commonFilters });
       $httpBackend.flush();
       assertPolicySummaryBlock('Discovered', 100, undefined, undefined, 17, policySummaryData.weeklyDeltaNew,
         [83, 84, 85, 87, 87, 90, 90, 91, 96, 98, 99, 99, 100], undefined,
-        scope.$$childHead.policySummaryData[3]);
+        scope.policySummaryData[3]);
       assertPolicySummaryBlock('Fixed', 48, 150, 140, 7, policySummaryData.weeklyDeltaFixed,
           [41, 42, 42, 43, 44, 45, 46, 47, 47, 47, 47, 48, 48], true,
-        scope.$$childHead.policySummaryData[2]);
+        scope.policySummaryData[2]);
       assertPolicySummaryBlock('Waived', 2, 100, 90, 2, policySummaryData.weeklyDeltaWaived,
           [0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2], false,
-          scope.$$childHead.policySummaryData[1]);
+          scope.policySummaryData[1]);
       assertPolicySummaryBlock('Pending', 50, 175, 170, 8, policySummaryData.weeklyDeltaUnresolved,
         [42, 42, 42, 43, 42, 44, 43, 42, 47, 49, 50, 49, 50], false,
-        scope.$$childHead.policySummaryData[0]);
+        scope.policySummaryData[0]);
 
-      expect(scope.$$childHead.error).toBeFalsy();
+      expect(scope.error).toBeFalsy();
     }));
 
-    it('Error propogated to scope', inject(function($compile, $httpBackend) {
+    it('Error propogated to scope', inject(function($httpBackend, $controller) {
       $httpBackend.expectGET(url).respond(404, 'You screwed up');
-      $compile(angular.element('<div dashboard-policy-summary filters="filters"></div>'))(scope);
+      $controller('PolicyTrendController', { $scope: scope, filters: commonFilters });
       $httpBackend.flush();
-      expect(scope.$$childHead.error).toBeDefined();
+      expect(scope.error).toBeDefined();
     }));
 
     function assertPolicySummaryBlock(name, counts, average, ninetyPercentile, delta, barchartData, sparklineData,

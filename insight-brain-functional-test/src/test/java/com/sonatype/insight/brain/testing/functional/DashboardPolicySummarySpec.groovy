@@ -24,8 +24,6 @@ import static spock.util.matcher.HamcrestSupport.that
  * @since 1.11
  */
 @Stepwise
-//TODO: This test will be reworked via CLM-4801
-@Ignore
 class DashboardPolicySummarySpec
 extends BaseSpec {
 
@@ -136,9 +134,14 @@ extends BaseSpec {
   }
 
   def 'The policy summary view should show 12 weeks of data'() {
-    when: 'The data is loaded'
+    when: 'The user clicks on the trends button'
+    viewTrendsButton.click()
+
+    then: 'The user is shown the trend dialog'
+    waitFor { viewTrendsDialog.present }
+
+    and: 'The data is loaded'
     waitFor { policySummary.rows.size() == 4 }
-    PolicySummaryModule policySummary = policySummary;
 
     then: 'The expected categories are shown'
     policySummary.discoveredRow.category == 'Discovered'
@@ -207,11 +210,13 @@ extends BaseSpec {
     then: 'value is displayed'
     // moveToElement moves to the middle of the sparkline
     policySummary.discoveredRow.sparkline.guideText.text() == '7'
+
+    cleanup:
+    trendsDialogCloseButton.click()
   }
 
   def 'Filtering out all data should show an empty policy summary'() {
     when: 'clicking the filter toggle button'
-    PolicySummaryModule policySummary = policySummary;
     filters.toggle.click()
 
     then: 'the dashboard filters are shown'
@@ -222,8 +227,14 @@ extends BaseSpec {
     filters.policyTypeMultiselect.toggleOption('License')
     filters.apply()
 
-    then: 'The counts for each category should all be zero'
-    policySummary.discoveredRow.count == 0
+    and: 'The user clicks on the trends button'
+    viewTrendsButton.click()
+
+    then: 'The user is shown the trend dialog'
+    waitFor { viewTrendsDialog.present }
+
+    and: 'The counts for each category should all be zero'
+    waitFor { policySummary.discoveredRow.count == 0 }
     policySummary.fixedRow.count == 0
     policySummary.pendingRow.count == 0
     policySummary.waivedRow.count == 0
@@ -252,6 +263,9 @@ extends BaseSpec {
     isDeltaArrayCloseToSum(0, emptyPoints, policySummary.fixedRow.sparkline.getValues())
     isDeltaArrayCloseToSum(0, emptyPoints, policySummary.pendingRow.sparkline.getValues())
     isDeltaArrayCloseToSum(0, emptyPoints, policySummary.waivedRow.sparkline.getValues())
+
+    cleanup:
+    trendsDialogCloseButton.click()
   }
 
 

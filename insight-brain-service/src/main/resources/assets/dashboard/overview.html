@@ -99,15 +99,19 @@
     </div>
   </div>
 </script>
-<script type="text/ng-template" id="dashboard-policy-summary">
-  <div load-wrapper="error" reload="doLoad()">
-    <h5 ng-if="!policySummaryData && !error" class="dashboard-loading">
-      <i class='icon-time'></i> Loading...
-    </h5>
-    <div ng-if="policySummaryData" class="span6" id="policySummaryData">
-      <h4 class="dashboard-section-header">Policy Violation Summary</h4>
-      <table class="table policy-summary-table">
-        <thead>
+<script type="text/ng-template" id="policy-trends-dialog">
+  <div id="policy-trends-dialog">
+    <div class="modal-header">
+      <button id="policy-trends-dialog-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
+      <h3>Policy Violation Trends</h3>
+    </div>
+    <div load-wrapper="error" reload="doLoad()">
+      <h5 ng-if="!policySummaryData && !error">
+        <i class='icon-time'></i> Calculating policy violation trends...
+      </h5>
+      <div ng-if="policySummaryData" id="policySummaryData">
+        <table class="table policy-summary-table">
+          <thead>
           <tr>
             <th class="category-header">CATEGORY</th>
             <th>COUNT</th>
@@ -123,28 +127,32 @@
             <th>WEEKLY DELTAS</th>
             <th>12 WEEK TREND</th>
           </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="category in policySummaryData"
-            ng-class="{ 'natural' : category.naturalOrder, 'inverse' : category.naturalOrder === false, 'neutral' : category.naturalOrder === undefined }">
-          <td>{{category.name}}</td>
-          <td>{{category.counts}}</td>
-          <td>{{category.avg | terseTimeSpan}}</td>
-          <td>{{category.p90 | terseTimeSpan}}</td>
-          <td class="delta-column">
-            <i class="sonatype-icons pull-left" ng-class="{'up': category.delta > 0, 'down': category.delta < 0}"></i>
-          </td>
-          <td class="buffer-column"></td>
-          <td class="delta-column">{{category.delta}}</td>
-          <td>
-            <div value-bars data="category.barChartData"></div>
-          </td>
-          <td>
-            <div sparkline class="chart sparkline" data="category.sparklineData"></div>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+          <tr ng-repeat="category in policySummaryData"
+              ng-class="{ 'natural' : category.naturalOrder, 'inverse' : category.naturalOrder === false, 'neutral' : category.naturalOrder === undefined }">
+            <td>{{category.name}}</td>
+            <td>{{category.counts}}</td>
+            <td>{{category.avg | terseTimeSpan}}</td>
+            <td>{{category.p90 | terseTimeSpan}}</td>
+            <td class="delta-column">
+              <i class="sonatype-icons pull-left" ng-class="{'up': category.delta > 0, 'down': category.delta < 0}"></i>
+            </td>
+            <td class="buffer-column"></td>
+            <td class="delta-column">{{category.delta}}</td>
+            <td>
+              <div value-bars data="category.barChartData"></div>
+            </td>
+            <td>
+              <div sparkline class="chart sparkline" data="category.sparklineData"></div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
     </div>
   </div>
 </script>
@@ -323,7 +331,10 @@
 <div class='container'>
   <div class='row'>
     <div class='span12'>
-      <h1 class="left-align-h1 dashboard-section-header">Dashboard</h1>
+      <h1 class="left-align-h1 dashboard-section-header">
+        Dashboard
+        <button id="show-trend-dialog" class="btn pull-right" ng-click="showTrendDialog()">Calculate Trends</button>
+      </h1>
     </div>
   </div>
   <div class='row dashboard-summary-section'>

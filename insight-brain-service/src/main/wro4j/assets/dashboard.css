@@ -431,10 +431,6 @@ table th#affected-apps {
   word-break: break-all;
 }
 
-#component-match-results {
-  padding-top: 10px;
-}
-
 .component-match-content {
   padding-top: 5px;
   padding-bottom: 5px;

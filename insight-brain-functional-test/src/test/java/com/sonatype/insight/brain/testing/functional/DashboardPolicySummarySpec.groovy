@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation
 import com.sonatype.insight.brain.model.policy.PolicyWaiver
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType
-
+import spock.lang.Ignore
 import spock.lang.Stepwise
 
 import static spock.util.matcher.HamcrestMatchers.closeTo
@@ -24,6 +24,8 @@ import static spock.util.matcher.HamcrestSupport.that
  * @since 1.11
  */
 @Stepwise
+//TODO: This test will be reworked via CLM-4801
+@Ignore
 class DashboardPolicySummarySpec
 extends BaseSpec {
 

@@ -15,6 +15,7 @@ import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
+import com.sonatype.insight.brain.utils.IdValidationUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 public class IconDAO
@@ -22,6 +23,9 @@ public class IconDAO
   private static final String ICON_FILE_NAME = "icon420px.png";
 
   public byte[] getIcon(String ownerId, File iconDirectory) throws IOException {
+    // Validate the ownerId to prevent traversal attacks on file create
+    IdValidationUtils.validate(ownerId);
+
     File applicationIconDirectory = new File(iconDirectory, ownerId);
     if (!applicationIconDirectory.exists()) {
       return null;
@@ -46,6 +50,9 @@ public class IconDAO
     if (image == null) {
       throw new BadRequestException("Invalid image file.");
     }
+
+    // Validate the ownerId to prevent traversal attacks on file create
+    IdValidationUtils.validate(ownerId);
 
     BufferedImage resizedImage = new BufferedImage(dimension, dimension, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = resizedImage.createGraphics();

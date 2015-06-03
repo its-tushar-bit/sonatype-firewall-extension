@@ -11,6 +11,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.utils.IdValidationUtils;
+
 @Named
 @Singleton
 public class InsightWork
@@ -27,10 +29,13 @@ public class InsightWork
   }
 
   public File getScanDir(final String appId) {
+    IdValidationUtils.validate(appId);
     return new File(insightConfig.getSonatypeWork(), "scan/" + appId);
   }
 
   public File getScanFile(final String appId, final String scanId) {
+    IdValidationUtils.validate(appId);
+    IdValidationUtils.validate(scanId);
     return new File(getScanDir(appId), "scan-" + scanId + ".xml.gz");
   }
 
@@ -39,6 +44,7 @@ public class InsightWork
   }
 
   public File getAuditDir(final String appId) {
+    IdValidationUtils.validate(appId);
     return new File(insightConfig.getSonatypeWork(), "audit/" + appId);
   }
 
@@ -47,22 +53,30 @@ public class InsightWork
   }
 
   public File getReportDir(final String appId) {
+    IdValidationUtils.validate(appId);
     return new File(insightConfig.getSonatypeWork(), "report/" + appId);
   }
 
   public File getReportDir(final String appId, final String scanId) {
+    IdValidationUtils.validate(appId);
+    IdValidationUtils.validate(scanId);
     return new File(getReportDir(appId), scanId);
   }
 
   public File getReportFile(final String appId, final String scanId) {
+    IdValidationUtils.validate(appId);
+    IdValidationUtils.validate(scanId);
     return new File(getReportDir(appId, scanId), "report.zip");
   }
 
   public File getComponentDetailsDir(final String appId) {
+    IdValidationUtils.validate(appId);
     return new File(insightConfig.getSonatypeWork(), "componentDetails/" + appId);
   }
 
   public File getComponentDetailsFile(final String appId, final String resultsId) {
+    IdValidationUtils.validate(appId);
+    IdValidationUtils.validate(resultsId);
     return new File(getComponentDetailsDir(appId), "componentDetails-" + resultsId + ".json");
   }
 

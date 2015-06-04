@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -88,43 +87,5 @@ public class ReportDownloader
     }
 
     return false;
-  }
-
-  public static class ReportDownloadReponse
-  {
-    private int statusCode;
-
-    private Map<String, String> headers = new LinkedHashMap<>();
-
-    private byte[] data;
-
-    public int getStatusCode() {
-      return statusCode;
-    }
-
-    void setStatusCode(int statusCode) {
-      this.statusCode = statusCode;
-    }
-
-    public Map<String, String> getHeaders() {
-      return headers;
-    }
-
-    void setHeader(String name, String value) {
-      if (value == null) {
-        headers.remove(name);
-      }
-      else {
-        headers.put(name, value);
-      }
-    }
-
-    public byte[] getData() {
-      return data;
-    }
-
-    void setData(byte[] data) {
-      this.data = data;
-    }
   }
 }

@@ -46,17 +46,19 @@ public class ReportDownloader
   public boolean downloadReport(final String scanId, final File reportFile, final int retryAttempts,
       final int retryIntervalInSeconds)
   {
-    reportFile.getAbsoluteFile().getParentFile().mkdirs();
     try {
       for (int i = 0; i < (retryAttempts + 1); i++) {
         InputStream is = null;
         OutputStream os = null;
 
         try {
-          os = new BufferedOutputStream(new FileOutputStream(reportFile));
           Map<String, String> queryParams = new HashMap<>();
           queryParams.put("scanId", scanId);
           is = client.get(InputStream.class, "rest/ci/report", queryParams);
+          // Create the parent dir after the client returns with success
+          // to ensure dir is not created for unknown scanId (or other errors)
+          reportFile.getAbsoluteFile().getParentFile().mkdirs();
+          os = new BufferedOutputStream(new FileOutputStream(reportFile));
           IOUtil.copy(is, os);
           return true;
         }

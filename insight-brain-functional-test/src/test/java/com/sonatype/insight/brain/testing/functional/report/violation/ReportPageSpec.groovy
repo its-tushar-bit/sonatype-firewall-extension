@@ -18,8 +18,7 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class ReportPageSpec
-    extends BaseSpec
-{
+extends BaseSpec {
 
   static cannedTestReport = '/canned-reports/small-report.zip'
 
@@ -47,41 +46,39 @@ class ReportPageSpec
 
   def "Sub report navigation is shown"() {
     when: 'viewing the report'
-      to ReportPage, app.publicId, scanId
+    to ReportPage, app.publicId, scanId
 
     then: 'summary nav button is shown'
-      navigation.summaryTrigger.displayed == true
+    navigation.summaryTrigger.displayed == true
 
     and: 'policy nav button is shown'
-      navigation.policyTrigger.displayed == true
+    navigation.policyTrigger.displayed == true
 
-      // add other nav button verifications to new then: blocks as tests require them
+    // add other nav button verifications to new then: blocks as tests require them
   }
 
   def "Can view summary sub report"() {
     when: 'viewing the summary sub report'
-      navigation.toSummaryReportPage()
+    navigation.toSummaryReportPage()
 
     then: 'summary information is shown'
-      summaryContent.displayed == true
+    summaryContent.displayed == true
   }
 
   def "Can view policy sub report"() {
     when: 'viewing the policy sub report'
-      navigation.toPolicyReportPage()
+    navigation.toPolicyReportPage()
 
     then: 'component summary information is shown'
-      policyContent.displayed == true
+    policyContent.displayed == true
   }
 
   def "Report can be framed in CLM UI"() {
     when: 'viewing the report in the CLM UI'
-      to ReportContainerPage, app.publicId, scanId
+    to ReportContainerPage, app.publicId, scanId
 
     then: 'it is framed'
-      withFrame(reportFrame, ReportPage) {
-        contentContainer.displayed == true
-      }
+    withFrame(reportFrame, ReportPage) { contentContainer.displayed == true }
   }
 
   private Application newApplication() {

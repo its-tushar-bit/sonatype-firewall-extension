@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional.report.violation
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import javax.ws.rs.core.UriBuilder
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
 import com.sonatype.insight.brain.model.Application
@@ -13,11 +14,10 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 import com.sonatype.insight.json.store.JsonUtils
+
 import org.eclipse.jetty.util.UrlEncoded
 import spock.lang.Shared
 import spock.lang.Stepwise
-
-import javax.ws.rs.core.UriBuilder
 
 /**
  * @since 1.11
@@ -228,7 +228,7 @@ extends BaseSpec {
 
   String createUri(ComponentIdentifier componentIdentifier) {
     return UriBuilder.fromPath('rest/component/summary').
-    queryParam('componentIdentifier', ComponentIdentifierAdapter.toJson(componentIdentifier)).build().toString()
+        queryParam('componentIdentifier', ComponentIdentifierAdapter.toJson(componentIdentifier)).build().toString()
   }
 
   void mockSaasComponentDetailsListResponse(ComponentIdentifier identifier) {

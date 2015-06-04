@@ -22,8 +22,7 @@ import spock.lang.Stepwise
 
 @Stepwise
 class ReportPolicyViolationsSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   @Shared
   private static PolicyDAO policyDAO = new PolicyDAO()
 
@@ -58,41 +57,41 @@ class ReportPolicyViolationsSpec
 
   def "Validate the summary view"() {
     when: "we view summary"
-      navigation.toPolicyReportPage()
+    navigation.toPolicyReportPage()
 
     then: "waived violations are hidden"
-      // verify Summary is selected
-      selectedViolationFilter == 'Summary'
-      waitFor { results.size() == 4 }
-      hasRow(results, 'javancss : javancss : 29.50')
-      hasRow(results, 'ch.qos.logback : logback-access : 0.6')
-      hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
-      hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1')
+    // verify Summary is selected
+    selectedViolationFilter == 'Summary'
+    waitFor { results.size() == 4 }
+    hasRow(results, 'javancss : javancss : 29.50')
+    hasRow(results, 'ch.qos.logback : logback-access : 0.6')
+    hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
+    hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1')
   }
 
   def "Validate the all view"() {
     when: "we view all"
-      allViolations.click()
+    allViolations.click()
 
     then: "all policy violations are visible"
-      waitFor { selectedViolationFilter == 'All' }
-      waitFor { results.size() == 5 }
-      hasRow(results, 'javancss : javancss : 29.50')
-      hasRow(results, 'ch.qos.logback : logback-access : 0.6')
-      hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
-      hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15', true)
-      hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1', true)
+    waitFor { selectedViolationFilter == 'All' }
+    waitFor { results.size() == 5 }
+    hasRow(results, 'javancss : javancss : 29.50')
+    hasRow(results, 'ch.qos.logback : logback-access : 0.6')
+    hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15')
+    hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15', true)
+    hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1', true)
   }
 
   def "Validate the waived view"() {
     when: "we view waived"
-      waivedViolations.click()
+    waivedViolations.click()
 
     then: "only waived violations are visible"
-      waitFor { selectedViolationFilter == 'Waived' }
-      waitFor { results.size() == 2 }
-      hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1', true)
-      hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15', true)
+    waitFor { selectedViolationFilter == 'Waived' }
+    waitFor { results.size() == 2 }
+    hasRow(results, 'org.apache.geronimo.framework : geronimo-security : 2.1', true)
+    hasRow(results, 'org.mortbay.jetty : jetty : 6.1.15', true)
   }
 
   /*
@@ -101,8 +100,8 @@ class ReportPolicyViolationsSpec
 
   private static Policy createNoLGPL(String license, String name) {
     Policy policy = new Policy(name: "No$name", ownerId: app.id, threatLevel: 7,
-        constraints: [new Constraint(name: "No$name", operator: LogicalOperator.AND,
-            conditions: [new Condition(LicenseConditionType.ID, 'is', license)])])
+    constraints: [new Constraint(name: "No$name", operator: LogicalOperator.AND,
+      conditions: [new Condition(LicenseConditionType.ID, 'is', license)])])
     policyDAO.insert(policy)
     return policy
   }
@@ -112,8 +111,10 @@ class ReportPolicyViolationsSpec
    */
   private static Policy createNoSVPolicy() {
     Policy policy = new Policy(name: 'NoSV', ownerId: app.id, threatLevel: 9,
-        constraints: [new Constraint(name: 'NoSV', operator: LogicalOperator.AND,
-            conditions: [new Condition(SecurityVulnerabilityConditionType.ID, 'present')])])
+    constraints: [
+      new Constraint(name: 'NoSV', operator: LogicalOperator.AND,
+      conditions: [new Condition(SecurityVulnerabilityConditionType.ID, 'present')])
+    ])
     policyDAO.insert(policy)
     return policy
   }

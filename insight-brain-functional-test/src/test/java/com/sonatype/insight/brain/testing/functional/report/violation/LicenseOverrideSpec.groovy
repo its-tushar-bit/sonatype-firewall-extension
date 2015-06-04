@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
+
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -18,8 +19,7 @@ import spock.lang.Stepwise
  */
 @Stepwise
 class LicenseOverrideSpec
-    extends BaseSpec
-{
+extends BaseSpec {
   static final String cannedTestReport = '/canned-reports/small-report.zip'
 
   @Shared

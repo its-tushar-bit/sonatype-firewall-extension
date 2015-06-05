@@ -33,7 +33,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -144,7 +143,7 @@ public class IdeResource
       Component component = componentDAO.getComponent(app, matchedComponent, svData);
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
-          new PolicyDAO(), Collections.singletonList(component));
+          Collections.singletonList(component));
       ideComponent.setAlerts(policyAlerts);
     }
     return ideComponent;

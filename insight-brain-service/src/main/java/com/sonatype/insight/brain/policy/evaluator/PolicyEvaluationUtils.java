@@ -120,7 +120,7 @@ public class PolicyEvaluationUtils
         securityReportEntry.buf, bomReportEntry.buf);
 
     // Evaluate the policies
-    PolicyResults policyResults = new PolicyEvaluator().evaluate(appId, stage, policyDAO, components, forMonitoring);
+    PolicyResults policyResults = new PolicyEvaluator().evaluate(appId, stage, components, forMonitoring);
 
     // Save the policy evaluation and violations
     PolicyEvaluation policyEvaluation = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults,
@@ -256,7 +256,7 @@ public class PolicyEvaluationUtils
     }
   }
 
-  public void calculateCounters(PolicyEvaluationResult policyEvaluationResult) {
+  private void calculateCounters(PolicyEvaluationResult policyEvaluationResult) {
     final Map<String, Integer> componentThreatLevels = new HashMap<>();
     for (final PolicyAlert alert : policyEvaluationResult.getAlerts()) {
       final PolicyFact trigger = alert.getTrigger();

@@ -29,7 +29,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -37,7 +36,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
@@ -325,11 +323,8 @@ public class ApplicationResource
     for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
       policyEvaluations.put(policyEvaluation.getStageTypeId(), policyEvaluation);
 
-      List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
-      final PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
-      policyEvaluationResult.setAlerts(alerts);
-      policyEvaluationUtils.calculateCounters(policyEvaluationResult);
-
+      final PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils
+          .createPolicyEvaluationResult(policyEvaluation);
       // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
       policyEvaluationResult.setAlerts(null);
 

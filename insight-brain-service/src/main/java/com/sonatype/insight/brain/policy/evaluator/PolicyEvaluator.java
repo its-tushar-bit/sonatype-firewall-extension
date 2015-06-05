@@ -67,15 +67,15 @@ public class PolicyEvaluator
 
   private final PolicyWaiverEvaluator waiverEvaluator = new PolicyWaiverEvaluator();
 
-  public List<PolicyAlert> evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components)
+  public List<PolicyAlert> evaluate(String applicationId, Stage stage, List<Component> components)
   {
-    return evaluate(applicationId, stage, policyDAO, components, false /* forMonitoring */).getActiveAlerts();
+    return evaluate(applicationId, stage, components, false /* forMonitoring */).getActiveAlerts();
   }
 
-  public PolicyResults evaluate(String applicationId, Stage stage, PolicyDAO policyDAO, List<Component> components,
+  public PolicyResults evaluate(String applicationId, Stage stage, List<Component> components,
       boolean forMonitoring)
   {
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(applicationId);
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(applicationId);
     return evaluate(applicationId, stage, policies, components, forMonitoring);
   }
 

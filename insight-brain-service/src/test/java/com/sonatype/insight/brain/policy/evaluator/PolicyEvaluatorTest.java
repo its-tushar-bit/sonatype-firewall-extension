@@ -572,7 +572,7 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), stage, policyDAO, components);
+    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), stage, components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     assertContainsPolicyAlert(component1, policyOrg.getId(), "Policy Name Org", FailActionType.ID,

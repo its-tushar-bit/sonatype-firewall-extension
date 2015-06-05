@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -168,7 +167,7 @@ public class ComponentInfoService
 
     // Evaluate the policies
     List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
-        new PolicyDAO(), Collections.singletonList(component));
+        Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()

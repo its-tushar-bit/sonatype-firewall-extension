@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -208,8 +207,8 @@ public class ApiComponentEvaluationServiceV2
           ApiComponentDTOV2 componentDTO = evaluationRequestDTO.components.get(componentEvaluationData.requestIndex);
           component.setProprietary(componentDTO.proprietary);
           // Evaluate the policies
-          List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(application.getId(), new Stage(DevelopStageType.ID),
-              new PolicyDAO(), Collections.singletonList(component));
+          List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(application.getId(),
+              new Stage(DevelopStageType.ID), Collections.singletonList(component));
           componentDetails.setPolicyAlerts(policyAlerts);
 
           ApiComponentDetailsDTOV2 componentDetailsDTO = componentDetailsAdapter.convertToDTO(component, policyAlerts);

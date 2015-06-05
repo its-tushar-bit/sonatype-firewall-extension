@@ -71,10 +71,6 @@
     width: 940px;
   }
 
-  .chart {
-    width: 70px !important;
-  }
-
   .table.policy-summary-table .category-header {
     min-width: 85px !important;
   }

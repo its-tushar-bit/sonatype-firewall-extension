@@ -129,3 +129,7 @@
 .glyphicons-sonatype.inbox:before {
   content: "\e131";
 }
+
+.glyphicons-sonatype.calculator:before {
+  content: "\E324";
+}

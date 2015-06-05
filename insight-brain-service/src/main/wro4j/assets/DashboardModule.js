@@ -806,7 +806,7 @@
     };
   }]);
 
-  dashboardModule.directive('sparkline', ['windowEventsFactory', function(windowEventsFactory) {
+  dashboardModule.directive('sparkline', [function() {
     return {
       scope:{
         data: '='
@@ -980,7 +980,6 @@
           });
         }
 
-        windowEventsFactory.addResizeHandler(scope, element, sparkline);
         sparkline();
       }
     };

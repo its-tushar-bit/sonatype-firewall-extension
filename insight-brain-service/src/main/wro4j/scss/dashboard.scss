@@ -603,14 +603,17 @@ $policy-summary-table-row-height: 25px;
   }
 }
 
-// Used on the dashboard to help the table with its initial size
-.dashboard-summary-section {
-  min-height : 125px;
-
-  & > div:nth-child(2) {
-    margin-left: 30px;
-  }
-}
+/*
+  Dashboard Summary Section
+  Secondary Button
+  ```
+  <div class="dashboard-section-header">
+    <button class="btn pull-right secondary">
+      <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
+    </button>
+  </div>
+  ```
+*/
 
 $dashboard-border-width: 2px;
 $dashboard-border: $dashboard-border-width solid #CCC;
@@ -618,10 +621,39 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 .dashboard-section-header {
   padding-bottom: 5px;
   border-bottom: $dashboard-border;
+
+  .btn.secondary {
+    padding: 0 12px;
+
+    i:before {
+      vertical-align: middle;
+      color: $slate;
+      line-height: 26px;
+    }
+  }
 }
 
-#policySummaryData {
-  margin: 10px;
+// Used on the dashboard to help the table with its initial size
+.dashboard-summary-section {
+  min-height : 125px;
+
+  & > div:nth-child(2) {
+    margin-left: 30px;
+
+    @media (max-width: 1199px) {
+      margin-left: 20px;
+    }
+  }
+}
+
+.dashboard-policy-trend-dialog {
+  #policySummaryData {
+    margin: 10px 15px;
+  }
+
+  .policy-trends-loading {
+    margin-left: 15px;
+  }
 }
 
 /*

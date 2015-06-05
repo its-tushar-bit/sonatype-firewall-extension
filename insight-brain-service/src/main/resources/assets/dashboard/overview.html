@@ -100,60 +100,58 @@
   </div>
 </script>
 <script type="text/ng-template" id="policy-trends-dialog">
-  <div id="policy-trends-dialog">
-    <div class="modal-header">
-      <button id="policy-trends-dialog-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
-      <h3>Policy Violation Trends</h3>
+  <div class="modal-header">
+    <button id="policy-trends-dialog-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
+    <h3>Policy Violation Trends</h3>
+  </div>
+  <div load-wrapper="error" reload="doLoad()">
+    <h5 ng-if="!policySummaryData && !error" class="policy-trends-loading">
+      <i class='icon-time'></i> Calculating policy violation trends...
+    </h5>
+    <div ng-if="policySummaryData" id="policySummaryData">
+      <table class="table policy-summary-table">
+        <thead>
+        <tr>
+          <th class="category-header">CATEGORY</th>
+          <th>COUNT</th>
+          <th tooltip="Average age of violations in the category" tooltip-placement="top"
+              tooltip-append-to-body="true">
+            AVG
+          </th>
+          <th tooltip="90 percent of violations have been in the category less than this time" tooltip-placement="top"
+              tooltip-append-to-body="true">
+            90%
+          </th>
+          <th colspan="3">DELTA</th>
+          <th>WEEKLY DELTAS</th>
+          <th>12 WEEK TREND</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="category in policySummaryData"
+            ng-class="{ 'natural' : category.naturalOrder, 'inverse' : category.naturalOrder === false, 'neutral' : category.naturalOrder === undefined }">
+          <td>{{category.name}}</td>
+          <td>{{category.counts}}</td>
+          <td>{{category.avg | terseTimeSpan}}</td>
+          <td>{{category.p90 | terseTimeSpan}}</td>
+          <td class="delta-column">
+            <i class="sonatype-icons pull-left" ng-class="{'up': category.delta > 0, 'down': category.delta < 0}"></i>
+          </td>
+          <td class="buffer-column"></td>
+          <td class="delta-column">{{category.delta}}</td>
+          <td>
+            <div value-bars data="category.barChartData"></div>
+          </td>
+          <td>
+            <div sparkline class="chart sparkline" data="category.sparklineData"></div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
-    <div load-wrapper="error" reload="doLoad()">
-      <h5 ng-if="!policySummaryData && !error">
-        <i class='icon-time'></i> Calculating policy violation trends...
-      </h5>
-      <div ng-if="policySummaryData" id="policySummaryData">
-        <table class="table policy-summary-table">
-          <thead>
-          <tr>
-            <th class="category-header">CATEGORY</th>
-            <th>COUNT</th>
-            <th tooltip="Average age of violations in the category" tooltip-placement="top"
-                tooltip-append-to-body="true">
-              AVG
-            </th>
-            <th tooltip="90 percent of violations have been in the category less than this time" tooltip-placement="top"
-                tooltip-append-to-body="true">
-              90%
-            </th>
-            <th colspan="3">DELTA</th>
-            <th>WEEKLY DELTAS</th>
-            <th>12 WEEK TREND</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr ng-repeat="category in policySummaryData"
-              ng-class="{ 'natural' : category.naturalOrder, 'inverse' : category.naturalOrder === false, 'neutral' : category.naturalOrder === undefined }">
-            <td>{{category.name}}</td>
-            <td>{{category.counts}}</td>
-            <td>{{category.avg | terseTimeSpan}}</td>
-            <td>{{category.p90 | terseTimeSpan}}</td>
-            <td class="delta-column">
-              <i class="sonatype-icons pull-left" ng-class="{'up': category.delta > 0, 'down': category.delta < 0}"></i>
-            </td>
-            <td class="buffer-column"></td>
-            <td class="delta-column">{{category.delta}}</td>
-            <td>
-              <div value-bars data="category.barChartData"></div>
-            </td>
-            <td>
-              <div sparkline class="chart sparkline" data="category.sparklineData"></div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
-    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
   </div>
 </script>
 <script type="text/ng-template" id="component-heat-map-help">
@@ -333,7 +331,9 @@
     <div class='span12'>
       <h1 class="left-align-h1 dashboard-section-header">
         Dashboard
-        <button id="show-trend-dialog" class="btn pull-right" ng-click="showTrendDialog()">Calculate Trends</button>
+        <button id="show-trend-dialog" class="btn pull-right secondary" ng-click="showTrendDialog()">
+          <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
+        </button>
       </h1>
     </div>
   </div>

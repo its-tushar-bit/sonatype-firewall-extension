@@ -65,9 +65,9 @@ public class ComponentInfoService
 
   private LicenseDAO licenseDAO = new LicenseDAO();
 
-  private PolicyEvaluator evaluator = new PolicyEvaluator();
+  private PolicyEvaluator policyEvaluator = new PolicyEvaluator();
 
-  private final SaasClient client;
+  private final SaasClient hdsClient;
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
@@ -78,10 +78,10 @@ public class ComponentInfoService
   private String toolName;
 
   @Inject
-  public ComponentInfoService(SaasClient client, ComponentDetailsLoader componentDetailsLoader,
+  public ComponentInfoService(SaasClient hdsClient, ComponentDetailsLoader componentDetailsLoader,
       InsightWork insightWork, ReportService reportService)
   {
-    this.client = client;
+    this.hdsClient = hdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
     this.insightWork = insightWork;
     this.reportService = reportService;
@@ -167,8 +167,8 @@ public class ComponentInfoService
     component.setProprietary(proprietary);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID), new PolicyDAO(),
-        Collections.singletonList(component));
+    List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
+        new PolicyDAO(), Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
@@ -193,7 +193,7 @@ public class ComponentInfoService
             }
 
             try {
-              componentDetails = client.get(httpRequest, NamedComponentDetails.class, "rest/" + toolName
+              componentDetails = hdsClient.get(httpRequest, NamedComponentDetails.class, "rest/" + toolName
                   + "/componentDetails", queryParams);
               componentDetails.setMatchState(MatchState.EXACT.getId());
             }
@@ -207,8 +207,7 @@ public class ComponentInfoService
   }
 
   // Intended for unknown cases
-  private NamedComponentDetails createEmptyComponentDetails(String hash, ComponentIdentifier identifier)
-  {
+  private NamedComponentDetails createEmptyComponentDetails(String hash, ComponentIdentifier identifier) {
     NamedComponentDetails details = new NamedComponentDetails();
     details.setComponentIdentifier(identifier);
     details.setHash(hash);
@@ -257,7 +256,7 @@ public class ComponentInfoService
     }
 
     String url = "rest/" + toolName + "/componentDetails/list";
-    ComponentDetailsList componentDetailsList = client.get(httpRequest, ComponentDetailsList.class, url);
+    ComponentDetailsList componentDetailsList = hdsClient.get(httpRequest, ComponentDetailsList.class, url);
 
     for (ComponentDetails componentDetails : componentDetailsList.getList()) {
       componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
@@ -286,7 +285,7 @@ public class ComponentInfoService
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
-    
+
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
     ComponentLicenses result = new ComponentLicenses();

@@ -70,7 +70,7 @@ public class ReportService
         FileUtils.rename(tempFile, reportFile);
       }
 
-      updateReportFromAudit(appId, scanId, reportFile);
+      applyChanges(appId, scanId, reportFile);
 
       return reportFile;
     }
@@ -101,7 +101,7 @@ public class ReportService
     final Lock lock = lockFor(appId, scanId);
     lock.lock();
     try {
-      updateReportFromAudit(appId, scanId, reportFile);
+      applyChanges(appId, scanId, reportFile);
 
       return reportFile;
     }
@@ -110,7 +110,7 @@ public class ReportService
     }
   }
 
-  private void updateReportFromAudit(String appId, String scanId, File reportFile) throws IOException {
+  private void applyChanges(String appId, String scanId, File reportFile) throws IOException {
     final File appAuditDir = work.getAuditDir(appId);
     int newCount = JsonUtils.fileStore(appAuditDir).modificationCount();
     Application application = new ApplicationDAO().getByIdNotNull(appId);

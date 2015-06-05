@@ -32,9 +32,11 @@ extends BaseSpec {
     app = newApplication()
 
     // ensure there is a report to view
-    def evaluator = new TestReportEvaluator(app, getClass().getResource(cannedTestReport), browser.baseUrl,
+    // The scanId must match the reportId value recorded inside the test report.zip used for this test
+    scanId = '306e0a923df34c64b836358182b1b902'
+    def evaluator = new TestReportEvaluator(app, scanId, getClass().getResource(cannedTestReport), browser.baseUrl,
         new InsightWork(serviceRule.configuration))
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     // Can't do anything without a logged in user
     loginAsAdminVia()

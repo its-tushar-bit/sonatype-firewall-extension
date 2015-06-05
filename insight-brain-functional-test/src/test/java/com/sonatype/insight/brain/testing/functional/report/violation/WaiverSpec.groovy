@@ -39,9 +39,9 @@ extends BaseSpec
 
   def work = new InsightWork(serviceRule.configuration)
 
-  def evaluator = new TestReportEvaluator(app, getClass().getResource(cannedTestReport), browser.baseUrl, work)
-
-  def scanId
+  // The scanId must match the reportId value recorded inside the test report.zip used for this test
+  def scanId = '306e0a923df34c64b836358182b1b902'
+  def evaluator = new TestReportEvaluator(app, scanId, getClass().getResource(cannedTestReport), browser.baseUrl, work)
 
   def setupSpec() {
     // Can't do anything without a logged in user
@@ -53,7 +53,7 @@ extends BaseSpec
     createGavViolatingPolicy(app.organizationId)
 
     and: 'a policy evaluation with a waiver'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
     waiveComponent()
     waiver.save()
     evaluator.reevaluatePolicy()
@@ -76,7 +76,7 @@ extends BaseSpec
     def truncatedLongComment = longComment.substring(0, 1000)
 
     and: 'a policy evaluation with a waiver'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
     waiveComponent()
     waiver.setComment('TEST COMMENT')
     waiver.save()
@@ -147,7 +147,7 @@ extends BaseSpec
     createGavViolatingPolicy(app.organizationId)
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'apply waiver dialog is active'
     waiveComponent()
@@ -210,7 +210,7 @@ extends BaseSpec
     createGavViolatingPolicy(app.id)
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'waiving a component'
     waiveComponent()
@@ -227,7 +227,7 @@ extends BaseSpec
     // nothing to do
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'waiving a component'
     waiveComponent()
@@ -244,7 +244,7 @@ extends BaseSpec
     // nothing to do
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'waiving component'
     waiveComponent()
@@ -277,7 +277,7 @@ extends BaseSpec
     // nothing to do
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'waiving component'
     waiveComponent()
@@ -307,7 +307,7 @@ extends BaseSpec
     createGavViolatingPolicy(app.id)
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'waiving component'
     waiveComponent()
@@ -337,7 +337,7 @@ extends BaseSpec
     createGavViolatingPolicy(app.id)
 
     and: 'a policy evaluation'
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     when: 'waiving component'
     waiveComponent()

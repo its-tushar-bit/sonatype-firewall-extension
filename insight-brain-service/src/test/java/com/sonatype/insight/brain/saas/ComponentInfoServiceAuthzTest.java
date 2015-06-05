@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -26,6 +27,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,45 +64,101 @@ public class ComponentInfoServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentDetailsList_Authorized() throws Exception {
+  public void testGetComponentDetailsList_EvaluateComponentPermission_Authorized() throws Exception {
     configureSaasClientMock();
     grantEvaluateComponentPermission(app.getId());
-    componentInfoService.getComponentDetailsList(app.getPublicId(), COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-        null /* httpRequest */);
+    componentInfoService.getComponentDetailsList_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), null /* httpRequest */);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetComponentDetailsList_Unauthorized() throws Exception {
+  public void testGetComponentDetailsList_EvaluateComponentPermission_Unauthorized() throws Exception {
     login();
-    componentInfoService.getComponentDetailsList(app.getPublicId(), COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-        null /* httpRequest */);
+    componentInfoService.getComponentDetailsList_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), null /* httpRequest */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetComponentDetailsList_Unauthenticated() throws Exception {
-    componentInfoService.getComponentDetailsList(app.getPublicId(), COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-        null /* httpRequest */);
+  public void testGetComponentDetailsList_EvaluateComponentPermission_Unauthenticated() throws Exception {
+    componentInfoService.getComponentDetailsList_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), null /* httpRequest */);
   }
 
   @Test
-  public void testGetComponentDetails_Authorized() throws Exception {
+  public void testGetComponentDetails_EvaluateComponentPermission_Authorized() throws Exception {
     configureSaasClientMock();
     grantEvaluateComponentPermission(app.getId());
-    componentInfoService.getComponentDetails(app.getPublicId(), COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-        "hash", false /* proprietary */, null /* httpRequest */);
+    componentInfoService.getComponentDetails_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetComponentDetails_Unauthorized() throws Exception {
+  public void testGetComponentDetails_EvaluateComponentPermission_Unauthorized() throws Exception {
     login();
-    componentInfoService.getComponentDetails(app.getPublicId(), COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-        "hash", false /* proprietary */, null /* httpRequest */);
+    componentInfoService.getComponentDetails_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetComponentDetails_Unauthenticated() throws Exception {
-    componentInfoService.getComponentDetails(app.getPublicId(), COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-        "hash", false /* proprietary */, null /* httpRequest */);
+  public void testGetComponentDetails_EvaluateComponentPermission_Unauthenticated() throws Exception {
+    componentInfoService.getComponentDetails_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+  }
+
+  // /
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission_Authorized() throws Exception {
+    configureSaasClientMock();
+    grantReadPermission(app.getId());
+    try {
+      componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), "reportId",
+          COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), null /* httpRequest */);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is("Cannot find a report with ID 'reportId'."));
+    }
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentDetailsList_ReadPermission_Unauthorized() throws Exception {
+    login();
+    componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), null /* reportId */,
+        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), null /* httpRequest */);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentDetailsList_ReadPermission_Unauthenticated() throws Exception {
+    componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), null /* reportId */,
+        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), null /* httpRequest */);
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_Authorized() throws Exception {
+    configureSaasClientMock();
+    grantReadPermission(app.getId());
+    try {
+      componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), "reportId", COMPONENT_IDENTIFIER,
+          MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is("Cannot find a report with ID 'reportId'."));
+    }
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentDetails_ReadPermission_Unauthorized() throws Exception {
+    login();
+    componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), "reportId",
+        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentDetails_ReadPermission_Unauthenticated() throws Exception {
+    componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), null /* reportId */,
+        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
   @Test

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import org.junit.Test;
+
 public class CIComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
 {
@@ -16,5 +18,15 @@ public class CIComponentInfoResourceTest
   @Override
   protected String getToolName() {
     return "ci";
+  }
+
+  @Test
+  public void testGetComponentDetails() throws Exception {
+    super.testGetComponentDetails_ReadPermission();
+  }
+
+  @Test
+  public void testGetComponentDetailsList() throws Exception {
+    super.testGetComponentDetailsList_ReadPermission();
   }
 }

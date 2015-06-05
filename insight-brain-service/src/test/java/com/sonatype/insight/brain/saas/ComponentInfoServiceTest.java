@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,10 +53,13 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.saas.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.saas.ComponentInfoService.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,8 +81,8 @@ import static org.mockito.Mockito.when;
 public class ComponentInfoServiceTest
     extends AbstractComponentTest
 {
-  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier
-    .createMavenCoordinates("g1", "a1", "v1");
+  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+      "v1", "", "jar");
 
   // This is the tool name (ci, ide, rm) used in REST paths for HDS resources. Since we use it when we mock the HDS
   // client, it doesn't really matter what value we use here, because we don't really access HDS REST paths.
@@ -86,6 +90,9 @@ public class ComponentInfoServiceTest
 
   @Inject
   private ComponentInfoService componentInfoService;
+
+  @Inject
+  private InsightWork insightWork;
 
   private String applicationPublicId = "ComponentInfoServiceTest";
 
@@ -379,7 +386,7 @@ public class ComponentInfoServiceTest
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
     saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails1, saasComponentDetails2));
     mockSaasGetComponentDetailsList(saasComponentDetailsList);
-    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(applicationPublicId,
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(application,
         componentIdentifier1, MatchState.EXACT.getId(), httpRequestMock);
     Assert.assertNotNull(componentDetailsList);
     Assert.assertEquals(2, componentDetailsList.getList().size());
@@ -437,8 +444,8 @@ public class ComponentInfoServiceTest
     saasComponentDetails.setHash(hash);
     saasComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
@@ -454,8 +461,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     mockSaasGetComponentDetails(saasComponentDetails);
 
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
@@ -481,8 +488,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     mockSaasGetComponentDetails(saasComponentDetails);
 
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     Assert.assertEquals(1, componentDetails.getOverriddenLicenses().size());
@@ -515,8 +522,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setHash(hash);
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
 
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
@@ -531,7 +538,7 @@ public class ComponentInfoServiceTest
     when(
         saasClientMock.get(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
             newCoordinatesQueryParam(saasComponentDetails))).thenThrow(new NotFoundException("unknown GAV"));
-    componentDetails = componentInfoService.getComponentDetails(applicationPublicId, emptyComponentIdentifier,
+    componentDetails = componentInfoService.getComponentDetails(application, emptyComponentIdentifier,
         MatchState.UNKNOWN.getId(), "01234567890123456789", false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(emptyComponentIdentifier, componentDetails.getComponentIdentifier());
@@ -556,7 +563,7 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setHash(hash);
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application,
         null /* componentIdentifier */, MatchState.UNKNOWN.getId(), hash, true /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
@@ -579,8 +586,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setHash(hash);
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.UNKNOWN.getId(), hash, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
   }
@@ -599,8 +606,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setHash(hash);
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.SIMILAR.getId(), hash, true /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, true /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
@@ -608,7 +615,7 @@ public class ComponentInfoServiceTest
     Assert.assertEquals(1, policyAlerts.size());
     Assert.assertEquals("Policy1", policyAlerts.get(0).getTrigger().getPolicyName());
 
-    componentDetails = componentInfoService.getComponentDetails(applicationPublicId, MAVEN_COORDINATES,
+    componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
@@ -632,8 +639,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setHash(hash);
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
@@ -647,7 +654,7 @@ public class ComponentInfoServiceTest
     ComponentIdentifier claimedComponentIdentifier = ComponentIdentifier.createMavenCoordinates("Claimed g",
         "Claimed a", "Claimed v");
     HashComponentIdentifier claimedComponent = tempEntity.newClaimedComponent(hash, claimedComponentIdentifier);
-    componentDetails = componentInfoService.getComponentDetails(applicationPublicId, MAVEN_COORDINATES,
+    componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
         MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
     Assert.assertNotNull(componentDetails);
     Assert.assertEquals(hash, componentDetails.getHash());
@@ -693,8 +700,8 @@ public class ComponentInfoServiceTest
     NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setHash(hash);
     mockSaasGetComponentDetails(saasComponentDetails);
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails(applicationPublicId,
-        MAVEN_COORDINATES, MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
     Assert.assertThat(componentDetails, is(notNullValue()));
     Assert.assertThat(componentDetails.getHash(), is(hash));
     Assert.assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
@@ -729,5 +736,183 @@ public class ComponentInfoServiceTest
       result.add(new License(multiLicense.getId(), multiLicense.getShortDisplayName()));
     }
     return result;
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission() throws Exception {
+    NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    mockSaasGetComponentDetails(saasComponentDetails);
+    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
+    FileUtils.copyDirectoryStructure(new File(
+        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
+        .getReportDir(application.getId(), reportId));
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(applicationPublicId,
+        reportId, MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
+        httpRequestMock);
+    assertThat(componentDetails, is(notNullValue()));
+    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
+    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
+    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_ReportDoesNotExist() throws Exception {
+    String reportId = "noSuchReport";
+    try {
+      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, reportId, MAVEN_COORDINATES,
+          MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is("Cannot find a report with ID 'noSuchReport'."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_ComponentNotInReport() throws Exception {
+    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
+    FileUtils.copyDirectoryStructure(new File(
+        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
+        .getReportDir(application.getId(), reportId));
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("packageId", "version");
+    try {
+      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, reportId, componentIdentifier,
+          MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+      fail("Expected InternalServerException");
+    }
+    catch (InternalServerException expected) {
+      assertThat(expected.getMessage(), is("Cannot get component details."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_ComponentWithDifferentVersionInReport() throws Exception {
+    ComponentIdentifier componentIdentifier = MAVEN_COORDINATES.createAlternativeVersion("1.2.3.4");
+    NamedComponentDetails saasComponentDetails = newNamedComponentDetails(componentIdentifier);
+    mockSaasGetComponentDetails(saasComponentDetails);
+    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
+    FileUtils.copyDirectoryStructure(new File(
+        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
+        .getReportDir(application.getId(), reportId));
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(applicationPublicId,
+        reportId, componentIdentifier, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
+        httpRequestMock);
+    assertThat(componentDetails, is(notNullValue()));
+    assertThat(componentDetails.getComponentIdentifier(), is(componentIdentifier));
+    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
+    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_NoReportId() throws Exception {
+    // reportId is null
+    try {
+      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, null /* reportId */,
+          MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+      fail("Expected InternalServerException");
+    }
+    catch (InternalServerException expected) {
+      assertThat(expected.getMessage(), is("The report ID must be specified."));
+    }
+
+    // reportId is empty
+    try {
+      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, " " /* reportId */,
+          MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+      fail("Expected InternalServerException");
+    }
+    catch (InternalServerException expected) {
+      assertThat(expected.getMessage(), is("The report ID must be specified."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission() throws Exception {
+    ComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
+    saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails));
+    mockSaasGetComponentDetailsList(saasComponentDetailsList);
+    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
+    FileUtils.copyDirectoryStructure(new File(
+        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
+        .getReportDir(application.getId(), reportId));
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
+        applicationPublicId, reportId, MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
+    assertThat(componentDetailsList.getList(), hasSize(1));
+    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
+    assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
+    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission_ReportDoesNotExist() throws Exception {
+    String reportId = "noSuchReport";
+    try {
+      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, reportId, MAVEN_COORDINATES,
+          MatchState.EXACT.getId(), httpRequestMock);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is("Cannot find a report with ID 'noSuchReport'."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission_ComponentNotInReport() throws Exception {
+    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
+    FileUtils.copyDirectoryStructure(new File(
+        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
+        .getReportDir(application.getId(), reportId));
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("packageId", "version");
+    try {
+      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, reportId, componentIdentifier,
+          MatchState.EXACT.getId(), httpRequestMock);
+      fail("Expected InternalServerException");
+    }
+    catch (InternalServerException expected) {
+      assertThat(expected.getMessage(), is("Cannot get component details."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission_ComponentWithDifferentVersionInReport() throws Exception {
+    ComponentIdentifier componentIdentifier = MAVEN_COORDINATES.createAlternativeVersion("1.2.3.4");
+    ComponentDetails saasComponentDetails = newNamedComponentDetails(componentIdentifier);
+    ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
+    saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails));
+    mockSaasGetComponentDetailsList(saasComponentDetailsList);
+    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
+    FileUtils.copyDirectoryStructure(new File(
+        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
+        .getReportDir(application.getId(), reportId));
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
+        applicationPublicId, reportId, componentIdentifier, MatchState.EXACT.getId(), httpRequestMock);
+    assertThat(componentDetailsList.getList(), hasSize(1));
+    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
+    assertThat(componentDetails.getComponentIdentifier(), is(componentIdentifier));
+    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission_NoReportId() throws Exception {
+    // reportId is null
+    try {
+      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, null /* reportId */,
+          MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
+      fail("Expected InternalServerException");
+    }
+    catch (InternalServerException expected) {
+      assertThat(expected.getMessage(), is("The report ID must be specified."));
+    }
+
+    // reportId is empty
+    try {
+      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, " " /* reportId */,
+          MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
+      fail("Expected InternalServerException");
+    }
+    catch (InternalServerException expected) {
+      assertThat(expected.getMessage(), is("The report ID must be specified."));
+    }
   }
 }

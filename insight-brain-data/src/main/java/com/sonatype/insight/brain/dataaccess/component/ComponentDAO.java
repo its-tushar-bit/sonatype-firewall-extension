@@ -64,14 +64,10 @@ public class ComponentDAO
     }
   }
 
-  public List<Component> getAll(Application application, final byte[] licenseData, final byte[] securityData,
-      final byte[] bomData)
+  public List<Component> getAll(byte[] bomData)
   {
-    final Map<ComponentIdentifier, List<Component>> componentsByKey = new LinkedHashMap<>();
-    final Map<String, Component> componentsByHash = new LinkedHashMap<>();
+    List<Component> components = new ArrayList<>();
 
-    // Load bom data
-    List<Component> unhashedComponents = new ArrayList<>();
     JsonNode bomJson = loadJson(bomData);
     if (bomJson != null) {
       bomJson = bomJson.get("aaData");
@@ -107,22 +103,40 @@ public class ComponentDAO
 
             component.setRelativePopularity(relativePopularity);
             component.setCatalogDate(catalogDate);
+          }
 
-            ComponentIdentifier key = component.getComponentIdentifier();
-            List<Component> components = componentsByKey.get(key);
-            if (components == null) {
-              components = new ArrayList<>();
-              componentsByKey.put(key, components);
-            }
-            components.add(component);
-          }
-          if (hash != null) {
-            componentsByHash.put(hash, component);
-          }
-          else {
-            unhashedComponents.add(component);
-          }
+          components.add(component);
         }
+      }
+    }
+
+    return components;
+  }
+
+  public List<Component> getAll(Application application, final byte[] licenseData, final byte[] securityData,
+      final byte[] bomData)
+  {
+    // Load bom data
+    List<Component> bomComponents = getAll(bomData);
+
+    final Map<ComponentIdentifier, List<Component>> componentsByKey = new LinkedHashMap<>();
+    final Map<String, Component> componentsByHash = new LinkedHashMap<>();
+    List<Component> unhashedComponents = new ArrayList<>();
+    for (Component component : bomComponents) {
+      ComponentIdentifier key = component.getComponentIdentifier();
+      List<Component> components = componentsByKey.get(key);
+      if (components == null) {
+        components = new ArrayList<>();
+        componentsByKey.put(key, components);
+      }
+      components.add(component);
+
+      String hash = component.getHash();
+      if (hash != null) {
+        componentsByHash.put(hash, component);
+      }
+      else {
+        unhashedComponents.add(component);
       }
     }
 

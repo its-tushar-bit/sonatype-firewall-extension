@@ -44,22 +44,25 @@ public class CIComponentInfoResource
   @Path("{applicationPublicId}")
   @Produces(MediaType.APPLICATION_JSON)
   public NamedComponentDetails getComponentDetails(@PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("reportId") String reportId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
       @QueryParam("matchState") String matchState, @QueryParam("hash") String hash,
       @QueryParam("proprietary") boolean proprietary) throws IOException
   {
-    return componentInfoService.getComponentDetails(applicationPublicId, identifier, matchState, hash, proprietary,
-        httpRequest);
+    return componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, reportId, identifier,
+        matchState, hash, proprietary, httpRequest);
   }
 
   @GET
   @Path("{applicationPublicId}/list")
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentDetailsList getComponentDetailsList(@PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("reportId") String reportId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
       @QueryParam("matchState") String matchState) throws IOException
   {
-    return componentInfoService.getComponentDetailsList(applicationPublicId, identifier, matchState, httpRequest);
+    return componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, reportId, identifier,
+        matchState, httpRequest);
   }
 
   @GET

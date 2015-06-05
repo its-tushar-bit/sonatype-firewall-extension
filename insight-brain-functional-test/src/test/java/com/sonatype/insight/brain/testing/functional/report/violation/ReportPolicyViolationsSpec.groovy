@@ -46,9 +46,11 @@ extends BaseSpec {
     temporaryEntity.newWaiver("494308fc2d433720c778", policy.getId(), app.getId())
 
     // trigger eval
-    def evaluator = new TestReportEvaluator(app, getClass().getResource(cannedTestReport), browser.baseUrl,
+    // The scanId must match the reportId value recorded inside the test report.zip used for this test
+    scanId = 'b9a43b67bf98409f9f79eae8574e227f'
+    def evaluator = new TestReportEvaluator(app, scanId, getClass().getResource(cannedTestReport), browser.baseUrl,
         new InsightWork(serviceRule.configuration))
-    scanId = evaluator.evaluatePolicy()
+    evaluator.evaluatePolicy()
 
     // Can't do anything without a logged in user
     loginAsAdminVia()

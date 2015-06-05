@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.testing.functional.utils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
@@ -37,36 +36,33 @@ class TestReportEvaluator
 
   final InsightWork workStorage;
 
-  String scanId;
+  final String scanId;
 
-  public TestReportEvaluator(Application app, URL locationOfTestReport, String brainBaseUrl, InsightWork workStorage) {
+  private boolean hasEvaluation = false;
+
+  public TestReportEvaluator(Application app, String scanId, URL locationOfTestReport, String brainBaseUrl,
+      InsightWork workStorage)
+  {
     this.app = app;
+    this.scanId = scanId;
     this.locationOfTestReport = locationOfTestReport;
     this.brainBaseUrl = brainBaseUrl;
     this.workStorage = workStorage;
   }
 
-  public String evaluatePolicy() throws IOException {
-    initScanId();
+  public void evaluatePolicy() throws IOException {
     addTestReport();
     evaluatePolicyForScanId();
-
-    return scanId;
   }
 
-  public String reevaluatePolicy() throws IOException {
+  public void reevaluatePolicy() throws IOException {
     // guard against programming error when writing tests
-    if (hasEvaluation()) {
+    if (hasEvaluation) {
       evaluatePolicyForScanId();
-      return scanId;
     }
     else {
       throw new IllegalStateException("No previous evaluation to re-evaluate");
     }
-  }
-
-  private void initScanId() {
-    scanId = "scan-" + UUID.randomUUID().toString();
   }
 
   private void addTestReport() throws IOException {
@@ -82,10 +78,7 @@ class TestReportEvaluator
     post.setHeader("Authorization", "Basic " + new String(Base64.encode("admin:admin123")));
     HttpResponse response = client.execute(post);
     // evaluation is done synchronously within the request, if the request is successful the eval is complete
+    hasEvaluation = true;
     assert response.getStatusLine().getStatusCode() == 200;
-  }
-
-  private boolean hasEvaluation() {
-    return scanId != null;
   }
 }

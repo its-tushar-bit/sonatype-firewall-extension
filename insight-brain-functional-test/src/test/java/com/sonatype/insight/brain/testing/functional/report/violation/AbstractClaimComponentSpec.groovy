@@ -10,6 +10,7 @@ import javax.ws.rs.core.UriBuilder
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter
 import com.sonatype.insight.brain.model.Application
+import com.sonatype.insight.brain.model.component.IdentificationSource
 import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
@@ -35,10 +36,6 @@ extends BaseSpec {
   @Shared
   def evaluator
 
-  @Shared
-  String scanId
-
-
   static final Map<String, String> FORM_FIELDS = ['groupId'       : 'testG', 'artifactId': 'testA', 'version': 'testV',
     'extension'     : 'testE', 'classifier': 'testC',
     'createTimeText': '01/01/2014',
@@ -55,10 +52,11 @@ extends BaseSpec {
   def setupSpec() {
     work = new InsightWork(serviceRule.configuration)
     app = temporaryEntity.newApplication(temporaryEntity.newOrganization().id)
-    evaluator = new TestReportEvaluator(app, getClass().getResource(getReportPath()), browser.baseUrl, work)
-    scanId = evaluator.evaluatePolicy()
+    String reportId = getReportId()
+    evaluator = new TestReportEvaluator(app, reportId, getClass().getResource(getReportPath()), browser.baseUrl, work)
+    evaluator.evaluatePolicy()
     loginAsAdminVia()
-    to ReportPage, app.publicId, scanId
+    to ReportPage, app.publicId, reportId
   }
 
   def "Should see claim tab for an unknown component"() {
@@ -116,6 +114,19 @@ extends BaseSpec {
 
     and: 'the coordinates are updated to match the claim details'
     results[0].coordinates == getExpectedDisplayNameString()
+
+    when: 'We go to the component info page'
+    mockSaasComponentDetailsListResponse(CID);
+    cip.componentInfo.show()
+
+    then: 'The claimed component coordinates are shown'
+    waitFor { cip.componentInfo.group.text() == 'testG' }
+    cip.componentInfo.artifact.text() == 'testA'
+    cip.componentInfo.extension.text() == 'testE'
+    cip.componentInfo.classifier.text() == 'testC'
+    cip.componentInfo.version.text() == 'testV'
+    cip.componentInfo.identificationSource.text() == IdentificationSource.MANUAL.getName()
+    cip.componentInfo.claimComment.text() == 'Something witty'
   }
 
   def "Should be able to update an already claimed component"() {
@@ -124,6 +135,7 @@ extends BaseSpec {
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip
     ClaimComponentModule component = cip.claimComponent
+    cip.claimComponent.showTrigger.click()
 
     when: 'Changing the version of the claimed component'
     component.claimForm.version = FORM_FIELDS.version + '-NEW'
@@ -144,6 +156,19 @@ extends BaseSpec {
 
     and: 'the coordinates are updated to match the claim details'
     results[0].coordinates == getExpectedUpdatedDisplayNameString()
+
+    when: 'We go to the component info page'
+    mockSaasComponentDetailsListResponse(UCID);
+    cip.componentInfo.show()
+
+    then: 'The claimed component coordinates are shown'
+    waitFor { cip.componentInfo.group.text() == 'testG' }
+    cip.componentInfo.artifact.text() == 'testA'
+    cip.componentInfo.extension.text() == 'testE'
+    !cip.componentInfo.classifier.displayed
+    cip.componentInfo.version.text() == 'testV-NEW'
+    cip.componentInfo.identificationSource.text() == IdentificationSource.MANUAL.getName()
+    cip.componentInfo.claimComment.text() == 'Something witty'
   }
 
   def "Can assign a license to a claimed component"() {
@@ -238,6 +263,7 @@ extends BaseSpec {
   }
 
   abstract String getReportPath()
+  abstract String getReportId()
   abstract String getExpectedDisplayNameString()
   abstract String getExpectedUpdatedDisplayNameString()
   abstract String getExpectedHash()

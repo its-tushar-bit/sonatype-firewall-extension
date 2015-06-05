@@ -49,8 +49,8 @@ public class IDEComponentInfoResource
       @QueryParam("matchState") String matchState, @QueryParam("hash") String hash,
       @QueryParam("proprietary") boolean proprietary) throws IOException
   {
-    return componentInfoService.getComponentDetails(applicationPublicId, identifier, matchState, hash, proprietary,
-        httpRequest);
+    return componentInfoService.getComponentDetails_EvaluateComponentPermission(applicationPublicId, identifier,
+        matchState, hash, proprietary, httpRequest);
   }
 
   @GET
@@ -60,7 +60,8 @@ public class IDEComponentInfoResource
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
       @QueryParam("matchState") String matchState) throws IOException
   {
-    return componentInfoService.getComponentDetailsList(applicationPublicId, identifier, matchState, httpRequest);
+    return componentInfoService.getComponentDetailsList_EvaluateComponentPermission(applicationPublicId, identifier,
+        matchState, httpRequest);
   }
 
   @GET

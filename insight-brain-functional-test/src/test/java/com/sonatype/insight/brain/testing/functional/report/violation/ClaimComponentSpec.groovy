@@ -13,6 +13,11 @@ import spock.lang.Stepwise
 @Stepwise
 class ClaimComponentSpec
 extends AbstractClaimComponentSpec {
+  @Override
+  String getReportId() {
+    // The reportId must match the reportId value recorded inside the test report.zip used for this test
+    return '4e11026275d0446eb94aef0174756976'
+  }
 
   @Override
   String getReportPath() {

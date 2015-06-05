@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import org.junit.Test;
+
 public class RepoManComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
 {
@@ -16,5 +18,15 @@ public class RepoManComponentInfoResourceTest
   @Override
   protected String getToolName() {
     return "rm";
+  }
+
+  @Test
+  public void testGetComponentDetails() throws Exception {
+    super.testGetComponentDetails_EvaluateComponentPermission();
+  }
+
+  @Test
+  public void testGetComponentDetailsList() throws Exception {
+    super.testGetComponentDetailsList_EvaluateComponentPermission();
   }
 }

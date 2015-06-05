@@ -103,6 +103,13 @@ extends Module
 {
   static content = {
     detailContainer { $('#version-graph') }
+    group(required: false) { $('#artifactInfo-Group td:nth-child(2)') }
+    artifact(required: false) { $('#artifactInfo-Artifact td:nth-child(2)') }
+    extension(required: false) { $('#artifactInfo-Extension td:nth-child(2)') }
+    classifier(required: false) { $('#artifactInfo-Classifier td:nth-child(2)') }
+    version(required: false) { $('#artifactInfo-Version td:nth-child(2)') }
+    identificationSource(required: false) { $('#artifactInfoIdentificatonSource td:nth-child(2)') }
+    claimComment(required: false) { $('#artifactInfoClaimComment td:nth-child(2)') }
     effectiveLicense(required: false) { $('#artifactInfoEffectiveLicenseRow td:nth-child(2) span') }
     showTrigger { $('a', text: 'Component Info') }
   }

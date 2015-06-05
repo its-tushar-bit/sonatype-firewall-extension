@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
+
 import spock.lang.Stepwise
 
 /**
@@ -14,6 +15,12 @@ import spock.lang.Stepwise
 @Stepwise
 class ClaimComponentIdentifierSpec
 extends AbstractClaimComponentSpec {
+  @Override
+  String getReportId() {
+    // The reportId must match the reportId value recorded inside the test report.zip used for this test
+    return '9fcc64dfc37d4569813970f741966303'
+  }
+
 
   @Override
   String getReportPath() {
@@ -66,7 +73,7 @@ extends AbstractClaimComponentSpec {
     given: 'A GAV not found in our data'
     ComponentIdentifier updatedIdentifier = ComponentIdentifier.
         createMavenCoordinates(CID.coordinates.groupId, CID.coordinates.artifactId, CID.coordinates.version,
-            CID.coordinates.classifier, 'jar')
+        CID.coordinates.classifier, 'jar')
     saasRule.setResponseForURI(createUri(updatedIdentifier), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.ide;
 
 import com.sonatype.insight.brain.saas.AbstractComponentInfoResourceTest;
 
+import org.junit.Test;
+
 public class IDEComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
 {
@@ -18,5 +20,15 @@ public class IDEComponentInfoResourceTest
   @Override
   protected String getToolName() {
     return "ide";
+  }
+
+  @Test
+  public void testGetComponentDetails() throws Exception {
+    super.testGetComponentDetails_EvaluateComponentPermission();
+  }
+
+  @Test
+  public void testGetComponentDetailsList() throws Exception {
+    super.testGetComponentDetailsList_EvaluateComponentPermission();
   }
 }

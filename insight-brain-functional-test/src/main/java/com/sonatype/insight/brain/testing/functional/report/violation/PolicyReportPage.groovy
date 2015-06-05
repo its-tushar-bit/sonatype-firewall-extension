@@ -13,8 +13,7 @@ import geb.Module
 import geb.Page
 
 class PolicyReportPage
-    extends Page
-{
+extends Page {
   static at = { policyContent.displayed }
 
   /**
@@ -33,7 +32,8 @@ class PolicyReportPage
     navigation { module ReportSubNavigation }
     policyContent(wait: true) { $('#componentTable .grid-canvas', 0) }
     results { moduleList PolicyReportRow, policyContent.children('.slick-row') }
-    resultsWithNoScore { results.findAll { it.threatGroup == none } }
+    resultsWithNoScore { results.findAll { it.threatGroup == none
+      } }
     waiver(required: false) { module AddPolicyWaiver, $('#add-waiver-modal') }
     policyDetailWaivers(required: false) { module PolicyDetailWaivers, $('#componentExistingWaiverModal') }
     removeWaiverModal(required: false) { module RemoveWaiverModal, $('#confirm-delete-waiver-modal') }
@@ -53,8 +53,7 @@ class PolicyReportPage
  * The CIP for this row can be opened with {@link #showCip()}.
  */
 class PolicyReportRow
-    extends Module
-{
+extends Module {
   static content = {
     cip { module Cip, parent().find('#informationPanel') }
     // can't rely on the text within the cell since it's only shown for the first row with that score
@@ -87,7 +86,7 @@ class PolicyReportRow
 }
 
 class Cip
-    extends Module
+extends Module
 {
   static content = {
     policy { module PolicyDetail }
@@ -100,7 +99,7 @@ class Cip
 }
 
 class ComponentInfoModule
-    extends Module
+extends Module
 {
   static content = {
     detailContainer { $('#version-graph') }
@@ -115,11 +114,11 @@ class ComponentInfoModule
 }
 
 class PolicyDetail
-    extends Module
+extends Module
 {
   static content = {
     viewWaiversButton { $('#view-existing-waivers') }
-    
+
     violations(wait: true) { moduleList PolicyRow, $('tbody tr') }
 
     // private
@@ -133,7 +132,7 @@ class PolicyDetail
   void showWaivers() {
     viewWaiversButton.click()
   }
-  
+
   void show() {
     showTrigger.click()
     waitFor { detailContainer.displayed }
@@ -141,21 +140,21 @@ class PolicyDetail
 }
 
 class PolicyDetailWaivers
-    extends Module
+extends Module
 {
   static content = {
     rows { moduleList WaiverRow, $('div.modal-body table.table.table-condensed tr').tail() }
     noWaivers { $('#no-waivers-assigned') }
     closeButton(required: false) { $('#close-component-existing-waivers') }
   }
-  
+
   void close() {
     closeButton.click()
   }
 }
 
 class WaiverRow
-    extends Module
+extends Module
 {
   static final int POLICY = 0
 
@@ -164,7 +163,7 @@ class WaiverRow
   static final int OWNER = 2
 
   static final int COMMENT = 3
-  
+
   static final int REMOVE_BUTTON = 4
 
   static content = {
@@ -175,31 +174,31 @@ class WaiverRow
     comment { cell(COMMENT) }
     removeWaiverButton { cell(REMOVE_BUTTON).children('#remove-waiver') }
   }
-  
+
   void showRemoveWaiverModal() {
     removeWaiverButton.click()
   }
 }
 
 class RemoveWaiverModal
-    extends Module
+extends Module
 {
   static content = {
     cancelButton { $('#cancel-remove-waiver') }
     removeButton { $('#confirm-remove-waiver') }
   }
-  
+
   void cancel() {
     cancelButton.click()
   }
-  
+
   void remove() {
     removeButton.click()
   }
 }
 
 class PolicyRow
-    extends Module
+extends Module
 {
   static content = {
     waiver { module AddPolicyWaiver, parents().find('#add-waiver-modal') }
@@ -217,7 +216,7 @@ class PolicyRow
 }
 
 class AddPolicyWaiver
-    extends Module
+extends Module
 {
   static content = {
     // private
@@ -245,7 +244,7 @@ class AddPolicyWaiver
   void setComment(String comment) {
     commentTextArea = comment
   }
-  
+
   void save() {
     saveTrigger.click()
   }
@@ -256,7 +255,7 @@ class AddPolicyWaiver
 }
 
 class ClaimComponentModule
-    extends Module
+extends Module
 {
   static content = {
     claimForm { $('form[name=claimForm]') }
@@ -272,7 +271,7 @@ class ClaimComponentModule
  * Models the License tab of the Cip
  */
 class LicenseModule
-    extends Module
+extends Module
 {
   static content = {
     form { $('form[name=licenseEditorForm]') }
@@ -305,7 +304,7 @@ class LicenseModule
  * Models the Audit Log tab of the Cip
  */
 class AuditLogModule
-    extends Module
+extends Module
 {
   static content = {
     noChangesMessage(required: false) { $('.tab-content').text() }
@@ -324,7 +323,7 @@ class AuditLogModule
 }
 
 class AuditLogRow
-    extends Module
+extends Module
 {
   static final int DATE = 0
 

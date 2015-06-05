@@ -25,6 +25,9 @@ var clmBuildTimestamp = '${build.timestamp}';
     if (proprietary) {
       params.proprietary = proprietary;
     }
+    if (window.reportId) {
+      params.reportId = window.reportId;
+    }
     return param(params);
   }
 

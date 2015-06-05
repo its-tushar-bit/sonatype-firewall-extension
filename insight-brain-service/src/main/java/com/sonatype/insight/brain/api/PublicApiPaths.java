@@ -10,15 +10,17 @@ package com.sonatype.insight.brain.api;
  */
 public class PublicApiPaths
 {
+  public static final String BASE_PATH = "api";
+
   /**
    * @deprecated V1 API since 1.12.0
    */
   @Deprecated
-  private static final String API_VERSION_PATH = "api/v1/";
+  private static final String API_VERSION_PATH = BASE_PATH + "/v1/";
 
-  private static final String API_VERSION_PATH_V2 = "api/v2/";
+  private static final String API_VERSION_PATH_V2 = BASE_PATH + "/v2/";
 
-  private static final String API_VERSION_PATH_V1_V2 = "api/{apiVersion: v1|v2}/";
+  private static final String API_VERSION_PATH_V1_V2 = BASE_PATH + "/{apiVersion: v1|v2}/";
 
   public static final String APP_SERVICE_PATH = API_VERSION_PATH_V1_V2 + "applications";
 

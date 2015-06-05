@@ -37,6 +37,8 @@ public class CLMShiroModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
+  private static final String AUTHC_SCHEME = "nonBrowserPromptingBasic";
+
   private final boolean anonymousClientAccessAllowed;
 
   public CLMShiroModule(final boolean anonymousClientAccessAllowed) {
@@ -52,6 +54,7 @@ public class CLMShiroModule
     expose(FilterChainResolver.class);
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
+    manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
     addTemporaryAnonymousPaths(manager);
     manager.createChain("/*assets/**", "anon"); // assets for the web interface
     manager.createChain("/cip/**", "anon"); // assets for report CIP
@@ -65,10 +68,11 @@ public class CLMShiroModule
     manager.createChain("/about", "anon"); // about product release static link
     manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", "anon"); // only redirects
+    manager.createChain("/api/**", "noSessionCreation, authcBasicMandatory");
     manager.createChain("/**/*", "authcBasic");
     // change the auth type so browsers dont prompt for login details
-    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic"))
-        .setAuthcScheme("nonBrowserPromptingBasic");
+    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
+    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasicMandatory")).setAuthcScheme(AUTHC_SCHEME);
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(CLMRealm.class);

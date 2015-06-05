@@ -209,15 +209,21 @@ public abstract class AbstractBrainServiceTest
             + response.getResponseBody(), expectedStatus, actualStatus);
   }
 
-  protected Cookie extractSessionCookie(final Response response) {
+  protected Cookie getSessionCookie(final Response response) {
     for (final Cookie cookie : response.getCookies()) {
       if (CLMShiroModule.SESSION_COOKIE_NAME.equals(cookie.getName())) {
         return cookie;
       }
     }
-
-    fail("Missing session cookie");
     return null;
+  }
+
+  protected Cookie extractSessionCookie(final Response response) {
+    Cookie cookie = getSessionCookie(response);
+    if (cookie == null) {
+      fail("Missing session cookie");
+    }
+    return cookie;
   }
 
   protected String toJson(Object object) {

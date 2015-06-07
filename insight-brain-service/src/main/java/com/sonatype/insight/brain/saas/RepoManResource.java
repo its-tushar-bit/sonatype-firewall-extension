@@ -31,6 +31,8 @@ public class RepoManResource
 {
   public static final String SERVICE_PATH = "rest/rm";
 
+  public static final String SCAN_PATH = "scan/{applicationPublicId}";
+
   private final ScanUploader uploader;
 
   @Inject
@@ -39,7 +41,7 @@ public class RepoManResource
   }
 
   @PUT
-  @Path("scan/{applicationPublicId}")
+  @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
   public ScanReceipt uploadScan(

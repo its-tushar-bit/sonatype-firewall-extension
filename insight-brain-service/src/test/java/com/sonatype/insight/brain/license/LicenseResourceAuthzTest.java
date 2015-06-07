@@ -14,7 +14,6 @@ public class LicenseResourceAuthzTest
 {
   @Test
   public void testGetLicenses() throws Exception {
-    String url = getRestUrl(LicenseResource.SERVICE_PATH);
-    testAuthcGet(url);
+    testAuthcGet(restRequest().path(LicenseResource.SERVICE_PATH));
   }
 }

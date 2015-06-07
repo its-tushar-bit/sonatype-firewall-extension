@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Before;
@@ -66,67 +66,75 @@ public abstract class AbstractResourceAuthzTest
     tempEntity.newMembershipMapping(contextId, role.getId(), authorized.getUsername());
   }
 
-  protected void testAuthzGet(String url) throws Exception {
-    testAuthzGet(url, 200);
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().anon();
   }
 
-  protected void testAuthzGet(String url, int expectedSuccessStatus) throws Exception {
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+  protected Response testAuthzGet(HttpRequest request) throws Exception {
+    return testAuthzGet(request, 200);
+  }
+
+  protected Response testAuthzGet(HttpRequest request, int expectedSuccessStatus) throws Exception {
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(403, response);
 
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(expectedSuccessStatus, response);
-  }
-
-  // Sometimes, simply being able to log in, is all the authorization you need...
-  protected void testAuthcGet(String url) throws Exception {
-    Response response = RestAccess.get(url);
-    assertResponseStatus(401, response);
-
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
-    assertResponseStatus(200, response);
-  }
-
-  protected void testAuthzPut(String url, String body) throws Exception {
-    testAuthzPut(url, body, 200);
-  }
-
-  protected void testAuthzPut(String url, String body, int expectedSuccessStatus) throws Exception {
-    Response response = RestAccess.put(url, unauthorized.getUsername(), unauthorized.getPassword(), body);
-    assertResponseStatus(403, response);
-
-    response = RestAccess.put(url, authorized.getUsername(), authorized.getPassword(), body);
-    assertResponseStatus(expectedSuccessStatus, response);
-  }
-
-  protected Response testAuthzPost(String url, String body) throws Exception {
-    return testAuthzPost(url, body, 200);
-  }
-
-  protected Response testAuthzPost(String url, String body, int expectedSuccessStatus) throws Exception {
-    Response response = RestAccess.post(url, unauthorized.getUsername(), unauthorized.getPassword(), body);
-    assertResponseStatus(403, response);
-
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), body);
-    assertResponseStatus(expectedSuccessStatus, response);
-
     return response;
   }
 
   // Sometimes, simply being able to log in, is all the authorization you need...
-  protected void testAuthcPost(String url, String body) throws Exception {
-    Response response = RestAccess.post(url, body);
+  protected Response testAuthcGet(HttpRequest request) throws Exception {
+    Response response = request.anon().get();
     assertResponseStatus(401, response);
 
-    response = RestAccess.post(url, authorized.getUsername(), authorized.getPassword(), body);
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(200, response);
+    return response;
   }
 
-  protected Response testAuthzDelete(String url) throws Exception {
-    Response response = RestAccess.delete(url, unauthorized.getUsername(), unauthorized.getPassword());
+  protected Response testAuthzPut(HttpRequest request) throws Exception {
+    return testAuthzPut(request, 200);
+  }
+
+  protected Response testAuthzPut(HttpRequest request, int expectedSuccessStatus) throws Exception {
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).put();
     assertResponseStatus(403, response);
 
-    response = RestAccess.delete(url, authorized.getUsername(), authorized.getPassword());
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).put();
+    assertResponseStatus(expectedSuccessStatus, response);
+    return response;
+  }
+
+  protected Response testAuthzPost(HttpRequest request) throws Exception {
+    return testAuthzPost(request, 200);
+  }
+
+  protected Response testAuthzPost(HttpRequest request, int expectedSuccessStatus) throws Exception {
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
+    assertResponseStatus(403, response);
+
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
+    assertResponseStatus(expectedSuccessStatus, response);
+    return response;
+  }
+
+  // Sometimes, simply being able to log in, is all the authorization you need...
+  protected Response testAuthcPost(HttpRequest request) throws Exception {
+    Response response = request.anon().post();
+    assertResponseStatus(401, response);
+
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
+    assertResponseStatus(200, response);
+    return response;
+  }
+
+  protected Response testAuthzDelete(HttpRequest request) throws Exception {
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).delete();
+    assertResponseStatus(403, response);
+
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).delete();
     assertResponseStatus(204, response);
 
     return response;

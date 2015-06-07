@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
@@ -14,12 +15,16 @@ import org.junit.Test;
 public class LdapResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(LdapResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetAll() throws Exception {
     grantConfigureSystemPermission();
 
-    String url = getRestUrl(LdapResource.SERVICE_PATH);
-    testAuthzGet(url);
+    testAuthzGet(restRequest());
   }
 
   @Test
@@ -27,8 +32,7 @@ public class LdapResourceAuthzTest
     grantConfigureSystemPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testGetConnection");
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/connection", ldapServer.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().path("{ldapServerId}/connection").parameter(ldapServer.getId()));
   }
 
   @Test
@@ -36,8 +40,7 @@ public class LdapResourceAuthzTest
     grantConfigureSystemPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testGetUserMapping");
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/userMapping", ldapServer.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().path("{ldapServerId}/userMapping").parameter(ldapServer.getId()));
   }
 
   @Test
@@ -48,8 +51,7 @@ public class LdapResourceAuthzTest
     // The LdapConnection should not be persisted to the db at this point.
     LdapConnection ldapConnection = new LdapConnection();
     ldapConnection.setServerId(ldapServer.getId());
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testConnection", ldapServer.getId());
-    testAuthzPut(url, toJson(ldapConnection));
+    testAuthzPut(restRequest().path("{ldapServerId}/testConnection").parameter(ldapServer.getId()).body(ldapConnection));
   }
 
   @Test
@@ -64,8 +66,8 @@ public class LdapResourceAuthzTest
     ldapTestLoginRequest.setUserMapping(ldapUserMapping);
     ldapTestLoginRequest.setUsername("testTestLogin");
     ldapTestLoginRequest.setPassword("testTestLogin");
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testLogin", ldapServer.getId());
-    testAuthzPut(url, toJson(ldapTestLoginRequest));
+    testAuthzPut(restRequest().path("{ldapServerId}/testLogin").parameter(ldapServer.getId())
+        .body(ldapTestLoginRequest));
   }
 
   @Test
@@ -77,29 +79,24 @@ public class LdapResourceAuthzTest
     // The LdapUserMapping should not be persisted to the db at this point.
     LdapUserMapping ldapUserMapping = new LdapUserMapping();
     ldapUserMapping.setServerId(ldapServer.getId());
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/testUserMapping", ldapServer.getId());
     // 400 because we don't need a successful call. We only need to get past authorization.
-    testAuthzPut(url, toJson(ldapUserMapping), 400);
+    testAuthzPut(
+        restRequest().path("{ldapServerId}/testUserMapping").parameter(ldapServer.getId()).body(ldapUserMapping), 400);
   }
 
   @Test
   public void testAddLdapServer() throws Exception {
     grantConfigureSystemPermission();
 
-    LdapServer ldapServer = new LdapServer("testAddLdapServer");
-    String url = getRestUrl(LdapResource.SERVICE_PATH);
-    Response response = testAuthzPost(url, toJson(ldapServer));
-    ldapServer = fromJson(response, LdapServer.class);
-    new LdapServerDAO().delete(ldapServer);
+    Response response = testAuthzPost(restRequest().body(new LdapServer("testAddLdapServer")));
+    new LdapServerDAO().delete(fromJson(response, LdapServer.class));
   }
 
   @Test
   public void testUpdateLdapServer() throws Exception {
     grantConfigureSystemPermission();
 
-    LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapServer");
-    String url = getRestUrl(LdapResource.SERVICE_PATH);
-    testAuthzPut(url, toJson(ldapServer));
+    testAuthzPut(restRequest().body(tempEntity.newLdapServer("testUpdateLdapServer")));
   }
 
   @Test
@@ -107,8 +104,7 @@ public class LdapResourceAuthzTest
     grantConfigureSystemPermission();
 
     LdapServer ldapServer = tempEntity.newLdapServer("testDeleteLdapServer");
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}", ldapServer.getId());
-    testAuthzDelete(url);
+    testAuthzDelete(restRequest().path("{ldapServerId}").parameter(ldapServer.getId()));
   }
 
   @Test
@@ -117,8 +113,7 @@ public class LdapResourceAuthzTest
 
     LdapServer ldapServer = tempEntity.newLdapServer("testUpdateLdapConnection");
     LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/connection", ldapServer.getId());
-    testAuthzPut(url, toJson(ldapConnection));
+    testAuthzPut(restRequest().path("{ldapServerId}/connection").parameter(ldapServer.getId()).body(ldapConnection));
   }
 
   @Test
@@ -145,7 +140,6 @@ public class LdapResourceAuthzTest
     ldapUserMapping.setGroupMemberFormat("groupMemberFormat");
     ldapUserMapping.setUserMemberOfGroupAttribute("userMemberOfGroupAttribute");
     ldapUserMapping.setServerId(ldapServer.getId());
-    String url = getRestUrl(LdapResource.SERVICE_PATH + "/{ldapServerId}/userMapping", ldapServer.getId());
-    testAuthzPut(url, toJson(ldapUserMapping));
+    testAuthzPut(restRequest().path("{ldapServerId}/userMapping").parameter(ldapServer.getId()).body(ldapUserMapping));
   }
 }

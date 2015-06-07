@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -16,59 +17,55 @@ import org.junit.Test;
 public class PolicyMonitoringResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PolicyMonitoringResource.SERVICE_PATH);
+  }
+
   @Test
   public void testSet() throws Exception {
+    HttpRequest request = restRequest().body(new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE));
+
     grantWritePermission(app.getId());
-
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
-
-    String url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzPut(url, toJson(policyMonitoring));
+    testAuthzPut(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
-    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
-
-    url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzPut(url, toJson(policyMonitoring));
+    testAuthzPut(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testDelete() throws Exception {
     grantWritePermission(app.getId());
     createPolicyMonitoring(app.getId());
-    String url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzDelete(url);
+    testAuthzDelete(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
     createPolicyMonitoring(org.getId());
-    url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzDelete(url);
+    testAuthzDelete(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testGet() throws Exception {
     grantReadPermission(app.getId());
     createPolicyMonitoring(app.getId());
-    String url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
     createPolicyMonitoring(org.getId());
-    url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testGetApplicable() throws Exception {
+    HttpRequest request = restRequest().path("applicable");
+
     grantReadPermission(app.getId());
     createPolicyMonitoring(app.getId());
-    String url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId(), "applicable");
-    testAuthzGet(url);
+    testAuthzGet(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
     createPolicyMonitoring(org.getId());
-    url = getRestUrl(PolicyMonitoringResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(), "applicable");
-    testAuthzGet(url);
+    testAuthzGet(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   private void createPolicyMonitoring(String ownerid) {

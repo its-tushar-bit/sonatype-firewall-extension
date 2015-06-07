@@ -14,7 +14,6 @@ public class FeaturesResourceAuthzTest
 {
   @Test
   public void testGetLicenses() throws Exception {
-    String url = getRestUrl(FeaturesResource.SERVICE_PATH);
-    testAuthcGet(url);
+    testAuthcGet(restRequest().path(FeaturesResource.SERVICE_PATH));
   }
 }

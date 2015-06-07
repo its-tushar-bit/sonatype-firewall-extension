@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.label;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -17,17 +18,22 @@ public class ComponentLabelResourceAuthzTest
 {
   private ComponentLabelDAO compLabelDAO = new ComponentLabelDAO();
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ComponentLabelResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetComponentLabels() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId(), "bad");
-    testAuthzGet(url);
+    HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), "bad");
+    testAuthzGet(request);
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(), "bad");
-    testAuthzGet(url);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), "bad");
+    testAuthzGet(request);
   }
 
   @Test
@@ -36,14 +42,14 @@ public class ComponentLabelResourceAuthzTest
     Label label = tempEntity.newLabel(org.getId());
     String hash = "bad";
 
-    String url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId(), hash);
-    testAuthzPost(url, toJson(label), 204);
+    HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), hash).body(label);
+    testAuthzPost(request, 204);
     compLabelDAO.delete(compLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), hash, label.getId()));
 
     grantWritePermission(org.getId());
 
-    url = getRestUrl(ComponentLabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(), hash);
-    testAuthzPost(url, toJson(label), 204);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), hash);
+    testAuthzPost(request, 204);
     compLabelDAO.delete(compLabelDAO.getByOwnerIdAndHashAndLabelId(org.getId(), hash, label.getId()));
   }
 
@@ -54,15 +60,14 @@ public class ComponentLabelResourceAuthzTest
     String hash = "bad";
 
     tempEntity.newComponentLabel(app.getId(), label.getId(), hash);
-    String url = getRestUrl(ComponentLabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), hash, label.getId());
-    testAuthzDelete(url);
+    HttpRequest request = restRequest().path("{labelId}").parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), hash,
+        label.getId());
+    testAuthzDelete(request);
 
     grantWritePermission(org.getId());
 
     tempEntity.newComponentLabel(org.getId(), label.getId(), hash);
-    url = getRestUrl(ComponentLabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_ORGANIZATION, org.getId(), hash,
-        label.getId());
-    testAuthzDelete(url);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), hash, label.getId());
+    testAuthzDelete(request);
   }
 }

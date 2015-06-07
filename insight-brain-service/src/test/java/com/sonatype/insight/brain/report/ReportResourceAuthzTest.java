@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.report;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -17,23 +17,26 @@ import org.junit.Test;
 public class ReportResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ReportResource.SERVICE_PATH);
+  }
+
   @Test
   public void testAugmentData() throws Exception {
     grantWritePermission(app.getId());
-    String json = "{}";
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/augmentData/{path}", app.getPublicId(), "scanId",
-        "test.json");
-    testAuthzPost(url, json);
+    HttpRequest request = restRequest().path("augmentData/{path}").parameter(app.getPublicId(), "scanId", "test.json")
+        .body("{}");
+    testAuthzPost(request);
   }
 
   @Test
   public void testAuditLog() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/auditLog/{path}", app.getPublicId(), "scanId",
-        "security.json");
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path("auditLog/{path}").parameter(app.getPublicId(), "scanId", "security.json");
+    testAuthzGet(request);
   }
 
   @Test
@@ -43,9 +46,9 @@ public class ReportResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/browseReport/{path}", app.getPublicId(), scanId,
-        "index.html");
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path("browseReport/{path}")
+        .parameter(app.getPublicId(), "scanId", "index.html");
+    testAuthzGet(request);
   }
 
   @Test
@@ -56,8 +59,8 @@ public class ReportResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/printReport", app.getPublicId(), scanId);
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path(ReportResource.PRINT_PATH).parameter(app.getPublicId(), "scanId");
+    testAuthzGet(request);
   }
 
   @Test
@@ -67,9 +70,9 @@ public class ReportResourceAuthzTest
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH, app.getPublicId(),
-        scanId);
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path(ReportResource.DOWNLOAD_BUNDLE_PATH)
+        .parameter(app.getPublicId(), "scanId");
+    testAuthzGet(request);
   }
 
   @Test
@@ -80,32 +83,29 @@ public class ReportResourceAuthzTest
 
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/reevaluatePolicy", app.getPublicId(), scanId);
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path("reevaluatePolicy").parameter(app.getPublicId(), "scanId");
+    testAuthzGet(request);
   }
 
   @Test
   public void testEmbedReport() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/{path}", app.getPublicId(), "scanId",
-        "index.html");
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
+    testAuthzGet(request);
   }
 
   @Test
   public void testEmbedReport_Unauthenticated() throws Exception {
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/{path}", app.getPublicId(), "scanId",
-        "index.html");
-    Response response = RestAccess.get(url, "unknownUser", "unknownPassword");
+    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
+    Response response = request.auth("unknownUser", "unknownPassword").get();
     assertResponseStatus(401, response);
   }
 
   @Test
   public void testEmbedReport_UnauthenticatedAnonymousAllowed() throws Exception {
-    String url = getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/{path}", app.getPublicId(), "scanId",
-        "index.html");
-    Response response = RestAccess.get(url);
+    HttpRequest request = restRequest().path("embedReport/{path}").parameter(app.getPublicId(), "scanId", "index.html");
+    Response response = request.anon().get();
     assertResponseStatus(200, response);
   }
 }

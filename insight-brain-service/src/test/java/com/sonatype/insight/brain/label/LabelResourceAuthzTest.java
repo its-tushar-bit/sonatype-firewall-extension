@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.label;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
@@ -16,30 +17,35 @@ import org.junit.Test;
 public class LabelResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(LabelResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetLabels() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzGet(url);
+    HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId());
+    testAuthzGet(request);
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzGet(url);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
+    testAuthzGet(request);
   }
 
   @Test
   public void testGetApplicableLabels() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path("applicable").parameter(IdUtils.TYPE_APPLICATION, app.getPublicId());
+    testAuthzGet(request);
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzGet(url);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
+    testAuthzGet(request);
   }
 
   @Test
@@ -47,58 +53,52 @@ public class LabelResourceAuthzTest
     grantWritePermission(app.getId());
     Label label = tempEntity.newLabel(app.getId());
 
-    String url = getRestUrl(LabelResource.SERVICE_PATH + "/applicable/context/{labelId}", IdUtils.TYPE_APPLICATION,
+    HttpRequest request = restRequest().path("applicable/context/{labelId}").parameter(IdUtils.TYPE_APPLICATION,
         app.getPublicId(), label.getId());
-    testAuthzGet(url);
+    testAuthzGet(request);
   }
 
   @Test
   public void testAddLabel() throws Exception {
     grantWritePermission(app.getId());
 
-    Label label = new Label(null, "testing");
-    String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = testAuthzPost(url, toJson(label));
-    label = fromJson(response, Label.class);
-    new LabelDAO().delete(label);
+    HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(
+        new Label(null, "testing"));
+    Response response = testAuthzPost(request);
+    new LabelDAO().delete(fromJson(response, Label.class));
 
     grantWritePermission(org.getId());
 
-    label = new Label(null, "testing");
-    url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = testAuthzPost(url, toJson(label));
-    label = fromJson(response, Label.class);
-    new LabelDAO().delete(label);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
+    response = testAuthzPost(request);
+    new LabelDAO().delete(fromJson(response, Label.class));
   }
 
   @Test
   public void testUpdateLabel() throws Exception {
     grantWritePermission(app.getId());
 
-    Label label = tempEntity.newLabel(app.getId());
-    String url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzPut(url, toJson(label));
+    HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(
+        tempEntity.newLabel(app.getId()));
+    testAuthzPut(request);
 
     grantWritePermission(org.getId());
 
-    label = tempEntity.newLabel(org.getId());
-    url = getRestUrl(LabelResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzPut(url, toJson(label));
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()).body(tempEntity.newLabel(org.getId()));
+    testAuthzPut(request);
   }
 
   @Test
   public void testDeleteLabel() throws Exception {
     grantWritePermission(app.getId());
 
-    Label label = tempEntity.newLabel(app.getId());
-    String url = getRestUrl(LabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_APPLICATION, app.getPublicId(),
-        label.getId());
-    testAuthzDelete(url);
+    HttpRequest request = restRequest().path("{labelId}").parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+        tempEntity.newLabel(app.getId()).getId());
+    testAuthzDelete(request);
 
     grantWritePermission(org.getId());
 
-    label = tempEntity.newLabel(org.getId());
-    url = getRestUrl(LabelResource.SERVICE_PATH + "/{labelId}", IdUtils.TYPE_ORGANIZATION, org.getId(), label.getId());
-    testAuthzDelete(url);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), tempEntity.newLabel(org.getId()).getId());
+    testAuthzDelete(request);
   }
 }

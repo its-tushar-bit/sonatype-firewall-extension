@@ -7,18 +7,15 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -33,11 +30,8 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
-import com.ning.http.multipart.ByteArrayPartSource;
-import com.ning.http.multipart.FilePart;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
@@ -127,6 +121,10 @@ public abstract class AbstractBrainServiceTest
 
   private boolean isProxyRequiredToReachHds() {
     return getClass().getName().endsWith("ProxyTest");
+  }
+
+  protected HttpRequest restRequest() {
+    return HttpRequest.to(getRestBaseUrl());
   }
 
   protected String getRestBaseUrl() {
@@ -269,7 +267,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected String installLicense() throws Exception {
-    Response response = uploadLicense(null);
+    Response response = installLicense(false);
     assertResponseStatus(200, response);
 
     Assert.assertTrue(licenseManager.isValid());
@@ -278,46 +276,23 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected Response installLicense(boolean forceSuccess) throws Exception {
-    return uploadLicense(Collections.singletonMap("forceSuccess", Boolean.toString(forceSuccess)));
+    return uploadLicense(forceSuccess, null, null);
   }
 
-  protected Response uploadLicense(Map<String, String> queryParams, String username, String password) throws Exception {
-    InputStream license = this.getClass().getResourceAsStream("/productlicense/license.lic");
-    try {
-      AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
-          getProductLicenseServiceURL());
-      builder.addBodyPart(new FilePart("file", new ByteArrayPartSource(null, IOUtil.toByteArray(license))));
-      if (queryParams != null) {
-        for (String key : queryParams.keySet()) {
-          builder.addQueryParameter(key, queryParams.get(key));
-        }
-      }
-
-      Response response;
-      if (username == null) {
-        response = AuthedRestAccess.execute(builder);
-      }
-      else {
-        response = AuthedRestAccess.execute(builder, username, password);
-      }
-      productlicenseWasUninstalled = false;
-      return response;
+  protected Response uploadLicense(boolean forceSuccess, String username, String password) throws Exception {
+    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH)
+        .query("forceSuccess", Boolean.toString(forceSuccess));
+    request.part("file", "sonatype.lic", getClass().getResource("/productlicense/license.lic"));
+    if (username != null) {
+      request.auth(username, password);
     }
-    finally {
-      IOUtil.close(license);
-    }
-  }
-
-  private Response uploadLicense(Map<String, String> queryParams) throws Exception {
-    return uploadLicense(queryParams, null /* username */, null /* password */);
-  }
-
-  private String getProductLicenseServiceURL() {
-    return getRestBaseUrl() + ProductLicenseResource.SERVICE_PATH;
+    Response response = request.post();
+    productlicenseWasUninstalled = false;
+    return response;
   }
 
   protected void uninstallLicense() throws Exception {
-    AuthedRestAccess.delete(getProductLicenseServiceURL());
+    HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH).delete();
     productlicenseWasUninstalled = true;
 
     Assert.assertFalse(licenseManager.isValid());

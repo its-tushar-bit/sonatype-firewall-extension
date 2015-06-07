@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Collections;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -16,12 +16,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.test.RestAccess;
 
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.ning.http.multipart.ByteArrayPartSource;
-import com.ning.http.multipart.FilePart;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -38,45 +34,44 @@ public class PolicyResourceAuthzTest
     return policy;
   }
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PolicyResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetPolicies() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testGetApplicablePolicies() throws Exception {
+    HttpRequest request = restRequest().path("applicable");
+
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzGet(url);
+    testAuthzGet(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(PolicyResource.SERVICE_PATH + "/applicable", IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzGet(url);
+    testAuthzGet(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testAddPolicy() throws Exception {
     grantWritePermission(app.getId());
 
-    Policy policy = newPolicy();
-    String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzPost(url, toJson(policy));
+    testAuthzPost(restRequest().body(newPolicy()).parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
 
-    policy = newPolicy();
-    url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzPost(url, toJson(policy));
+    testAuthzPost(restRequest().body(newPolicy()).parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -84,31 +79,27 @@ public class PolicyResourceAuthzTest
     grantWritePermission(app.getId());
 
     Policy policy = tempEntity.newPolicy(app.getId(), "testUpdatePolicy app");
-    String url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    testAuthzPut(url, toJson(policy));
+    testAuthzPut(restRequest().body(policy).parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
 
     policy = tempEntity.newPolicy(org.getId(), "testUpdatePolicy org");
-    url = getRestUrl(PolicyResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    testAuthzPut(url, toJson(policy));
+    testAuthzPut(restRequest().body(policy).parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testDeletePolicy() throws Exception {
+    HttpRequest request = restRequest().path("{policyId}");
+
     grantWritePermission(app.getId());
 
     Policy policy = tempEntity.newPolicy(app.getId(), "testDeletePolicy");
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/{policyId}", IdUtils.TYPE_APPLICATION, app.getPublicId(),
-        policy.getId());
-    testAuthzDelete(url);
+    testAuthzDelete(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), policy.getId()));
 
     grantWritePermission(org.getId());
 
     policy = tempEntity.newPolicy(org.getId(), "testDeletePolicy");
-    url = getRestUrl(PolicyResource.SERVICE_PATH + "/{policyId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
-        policy.getId());
-    testAuthzDelete(url);
+    testAuthzDelete(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), policy.getId()));
   }
 
   @Test
@@ -119,20 +110,14 @@ public class PolicyResourceAuthzTest
     export.policies = Collections.singletonList(tempEntity.newPolicy(org.getId(), "name"));
     new ApplicationDAO().delete(app);
 
-    String url = getRestUrl(PolicyResource.SERVICE_PATH + "/import/ie", IdUtils.TYPE_ORGANIZATION, org.getId());
+    HttpRequest request = restRequest().path("import/ie").parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
+    request.part("file", "filename", export);
 
-    byte[] policyArray = toJson(export).getBytes();
-    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(url);
-    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("file", policyArray)));
-    RestAccess.addAuthorization(builder, unauthorized.getUsername(), unauthorized.getPassword());
-    Response response = builder.execute().get();
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is("Insufficient permissions"));
 
-    builder = AuthedRestAccess.getClient().preparePost(url);
-    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("file", policyArray)));
-    RestAccess.addAuthorization(builder, authorized.getUsername(), authorized.getPassword());
-    response = builder.execute().get();
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is(""));
   }

@@ -17,10 +17,6 @@ public class EnvironmentResourceAuthzTest
   @Test
   public void testSubmitClientEnvironment() throws Exception {
     setSaasResponseForURI("session/environment?" + QUERY_PARAMS, "", 200);
-    testAuthcGet(getServiceURL(QUERY_PARAMS));
-  }
-
-  public String getServiceURL(final String queryParams) {
-    return getRestBaseUrl() + EnvironmentResource.RESOURCE_PATH + "?" + queryParams;
+    testAuthcGet(restRequest().path(EnvironmentResource.RESOURCE_PATH).query(QUERY_PARAMS));
   }
 }

@@ -10,11 +10,11 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v1.SearchTestHelper.ComponentInfo;
 import com.sonatype.insight.brain.api.v1.dto.ApiSearchResultsDTO;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Before;
@@ -49,15 +49,15 @@ public class ApiSearchResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(PublicApiPaths.SEARCH_SERVICE_PATH) + "?stageId=" + Stage.ID_BUILD + "&hash="
-        + "1249e25aebb15358bedd";
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    HttpRequest request = restRequest().path(PublicApiPaths.SEARCH_SERVICE_PATH).query("stageId", Stage.ID_BUILD)
+        .query("hash", "1249e25aebb15358bedd");
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(empty()));
 
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(200, response);
     results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));

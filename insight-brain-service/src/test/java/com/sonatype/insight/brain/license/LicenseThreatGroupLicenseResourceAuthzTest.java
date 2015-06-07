@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import java.util.Arrays;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -16,21 +17,22 @@ import org.junit.Test;
 public class LicenseThreatGroupLicenseResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(LicenseThreatGroupLicenseResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetLicenseThreatGroupLicenses() throws Exception {
     grantReadPermission(app.getId());
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
 
-    String url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), ltg.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), ltg.getId()));
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(),
-        ltg.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), ltg.getId()));
   }
 
   @Test
@@ -38,16 +40,12 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
     grantWritePermission(app.getId());
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
-    String json = toJson(Arrays.asList("MIT"));
 
-    String url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), ltg.getId());
-    testAuthzPut(url, json);
+    HttpRequest request = restRequest().body(Arrays.asList("MIT"));
+    testAuthzPut(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), ltg.getId()));
 
     grantWritePermission(org.getId());
 
-    url = getRestUrl(LicenseThreatGroupLicenseResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId(),
-        ltg.getId());
-    testAuthzPut(url, json);
+    testAuthzPut(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), ltg.getId()));
   }
 }

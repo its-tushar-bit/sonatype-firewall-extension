@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -20,6 +21,11 @@ public class PolicyWaiverResourceAuthzTest
 {
   private Policy policy;
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PolicyWaiverResource.SERVICE_PATH);
+  }
+
   @Before
   public void init() {
     policy = tempEntity.newPolicy(app.getId(), "Test Policy");
@@ -29,61 +35,48 @@ public class PolicyWaiverResourceAuthzTest
   public void testAddPolicyWaiver() throws Exception {
     grantWritePermission(app.getId());
 
-    PolicyWaiver waiver = new PolicyWaiver("hash", policy.getId(), null, "comment");
-
-    String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = testAuthzPost(url, toJson(waiver));
-    waiver = fromJson(response, PolicyWaiver.class);
-    new PolicyWaiverDAO().delete(waiver);
+    HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
+    Response response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    new PolicyWaiverDAO().delete(fromJson(response, PolicyWaiver.class));
 
     grantWritePermission(org.getId());
-    waiver = new PolicyWaiver("hash", policy.getId(), null, "comment");
 
-    url = getRestUrl(PolicyWaiverResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = testAuthzPost(url, toJson(waiver));
-    waiver = fromJson(response, PolicyWaiver.class);
-    new PolicyWaiverDAO().delete(waiver);
+    request.body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
+    response = testAuthzPost(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    new PolicyWaiverDAO().delete(fromJson(response, PolicyWaiver.class));
   }
 
   @Test
   public void testDeletePolicyWaiver() throws Exception {
+    HttpRequest request = restRequest().path("{waiverId}");
+
     grantWritePermission(app.getId());
-
     PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), app.getId());
-
-    String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/{waiverId}", IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), waiver.getId());
-    testAuthzDelete(url);
+    testAuthzDelete(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), waiver.getId()));
 
     grantWritePermission(org.getId());
     waiver = tempEntity.newWaiver("hash", policy.getId(), org.getId());
-
-    url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/{waiverId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
-        waiver.getId());
-    testAuthzDelete(url);
+    testAuthzDelete(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), waiver.getId()));
   }
 
   @Test
   public void testGetPolicyWaiversByHash() throws Exception {
+    HttpRequest request = restRequest().path("component/hash");
+
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/component/{hash}", IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), "hash");
-    testAuthzGet(url);
+    testAuthzGet(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
 
-    url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/component/{hash}", IdUtils.TYPE_ORGANIZATION, org.getId(),
-        "hash");
-    testAuthzGet(url);
+    testAuthzGet(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testGetApplicableContexts() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(PolicyWaiverResource.SERVICE_PATH + "/applicable/context/{policyId}",
-        IdUtils.TYPE_APPLICATION, app.getPublicId(), policy.getId());
-    testAuthzGet(url);
+    testAuthzGet(restRequest().path("applicable/context/{policyId}").parameter(IdUtils.TYPE_APPLICATION,
+        app.getPublicId(), policy.getId()));
   }
 }

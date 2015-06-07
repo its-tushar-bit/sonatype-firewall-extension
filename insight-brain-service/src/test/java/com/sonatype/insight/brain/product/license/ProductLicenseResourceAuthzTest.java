@@ -17,10 +17,10 @@ public class ProductLicenseResourceAuthzTest
   public void testInstallLicense() throws Exception {
     grantConfigureSystemPermission();
 
-    Response response = uploadLicense(null /* queryParams */, unauthorized.getUsername(), unauthorized.getPassword());
+    Response response = uploadLicense(false, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(403, response);
 
-    response = uploadLicense(null /* queryParams */, authorized.getUsername(), authorized.getPassword());
+    response = uploadLicense(false, authorized.getUsername(), authorized.getPassword());
     assertResponseStatus(200, response);
   }
 
@@ -30,7 +30,6 @@ public class ProductLicenseResourceAuthzTest
 
     grantConfigureSystemPermission();
 
-    String url = getRestUrl(ProductLicenseResource.SERVICE_PATH);
-    testAuthzDelete(url);
+    testAuthzDelete(restRequest().path(ProductLicenseResource.SERVICE_PATH));
   }
 }

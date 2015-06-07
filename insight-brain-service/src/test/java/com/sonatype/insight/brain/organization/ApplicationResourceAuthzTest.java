@@ -5,14 +5,10 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
-import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.ning.http.multipart.StringPart;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.emptyArray;
@@ -22,31 +18,31 @@ import static org.junit.Assert.assertThat;
 public class ApplicationResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ApplicationResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetScanApplicationManagementSummary() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestBaseUrl()
-        + ApplicationResource.SERVICE_PATH
-        + "/"
-        + ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY.replace("{applicationPublicId}",
-            app.getPublicId()).replace("{scanId}", "123");
-
-    testAuthzGet(url, 404);
+    HttpRequest request = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY).parameter(
+        app.getPublicId(), "scan123");
+    testAuthzGet(request, 404);
   }
 
   @Test
   public void testGetAllSummaries() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/'
-        + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
-    Response response = RestAccess.get(url, unauthorized.getUsername(), unauthorized.getPassword());
+    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
+    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
     assertThat(entities, is(emptyArray()));
 
-    response = RestAccess.get(url, authorized.getUsername(), authorized.getPassword());
+    response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(200, response);
     entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
     assertThat(entities.length, is(1));
@@ -55,72 +51,52 @@ public class ApplicationResourceAuthzTest
 
   @Test
   public void testGenerateIcon() throws Exception {
-    User user = tempEntity.newUser();
     String hash = "abababababababababab";
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GENERATE_ICON_PATH, hash);
     setSaasResponseForURI("rest/application/icon/generate/" + hash, new byte[0], 200);
-    Response response = RestAccess.get(url, user.getUsername(), user.getPassword());
-    assertResponseStatus(200, response);
+    HttpRequest request = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter(hash);
+    testAuthcGet(request);
   }
 
   @Test
   public void testGetApplicationManagementSummary() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/'
-        + ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY, app.getPublicId());
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY).parameter(
+        app.getPublicId());
+    testAuthzGet(request);
   }
 
   @Test
   public void testGetIcon() throws Exception {
     grantReadPermission(app.getId());
 
-    String url = getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.GET_APPLICATION_ICON_PATH,
-        app.getPublicId());
-    testAuthzGet(url, 307);
+    HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
+        .parameter(app.getPublicId());
+    testAuthzGet(request, 307);
   }
 
   @Test
   public void testSetIcon() throws Exception {
     grantWritePermission(app.getId());
 
-    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
-        getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.ICON_PATH));
-    builder.addBodyPart(new StringPart("applicationId", app.getId()));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    RestAccess.addAuthorization(builder, unauthorized.getUsername(), unauthorized.getPassword());
-    Response response = builder.execute().get();
-    assertResponseStatus(403, response);
-
-    builder = AuthedRestAccess.getClient().preparePost(
-        getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.ICON_PATH));
-    builder.addBodyPart(new StringPart("applicationId", app.getId()));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    RestAccess.addAuthorization(builder, authorized.getUsername(), authorized.getPassword());
-    response = builder.execute().get();
-    assertResponseStatus(204, response);
+    HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", app.getId())
+        .part("hasRobotSource", "false");
+    testAuthzPost(request, 204);
   }
 
   @Test
   public void testSetIconSync() throws Exception {
     grantWritePermission(app.getId());
 
-    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(
-        getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.ICON_PATH_SYNC));
-    builder.addBodyPart(new StringPart("applicationId", app.getId()));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    RestAccess.addAuthorization(builder, unauthorized.getUsername(), unauthorized.getPassword());
-    Response response = builder.execute().get();
+    HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", app.getId())
+        .part("hasRobotSource", "false");
+    request.auth(unauthorized.getUsername(), unauthorized.getPassword());
+    Response response = request.post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is("Insufficient permissions"));
 
-    builder = AuthedRestAccess.getClient().preparePost(
-        getRestUrl(ApplicationResource.SERVICE_PATH + '/' + ApplicationResource.ICON_PATH_SYNC));
-    builder.addBodyPart(new StringPart("applicationId", app.getId()));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    RestAccess.addAuthorization(builder, authorized.getUsername(), authorized.getPassword());
-    response = builder.execute().get();
+    request.auth(authorized.getUsername(), authorized.getPassword());
+    response = request.post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is(""));
   }

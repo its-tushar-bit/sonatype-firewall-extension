@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
@@ -28,56 +26,58 @@ public class PublicRestApiAuthcTest
 {
   @Test
   public void testSessionCookieInsufficientForAuthentication() throws Exception {
-    Response response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, null);
+    Response response = restRequest().path(UserSessionResource.SERVICE_PATH).post();
     assertResponseStatus(204, response);
 
     Cookie sessionCookie = getSessionCookie(response);
     assertThat(sessionCookie, is(notNullValue()));
 
-    response = RestAccess.get(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), sessionCookie);
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
+    response = request.get();
     assertResponseStatus(401, response);
 
-    response = RestAccess.put(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), null, null, null, null,
-        sessionCookie, "body", null, null);
+    response = request.put();
     assertResponseStatus(401, response);
 
-    response = RestAccess.post(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), sessionCookie);
+    response = request.post();
     assertResponseStatus(401, response);
 
-    response = RestAccess.delete(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), null, null, null, sessionCookie);
+    response = request.delete();
     assertResponseStatus(401, response);
   }
 
   @Test
   public void testExplicitCredentialsSufficientForAuthentication() throws Exception {
-    Response response = AuthedRestAccess.get(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"));
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
+    Response response = request.get();
     assertResponseStatus(404, response);
 
-    response = AuthedRestAccess.put(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), "body");
+    response = request.put();
     assertResponseStatus(404, response);
 
-    response = AuthedRestAccess.post(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), "body");
+    response = request.post();
     assertResponseStatus(404, response);
 
-    response = AuthedRestAccess.delete(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"));
+    response = request.delete();
     assertResponseStatus(404, response);
   }
 
   @Test
   public void testRequestsDoNotCreateSession() throws Exception {
-    Response response = AuthedRestAccess.get(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"));
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
+    Response response = request.get();
     assertResponseStatus(404, response);
     assertThat(getSessionCookie(response), is(nullValue()));
 
-    response = AuthedRestAccess.put(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), "body");
+    response = request.put();
     assertResponseStatus(404, response);
     assertThat(getSessionCookie(response), is(nullValue()));
 
-    response = AuthedRestAccess.post(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"), "body");
+    response = request.post();
     assertResponseStatus(404, response);
     assertThat(getSessionCookie(response), is(nullValue()));
 
-    response = AuthedRestAccess.delete(getRestUrl(PublicApiPaths.BASE_PATH + "/any/thing"));
+    response = request.delete();
     assertResponseStatus(404, response);
     assertThat(getSessionCookie(response), is(nullValue()));
   }

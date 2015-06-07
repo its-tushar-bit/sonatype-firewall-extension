@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.license;
 
-import javax.ws.rs.core.UriBuilder;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -21,14 +20,19 @@ import org.junit.Test;
 public class LicenseOverrideResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(LicenseOverrideResource.SERVICE_PATH);
+  }
+
   @Test
   public void testAddLicenseOverride() throws Exception {
     grantWritePermission(app.getId());
     LicenseOverride override = new LicenseOverride(null, ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
       LicenseOverrideStatus.CONFIRMED, (String)null, "test");
 
-    String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_APPLICATION, app.getPublicId());
-    Response response = testAuthzPost(url, toJson(override));
+    HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(override);
+    Response response = testAuthzPost(request);
     override = fromJson(response, LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
 
@@ -36,8 +40,8 @@ public class LicenseOverrideResourceAuthzTest
     override = new LicenseOverride(null, ComponentIdentifier.createMavenCoordinates("g", "a", "1"),
       LicenseOverrideStatus.CONFIRMED, (String)null, "test");
 
-    url = getRestUrl(LicenseOverrideResource.SERVICE_PATH, IdUtils.TYPE_ORGANIZATION, org.getId());
-    response = testAuthzPost(url, toJson(override));
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()).body(override);
+    response = testAuthzPost(request);
     override = fromJson(response, LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
   }
@@ -49,16 +53,15 @@ public class LicenseOverrideResourceAuthzTest
     LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), componentIdentifier,
       LicenseOverrideStatus.CONFIRMED, (String)null);
 
-    String url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_APPLICATION,
-        app.getPublicId(), override.getId());
-    testAuthzDelete(url);
+    HttpRequest request = restRequest().path("{overrideId}").parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+        override.getId());
+    testAuthzDelete(request);
 
     grantWritePermission(org.getId());
     override = tempEntity.newLicenseOverride(org.getId(), componentIdentifier, LicenseOverrideStatus.CONFIRMED, (String)null);
 
-    url = getRestUrl(LicenseOverrideResource.SERVICE_PATH + "/{overrideId}", IdUtils.TYPE_ORGANIZATION, org.getId(),
-        override.getId());
-    testAuthzDelete(url);
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), override.getId());
+    testAuthzDelete(request);
   }
 
   @Test
@@ -67,20 +70,13 @@ public class LicenseOverrideResourceAuthzTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "1");
 
-    String url = getServiceURL(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentIdentifier);
-    testAuthzGet(url);
+    HttpRequest request = restRequest().query("componentIdentifier", "{compId}").parameter(IdUtils.TYPE_APPLICATION,
+        app.getPublicId(), ComponentIdentifierAdapter.toJson(componentIdentifier));
+    testAuthzGet(request);
 
     grantReadPermission(org.getId());
 
-    url = getServiceURL(IdUtils.TYPE_ORGANIZATION, org.getId(), componentIdentifier);
-    testAuthzGet(url);
-  }
-
-  private String getServiceURL(final String ownerType, final String ownerId, final ComponentIdentifier componentIdentifier) {
-    UriBuilder builder = UriBuilder.fromUri(getRestUrl(LicenseOverrideResource.SERVICE_PATH, ownerType, ownerId));
-    if (componentIdentifier != null) {
-      builder.queryParam("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier));
-    }
-    return builder.build().toString();
+    request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), ComponentIdentifierAdapter.toJson(componentIdentifier));
+    testAuthzGet(request);
   }
 }

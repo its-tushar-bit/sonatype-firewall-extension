@@ -14,7 +14,6 @@ public class ConditionTypeResourceAuthzTest
 {
   @Test
   public void testGetConditionTypes() throws Exception {
-    String url = getRestUrl(ConditionTypeResource.SERVICE_PATH);
-    testAuthcGet(url);
+    testAuthcGet(restRequest().path(ConditionTypeResource.SERVICE_PATH));
   }
 }

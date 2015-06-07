@@ -810,6 +810,8 @@
                 <include>**/productlicense/license.lic</include>
                 <include>**/SlowMoFilter*</include>
                 <include>**/TemporaryEntity*</include>
+                <include>**/Url*</include>
+                <include>**/HttpRequest*</include>
               </includes>
             </configuration>
           </execution>

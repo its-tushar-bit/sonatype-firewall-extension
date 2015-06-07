@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
@@ -13,14 +14,19 @@ import org.junit.Test;
 public class IdeResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(IdeResource.SERVICE_PATH );
+  }
+
   @Test
   public void testDoScan() throws Exception {
     String hash = "0123456789";
     setSaasResponseForURI("rest/ide/scan/simple/" + hash, "{}", 200);
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
-    String url = getRestUrl(IdeResource.SERVICE_PATH + "/scan/simple/{appPublicId}/{hash}", app.getPublicId(), hash);
-    testAuthzGet(url);
+    HttpRequest request = restRequest().path("scan/simple/{appPublicId}/{hash}").parameter(app.getPublicId(), hash);
+    testAuthzGet(request);
   }
 
   @Test
@@ -29,8 +35,8 @@ public class IdeResourceAuthzTest
     setSaasResponseForURI("rest/ide/scan/enhanced/" + hash, "{}", 200);
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
 
-    String url = getRestUrl(IdeResource.SERVICE_PATH + "/scan/enhanced/{appPublicId}/{hash}", app.getPublicId(), hash);
-    String json = "{}";
-    testAuthzPost(url, json);
+    HttpRequest request = restRequest().path("scan/enhanced/{appPublicId}/{hash}").parameter(app.getPublicId(), hash)
+        .body("{}");
+    testAuthzPost(request);
   }
 }

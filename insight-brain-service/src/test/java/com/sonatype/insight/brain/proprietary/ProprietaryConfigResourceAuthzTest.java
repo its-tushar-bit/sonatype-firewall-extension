@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.After;
@@ -22,6 +22,11 @@ import static org.junit.Assert.assertTrue;
 public class ProprietaryConfigResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ProprietaryConfigResource.SERVICE_PATH);
+  }
+
   @After
   public void cleanup() throws Exception {
     File configFile = new File(getCLMServer().getDataDir(), "proprietary.json");
@@ -36,21 +41,18 @@ public class ProprietaryConfigResourceAuthzTest
 
     grantManageProprietaryPermission();
 
-    String url = getRestUrl(ProprietaryConfigResource.SERVICE_PATH + "/update");
-
-    testAuthzPut(url, toJson(config), 204);
+    testAuthzPut(restRequest().path("update").body(config), 204);
   }
 
   @Test
   public void testGet_UnauthenticatedAnonymousAllowed() throws Exception {
-    Response response = RestAccess.get(getRestUrl(ProprietaryConfigResource.SERVICE_PATH));
+    Response response = restRequest().anon().get();
     assertResponseStatus(200, response);
   }
 
   @Test
   public void testGet_UnauthenticatedUserNotAllowed() throws Exception {
-    Response response = RestAccess.get(getRestUrl(ProprietaryConfigResource.SERVICE_PATH),
-        "unknownUser", "unknownPassword");
+    Response response = restRequest().auth("unknownUser", "unknownPassword").get();
     assertResponseStatus(401, response);
   }
 }

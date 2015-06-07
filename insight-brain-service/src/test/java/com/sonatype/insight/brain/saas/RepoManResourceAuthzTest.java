@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -15,27 +15,25 @@ import org.junit.Test;
 public class RepoManResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-
   @Test
   public void testUploadScan() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    testAuthzPut(getServiceURL() + "/scan/" + app.getPublicId(), "");
+    testAuthzPut(scanRequest());
   }
 
   @Test
   public void testUploadScan_UnauthorizedAnonymousAllowed() throws Exception {
-    Response response = RestAccess.put(getServiceURL() + "/scan/" + app.getPublicId(), "");
+    Response response = scanRequest().anon().put();
     assertResponseStatus(200, response);
   }
 
   @Test
   public void testUploadScan_Unauthorized() throws Exception {
-    final Response response = RestAccess.put(getServiceURL() + "/scan/" + app.getPublicId(),
-        "unknownUser", "unknownPassword");
+    Response response = scanRequest().auth("unknownUser", "unknownPassword").put();
     assertResponseStatus(401, response);
   }
 
-  private String getServiceURL() {
-    return getRestBaseUrl() + RepoManResource.SERVICE_PATH;
+  private HttpRequest scanRequest() {
+    return restRequest().path(RepoManResource.SERVICE_PATH, RepoManResource.SCAN_PATH).parameter(app.getPublicId());
   }
 }

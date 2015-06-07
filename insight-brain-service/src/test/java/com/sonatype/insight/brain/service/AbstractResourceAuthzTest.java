@@ -16,6 +16,12 @@ import com.sonatype.insight.brain.model.security.User;
 import com.ning.http.client.Response;
 import org.junit.Before;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
+
 /**
  * Provides boilerplate fixture for authorization tests.
  */
@@ -71,71 +77,80 @@ public abstract class AbstractResourceAuthzTest
     return super.restRequest().anon();
   }
 
-  protected Response testAuthzGet(HttpRequest request) throws Exception {
-    return testAuthzGet(request, 200);
+  private void assertStatus(Response response, Integer status) {
+    if (status == null) {
+      assertThat(response.getStatusCode(), is(allOf(greaterThanOrEqualTo(200), lessThan(400))));
+    }
+    else {
+      assertThat(response.getStatusCode(), is(status));
+    }
   }
 
-  protected Response testAuthzGet(HttpRequest request, int expectedSuccessStatus) throws Exception {
+  protected Response testAuthzGet(HttpRequest request) throws Exception {
+    return testAuthzGet(request, null);
+  }
+
+  protected Response testAuthzGet(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
     Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
-    assertResponseStatus(403, response);
+    assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
-    assertResponseStatus(expectedSuccessStatus, response);
+    assertStatus(response, expectedSuccessStatus);
     return response;
   }
 
   // Sometimes, simply being able to log in, is all the authorization you need...
   protected Response testAuthcGet(HttpRequest request) throws Exception {
     Response response = request.anon().get();
-    assertResponseStatus(401, response);
+    assertStatus(response, 401);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
-    assertResponseStatus(200, response);
+    assertStatus(response, null);
     return response;
   }
 
   protected Response testAuthzPut(HttpRequest request) throws Exception {
-    return testAuthzPut(request, 200);
+    return testAuthzPut(request, null);
   }
 
-  protected Response testAuthzPut(HttpRequest request, int expectedSuccessStatus) throws Exception {
+  protected Response testAuthzPut(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
     Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).put();
-    assertResponseStatus(403, response);
+    assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).put();
-    assertResponseStatus(expectedSuccessStatus, response);
+    assertStatus(response, expectedSuccessStatus);
     return response;
   }
 
   protected Response testAuthzPost(HttpRequest request) throws Exception {
-    return testAuthzPost(request, 200);
+    return testAuthzPost(request, null);
   }
 
-  protected Response testAuthzPost(HttpRequest request, int expectedSuccessStatus) throws Exception {
+  protected Response testAuthzPost(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
     Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
-    assertResponseStatus(403, response);
+    assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
-    assertResponseStatus(expectedSuccessStatus, response);
+    assertStatus(response, expectedSuccessStatus);
     return response;
   }
 
   // Sometimes, simply being able to log in, is all the authorization you need...
   protected Response testAuthcPost(HttpRequest request) throws Exception {
     Response response = request.anon().post();
-    assertResponseStatus(401, response);
+    assertStatus(response, 401);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
-    assertResponseStatus(200, response);
+    assertStatus(response, null);
     return response;
   }
 
   protected Response testAuthzDelete(HttpRequest request) throws Exception {
     Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).delete();
-    assertResponseStatus(403, response);
+    assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).delete();
-    assertResponseStatus(204, response);
+    assertStatus(response, null);
 
     return response;
   }

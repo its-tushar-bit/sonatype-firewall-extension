@@ -43,13 +43,13 @@ public class ComponentLabelResourceAuthzTest
     String hash = "bad";
 
     HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), hash).body(label);
-    testAuthzPost(request, 204);
+    testAuthzPost(request);
     compLabelDAO.delete(compLabelDAO.getByOwnerIdAndHashAndLabelId(app.getId(), hash, label.getId()));
 
     grantWritePermission(org.getId());
 
     request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), hash);
-    testAuthzPost(request, 204);
+    testAuthzPost(request);
     compLabelDAO.delete(compLabelDAO.getByOwnerIdAndHashAndLabelId(org.getId(), hash, label.getId()));
   }
 

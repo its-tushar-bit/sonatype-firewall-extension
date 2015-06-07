@@ -41,7 +41,7 @@ public class ProprietaryConfigResourceAuthzTest
 
     grantManageProprietaryPermission();
 
-    testAuthzPut(restRequest().path("update").body(config), 204);
+    testAuthzPut(restRequest().path("update").body(config));
   }
 
   @Test

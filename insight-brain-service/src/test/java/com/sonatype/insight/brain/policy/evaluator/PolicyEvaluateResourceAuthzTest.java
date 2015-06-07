@@ -36,7 +36,7 @@ public class PolicyEvaluateResourceAuthzTest
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
-    testAuthzPost(evalRequest(app.getPublicId(), scanId, stage), 200);
+    testAuthzPost(evalRequest(app.getPublicId(), scanId, stage));
   }
 
   @Test

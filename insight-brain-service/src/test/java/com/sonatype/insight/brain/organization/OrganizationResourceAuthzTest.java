@@ -35,7 +35,7 @@ public class OrganizationResourceAuthzTest
     grantReadPermission(org.getId());
 
     HttpRequest request = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(org.getId());
-    testAuthzGet(request, 307);
+    testAuthzGet(request);
   }
 
   @Test
@@ -44,7 +44,7 @@ public class OrganizationResourceAuthzTest
 
     HttpRequest request = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", org.getId())
         .part("hasRobotSource", "false");
-    testAuthzPost(request, 204);
+    testAuthzPost(request);
   }
 
   @Test

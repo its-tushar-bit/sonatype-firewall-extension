@@ -72,7 +72,7 @@ public class ApplicationResourceAuthzTest
 
     HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
         .parameter(app.getPublicId());
-    testAuthzGet(request, 307);
+    testAuthzGet(request);
   }
 
   @Test
@@ -81,7 +81,7 @@ public class ApplicationResourceAuthzTest
 
     HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", app.getId())
         .part("hasRobotSource", "false");
-    testAuthzPost(request, 204);
+    testAuthzPost(request);
   }
 
   @Test

@@ -39,7 +39,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -63,8 +63,6 @@ public class ComponentInfoService
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   private LicenseDAO licenseDAO = new LicenseDAO();
-
-  private PolicyEvaluator policyEvaluator = new PolicyEvaluator();
 
   private final SaasClient hdsClient;
 
@@ -166,8 +164,8 @@ public class ComponentInfoService
     component.setProprietary(proprietary);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
-        Collections.singletonList(component));
+    List<PolicyAlert> policyAlerts = new ComponentPolicyEvaluator().evaluate(app.getId(),
+        new Stage(DevelopStageType.ID), Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()

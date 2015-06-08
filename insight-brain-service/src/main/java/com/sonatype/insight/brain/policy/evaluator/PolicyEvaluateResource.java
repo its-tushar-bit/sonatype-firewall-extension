@@ -39,17 +39,17 @@ public class PolicyEvaluateResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateResource.class);
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Inject
-  public PolicyEvaluateResource(final PolicyEvaluationUtils policyEvaluationUtils,
+  public PolicyEvaluateResource(final ScanPolicyEvaluator scanPolicyEvaluator,
       PolicyAlertNotifier policyAlertNotifier)
   {
-    this.policyEvaluationUtils = policyEvaluationUtils;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
   }
 
@@ -73,8 +73,8 @@ public class PolicyEvaluateResource
     PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(appId,
         stage.getStageTypeId());
 
-    PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluate(applicationPublicId, scanId, stage);
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils
+    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
+    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
         .createPolicyEvaluationResult(policyEvaluation);
 
     if (!policyEvaluationResult.isReevaluation()) {

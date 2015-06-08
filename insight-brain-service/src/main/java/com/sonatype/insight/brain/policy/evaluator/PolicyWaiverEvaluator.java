@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Assists the {@link PolicyEvaluator} by factoring in policy waivers.
+ * Assists the {@link ComponentPolicyEvaluator} by factoring in policy waivers.
  * 
  * @since 1.9
  */

@@ -41,7 +41,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
@@ -76,7 +76,7 @@ public class ApiComponentEvaluationServiceV2
 
   private final ApplicationDAO applicationDAO;
 
-  private final PolicyEvaluator policyEvaluator;
+  private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
@@ -90,12 +90,13 @@ public class ApiComponentEvaluationServiceV2
 
 
   @Inject
-  public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO, final PolicyEvaluator policyEvaluator,
-      final ComponentDetailsLoader componentDetailsLoader, final ApiComponentDetailsAdapter componentDetailsAdapter,
-      final SaasClient client, final InsightWork work, final ErrorResponseGenerator errorResponseGenerator)
+  public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO,
+      final ComponentPolicyEvaluator componentPolicyEvaluator, final ComponentDetailsLoader componentDetailsLoader,
+      final ApiComponentDetailsAdapter componentDetailsAdapter, final SaasClient client, final InsightWork work,
+      final ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
-    this.policyEvaluator = policyEvaluator;
+    this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsLoader = componentDetailsLoader;
     this.componentDetailsAdapter = componentDetailsAdapter;
     this.client = client;
@@ -207,8 +208,8 @@ public class ApiComponentEvaluationServiceV2
           ApiComponentDTOV2 componentDTO = evaluationRequestDTO.components.get(componentEvaluationData.requestIndex);
           component.setProprietary(componentDTO.proprietary);
           // Evaluate the policies
-          List<PolicyAlert> policyAlerts = policyEvaluator.evaluate(application.getId(),
-              new Stage(DevelopStageType.ID), Collections.singletonList(component));
+          List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(application.getId(), new Stage(
+              DevelopStageType.ID), Collections.singletonList(component));
           componentDetails.setPolicyAlerts(policyAlerts);
 
           ApiComponentDetailsDTOV2 componentDetailsDTO = componentDetailsAdapter.convertToDTO(component, policyAlerts);

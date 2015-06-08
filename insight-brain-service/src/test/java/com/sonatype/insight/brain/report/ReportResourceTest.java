@@ -62,7 +62,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.saas.TestNamedComponentDetails;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -508,7 +508,7 @@ public class ReportResourceTest
     String appPublicId = "bom1-12345678";
 
     Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/"
-        + PolicyEvaluationUtils.POLICY_ALERTS_FILENAME, appPublicId, scanId));
+        + ScanPolicyEvaluator.POLICY_ALERTS_FILENAME, appPublicId, scanId));
     assertResponseStatus(404, response);
     assertEquals("Reports have been moved.  Clear cache and reload.", response.getResponseBody());
   }
@@ -986,7 +986,7 @@ public class ReportResourceTest
         assertNull(zip.getEntry("data/index.html"));
         assertNotNull(zip.getEntry("data/components.json"));
         assertNotNull(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png"));
-        assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
+        assertNotNull(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME));
 
         assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
         ComponentDetails details = JsonUtils.parse(
@@ -1088,7 +1088,7 @@ public class ReportResourceTest
 
         assertNotNull(zip.getEntry("data/release-graph/maven/"
             + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"));
-        assertNotNull(zip.getEntry("data/" + PolicyEvaluationUtils.POLICY_THREATS_FILENAME));
+        assertNotNull(zip.getEntry("data/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME));
 
         assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
         TestNamedComponentDetails details = JsonUtils.parse(

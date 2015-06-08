@@ -60,7 +60,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
 import com.sonatype.insight.brain.security.Authorize;
@@ -108,7 +108,7 @@ public class ReportResource
 
   private final ReportService reportService;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final ApiReportDataServiceV2 reportDataService;
 
@@ -121,13 +121,13 @@ public class ReportResource
   private final VersionService versionService;
 
   @Inject
-  public ReportResource(final ReportService reportService, final PolicyEvaluationUtils policyEvaluationUtils,
+  public ReportResource(final ReportService reportService, final ScanPolicyEvaluator scanPolicyEvaluator,
       InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ApiReportDataServiceV2 reportDataService,
       ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser,
       VersionService versionService)
   {
     this.reportService = reportService;
-    this.policyEvaluationUtils = policyEvaluationUtils;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.work = work;
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
@@ -247,7 +247,7 @@ public class ReportResource
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
-    policyEvaluationUtils.evaluate(applicationPublicId, scanId, new Stage(policyEvaluation.getStageTypeId()));
+    scanPolicyEvaluator.evaluate(applicationPublicId, scanId, new Stage(policyEvaluation.getStageTypeId()));
 
     return Response.ok().build();
   }

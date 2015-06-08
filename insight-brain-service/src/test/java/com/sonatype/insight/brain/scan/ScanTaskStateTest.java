@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -42,11 +42,11 @@ public class ScanTaskStateTest
 {
   Scanner scanner = mock(Scanner.class);
   ScanUploader uploader = mock(ScanUploader.class);
-  PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
+  ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
   PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
   InsightWork work = mock(InsightWork.class);
   FileCleaner fileCleaner = mock(FileCleaner.class);
-  ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work, fileCleaner);
+  ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner);
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
@@ -96,7 +96,7 @@ public class ScanTaskStateTest
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(uploader.upload((File) any(), anyString(), anyString())).thenReturn(scanReciept);
 
-    when(evaluator.evaluate(anyString(), anyString(), (Stage) any())).then(captureState);
+    when(scanPolicyEvaluator.evaluate(anyString(), anyString(), (Stage) any())).then(captureState);
 
     task.run();
 

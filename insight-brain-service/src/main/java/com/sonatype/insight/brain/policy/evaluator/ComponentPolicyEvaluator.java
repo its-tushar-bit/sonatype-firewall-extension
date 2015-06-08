@@ -47,9 +47,9 @@ import org.drools.runtime.StatefulKnowledgeSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PolicyEvaluator
+public class ComponentPolicyEvaluator
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyEvaluator.class);
+  private static final Logger log = LoggerFactory.getLogger(ComponentPolicyEvaluator.class);
 
   static final Comparator<MatchFact> MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION = new Comparator<MatchFact>()
   {

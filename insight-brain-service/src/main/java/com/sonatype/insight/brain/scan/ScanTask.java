@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -73,7 +73,7 @@ class ScanTask
 
   private final ScanUploader uploader;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
 
@@ -104,12 +104,12 @@ class ScanTask
   private volatile long touched;
 
   @Inject
-  public ScanTask(Scanner scanner, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
+  public ScanTask(Scanner scanner, ScanUploader uploader, ScanPolicyEvaluator scanPolicyEvaluator,
       PolicyAlertNotifier policyAlertNotifier, InsightWork work, FileCleaner fileCleaner)
   {
     this.scanner = scanner;
     this.uploader = uploader;
-    this.policyEvaluationUtils = policyEvaluationUtils;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
     this.fileCleaner = fileCleaner;
@@ -196,8 +196,8 @@ class ScanTask
       PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
           app.getId(), stage.getStageTypeId());
-      // PolicyEvaluationUtils will fetch report if it's not there
-      PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluate(appPublicId, scanReceipt.getScanId(), stage);
+      // The ScanPolicyEvaluator will fetch the report if it's not there
+      PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluate(appPublicId, scanReceipt.getScanId(), stage);
       if (sendNotifications) {
         policyAlertNotifier.sendNotifications(app, policyEvaluation, lastPrimaryPolicyEvaluation);
       }

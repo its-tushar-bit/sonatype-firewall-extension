@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
@@ -31,7 +31,7 @@ public class PolicyEvaluationSummaryService
 {
   private final ApplicationDAO applicationDAO;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -40,11 +40,11 @@ public class PolicyEvaluationSummaryService
 
   @Inject
   public PolicyEvaluationSummaryService(final ApplicationDAO applicationDAO,
-      final PolicyEvaluationUtils policyEvaluationUtils, final PolicyEvaluationDAO policyEvaluationDAO,
+      final ScanPolicyEvaluator scanPolicyEvaluator, final PolicyEvaluationDAO policyEvaluationDAO,
       final CLMLicenseManager licenseManager)
   {
     this.applicationDAO = applicationDAO;
-    this.policyEvaluationUtils = policyEvaluationUtils;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.licenseManager = licenseManager;
   }
@@ -63,7 +63,7 @@ public class PolicyEvaluationSummaryService
       return null;
     }
 
-    PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils
+    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
         .createPolicyEvaluationResult(policyEvaluation);
 
     PolicyEvaluationSummary summary = new PolicyEvaluationSummary();

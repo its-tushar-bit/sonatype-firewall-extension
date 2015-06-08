@@ -41,19 +41,19 @@ public class PolicyMonitor
 
   private final ScanUploader uploader;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
   
   private final CLMLicenseManager licenseManager;
 
   @Inject
-  public PolicyMonitor(InsightWork work, ScanUploader uploader, PolicyEvaluationUtils policyEvaluationUtils,
+  public PolicyMonitor(InsightWork work, ScanUploader uploader, ScanPolicyEvaluator scanPolicyEvaluator,
       PolicyAlertNotifier policyAlertNotifier, CLMLicenseManager licenseManager)
   {
     this.work = work;
     this.uploader = uploader;
-    this.policyEvaluationUtils = policyEvaluationUtils;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.licenseManager = licenseManager;
   }
@@ -129,7 +129,7 @@ public class PolicyMonitor
         app.getId(), scanId);
 
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    PolicyEvaluation policyEvaluation = policyEvaluationUtils.evaluateForMonitoring(app.getPublicId(),
+    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(),
         scanId, stage);
     policyAlertNotifier.sendNotifications(app, policyEvaluation,
         lastMonitoringPolicyEvaluation != null ? lastMonitoringPolicyEvaluation : lastPrimaryPolicyEvaluation);

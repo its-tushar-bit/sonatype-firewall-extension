@@ -15,7 +15,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
 /**
- * Carries the results from {@link PolicyEvaluator}.
+ * Carries the results from {@link ComponentPolicyEvaluator}.
  * 
  * @since 1.9
  */

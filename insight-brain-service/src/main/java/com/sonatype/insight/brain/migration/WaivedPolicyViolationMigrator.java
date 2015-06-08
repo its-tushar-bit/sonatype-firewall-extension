@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyWaiversMap;
 import com.sonatype.insight.brain.report.Report;
@@ -239,7 +239,7 @@ public class WaivedPolicyViolationMigrator
       return null;
     }
 
-    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, PolicyEvaluationUtils.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     if (policyThreatsReportEntry == null) {
       return null;
     }

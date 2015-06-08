@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -78,18 +78,18 @@ public class ApplicationResource
 
   private final InsightWork work;
 
-  private final PolicyEvaluationUtils policyEvaluationUtils;
+  private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private ApplicationService applicationService;
 
   @Inject
-  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl,
-      final SaasClient client, final PolicyEvaluationUtils policyEvaluationUtils,
-      final ApplicationAdapter applicationAdapter, final ApplicationService applicationService)
+  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final SaasClient client,
+      final ScanPolicyEvaluator scanPolicyEvaluator, final ApplicationAdapter applicationAdapter,
+      final ApplicationService applicationService)
   {
     super(client, baseUrl);
     this.work = work;
-    this.policyEvaluationUtils = policyEvaluationUtils;
+    this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;
     this.applicationService = applicationService;
   }
@@ -323,7 +323,7 @@ public class ApplicationResource
     for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
       policyEvaluations.put(policyEvaluation.getStageTypeId(), policyEvaluation);
 
-      final PolicyEvaluationResult policyEvaluationResult = policyEvaluationUtils
+      final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
           .createPolicyEvaluationResult(policyEvaluation);
       // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
       policyEvaluationResult.setAlerts(null);

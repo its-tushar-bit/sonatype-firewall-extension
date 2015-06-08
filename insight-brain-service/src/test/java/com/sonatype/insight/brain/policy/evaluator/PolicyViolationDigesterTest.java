@@ -265,7 +265,7 @@ public class PolicyViolationDigesterTest
 
   private static ConditionFact conditionFact(final String conditionTypeId, final String operator, final String value) {
     final Condition condition = new Condition(conditionTypeId, operator, value);
-    return PolicyEvaluator.createConditionFact(condition, ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
+    return ComponentPolicyEvaluator.createConditionFact(condition, ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
   }
 
   private static PolicyViolation newPolicyViolation(String policyId, String policyName, int threatLevel) {

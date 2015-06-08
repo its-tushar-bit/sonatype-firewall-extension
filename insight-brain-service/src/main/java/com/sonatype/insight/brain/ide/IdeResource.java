@@ -40,7 +40,7 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.saas.AugmentUtil;
 import com.sonatype.insight.brain.saas.SaasClient;
@@ -62,8 +62,6 @@ public class IdeResource
   private final SaasClient client;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
-
-  private PolicyEvaluator evaluator = new PolicyEvaluator();
 
   private final InsightWork work;
 
@@ -142,8 +140,8 @@ public class IdeResource
       ComponentDAO componentDAO = new ComponentDAO();
       Component component = componentDAO.getComponent(app, matchedComponent, svData);
       component.setProprietary(proprietary);
-      List<PolicyAlert> policyAlerts = evaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
-          Collections.singletonList(component));
+      List<PolicyAlert> policyAlerts = new ComponentPolicyEvaluator().evaluate(applicationId, new Stage(
+          DevelopStageType.ID), Collections.singletonList(component));
       ideComponent.setAlerts(policyAlerts);
     }
     return ideComponent;

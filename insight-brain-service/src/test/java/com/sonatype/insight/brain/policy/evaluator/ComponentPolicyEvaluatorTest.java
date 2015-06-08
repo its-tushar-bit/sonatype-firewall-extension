@@ -49,7 +49,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class PolicyEvaluatorTest
+public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {
   @Rule
@@ -495,24 +495,24 @@ public class PolicyEvaluatorTest
     components.add(component4);
 
     // Evaluate the facts
-    final List<MatchFact> facts = PolicyEvaluator.evaluateFacts(policies, components);
+    final List<MatchFact> facts = ComponentPolicyEvaluator.evaluateFacts(policies, components);
 
     // Sort facts by policy then component then constraint then condition
-    Collections.sort(facts, PolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
+    Collections.sort(facts, ComponentPolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
     final List<MatchFact> expectedFacts = new ArrayList<>(facts);
 
     // Check sorting is consistent
     for (int i = 0; i < 100; i++) {
       Collections.shuffle(facts);
 
-      Collections.sort(facts, PolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
+      Collections.sort(facts, ComponentPolicyEvaluator.MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
 
       Assert.assertEquals(expectedFacts, facts);
     }
 
     // Slice facts into alerts
     PolicyResults policyResults = new PolicyResults();
-    PolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
+    ComponentPolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
         policyResults);
     final List<PolicyAlert> expectedAlerts = policyResults.getActiveAlerts();
 
@@ -522,7 +522,7 @@ public class PolicyEvaluatorTest
       Collections.shuffle(policies);
 
       policyResults = new PolicyResults();
-      PolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
+      ComponentPolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
           policyResults);
       final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
@@ -572,7 +572,7 @@ public class PolicyEvaluatorTest
     components.add(component2);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = evaluator.evaluate(app.getId(), stage, components);
+    List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), stage, components);
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(2, policyAlerts.size());
     assertContainsPolicyAlert(component1, policyOrg.getId(), "Policy Name Org", FailActionType.ID,
@@ -663,7 +663,8 @@ public class PolicyEvaluatorTest
 
     // Evaluate the policies.
     // Both policies are violated by both components.
-    PolicyResults policyResults = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage,
+        Arrays.asList(policy1, policy2), components);
     List<PolicyAlert> activePolicyAlerts = policyResults.getActiveAlerts();
     Assert.assertNotNull(activePolicyAlerts);
     Assert.assertEquals(2, activePolicyAlerts.size());
@@ -681,7 +682,7 @@ public class PolicyEvaluatorTest
 
     // Waive policy1 for component1 and re-evaluate
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), app.getId(), null /* comment */);
-    policyResults = evaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
+    policyResults = componentPolicyEvaluator.evaluate(app.getId(), stage, Arrays.asList(policy1, policy2), components);
     activePolicyAlerts = policyResults.getActiveAlerts();
     Assert.assertNotNull(activePolicyAlerts);
     Assert.assertEquals(2, activePolicyAlerts.size());

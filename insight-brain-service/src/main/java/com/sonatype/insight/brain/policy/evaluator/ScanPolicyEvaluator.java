@@ -52,7 +52,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 @Named
-public class PolicyEvaluationUtils
+public class ScanPolicyEvaluator
 {
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
@@ -75,7 +75,7 @@ public class PolicyEvaluationUtils
   private final PolicyThreatsAdapter policyThreatsAdapter;
 
   @Inject
-  public PolicyEvaluationUtils(final InsightWork insightWork, final ReportService reportService,
+  public ScanPolicyEvaluator(final InsightWork insightWork, final ReportService reportService,
       final PolicyThreatsAdapter policyThreatsAdapter)
   {
     this.work = insightWork;
@@ -120,7 +120,7 @@ public class PolicyEvaluationUtils
         securityReportEntry.buf, bomReportEntry.buf);
 
     // Evaluate the policies
-    PolicyResults policyResults = new PolicyEvaluator().evaluate(appId, stage, components, forMonitoring);
+    PolicyResults policyResults = new ComponentPolicyEvaluator().evaluate(appId, stage, components, forMonitoring);
 
     // Save the policy evaluation and violations
     PolicyEvaluation policyEvaluation = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults,

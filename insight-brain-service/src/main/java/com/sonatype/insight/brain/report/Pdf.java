@@ -25,7 +25,7 @@ import javax.ws.rs.core.StreamingOutput;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.organization.ContactDTO;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -152,7 +152,7 @@ final class Pdf
           }
         }
       }
-      File policyAlerts = new File(cacheDir, PolicyEvaluationUtils.POLICY_ALERTS_FILENAME);
+      File policyAlerts = new File(cacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
       if(policyAlerts.exists()){
         FileUtils.copyFile(policyAlerts, new File(templateDir, policyAlerts.getName()));
       }

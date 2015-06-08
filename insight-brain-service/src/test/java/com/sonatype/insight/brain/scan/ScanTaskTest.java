@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtils;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -48,11 +48,11 @@ public class ScanTaskTest
 {
   private Scanner scanner = mock(Scanner.class);
   private ScanUploader uploader = mock(ScanUploader.class);
-  private PolicyEvaluationUtils evaluator = mock(PolicyEvaluationUtils.class);
+  private ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
   private PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
   private InsightWork work = mock(InsightWork.class);
   FileCleaner fileCleaner = mock(FileCleaner.class);
-  private ScanTask task = new ScanTask(scanner, uploader, evaluator, notifier, work, fileCleaner);
+  private ScanTask task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner);
   private Application app = newApp("public-app-id");
   private Stage stage = new Stage(Stage.ID_BUILD);
   private ScanReceipt scanReceipt = new ScanReceipt();
@@ -180,7 +180,7 @@ public class ScanTaskTest
 
     task.run();
 
-    verify(evaluator).evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage));
+    verify(scanPolicyEvaluator).evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage));
   }
 
   @Test
@@ -201,7 +201,8 @@ public class ScanTaskTest
     task.init(app, bundleFile, bundleFilename, stage, true);
 
     PolicyEvaluation eval = new PolicyEvaluation();
-    when(evaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(eval);
+    when(scanPolicyEvaluator.evaluate(eq(app.getPublicId()), eq(scanReceipt.getScanId()), match(stage))).thenReturn(
+        eval);
 
     task.run();
 

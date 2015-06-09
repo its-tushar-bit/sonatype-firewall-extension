@@ -34,7 +34,7 @@ public class UserResource
 {
   public static final String SERVICE_PATH = "rest/user";
 
-  private static final String MY_PASSWORD_PATH = "/password";
+  public static final String MY_PASSWORD_PATH = "/password";
 
   public static final String PASSWORD_PATH = "/{userId}/password";
 

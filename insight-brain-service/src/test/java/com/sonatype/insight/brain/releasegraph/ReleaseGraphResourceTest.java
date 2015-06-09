@@ -8,10 +8,8 @@ package com.sonatype.insight.brain.releasegraph;
 import java.io.File;
 import java.nio.file.Files;
 
-import javax.ws.rs.core.UriBuilder;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -33,23 +31,17 @@ public class ReleaseGraphResourceTest
 
   private File reportDir;
 
-  private String getUrl(String appId, String scanId, ComponentIdentifier componentIdentifier, String groupId,
-      String artifactId, String version)
-  {
-    UriBuilder builder = UriBuilder.fromUri(getRestUrl(ReleaseGraphResource.SERVICE_PATH, appId, scanId));
-    if (groupId != null) {
-      builder.queryParam("groupId", groupId);
-    }
-    if (artifactId != null) {
-      builder.queryParam("artifactId", artifactId);
-    }
-    if (version != null) {
-      builder.queryParam("version", version);
-    }
-    if (componentIdentifier != null) {
-      builder.queryParam("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier));
-    }
-    return builder.build().toString();
+  private HttpRequest getRequest(String appId, String scanId) {
+    return restRequest().path(ReleaseGraphResource.SERVICE_PATH).parameter(appId, scanId).subpath();
+  }
+
+  private HttpRequest addCoords(HttpRequest request, ComponentIdentifier componentIdentifier) {
+    return request.query("componentIdentifier", "{compId}").parameter(
+        ComponentIdentifierAdapter.toJson(componentIdentifier));
+  }
+
+  private HttpRequest addCoords(HttpRequest request, String groupId, String artifactId, String version) {
+    return request.query("groupId", groupId).query("artifactId", artifactId).query("version", version);
   }
 
   private void copyReport(String filename) throws Exception {
@@ -68,7 +60,7 @@ public class ReleaseGraphResourceTest
 
   @Test
   public void testGetImage_NeitherIdentifierNorGav() throws Exception {
-    Response response = AuthedRestAccess.get(getUrl(appId, scanId, null, null, null, null));
+    Response response = getRequest(appId, scanId).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid component identifier"));
   }
@@ -76,9 +68,10 @@ public class ReleaseGraphResourceTest
   @Test
   public void testGetImage_ByComponentIdentifier() throws Exception {
     copyReport("report.zip");
-    Response response = AuthedRestAccess.get(getUrl(appId, scanId,
-        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"), "ignored", "ignored",
-        "ignored"));
+    Response response = addCoords(
+        addCoords(getRequest(appId, scanId),
+            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")), "ignored",
+        "ignored", "ignored").get();
     assertResponseStatus(200, response);
     byte[] image = response.getResponseBodyAsBytes();
     assertThat(image.length, is(greaterThan(0)));
@@ -87,7 +80,7 @@ public class ReleaseGraphResourceTest
   @Test
   public void testGetImage_ByGav() throws Exception {
     copyReport("report-legacy.zip");
-    Response response = AuthedRestAccess.get(getUrl(appId, scanId, null, "tomcat", "tomcat-util", "5.5.23"));
+    Response response = addCoords(getRequest(appId, scanId), "tomcat", "tomcat-util", "5.5.23").get();
     assertResponseStatus(200, response);
     byte[] image = response.getResponseBodyAsBytes();
     assertThat(image.length, is(greaterThan(0)));

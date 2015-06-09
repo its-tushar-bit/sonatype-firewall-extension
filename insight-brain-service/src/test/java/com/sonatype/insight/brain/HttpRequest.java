@@ -154,7 +154,9 @@ public class HttpRequest
   }
 
   public HttpRequest cookie(Cookie cookie) {
-    cookies.put(cookie.getName(), cookie);
+    if (cookie != null) {
+      cookies.put(cookie.getName(), cookie);
+    }
     return this;
   }
 

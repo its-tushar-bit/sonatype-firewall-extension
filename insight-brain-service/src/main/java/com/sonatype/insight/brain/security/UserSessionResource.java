@@ -32,9 +32,7 @@ public class UserSessionResource
 {
   public static final String SERVICE_PATH = "rest/user/session";
 
-  private static final String LOGOUT_PATH = "logout";
-
-  public static final String LOGOUT_SERVICE_PATH = SERVICE_PATH + "/" + LOGOUT_PATH;
+  public static final String LOGOUT_PATH = "logout";
 
   @Inject
   public UserSessionResource() {

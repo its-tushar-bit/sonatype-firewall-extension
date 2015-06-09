@@ -6,12 +6,11 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -52,13 +51,18 @@ public class MembershipMappingResourceTest
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
-  private String getServiceUrl(final String ownerType, final String ownerId) {
-    return getRestUrl(MembershipMappingResource.SERVICE_PATH, ownerType, ownerId);
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(MembershipMappingResource.SERVICE_PATH);
   }
 
-  private String getServiceUrl(String ownerType, String ownerId, String roleId) {
-    return getRestUrl(MembershipMappingResource.SERVICE_PATH + '/' + MembershipMappingResource.ROLE_PATH, ownerType,
-        ownerId, roleId);
+  private Response get(String ownerType, String ownerId) throws Exception {
+    return restRequest().parameter(ownerType, ownerId).get();
+  }
+
+  private Response put(String ownerType, String ownerId, String roleId, Member... members) throws Exception {
+    return restRequest().path(MembershipMappingResource.ROLE_PATH).parameter(ownerType, ownerId, roleId).body(members)
+        .put();
   }
 
   private Member newMember(MemberType type, String name) {
@@ -76,7 +80,7 @@ public class MembershipMappingResourceTest
   @Test
   public void testCRUD_AppRoles() throws Exception {
     // Initial state
-    Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    Response response = get(IdUtils.TYPE_APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
@@ -98,13 +102,12 @@ public class MembershipMappingResourceTest
     }
 
     // Create
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), appRoles.get(0).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, userB.getUsername()))));
+    response = put(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), appRoles.get(0).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId()));
+    response = get(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId());
     assertResponseStatus(200, response);
     applicable = fromJson(response, ApplicableMembershipMappings.class);
 
@@ -126,17 +129,15 @@ public class MembershipMappingResourceTest
         userB.getEmail(), "CLM");
 
     // Update
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(0).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, userA.getUsername()))));
+    response = put(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
     assertResponseStatus(204, response);
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(1).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, userB.getUsername()))));
+    response = put(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(1).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
     assertResponseStatus(204, response);
 
     // Read for updated data
-    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    response = get(IdUtils.TYPE_APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
     applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
@@ -196,18 +197,17 @@ public class MembershipMappingResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     // Initial state
-    Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    Response response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     List<Role> roles = testInitialGlobalState(response);
 
     // Create
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID),
-        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
-            newMember(MemberType.GROUP, "Alpha"))));
+    response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID,
+        newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
+        newMember(MemberType.GROUP, "Alpha"));
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
 
@@ -234,27 +234,24 @@ public class MembershipMappingResourceTest
         "LDAP");
 
     // Reset Initial State
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID),
-        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
+    response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID,
+        newMember(MemberType.USER, User.ADMIN_USERNAME));
     assertResponseStatus(204, response);
   }
 
   @Test
   public void testCRUD_GlobalRoles() throws Exception {
     // Initial state
-    Response response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    Response response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     List<Role> roles = testInitialGlobalState(response);
 
     // Create
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME),
-            newMember(MemberType.USER, userB.getUsername()))));
+    response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId(),
+        newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, userB.getUsername()));
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
 
@@ -280,13 +277,12 @@ public class MembershipMappingResourceTest
         userB.getEmail(), "CLM");
 
     // Update
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
+    response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId(),
+        newMember(MemberType.USER, User.ADMIN_USERNAME));
     assertResponseStatus(204, response);
 
     // Read for updated data
-    response = AuthedRestAccess.get(getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID));
+    response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     assertResponseStatus(200, response);
     applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
@@ -307,9 +303,8 @@ public class MembershipMappingResourceTest
         "admin@localhost", "CLM");
 
     // Reset Initial State
-    response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId()),
-        toJson(Arrays.asList(newMember(MemberType.USER, User.ADMIN_USERNAME))));
+    response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId(),
+        newMember(MemberType.USER, User.ADMIN_USERNAME));
     assertResponseStatus(204, response);
   }
 
@@ -347,9 +342,7 @@ public class MembershipMappingResourceTest
     Role systemAdminRole = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(systemAdminRole, is(notNullValue()));
 
-    Response response = AuthedRestAccess.put(
-        getServiceUrl(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, systemAdminRole.getId()),
-        toJson(Collections.emptyList()));
+    Response response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, systemAdminRole.getId());
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("There must be at least one user in the System Administrator role."));
   }

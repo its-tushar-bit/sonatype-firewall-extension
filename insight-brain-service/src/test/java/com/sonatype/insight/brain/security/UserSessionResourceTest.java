@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
@@ -21,8 +20,13 @@ import static org.junit.Assert.assertEquals;
 public class UserSessionResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(UserSessionResource.SERVICE_PATH);
+  }
+
   private Response logout(Cookie cookie) throws Exception {
-    return RestAccess.delete(getRestBaseUrl() + UserSessionResource.LOGOUT_SERVICE_PATH, null, null, null, cookie);
+    return restRequest().path(UserSessionResource.LOGOUT_PATH).cookie(cookie).anon().delete();
   }
 
   private Response login() throws Exception {
@@ -30,11 +34,11 @@ public class UserSessionResourceTest
   }
 
   private Response login(String username, String password) throws Exception {
-    return AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, username, password);
+    return restRequest().auth(username, password).post();
   }
 
   private Response status(Cookie cookie) throws Exception {
-    return RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, cookie);
+    return restRequest().cookie(cookie).anon().get();
   }
 
   @Test

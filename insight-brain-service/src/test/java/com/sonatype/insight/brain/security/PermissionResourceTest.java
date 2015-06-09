@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -21,10 +21,15 @@ import org.junit.Test;
 public class PermissionResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PermissionResource.SERVICE_PATH);
+  }
+
   @Test
   public void testAdminUserWithAdminPerm() throws Exception {
-    Response response = AuthedRestAccess.put(getRestUrl(PermissionResource.SERVICE_PATH, IdUtils.TYPE_GLOBAL, "*"),
-        toJson(Collections.singleton(Permission.CONFIGURE_SYSTEM)));
+    Response response = restRequest().parameter(IdUtils.TYPE_GLOBAL, "*").body(EnumSet.of(Permission.CONFIGURE_SYSTEM))
+        .put();
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(fromJson(response, Permission[].class));
     Assert.assertTrue(permissions.contains(Permission.CONFIGURE_SYSTEM));
@@ -33,8 +38,8 @@ public class PermissionResourceTest
   @Test
   public void testNonAdminUserWithAdminPerm() throws Exception {
     tempEntity.newUser("testNonAdminUser");
-    Response response = AuthedRestAccess.put(getRestUrl(PermissionResource.SERVICE_PATH, IdUtils.TYPE_GLOBAL, "*"),
-        toJson(Collections.singleton(Permission.CONFIGURE_SYSTEM)), "testNonAdminUser", "secret");
+    Response response = restRequest().parameter(IdUtils.TYPE_GLOBAL, "*").body(EnumSet.of(Permission.CONFIGURE_SYSTEM))
+        .auth("testNonAdminUser", "secret").put();
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(fromJson(response, Permission[].class));
     Assert.assertFalse(permissions.contains(Permission.CONFIGURE_SYSTEM));

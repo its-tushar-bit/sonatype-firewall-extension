@@ -6,12 +6,10 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -25,7 +23,6 @@ import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationSta
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionResource;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
@@ -43,6 +40,20 @@ import static org.junit.Assert.assertThat;
 public class UserResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(UserResource.SERVICE_PATH);
+  }
+
+  private HttpRequest sessionRequest() {
+    return super.restRequest().path(UserSessionResource.SERVICE_PATH).anon();
+  }
+
+  private HttpRequest findRequest(String ownerType, String ownerId, String query) {
+    return restRequest().path("{ownerType}/{ownerId}/query").query("q", "{pattern}")
+        .parameter(ownerType, ownerId, query);
+  }
+
   private List<User> fromResponse(Response response) {
     User[] users = fromJson(response, User[].class);
     if (users == null) {
@@ -54,7 +65,7 @@ public class UserResourceTest
   @Test
   public void testCRUD() throws Exception {
     // Get all
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
     List<User> users = fromResponse(response);
     assertThat(users, notNullValue());
@@ -64,7 +75,7 @@ public class UserResourceTest
     // Add
     User user = new User("testCRUD", "testCRUDPassword", "testCRUDFirstName", "testCRUDLastName",
         "testCRUD@sonatype.com");
-    response = AuthedRestAccess.post(getServiceURL(), toJson(user));
+    response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -79,7 +90,7 @@ public class UserResourceTest
     assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
-    response = AuthedRestAccess.get(getServiceURL());
+    response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
     assertThat(users, notNullValue());
@@ -91,7 +102,7 @@ public class UserResourceTest
 
     // Update, no password change
     user.setFirstName("testCRUDFirstNameUpdated");
-    response = AuthedRestAccess.put(getServiceURL(), toJson(user));
+    response = restRequest().body(user).put();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
@@ -103,7 +114,7 @@ public class UserResourceTest
     assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPassword")));
 
     // Get all
-    response = AuthedRestAccess.get(getServiceURL());
+    response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
     assertThat(users, notNullValue());
@@ -115,7 +126,7 @@ public class UserResourceTest
 
     // Update, password change
     user.setPassword("testCRUDPasswordUpdated");
-    response = AuthedRestAccess.put(getServiceURL(), toJson(user));
+    response = restRequest().body(user).put();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
@@ -127,7 +138,7 @@ public class UserResourceTest
     assertThat(String.valueOf(user.getPassword()), is(not("testCRUDPasswordUpdated")));
 
     // Get all
-    response = AuthedRestAccess.get(getServiceURL());
+    response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
     assertThat(users, notNullValue());
@@ -138,11 +149,11 @@ public class UserResourceTest
     assertThat(String.valueOf(users.get(1).getPassword()), is(UserService.FAKE_PASSWORD));
 
     // Delete
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    response = restRequest().path("{userId}").parameter(user.getId()).delete();
     assertResponseStatus(204, response);
 
     // Get all
-    response = AuthedRestAccess.get(getServiceURL());
+    response = restRequest().get();
     assertResponseStatus(200, response);
     users = fromResponse(response);
     assertThat(users, notNullValue());
@@ -155,7 +166,7 @@ public class UserResourceTest
   public void testDelete_ImmediatelyInvalidateSessionsOfDeletedUser() throws Exception {
     // create some user
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
+    Response response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -163,21 +174,20 @@ public class UserResourceTest
     Cookie adminCookie = extractSessionCookie(response);
 
     // log the user in
-    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
-        "test-password");
+    response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
     Cookie userCookie = extractSessionCookie(response);
 
     // delete the user
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    response = restRequest().path("{userId}").parameter(user.getId()).delete();
     assertResponseStatus(204, response);
 
     // the user's session should be invalid now
-    response = RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, userCookie);
+    response = sessionRequest().cookie(userCookie).get();
     assertResponseStatus(401, response);
 
     // the admin's session should not have been invalidated
-    response = RestAccess.get(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, adminCookie);
+    response = sessionRequest().cookie(adminCookie).get();
     assertResponseStatus(200, response);
     AuthenticationStatus status = fromJson(response, AuthenticationStatus.class);
     assertThat(status.isAuthenticated(), is(true));
@@ -187,7 +197,7 @@ public class UserResourceTest
   public void testDelete_NoNPEWhenUserDeleted() throws Exception {
     // create some user
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
+    Response response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -196,36 +206,33 @@ public class UserResourceTest
     // create another user
     User user2 = new User("test-user-two", "test-password-two", "testFirstNameTwo", "testLastNameTwo",
         "test2@sonatype.com");
-    response = AuthedRestAccess.post(getServiceURL(), toJson(user2));
+    response = restRequest().body(user2).post();
     assertResponseStatus(200, response);
     user2 = fromJson(response, User.class);
     tempEntity.register(user2);
     assertThat(user2.getId(), is(notNullValue()));
 
     // log the first user in to create a session
-    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
-        "test-password");
+    response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
 
     // log the second user in to create another session then log them out
-    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user2.getUsername(),
-        "test-password-two");
+    response = sessionRequest().auth(user2.getUsername(), "test-password-two").post();
     assertResponseStatus(204, response);
     Cookie userCookie = extractSessionCookie(response);
-    response = RestAccess.delete(getRestBaseUrl() + UserSessionResource.LOGOUT_SERVICE_PATH, null, null, null,
-        userCookie);
+    response = sessionRequest().path(UserSessionResource.LOGOUT_PATH).cookie(userCookie).delete();
     assertResponseStatus(204, response);
 
     // access an anonymous resource to create a third session
-    response = RestAccess.get(getRestBaseUrl() + VersionResource.SERVICE_PATH);
+    response = super.restRequest().path(VersionResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
 
     // now delete the first user
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId());
+    response = restRequest().path("{userId}").parameter(user.getId()).delete();
     assertResponseStatus(204, response);
 
     // now delete the second user, if this passes, we are all set, this is where the NPE was occurring prior to fix
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user2.getId());
+    response = restRequest().path("{userId}").parameter(user2.getId()).delete();
     assertResponseStatus(204, response);
   }
 
@@ -233,7 +240,7 @@ public class UserResourceTest
   public void testDelete_Self() throws Exception {
     // create some user
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
+    Response response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -242,13 +249,12 @@ public class UserResourceTest
     new MembershipMappingDAO().insert(membershipMapping);
 
     // log the user in
-    response = AuthedRestAccess.post(getRestBaseUrl() + UserSessionResource.SERVICE_PATH, user.getUsername(),
-        "test-password");
+    response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
     Cookie userCookie = extractSessionCookie(response);
 
     // try to delete the user using the same user's session/cookie
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + user.getId(), userCookie);
+    response = restRequest().path("{userId}").parameter(user.getId()).cookie(userCookie).anon().delete();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Cannot delete the currently logged in user."));
   }
@@ -258,26 +264,27 @@ public class UserResourceTest
     // Add user so we can change his password
     User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
         "testChangePasswordLastName", "testChangePassword@sonatype.com");
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(user));
+    Response response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
 
-    String changePasswordUrl = getServiceURL() + "/password";
+    HttpRequest request = restRequest().path(UserResource.MY_PASSWORD_PATH).auth(user.getUsername(),
+        "testChangePasswordPassword");
 
     // Can't change password when password input doesn't match
     ChangePasswordDTO dto = new ChangePasswordDTO();
     dto.oldPassword = "badPass";
     dto.newPassword = "doesntmatter";
 
-    response = AuthedRestAccess.put(changePasswordUrl, toJson(dto), user.getUsername(), "testChangePasswordPassword");
+    response = request.body(dto).put();
     assertResponseStatus(400, response);
     assertEquals("Current password is wrong.", response.getResponseBody());
 
     // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword";
 
-    response = AuthedRestAccess.put(changePasswordUrl, toJson(dto), user.getUsername(), "testChangePasswordPassword");
+    response = request.body(dto).put();
     assertResponseStatus(204, response);
   }
 
@@ -287,9 +294,7 @@ public class UserResourceTest
     User user = tempEntity.newUser("testResetPassword");
     user.setPassword("testResetPasswordPassword");
 
-    String url = getServiceURL() + "/" + user.getId() + "/reset";
-
-    Response response = AuthedRestAccess.put(url, null);
+    Response response = restRequest().path(UserResource.RESET_PASSWORD_PATH).parameter(user.getId()).put();
     assertResponseStatus(200, response);
 
     ChangePasswordDTO dto = fromJson(response, ChangePasswordDTO.class);
@@ -299,15 +304,14 @@ public class UserResourceTest
 
   @Test
   public void testFindMembersForGlobalRoles() throws Exception {
-    Response response = AuthedRestAccess.get(getFindMembersForGlobalRolesUrl(User.ADMIN_USERNAME + "*"));
+    Response response = findRequest("global", "global", User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles() throws Exception {
     Organization org = tempEntity.newOrganization();
-    Response response = AuthedRestAccess.get(getFindMembersForNonGlobalRolesUrl(IdUtils.TYPE_ORGANIZATION, org.getId(),
-        User.ADMIN_USERNAME + "*"));
+    Response response = findRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
@@ -316,21 +320,6 @@ public class UserResourceTest
     assertThat(actual.getFirstName(), is(firstName));
     assertThat(actual.getLastName(), is(lastName));
     assertThat(actual.getEmail(), is(email));
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + UserResource.SERVICE_PATH;
-  }
-
-  private String getFindMembersForGlobalRolesUrl(String query) throws UnsupportedEncodingException {
-    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/global/global/query?q=" + URLEncoder.encode(query, "UTF-8");
-  }
-
-  private String getFindMembersForNonGlobalRolesUrl(String ownerType, String ownerId, String query)
-      throws UnsupportedEncodingException
-  {
-    return getRestBaseUrl() + UserResource.SERVICE_PATH + "/" + ownerType + "/" + ownerId + "/query?q="
-        + URLEncoder.encode(query, "UTF-8");
   }
 
   private void assertMember(Response response, String error, MemberType type, String name, String displayName,

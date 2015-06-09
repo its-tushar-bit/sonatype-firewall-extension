@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -26,9 +26,9 @@ public class TagResourceTest
   public void testCRUD() throws Exception {
     Organization org = tempEntity.newOrganization("TagResourceTest");
 
-    String url = getRestUrl(TagResource.SERVICE_PATH + "/" + TagResource.ORGANIZATION_PATH, org.getId());
+    HttpRequest request = restRequest().path(TagResource.SERVICE_PATH, TagResource.ORGANIZATION_PATH).parameter(org.getId());
     // Get
-    Response response = AuthedRestAccess.get(url);
+    Response response = request.get();
     assertResponseStatus(200, response);
     Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -36,12 +36,12 @@ public class TagResourceTest
 
     // Add
     Tag tag = new Tag(org.getId(), "Tag Name", "Tag description", Color.yellow);
-    response = AuthedRestAccess.post(url, toJson(tag));
+    response = request.body(tag).post();
     assertResponseStatus(200, response);
     assertTag(tag, fromJson(response, Tag.class));
 
     // Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -51,12 +51,12 @@ public class TagResourceTest
     // Update
     tag = tags[0];
     tag.setName("Tag Updated Name");
-    response = AuthedRestAccess.put(url, toJson(tag));
+    response = request.body(tag).put();
     assertResponseStatus(200, response);
     assertTag(tag, fromJson(response, Tag.class));
 
     // Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -64,11 +64,11 @@ public class TagResourceTest
     assertTag(tag, tags[0]);
 
     // Delete
-    response = AuthedRestAccess.delete(url + "/" + tag.getId());
+    response = request.subpath("{tagId}").parameter(tag.getId()).delete();
     assertResponseStatus(204, response);
 
     // Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));

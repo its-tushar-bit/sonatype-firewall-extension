@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.backup;
 
 import java.io.File;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -47,7 +46,7 @@ public class DbBackupTaskTest
     databaseConfig.setPassword("");
     OperationalDataStoreProvider.init(databaseConfig);
 
-    Response response = AuthedRestAccess.post(getAdminBaseUrl() + "tasks/" + DbBackupTask.PATH, null /* body */);
+    Response response = adminRequest().path("tasks", DbBackupTask.PATH).post();
     assertResponseStatus(200, response);
     String message = response.getResponseBody();
     assertThat(message, startsWith(DbBackupTask.RESPONSE_MESSAGE_PREFIX));

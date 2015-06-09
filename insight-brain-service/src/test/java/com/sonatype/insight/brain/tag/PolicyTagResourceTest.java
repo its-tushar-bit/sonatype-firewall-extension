@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -27,10 +27,11 @@ public class PolicyTagResourceTest
 
     String policyId = tempEntity.newPolicy(org.getId(), "PolicyTagResourceTest").getId();
 
-    String url = getRestUrl(PolicyTagResource.SERVICE_PATH, policyId) + "?orgId=" + org.getId();
+    HttpRequest request = restRequest().path(PolicyTagResource.SERVICE_PATH).query("orgId", "{orgId}")
+        .parameter(policyId, org.getId());
 
     // Get
-    Response response = AuthedRestAccess.get(url);
+    Response response = request.get();
     assertResponseStatus(200, response);
     Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -38,7 +39,7 @@ public class PolicyTagResourceTest
 
     // Add
     Tag tag = tempEntity.newTag(org.getId(), "tag name");
-    response = AuthedRestAccess.post(url, toJson(tag));
+    response = request.body(tag).post();
     assertResponseStatus(200, response);
     Tag policyTag = fromJson(response, Tag.class);
     assertThat(policyTag, is(notNullValue()));
@@ -48,7 +49,7 @@ public class PolicyTagResourceTest
     assertThat(policyTag.getOrganizationId(), is(org.getId()));
 
     // Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -56,13 +57,11 @@ public class PolicyTagResourceTest
     assertTag(tag, tags[0]);
 
     // Delete
-    String deleteUrl = getRestUrl(PolicyTagResource.SERVICE_PATH, policyId) + "/" + tag.getId() + "?orgId="
-        + org.getId();
-    response = AuthedRestAccess.delete(deleteUrl);
+    response = request.subpath("{tagId}").parameter(tag.getId()).delete();
     assertResponseStatus(204, response);
 
     // Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));

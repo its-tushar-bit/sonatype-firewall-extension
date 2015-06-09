@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -25,10 +25,10 @@ public class ApplicationTagResourceTest
   public void testCRUD() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testApp");
 
-    String url = getRestUrl(ApplicationTagResource.SERVICE_PATH, app.getPublicId());
+    HttpRequest request = restRequest().path(ApplicationTagResource.SERVICE_PATH).parameter(app.getPublicId());
 
     //Get
-    Response response = AuthedRestAccess.get(url);
+    Response response = request.get();
     assertResponseStatus(200, response);
     Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -36,11 +36,11 @@ public class ApplicationTagResourceTest
 
     //Add
     Tag tag = tempEntity.newTag(app.getOrganizationId(), "tag name");
-    response = AuthedRestAccess.post(url, toJson(tag));
+    response = request.body(tag).post();
     assertResponseStatus(204, response);
 
     //Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));
@@ -48,11 +48,11 @@ public class ApplicationTagResourceTest
     assertTag(tag, tags[0]);
 
     //Delete
-    response = AuthedRestAccess.delete(url + "/" + tag.getId());
+    response = request.subpath("{tagId}").parameter(tag.getId()).delete();
     assertResponseStatus(204, response);
 
     //Get
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));

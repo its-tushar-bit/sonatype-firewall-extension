@@ -75,11 +75,24 @@ public class HttpRequest
     password = ADMIN_PASSWORD;
     headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     cookies = new TreeMap<>();
-    parts = new ArrayList<>();
+  }
+
+  private HttpRequest(HttpRequest parent) {
+    this.url = new Url(parent.url());
+    username = parent.username;
+    password = parent.password;
+    headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    headers.putAll(parent.headers);
+    cookies = new TreeMap<>(parent.cookies);
+    // subpath usually processes different body so don't clone that
   }
 
   public static HttpRequest to(String url) {
     return new HttpRequest(new Url(url));
+  }
+
+  public HttpRequest subpath(String... paths) {
+    return new HttpRequest(this).path(paths);
   }
 
   public HttpRequest path(String... paths) {
@@ -152,19 +165,23 @@ public class HttpRequest
   public HttpRequest body(Object body, String contentType) {
     this.body = (body != null) ? toBytes(body) : null;
     this.contentType = contentType;
-    parts.clear();
+    parts = null;
     return this;
   }
 
   public HttpRequest part(String name, String value) {
-    parts.add(new StringPart(name, value, "UTF-8"));
-    body = null;
-    contentType = MediaType.MULTIPART_FORM_DATA;
-    return this;
+    return part(new StringPart(name, value, "UTF-8"));
   }
 
   public HttpRequest part(String name, String filename, Object part) {
-    parts.add(new FilePart(name, new ByteArrayPartSource(filename, toBytes(part))));
+    return part(new FilePart(name, new ByteArrayPartSource(filename, toBytes(part))));
+  }
+
+  private HttpRequest part(Part part) {
+    if (parts == null) {
+      parts = new ArrayList<>();
+    }
+    parts.add(part);
     body = null;
     contentType = MediaType.MULTIPART_FORM_DATA;
     return this;
@@ -192,11 +209,7 @@ public class HttpRequest
     }
   }
 
-  private Response execute(BoundRequestBuilder builder) throws Exception {
-    for (Entry<String, String> header : headers.entrySet()) {
-      builder.addHeader(header.getKey(), header.getValue());
-    }
-
+  private Response execute(BoundRequestBuilder builder, boolean noBody) throws Exception {
     for (Cookie cookie : cookies.values()) {
       builder.addCookie(cookie);
     }
@@ -206,11 +219,18 @@ public class HttpRequest
           "Basic " + new Base64(0).encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8)));
     }
 
-    if (body != null) {
+    for (Entry<String, String> header : headers.entrySet()) {
+      builder.setHeader(header.getKey(), header.getValue());
+    }
+
+    if (noBody) {
+      // request doesn't support body
+    }
+    else if (body != null) {
       builder.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
       builder.setBody(body);
     }
-    else if (!parts.isEmpty()) {
+    else if (parts != null) {
       builder.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
       for (Part part : parts) {
         builder.addBodyPart(part);
@@ -221,22 +241,22 @@ public class HttpRequest
   }
 
   public Response get() throws Exception {
-    return execute(CLIENT.prepareGet(url()));
+    return execute(CLIENT.prepareGet(url()), true);
   }
 
   public Response put() throws Exception {
-    return execute(CLIENT.preparePut(url()));
+    return execute(CLIENT.preparePut(url()), false);
   }
 
   public Response post() throws Exception {
-    return execute(CLIENT.preparePost(url()));
+    return execute(CLIENT.preparePost(url()), false);
   }
 
   public Response delete() throws Exception {
-    return execute(CLIENT.prepareDelete(url()));
+    return execute(CLIENT.prepareDelete(url()), false);
   }
 
   public Response send(String method) throws Exception {
-    return execute(CLIENT.prepare(method, url()));
+    return execute(CLIENT.prepare(method, url()), "GET".equals(method) || "HEAD".equals(method));
   }
 }

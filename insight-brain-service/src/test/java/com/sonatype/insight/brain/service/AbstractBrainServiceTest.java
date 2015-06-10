@@ -304,7 +304,7 @@ public abstract class AbstractBrainServiceTest
     installLicense();
   }
 
-  protected void setLicenseProducts(String[] products) throws Exception {
+  protected void setLicenseProducts(String... products) throws Exception {
     licenseManager.setProducts(products);
     installLicense();
   }

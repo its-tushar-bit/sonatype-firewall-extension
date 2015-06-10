@@ -109,7 +109,7 @@ public class PolicyMonitorTest
 
     evaluatePolicy(app.getPublicId(), scanId, stage);
 
-    setLicenseProducts(new String[0]);
+    setLicenseProducts();
 
     Collection<StageType> stageTypes = StageTypes.getAll();
 

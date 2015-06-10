@@ -11,7 +11,7 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -39,6 +39,11 @@ public class HashComponentIdentifierResourceTest
 
   private HashComponentIdentifier hashComponentIdentifier;
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(HashComponentIdentifierResource.SERVICE_PATH);
+  }
+
   @Before
   public void setup() {
     hashComponentIdentifier = new HashComponentIdentifier(hash, COMPONENT_IDENTIFIER);
@@ -55,7 +60,7 @@ public class HashComponentIdentifierResourceTest
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
 
     // create
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(hashComponentIdentifier));
+    Response response = restRequest().body(hashComponentIdentifier).post();
     assertResponseStatus(200, response);
     HashComponentIdentifierDTO serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
     assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);
@@ -69,7 +74,7 @@ public class HashComponentIdentifierResourceTest
     ComponentIdentifier updatedComponentIdentifier = COMPONENT_IDENTIFIER.createAlternativeVersion("updated-version");
     hashComponentIdentifier.setComponentIdentifier(updatedComponentIdentifier);
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
-    response = AuthedRestAccess.put(getServiceURL(), toJson(hashComponentIdentifier));
+    response = restRequest().body(hashComponentIdentifier).put();
     assertResponseStatus(200, response);
     serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
 
@@ -80,7 +85,7 @@ public class HashComponentIdentifierResourceTest
     assertHashComponentIdentifier(hash, updatedComponentIdentifier, comment, createTime, hashComponentIdentifier);
 
     // delete
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + hashComponentIdentifier.getHash());
+    response = restRequest().path(hashComponentIdentifier.getHash()).delete();
     assertResponseStatus(204, response);
     // resource has no use case for GET so look directly in DB to ensure that record is deleted
     assertThat(hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash()), nullValue());
@@ -112,9 +117,5 @@ public class HashComponentIdentifierResourceTest
       assertThat(actual.value, is(expected.value));
     }
     assertThat(hashComponentIdentifier.coordinates, is(componentDisplayName.toString()));
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH;
   }
 }

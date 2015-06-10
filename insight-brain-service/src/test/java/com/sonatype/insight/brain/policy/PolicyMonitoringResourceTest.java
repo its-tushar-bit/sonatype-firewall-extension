@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -26,6 +26,10 @@ import static org.junit.Assert.assertThat;
 public class PolicyMonitoringResourceTest
     extends AbstractResourceTest
 {
+  private HttpRequest restRequest(String ownerType, String ownerId) {
+    return restRequest().path(PolicyMonitoringResource.SERVICE_PATH).parameter(ownerType, ownerId);
+  }
+
   @Test
   public void testCRUD_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
@@ -44,44 +48,43 @@ public class PolicyMonitoringResourceTest
   private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
     // Create
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
-    Response response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId),
-        toJson(policyMonitoring));
+    Response response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
     assertResponseStatus(200, response);
     policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
 
     // Get
-    response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId));
+    response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(200, response);
     policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
 
     // Update
     policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_BUILD);
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId), toJson(policyMonitoring));
+    response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
     assertResponseStatus(200, response);
     policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
 
     // Get
-    response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId));
+    response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(200, response);
     policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
 
     // Delete
-    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId));
+    response = restRequest(ownerType, ownerPublicId).delete();
     assertResponseStatus(204, response);
 
     // Get
-    response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId));
+    response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(204, response);
   }
 
   @Test
   public void testDelete_NotSet_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
-    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()));
+    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).delete();
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
   }
@@ -90,7 +93,7 @@ public class PolicyMonitoringResourceTest
   public void testDelete_NotSet_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId));
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).delete();
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
   }
@@ -102,24 +105,20 @@ public class PolicyMonitoringResourceTest
         "testGetApplicablePolicyMonitoringAppId", organization.getId());
 
     //no Policy Monitoring set
-    Response response = AuthedRestAccess
-        .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
     ApplicablePolicyMonitors applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
-    response = AuthedRestAccess
-        .get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/applicable");
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
 
     //Org only Policy Monitoring set
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
-    AuthedRestAccess.put(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()),
-        toJson(policyMonitoring));
+    restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).body(policyMonitoring).put();
 
-    response = AuthedRestAccess
-        .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
+    response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
 
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
@@ -128,10 +127,8 @@ public class PolicyMonitoringResourceTest
 
     //App and Org both have Policy Monitoring set
     policyMonitoring.setStageTypeId(Stage.ID_OPERATE);
-    AuthedRestAccess.put(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
-        toJson(policyMonitoring));
-    response = AuthedRestAccess
-        .get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()) + "/applicable");
+    restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).body(policyMonitoring).put();
+    response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
 
     assertThat(applicablePolicyMonitors.appPolicyMonitor, notNullValue());
@@ -140,8 +137,7 @@ public class PolicyMonitoringResourceTest
     assertThat(applicablePolicyMonitors.orgPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));
 
     //sanity check the Org information
-    response = AuthedRestAccess
-        .get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/applicable");
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
     applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
@@ -151,9 +147,5 @@ public class PolicyMonitoringResourceTest
   private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {
     assertEquals(ownerId, actual.getOwnerId());
     assertEquals(stageTypeId, actual.getStageTypeId());
-  }
-
-  private String getServiceURL(String ownerType, String ownerId) {
-    return getRestUrl(PolicyMonitoringResource.SERVICE_PATH, ownerType, ownerId);
   }
 }

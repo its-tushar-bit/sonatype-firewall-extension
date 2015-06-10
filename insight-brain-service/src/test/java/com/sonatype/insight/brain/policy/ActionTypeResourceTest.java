@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -17,14 +16,10 @@ public class ActionTypeResourceTest
 {
   @Test
   public void testGetActionTypes() throws Exception {
-    final Response response = AuthedRestAccess.get(getServiceURL());
+    final Response response = restRequest().path(ActionTypeResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] actionTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(actionTypes);
     Assert.assertTrue(actionTypes.length > 0);
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + ActionTypeResource.SERVICE_PATH;
   }
 }

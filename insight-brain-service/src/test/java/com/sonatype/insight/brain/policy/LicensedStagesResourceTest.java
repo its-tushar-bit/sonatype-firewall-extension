@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -21,7 +20,7 @@ public class LicensedStagesResourceTest
 {
   @Test
   public void testGetLicenseStages() throws Exception {
-    Response response = AuthedRestAccess.get(getRestUrl(LicensedStagesResource.SERVICE_PATH));
+    Response response = restRequest().path(LicensedStagesResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
     Stage[] stages = fromJson(response, Stage[].class);
     assertStages(stages);

@@ -11,18 +11,14 @@ import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.ning.http.multipart.ByteArrayPartSource;
-import com.ning.http.multipart.FilePart;
-import com.ning.http.multipart.StringPart;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,12 +28,17 @@ import static org.junit.Assert.assertNotNull;
 public class OrganizationResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(OrganizationResource.SERVICE_PATH);
+  }
+
   @Test
   public void testCRUD() throws Exception {
     // Create
     Organization organization = new Organization("OrganizationResourceTest");
 
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(organization));
+    Response response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
     organization = fromJson(response, Organization.class);
     assertNotNull(organization);
@@ -46,7 +47,7 @@ public class OrganizationResourceTest
     String organizationId = organization.getId();
 
     // Get
-    response = AuthedRestAccess.get(getServiceURL());
+    response = restRequest().get();
     assertResponseStatus(200, response);
     Organization[] organizations = fromJson(response, Organization[].class);
     assertNotNull(organizations);
@@ -58,42 +59,29 @@ public class OrganizationResourceTest
 
     // Add invalid icon
     byte[] defaultIconByteArray = IconUtils.loadInvalidIcon();
-    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
-    builder.addBodyPart(new StringPart("organizationId", organizationId));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("defaulticon_organization.png",
-        defaultIconByteArray)));
-
-    response = AuthedRestAccess.execute(builder);
+    response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
+        .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
     Assert.assertEquals("defaulticon_organization.png is not a valid image.", response.getResponseBody());
 
     // Get icon (default icon)
-    defaultIconByteArray = loadDefaultIcon();
-    Response iconResponse = AuthedRestAccess.get(getGetIconServiceUrl(organizationId));
+    Response iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(307, iconResponse);
     Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png",
         iconResponse.getHeader("Location"));
 
     // Add icon
-    builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
-    builder.addBodyPart(new StringPart("organizationId", organizationId));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    builder.addBodyPart(new FilePart("file", new ByteArrayPartSource("defaulticon_organization.png",
-        defaultIconByteArray)));
-    response = AuthedRestAccess.execute(builder);
+    defaultIconByteArray = loadDefaultIcon();
+    response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
+        .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(204, response);
 
     // Get icon
-    iconResponse = AuthedRestAccess.get(getGetIconServiceUrl(organizationId));
+    iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(200, iconResponse);
-    InputStream iconStream = iconResponse.getResponseBodyAsStream();
     BufferedImage icon = null;
-    try {
+    try (InputStream iconStream = iconResponse.getResponseBodyAsStream()) {
       icon = ImageIO.read(iconStream);
-    }
-    finally {
-      iconStream.close();
     }
     Assert.assertNotNull(icon);
     Assert.assertEquals(420, icon.getHeight());
@@ -101,7 +89,7 @@ public class OrganizationResourceTest
 
     // Update
     organization.setName("OrganizationResourceTest updated");
-    response = AuthedRestAccess.put(getServiceURL(), toJson(organization));
+    response = restRequest().body(organization).put();
     assertResponseStatus(200, response);
     organization = fromJson(response, Organization.class);
     assertNotNull(organization);
@@ -109,10 +97,8 @@ public class OrganizationResourceTest
     assertEquals("OrganizationResourceTest updated", organization.getName());
 
     // Update icon
-    builder = AuthedRestAccess.getClient().preparePost(getSetIconServiceUrl());
-    builder.addBodyPart(new StringPart("organizationId", organizationId));
-    builder.addBodyPart(new StringPart("hasRobotSource", "false"));
-    response = AuthedRestAccess.execute(builder);
+    response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
+        .part("hasRobotSource", "false").post();
     assertResponseStatus(204, response);
 
     // now create related objects to test delete cascades
@@ -123,10 +109,10 @@ public class OrganizationResourceTest
     applicationDAO.insert(application);
 
     // Delete
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + organizationId);
+    response = restRequest().path(organizationId).delete();
     assertResponseStatus(204, response);
     Assert.assertNull(new OrganizationDAO().getById(organizationId));
-    iconResponse = AuthedRestAccess.get(getServiceURL() + "/icon/" + organizationId);
+    iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(404, iconResponse);
     // assert related objects were deleted
     Assert.assertNull(applicationDAO.getById(application.getId()));
@@ -137,54 +123,37 @@ public class OrganizationResourceTest
     uninstallLicense();
     Organization organization = new Organization("OrganizationResourceTest");
 
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(organization));
+    Response response = restRequest().body(organization).post();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testUpdateOrganization_Unlicensed() throws Exception {
     Organization organization = new Organization("OrganizationResourceTest");
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(organization));
+    Response response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
     organization = fromJson(response, Organization.class);
     tempEntity.register(organization);
     uninstallLicense();
-    response = AuthedRestAccess.put(getServiceURL(), toJson(organization));
+    response = restRequest().body(organization).put();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testGetAll_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = restRequest().get();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testGenerateIcon() throws Exception {
     String hashcode = "abababababababababab";
-    String url = getGenerateIconServiceUrl(hashcode);
     String saasUrl = "rest/application/icon/generate/" + hashcode;
     setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
-    Response response = AuthedRestAccess.get(url);
+    Response response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getResponseBodyAsBytes());
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + OrganizationResource.SERVICE_PATH;
-  }
-
-  private String getGenerateIconServiceUrl(String hashcode) {
-    return getServiceURL() + "/" + OrganizationResource.GENERATE_ICON_PATH.replace("{hashcode}", hashcode);
-  }
-
-  private String getGetIconServiceUrl(String organizationId) {
-    return getServiceURL() + "/" + OrganizationResource.GET_ICON_PATH.replace("{organizationId}", organizationId);
-  }
-
-  private String getSetIconServiceUrl() {
-    return getServiceURL() + "/" + OrganizationResource.ICON_PATH;
   }
 
   private byte[] loadDefaultIcon() throws IOException {

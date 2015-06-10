@@ -40,6 +40,16 @@ public class LdapResource
 
   public static final String SERVICE_PATH = "rest/config/ldap";
 
+  public static final String CONNECTION_PATH = "{ldapServerId}/connection";
+
+  public static final String USER_MAPPING_PATH = "{ldapServerId}/userMapping";
+
+  public static final String TEST_CONNECTION_PATH = "{ldapServerId}/testConnection";
+
+  public static final String TEST_USER_MAPPING_PATH = "{ldapServerId}/testUserMapping";
+
+  public static final String TEST_LOGIN_PATH = "{ldapServerId}/testLogin";
+  
   private final LdapServerDAO serverDao = new LdapServerDAO();
 
   private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();
@@ -105,7 +115,7 @@ public class LdapResource
    * @since 1.7
    */
   @GET
-  @Path("{ldapServerId}/connection")
+  @Path(CONNECTION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapConnection getConnection(@PathParam("ldapServerId") String serverId) {
@@ -116,7 +126,7 @@ public class LdapResource
    * @since 1.7
    */
   @PUT
-  @Path("{ldapServerId}/connection")
+  @Path(CONNECTION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -131,7 +141,7 @@ public class LdapResource
    * @since 1.7
    */
   @GET
-  @Path("{ldapServerId}/userMapping")
+  @Path(USER_MAPPING_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public LdapUserMapping getUserMapping(@PathParam("ldapServerId") String serverId) {
@@ -147,7 +157,7 @@ public class LdapResource
    * @since 1.7
    */
   @PUT
-  @Path("{ldapServerId}/userMapping")
+  @Path(USER_MAPPING_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -167,7 +177,7 @@ public class LdapResource
    * @since 1.7
    */
   @PUT
-  @Path("{ldapServerId}/testConnection")
+  @Path(TEST_CONNECTION_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -189,7 +199,7 @@ public class LdapResource
    * @since 1.7
    */
   @PUT
-  @Path("{ldapServerId}/testUserMapping")
+  @Path(TEST_USER_MAPPING_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -212,7 +222,7 @@ public class LdapResource
    * @since 1.7
    */
   @PUT
-  @Path("{ldapServerId}/testLogin")
+  @Path(TEST_LOGIN_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

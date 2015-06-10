@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
@@ -37,6 +37,10 @@ import static org.junit.Assert.assertNull;
 public class PolicyWaiverResourceTest
     extends AbstractResourceTest
 {
+  private HttpRequest restRequest(String ownerType, String ownerId) {
+    return restRequest().path(PolicyWaiverResource.SERVICE_PATH).parameter(ownerType, ownerId);
+  }
+
   @Test
   public void testCRUD_Application() throws Exception {
     String appPublicId = "PolicyWaiverResourceTest_AppId";
@@ -58,13 +62,13 @@ public class PolicyWaiverResourceTest
 
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId), toJson(policyWaiver));
+    Response response = restRequest(ownerType, ownerPublicId).body(policyWaiver).post();
     assertResponseStatus(200, response);
     policyWaiver = fromJson(response, PolicyWaiver.class);
     assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
 
     // Get
-    response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
+    response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
     assertResponseStatus(200, response);
     AppliedWaivers policyWaivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(policyWaivers);
@@ -74,11 +78,11 @@ public class PolicyWaiverResourceTest
     assertPolicyWaiver(policyId, ownerPublicId, "My comment", policyWaivers.waiversByOwner.get(0).waivers.get(0));
 
     // Delete
-    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + policyWaiver.getId());
+    response = restRequest(ownerType, ownerPublicId).path(policyWaiver.getId()).delete();
     assertResponseStatus(204, response);
 
     // Get
-    response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId) + "/component/12345678901234567890");
+    response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
     assertResponseStatus(200, response);
     policyWaivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(policyWaivers);
@@ -111,11 +115,11 @@ public class PolicyWaiverResourceTest
     String appPublicId = "PolicyWaiverResourceTest_AppId1";
     Application application = tempEntity.newApplication("PolicyWaiverResourceTest AppId1", appPublicId, organization.getId());
     Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, organization.getId());
+    String hash = "12345678901234567890";
 
-    tempEntity.newWaiver("12345678901234567890", policy.getId(), application.getId(), "My comment");
+    tempEntity.newWaiver(hash, policy.getId(), application.getId(), "My comment");
 
-    Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
-        + "/component/12345678901234567890");
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
     AppliedWaivers waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
@@ -130,8 +134,7 @@ public class PolicyWaiverResourceTest
 
     tempEntity.newWaiver("12345678901234567890", policy.getId(), organization.getId(), "My comment");
 
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId())
-        + "/component/12345678901234567890");
+    response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
@@ -149,8 +152,7 @@ public class PolicyWaiverResourceTest
         waivers.waiversByOwner.get(0).waivers.get(0));
     assertPolicyWaiver(policy.getId(), organization.getId(), "My comment", waivers.waiversByOwner.get(1).waivers.get(0));
 
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId())
-        + "/component/12345678901234567890");
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
@@ -165,11 +167,11 @@ public class PolicyWaiverResourceTest
     Policy policy = tempEntity.newPolicy(ownerId1, "PolicyWaiverResourceTest");
     String policyId = policy.getId();
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), toJson(policyWaiver));
+    Response response = restRequest(ownerType, ownerPublicId1).body(policyWaiver).post();
     assertResponseStatus(200, response);
     policyWaiver = fromJson(response, PolicyWaiver.class);
 
-    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + policyWaiver.getId());
+    response = restRequest(ownerType, ownerPublicId2).path(policyWaiver.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID "
         + ownerPublicId2, response.getResponseBody());
@@ -185,7 +187,7 @@ public class PolicyWaiverResourceTest
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
   }
@@ -194,7 +196,7 @@ public class PolicyWaiverResourceTest
   public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
 
-    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
+    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
   }
@@ -205,10 +207,6 @@ public class PolicyWaiverResourceTest
     assertEquals(comment, actual.getComment());
   }
 
-  private String getServiceURL(final String ownerType, final String ownerId) {
-    return getRestBaseUrl() + PolicyWaiverResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
-  }
-
   @Test
   public void testGetApplicableContexts_Application() throws Exception {
     String appPublicId = "testGetApplicableContexts_Application";
@@ -217,8 +215,7 @@ public class PolicyWaiverResourceTest
     // Create a policy for the application
     Policy policy = createPolicy(IdUtils.TYPE_APPLICATION, appPublicId);
 
-    Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/"
-        + policy.getId());
+    Response response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = fromJson(response, ApplicableContext.class);
     assertApplicableContext(appPublicId, application.getName(), "application", result);
@@ -233,8 +230,7 @@ public class PolicyWaiverResourceTest
     // Create a policy for the organization
     Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId());
 
-    Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId) + "/applicable/context/"
-        + policy.getId());
+    Response response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = fromJson(response, ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
@@ -258,8 +254,8 @@ public class PolicyWaiverResourceTest
     Policy policy = new Policy(null, "Policy Name 1");
     policy.addConstraint(constraint);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
-        toJson(policy));
+    Response response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+        .post();
     assertResponseStatus(200, response);
     policy = fromJson(response, Policy.class);
     return policy;

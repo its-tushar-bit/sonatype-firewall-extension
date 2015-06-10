@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -15,12 +15,16 @@ import org.junit.Test;
 public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
 {
+  private HttpRequest restRequest(String ownerType, String ownerId) {
+    return restRequest().path(ConditionValueTypeResource.SERVICE_PATH).parameter(ownerType, ownerId);
+  }
+
   @Test
   public void testGetConditionValueTypes_Application() throws Exception {
     String appPublicId = "ConditionValueTypeResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    final Response response = AuthedRestAccess.get(getServiceURL("application", appPublicId));
+    final Response response = restRequest("application", appPublicId).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(conditionValueTypes);
@@ -31,14 +35,10 @@ public class ConditionValueTypeResourceTest
   public void testGetConditionValueTypes_Organization() throws Exception {
     String orgId = tempEntity.newOrganization("test").getId();
 
-    final Response response = AuthedRestAccess.get(getServiceURL("organization", orgId));
+    final Response response = restRequest("organization", orgId).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(conditionValueTypes);
     Assert.assertTrue(conditionValueTypes.length > 0);
-  }
-
-  private String getServiceURL(String ownerType, String ownerId) {
-    return getRestUrl(ConditionValueTypeResource.SERVICE_PATH, ownerType, ownerId);
   }
 }

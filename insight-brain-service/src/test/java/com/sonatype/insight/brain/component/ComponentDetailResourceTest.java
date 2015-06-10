@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.component;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.is;
@@ -22,13 +23,18 @@ import static org.hamcrest.Matchers.notNullValue;
 public class ComponentDetailResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ComponentDetailResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetApplicationDetailsByHash() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testGetApplicationDetailsByHash");
     String hash = "ababababab";
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Response response = AuthedRestAccess.get(getServiceURL() + "/applications?hash=" + hash);
+    Response response = restRequest().path("applications").query("hash", hash).get();
     assertResponseStatus(200, response);
     ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = fromJson(response,
         ApplicationComponentDetailsDTO[].class);
@@ -40,21 +46,17 @@ public class ComponentDetailResourceTest
   public void testGetComponentNameByHash() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testGetComponentNameByHash");
     String hash = "ababababab";
-    String url = getServiceURL() + "/name?hash=" + hash;
+    HttpRequest request = restRequest().path("name").query("hash", hash);
 
-    Response response = AuthedRestAccess.get(url);
+    Response response = request.get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Unknown component with hash ababababab."));
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     ComponentDisplayName name = fromJson(response, ComponentDisplayName.class);
     DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + ComponentDetailResource.SERVICE_PATH;
   }
 }

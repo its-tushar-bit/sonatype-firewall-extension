@@ -420,7 +420,7 @@
   ]);
 
   module.controller('NotificationModalController', [
-    '$scope', 'validationHelper', function($scope, validationHelper) {
+    '$scope', '$timeout', 'validationHelper', function($scope, $timeout, validationHelper) {
       var EMAIL_REGEXP = /^\S+@\S+\.\S+$/;
       $scope.validateEmail = function(value) {
         return {
@@ -509,6 +509,15 @@
         email: '',
         role: null
       };
+
+      $scope.$watch('availableRoles', function () {
+        // fixes only one-character visible on IE9
+        $timeout(function () {
+          var element = angular.element('#role');
+          element.css('width', element.css('width'));
+        }, 1);
+      });
+
       setAvailableRoles();
     }
   ]);

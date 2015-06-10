@@ -36,8 +36,6 @@ public class UserResource
 
   public static final String MY_PASSWORD_PATH = "/password";
 
-  public static final String PASSWORD_PATH = "/{userId}/password";
-
   public static final String RESET_PASSWORD_PATH = "/{userId}/reset";
 
   private final UserService userService;

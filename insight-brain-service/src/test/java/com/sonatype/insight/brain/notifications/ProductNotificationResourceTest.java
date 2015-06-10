@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationType;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.notifications.dto.ProductNotificationDTO;
 import com.sonatype.insight.brain.notifications.dto.ProductNotificationListDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -32,6 +32,15 @@ import static org.mockito.Mockito.when;
 public class ProductNotificationResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ProductNotificationResource.SERVICE_PATH);
+  }
+
+  private HttpRequest listRequest(int pageSize, int pageIndex) {
+    return restRequest().query("pageSize", pageSize).query("page", pageIndex);
+  }
+
   @Before
   public void resetMock() {
     reset(mockHdsProductNotificationService);
@@ -44,7 +53,7 @@ public class ProductNotificationResourceTest
 
     // Get first page of notifications
     int pageSize = 10;
-    Response response = AuthedRestAccess.get(getServiceURL(pageSize, 1));
+    Response response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
@@ -53,7 +62,7 @@ public class ProductNotificationResourceTest
     assertNotification(notificationListDTO.notifications.get(1), notifications.get(1), false);
 
     // Get second page, should be empty
-    response = AuthedRestAccess.get(getServiceURL(pageSize, 2));
+    response = listRequest(pageSize, 2).get();
     assertResponseStatus(200, response);
     notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
@@ -66,7 +75,7 @@ public class ProductNotificationResourceTest
     when(mockHdsProductNotificationService.getNotifications()).thenReturn(notifications);
 
     int pageSize = 10;
-    Response response = AuthedRestAccess.get(getServiceURL(pageSize, 1));
+    Response response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
@@ -75,10 +84,9 @@ public class ProductNotificationResourceTest
     assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), false);
 
     // Now set the notification as viewed
-    String url = getRestUrl(ProductNotificationResource.SERVICE_PATH + "/" + ProductNotificationResource.VIEWED_PATH);
     ProductNotificationDTO notificationDTO = new ProductNotificationDTO();
     notificationDTO.id = notifications.get(0).getId();
-    response = AuthedRestAccess.post(url, toJson(notificationDTO));
+    response = restRequest().path(ProductNotificationResource.VIEWED_PATH).body(notificationDTO).post();
     assertResponseStatus(200, response);
 
     // test the returned value has viewed flag set
@@ -88,17 +96,13 @@ public class ProductNotificationResourceTest
     assertThat(returnedValue.viewed, is(true));
 
     // Get the notifications again
-    response = AuthedRestAccess.get(getServiceURL(pageSize, 1));
+    response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
     assertThat(notificationListDTO.notifications.size(), is(1));
     // test that the notification is what is expected with viewed = true
     assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), true);
-  }
-
-  private String getServiceURL(final int pageSize, final int page) {
-    return getRestBaseUrl() + ProductNotificationResource.SERVICE_PATH + "?pageSize=" + pageSize + "&page=" + page;
   }
 
   private List<ProductNotification> createNotifications(final int numNotifications) {

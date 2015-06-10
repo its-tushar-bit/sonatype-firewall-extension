@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -25,8 +25,9 @@ import static org.junit.Assert.assertTrue;
 public class ProprietaryConfigResourceTest
     extends AbstractResourceTest
 {
-  private String getServiceUrl() {
-    return getRestBaseUrl() + ProprietaryConfigResource.SERVICE_PATH;
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ProprietaryConfigResource.SERVICE_PATH);
   }
 
   @After
@@ -37,7 +38,7 @@ public class ProprietaryConfigResourceTest
 
   @Test
   public void testGet_InitialConfig() throws Exception {
-    Response response = AuthedRestAccess.get(getServiceUrl());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
     ProprietaryConfig config = fromJson(response, ProprietaryConfig.class);
     assertNotNull(config);
@@ -51,10 +52,10 @@ public class ProprietaryConfigResourceTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
     config.setRegexes(regexes);
-    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", toJson(config));
+    Response response = restRequest().path("update").body(config).put();
     assertResponseStatus(204, response);
 
-    response = AuthedRestAccess.get(getServiceUrl());
+    response = restRequest().get();
     assertResponseStatus(200, response);
     config = fromJson(response, ProprietaryConfig.class);
     assertEquals(packages, config.getPackages());
@@ -82,7 +83,7 @@ public class ProprietaryConfigResourceTest
       final String expectedMessage) throws Exception {
     ProprietaryConfig config = new ProprietaryConfig();
     config.setRegexes(regexes);
-    Response response = AuthedRestAccess.put(getServiceUrl() + "/update", toJson(config));
+    Response response = restRequest().path("update").body(config).put();
     assertResponseStatus(400, response);
     assertEquals(expectedMessage, response.getResponseBody());
   }

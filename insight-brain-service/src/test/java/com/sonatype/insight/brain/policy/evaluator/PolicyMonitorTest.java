@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -344,8 +343,8 @@ public class PolicyMonitorTest
   private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage)
       throws Exception
   {
-    Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
-        + "?scanId=" + scanId, toJson(stage));
+    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}")
+        .parameter(applicationPublicId, scanId).body(stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
@@ -353,15 +352,15 @@ public class PolicyMonitorTest
   }
 
   private Policy addPolicy(String ownerType, String ownerId, Policy policy) throws Exception {
-    Response response = AuthedRestAccess.post(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
-        toJson(policy));
+    Response response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+        .post();
     assertResponseStatus(200, response);
     return fromJson(response, Policy.class);
   }
 
   private Policy updatePolicy(String ownerType, String ownerId, Policy policy) throws Exception {
-    Response response = AuthedRestAccess.put(getRestUrl(PolicyResource.SERVICE_PATH, ownerType, ownerId),
-        toJson(policy));
+    Response response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+        .put();
     assertResponseStatus(200, response);
     return fromJson(response, Policy.class);
   }

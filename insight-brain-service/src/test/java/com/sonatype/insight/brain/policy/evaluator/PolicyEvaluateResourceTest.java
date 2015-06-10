@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
@@ -43,8 +43,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -52,8 +50,6 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -101,6 +97,11 @@ public class PolicyEvaluateResourceTest
 
   private Application app;
 
+  private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
+    return restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}").parameter(appId, scanId)
+        .body(stage);
+  }
+
   @Before
   public void before() throws Exception {
     app = tempEntity.newApplicationWithParent(applicationPublicId);
@@ -118,27 +119,27 @@ public class PolicyEvaluateResourceTest
     Condition condition2 = new Condition(SecurityVulnerabilityConditionType.ID, "present");
     constraintSV.addCondition(condition2);
 
-    Action action = new Action(FailActionType.ID);
+    Action action = new Action(Action.ID_FAIL);
 
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraintLicense);
     policy1.addConstraint(constraintSV);
-    policy1.addAction(BuildStageType.ID, action);
+    policy1.addAction(Stage.ID_BUILD, action);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraintLicense = policy1.getConstraints().get(0);
     constraintSV = policy1.getConstraints().get(1);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     // The report file is not available yet
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip");
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -157,17 +158,17 @@ public class PolicyEvaluateResourceTest
     Component expectedComponentSimilar2 = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
     expectedComponentSimilar2.setHash("707df42012875442b9df");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar1, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar1, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar2, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentSimilar2, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraintSV.getId(), "Constraint SV", SecurityVulnerabilityConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -178,17 +179,17 @@ public class PolicyEvaluateResourceTest
     constraint1.addCondition(new Condition(MatchStateConditionType.ID, "is", "exact"));
     constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "younger than", "30"));
 
-    Action action = new Action(FailActionType.ID);
+    Action action = new Action(Action.ID_FAIL);
 
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, action);
+    policy1.addAction(Stage.ID_BUILD, action);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     String hash = "5801a1a27a36f88e2089";
     String groupId = "G";
@@ -200,12 +201,12 @@ public class PolicyEvaluateResourceTest
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     // The report file is not available yet
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/ManuallyIdentifiedComponent/report.zip");
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
@@ -221,7 +222,7 @@ public class PolicyEvaluateResourceTest
     Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraint1.getId(), "Constraint 1", MatchStateConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraint1.getId(), "Constraint 1", MatchStateConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -248,23 +249,23 @@ public class PolicyEvaluateResourceTest
 
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
-    Action action = new Action(FailActionType.ID);
+    Action action = new Action(Action.ID_FAIL);
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, action);
+    policy1.addAction(Stage.ID_BUILD, action);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     String groupId = "tomcat";
     String artifactId = "tomcat-util";
     String version = "5.5.23";
 
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
@@ -279,7 +280,7 @@ public class PolicyEvaluateResourceTest
     Component expectedComponentExact = ComponentFactory.forGav(groupId, artifactId, version, MatchState.EXACT);
     expectedComponentExact.setHash(hash);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraint1.getId(), "Constraint 1", LabelConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraint1.getId(), "Constraint 1", LabelConditionType.ID, policyAlerts);
   }
 
   private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation) {
@@ -306,14 +307,14 @@ public class PolicyEvaluateResourceTest
     final Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    final Action notifyAction = new Action(NotifyActionType.ID);
+    final Action notifyAction = new Action(Action.ID_NOTIFY);
     notifyAction.setTarget("manager@example.com");
-    policy1.addAction(BuildStageType.ID, notifyAction);
-    final Action notifyAction2 = new Action(NotifyActionType.ID);
+    policy1.addAction(Stage.ID_BUILD, notifyAction);
+    final Action notifyAction2 = new Action(Action.ID_NOTIFY);
     notifyAction2.setTarget("john.doe@example.com");
-    policy1.addAction(BuildStageType.ID, notifyAction2);
-    Action failAction1 = new Action(FailActionType.ID);
-    policy1.addAction(BuildStageType.ID, failAction1);
+    policy1.addAction(Stage.ID_BUILD, notifyAction2);
+    Action failAction1 = new Action(Action.ID_FAIL);
+    policy1.addAction(Stage.ID_BUILD, failAction1);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
 
@@ -325,14 +326,14 @@ public class PolicyEvaluateResourceTest
     policy2.setThreatLevel(3);
     policy2.addConstraint(constraint2);
     policy2.setOwnerId(app.getId());
-    Action notifyAction3 = new Action(NotifyActionType.ID);
+    Action notifyAction3 = new Action(Action.ID_NOTIFY);
     notifyAction3.setTarget("Mark.MyWords@example.com");
-    policy2.addAction(ReleaseStageType.ID, notifyAction2);
-    Action failAction2 = new Action(FailActionType.ID);
-    policy2.addAction(ReleaseStageType.ID, failAction2);
+    policy2.addAction(Stage.ID_RELEASE, notifyAction2);
+    Action failAction2 = new Action(Action.ID_FAIL);
+    policy2.addAction(Stage.ID_RELEASE, failAction2);
     policyDAO.insert(policy2);
 
-    final Stage stage = new Stage(BuildStageType.ID);
+    final Stage stage = new Stage(Stage.ID_BUILD);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
@@ -348,7 +349,7 @@ public class PolicyEvaluateResourceTest
         is(empty()));
 
     // evaluate policy
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -378,7 +379,9 @@ public class PolicyEvaluateResourceTest
     }
 
     // check the calculated policy threat
-    response = AuthedRestAccess.get(getThreatsURL(applicationPublicId, scanId));
+    response = restRequest()
+        .path(ReportResource.SERVICE_PATH, "browseReport", ScanPolicyEvaluator.POLICY_THREATS_FILENAME)
+        .parameter(applicationPublicId, scanId).get();
     assertResponseStatus(200, response);
     final JsonNode policyThreats = JsonUtils.parse(response.getResponseBody()).get("aaData");
     Assert.assertNotNull(policyThreats);
@@ -399,7 +402,7 @@ public class PolicyEvaluateResourceTest
     messagesB.clear();
 
     // evaluate policy again
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -439,17 +442,17 @@ public class PolicyEvaluateResourceTest
     policy.setOwnerId(app.getId());
     policyDAO.insert(policy);
 
-    final Stage stage = new Stage(BuildStageType.ID);
+    final Stage stage = new Stage(Stage.ID_BUILD);
 
     // The report file is not available yet
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Threat Level 1 Should not show up in any counts
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
 
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
@@ -463,7 +466,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.update(policy);
 
     // Threat Level 2 should show up as moderate
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -476,7 +479,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.update(policy);
 
     // Threat Level 4 should show up as severe
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -489,7 +492,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.update(policy);
 
     // Threat Level 8 should show up as severe
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -507,25 +510,25 @@ public class PolicyEvaluateResourceTest
     Condition condition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     constraint1.addCondition(condition1);
 
-    Action action = new Action(FailActionType.ID);
+    Action action = new Action(Action.ID_FAIL);
 
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
-    policy1.addAction(BuildStageType.ID, action);
+    policy1.addAction(Stage.ID_BUILD, action);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     // The report file is not available yet
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -540,7 +543,7 @@ public class PolicyEvaluateResourceTest
     Component expectedComponent = ComponentFactory.forGav("org.webjars", "select2", "3.2", MatchState.EXACT);
     expectedComponent.setHash("f2e35e4a21f07d25710f");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
   }
 
   @Test
@@ -554,19 +557,19 @@ public class PolicyEvaluateResourceTest
     Condition condition2 = new Condition(LicenseStatusConditionType.ID, "is", "OVERRIDDEN");
     constraint2.addCondition(condition2);
 
-    Action action = new Action(FailActionType.ID);
+    Action action = new Action(Action.ID_FAIL);
 
     Policy policy1 = new Policy(null /* policyId */, "Policy 1");
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
     policy1.addConstraint(constraint2);
-    policy1.addAction(BuildStageType.ID, action);
+    policy1.addAction(Stage.ID_BUILD, action);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
     constraint1 = policy1.getConstraints().get(0);
     constraint2 = policy1.getConstraints().get(1);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
@@ -576,7 +579,7 @@ public class PolicyEvaluateResourceTest
       " My comment");
 
     // Evaluate policy
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -591,9 +594,9 @@ public class PolicyEvaluateResourceTest
     Component expectedComponent = ComponentFactory.forGav("commons-pool", "commons-pool", "1.4", MatchState.EXACT);
     expectedComponent.setHash("1a667c9d419dc4f185c9");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraint1.getId(), "Constraint 1", LicenseConditionType.ID, policyAlerts);
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy1.getId(), "Policy 1",
-        FailActionType.ID, constraint2.getId(), "Constraint 2", LicenseStatusConditionType.ID, policyAlerts);
+        Action.ID_FAIL, constraint2.getId(), "Constraint 2", LicenseStatusConditionType.ID, policyAlerts);
 
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
@@ -601,7 +604,7 @@ public class PolicyEvaluateResourceTest
       (String)null /* licenseId */, " My comment");
 
     // Evaluate policy
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -650,14 +653,14 @@ public class PolicyEvaluateResourceTest
     policy4.setOwnerId(app.getId());
     policyDAO.insert(policy4);
 
-    final Stage stage = new Stage(BuildStageType.ID);
+    final Stage stage = new Stage(Stage.ID_BUILD);
 
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     String serverUrl = "http://localhost/";
     String cdnUrl = "http://cdn.localhost/";
 
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
@@ -685,7 +688,7 @@ public class PolicyEvaluateResourceTest
 
     mockReport(scanId, "/PolicyEvaluateResourceTest/empty_report.zip");
 
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(Stage.ID_BUILD));
+    Response response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(400, response);
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
@@ -702,13 +705,13 @@ public class PolicyEvaluateResourceTest
     Policy policy1 = new Policy("P1", "PolicyEvaluateResourceTest policy1");
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
-    Action notifyAction = new Action(NotifyActionType.ID);
+    Action notifyAction = new Action(Action.ID_NOTIFY);
     notifyAction.setTarget("manager@test.corp");
-    policy1.addAction(BuildStageType.ID, notifyAction);
+    policy1.addAction(Stage.ID_BUILD, notifyAction);
     policy1.setOwnerId(app.getId());
     policyDAO.insert(policy1);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
@@ -717,7 +720,7 @@ public class PolicyEvaluateResourceTest
     notifications.clear();
 
     // Evaluate policy
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = fromJson(response,
         PolicyEvaluationResult.class);
@@ -737,7 +740,7 @@ public class PolicyEvaluateResourceTest
     policyDAO.update(policy1);
 
     // Evaluate policy again for the same scan
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     policyEvaluationResult = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
@@ -754,8 +757,7 @@ public class PolicyEvaluateResourceTest
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId),
-        toJson(new Stage(Stage.ID_BUILD)));
+    Response response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(404, response);
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
@@ -783,13 +785,13 @@ public class PolicyEvaluateResourceTest
     policy.setOwnerId(app.getId());
     policyDAO.insert(policy);
 
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     // Simulate that the report is available
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Evaluate policy
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
@@ -808,7 +810,7 @@ public class PolicyEvaluateResourceTest
     policy.getConstraints().get(0).getConditions().get(0).setValue("commons-dbcp:commons-dbcp:1.4");
     policyDAO.update(policy);
     // Evaluate policy again for the same scan
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     List<PolicyViolation> policyViolations2 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
         stage.getStageTypeId());
@@ -837,12 +839,11 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy for the Build stage
     String scanBuildId = "scanBuildId";
     mockReport(scanBuildId, "/PolicyEvaluateResourceTest/report.zip");
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanBuildId),
-        toJson(BuildStageType.ID));
+    Response response = evalRequest(applicationPublicId, scanBuildId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
-        app.getId(), BuildStageType.ID);
+        app.getId(), Stage.ID_BUILD);
     assertThat(policyViolationsBuild, hasSize(1));
     assertThat(policyViolationsBuild.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-pool"));
@@ -853,11 +854,10 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy for the Release stage
     String scanReleaseId = "scanReleaseId";
     mockReport(scanReleaseId, "/PolicyEvaluateResourceTest/report.zip");
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanReleaseId),
-        toJson(ReleaseStageType.ID));
+    response = evalRequest(applicationPublicId, scanReleaseId, new Stage(Stage.ID_RELEASE)).post();
     assertResponseStatus(200, response);
     List<PolicyViolation> policyViolationsRelease = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
-        app.getId(), ReleaseStageType.ID);
+        app.getId(), Stage.ID_RELEASE);
     assertThat(policyViolationsRelease, hasSize(1));
     assertThat(policyViolationsRelease.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
         is("commons-pool"));
@@ -865,7 +865,7 @@ public class PolicyEvaluateResourceTest
         .getById(policyViolationsRelease.get(0).getId());
     assertThat(firstOccurrencePolicyViolationRelease.getId(), is(not(firstOccurrencePolicyViolationBuild.getId())));
 
-    policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(), BuildStageType.ID);
+    policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(), Stage.ID_BUILD);
     assertThat(policyViolationsBuild, hasSize(1));
     FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild1 = firstOccurrencePolicyViolationDAO
         .getById(policyViolationsBuild.get(0).getId());
@@ -874,8 +874,8 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testEvaluate_PersistApplicationComponents() throws Exception {
-    Stage stage1 = new Stage(BuildStageType.ID);
-    Stage stage2 = new Stage(ReleaseStageType.ID);
+    Stage stage1 = new Stage(Stage.ID_BUILD);
+    Stage stage2 = new Stage(Stage.ID_RELEASE);
 
     // Simulate that the report is available
     String scanId1 = "testEvaluatePersistApplicationComponents1";
@@ -888,7 +888,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId()), is(empty()));
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), toJson(stage1));
+    Response response = evalRequest(applicationPublicId, scanId1, stage1).post();
     assertResponseStatus(200, response);
     List<ApplicationComponent> appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
         stage1.getStageTypeId());
@@ -901,7 +901,7 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate policy for a different stage. It should not touch the app<->component assocs for the first stage.
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage2.getStageTypeId()), is(empty()));
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId2), toJson(stage2));
+    response = evalRequest(applicationPublicId, scanId2, stage2).post();
     assertResponseStatus(200, response);
     List<ApplicationComponent> appComponents2 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
         stage2.getStageTypeId());
@@ -917,7 +917,7 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate again for the first stage. It should replace the app<->component assocs for the first stage and it
     // should not touch the app<->component assocs for the second stage.
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId3), toJson(stage1));
+    response = evalRequest(applicationPublicId, scanId3, stage1).post();
     assertResponseStatus(200, response);
     List<ApplicationComponent> appComponents3 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
         stage1.getStageTypeId());
@@ -933,13 +933,13 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testReEvaluate_ObsoleteScan() throws Exception {
-    Stage stage = new Stage(BuildStageType.ID);
+    Stage stage = new Stage(Stage.ID_BUILD);
 
     // Evaluate policy for scanId1
     String scanId1 = "scanId1";
     // Simulate that the report is available
     mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), toJson(stage));
+    Response response = evalRequest(applicationPublicId, scanId1, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = fromJson(response,
         PolicyEvaluationResult.class);
@@ -952,12 +952,12 @@ public class PolicyEvaluateResourceTest
     String scanId2 = "scanId2";
     // Simulate that the report is available
     mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId2), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId2, stage).post();
     assertResponseStatus(200, response);
     assertPolicyEvaluation(app.getId(), scanId2, false /* isReevaluation */);
 
     // Evaluate policy again for scanid1
-    response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId1), toJson(stage));
+    response = evalRequest(applicationPublicId, scanId1, stage).post();
     assertResponseStatus(200, response);
     policyEvaluationResult = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
@@ -974,21 +974,9 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testInvalidStage() throws Exception {
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, "scanid"),
-        toJson(new Stage("foobar")));
+    Response response = evalRequest(applicationPublicId, "scanid", new Stage("foobar")).post();
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
     assertEquals("Invalid stage id=foobar", response.getResponseBody());
-  }
-
-  private String getServiceURL(final String appId, final String scanId) {
-    return getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", appId) + "?scanId="
-        + scanId;
-  }
-
-  private String getThreatsURL(final String applicationPublicId, final String scanId) {
-    return getRestBaseUrl()
-        + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId).replace("{scanId}", scanId)
-        + "/browseReport/" + ScanPolicyEvaluator.POLICY_THREATS_FILENAME;
   }
 
   @Test
@@ -999,11 +987,11 @@ public class PolicyEvaluateResourceTest
     Constraint constraint = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     constraint.addCondition(condition);
-    Action action = new Action(FailActionType.ID);
+    Action action = new Action(Action.ID_FAIL);
     Policy policy = new Policy(null /* policyId */, "Policy 1");
     policy.setThreatLevel(5);
     policy.addConstraint(constraint);
-    policy.addAction(BuildStageType.ID, action);
+    policy.addAction(Stage.ID_BUILD, action);
     policy.setOwnerId(app.getId());
     policyDAO.insert(policy);
 
@@ -1014,8 +1002,8 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Evaluate the policy
-    Stage stage = new Stage(BuildStageType.ID);
-    Response response = AuthedRestAccess.post(getServiceURL(applicationPublicId, scanId), toJson(stage));
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Response response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
 
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);

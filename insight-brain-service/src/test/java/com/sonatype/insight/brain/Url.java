@@ -28,7 +28,7 @@ class Url
     return this;
   }
 
-  public Url query(String name, String value) {
+  public Url query(String name, Object value) {
     if (value != null) {
       builder.replaceQueryParam(name, value);
     }

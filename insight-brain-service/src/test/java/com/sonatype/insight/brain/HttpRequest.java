@@ -100,7 +100,7 @@ public class HttpRequest
     return this;
   }
 
-  public HttpRequest query(String name, String value) {
+  public HttpRequest query(String name, Object value) {
     url.query(name, value);
     return this;
   }

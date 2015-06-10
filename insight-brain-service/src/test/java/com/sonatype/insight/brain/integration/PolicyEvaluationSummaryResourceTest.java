@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.integration;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -30,6 +30,10 @@ public class PolicyEvaluationSummaryResourceTest
 
   private Application application;
 
+  private HttpRequest summaryRequest(String appId, String stageTypeId) {
+    return restRequest().path(PolicyEvaluationSummaryResource.SERVICE_PATH).parameter(appId, stageTypeId);
+  }
+
   @Before
   public void setup() {
     application = tempEntity.newApplicationWithParent("test-app");
@@ -44,8 +48,7 @@ public class PolicyEvaluationSummaryResourceTest
     Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-
-    Response response = AuthedRestAccess.get(getServiceURL(application.getId(), stage.getStageTypeId()));
+    Response response = summaryRequest(application.getId(), stage.getStageTypeId()).get();
     assertResponseStatus(200, response);
 
     PolicyEvaluationSummary policyEvaluationSummary = fromJson(response, PolicyEvaluationSummary.class);
@@ -61,13 +64,8 @@ public class PolicyEvaluationSummaryResourceTest
 
   @Test
   public void testGetPolicyEvaluationSummary_badStage() throws Exception {
-    Response response = AuthedRestAccess.get(getServiceURL(application.getId(), invalidStageId));
+    Response response = summaryRequest(application.getId(), invalidStageId).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid parameter stageTypeId=" + invalidStageId + "."));
-  }
-
-  private String getServiceURL(final String appId, final String stageTypeId) {
-    return getRestBaseUrl() + PolicyEvaluationSummaryResource.SERVICE_PATH.replace("{applicationId}", appId)
-        .replace("{stageTypeId}", stageTypeId);
   }
 }

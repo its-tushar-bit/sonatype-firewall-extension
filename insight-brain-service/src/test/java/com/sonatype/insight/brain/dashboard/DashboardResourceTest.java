@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -37,6 +37,11 @@ public class DashboardResourceTest
 
   private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(DashboardResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGetNewestRisks() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application");
@@ -45,8 +50,7 @@ public class DashboardResourceTest
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_NEWEST_RISKS_PATH));
+    Response response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).get();
 
     assertResponseStatus(200, response);
     NewestRiskDTO[] dtos = fromJson(response, NewestRiskDTO[].class);
@@ -61,8 +65,7 @@ public class DashboardResourceTest
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.GET_POLICY_SUMMARY_PATH));
+    Response response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH).get();
 
     assertResponseStatus(200, response);
     PolicySummaryDTO dto = fromJson(response, PolicySummaryDTO.class);
@@ -73,7 +76,8 @@ public class DashboardResourceTest
   @Test
   public void testDashboardUserFilterCRUD() throws Exception {
     // start with the default filter
-    Response response = AuthedRestAccess.get(getRestUrl());
+    HttpRequest request = restRequest().path(DashboardResource.FILTERS_PATH);
+    Response response = request.get();
     assertResponseStatus(200, response);
 
     Organization org = tempEntity.newOrganization();
@@ -82,8 +86,7 @@ public class DashboardResourceTest
     DashboardFilterDTO dashboardFilterDTO = createDashboardFilter(app, tag);
 
     // Test the create
-    String body = toJson(dashboardFilterDTO);
-    response = AuthedRestAccess.put(getRestUrl(), body);
+    response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
 
     DashboardFilter dashboardFilter = dashboardFilterDAO.getByUsername("admin");
@@ -99,8 +102,7 @@ public class DashboardResourceTest
     dashboardFilterDTO = returnedDashboardFilterDTO;
     dashboardFilterDTO.minPolicyThreatLevel = 8;
     dashboardFilterDTO.maxPolicyThreatLevel = 20;
-    body = toJson(dashboardFilterDTO);
-    response = AuthedRestAccess.put(getRestUrl(), body);
+    response = request.body(dashboardFilterDTO).put();
 
     assertResponseStatus(200, response);
     returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
@@ -108,14 +110,14 @@ public class DashboardResourceTest
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
     // Now test get
-    response = AuthedRestAccess.get(getRestUrl());
+    response = request.get();
     assertResponseStatus(200, response);
     returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
     // Finally test the delete
-    response = AuthedRestAccess.delete(getRestUrl());
+    response = request.body(null).delete();
     assertResponseStatus(204, response);
     assertThat(dashboardFilterDAO.getByUsername("admin"), nullValue());
   }
@@ -155,8 +157,7 @@ public class DashboardResourceTest
 
   @Test
   public void testGetFilterSummary() throws Exception {
-    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.FILTERS_SUMMARY_PATH));
+    Response response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH).get();
     assertResponseStatus(200, response);
     FilterSummaryDTO dto = fromJson(response, FilterSummaryDTO.class);
     assertThat(dto, is(notNullValue()));
@@ -164,8 +165,7 @@ public class DashboardResourceTest
 
   @Test
   public void testGetComponentSummary() throws Exception {
-    Response response = AuthedRestAccess.get(getRestUrl(DashboardResource.SERVICE_PATH + '/'
-        + DashboardResource.COMPONENTS_SUMMARY_PATH));
+    Response response = restRequest().path(DashboardResource.COMPONENTS_SUMMARY_PATH).get();
     assertResponseStatus(200, response);
     ComponentSummaryDTO dto = fromJson(response, ComponentSummaryDTO.class);
     assertThat(dto, is(notNullValue()));
@@ -176,9 +176,5 @@ public class DashboardResourceTest
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, tempPolicy);
     tempEntity.newFirstOccurrencePolicyViolation(violation.getId(), app.getId(), stageTypeId);
     return violation;
-  }
-
-  private String getRestUrl() {
-    return getRestUrl(DashboardResource.SERVICE_PATH + "/" + DashboardResource.FILTERS_PATH);
   }
 }

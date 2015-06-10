@@ -7,11 +7,10 @@ package com.sonatype.insight.brain.integration;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -24,13 +23,21 @@ import static org.junit.Assert.assertThat;
 public class ApplicationSummaryResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(ApplicationSummaryResource.SERVICE_PATH);
+  }
+
+  private HttpRequest summaryRequest(Goal goal) {
+    return restRequest().query(ApplicationSummaryResource.GOAL_PARAM, "{goal}").parameter(goal);
+  }
+
   @Test
   public void testGetApplications_EvaluateApplication() throws Exception {
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
-    Response response = AuthedRestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
-        + Goal.EVALUATE_APPLICATION);
+    Response response = summaryRequest(Goal.EVALUATE_APPLICATION).get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -42,8 +49,7 @@ public class ApplicationSummaryResourceTest
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
-    Response response = AuthedRestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
-        + Goal.EVALUATE_COMPONENT);
+    Response response = summaryRequest(Goal.EVALUATE_COMPONENT).get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -55,7 +61,7 @@ public class ApplicationSummaryResourceTest
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
-    Response response = AuthedRestAccess.get(getServicePath());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -67,8 +73,7 @@ public class ApplicationSummaryResourceTest
   public void testGetApplications_EvaluateApplication_Anonymous() throws Exception {
     Application application = tempEntity.newApplicationWithParent("testPublicId");
 
-    Response response = RestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
-        + Goal.EVALUATE_APPLICATION);
+    Response response = summaryRequest(Goal.EVALUATE_APPLICATION).anon().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -79,8 +84,7 @@ public class ApplicationSummaryResourceTest
   public void testGetApplications_EvaluateComponent_Anonymous() throws Exception {
     tempEntity.newApplicationWithParent("testPublicId");
 
-    Response response = RestAccess.get(getServicePath() + "?" + ApplicationSummaryResource.GOAL_PARAM + "="
-        + Goal.EVALUATE_COMPONENT);
+    Response response = summaryRequest(Goal.EVALUATE_COMPONENT).anon().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -91,7 +95,7 @@ public class ApplicationSummaryResourceTest
   public void testGetApplications_NoGoal_Anonymous() throws Exception {
     Application application = tempEntity.newApplicationWithParent("testPublicId");
 
-    Response response = RestAccess.get(getServicePath());
+    Response response = restRequest().anon().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -105,9 +109,5 @@ public class ApplicationSummaryResourceTest
     assertThat(applicationSummary.getId(), is(expected.getId()));
     assertThat(applicationSummary.getPublicId(), is(expected.getPublicId()));
     assertThat(applicationSummary.getName(), is(expected.getName()));
-  }
-
-  private String getServicePath() {
-    return getRestBaseUrl() + "/" + ApplicationSummaryResource.SERVICE_PATH;
   }
 }

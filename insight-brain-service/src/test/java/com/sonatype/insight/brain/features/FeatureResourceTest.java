@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.features;
 
 import java.util.Arrays;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
@@ -21,10 +21,15 @@ import static org.hamcrest.Matchers.notNullValue;
 public class FeatureResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(FeaturesResource.SERVICE_PATH);
+  }
+
   @Test
   public void testFeatures_Licensed() throws Exception {
     // Get all features
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = fromJson(response, String[].class);
     Assert.assertNotNull(features);
@@ -37,14 +42,10 @@ public class FeatureResourceTest
   public void testFeatures_Unlicensed() throws Exception {
     // Get all features
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = fromJson(response, String[].class);
     Assert.assertThat(features, is(notNullValue()));
     Assert.assertThat(features, is(emptyArray()));
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + FeaturesResource.SERVICE_PATH;
   }
 }

@@ -9,7 +9,8 @@ var InsightDatatable = {
       }
     };
   }
-};
+},
+clmBuildTimestamp = 'testTimestamp';
 
 if (window.CLM) {
   CLM.loadPlugin = function() {

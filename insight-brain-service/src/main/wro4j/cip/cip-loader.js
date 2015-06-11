@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global $, window, CLM, document */
+/* global $, window, CLM, document, Insight, angular, Base64 */
 (function() {
   'use strict';
-  
+
   function getBaseUrl() {
     var idx = window.location.href.indexOf('/rest/report/');
     return window.location.href.substring(0, idx + 1);
@@ -39,8 +39,7 @@
                 }
               }
               Insight.InformationPanelPlugins.push(plugin);
-            }
-            else {
+            } else {
               setTimeout(check, 50);
             }
           }
@@ -51,45 +50,30 @@
     }
   });
 
-  function loadScript(key, scriptSrc, onLoad) {
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = CLM.path + scriptSrc + '?' + clmBuildTimestamp;
-    $('head')[0].appendChild(script);
-    if (onLoad) {
-      script.onload = script.onreadystatechange = function() {
-        if (!script.readyState || (script.readyState === 'complete' || script.readyState === 'loaded')) {
-          script.onload = script.onreadystatechange = null;
-          onLoad();
-        }
-      };
-    }
-  }
-
   function createApplicationIdProvider() {
-    angular.module('ApplicationIdProvider', ['ui.bootstrap']).service('ApplicationId',function() {
+    angular.module('ApplicationIdProvider', ['ui.bootstrap']).service('ApplicationId', function() {
       // TODO Are ui-router parameters encoded or decoded?
       return {
         encoded: function() {
           return applicationId;
         }
       };
-    }).service('OrganizationId',function() {
-          return {
-            encoded: function() {
-              return null;
-            }
-          };
-        }).directive('disablenav', function() {
-          return function(scope, element, attrs) {
-            element.bind("keydown.nav", function(e) {
-              // 9 is tab, others are arrow keys
-              if (e.keyCode == 9 || (e.keyCode >= 37 && e.keyCode <= 40)) {
-                e.stopPropagation();
-              }
-            });
-          };
+    }).service('OrganizationId', function() {
+      return {
+        encoded: function() {
+          return null;
+        }
+      };
+    }).directive('disablenav', function() {
+      return function(scope, element, attrs) {
+        element.bind("keydown.nav", function(e) {
+          // 9 is tab, others are arrow keys
+          if (e.keyCode == 9 || (e.keyCode >= 37 && e.keyCode <= 40)) {
+            e.stopPropagation();
+          }
         });
+      };
+    });
   }
 
   function applyHttpOverride() {
@@ -112,7 +96,7 @@
                 // success, nothing funky to do, just resolve
                 deferred.resolveWith(context, Array.prototype.slice.apply(arguments));
               },
-              function(jqXHR, textStatus, errorThrown) {
+              function(jqXHR) {
                 // 401 error, time to force them to login
                 if (jqXHR.status === 401) {
                   // put the request in the queue, as multiple requests may be sent simultaneously
@@ -127,16 +111,14 @@
                   if (!modalDiv) {
                     modalDiv = $(
                             '<div class="modal" id="loginModal">'
-                                    + '<form name="loginForm" class="form-horizontal">'
+                                    + '<form name="loginForm" class="form-horizontal" style="margin-bottom:0px;">'
                                     + '<div class="modal-header">' + '<h3>User Login</h3>' + '</div>'
                                     + '<div class="modal-body">' + '<div class="control-group">'
                                     + '<label class="control-label" for="login-username">Username</label>'
-                                    + '<div class="controls">'
-                                    + '<input type="text" id="login-username">' + '</div>'
+                                    + '<div class="controls">' + '<input type="text" id="login-username">' + '</div>'
                                     + '</div>' + '<div class="control-group">'
                                     + '<label class="control-label" for="login-password">Password</label>'
-                                    + '<div class="controls">'
-                                    + '<input type="password" id="login-password">'
+                                    + '<div class="controls">' + '<input type="password" id="login-password">'
                                     + '</div>' + '</div>' + '</div>' + '<div class="modal-footer">'
                                     + '<span id="login-error" class="alert alert-error" '
                                     + 'style="margin-right: 10px; display: none;"/>'
@@ -150,7 +132,7 @@
                     modalDiv.modal('show');
                   }
 
-                  $("#login-action").on('click', function(event) {
+                  $('#login-action').on('click', function(event) {
                     event.preventDefault();
                     $('#login-error').hide();
                     // do the login with the original ajax, so we don't hit our code here
@@ -190,34 +172,18 @@
   }
 
   var head = $('head'),
-       scripts = ['assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/angular-${angularjs.version}/angular-route.min.js',
-        'assets/lib/ui-bootstrap-tpls-0.8.0.min.js', 'assets/lib/Base64.js', 'cip/cip-component-util.js',
-        'cip/cip-label-editor.js', 'cip/cip-policy-violations.js', 'cip/cip-claim-component.js',
-        'cip/cip-license-editor.js', 'cip/cip-version-graph.js', 'assets/version-graph/version-graph.js',
-        'assets/js/util.js', 'assets/lib/angular-${angularjs.version}/angular-sanitize.min.js'],
-      styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],
-      clmBuildTimestamp = '${build.timestamp}';
-  
+      styles = ['cip/cip.css', 'policy-assets/css/cip-loader.css'];
+
   applyHttpOverride();
 
-  if (!window.angular) {
-    loadScript(null, 'assets/lib/angular-${angularjs.version}/angular.min.js', function() {
-      createApplicationIdProvider();
-      $.each(scripts, loadScript);
-    });
-  }
-  else {
-    createApplicationIdProvider();
-    $.each(scripts, loadScript);
-  }
+  createApplicationIdProvider();
 
   $.each(styles, function(key, style) {
     var url = CLM.path + style + '?' + clmBuildTimestamp;
     if (document.createStyleSheet) {
       // Note at most 31 stylesheets can be loaded this way
       document.createStyleSheet(url);
-    }
-    else {
+    } else {
       $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', url).appendTo(head);
     }
   });

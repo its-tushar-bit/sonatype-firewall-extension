@@ -367,6 +367,7 @@ public class ReportResourceTest
     assertTrue("index.html expires immediately: " + expires + " vs " + calendar.getTime(),
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
+    calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
     String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime());
     response = request.subpath("data.json").header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(304, response);

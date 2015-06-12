@@ -13,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -33,7 +32,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
@@ -57,18 +56,13 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.saas.TestNamedComponentDetails;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.test.RestAccess;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -109,6 +103,10 @@ public class ReportResourceTest
   private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier.createMavenCoordinates("commons-pool",
       "commons-pool", "1.4");
 
+  private HttpRequest restRequest(String appId, String scanId) {
+    return restRequest().path(ReportResource.SERVICE_PATH).parameter(appId, scanId);
+  }
+
   @Test
   public void testManuallyIdentifiedComponent() throws Exception {
     // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
@@ -135,11 +133,10 @@ public class ReportResourceTest
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    assertResponseStatus(200,
-        AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
-    String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    Response response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
     String bomJsonData = response.getResponseBody();
@@ -168,7 +165,7 @@ public class ReportResourceTest
     }
     assertTrue(foundClaimedComponent);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -176,7 +173,7 @@ public class ReportResourceTest
     assertFalse(licensesJsonData.contains(hash));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = request.subpath("security.json").get();
     assertResponseStatus(200, response);
     String securityJsonData = response.getResponseBody();
     assertNotNull(securityJsonData);
@@ -184,7 +181,7 @@ public class ReportResourceTest
     assertFalse(securityJsonData.contains(hash));
     assertFalse(securityJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/partialmatched.json");
+    response = request.subpath("partialmatched.json").get();
     assertResponseStatus(200, response);
     String partialmatched = response.getResponseBody();
     assertNotNull(partialmatched);
@@ -227,12 +224,10 @@ public class ReportResourceTest
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    assertResponseStatus(200,
-        AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
-    String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    Response response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -255,8 +250,8 @@ public class ReportResourceTest
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // populate JSON data cache before claiming the component
-    String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
+    Response response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
 
     // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
@@ -270,11 +265,10 @@ public class ReportResourceTest
         classifier, extension);
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
-    response = AuthedRestAccess.post(getRestBaseUrl() + HashComponentIdentifierResource.SERVICE_PATH,
-        toJson(hashComponentIdentifier));
+    response = restRequest().path(HashComponentIdentifierResource.SERVICE_PATH).body(hashComponentIdentifier).post();
     assertResponseStatus(200, response);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
+    response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
     String bomJsonData = response.getResponseBody();
@@ -301,7 +295,7 @@ public class ReportResourceTest
     }
     assertTrue(foundClaimedComponent);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -309,7 +303,7 @@ public class ReportResourceTest
     assertFalse(licensesJsonData.contains(hash));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = request.subpath("security.json").get();
     assertResponseStatus(200, response);
     String securityJsonData = response.getResponseBody();
     assertNotNull(securityJsonData);
@@ -317,7 +311,7 @@ public class ReportResourceTest
     assertFalse(securityJsonData.contains(hash));
     assertFalse(securityJsonData.contains("commons-httpclient"));
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/partialmatched.json");
+    response = request.subpath("partialmatched.json").get();
     assertResponseStatus(200, response);
     String partialmatched = response.getResponseBody();
     assertNotNull(partialmatched);
@@ -338,7 +332,7 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
@@ -349,7 +343,7 @@ public class ReportResourceTest
 
     calendar.setTime(new Date());
     calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) + 365);
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/insight.js");
+    Response response = request.subpath("insight.js").get();
     assertResponseStatus(200, response);
     String expiresHeader = response.getHeader("Expires");
     assertNotNull(expiresHeader);
@@ -358,7 +352,7 @@ public class ReportResourceTest
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/data.json");
+    response = request.subpath("data.json").get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
@@ -366,25 +360,19 @@ public class ReportResourceTest
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/index.html");
+    response = request.subpath("index.html").get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
     assertTrue("index.html expires immediately: " + expires + " vs " + calendar.getTime(),
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
-    Map<String, String> ifModifiedSinceHeader = new HashMap<>();
-    calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
-    ifModifiedSinceHeader.put("If-Modified-Since",
-        new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime()));
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/data.json", ifModifiedSinceHeader);
+    String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime());
+    response = request.subpath("data.json").header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(304, response);
 
     //make sure index.html always returns 200, no 304s here
-    ifModifiedSinceHeader = new HashMap<>();
-    ifModifiedSinceHeader.put("If-Modified-Since",
-        new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime()));
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/index.html", ifModifiedSinceHeader);
+    response = request.subpath("index.html").header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(200, response);
   }
 
@@ -396,14 +384,14 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
 
     String reportResource = "/ReportResourceTest/report.zip";
     mockReport(scanId, reportResource);
 
     try (ZipInputStream zipStream = new ZipInputStream(getClass().getResourceAsStream(reportResource))) {
       for (ZipEntry entry = zipStream.getNextEntry(); entry != null; entry = zipStream.getNextEntry()) {
-        final Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/" + entry.getName());
+        final Response response = request.subpath(entry.getName()).get();
         final String contentType = response.getContentType();
         assertResponseStatus(200, response);
 
@@ -459,8 +447,7 @@ public class ReportResourceTest
       }
     }
 
-    assertResponseStatus(200,
-        AuthedRestAccess.get(getRestBaseUrl() + ReportResource.getReportPath(applicationPublicId, scanId)));
+    assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
   }
 
   @Test
@@ -476,15 +463,15 @@ public class ReportResourceTest
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
 
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/../restricted.txt");
+    Response response = request.subpath("../restricted.txt").get();
     assertResponseStatus(404, response);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/%2E%2E/restricted.txt");
+    response = request.subpath("%2E%2E/restricted.txt").get();
     assertResponseStatus(404, response);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/%2E%2E%5Crestricted.txt");
+    response = request.subpath("%2E%2E%5Crestricted.txt").get();
     assertResponseStatus(404, response);
   }
 
@@ -493,12 +480,13 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/index.html", appPublicId,
-        scanId));
+    Response response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
     assertResponseStatus(200, response);
 
     String content = response.getResponseBody();
-    assertTrue(content.contains(getRestUrl(UserInterfaceLinksResource.SERVICE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH, appPublicId, scanId)));
+    assertTrue(content.contains(restRequest()
+        .path(UserInterfaceLinksResource.SERVICE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+        .parameter(appPublicId, scanId).getUrl()));
     assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
   }
 
@@ -507,8 +495,8 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    Response response = RestAccess.get(getRestUrl(ReportResource.SERVICE_PATH + "/embedReport/"
-        + ScanPolicyEvaluator.POLICY_ALERTS_FILENAME, appPublicId, scanId));
+    Response response = restRequest(appPublicId, scanId)
+        .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
     assertResponseStatus(404, response);
     assertEquals("Reports have been moved.  Clear cache and reload.", response.getResponseBody());
   }
@@ -521,15 +509,13 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), scanId);
-
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     final Response response;
     try {
-      response = AuthedRestAccess.get(resourcePrefix + "/printReport");
+      response = restRequest(applicationPublicId, scanId).path("printReport").get();
       assertResponseStatus(200, response);
       assertThat(response.getHeader("Content-Disposition"),
           stringContainsInOrder(Arrays.asList("attachment; filename=\"Test Project-Build-", ".pdf\"")));
@@ -551,15 +537,15 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    tempEntity.newPolicyEvaluation(appId, StageTypes.BUILD.getId(), scanId);
+    tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId).path("printReport");
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     Response response;
     try {
-      response = AuthedRestAccess.get(resourcePrefix + "/printReport");
+      response = request.get();
       assertResponseStatus(200, response);
 
       // pretend the print attempt crashed with OOME, which usually leaves an empty PDF file around
@@ -568,7 +554,7 @@ public class ReportResourceTest
       new FileOutputStream(pdfFile).close();
 
       // printing again after fixing the mem setting should produce a proper PDF
-      response = AuthedRestAccess.get(resourcePrefix + "/printReport");
+      response = request.get();
       assertResponseStatus(200, response);
       assertThat(response.getHeader("Content-Disposition"),
           stringContainsInOrder(Arrays.asList("attachment; filename=\"Test Project-Build-", ".pdf\"")));
@@ -605,25 +591,24 @@ public class ReportResourceTest
     policy.setOwnerId(application.getId());
     policy.setThreatLevel(8);
     policy.addConstraint(constraint);
-    final Action notifyAction = new Action(NotifyActionType.ID);
+    final Action notifyAction = new Action(Action.ID_NOTIFY);
     notifyAction.setTarget("manager@test.corp");
-    policy.addAction(BuildStageType.ID, notifyAction);
+    policy.addAction(Stage.ID_BUILD, notifyAction);
     PolicyDAO policyDAO = new PolicyDAO();
     policyDAO.insert(policy);
-    final Stage stage = new Stage(BuildStageType.ID);
+    final Stage stage = new Stage(Stage.ID_BUILD);
 
     List<Message> notifications = Mailbox.get("manager@test.corp");
 
     // Evaluate policy
-    Response response = AuthedRestAccess.post(
-        getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId)
-            + "?scanId=" + scanId, toJson(stage));
+    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+        .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
     Assert.assertNotNull(policyEvaluation);
     Assert.assertEquals(scanId, policyEvaluation.getScanId());
-    Assert.assertEquals(BuildStageType.ID, policyEvaluation.getStageTypeId());
+    Assert.assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
     assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
     Assert.assertFalse(policyEvaluation.isReevaluation());
 
@@ -635,15 +620,14 @@ public class ReportResourceTest
     // ReEvaluate
     policy.setName(policy.getName() + " Updated");
     policyDAO.update(policy);
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
-    response = AuthedRestAccess.get(resourcePrefix + "/reevaluatePolicy");
+    response = restRequest(applicationPublicId, scanId).path("reevaluatePolicy").get();
     assertResponseStatus(200, response);
 
     PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
         scanId);
     Assert.assertNotNull(policyReEvaluation);
     Assert.assertEquals(scanId, policyReEvaluation.getScanId());
-    Assert.assertEquals(BuildStageType.ID, policyReEvaluation.getStageTypeId());
+    Assert.assertEquals(Stage.ID_BUILD, policyReEvaluation.getStageTypeId());
     assertTrue(policyReEvaluation.getTime().getTime() > policyEvaluation.getTime().getTime());
     assertTrue(policyReEvaluation.isReevaluation());
 
@@ -653,15 +637,14 @@ public class ReportResourceTest
     // reevaluation.
     scanId = "ReportResourceTest_ScanId1";
     mockReport(scanId, "/ReportResourceTest/report.zip");
-    response = AuthedRestAccess.post(
-        getRestBaseUrl() + PolicyEvaluateResource.SERVICE_PATH.replace("{applicationPublicId}", applicationPublicId)
-            + "?scanId=" + scanId, toJson(stage));
+    response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+        .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
     policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
     Assert.assertNotNull(policyEvaluation);
     Assert.assertEquals(scanId, policyEvaluation.getScanId());
-    Assert.assertEquals(BuildStageType.ID, policyEvaluation.getStageTypeId());
+    Assert.assertEquals(Stage.ID_BUILD, policyEvaluation.getStageTypeId());
     assertTrue(System.currentTimeMillis() - policyEvaluation.getTime().getTime() < 60 * 1000);
     Assert.assertFalse(policyEvaluation.isReevaluation());
 
@@ -676,34 +659,35 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId);
+    HttpRequest augmentRequest = request.subpath("augmentData", "security.json").query(
+        "user=test&where=ReportResourceTest");
+    HttpRequest browseRequest = request.subpath("browseReport", "security.json");
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    final String query = "security.json?user=test&where=ReportResourceTest";
-
     // attempt a bad edit (no augmented data)
-    Response response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + query, "");
+    Response response = augmentRequest.post();
     assertResponseStatus(400, response); // bad request; no changes
 
     // verify nothing has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
     // edit the state
     String edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
-    response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + query, edit);
+    response = augmentRequest.body(edit).post();
     assertResponseStatus(200, response);
 
     // verify the state has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), containsString("\"state\" : \"accepted\""));
 
     // check the audit log reflects this change
-    response = AuthedRestAccess.get(resourcePrefix + "/auditLog/security.json?key="
-        + UrlUtils.encodeUrlComponent("{\"hash\":\"1249e25aebb15358bedd\"}"));
+    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}")
+        .get();
     assertResponseStatus(200, response);
 
     String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
@@ -712,17 +696,17 @@ public class ReportResourceTest
 
     // edit the state again
     edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\" }";
-    response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + query, edit);
+    response = augmentRequest.body(edit).post();
     assertResponseStatus(200, response);
 
     // verify the state has changed again
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), containsString("\"state\" : \"confirmed\""));
 
     // check the audit log reflects this change
-    response = AuthedRestAccess.get(resourcePrefix + "/auditLog/security.json?key="
-        + UrlUtils.encodeUrlComponent("{\"hash\":\"1249e25aebb15358bedd\"}"));
+    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}")
+        .get();
     assertResponseStatus(200, response);
 
     feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
@@ -732,13 +716,12 @@ public class ReportResourceTest
 
     // edit the BoM
     final String bomEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
-    final String bomQuery = "bom.json?user=test&where=ReportResourceTest";
 
-    response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + bomQuery, bomEdit);
+    response = request.subpath("augmentData", "bom.json").query("user=test&where=ReportResourceTest").body(bomEdit).post();
     assertResponseStatus(200, response);
 
     // verify the BoM change has been applied
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/bom.json");
+    response = request.subpath("browseReport", "bom.json").get();
     assertResponseStatus(200, response);
     boolean found = false;
     final String bomJsonString = response.getResponseBody();
@@ -763,12 +746,12 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "licenses.json");
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // Verify before any license overrides are added
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     int found = 0;
     String licenseJsonString = response.getResponseBody();
@@ -787,13 +770,12 @@ public class ReportResourceTest
     // Override the license at organization level
     LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
-    response = AuthedRestAccess.post(
-        getLicenseOverrideServiceURL(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()),
-        toJson(orgLicenseOverride));
+    response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
+        .parameter(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
     assertResponseStatus(200, response);
     orgLicenseOverride = fromJson(response, LicenseOverride.class);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    response = request.get();
     assertResponseStatus(200, response);
     found = 0;
     licenseJsonString = response.getResponseBody();
@@ -822,12 +804,12 @@ public class ReportResourceTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(),
       COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
-    response = AuthedRestAccess.post(getLicenseOverrideServiceURL(IdUtils.TYPE_APPLICATION, application.getPublicId()),
-        toJson(appLicenseOverride));
+    response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
+        .parameter(IdUtils.TYPE_APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
     assertResponseStatus(200, response);
     appLicenseOverride = fromJson(response, LicenseOverride.class);
 
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/licenses.json");
+    response = request.get();
     assertResponseStatus(200, response);
     found = 0;
     licenseJsonString = response.getResponseBody();
@@ -862,25 +844,25 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId);
+    HttpRequest augmentRequest = request.subpath("augmentData", "security.json").query(
+        "user=test&where=ReportResourceTest");
+    HttpRequest browseRequest = request.subpath("browseReport", "security.json");
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    final String query = "security.json?user=test&where=ReportResourceTest";
-
     // verify nothing has changed
-    Response response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    Response response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
     // edit the state
     final String edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
-    response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + query, edit);
+    response = augmentRequest.body(edit).post();
     assertResponseStatus(200, response);
 
     // check the audit log reflects this change
-    response = AuthedRestAccess.get(resourcePrefix + "/auditLog/security.json?key="
-        + UrlUtils.encodeUrlComponent("{\"hash\":\"1249e25aebb15358bedd\"}"));
+    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}").get();
     assertResponseStatus(200, response);
 
     final String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
@@ -891,7 +873,7 @@ public class ReportResourceTest
     int oldModCount = ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, 888);
 
     // verify nothing has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
@@ -899,7 +881,7 @@ public class ReportResourceTest
     ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, oldModCount);
 
     // verify the state has changed
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), containsString("\"state\" : \"accepted\""));
   }
@@ -912,24 +894,23 @@ public class ReportResourceTest
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    final String resourcePrefix = getServiceURL(applicationPublicId, scanId);
+    HttpRequest request = restRequest(applicationPublicId, scanId);
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    final String query = "extra.json?user=test&where=ReportResourceTest";
-
     // audit non-report data
     final String extra = "{ \"policy\" : \"TEST\", \"result\" : \"OK\" }";
-    Response response = AuthedRestAccess.post(resourcePrefix + "/augmentData/" + query, extra);
+    Response response = request.subpath("augmentData", "extra.json").query("user=test&where=ReportResourceTest")
+        .body(extra).post();
     assertResponseStatus(200, response);
 
     // verify can still access report
-    response = AuthedRestAccess.get(resourcePrefix + "/browseReport/security.json");
+    response = request.subpath("browseReport", "security.json").get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
     // check the audit log reflects this change
-    response = AuthedRestAccess.get(resourcePrefix + "/auditLog/extra.json");
+    response = request.subpath("auditLog", "extra.json").get();
     assertResponseStatus(200, response);
 
     final String feed = "{ \"aaData\" : [ { \"policy\" : \"TEST\", \"result\" : \"OK\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"extra.json\" } ] }";
@@ -940,8 +921,7 @@ public class ReportResourceTest
   @Test
   public void testRedirection() throws Exception {
     String path = "index.html?x=y&a=b";
-    String url = getServiceURL("appId", "scanId");
-    Response response = AuthedRestAccess.get(url + "/brain/" + path);
+    Response response = restRequest("appId", "scanId").path("brain", "index.html").query("x=y&a=b").get();
     assertResponseStatus(307, response);
     Assert.assertEquals(getRestBaseUrl() + path, response.getHeader("Location"));
   }
@@ -967,13 +947,11 @@ public class ReportResourceTest
       "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName().replaceAll("[_]", ""));
 
-    Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
-        + "?scanId=" + scanId, toJson(new Stage(Stage.ID_BUILD)));
+    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH,
-        applicationPublicId, scanId);
-    response = AuthedRestAccess.get(url);
+    response = restRequest(applicationPublicId, scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
@@ -1060,13 +1038,11 @@ public class ReportResourceTest
       "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
 
-    Response response = AuthedRestAccess.post(getRestUrl(PolicyEvaluateResource.SERVICE_PATH, applicationPublicId)
-        + "?scanId=" + scanId, toJson(new Stage(Stage.ID_BUILD)));
+    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+        .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
-    String url = getRestUrl(ReportResource.SERVICE_PATH + '/' + ReportResource.DOWNLOAD_BUNDLE_PATH,
-        applicationPublicId, scanId);
-    response = AuthedRestAccess.get(url);
+    response = restRequest(applicationPublicId, scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
@@ -1285,14 +1261,5 @@ public class ReportResourceTest
       }
     }
     return countNotZero;
-  }
-
-  private String getServiceURL(final String appId, final String scanId) {
-    return getRestBaseUrl()
-        + ReportResource.SERVICE_PATH.replace("{applicationPublicId}", appId).replace("{scanId}", scanId);
-  }
-
-  private String getLicenseOverrideServiceURL(final String ownerType, final String ownerId) {
-    return getRestBaseUrl() + LicenseOverrideResource.SERVICE_BASEPATH + ownerType + "/" + ownerId;
   }
 }

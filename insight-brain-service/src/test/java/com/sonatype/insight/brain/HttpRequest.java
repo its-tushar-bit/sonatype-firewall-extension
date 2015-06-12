@@ -78,7 +78,7 @@ public class HttpRequest
   }
 
   private HttpRequest(HttpRequest parent) {
-    this.url = new Url(parent.url());
+    this.url = new Url(parent.getUrl());
     username = parent.username;
     password = parent.password;
     headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -101,6 +101,14 @@ public class HttpRequest
   }
 
   public HttpRequest query(String name, Object value) {
+    if (value != null && !value.getClass().getName().startsWith("java.lang.")) {
+      try {
+        value = JSON.writeValueAsString(value);
+      }
+      catch (IOException e) {
+        throw new IllegalStateException(e);
+      }
+    }
     url.query(name, value);
     return this;
   }
@@ -115,7 +123,7 @@ public class HttpRequest
     return this;
   }
 
-  private String url() {
+  public String getUrl() {
     return url.build();
   }
 
@@ -243,22 +251,22 @@ public class HttpRequest
   }
 
   public Response get() throws Exception {
-    return execute(CLIENT.prepareGet(url()), true);
+    return execute(CLIENT.prepareGet(getUrl()), true);
   }
 
   public Response put() throws Exception {
-    return execute(CLIENT.preparePut(url()), false);
+    return execute(CLIENT.preparePut(getUrl()), false);
   }
 
   public Response post() throws Exception {
-    return execute(CLIENT.preparePost(url()), false);
+    return execute(CLIENT.preparePost(getUrl()), false);
   }
 
   public Response delete() throws Exception {
-    return execute(CLIENT.prepareDelete(url()), false);
+    return execute(CLIENT.prepareDelete(getUrl()), false);
   }
 
   public Response send(String method) throws Exception {
-    return execute(CLIENT.prepare(method, url()), "GET".equals(method) || "HEAD".equals(method));
+    return execute(CLIENT.prepare(method, getUrl()), "GET".equals(method) || "HEAD".equals(method));
   }
 }

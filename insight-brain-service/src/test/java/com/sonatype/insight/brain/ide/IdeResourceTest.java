@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -18,7 +16,7 @@ import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -45,11 +43,11 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -68,6 +66,45 @@ public class IdeResourceTest
     policyDAO.insert(policy);
   }
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(IdeResource.SERVICE_PATH);
+  }
+
+  private HttpRequest simpleScanRequest(String appId, String hash) {
+    return restRequest().path("scan", "simple", appId, hash);
+  }
+
+  private HttpRequest enhancedScanRequest(String appId, String hash) {
+    return restRequest().path("scan", "enhanced", appId, hash);
+  }
+
+  private HttpRequest versionsRequest(String groupId, String artifactId) {
+    return restRequest().path("component/versions").query("groupId", groupId).query("artifactId", artifactId);
+  }
+
+  private HttpRequest versionsRequest(ComponentIdentifier componentIdentifier) {
+    return restRequest().path("component/versions").query("componentIdentifier", componentIdentifier);
+  }
+
+  private void mockHdsScanResponse(HttpRequest request, int status, String resource) {
+    String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
+    setSaasResponseForURI(hdsUrl, status, "/IdeResourceTest/" + resource);
+  }
+
+  private void mockHdsResponse(HttpRequest request, String body, int status) {
+    String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
+    setSaasResponseForURI(hdsUrl, body, status);
+  }
+
+  private String convertScanUrlToHdsUrl(String brainUrl) {
+    return brainUrl.replaceFirst("(.*/)(rest/ide/scan/[^/]+)(/[^/]+)(/.*)", "$2$4");
+  }
+
+  private String convertVersionsUrlToHdsUrl(String brainUrl) {
+    return brainUrl.replaceFirst("(.*/)(rest/ide/component/versions)(.*)", "rest/ide/artifact/versions$3");
+  }
+
   @Test
   public void testDoScan_Simple() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
@@ -83,10 +120,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -117,11 +153,10 @@ public class IdeResourceTest
     addPolicy(applicationPublicId, policy1);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
-    String serviceUrl = getScanUrl("simple", applicationPublicId, "abababababababababab", null, componentIdentifier,
-        null);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("componentIdentifer",
+        componentIdentifier);
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
@@ -149,17 +184,16 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanEnhancedUrl(applicationPublicId, "abababababababababab");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json");
-    Response response = AuthedRestAccess.post(serviceUrl, toJson(new ScannedComponent()));
+    HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab");
+    mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
+    Response response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json");
-    response = AuthedRestAccess.get(serviceUrl);
+    mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -189,18 +223,17 @@ public class IdeResourceTest
     addPolicy(applicationPublicId, policy1);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
-    String serviceUrl = getScanUrl("enhanced", applicationPublicId, "abababababababababab", null, componentIdentifier,
-        null);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 202, "/IdeResourceTest/EnhancedMatch_wait.json");
-    Response response = AuthedRestAccess.post(serviceUrl, toJson(new ScannedComponent()));
+    HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab").query("componentIdentifer",
+        componentIdentifier);
+    mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
+    Response response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/EnhancedMatch_abababababababababab.json");
-    response = AuthedRestAccess.get(serviceUrl);
+    mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
@@ -229,10 +262,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -249,7 +281,7 @@ public class IdeResourceTest
 
     tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
       null /* comment */);
-    response = AuthedRestAccess.get(serviceUrl);
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -280,10 +312,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -300,7 +331,7 @@ public class IdeResourceTest
 
     tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES,  LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
       null /* comment */);
-    response = AuthedRestAccess.get(serviceUrl);
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -331,10 +362,9 @@ public class IdeResourceTest
     addPolicy(applicationPublicId, policy1);
 
     // There should be no policy alerts when none of the security vulnerabilities was overridden
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -350,7 +380,7 @@ public class IdeResourceTest
     // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
     // the policy again. There should be no policy alerts.
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json");
-    response = AuthedRestAccess.get(serviceUrl);
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -365,7 +395,7 @@ public class IdeResourceTest
 
     // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json");
-    response = AuthedRestAccess.get(serviceUrl);
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -394,10 +424,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, "abababababababababab");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -427,10 +456,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, hash);
+    mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNull(ideMatchedComponent.getAlerts());
@@ -452,10 +480,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, hash);
+    mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -466,7 +493,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_simple_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getScanSimpleUrl("unlicensedappId", "ulh"));
+    Response response = simpleScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -475,7 +502,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = AuthedRestAccess.get(getScanSimpleUrl("unlicensedappId", "ulh"));
+    Response response = simpleScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -495,10 +522,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanEnhancedUrl(applicationPublicId, hash);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_000babababababababab_enhanced.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = enhancedScanRequest(applicationPublicId, hash);
+    mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -509,7 +535,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_enhanced_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getScanEnhancedUrl("unlicensedappId", "ulh"));
+    Response response = enhancedScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -518,7 +544,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = AuthedRestAccess.get(getScanEnhancedUrl("unlicensedappId", "ulh"));
+    Response response = enhancedScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -535,11 +561,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanUrl("simple", applicationPublicId, "abababababababababab", null, null, null, null,
-        "true");
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("proprietary", true);
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -552,10 +576,9 @@ public class IdeResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
 
-    serviceUrl = getScanUrl("enhanced", applicationPublicId, "abababababababababab", null, null, null, null, "true");
-    saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    response = AuthedRestAccess.get(serviceUrl);
+    request = enhancedScanRequest(applicationPublicId, "abababababababababab").query("proprietary", true);
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -568,10 +591,9 @@ public class IdeResourceTest
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
 
-    serviceUrl = getScanUrl("simple", applicationPublicId, "abababababababababab", null, null, null, null, "false");
-    saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    response = AuthedRestAccess.get(serviceUrl);
+    request = simpleScanRequest(applicationPublicId, "abababababababababab").query("proprietary", false);
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -610,13 +632,12 @@ public class IdeResourceTest
     hashComponentIdentifier.setCreateTime(createTime);
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
-    String serviceUrl = getScanUrl("simple", applicationPublicId, hash, null, null, null, null, "false" /* proprietary */);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
+    HttpRequest request = simpleScanRequest(applicationPublicId, hash).query("proprietary", false);
     MatchedComponent saasResponse = new MatchedComponent();
     saasResponse.setHash(hash);
     saasResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
-    setSaasResponseForURI(saasUrl, toJson(saasResponse), 200);
-    Response response = AuthedRestAccess.get(serviceUrl);
+    mockHdsResponse(request, toJson(saasResponse), 200);
+    Response response = request.get();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
@@ -664,10 +685,9 @@ public class IdeResourceTest
     policy1.addAction(BuildStageType.ID, failAction);
     addPolicy(applicationPublicId, policy1);
 
-    String serviceUrl = getScanSimpleUrl(applicationPublicId, hash);
-    String saasUrl = convertToSaasUrl(serviceUrl, applicationPublicId);
-    setSaasResponseForURI(saasUrl, 200, "/IdeResourceTest/SimpleMatch_abababababababababab.json");
-    Response response = AuthedRestAccess.get(serviceUrl);
+    HttpRequest request = simpleScanRequest(applicationPublicId, hash);
+    mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
+    Response response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -684,8 +704,9 @@ public class IdeResourceTest
 
   @Test
   public void testGetComponentVersions() throws Exception {
-    setSaasResponseForURI("rest/ide/artifact/versions?groupId=gid&artifactId=aid", "[\"1.1\", \"2.0\"]", 200);
-    Response response = AuthedRestAccess.get(getComponentVersionsUrl("gid", "aid"));
+    HttpRequest request = versionsRequest("gid", "aid");
+    setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
+    Response response = request.get();
     assertResponseStatus(200, response);
     String[] versions = fromJson(response, String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
@@ -694,9 +715,9 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions_ByComponentIdentifier() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", null);
-    setSaasResponseForURI("rest/ide/artifact/versions?componentIdentifier=" +
-        toQueryParam(componentIdentifier), "[\"1.1\", \"2.0\"]", 200);
-    Response response = AuthedRestAccess.get(getComponentVersionsUrl(componentIdentifier));
+    HttpRequest request = versionsRequest(componentIdentifier);
+    setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
+    Response response = request.get();
     assertResponseStatus(200, response);
     String[] versions = fromJson(response, String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
@@ -705,7 +726,7 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getComponentVersionsUrl("ulg", "ula"));
+    Response response = versionsRequest("ulg", "ula").get();
     assertResponseStatus(402, response);
   }
 
@@ -714,7 +735,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = AuthedRestAccess.get(getComponentVersionsUrl("ulg", "ula"));
+    Response response = versionsRequest("ulg", "ula").get();
     assertResponseStatus(402, response);
   }
 
@@ -723,7 +744,7 @@ public class IdeResourceTest
     // Note this is now deprecated functionality, only legacy (2.5.0 and earlier) versions of the ide plugin will access
     // this resource
     setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(200, response);
     Assert.assertEquals("OK", response.getResponseBody());
   }
@@ -731,7 +752,7 @@ public class IdeResourceTest
   @Test
   public void testGetAsset_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(402, response);
   }
 
@@ -740,81 +761,8 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = RestAccess.get(getServiceURL() + "/asset/sub/dir/some%20space.html?x=y&a=b");
+    Response response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(402, response);
-  }
-
-  private String convertToSaasUrl(String brainUrl, String applicationId) {
-    return brainUrl.substring(getRestBaseUrl().length()).replace("/" + applicationId, "");
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + IdeResource.SERVICE_PATH;
-  }
-
-  private String getScanSimpleUrl(String applicationPublicId, String hash) {
-    return getScanUrl("simple", applicationPublicId, hash, null, null, null, null, null);
-  }
-
-  private String getScanEnhancedUrl(String applicationPublicId, String hash) {
-    return getScanUrl("enhanced", applicationPublicId, hash, null, null, null, null, null);
-  }
-
-  private String getScanUrl(String mode, String applicationPublicId, String hash, String filename, String groupId,
-      String artifactId, String version, String proprietary)
-  {
-    return getServiceURL()
-        + "/scan/"
-        + mode
-        + "/"
-        + applicationPublicId
-        + "/"
-        + hash
-        + getQueryParams("filename", filename, "groupId", groupId, "artifactId", artifactId, "version", version,
-            "proprietary", proprietary);
-  }
-
-  private String getScanUrl(String mode, String applicationPublicId, String hash, String filename,
-      ComponentIdentifier componentIdentifier, String proprietary) throws UnsupportedEncodingException
-  {
-    return getServiceURL()
-        + "/scan/"
-        + mode
-        + "/"
-        + applicationPublicId
-        + "/"
-        + hash
-        + getQueryParams("filename", filename,
-        "componentIdentifier", toQueryParam(componentIdentifier), "proprietary", proprietary);
-  }
-
-  private String getComponentVersionsUrl(String groupId, String artifactId) {
-    return getServiceURL() + "/component/versions/?groupId=" + groupId + "&artifactId=" + artifactId;
-  }
-
-  private String getComponentVersionsUrl(ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException {
-    return getServiceURL() + "/component/versions/?componentIdentifier=" + toQueryParam(componentIdentifier);
-  }
-
-  private String toQueryParam(ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException {
-    return URLEncoder.encode(toJson(componentIdentifier), "UTF-8");
-  }
-
-  private String getQueryParams(String... params) {
-    if (params.length % 2 != 0) {
-      throw new IllegalArgumentException("query parameter mismatch");
-    }
-
-    StringBuilder buffer = new StringBuilder(256);
-    for (int i = 0; i < params.length - 1; i += 2) {
-      String param = params[i];
-      String value = params[i + 1];
-      if (value != null && !value.isEmpty()) {
-        buffer.append((buffer.length() > 0) ? '&' : '?');
-        buffer.append(param).append('=').append(value);
-      }
-    }
-    return buffer.toString();
   }
 
   @SuppressWarnings("deprecation")

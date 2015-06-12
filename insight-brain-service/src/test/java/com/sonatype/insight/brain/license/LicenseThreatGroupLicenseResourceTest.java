@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.license;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -23,6 +23,11 @@ import org.junit.Test;
 public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
 {
+  private HttpRequest restRequest(String ownerType, String ownerId, String licenseThreatGroupId) {
+    return super.restRequest().path(LicenseThreatGroupLicenseResource.SERVICE_PATH)
+        .parameter(ownerType, ownerId, licenseThreatGroupId);
+  }
+
   private void testSetGet(String ownerType, String ownerPublicId, String ownerId) throws Exception {
     // Create an application and a group
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
@@ -33,7 +38,7 @@ public class LicenseThreatGroupLicenseResourceTest
     groupDAO.insert(group);
 
     // Get
-    Response response = AuthedRestAccess.get(getServiceURL(ownerType, ownerPublicId, group.getId()));
+    Response response = restRequest(ownerType, ownerPublicId, group.getId()).get();
     assertResponseStatus(200, response);
     LicenseThreatGroupLicense[] licenseThreatGroupLicenses = fromJson(response, LicenseThreatGroupLicense[].class);
     Assert.assertNotNull(licenseThreatGroupLicenses);
@@ -43,7 +48,7 @@ public class LicenseThreatGroupLicenseResourceTest
     Set<String> licenseIds = new LinkedHashSet<>();
     licenseIds.add("GPL-2.0");
     licenseIds.add("Apache-2.0");
-    response = AuthedRestAccess.put(getServiceURL(ownerType, ownerPublicId, group.getId()), toJson(licenseIds));
+    response = restRequest(ownerType, ownerPublicId, group.getId()).body(licenseIds).put();
     assertResponseStatus(200, response);
 
     // Get
@@ -73,11 +78,5 @@ public class LicenseThreatGroupLicenseResourceTest
     Assert.assertEquals(ownerId, actual.getOwnerId());
     Assert.assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());
     Assert.assertEquals(licenseId, actual.getLicenseId());
-  }
-
-  private String getServiceURL(String ownerType, String ownerId, String licenseThreatGroupId) {
-    return getRestBaseUrl()
-        + LicenseThreatGroupLicenseResource.SERVICE_PATH.replace("{ownerType: application|organization}", ownerType)
-            .replace("{ownerId}", ownerId).replace("{licenseThreatGroupId}", licenseThreatGroupId);
   }
 }

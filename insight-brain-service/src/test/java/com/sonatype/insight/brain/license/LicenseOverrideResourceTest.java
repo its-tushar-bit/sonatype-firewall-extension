@@ -7,10 +7,8 @@ package com.sonatype.insight.brain.license;
 
 import java.io.File;
 
-import javax.ws.rs.core.UriBuilder;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -43,6 +41,15 @@ import static org.junit.Assert.assertTrue;
 public class LicenseOverrideResourceTest
     extends AbstractResourceTest
 {
+  private HttpRequest restRequest(String ownerType, String ownerId) {
+    return restRequest().path(LicenseOverrideResource.SERVICE_PATH).parameter(ownerType, ownerId);
+  }
+
+  private HttpRequest restRequest(String ownerType, String ownerId, ComponentIdentifier componentIdentifier) {
+    return restRequest().path(LicenseOverrideResource.SERVICE_PATH).query("componentIdentifier", "{compId}")
+        .parameter(ownerType, ownerId, ComponentIdentifierAdapter.toJson(componentIdentifier));
+  }
+
   @Test
   public void testCRUD_Application() throws Exception {
     String appPublicId = "LicenseOverrideResourceTest";
@@ -76,14 +83,14 @@ public class LicenseOverrideResourceTest
   private void testCRUD_Nuget(String ownerType, String ownerPublicId, String ownerId) throws Exception {
     String user = "admin";
     String where = "EdgeOfSpace";
+    HttpRequest request = restRequest(ownerType, ownerPublicId).query("where", where);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("p1", "v1");
     // Create
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
         "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        toJson(licenseOverride));
+    Response response = request.body(licenseOverride).post();
     assertResponseStatus(200, response);
     licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
@@ -99,8 +106,7 @@ public class LicenseOverrideResourceTest
     // Update (i.e. add again)
     licenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated");
-    response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        toJson(licenseOverride));
+    response = request.body(licenseOverride).post();
     assertResponseStatus(200, response);
     licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated",
@@ -113,8 +119,7 @@ public class LicenseOverrideResourceTest
         licenseOverride);
 
     // Delete
-    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId() + "?user="
-        + user + "&where=" + where);
+    response = request.subpath(licenseOverride.getId()).delete();
     assertResponseStatus(204, response);
     assertAuditLog(ownerId, user, where, true /* isDelete */, licenseOverride);
 
@@ -126,14 +131,14 @@ public class LicenseOverrideResourceTest
   private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
     String user = "admin";
     String where = "EdgeOfSpace";
+    HttpRequest request = restRequest(ownerType, ownerPublicId).query("where", where);
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     // Create
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
         "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        toJson(licenseOverride));
+    Response response = request.body(licenseOverride).post();
     assertResponseStatus(200, response);
     licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment",
@@ -150,8 +155,7 @@ public class LicenseOverrideResourceTest
     licenseOverride = new LicenseOverride(null /* ownerId */,
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
         "My comment updated");
-    response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId) + "?where=" + where,
-        toJson(licenseOverride));
+    response = request.body(licenseOverride).post();
     assertResponseStatus(200, response);
     licenseOverride = fromJson(response, LicenseOverride.class);
     assertLicenseOverride(ownerId, componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment updated",
@@ -164,8 +168,7 @@ public class LicenseOverrideResourceTest
         licenseOverride);
 
     // Delete
-    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId) + "/" + licenseOverride.getId() + "?user="
-        + user + "&where=" + where);
+    response = request.subpath(licenseOverride.getId()).delete();
     assertResponseStatus(204, response);
     assertAuditLog(ownerId, user, where, true /* isDelete */, licenseOverride);
 
@@ -223,7 +226,7 @@ public class LicenseOverrideResourceTest
     String appPublicId = "LicenseOverrideResourceTest";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId) + "/YettiId");
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with ID YettiId.", response.getResponseBody());
   }
@@ -232,7 +235,7 @@ public class LicenseOverrideResourceTest
   public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
-    Response response = AuthedRestAccess.delete(getServiceURL(IdUtils.TYPE_ORGANIZATION, organization.getId()) + "/YettiId");
+    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with ID YettiId.", response.getResponseBody());
   }
@@ -244,7 +247,7 @@ public class LicenseOverrideResourceTest
     Organization organization = tempEntity.newOrganization(orgName);
     String appPublicId = "testGetAppliedLicenseOverrides";
     tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
-    Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, null));
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("componentIdentifier is required"));
   }
@@ -261,7 +264,7 @@ public class LicenseOverrideResourceTest
 
     // Verify the applied license overrides for the application
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    Response response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier));
+    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier).get();
     assertResponseStatus(200, response);
     AppliedLicenseOverrides appliedLicenseOverrides = fromJson(response,
         AppliedLicenseOverrides.class);
@@ -273,7 +276,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(1));
 
     // Verify the applied license overrides for the organization
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier));
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -285,12 +288,11 @@ public class LicenseOverrideResourceTest
     LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
         "My comment");
-    response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId),
-        toJson(appLicenseOverride));
+    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).body(appLicenseOverride).post();
     appLicenseOverride = fromJson(response, LicenseOverride.class);
 
     // Verify the applied license overrides for the application
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier));
+    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -303,7 +305,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverride.getId());
 
     // Verify the applied license overrides for the organization
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier));
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -315,11 +317,11 @@ public class LicenseOverrideResourceTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */,
         componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
         "My comment");
-    response = AuthedRestAccess.post(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId), toJson(orgLicenseOverride));
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).body(orgLicenseOverride).post();
     orgLicenseOverride = fromJson(response, LicenseOverride.class);
 
     // Verify the applied license overrides for the application
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier));
+    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -334,7 +336,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(1).licenseOverride.getId());
 
     // Verify the applied license overrides for the organization
-    response = AuthedRestAccess.get(getServiceURL(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier));
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = fromJson(response, AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -370,11 +372,11 @@ public class LicenseOverrideResourceTest
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0",
         "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL(ownerType, ownerPublicId1), toJson(licenseOverride));
+    Response response = restRequest(ownerType, ownerPublicId1).body(licenseOverride).post();
     assertResponseStatus(200, response);
     licenseOverride = fromJson(response, LicenseOverride.class);
 
-    response = AuthedRestAccess.delete(getServiceURL(ownerType, ownerPublicId2) + "/" + licenseOverride.getId());
+    response = restRequest(ownerType, ownerPublicId2).path(licenseOverride.getId()).delete();
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with ID " + licenseOverride.getId() + " for " + ownerType + " ID "
         + ownerPublicId2, response.getResponseBody());
@@ -396,18 +398,6 @@ public class LicenseOverrideResourceTest
     }
   }
 
-  private String getServiceURL(final String ownerType, final String ownerId) {
-    return getServiceURL(ownerType, ownerId, null);
-  }
-
-  private String getServiceURL(final String ownerType, final String ownerId, final ComponentIdentifier componentIdentifier) {
-    UriBuilder builder = UriBuilder.fromUri(getRestUrl(LicenseOverrideResource.SERVICE_PATH, ownerType, ownerId));
-    if (componentIdentifier != null) {
-      builder.queryParam("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier));
-    }
-    return builder.build().toString();
-  }
-
   private void assertLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
       LicenseOverrideStatus status, String licenseId, String comment, LicenseOverride actual)
   {
@@ -420,14 +410,12 @@ public class LicenseOverrideResourceTest
 
   @Test
   public void testAddLicenseOverride_ValidateComponentIdentifier() throws Exception {
-    String where = "EdgeOfSpace";
     String appPublicId = "LicenseOverrideResourceTest";
     tempEntity.newApplicationWithParent(appPublicId);
 
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, null /* componentIdentifier */,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    Response response = AuthedRestAccess.post(getServiceURL("application", appPublicId) + "?where=" + where,
-        toJson(licenseOverride));
+    Response response = restRequest("application", appPublicId).body(licenseOverride).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("The component identifier cannot be null."));
   }

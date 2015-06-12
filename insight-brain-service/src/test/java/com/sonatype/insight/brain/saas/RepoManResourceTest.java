@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.saas;
 import java.util.EnumSet;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -21,9 +21,8 @@ import static org.junit.Assert.assertNotNull;
 public class RepoManResourceTest
     extends AbstractResourceTest
 {
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + RepoManResource.SERVICE_PATH;
+  private HttpRequest scanRequest(String appId) {
+    return super.restRequest().path(RepoManResource.SERVICE_PATH, RepoManResource.SCAN_PATH).parameter(appId);
   }
 
   @Test
@@ -38,7 +37,7 @@ public class RepoManResourceTest
     scanReceipt.setTimeToReport(30L);
     mockScanReceipt(scanReceipt);
 
-    final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
+    final Response response = scanRequest(applicationPublicId).put();
 
     assertResponseStatus(200, response);
 
@@ -55,7 +54,7 @@ public class RepoManResourceTest
   @Test
   public void testUploadScan_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedappid", "");
+    Response response = scanRequest("unlicensedappid").put();
     assertResponseStatus(402, response);
   }
 
@@ -64,7 +63,7 @@ public class RepoManResourceTest
     // note these enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop);
 
-    Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedappid", "");
+    Response response = scanRequest("unlicensedappid").put();
     assertResponseStatus(402, response);
   }
 
@@ -72,7 +71,7 @@ public class RepoManResourceTest
   public void testUploadScan_EnforcementPointLicensed() throws Exception {
     for (CLMEnforcementPoint ep : EnumSet.of(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release)) {
       setEnforcementPoints(ep);
-      Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unknownappid", "");
+      Response response = scanRequest("unknownappid").put();
       assertResponseStatus(404, response);
     }
   }

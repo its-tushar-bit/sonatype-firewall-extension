@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.license;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -19,9 +19,14 @@ import static org.junit.Assert.assertTrue;
 public class LicenseResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(LicenseResource.SERVICE_PATH);
+  }
+
   @Test
   public void testGet() throws Exception {
-    Response response = AuthedRestAccess.get(getRestBaseUrl() + LicenseResource.SERVICE_PATH);
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
 
     License[] licenses = fromJson(response, License[].class);
@@ -34,7 +39,7 @@ public class LicenseResourceTest
 
   @Test
   public void testGet_FilterSynthetic() throws Exception {
-    Response response = AuthedRestAccess.get(getRestBaseUrl() + LicenseResource.SERVICE_PATH + "?filterSynthetic=true");
+    Response response = restRequest().query("filterSynthetic", true).get();
     assertResponseStatus(200, response);
 
     License[] licenses = fromJson(response, License[].class);

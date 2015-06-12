@@ -51,9 +51,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 @Path(LicenseOverrideResource.SERVICE_PATH)
 public class LicenseOverrideResource
 {
-  public static final String SERVICE_BASEPATH = "rest/licenseOverride/";
-
-  public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
+  public static final String SERVICE_PATH = "rest/licenseOverride/{ownerType: application|organization}/{ownerId}";
 
   private final InsightWork work;
 

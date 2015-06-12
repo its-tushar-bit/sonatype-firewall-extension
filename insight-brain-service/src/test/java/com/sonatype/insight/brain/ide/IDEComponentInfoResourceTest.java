@@ -17,11 +17,6 @@ public class IDEComponentInfoResourceTest
     return IDEComponentInfoResource.SERVICE_PATH;
   }
 
-  @Override
-  protected String getToolName() {
-    return "ide";
-  }
-
   @Test
   public void testGetComponentDetails() throws Exception {
     super.testGetComponentDetails_EvaluateComponentPermission();

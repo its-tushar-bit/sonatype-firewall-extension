@@ -15,11 +15,6 @@ public class CIComponentInfoResourceTest
     return CIComponentInfoResource.SERVICE_PATH;
   }
 
-  @Override
-  protected String getToolName() {
-    return "ci";
-  }
-
   @Test
   public void testGetComponentDetails() throws Exception {
     super.testGetComponentDetails_ReadPermission();

@@ -12,15 +12,13 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.UriBuilder;
-
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -32,7 +30,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
-import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,6 +50,26 @@ public abstract class AbstractComponentInfoResourceTest
 
   private Application application;
 
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(getResourcePath());
+  }
+
+  protected HttpRequest detailsRequest(String appId, ComponentIdentifier componentIdentifier, String hash,
+      MatchState matchState, Boolean proprietary)
+  {
+    return restRequest().path(appId).query("componentIdentifier", componentIdentifier).query("hash", hash)
+        .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary);
+  }
+
+  protected HttpRequest listRequest(String appId, ComponentIdentifier componentIdentifier) {
+    return restRequest().path(appId, "list").query("componentIdentifier", componentIdentifier);
+  }
+
+  protected HttpRequest licensesRequest(String appId, ComponentIdentifier componentIdentifier) {
+    return restRequest().path("licenses", appId).query("componentIdentifier", componentIdentifier);
+  }
+
   @Before
   public void clearEnforcementPointsFromLicense() throws Exception {
     /*
@@ -67,101 +84,26 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetLicenses_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, "ulg", "ula", "ulv"));
+    Response response = licensesRequest(applicationPublicId,
+        ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testGetComponentDetailsList_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getComponentDetailsListUrl(applicationPublicId, "ulg", "ula", "ulv"));
+    Response response = listRequest(applicationPublicId,
+        ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testGetComponentDetails_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.get(getComponentDetailsUrl(applicationPublicId, "ulg", "ula", "ulv", "ulh",
-        "unknown"));
+    Response response = detailsRequest(applicationPublicId,
+        ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv"), "ulh", MatchState.UNKNOWN, null).get();
     assertResponseStatus(402, response);
   }
-
-  private String getComponentDetailsUrl(String applicationPublicId, String groupId, String artifactId, String version,
-      String hash, String matchState)
-  {
-    return getComponentDetailsUrl(applicationPublicId, groupId, artifactId, version, hash, matchState, null);
-  }
-
-  private String getComponentDetailsUrl(String applicationPublicId, String groupId, String artifactId, String version,
-      String hash, String matchState, String proprietary)
-  {
-    return getComponentDetailsUrl(applicationPublicId, getComponentIdentifierParam(groupId, artifactId, version), hash,
-        matchState, proprietary);
-  }
-
-  private String getComponentDetailsUrl(String applicationPublicId, ComponentIdentifier componentIdentifier,
-      String hash, String matchState, String proprietary)
-  {
-    return getComponentDetailsUrl(applicationPublicId, getComponentIdentifierParam(componentIdentifier), hash,
-        matchState, proprietary);
-  }
-
-  private String getComponentDetailsUrl(String applicationPublicId, String identifier, String hash,
-      String matchState, String proprietary)
-  {
-    UriBuilder builder = UriBuilder.fromUri(getServiceURL());
-    builder.path("{appId}");
-    if (identifier != null) {
-      builder.queryParam("componentIdentifier", identifier);
-    }
-    if (hash != null) {
-      builder.queryParam("hash", hash);
-    }
-    if (matchState != null) {
-      builder.queryParam("matchState", matchState);
-    }
-    if (proprietary != null) {
-      builder.queryParam("proprietary", proprietary);
-    }
-    return builder.build(applicationPublicId).toString();
-  }
-
-  private String getComponentDetailsListUrl(String applicationPublicId, String g, String a, String v) {
-    return getServiceURL() + "/" + applicationPublicId + "/list?componentIdentifier="
-        + getComponentIdentifierParam(g, a, v);
-  }
-
-  private String getComponentDetailsListUrl(String applicationPublicId, ComponentIdentifier componentIdentifier) {
-    return getServiceURL() + "/" + applicationPublicId + "/list?componentIdentifier="
-        + getComponentIdentifierParam(componentIdentifier);
-  }
-
-  private String getLicensesServiceURL(String applicationPublicId, String g, String a, String v) {
-    return getLicensesServiceURL(applicationPublicId) + "?componentIdentifier=" + getComponentIdentifierParam(g, a, v);
-  }
-
-  private String getLicensesServiceURL(String applicationPublicId, ComponentIdentifier componentIdentifier) {
-    return getLicensesServiceURL(applicationPublicId) + "?componentIdentifier="
-        + getComponentIdentifierParam(componentIdentifier);
-  }
-
-  private String getLicensesServiceURL(String applicationPublicId) {
-    return getServiceURL() + "/licenses/" + applicationPublicId;
-  }
-
-  private String getComponentIdentifierParam(String g, String a, String v) {
-    return getComponentIdentifierParam(ComponentIdentifier.createMavenCoordinates(g, a, v));
-  }
-
-  private String getComponentIdentifierParam(ComponentIdentifier componentIdentifier) {
-    return UrlEncoded.encodeString(toJson(componentIdentifier));
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + getResourcePath();
-  }
-
-  protected abstract String getToolName();
 
   private ComponentDetails newComponentDetails(ComponentIdentifier componentIdentifier) {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
@@ -206,9 +148,11 @@ public abstract class AbstractComponentInfoResourceTest
   public void testGetLicenses() throws Exception {
     ComponentDetails saasComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
-    setSaasResponseForURI(getSaasComponentDetailsUrl(MAVEN_COORDINATES), toJson(saasComponentDetails), 200);
+    setSaasResponseForURI(
+        convertToSaasUrl(detailsRequest(applicationPublicId, MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
+        toJson(saasComponentDetails), 200);
 
-    Response response = AuthedRestAccess.get(getLicensesServiceURL(applicationPublicId, MAVEN_COORDINATES));
+    Response response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, hasSize(1));
@@ -219,9 +163,7 @@ public abstract class AbstractComponentInfoResourceTest
   protected void testGetComponentDetails_EvaluateComponentPermission() throws Exception {
     String hash = "01234567890123456789";
 
-    String serviceUrl = getComponentDetailsUrl(applicationPublicId, MAVEN_COORDINATES, hash,
-        MatchState.SIMILAR.getId(), "false" /* proprietary */);
-    Response response = AuthedRestAccess.get(serviceUrl);
+    Response response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
@@ -236,12 +178,11 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
     saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails));
-    setSaasResponseForURI(
-        convertToSaasUrl(getComponentDetailsListUrl(applicationPublicId, MAVEN_COORDINATES), applicationPublicId),
-        toJson(saasComponentDetailsList), 200);
+    HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
+    setSaasResponseForURI(convertToSaasUrl(request.getUrl(), applicationPublicId), toJson(saasComponentDetailsList),
+        200);
 
-    String serviceUrl = getComponentDetailsListUrl(applicationPublicId, MAVEN_COORDINATES);
-    Response response = AuthedRestAccess.get(serviceUrl);
+    Response response = request.get();
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);
@@ -259,9 +200,8 @@ public abstract class AbstractComponentInfoResourceTest
 
     String hash = "a235ba8b489512805ac1";
 
-    String serviceUrl = getComponentDetailsUrl(applicationPublicId, MAVEN_COORDINATES, hash,
-        MatchState.SIMILAR.getId(), "false" /* proprietary */) + "&reportId=" + reportId;
-    Response response = AuthedRestAccess.get(serviceUrl);
+    Response response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).query(
+        "reportId", reportId).get();
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
@@ -281,12 +221,11 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails saasComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
     saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails));
-    setSaasResponseForURI(
-        convertToSaasUrl(getComponentDetailsListUrl(applicationPublicId, MAVEN_COORDINATES), applicationPublicId),
-        toJson(saasComponentDetailsList), 200);
+    HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
+    setSaasResponseForURI(convertToSaasUrl(request.getUrl(), applicationPublicId), toJson(saasComponentDetailsList),
+        200);
 
-    String serviceUrl = getComponentDetailsListUrl(applicationPublicId, MAVEN_COORDINATES) + "&reportId=" + reportId;
-    Response response = AuthedRestAccess.get(serviceUrl);
+    Response response = request.query("reportId", reportId).get();
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);
@@ -296,14 +235,8 @@ public abstract class AbstractComponentInfoResourceTest
     assertComponentDetails(componentDetails, saasComponentDetails);
   }
 
-  private String getSaasComponentDetailsUrl(ComponentIdentifier componentIdentifier) {
-    return "rest/" + getToolName() + "/componentDetails?componentIdentifier="
-        + getComponentIdentifierParam(componentIdentifier);
-  }
-
   private String convertToSaasUrl(String brainUrl, String applicationId) {
-    return brainUrl.replaceFirst("/rest/[^/]+/", "/rest/" + getToolName() + "/").substring(getRestBaseUrl().length())
-        .replace("/" + applicationId, "").replace("component/details", "componentDetails");
+    return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+)(.*)", "$2/componentDetails$4");
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {

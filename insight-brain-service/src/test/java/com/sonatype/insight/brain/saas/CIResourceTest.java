@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.saas;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -20,6 +20,10 @@ import static org.hamcrest.Matchers.notNullValue;
 public class CIResourceTest
     extends AbstractResourceTest
 {
+  private HttpRequest scanRequest(String appId) {
+    return restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH).parameter(appId);
+  }
+
   @Test
   public void testScan() throws Exception {
     final String applicationPublicId = "CIResourceTest_AppId";
@@ -32,7 +36,7 @@ public class CIResourceTest
     scanReceipt.setTimeToReport(30L);
     mockScanReceipt(scanReceipt);
 
-    final Response response = AuthedRestAccess.put(getServiceURL() + "/scan/" + applicationPublicId, "");
+    final Response response = scanRequest(applicationPublicId).put();
 
     assertResponseStatus(200, response);
 
@@ -49,7 +53,7 @@ public class CIResourceTest
   @Test
   public void testScan_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
+    Response response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
   }
 
@@ -58,11 +62,7 @@ public class CIResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = AuthedRestAccess.put(getServiceURL() + "/scan/unlicensedapp", "");
+    Response response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
-  }
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + CIResource.SERVICE_PATH;
   }
 }

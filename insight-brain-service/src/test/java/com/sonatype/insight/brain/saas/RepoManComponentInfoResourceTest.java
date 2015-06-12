@@ -15,11 +15,6 @@ public class RepoManComponentInfoResourceTest
     return RepoManComponentInfoResource.SERVICE_PATH;
   }
 
-  @Override
-  protected String getToolName() {
-    return "rm";
-  }
-
   @Test
   public void testGetComponentDetails() throws Exception {
     super.testGetComponentDetails_EvaluateComponentPermission();

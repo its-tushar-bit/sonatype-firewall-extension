@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.landing;
 
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -23,7 +22,7 @@ public class UserInterfaceLinksResourceTest
   }
 
   private Response get(String path, Object... params) throws Exception {
-    return RestAccess.get(getRestUrl(UserInterfaceLinksResource.SERVICE_PATH + '/' + path, params));
+    return restRequest().path(UserInterfaceLinksResource.SERVICE_PATH, path).parameter(params).anon().get();
   }
 
   @Test

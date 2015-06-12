@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.landing;
 
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -19,8 +18,8 @@ public class LandingResourceTest
 {
   @Test
   public void testHome() throws Exception {
-    Response response = RestAccess.get(getRestBaseUrl());
+    Response response = restRequest().anon().get();
     assertResponseStatus(303, response);
-    assertThat(response.getHeader("Location"), startsWith(getRestBaseUrl()));
+    assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
   }
 }

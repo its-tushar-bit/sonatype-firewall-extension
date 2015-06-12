@@ -55,6 +55,8 @@ public class HttpRequest
 
   private Url url;
 
+  private boolean redirects;
+
   private String username;
 
   private String password;
@@ -79,6 +81,7 @@ public class HttpRequest
 
   private HttpRequest(HttpRequest parent) {
     this.url = new Url(parent.getUrl());
+    redirects = parent.redirects;
     username = parent.username;
     password = parent.password;
     headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -125,6 +128,16 @@ public class HttpRequest
 
   public String getUrl() {
     return url.build();
+  }
+
+  public HttpRequest followRedirects() {
+    redirects = true;
+    return this;
+  }
+
+  public HttpRequest ignoreRedirects() {
+    redirects = false;
+    return this;
   }
 
   public HttpRequest anon() {
@@ -220,6 +233,8 @@ public class HttpRequest
   }
 
   private Response execute(BoundRequestBuilder builder, boolean noBody) throws Exception {
+    builder.setFollowRedirects(redirects);
+
     for (Cookie cookie : cookies.values()) {
       builder.addCookie(cookie);
     }

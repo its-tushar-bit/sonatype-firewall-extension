@@ -36,9 +36,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 @Path(ComponentLabelResource.SERVICE_PATH)
 public class ComponentLabelResource
 {
-  public static final String SERVICE_BASEPATH = "rest/label/component/";
-
-  public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}/{hash}";
+  public static final String SERVICE_PATH = "rest/label/component/{ownerType: application|organization}/{ownerId}/{hash}";
 
   private LabelDAO labelDAO = new LabelDAO();
 

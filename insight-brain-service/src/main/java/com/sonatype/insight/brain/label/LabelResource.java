@@ -51,9 +51,7 @@ import org.slf4j.LoggerFactory;
 @Path(LabelResource.SERVICE_PATH)
 public class LabelResource
 {
-  public static final String SERVICE_BASEPATH = "rest/label/";
-
-  public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
+  public static final String SERVICE_PATH = "rest/label/{ownerType: application|organization}/{ownerId}";
 
   private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
 

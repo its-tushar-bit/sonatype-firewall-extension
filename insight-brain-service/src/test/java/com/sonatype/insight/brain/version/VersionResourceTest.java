@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.version;
 import java.util.Map;
 
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.test.RestAccess;
 
 import com.ning.http.client.Response;
 import org.junit.Test;
@@ -19,14 +18,9 @@ import static org.junit.Assert.assertTrue;
 public class VersionResourceTest
     extends AbstractResourceTest
 {
-
-  private String getServiceURL() {
-    return getRestBaseUrl() + VersionResource.SERVICE_PATH;
-  }
-
   @Test
   public void testGetVersionInfo_Licensed() throws Exception {
-    Response response = RestAccess.get(getServiceURL());
+    Response response = restRequest().path(VersionResource.SERVICE_PATH).anon().get();
     assertResponseStatus(200, response);
     Map<String, String> versionInfo = fromJson(response, Map.class);
     assertNotNull(versionInfo);

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.v1.ApiOrganizationResource;
 import com.sonatype.insight.brain.api.v1.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiOrganizationDTO;
@@ -55,6 +55,10 @@ public abstract class AbstractApiOrganizationResourceTest
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
+  private HttpRequest roleMembersRequest(final String organizationId) {
+    return restRequest().subpath(ApiOrganizationResource.ROLE_MEMBERS_PATH).parameter(organizationId);
+  }
+
   @Before
   public void setUp() throws Exception {
     organization = tempEntity.newOrganization("test-org");
@@ -62,13 +66,11 @@ public abstract class AbstractApiOrganizationResourceTest
     userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");
   }
 
-  abstract protected String getServiceURL();
-
   @Test
   public void testGetAll() throws Exception {
     Tag tag = tempEntity.newTag(organization.getId());
 
-    final Response response = AuthedRestAccess.get(getServiceURL());
+    final Response response = restRequest().get();
     assertResponseStatus(200, response);
     final ApiOrganizationListDTO organizationListDTO = JsonHelpers
         .fromJson(response.getResponseBody(), ApiOrganizationListDTO.class);
@@ -93,7 +95,7 @@ public abstract class AbstractApiOrganizationResourceTest
   @Test
   public void testGetAll_Unlicensed() throws Exception {
     uninstallLicense();
-    final Response response = AuthedRestAccess.get(getServiceURL());
+    final Response response = restRequest().get();
     assertResponseStatus(402, response);
   }
 
@@ -107,8 +109,8 @@ public abstract class AbstractApiOrganizationResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     // Initial state
-    final String url = getGetRoleMembersUrl(organization.getId());
-    Response response = AuthedRestAccess.get(url);
+    HttpRequest request = roleMembersRequest(organization.getId());
+    Response response = request.get();
     assertResponseStatus(200, response);
 
     // Note: Org roles are same as app roles in DTO
@@ -126,11 +128,11 @@ public abstract class AbstractApiOrganizationResourceTest
         orgRoles.get(0).getId()
     );
 
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
         ApiRoleMemberMappingListDTO.class);
@@ -162,8 +164,8 @@ public abstract class AbstractApiOrganizationResourceTest
   @Test
   public void testCRUDOrgRoles() throws Exception {
     // Initial state
-    final String url = getGetRoleMembersUrl(organization.getId());
-    Response response = AuthedRestAccess.get(url);
+    HttpRequest request = roleMembersRequest(organization.getId());
+    Response response = request.get();
     assertResponseStatus(200, response);
 
     // Note: Org roles are same as app roles in DTO
@@ -178,11 +180,11 @@ public abstract class AbstractApiOrganizationResourceTest
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         orgRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
         ApiRoleMemberMappingListDTO.class);
@@ -204,17 +206,17 @@ public abstract class AbstractApiOrganizationResourceTest
     roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userA.getUsername())),
         orgRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         orgRoles.get(1).getId());
-    response = AuthedRestAccess.put(url, JsonHelpers.asJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     // Read for updated data
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(), ApiRoleMemberMappingListDTO.class);
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
@@ -263,10 +265,5 @@ public abstract class AbstractApiOrganizationResourceTest
     assertThat(returnedMembers, hasSize(1));
     assertThat(returnedMembers.get(0).type, is(type));
     assertThat(returnedMembers.get(0).userOrGroupName, is(user.getUsername()));
-  }
-
-  private String getGetRoleMembersUrl(final String organizationId) {
-    return getServiceURL() + "/" +
-        ApiOrganizationResource.ROLE_MEMBERS_PATH.replace("{organizationId}", organizationId);
   }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.AbstractApiApplicationResourceTest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 
@@ -12,7 +13,7 @@ public class ApiApplicationResourceV2Test
     extends AbstractApiApplicationResourceTest
 {
   @Override
-  protected String getServiceURL() {
-    return getRestBaseUrl() + PublicApiPaths.APP_SERVICE_PATH.replace("{apiVersion: v1|v2}", "v2");
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PublicApiPaths.APP_SERVICE_PATH).parameter("v2");
   }
 }

@@ -28,10 +28,8 @@ class Url
     return this;
   }
 
-  public Url query(String name, Object value) {
-    if (value != null) {
-      builder.replaceQueryParam(name, value);
-    }
+  public Url query(String name, Object[] values) {
+    builder.replaceQueryParam(name, values);
     return this;
   }
 

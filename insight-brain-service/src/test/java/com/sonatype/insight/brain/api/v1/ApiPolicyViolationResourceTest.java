@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v1;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationViolationListDTO;
@@ -50,8 +49,8 @@ public class ApiPolicyViolationResourceTest
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
 
-    String[] policyIds = {orgPolicy.getId()};
-    Response response = AuthedRestAccess.get(getServiceURL(policyIds));
+    Response response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH).query("p", orgPolicy.getId())
+        .get();
 
     assertResponseStatus(200, response);
     ApiApplicationViolationListDTO apiApplicationViolationListDTO = fromJson(response,
@@ -88,17 +87,5 @@ public class ApiPolicyViolationResourceTest
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
     assertThat(apiConstraintViolationReasonDTO.reason,
         is(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
-  }
-
-  private String getServiceURL(final String[] policyIds) {
-    StringBuilder builder = new StringBuilder(getRestBaseUrl());
-    builder.append(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH);
-    if (policyIds.length > 0) {
-      builder.append("?p=").append(policyIds[0]);
-      for (int i = 1; i < policyIds.length; i++) {
-        builder.append("&p=").append(policyIds[i]);
-      }
-    }
-    return builder.toString();
   }
 }

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.v1.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v1.ApiApplicationResource;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationDTO;
@@ -82,6 +82,10 @@ public abstract class AbstractApiApplicationResourceTest
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
+  private HttpRequest roleMembersRequest(String applicationId) {
+    return restRequest().subpath(ApiApplicationResource.ROLE_MEMBERS_PATH).parameter(applicationId);
+  }
+
   @Before
   public void setUp() throws Exception {
     organization = tempEntity.newOrganization("test-org");
@@ -92,20 +96,18 @@ public abstract class AbstractApiApplicationResourceTest
     tagB = tempEntity.newTag(organization.getId(), "TagB", Color.red);
   }
 
-  abstract protected String getServiceURL();
-
   @Test
   public void testCRUD() throws Exception {
     ApiApplicationDTO applicationDTO = createApplicationDTO(null);
 
     // Test the post
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
+    Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(200, response);
     ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the get
-    response = AuthedRestAccess.get(getServiceURL() + "/" + applicationResult.id);
+    response = restRequest().path(applicationResult.id).get();
     assertResponseStatus(200, response);
     applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
@@ -117,13 +119,13 @@ public abstract class AbstractApiApplicationResourceTest
     applicationTagBDTO.tagId = tagB.getId();
     applicationDTO.applicationTags.clear();
     applicationDTO.applicationTags.add(applicationTagBDTO);
-    response = AuthedRestAccess.put(getServiceURL() + "/" + applicationResult.id, toJson(applicationDTO));
+    response = restRequest().path(applicationResult.id).body(applicationDTO).put();
     assertResponseStatus(200, response);
     applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the delete
-    response = AuthedRestAccess.delete(getServiceURL() + "/" + applicationResult.id);
+    response = restRequest().path(applicationResult.id).delete();
     assertResponseStatus(204, response);
 
     final Application application = applicationDAO.getById(applicationResult.id);
@@ -135,7 +137,7 @@ public abstract class AbstractApiApplicationResourceTest
     int numApps = 2;
     tempEntity.newApplications(organization.getId(), numApps);
 
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
     ApiApplicationListDTO applicationListDTO = fromJson(response, ApiApplicationListDTO.class);
     assertThat(applicationListDTO, notNullValue());
@@ -146,8 +148,6 @@ public abstract class AbstractApiApplicationResourceTest
   public void testGetApplications_ByPublicId() throws Exception {
     int numApps = 2;
     List<Application> applications = tempEntity.newApplications(organization.getId(), numApps);
-    String publicIds = "?publicId=" + applications.get(0).getPublicId();
-    publicIds += "&publicId=" + applications.get(1).getPublicId();
     Map<String, List<ApplicationTag>> appTagMap = new HashMap<>();
     for (Application application : applications) {
       List<ApplicationTag> applicationTags = new ArrayList<>();
@@ -155,7 +155,8 @@ public abstract class AbstractApiApplicationResourceTest
       appTagMap.put(application.getId(), applicationTags);
     }
 
-    Response response = AuthedRestAccess.get(getServiceURL() + publicIds);
+    Response response = restRequest().query("publicId", applications.get(0).getPublicId(),
+        applications.get(1).getPublicId()).get();
     assertResponseStatus(200, response);
     ApiApplicationListDTO applicationListDTO = fromJson(response, ApiApplicationListDTO.class);
     assertThat(applicationListDTO, notNullValue());
@@ -172,7 +173,7 @@ public abstract class AbstractApiApplicationResourceTest
   public void testUpdateApplication_MismatchedIds() throws Exception {
     ApiApplicationDTO applicationDTO = createApplicationDTO("Junk");
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
+    Response response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage,
@@ -188,7 +189,7 @@ public abstract class AbstractApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
+    Response response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(200, response);
     ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
@@ -201,7 +202,7 @@ public abstract class AbstractApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
+    Response response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(200, response);
     ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
@@ -216,7 +217,7 @@ public abstract class AbstractApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
+    Response response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage, is("Cannot change the parent organization of an application."));
@@ -230,7 +231,7 @@ public abstract class AbstractApiApplicationResourceTest
     addApplicationTagDTOs(applicationDTO);
 
     // Test the update
-    Response response = AuthedRestAccess.put(getServiceURL() + "/" + app.getId(), toJson(applicationDTO));
+    Response response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
     String errorMessage = response.getResponseBody();
     assertThat(errorMessage, is("Cannot change public ID of existing application."));
@@ -239,14 +240,14 @@ public abstract class AbstractApiApplicationResourceTest
   @Test
   public void testDeleteNonExistentApplication() throws Exception {
     final String appId = "invalidAppId";
-    final Response response = AuthedRestAccess.delete(getServiceURL() + "/" + appId);
+    final Response response = restRequest().path(appId).delete();
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), equalTo("Could not find an application with ID " + appId + "."));
   }
 
   @Test
   public void testGetNotExistentApplication() throws Exception {
-    final Response response = AuthedRestAccess.get(getServiceURL() + "/" + "invalidId");
+    final Response response = restRequest().path("invalidId").get();
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), equalTo("Could not find an application with ID invalidId."));
   }
@@ -260,7 +261,7 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = app.getOrganizationId();
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
+    final Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), equalTo(app.getPublicId() + " is already used as an ID."));
   }
@@ -278,7 +279,7 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.contactUserName = userA.getUsername();
 
     // Test the post
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
+    Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), equalTo("Application must not have an ID set on creation."));
   }
@@ -296,7 +297,7 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.contactUserName = contactUserName;
 
     // Test the post
-    Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
+    Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         equalTo("Application has a contactUserName=" + contactUserName + " that does not exist."));
@@ -308,11 +309,11 @@ public abstract class AbstractApiApplicationResourceTest
     setApplicationLimit(appLimit);
 
     // Test Add Application, which should fail with 402 since we exceeded the limit
-    final Application application = new Application();
-    application.setName("testAddApplication_exceedsLicense_id_new_name");
-    application.setPublicId("testAddApplication_exceedsLicense_id_new_id");
+    final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
+    applicationDTO.name = "testAddApplication_exceedsLicense_id_new_name";
+    applicationDTO.publicId = "testAddApplication_exceedsLicense_id_new_id";
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(application));
+    Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(402, response);
     assertThat(response.getResponseBody(),
         equalTo("You have exceeded the licensed limit of " + appLimit + " applications."));
@@ -329,7 +330,7 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = orgId;
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
+    Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         equalTo("Application references an organization (ID=" + orgId + ") that does not exist."));
@@ -345,7 +346,7 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.name = applicationName;
     applicationDTO.organizationId = null;
 
-    final Response response = AuthedRestAccess.post(getServiceURL(), toJson(applicationDTO));
+    Response response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), equalTo("Application must have a parent organization."));
   }
@@ -360,8 +361,8 @@ public abstract class AbstractApiApplicationResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     // Initial state
-    final String url = getGetRoleMembersUrl(app.getId());
-    Response response = AuthedRestAccess.get(url);
+    HttpRequest request = roleMembersRequest(app.getId());
+    Response response = request.get();
     assertResponseStatus(200, response);
 
     final List<Role> appRoles = roleDAO.getApplicationRoles();
@@ -377,11 +378,11 @@ public abstract class AbstractApiApplicationResourceTest
         appRoles.get(0).getId()
     );
 
-    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
 
@@ -413,8 +414,8 @@ public abstract class AbstractApiApplicationResourceTest
   @Test
   public void testCRUDAppRoles() throws Exception {
     // Initial state
-    final String url = getGetRoleMembersUrl(app.getId());
-    Response response = AuthedRestAccess.get(url);
+    HttpRequest request = roleMembersRequest(app.getId());
+    Response response = request.get();
     assertResponseStatus(200, response);
 
     final List<Role> appRoles = roleDAO.getApplicationRoles();
@@ -427,11 +428,11 @@ public abstract class AbstractApiApplicationResourceTest
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         appRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     // Read for created data
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     ApiRoleMemberMappingListDTO returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
 
@@ -453,17 +454,17 @@ public abstract class AbstractApiApplicationResourceTest
     roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userA.getUsername())),
         appRoles.get(0).getId());
-    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, userB.getUsername())),
         appRoles.get(1).getId());
-    response = AuthedRestAccess.put(url, toJson(roleMemberMappingListDTO));
+    response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
     // Read for updated data
-    response = AuthedRestAccess.get(url);
+    response = request.get();
     assertResponseStatus(200, response);
     returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
@@ -487,8 +488,7 @@ public abstract class AbstractApiApplicationResourceTest
 
   @Test
   public void testGetApplicationRoles() throws Exception {
-    final String url = getApplicationRolesUrl();
-    Response response = AuthedRestAccess.get(url);
+    Response response = restRequest().path(ApiApplicationResource.ROLE_PATH).get();
     assertResponseStatus(200, response);
 
     ApiRoleListDTO appRoles = fromJson(response, ApiRoleListDTO.class);
@@ -536,14 +536,6 @@ public abstract class AbstractApiApplicationResourceTest
       assertThat(returnedDTO.applicationTags.get(0).tagId, is(sendDTO.applicationTags.get(0).tagId));
       assertThat(returnedDTO.applicationTags.get(0).applicationId, is(returnedDTO.id));
     }
-  }
-
-  private String getGetRoleMembersUrl(final String applicationId) {
-    return getServiceURL() + "/" + ApiApplicationResource.ROLE_MEMBERS_PATH.replace("{applicationId}", applicationId);
-  }
-
-  private String getApplicationRolesUrl() {
-    return getServiceURL() + "/" + ApiApplicationResource.ROLE_PATH;
   }
 
   private void assertApiRoleMemberMappingDTO(final ApiRoleMemberMappingDTO apiRoleMemberMappingDTO,

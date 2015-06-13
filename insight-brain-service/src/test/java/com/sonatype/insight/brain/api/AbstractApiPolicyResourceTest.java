@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.v1.dto.ApiPolicyListDTO;
 import com.sonatype.insight.brain.api.v1.service.PolicyAssertUtils;
 import com.sonatype.insight.brain.model.Application;
@@ -32,8 +31,6 @@ public abstract class AbstractApiPolicyResourceTest
 
   private Map<String, Policy> applicationPolicyMap = new HashMap<>();
 
-  abstract protected String getServiceURL();
-
   @Before
   public void setUp() throws Exception {
     for (int i = 0; i < 2; i++) {
@@ -49,7 +46,7 @@ public abstract class AbstractApiPolicyResourceTest
 
   @Test
   public void testGetPolicies() throws Exception {
-    Response response = AuthedRestAccess.get(getServiceURL());
+    Response response = restRequest().get();
     assertResponseStatus(200, response);
     ApiPolicyListDTO apiPolicyListDTO = JsonHelpers.fromJson(response.getResponseBody(), ApiPolicyListDTO.class);
 

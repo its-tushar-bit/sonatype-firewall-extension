@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -14,7 +12,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v1.SearchTestHelper;
 import com.sonatype.insight.brain.api.v1.SearchTestHelper.ComponentInfo;
@@ -22,7 +20,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,26 +43,16 @@ public class ApiSearchResourceV2Test
     appToComponentMap = helper.createTestComponentInfoForTwoApps("search-app-1", "search-app-2");
   }
 
-  private String getSearchUrl(String stageId, String hash) {
-    return getRestBaseUrl() + PublicApiPaths.SEARCH_SERVICE_PATH_V2 + "?stageId=" + stageId + "&hash=" + hash;
+  private HttpRequest searchRequest(String stageId) {
+    return restRequest().path(PublicApiPaths.SEARCH_SERVICE_PATH_V2).query("stageId", stageId);
   }
 
-  private String getSearchUrl(String stageId, ComponentIdentifier componentIdentifier)
-      throws UnsupportedEncodingException
-  {
-    return getRestBaseUrl() + PublicApiPaths.SEARCH_SERVICE_PATH_V2 + "?stageId=" + stageId +
-        "&componentIdentifier=" + toQueryParam(componentIdentifier);
+  private HttpRequest addHash(HttpRequest request, String hash) {
+    return request.query("hash", hash);
   }
 
-  private String getSearchUrl(String stageId, String hash, ComponentIdentifier componentIdentifier)
-      throws UnsupportedEncodingException
-  {
-    return getRestBaseUrl() + PublicApiPaths.SEARCH_SERVICE_PATH_V2 + "?stageId=" + stageId + "&hash=" + hash +
-        "&componentIdentifier=" + toQueryParam(componentIdentifier);
-  }
-
-  private String toQueryParam(ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException {
-    return URLEncoder.encode(toJson(componentIdentifier), "UTF-8");
+  private HttpRequest addCoords(HttpRequest request, ComponentIdentifier componentIdentifier) {
+    return request.query("componentIdentifier", componentIdentifier);
   }
 
   private void assertSearchResult(ApiSearchResultDTOV2 result, String appId, String appName, String hash,
@@ -74,9 +61,7 @@ public class ApiSearchResourceV2Test
     assertThat(result.applicationId, is(appId));
     assertThat(result.applicationName, is(appName));
     assertThat(result.reportUrl, is(notNullValue()));
-    AsyncHttpClient.BoundRequestBuilder builder = AuthedRestAccess.getClient().prepareGet(result.reportUrl);
-    builder.setFollowRedirects(true);
-    assertResponseStatus(200, AuthedRestAccess.execute(builder));
+    assertResponseStatus(200, HttpRequest.to(result.reportUrl).followRedirects().get());
     assertThat(result.hash, is(hash));
     if (componentIdentifier != null) {
       assertThat(result.componentIdentifier, is(notNullValue()));
@@ -103,21 +88,21 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_MissingStageId() throws Exception {
-    Response response = AuthedRestAccess.get(getSearchUrl("", "12345678901234567890"));
+    Response response = addHash(searchRequest(""), "12345678901234567890").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Stage has not been specified."));
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
-    Response response = AuthedRestAccess.get(getSearchUrl("invalid", "12345678901234567890"));
+    Response response = addHash(searchRequest("invalid"), "12345678901234567890").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid stage: invalid."));
   }
 
   @Test
-  public void testSearchComponent_MissingHashAndGav() throws Exception {
-    Response response = AuthedRestAccess.get(getSearchUrl("build", ""));
+  public void testSearchComponent_MissingHashAndCoordinates() throws Exception {
+    Response response = searchRequest(Stage.ID_BUILD).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         is("Neither hash nor coordinates of component to search for have been specified."));
@@ -125,14 +110,14 @@ public class ApiSearchResourceV2Test
 
   @Test
   public void testSearchComponent_InvalidHash() throws Exception {
-    Response response = AuthedRestAccess.get(getSearchUrl("build", "invalid-hash"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "invalid-hash").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid hash: invalid-hash."));
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
-    Response response = AuthedRestAccess.get(getSearchUrl("build", "1249e25aebb15358bed"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bed").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid hash: 1249e25aebb15358bed."));
   }
@@ -142,7 +127,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_RELEASE, appToComponentMap.get("search-app-2"));
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -157,7 +142,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -173,7 +158,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_ByHash_FullHashString() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd00000000000000000000"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd00000000000000000000").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -187,7 +172,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_ByHash_UnknownComponent() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "69b58197caabec2e0d06"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "69b58197caabec2e0d06").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -202,7 +187,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, componentIdentifier));
+    Response response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -237,7 +222,7 @@ public class ApiSearchResourceV2Test
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*",
         "sources", "jar");
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, componentIdentifier));
+    Response response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -256,7 +241,7 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("simplejson", "*");
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, componentIdentifier));
+    Response response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -275,7 +260,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", componentIdentifier));
+    Response response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), componentIdentifier)
+        .get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -294,7 +280,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("*", "tomcat-util", "*");
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "a397f601582e5ccd4b1a", componentIdentifier));
+    Response response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), componentIdentifier)
+        .get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -305,7 +292,8 @@ public class ApiSearchResourceV2Test
   @Test
   public void testSearchComponent_EchoCriteria() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", "1");
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249e25aebb15358bedd", componentIdentifier));
+    Response response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), componentIdentifier)
+        .get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -322,7 +310,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdf"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdf").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -334,7 +322,7 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_AppWithoutAnyReports() throws Exception {
     tempEntity.newApplicationWithParent("search-app-1");
 
-    Response response = AuthedRestAccess.get(getSearchUrl(Stage.ID_BUILD, "1249E25aEbb15358bEdd"));
+    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));

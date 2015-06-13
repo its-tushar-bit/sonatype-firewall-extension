@@ -8,12 +8,11 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiConstraintViolationReasonDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -46,9 +45,8 @@ public class ApiPolicyViolationResourceV2Test
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", new Date());
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
-
-    String[] policyIds = {orgPolicy.getId()};
-    Response response = AuthedRestAccess.get(getServiceURL(policyIds));
+    Response response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH_V2)
+        .query("p", orgPolicy.getId()).get();
 
     assertResponseStatus(200, response);
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = JsonHelpers.fromJson(response.getResponseBody(),
@@ -87,17 +85,5 @@ public class ApiPolicyViolationResourceV2Test
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
     assertThat(apiConstraintViolationReasonDTO.reason,
         is(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
-  }
-
-  private String getServiceURL(final String[] policyIds) {
-    StringBuilder builder = new StringBuilder(getRestBaseUrl());
-    builder.append(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH_V2);
-    if (policyIds.length > 0) {
-      builder.append("?p=").append(policyIds[0]);
-      for (int i = 1; i < policyIds.length; i++) {
-        builder.append("&p=").append(policyIds[i]);
-      }
-    }
-    return builder.toString();
   }
 }

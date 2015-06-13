@@ -17,7 +17,7 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.AuthedRestAccess;
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
@@ -60,6 +60,10 @@ public class ApiComponentEvaluationResourceV2Test
 
   private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
+  private HttpRequest restRequest(String applicationId) {
+    return restRequest().path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, applicationId);
+  }
+
   @Before
   public void setupApplication() {
     org = tempEntity.newOrganization();
@@ -69,8 +73,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier_noCoordinates() throws Exception {
     String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, jsonRequest);
+    Response response = restRequest(app.getId()).body(jsonRequest).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
   }
@@ -83,8 +86,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
   }
@@ -96,8 +98,7 @@ public class ApiComponentEvaluationResourceV2Test
     component.hash = "h1";
     request.components.add(component);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
   }
 
@@ -109,8 +110,7 @@ public class ApiComponentEvaluationResourceV2Test
         .fromComponentIdentifier(componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
     request.components.add(component);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
   }
 
@@ -120,8 +120,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("One of either componentIdentifier or hash must be supplied."));
   }
@@ -131,8 +130,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = null;
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("No components provided for evaluation"));
   }
@@ -143,8 +141,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = Collections.emptyList();
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("No components provided for evaluation"));
   }
@@ -159,13 +156,12 @@ public class ApiComponentEvaluationResourceV2Test
 
     mockHDSInternalServiceError();
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
 
-    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
@@ -209,13 +205,12 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
 
-    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
@@ -265,13 +260,12 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
 
-    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
@@ -318,13 +312,12 @@ public class ApiComponentEvaluationResourceV2Test
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities));
     mockComponentDetails(componentEvaluationDataList);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
 
-    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
@@ -377,13 +370,12 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
 
-    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
@@ -436,13 +428,12 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
 
-    response = getComponentEvaluationResult(getRestBaseUrl(), evaluationResult);
+    response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
@@ -473,8 +464,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithNoExtension, null);
     request.components.add(component1);
 
-    String url = getComponentEvaluationURL(app.getId());
-    Response response = AuthedRestAccess.post(url, toJson(request));
+    Response response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
   }
@@ -498,21 +488,16 @@ public class ApiComponentEvaluationResourceV2Test
     return componentEvaluationDataList;
   }
 
-  private String getComponentEvaluationURL(final String applicationId) {
-    return getRestBaseUrl() + PublicApiPaths.APPLICATION_EVALUATION_PATH_V2 + "/" + applicationId;
-  }
-
-  private Response getComponentEvaluationResult(final String baseUrl,
-      final ApiComponentEvaluationTicketDTOV2 evaluationResult)
+  private Response getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationResult)
       throws Exception
   {
     Response response = null;
-    String url = baseUrl + evaluationResult.resultsUrl;
+    HttpRequest request = restRequest().path(evaluationResult.resultsUrl);
 
     boolean done = false;
     int tryCount = 1;
     while (!done) {
-      response = AuthedRestAccess.get(url);
+      response = request.get();
       if (response.getStatusCode() == 200 || tryCount >= NUM_TRIES) {
         done = true;
       }

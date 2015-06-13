@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -103,16 +104,23 @@ public class HttpRequest
     return this;
   }
 
-  public HttpRequest query(String name, Object value) {
-    if (value != null && !value.getClass().getName().startsWith("java.lang.")) {
-      try {
-        value = JSON.writeValueAsString(value);
+  public HttpRequest query(String name, Object... values) {
+    List<Object> vals = new ArrayList<>(Arrays.asList(values));
+    for (int i = vals.size() - 1; i >= 0; i--) {
+      Object val = vals.get(i);
+      if (val == null) {
+        vals.remove(i);
       }
-      catch (IOException e) {
-        throw new IllegalStateException(e);
+      else if (!val.getClass().getName().startsWith("java.lang.")) {
+        try {
+          vals.set(i, JSON.writeValueAsString(val));
+        }
+        catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
       }
     }
-    url.query(name, value);
+    url.query(name, vals.toArray(new Object[vals.size()]));
     return this;
   }
 

@@ -186,7 +186,7 @@ class UserManagementSpec
 
     when: 'user logs in with new password'
       userOptions.logoutClick()
-      login.login('addusertest', newPassword)
+      loginAsUserVia('addusertest', newPassword)
 
     then: 'login succeeds'
       !login.displayed

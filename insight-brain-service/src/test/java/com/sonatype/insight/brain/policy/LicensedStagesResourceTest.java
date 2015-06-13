@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,7 +20,7 @@ public class LicensedStagesResourceTest
 {
   @Test
   public void testGetLicenseStages() throws Exception {
-    Response response = restRequest().path(LicensedStagesResource.SERVICE_PATH).get();
+    HttpResponse response = restRequest().path(LicensedStagesResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
     Stage[] stages = fromJson(response, Stage[].class);
     assertStages(stages);

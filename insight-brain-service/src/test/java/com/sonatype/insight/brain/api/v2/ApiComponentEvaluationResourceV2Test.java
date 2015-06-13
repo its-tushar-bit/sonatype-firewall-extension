@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
@@ -32,7 +33,6 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,7 +73,7 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier_noCoordinates() throws Exception {
     String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
-    Response response = restRequest(app.getId()).body(jsonRequest).post();
+    HttpResponse response = restRequest(app.getId()).body(jsonRequest).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
   }
@@ -86,7 +86,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
   }
@@ -98,7 +98,7 @@ public class ApiComponentEvaluationResourceV2Test
     component.hash = "h1";
     request.components.add(component);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
   }
 
@@ -110,7 +110,7 @@ public class ApiComponentEvaluationResourceV2Test
         .fromComponentIdentifier(componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
     request.components.add(component);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
   }
 
@@ -120,7 +120,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("One of either componentIdentifier or hash must be supplied."));
   }
@@ -130,7 +130,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = null;
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("No components provided for evaluation"));
   }
@@ -141,7 +141,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = Collections.emptyList();
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("No components provided for evaluation"));
   }
@@ -156,7 +156,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     mockHDSInternalServiceError();
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
@@ -205,7 +205,7 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
@@ -260,7 +260,7 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
@@ -312,7 +312,7 @@ public class ApiComponentEvaluationResourceV2Test
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities));
     mockComponentDetails(componentEvaluationDataList);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
@@ -370,7 +370,7 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
@@ -428,7 +428,7 @@ public class ApiComponentEvaluationResourceV2Test
             Collections.<SecurityVulnerability>emptyList()));
     mockComponentDetails(componentEvaluationDataList);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
     ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
@@ -464,7 +464,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithNoExtension, null);
     request.components.add(component1);
 
-    Response response = restRequest(app.getId()).body(request).post();
+    HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
   }
@@ -488,10 +488,10 @@ public class ApiComponentEvaluationResourceV2Test
     return componentEvaluationDataList;
   }
 
-  private Response getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationResult)
+  private HttpResponse getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationResult)
       throws Exception
   {
-    Response response = null;
+    HttpResponse response = null;
     HttpRequest request = restRequest().path(evaluationResult.resultsUrl);
 
     boolean done = false;

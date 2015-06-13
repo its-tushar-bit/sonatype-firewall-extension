@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
@@ -26,7 +27,6 @@ import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,7 +62,7 @@ public class PolicyWaiverResourceTest
 
     // Create
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    Response response = restRequest(ownerType, ownerPublicId).body(policyWaiver).post();
+    HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyWaiver).post();
     assertResponseStatus(200, response);
     policyWaiver = fromJson(response, PolicyWaiver.class);
     assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
@@ -119,7 +119,7 @@ public class PolicyWaiverResourceTest
 
     tempEntity.newWaiver(hash, policy.getId(), application.getId(), "My comment");
 
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("component", hash).get();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
     AppliedWaivers waivers = fromJson(response, AppliedWaivers.class);
     assertNotNull(waivers);
@@ -167,7 +167,7 @@ public class PolicyWaiverResourceTest
     Policy policy = tempEntity.newPolicy(ownerId1, "PolicyWaiverResourceTest");
     String policyId = policy.getId();
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    Response response = restRequest(ownerType, ownerPublicId1).body(policyWaiver).post();
+    HttpResponse response = restRequest(ownerType, ownerPublicId1).body(policyWaiver).post();
     assertResponseStatus(200, response);
     policyWaiver = fromJson(response, PolicyWaiver.class);
 
@@ -187,7 +187,7 @@ public class PolicyWaiverResourceTest
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
   }
@@ -196,7 +196,7 @@ public class PolicyWaiverResourceTest
   public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
 
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
   }
@@ -215,7 +215,7 @@ public class PolicyWaiverResourceTest
     // Create a policy for the application
     Policy policy = createPolicy(IdUtils.TYPE_APPLICATION, appPublicId);
 
-    Response response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
+    HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = fromJson(response, ApplicableContext.class);
     assertApplicableContext(appPublicId, application.getName(), "application", result);
@@ -230,7 +230,7 @@ public class PolicyWaiverResourceTest
     // Create a policy for the organization
     Policy policy = createPolicy(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId());
 
-    Response response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
+    HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = fromJson(response, ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
@@ -254,7 +254,7 @@ public class PolicyWaiverResourceTest
     Policy policy = new Policy(null, "Policy Name 1");
     policy.addConstraint(constraint);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .post();
     assertResponseStatus(200, response);
     policy = fromJson(response, Policy.class);

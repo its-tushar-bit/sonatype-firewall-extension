@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.version.VersionResource;
 
-import com.ning.http.client.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
@@ -18,7 +18,7 @@ public class TraceMethodBlockFilterTest
 {
   @Test
   public void testTraceMethodBlocked() throws Exception {
-    Response response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACE");
+    HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACE");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
 
     response = restRequest().path(VersionResource.SERVICE_PATH).send("TRACE");
@@ -27,7 +27,7 @@ public class TraceMethodBlockFilterTest
 
   @Test
   public void testTrackMethodBlocked() throws Exception {
-    Response response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACK");
+    HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACK");
     assertResponseStatus(HttpStatus.NOT_IMPLEMENTED_501, response);
 
     response = restRequest().path(VersionResource.SERVICE_PATH).send("TRACK");

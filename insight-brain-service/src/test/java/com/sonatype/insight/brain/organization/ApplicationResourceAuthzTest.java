@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.emptyArray;
@@ -37,7 +37,7 @@ public class ApplicationResourceAuthzTest
     grantReadPermission(app.getId());
 
     HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
-    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
+    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);
     ApplicationManagementSummaryDTO[] entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
     assertThat(entities, is(emptyArray()));
@@ -91,7 +91,7 @@ public class ApplicationResourceAuthzTest
     HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", app.getId())
         .part("hasRobotSource", "false");
     request.auth(unauthorized.getUsername(), unauthorized.getPassword());
-    Response response = request.post();
+    HttpResponse response = request.post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is("Insufficient permissions"));
 

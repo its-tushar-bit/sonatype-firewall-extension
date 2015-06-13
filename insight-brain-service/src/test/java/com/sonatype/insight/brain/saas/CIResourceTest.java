@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.saas;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,7 +36,7 @@ public class CIResourceTest
     scanReceipt.setTimeToReport(30L);
     mockScanReceipt(scanReceipt);
 
-    final Response response = scanRequest(applicationPublicId).put();
+    final HttpResponse response = scanRequest(applicationPublicId).put();
 
     assertResponseStatus(200, response);
 
@@ -53,7 +53,7 @@ public class CIResourceTest
   @Test
   public void testScan_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = scanRequest("unlicensedapp").put();
+    HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
   }
 
@@ -62,7 +62,7 @@ public class CIResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = scanRequest("unlicensedapp").put();
+    HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
   }
 }

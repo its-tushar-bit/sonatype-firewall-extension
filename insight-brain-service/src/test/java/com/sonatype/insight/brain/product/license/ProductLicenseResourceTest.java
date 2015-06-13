@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -25,7 +25,7 @@ public class ProductLicenseResourceTest
   public void testInstallFailedWithNormalBrowser() throws Exception {
     getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
-    Response response = installLicense(false);
+    HttpResponse response = installLicense(false);
     assertResponseStatus(400, response);
 
     assertEquals("The provided license file is invalid. Please verify you selected the correct file."
@@ -37,7 +37,7 @@ public class ProductLicenseResourceTest
     getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
     // IE is expecting a 200 response back, so we need to validate the error
-    Response response = installLicense(true);
+    HttpResponse response = installLicense(true);
     assertResponseStatus(200, response);
 
     assertEquals("The provided license file is invalid. Please verify you selected the correct file."
@@ -48,7 +48,7 @@ public class ProductLicenseResourceTest
   public void testInstallFailedIOError() throws Exception {
     getTestProductLicenseManager().setForceInstallIOFailure(true);
 
-    Response response = installLicense(false);
+    HttpResponse response = installLicense(false);
     assertResponseStatus(400, response);
 
     assertEquals("The license file was unable to install. Please ensure server has access to "

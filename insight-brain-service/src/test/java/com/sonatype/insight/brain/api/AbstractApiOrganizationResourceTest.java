@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v1.ApiOrganizationResource;
 import com.sonatype.insight.brain.api.v1.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiOrganizationDTO;
@@ -29,7 +30,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,7 +70,7 @@ public abstract class AbstractApiOrganizationResourceTest
   public void testGetAll() throws Exception {
     Tag tag = tempEntity.newTag(organization.getId());
 
-    final Response response = restRequest().get();
+    final HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     final ApiOrganizationListDTO organizationListDTO = JsonHelpers
         .fromJson(response.getResponseBody(), ApiOrganizationListDTO.class);
@@ -95,7 +95,7 @@ public abstract class AbstractApiOrganizationResourceTest
   @Test
   public void testGetAll_Unlicensed() throws Exception {
     uninstallLicense();
-    final Response response = restRequest().get();
+    final HttpResponse response = restRequest().get();
     assertResponseStatus(402, response);
   }
 
@@ -110,7 +110,7 @@ public abstract class AbstractApiOrganizationResourceTest
 
     // Initial state
     HttpRequest request = roleMembersRequest(organization.getId());
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
     // Note: Org roles are same as app roles in DTO
@@ -165,7 +165,7 @@ public abstract class AbstractApiOrganizationResourceTest
   public void testCRUDOrgRoles() throws Exception {
     // Initial state
     HttpRequest request = roleMembersRequest(organization.getId());
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
     // Note: Org roles are same as app roles in DTO

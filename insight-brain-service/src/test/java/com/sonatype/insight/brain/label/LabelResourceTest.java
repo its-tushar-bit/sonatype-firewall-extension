@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
@@ -32,7 +33,6 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,7 +56,7 @@ public class LabelResourceTest
     HttpRequest request = restRequest(IdUtils.TYPE_APPLICATION, appPublicId);
 
     // Get all labels
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     Label[] labels = fromJson(response, Label[].class);
     Assert.assertNotNull(labels);
@@ -121,7 +121,7 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = restRequest().path(PolicyResource.SERVICE_PATH)
+    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH)
         .parameter(IdUtils.TYPE_APPLICATION, appPublicId).body(policy).post();
     assertResponseStatus(200, response);
 
@@ -144,7 +144,7 @@ public class LabelResourceTest
     String appPublicId = "LabelResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID YettiId.", response.getResponseBody());
   }
@@ -157,7 +157,7 @@ public class LabelResourceTest
     tempEntity.newApplicationWithParent(appPublicId2);
     Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.blue);
     
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId2).path(label.getId()).delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId2).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID " + label.getId() + " for application ID " + appPublicId2,
         response.getResponseBody());
@@ -178,7 +178,7 @@ public class LabelResourceTest
     HttpRequest request = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId());
 
     // Get all labels
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     Label[] labels = fromJson(response, Label[].class);
     Assert.assertNotNull(labels);
@@ -243,7 +243,7 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = restRequest().path(PolicyResource.SERVICE_PATH)
+    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH)
         .parameter(IdUtils.TYPE_ORGANIZATION, organization.getId()).body(policy).post();
     assertResponseStatus(200, response);
 
@@ -280,7 +280,7 @@ public class LabelResourceTest
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    Response response = restRequest().path(PolicyResource.SERVICE_PATH)
+    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH)
         .parameter(IdUtils.TYPE_APPLICATION, appPublicId).body(policy).post();
     assertResponseStatus(200, response);
 
@@ -304,7 +304,7 @@ public class LabelResourceTest
     String orgName = "LabelResourceTestOrgName";
     Organization organization = tempEntity.newOrganization(orgName);
 
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID YettiId.", response.getResponseBody());
   }
@@ -318,7 +318,7 @@ public class LabelResourceTest
 
     Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.blue);
     
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization2.getId()).path(label.getId()).delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization2.getId()).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals(
         "Cannot find a label with ID " + label.getId() + " for organization ID " + organization2.getId(),
@@ -347,7 +347,7 @@ public class LabelResourceTest
     String appId = app.getId();
 
     // Verify the applicable labels for the application
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     assertResponseStatus(200, response);
     ApplicableLabels applicableLabels = fromJson(response, ApplicableLabels.class);
@@ -418,7 +418,7 @@ public class LabelResourceTest
     HttpRequest request = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId()).subpath(
         "applicable/context/{labelId}");
 
-    Response response = request.parameter(appLabel.getId()).get();
+    HttpResponse response = request.parameter(appLabel.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext context = fromJson(response, ApplicableContext.class);
     Assert.assertThat(context, is(notNullValue()));

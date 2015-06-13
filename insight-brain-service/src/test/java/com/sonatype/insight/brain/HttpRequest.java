@@ -7,6 +7,7 @@ package com.sonatype.insight.brain;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpCookie;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -25,7 +26,6 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Part;
-import com.ning.http.client.Response;
 import com.ning.http.multipart.ByteArrayPartSource;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
@@ -64,7 +64,7 @@ public class HttpRequest
 
   private Map<String, String> headers;
 
-  private Map<String, Cookie> cookies;
+  private Map<String, HttpCookie> cookies;
 
   private List<Part> parts;
 
@@ -174,7 +174,7 @@ public class HttpRequest
 
   public HttpRequest cookie(String name, String value) {
     if (value != null) {
-      cookies.put(name, new Cookie(null, name, value, null, 0, false, 0));
+      cookies.put(name, new HttpCookie(name, value));
     }
     else {
       cookies.remove(name);
@@ -182,7 +182,7 @@ public class HttpRequest
     return this;
   }
 
-  public HttpRequest cookie(Cookie cookie) {
+  public HttpRequest cookie(HttpCookie cookie) {
     if (cookie != null) {
       cookies.put(cookie.getName(), cookie);
     }
@@ -240,11 +240,12 @@ public class HttpRequest
     }
   }
 
-  private Response execute(BoundRequestBuilder builder, boolean noBody) throws Exception {
+  private HttpResponse execute(BoundRequestBuilder builder, boolean noBody) throws Exception {
     builder.setFollowRedirects(redirects);
 
-    for (Cookie cookie : cookies.values()) {
-      builder.addCookie(cookie);
+    for (HttpCookie cookie : cookies.values()) {
+      builder.addCookie(new Cookie(cookie.getDomain(), cookie.getName(), cookie.getValue(), cookie.getPath(),
+          (int) cookie.getMaxAge(), cookie.getSecure(), cookie.getVersion()));
     }
 
     if (username != null) {
@@ -270,26 +271,26 @@ public class HttpRequest
       }
     }
 
-    return builder.execute().get();
+    return new HttpResponse(builder.execute().get());
   }
 
-  public Response get() throws Exception {
+  public HttpResponse get() throws Exception {
     return execute(CLIENT.prepareGet(getUrl()), true);
   }
 
-  public Response put() throws Exception {
+  public HttpResponse put() throws Exception {
     return execute(CLIENT.preparePut(getUrl()), false);
   }
 
-  public Response post() throws Exception {
+  public HttpResponse post() throws Exception {
     return execute(CLIENT.preparePost(getUrl()), false);
   }
 
-  public Response delete() throws Exception {
+  public HttpResponse delete() throws Exception {
     return execute(CLIENT.prepareDelete(getUrl()), false);
   }
 
-  public Response send(String method) throws Exception {
+  public HttpResponse send(String method) throws Exception {
     return execute(CLIENT.prepare(method, getUrl()), "GET".equals(method) || "HEAD".equals(method));
   }
 }

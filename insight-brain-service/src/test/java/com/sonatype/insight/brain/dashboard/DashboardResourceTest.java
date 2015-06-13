@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -21,7 +22,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -50,7 +50,7 @@ public class DashboardResourceTest
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    Response response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).get();
 
     assertResponseStatus(200, response);
     NewestRiskDTO[] dtos = fromJson(response, NewestRiskDTO[].class);
@@ -65,7 +65,7 @@ public class DashboardResourceTest
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    Response response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH).get();
 
     assertResponseStatus(200, response);
     PolicySummaryDTO dto = fromJson(response, PolicySummaryDTO.class);
@@ -77,7 +77,7 @@ public class DashboardResourceTest
   public void testDashboardUserFilterCRUD() throws Exception {
     // start with the default filter
     HttpRequest request = restRequest().path(DashboardResource.FILTERS_PATH);
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
     Organization org = tempEntity.newOrganization();
@@ -157,7 +157,7 @@ public class DashboardResourceTest
 
   @Test
   public void testGetFilterSummary() throws Exception {
-    Response response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH).get();
     assertResponseStatus(200, response);
     FilterSummaryDTO dto = fromJson(response, FilterSummaryDTO.class);
     assertThat(dto, is(notNullValue()));
@@ -165,7 +165,7 @@ public class DashboardResourceTest
 
   @Test
   public void testGetComponentSummary() throws Exception {
-    Response response = restRequest().path(DashboardResource.COMPONENTS_SUMMARY_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.COMPONENTS_SUMMARY_PATH).get();
     assertResponseStatus(200, response);
     ComponentSummaryDTO dto = fromJson(response, ComponentSummaryDTO.class);
     assertThat(dto, is(notNullValue()));

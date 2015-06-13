@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.integration;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -37,7 +37,7 @@ public class ApplicationSummaryResourceTest
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
-    Response response = summaryRequest(Goal.EVALUATE_APPLICATION).get();
+    HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -49,7 +49,7 @@ public class ApplicationSummaryResourceTest
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
-    Response response = summaryRequest(Goal.EVALUATE_COMPONENT).get();
+    HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -61,7 +61,7 @@ public class ApplicationSummaryResourceTest
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
 
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -73,7 +73,7 @@ public class ApplicationSummaryResourceTest
   public void testGetApplications_EvaluateApplication_Anonymous() throws Exception {
     Application application = tempEntity.newApplicationWithParent("testPublicId");
 
-    Response response = summaryRequest(Goal.EVALUATE_APPLICATION).anon().get();
+    HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).anon().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -84,7 +84,7 @@ public class ApplicationSummaryResourceTest
   public void testGetApplications_EvaluateComponent_Anonymous() throws Exception {
     tempEntity.newApplicationWithParent("testPublicId");
 
-    Response response = summaryRequest(Goal.EVALUATE_COMPONENT).anon().get();
+    HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).anon().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
@@ -95,7 +95,7 @@ public class ApplicationSummaryResourceTest
   public void testGetApplications_NoGoal_Anonymous() throws Exception {
     Application application = tempEntity.newApplicationWithParent("testPublicId");
 
-    Response response = restRequest().anon().get();
+    HttpResponse response = restRequest().anon().get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);

@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -44,7 +45,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -122,7 +122,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -156,7 +156,7 @@ public class IdeResourceTest
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("componentIdentifer",
         componentIdentifier);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
@@ -186,7 +186,7 @@ public class IdeResourceTest
 
     HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
-    Response response = request.body(new ScannedComponent()).post();
+    HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
@@ -226,7 +226,7 @@ public class IdeResourceTest
     HttpRequest request = enhancedScanRequest(applicationPublicId, "abababababababababab").query("componentIdentifer",
         componentIdentifier);
     mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
-    Response response = request.body(new ScannedComponent()).post();
+    HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
@@ -264,7 +264,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -314,7 +314,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -364,7 +364,7 @@ public class IdeResourceTest
     // There should be no policy alerts when none of the security vulnerabilities was overridden
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -426,7 +426,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -458,7 +458,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertNull(ideMatchedComponent.getAlerts());
@@ -482,7 +482,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -493,7 +493,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_simple_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = simpleScanRequest("unlicensedappId", "ulh").get();
+    HttpResponse response = simpleScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -502,7 +502,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = simpleScanRequest("unlicensedappId", "ulh").get();
+    HttpResponse response = simpleScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -524,7 +524,7 @@ public class IdeResourceTest
 
     HttpRequest request = enhancedScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
@@ -535,7 +535,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_enhanced_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = enhancedScanRequest("unlicensedappId", "ulh").get();
+    HttpResponse response = enhancedScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -544,7 +544,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = enhancedScanRequest("unlicensedappId", "ulh").get();
+    HttpResponse response = enhancedScanRequest("unlicensedappId", "ulh").get();
     assertResponseStatus(402, response);
   }
 
@@ -563,7 +563,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab").query("proprietary", true);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -637,7 +637,7 @@ public class IdeResourceTest
     saasResponse.setHash(hash);
     saasResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
     mockHdsResponse(request, toJson(saasResponse), 200);
-    Response response = request.get();
+    HttpResponse response = request.get();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
@@ -687,7 +687,7 @@ public class IdeResourceTest
 
     HttpRequest request = simpleScanRequest(applicationPublicId, hash);
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
@@ -706,7 +706,7 @@ public class IdeResourceTest
   public void testGetComponentVersions() throws Exception {
     HttpRequest request = versionsRequest("gid", "aid");
     setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = fromJson(response, String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
@@ -717,7 +717,7 @@ public class IdeResourceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", null);
     HttpRequest request = versionsRequest(componentIdentifier);
     setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = fromJson(response, String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
@@ -726,7 +726,7 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = versionsRequest("ulg", "ula").get();
+    HttpResponse response = versionsRequest("ulg", "ula").get();
     assertResponseStatus(402, response);
   }
 
@@ -735,7 +735,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = versionsRequest("ulg", "ula").get();
+    HttpResponse response = versionsRequest("ulg", "ula").get();
     assertResponseStatus(402, response);
   }
 
@@ -744,7 +744,7 @@ public class IdeResourceTest
     // Note this is now deprecated functionality, only legacy (2.5.0 and earlier) versions of the ide plugin will access
     // this resource
     setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
-    Response response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
+    HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(200, response);
     Assert.assertEquals("OK", response.getResponseBody());
   }
@@ -752,7 +752,7 @@ public class IdeResourceTest
   @Test
   public void testGetAsset_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
+    HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(402, response);
   }
 
@@ -761,7 +761,7 @@ public class IdeResourceTest
     // note this enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.StageRelease);
 
-    Response response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
+    HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(402, response);
   }
 

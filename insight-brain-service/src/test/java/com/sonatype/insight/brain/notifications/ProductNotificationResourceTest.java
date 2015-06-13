@@ -13,11 +13,11 @@ import java.util.UUID;
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationType;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.notifications.dto.ProductNotificationDTO;
 import com.sonatype.insight.brain.notifications.dto.ProductNotificationListDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ public class ProductNotificationResourceTest
 
     // Get first page of notifications
     int pageSize = 10;
-    Response response = listRequest(pageSize, 1).get();
+    HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
@@ -75,7 +75,7 @@ public class ProductNotificationResourceTest
     when(mockHdsProductNotificationService.getNotifications()).thenReturn(notifications);
 
     int pageSize = 10;
-    Response response = listRequest(pageSize, 1).get();
+    HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));

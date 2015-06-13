@@ -9,6 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class LicenseThreatGroupLicenseResourceTest
     groupDAO.insert(group);
 
     // Get
-    Response response = restRequest(ownerType, ownerPublicId, group.getId()).get();
+    HttpResponse response = restRequest(ownerType, ownerPublicId, group.getId()).get();
     assertResponseStatus(200, response);
     LicenseThreatGroupLicense[] licenseThreatGroupLicenses = fromJson(response, LicenseThreatGroupLicense[].class);
     Assert.assertNotNull(licenseThreatGroupLicenses);

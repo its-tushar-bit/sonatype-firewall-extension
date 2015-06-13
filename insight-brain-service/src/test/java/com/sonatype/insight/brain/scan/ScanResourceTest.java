@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.scan;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class ScanResourceTest
 
   @Test
   public void testUploadBinary() throws Exception {
-    Response response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "app01.zip").post();
+    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "app01.zip").post();
     assertResponseStatus(200, response);
     ScanTicket result = fromJson(response, ScanTicket.class);
     assertThat(result, is(notNullValue()));
@@ -52,7 +52,7 @@ public class ScanResourceTest
 
   @Test
   public void testUploadBinary_IeErrorHandling() throws Exception {
-    Response response = uploadRequest("bad-app-id", Stage.ID_BUILD, "app01.zip").query("noFormData", "true").post();
+    HttpResponse response = uploadRequest("bad-app-id", Stage.ID_BUILD, "app01.zip").query("noFormData", "true").post();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
     assertThat(response.getResponseBody(), is("Could not find an application with public ID bad-app-id."));
@@ -63,7 +63,7 @@ public class ScanResourceTest
     HttpRequest request = restRequest().path("{ticketId}").parameter(appPublicId, scanTicketId);
     long start = System.currentTimeMillis();
     while (System.currentTimeMillis() - start <= 10000) {
-      Response response = request.get();
+      HttpResponse response = request.get();
       assertResponseStatus(200, response);
       ScanTicket scanTicket = fromJson(response, ScanTicket.class);
       if (scanTicket.currentStep >= scanTicket.totalSteps) {

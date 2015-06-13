@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -28,7 +29,6 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.saas.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,7 +84,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetLicenses_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = licensesRequest(applicationPublicId,
+    HttpResponse response = licensesRequest(applicationPublicId,
         ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
@@ -92,7 +92,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = listRequest(applicationPublicId,
+    HttpResponse response = listRequest(applicationPublicId,
         ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
@@ -100,7 +100,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = detailsRequest(applicationPublicId,
+    HttpResponse response = detailsRequest(applicationPublicId,
         ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv"), "ulh", MatchState.UNKNOWN, null).get();
     assertResponseStatus(402, response);
   }
@@ -152,7 +152,7 @@ public abstract class AbstractComponentInfoResourceTest
         convertToSaasUrl(detailsRequest(applicationPublicId, MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
         toJson(saasComponentDetails), 200);
 
-    Response response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
+    HttpResponse response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
     ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, hasSize(1));
@@ -163,7 +163,7 @@ public abstract class AbstractComponentInfoResourceTest
   protected void testGetComponentDetails_EvaluateComponentPermission() throws Exception {
     String hash = "01234567890123456789";
 
-    Response response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
+    HttpResponse response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
@@ -182,7 +182,7 @@ public abstract class AbstractComponentInfoResourceTest
     setSaasResponseForURI(convertToSaasUrl(request.getUrl(), applicationPublicId), toJson(saasComponentDetailsList),
         200);
 
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);
@@ -200,7 +200,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     String hash = "a235ba8b489512805ac1";
 
-    Response response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).query(
+    HttpResponse response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).query(
         "reportId", reportId).get();
     assertResponseStatus(200, response);
 
@@ -225,7 +225,7 @@ public abstract class AbstractComponentInfoResourceTest
     setSaasResponseForURI(convertToSaasUrl(request.getUrl(), applicationPublicId), toJson(saasComponentDetailsList),
         200);
 
-    Response response = request.query("reportId", reportId).get();
+    HttpResponse response = request.query("reportId", reportId).get();
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);

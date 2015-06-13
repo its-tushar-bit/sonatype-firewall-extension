@@ -6,13 +6,13 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ public class PolicyWaiverResourceAuthzTest
     grantWritePermission(app.getId());
 
     HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
-    Response response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    HttpResponse response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
     new PolicyWaiverDAO().delete(fromJson(response, PolicyWaiver.class));
 
     grantWritePermission(org.getId());

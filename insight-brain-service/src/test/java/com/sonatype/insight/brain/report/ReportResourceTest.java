@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
@@ -68,7 +69,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -79,16 +79,7 @@ import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -136,7 +127,7 @@ public class ReportResourceTest
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
-    Response response = request.subpath("bom.json").get();
+    HttpResponse response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
     String bomJsonData = response.getResponseBody();
@@ -227,7 +218,7 @@ public class ReportResourceTest
     assertResponseStatus(200, restRequest().path(ReportResource.getReportPath(applicationPublicId, scanId)).get());
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
-    Response response = request.subpath("licenses.json").get();
+    HttpResponse response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
     String licensesJsonData = response.getResponseBody();
     assertNotNull(licensesJsonData);
@@ -251,7 +242,7 @@ public class ReportResourceTest
 
     // populate JSON data cache before claiming the component
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
-    Response response = request.subpath("bom.json").get();
+    HttpResponse response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
 
     // The hash of commons-httpclient-3.1.SONATYPE.jar, similar match of commons-httpclient:commons-httpclient:3.1
@@ -343,7 +334,7 @@ public class ReportResourceTest
 
     calendar.setTime(new Date());
     calendar.set(Calendar.DAY_OF_YEAR, calendar.get(Calendar.DAY_OF_YEAR) + 365);
-    Response response = request.subpath("insight.js").get();
+    HttpResponse response = request.subpath("insight.js").get();
     assertResponseStatus(200, response);
     String expiresHeader = response.getHeader("Expires");
     assertNotNull(expiresHeader);
@@ -392,7 +383,7 @@ public class ReportResourceTest
 
     try (ZipInputStream zipStream = new ZipInputStream(getClass().getResourceAsStream(reportResource))) {
       for (ZipEntry entry = zipStream.getNextEntry(); entry != null; entry = zipStream.getNextEntry()) {
-        final Response response = request.subpath(entry.getName()).get();
+        final HttpResponse response = request.subpath(entry.getName()).get();
         final String contentType = response.getContentType();
         assertResponseStatus(200, response);
 
@@ -466,7 +457,7 @@ public class ReportResourceTest
 
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
 
-    Response response = request.subpath("../restricted.txt").get();
+    HttpResponse response = request.subpath("../restricted.txt").get();
     assertResponseStatus(404, response);
 
     response = request.subpath("%2E%2E/restricted.txt").get();
@@ -481,7 +472,7 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    Response response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
+    HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
     assertResponseStatus(200, response);
 
     String content = response.getResponseBody();
@@ -496,7 +487,7 @@ public class ReportResourceTest
     String scanId = "abcdefg12345";
     String appPublicId = "bom1-12345678";
 
-    Response response = restRequest(appPublicId, scanId)
+    HttpResponse response = restRequest(appPublicId, scanId)
         .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
     assertResponseStatus(404, response);
     assertEquals("Reports have been moved.  Clear cache and reload.", response.getResponseBody());
@@ -514,7 +505,7 @@ public class ReportResourceTest
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    final Response response;
+    final HttpResponse response;
     try {
       response = restRequest(applicationPublicId, scanId).path("printReport").get();
       assertResponseStatus(200, response);
@@ -544,7 +535,7 @@ public class ReportResourceTest
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    Response response;
+    HttpResponse response;
     try {
       response = request.get();
       assertResponseStatus(200, response);
@@ -602,7 +593,7 @@ public class ReportResourceTest
     List<Message> notifications = Mailbox.get("manager@test.corp");
 
     // Evaluate policy
-    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
@@ -668,7 +659,7 @@ public class ReportResourceTest
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // attempt a bad edit (no augmented data)
-    Response response = augmentRequest.post();
+    HttpResponse response = augmentRequest.post();
     assertResponseStatus(400, response); // bad request; no changes
 
     // verify nothing has changed
@@ -752,7 +743,7 @@ public class ReportResourceTest
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // Verify before any license overrides are added
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     int found = 0;
     String licenseJsonString = response.getResponseBody();
@@ -853,7 +844,7 @@ public class ReportResourceTest
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
     // verify nothing has changed
-    Response response = browseRequest.get();
+    HttpResponse response = browseRequest.get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
 
@@ -901,7 +892,7 @@ public class ReportResourceTest
 
     // audit non-report data
     final String extra = "{ \"policy\" : \"TEST\", \"result\" : \"OK\" }";
-    Response response = request.subpath("augmentData", "extra.json").query("user=test&where=ReportResourceTest")
+    HttpResponse response = request.subpath("augmentData", "extra.json").query("user=test&where=ReportResourceTest")
         .body(extra).post();
     assertResponseStatus(200, response);
 
@@ -922,7 +913,7 @@ public class ReportResourceTest
   @Test
   public void testRedirection() throws Exception {
     String path = "index.html?x=y&a=b";
-    Response response = restRequest("appId", "scanId").path("brain", "index.html").query("x=y&a=b").get();
+    HttpResponse response = restRequest("appId", "scanId").path("brain", "index.html").query("x=y&a=b").get();
     assertResponseStatus(307, response);
     Assert.assertEquals(getRestBaseUrl() + path, response.getHeader("Location"));
   }
@@ -948,7 +939,7 @@ public class ReportResourceTest
       "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName().replaceAll("[_]", ""));
 
-    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
@@ -1039,7 +1030,7 @@ public class ReportResourceTest
       "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
 
-    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 

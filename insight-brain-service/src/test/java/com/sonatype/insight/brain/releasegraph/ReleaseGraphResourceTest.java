@@ -10,10 +10,10 @@ import java.nio.file.Files;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,7 +60,7 @@ public class ReleaseGraphResourceTest
 
   @Test
   public void testGetImage_NeitherIdentifierNorGav() throws Exception {
-    Response response = getRequest(appId, scanId).get();
+    HttpResponse response = getRequest(appId, scanId).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid component identifier"));
   }
@@ -68,7 +68,7 @@ public class ReleaseGraphResourceTest
   @Test
   public void testGetImage_ByComponentIdentifier() throws Exception {
     copyReport("report.zip");
-    Response response = addCoords(
+    HttpResponse response = addCoords(
         addCoords(getRequest(appId, scanId),
             ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")), "ignored",
         "ignored", "ignored").get();
@@ -80,7 +80,7 @@ public class ReleaseGraphResourceTest
   @Test
   public void testGetImage_ByGav() throws Exception {
     copyReport("report-legacy.zip");
-    Response response = addCoords(getRequest(appId, scanId), "tomcat", "tomcat-util", "5.5.23").get();
+    HttpResponse response = addCoords(getRequest(appId, scanId), "tomcat", "tomcat-util", "5.5.23").get();
     assertResponseStatus(200, response);
     byte[] image = response.getResponseBodyAsBytes();
     assertThat(image.length, is(greaterThan(0)));

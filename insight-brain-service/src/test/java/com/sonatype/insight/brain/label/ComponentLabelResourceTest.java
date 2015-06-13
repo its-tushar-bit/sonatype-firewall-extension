@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.label;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.label.ComponentLabelResource.AppliedLabels;
 import com.sonatype.insight.brain.model.Application;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testGetComponentLabels_AppLevel() throws Exception {
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = fromJson(response, AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
@@ -86,7 +86,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testGetComponentLabels_OrgLevel() throws Exception {
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).get();
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).get();
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = fromJson(response, AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
@@ -113,7 +113,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_AppLevel() throws Exception {
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).body(appLabel).post();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).body(appLabel).post();
     assertResponseStatus(204, response);
 
     List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(app.getId(), componentHash);
@@ -127,7 +127,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_OrgLevel() throws Exception {
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).body(orgLabel)
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).body(orgLabel)
         .post();
     assertResponseStatus(204, response);
 
@@ -143,7 +143,7 @@ public class ComponentLabelResourceTest
     ComponentLabel appComponentLabel = tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
     tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
     
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).path(appLabel.getId())
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).path(appLabel.getId())
         .delete();
     assertResponseStatus(204, response);
 
@@ -160,7 +160,7 @@ public class ComponentLabelResourceTest
     tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
     ComponentLabel orgComponentLabel = tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
 
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).path(
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).path(
         orgLabel.getId()).delete();
     assertResponseStatus(204, response);
 

@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class LicenseResourceTest
 
   @Test
   public void testGet() throws Exception {
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
     License[] licenses = fromJson(response, License[].class);
@@ -39,7 +39,7 @@ public class LicenseResourceTest
 
   @Test
   public void testGet_FilterSynthetic() throws Exception {
-    Response response = restRequest().query("filterSynthetic", true).get();
+    HttpResponse response = restRequest().query("filterSynthetic", true).get();
     assertResponseStatus(200, response);
 
     License[] licenses = fromJson(response, License[].class);

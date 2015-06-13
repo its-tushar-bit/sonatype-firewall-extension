@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.component;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,7 +34,7 @@ public class ComponentDetailResourceTest
     String hash = "ababababab";
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
-    Response response = restRequest().path("applications").query("hash", hash).get();
+    HttpResponse response = restRequest().path("applications").query("hash", hash).get();
     assertResponseStatus(200, response);
     ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = fromJson(response,
         ApplicationComponentDetailsDTO[].class);
@@ -48,7 +48,7 @@ public class ComponentDetailResourceTest
     String hash = "ababababab";
     HttpRequest request = restRequest().path("name").query("hash", hash);
 
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Unknown component with hash ababababab."));
 

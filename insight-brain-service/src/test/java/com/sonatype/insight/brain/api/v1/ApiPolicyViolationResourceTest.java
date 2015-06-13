@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v1;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationViolationDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiApplicationViolationListDTO;
@@ -22,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
@@ -49,7 +49,7 @@ public class ApiPolicyViolationResourceTest
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
 
-    Response response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH).query("p", orgPolicy.getId())
+    HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH).query("p", orgPolicy.getId())
         .get();
 
     assertResponseStatus(200, response);

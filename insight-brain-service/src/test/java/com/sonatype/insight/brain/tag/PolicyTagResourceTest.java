@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.tag;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.Assert.assertTag;
@@ -31,7 +31,7 @@ public class PolicyTagResourceTest
         .parameter(policyId, org.getId());
 
     // Get
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     Tag[] tags = fromJson(response, Tag[].class);
     assertThat(tags, is(notNullValue()));

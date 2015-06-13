@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
@@ -23,7 +24,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,11 +56,11 @@ public class MembershipMappingResourceTest
     return super.restRequest().path(MembershipMappingResource.SERVICE_PATH);
   }
 
-  private Response get(String ownerType, String ownerId) throws Exception {
+  private HttpResponse get(String ownerType, String ownerId) throws Exception {
     return restRequest().parameter(ownerType, ownerId).get();
   }
 
-  private Response put(String ownerType, String ownerId, String roleId, Member... members) throws Exception {
+  private HttpResponse put(String ownerType, String ownerId, String roleId, Member... members) throws Exception {
     return restRequest().path(MembershipMappingResource.ROLE_PATH).parameter(ownerType, ownerId, roleId).body(members)
         .put();
   }
@@ -80,7 +80,7 @@ public class MembershipMappingResourceTest
   @Test
   public void testCRUD_AppRoles() throws Exception {
     // Initial state
-    Response response = get(IdUtils.TYPE_APPLICATION, app.getPublicId());
+    HttpResponse response = get(IdUtils.TYPE_APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
@@ -197,7 +197,7 @@ public class MembershipMappingResourceTest
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
     // Initial state
-    Response response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+    HttpResponse response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     List<Role> roles = testInitialGlobalState(response);
 
     // Create
@@ -242,7 +242,7 @@ public class MembershipMappingResourceTest
   @Test
   public void testCRUD_GlobalRoles() throws Exception {
     // Initial state
-    Response response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+    HttpResponse response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     List<Role> roles = testInitialGlobalState(response);
 
     // Create
@@ -308,7 +308,7 @@ public class MembershipMappingResourceTest
     assertResponseStatus(204, response);
   }
 
-  private List<Role> testInitialGlobalState(Response response) throws IOException {
+  private List<Role> testInitialGlobalState(HttpResponse response) throws IOException {
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
@@ -342,7 +342,7 @@ public class MembershipMappingResourceTest
     Role systemAdminRole = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(systemAdminRole, is(notNullValue()));
 
-    Response response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, systemAdminRole.getId());
+    HttpResponse response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, systemAdminRole.getId());
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("There must be at least one user in the System Administrator role."));
   }

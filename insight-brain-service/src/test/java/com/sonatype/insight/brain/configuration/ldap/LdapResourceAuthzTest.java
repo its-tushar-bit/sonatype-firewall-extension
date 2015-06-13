@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.configuration.ldap;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class LdapResourceAuthzTest
@@ -88,7 +88,7 @@ public class LdapResourceAuthzTest
   public void testAddLdapServer() throws Exception {
     grantConfigureSystemPermission();
 
-    Response response = testAuthzPost(restRequest().body(new LdapServer("testAddLdapServer")));
+    HttpResponse response = testAuthzPost(restRequest().body(new LdapServer("testAddLdapServer")));
     new LdapServerDAO().delete(fromJson(response, LdapServer.class));
   }
 

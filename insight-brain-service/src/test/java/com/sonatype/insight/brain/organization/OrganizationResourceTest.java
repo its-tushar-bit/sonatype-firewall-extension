@@ -12,13 +12,13 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class OrganizationResourceTest
     // Create
     Organization organization = new Organization("OrganizationResourceTest");
 
-    Response response = restRequest().body(organization).post();
+    HttpResponse response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
     organization = fromJson(response, Organization.class);
     assertNotNull(organization);
@@ -65,7 +65,7 @@ public class OrganizationResourceTest
     Assert.assertEquals("defaulticon_organization.png is not a valid image.", response.getResponseBody());
 
     // Get icon (default icon)
-    Response iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
+    HttpResponse iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(307, iconResponse);
     Assert.assertEquals(getRestBaseUrl() + "assets/img/defaulticon_organization.png",
         iconResponse.getHeader("Location"));
@@ -123,14 +123,14 @@ public class OrganizationResourceTest
     uninstallLicense();
     Organization organization = new Organization("OrganizationResourceTest");
 
-    Response response = restRequest().body(organization).post();
+    HttpResponse response = restRequest().body(organization).post();
     assertResponseStatus(402, response);
   }
 
   @Test
   public void testUpdateOrganization_Unlicensed() throws Exception {
     Organization organization = new Organization("OrganizationResourceTest");
-    Response response = restRequest().body(organization).post();
+    HttpResponse response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
     organization = fromJson(response, Organization.class);
     tempEntity.register(organization);
@@ -142,7 +142,7 @@ public class OrganizationResourceTest
   @Test
   public void testGetAll_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(402, response);
   }
 
@@ -151,7 +151,7 @@ public class OrganizationResourceTest
     String hashcode = "abababababababababab";
     String saasUrl = "rest/application/icon/generate/" + hashcode;
     setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
-    Response response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
+    HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getResponseBodyAsBytes());
   }

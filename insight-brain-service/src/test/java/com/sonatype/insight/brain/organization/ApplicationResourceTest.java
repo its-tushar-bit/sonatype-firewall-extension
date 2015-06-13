@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -29,7 +30,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -60,7 +60,7 @@ public class ApplicationResourceTest
 
     application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
 
-    Response response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
+    HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("OK"));
 
@@ -81,7 +81,7 @@ public class ApplicationResourceTest
 
     application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
 
-    Response response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
+    HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), equalTo("OK"));
 
@@ -104,7 +104,7 @@ public class ApplicationResourceTest
     Application application = new Application(applicationPublicId, applicationName, organization.getId());
     application.setContactInternalName("admin");
 
-    Response response = restRequest().body(application).post();
+    HttpResponse response = restRequest().body(application).post();
 
     assertResponseStatus(200, response);
 
@@ -133,7 +133,7 @@ public class ApplicationResourceTest
     Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getResponseBody());
 
     // Test Get Icon (default icon)
-    Response iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
+    HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
         .parameter(applicationPublicId).get();
     assertResponseStatus(307, iconResponse);
     Assert
@@ -189,7 +189,7 @@ public class ApplicationResourceTest
     byte[] iconBytes = loadDefaultIcon();
 
     // Test Sync Update Application Icon
-    Response response = restRequest().path(ApplicationResource.ICON_PATH_SYNC)
+    HttpResponse response = restRequest().path(ApplicationResource.ICON_PATH_SYNC)
         .part("applicationId", application.getId()).part("hasRobotSource", "false")
         .part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
@@ -208,7 +208,7 @@ public class ApplicationResourceTest
     return IconUtils.loadIconFromProductAssets("defaulticon_application.png");
   }
 
-  private void testValidIconResponse(Response iconResponse) throws Exception {
+  private void testValidIconResponse(HttpResponse iconResponse) throws Exception {
     assertResponseStatus(200, iconResponse);
     Assert.assertNotNull(iconResponse.getResponseBodyAsBytes());
     BufferedImage icon;
@@ -234,7 +234,7 @@ public class ApplicationResourceTest
 
     makeScanReceipt();
 
-    Response response = super.restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH)
+    HttpResponse response = super.restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH)
         .parameter(applicationPublicId).body("").put();
 
     assertResponseStatus(200, response);
@@ -270,7 +270,7 @@ public class ApplicationResourceTest
 
     Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
-    Response response = restRequest().path(applicationPublicId).delete();
+    HttpResponse response = restRequest().path(applicationPublicId).delete();
     application = applicationDAO.getByPublicId(applicationPublicId);
 
     assertResponseStatus(204, response);
@@ -294,7 +294,7 @@ public class ApplicationResourceTest
     application.setName("testAddApplication_exceedsLicense_id_new_name");
     application.setPublicId("testAddApplication_exceedsLicense_id_new_id");
 
-    Response response = restRequest().body(application).post();
+    HttpResponse response = restRequest().body(application).post();
     assertResponseStatus(402, response);
     Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getResponseBody());
   }
@@ -309,7 +309,7 @@ public class ApplicationResourceTest
     Application application = tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
     setLicenseFingerprint(licenseFingerprint);
 
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
     ApplicationDTO[] applications = fromJson(response, ApplicationDTO[].class);
@@ -348,7 +348,7 @@ public class ApplicationResourceTest
     mockReport(scanId2, "/PolicyEvaluateResourceTest/report.zip");
 
     final long startTime = System.currentTimeMillis();
-    Response response = evalRequest(applicationPublicId, scanId1, new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId1, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
     response = evalRequest(applicationPublicId, scanId2, new Stage(Stage.ID_RELEASE)).post();
     assertResponseStatus(200, response);
@@ -420,7 +420,7 @@ public class ApplicationResourceTest
     mockReport(scanId3, "/PolicyEvaluateResourceTest/report.zip");
 
     // Eval policy
-    Response response = evalRequest(applicationPublicId, scanId1, new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId1, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
     response = evalRequest(applicationPublicId, scanId3, new Stage(Stage.ID_RELEASE)).post();
     assertResponseStatus(200, response);
@@ -541,7 +541,7 @@ public class ApplicationResourceTest
     tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
 
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO[] applications = fromJson(response,
@@ -556,7 +556,7 @@ public class ApplicationResourceTest
     final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
     tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
-    Response response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).get();
+    HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).get();
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")
@@ -574,7 +574,7 @@ public class ApplicationResourceTest
     final String applicationName = "ApplicationResourceTest-getApplicationNamesTest-Name";
     tempEntity.newApplicationWithParent(applicationPublicId, applicationName);
 
-    Response response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).anon().get();
+    HttpResponse response = restRequest().path(ApplicationResource.GET_APPLICATION_NAMES).anon().get();
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")
@@ -595,7 +595,7 @@ public class ApplicationResourceTest
     application.setName(applicationName);
     application.setPublicId(applicationPublicId);
 
-    Response response = restRequest().body(application).post();
+    HttpResponse response = restRequest().body(application).post();
     assertResponseStatus(400, response);
     Assert.assertEquals("Application must have a parent organization.", response.getResponseBody());
   }
@@ -606,7 +606,7 @@ public class ApplicationResourceTest
 
     application.setOrganizationId(null);
 
-    Response response = restRequest().body(application).put();
+    HttpResponse response = restRequest().body(application).put();
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
   }
@@ -617,7 +617,7 @@ public class ApplicationResourceTest
 
     application.setOrganizationId("newOrganizationId");
 
-    Response response = restRequest().body(application).put();
+    HttpResponse response = restRequest().body(application).put();
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
   }
@@ -627,7 +627,7 @@ public class ApplicationResourceTest
     String hashcode = "abababababababababab";
     String saasUrl = "rest/application/icon/generate/" + hashcode;
     setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
-    Response response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
+    HttpResponse response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     testValidIconResponse(response);
   }
 

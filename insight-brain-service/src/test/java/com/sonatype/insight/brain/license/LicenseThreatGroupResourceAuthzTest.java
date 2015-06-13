@@ -6,12 +6,12 @@
 package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class LicenseThreatGroupResourceAuthzTest
@@ -50,7 +50,7 @@ public class LicenseThreatGroupResourceAuthzTest
     grantWritePermission(app.getId());
 
     HttpRequest request = restRequest().body(new LicenseThreatGroup(null, "Test LTG", 5));
-    Response response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    HttpResponse response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
     new LicenseThreatGroupDAO().delete(fromJson(response, LicenseThreatGroup.class));
 
     grantWritePermission(org.getId());

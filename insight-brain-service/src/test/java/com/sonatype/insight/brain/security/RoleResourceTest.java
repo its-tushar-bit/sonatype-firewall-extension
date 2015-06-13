@@ -11,13 +11,13 @@ import java.util.Comparator;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.not;
@@ -43,7 +43,7 @@ public class RoleResourceTest
 
   @Test
   public void testGetAllRoles() throws Exception {
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     RoleDTO[] roles = fromJson(response, RoleDTO[].class);
     assertThat(roles, not(emptyArray()));
@@ -52,7 +52,7 @@ public class RoleResourceTest
   @Test
   public void testGetRoleById() throws Exception {
     Role role = tempEntity.newRole(false, Permission.CLAIM_COMPONENT);
-    Response response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).get();
+    HttpResponse response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).get();
     assertResponseStatus(200, response);
     RoleDTO roleDTO = fromJson(response, RoleDTO.class);
     assertThat(roleDTO, notNullValue());
@@ -61,7 +61,7 @@ public class RoleResourceTest
 
   @Test
   public void testGetTemplateForNewRole() throws Exception {
-    Response response = restRequest().path(RoleResource.NEW_PATH).get();
+    HttpResponse response = restRequest().path(RoleResource.NEW_PATH).get();
     assertResponseStatus(200, response);
     RoleDTO role = fromJson(response, RoleDTO.class);
     assertThat(role, notNullValue());
@@ -77,7 +77,7 @@ public class RoleResourceTest
     String categoryDisplayName = "TestDisplayName";
     roleDTO.permissionCategories.add(createPermissionCategoryDTO(categoryDisplayName));
 
-    Response response = restRequest().body(roleDTO).post();
+    HttpResponse response = restRequest().body(roleDTO).post();
     assertResponseStatus(200, response);
     RoleDTO newRoleDTO = fromJson(response, RoleDTO.class);
     assertThat(newRoleDTO.id, is(notNullValue()));
@@ -97,7 +97,7 @@ public class RoleResourceTest
     String categoryDisplayName = "TestDisplayName";
     roleDTO.permissionCategories.add(createPermissionCategoryDTO(categoryDisplayName));
 
-    Response response = restRequest().body(roleDTO).put();
+    HttpResponse response = restRequest().body(roleDTO).put();
     assertResponseStatus(200, response);
     RoleDTO updatedRoleDTO = fromJson(response, RoleDTO.class);
     assertThat(updatedRoleDTO.id, is(roleDTO.id));
@@ -109,7 +109,7 @@ public class RoleResourceTest
   @Test
   public void testDeleteRole() throws Exception {
     Role role = tempEntity.newRole(false);
-    Response response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).delete();
+    HttpResponse response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).delete();
     assertResponseStatus(204, response);
     assertThat(new RoleDAO().getById(role.getId()), is(nullValue()));
   }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -14,7 +15,6 @@ import com.sonatype.insight.brain.policy.PolicyMonitoringResource.ApplicablePoli
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -48,7 +48,7 @@ public class PolicyMonitoringResourceTest
   private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
     // Create
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
-    Response response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
     assertResponseStatus(200, response);
     policyMonitoring = fromJson(response, PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
@@ -84,7 +84,7 @@ public class PolicyMonitoringResourceTest
   @Test
   public void testDelete_NotSet_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
-    Response response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).delete();
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
   }
@@ -93,7 +93,7 @@ public class PolicyMonitoringResourceTest
   public void testDelete_NotSet_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).delete();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).delete();
     assertResponseStatus(404, response);
     assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
   }
@@ -105,7 +105,7 @@ public class PolicyMonitoringResourceTest
         "testGetApplicablePolicyMonitoringAppId", organization.getId());
 
     //no Policy Monitoring set
-    Response response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
+    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
     ApplicablePolicyMonitors applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());

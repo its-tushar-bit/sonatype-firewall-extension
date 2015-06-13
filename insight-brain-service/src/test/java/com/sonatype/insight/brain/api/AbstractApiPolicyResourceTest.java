@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v1.dto.ApiPolicyListDTO;
 import com.sonatype.insight.brain.api.v1.service.PolicyAssertUtils;
 import com.sonatype.insight.brain.model.Application;
@@ -15,7 +16,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public abstract class AbstractApiPolicyResourceTest
 
   @Test
   public void testGetPolicies() throws Exception {
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     ApiPolicyListDTO apiPolicyListDTO = JsonHelpers.fromJson(response.getResponseBody(), ApiPolicyListDTO.class);
 

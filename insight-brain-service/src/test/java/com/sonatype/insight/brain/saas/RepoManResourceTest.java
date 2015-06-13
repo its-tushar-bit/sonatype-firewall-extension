@@ -9,10 +9,10 @@ import java.util.EnumSet;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -37,7 +37,7 @@ public class RepoManResourceTest
     scanReceipt.setTimeToReport(30L);
     mockScanReceipt(scanReceipt);
 
-    final Response response = scanRequest(applicationPublicId).put();
+    final HttpResponse response = scanRequest(applicationPublicId).put();
 
     assertResponseStatus(200, response);
 
@@ -54,7 +54,7 @@ public class RepoManResourceTest
   @Test
   public void testUploadScan_Unlicensed() throws Exception {
     uninstallLicense();
-    Response response = scanRequest("unlicensedappid").put();
+    HttpResponse response = scanRequest("unlicensedappid").put();
     assertResponseStatus(402, response);
   }
 
@@ -63,7 +63,7 @@ public class RepoManResourceTest
     // note these enforcement point should not apply to this request
     setEnforcementPoints(CLMEnforcementPoint.Build, CLMEnforcementPoint.Develop);
 
-    Response response = scanRequest("unlicensedappid").put();
+    HttpResponse response = scanRequest("unlicensedappid").put();
     assertResponseStatus(402, response);
   }
 
@@ -71,7 +71,7 @@ public class RepoManResourceTest
   public void testUploadScan_EnforcementPointLicensed() throws Exception {
     for (CLMEnforcementPoint ep : EnumSet.of(CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release)) {
       setEnforcementPoints(ep);
-      Response response = scanRequest("unknownappid").put();
+      HttpResponse response = scanRequest("unknownappid").put();
       assertResponseStatus(404, response);
     }
   }

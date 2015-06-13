@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.policy;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class LicensedStagesResourceAuthzTest
@@ -21,13 +21,13 @@ public class LicensedStagesResourceAuthzTest
 
   @Test
   public void testGet_UnauthenticatedAnonymousAllowed() throws Exception {
-    Response response = restRequest().anon().get();
+    HttpResponse response = restRequest().anon().get();
     assertResponseStatus(200, response);
   }
 
   @Test
   public void testGet_UnauthenticatedUserNotAllowed() throws Exception {
-    Response response = restRequest().auth("unknownUser", "unknownPassword").get();
+    HttpResponse response = restRequest().auth("unknownUser", "unknownPassword").get();
     assertResponseStatus(401, response);
   }
 }

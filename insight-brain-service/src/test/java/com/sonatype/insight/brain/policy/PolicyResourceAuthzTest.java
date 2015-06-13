@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -17,7 +18,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -113,7 +113,7 @@ public class PolicyResourceAuthzTest
     HttpRequest request = restRequest().path("import/ie").parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
     request.part("file", "filename", export);
 
-    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
+    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is("Insufficient permissions"));
 

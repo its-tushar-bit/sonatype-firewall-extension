@@ -846,6 +846,7 @@
                 <include>**/TemporaryEntity*</include>
                 <include>**/Url*</include>
                 <include>**/HttpRequest*</include>
+                <include>**/HttpResponse*</include>
               </includes>
             </configuration>
           </execution>

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -13,7 +14,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -77,7 +77,7 @@ public abstract class AbstractResourceAuthzTest
     return super.restRequest().anon();
   }
 
-  private void assertStatus(Response response, Integer status) {
+  private void assertStatus(HttpResponse response, Integer status) {
     if (status == null) {
       assertThat(response.getStatusCode(), is(allOf(greaterThanOrEqualTo(200), lessThan(400))));
     }
@@ -86,12 +86,12 @@ public abstract class AbstractResourceAuthzTest
     }
   }
 
-  protected Response testAuthzGet(HttpRequest request) throws Exception {
+  protected HttpResponse testAuthzGet(HttpRequest request) throws Exception {
     return testAuthzGet(request, null);
   }
 
-  protected Response testAuthzGet(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
-    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
+  protected HttpResponse testAuthzGet(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
+    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
@@ -100,8 +100,8 @@ public abstract class AbstractResourceAuthzTest
   }
 
   // Sometimes, simply being able to log in, is all the authorization you need...
-  protected Response testAuthcGet(HttpRequest request) throws Exception {
-    Response response = request.anon().get();
+  protected HttpResponse testAuthcGet(HttpRequest request) throws Exception {
+    HttpResponse response = request.anon().get();
     assertStatus(response, 401);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
@@ -109,12 +109,12 @@ public abstract class AbstractResourceAuthzTest
     return response;
   }
 
-  protected Response testAuthzPut(HttpRequest request) throws Exception {
+  protected HttpResponse testAuthzPut(HttpRequest request) throws Exception {
     return testAuthzPut(request, null);
   }
 
-  protected Response testAuthzPut(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
-    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).put();
+  protected HttpResponse testAuthzPut(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
+    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).put();
     assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).put();
@@ -122,12 +122,12 @@ public abstract class AbstractResourceAuthzTest
     return response;
   }
 
-  protected Response testAuthzPost(HttpRequest request) throws Exception {
+  protected HttpResponse testAuthzPost(HttpRequest request) throws Exception {
     return testAuthzPost(request, null);
   }
 
-  protected Response testAuthzPost(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
-    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
+  protected HttpResponse testAuthzPost(HttpRequest request, Integer expectedSuccessStatus) throws Exception {
+    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
     assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
@@ -136,8 +136,8 @@ public abstract class AbstractResourceAuthzTest
   }
 
   // Sometimes, simply being able to log in, is all the authorization you need...
-  protected Response testAuthcPost(HttpRequest request) throws Exception {
-    Response response = request.anon().post();
+  protected HttpResponse testAuthcPost(HttpRequest request) throws Exception {
+    HttpResponse response = request.anon().post();
     assertStatus(response, 401);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
@@ -145,8 +145,8 @@ public abstract class AbstractResourceAuthzTest
     return response;
   }
 
-  protected Response testAuthzDelete(HttpRequest request) throws Exception {
-    Response response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).delete();
+  protected HttpResponse testAuthzDelete(HttpRequest request) throws Exception {
+    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).delete();
     assertStatus(response, 403);
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).delete();

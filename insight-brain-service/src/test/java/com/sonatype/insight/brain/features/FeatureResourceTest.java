@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.features;
 import java.util.Arrays;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public class FeatureResourceTest
   @Test
   public void testFeatures_Licensed() throws Exception {
     // Get all features
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = fromJson(response, String[].class);
     Assert.assertNotNull(features);
@@ -42,7 +42,7 @@ public class FeatureResourceTest
   public void testFeatures_Unlicensed() throws Exception {
     // Get all features
     uninstallLicense();
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = fromJson(response, String[].class);
     Assert.assertThat(features, is(notNullValue()));

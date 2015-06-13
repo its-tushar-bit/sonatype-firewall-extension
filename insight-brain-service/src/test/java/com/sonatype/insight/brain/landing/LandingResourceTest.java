@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.startsWith;
@@ -18,7 +18,7 @@ public class LandingResourceTest
 {
   @Test
   public void testHome() throws Exception {
-    Response response = restRequest().anon().get();
+    HttpResponse response = restRequest().anon().get();
     assertResponseStatus(303, response);
     assertThat(response.getHeader("Location"), startsWith(restRequest().getUrl()));
   }

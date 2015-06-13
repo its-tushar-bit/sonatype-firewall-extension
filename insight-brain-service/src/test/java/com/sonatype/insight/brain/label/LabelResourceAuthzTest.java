@@ -6,12 +6,12 @@
 package com.sonatype.insight.brain.label;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class LabelResourceAuthzTest
@@ -64,7 +64,7 @@ public class LabelResourceAuthzTest
 
     HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(
         new Label(null, "testing"));
-    Response response = testAuthzPost(request);
+    HttpResponse response = testAuthzPost(request);
     new LabelDAO().delete(fromJson(response, Label.class));
 
     grantWritePermission(org.getId());

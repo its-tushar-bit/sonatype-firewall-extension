@@ -8,12 +8,12 @@ package com.sonatype.insight.brain.integration;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +48,7 @@ public class PolicyEvaluationSummaryResourceTest
     Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    Response response = summaryRequest(application.getId(), stage.getStageTypeId()).get();
+    HttpResponse response = summaryRequest(application.getId(), stage.getStageTypeId()).get();
     assertResponseStatus(200, response);
 
     PolicyEvaluationSummary policyEvaluationSummary = fromJson(response, PolicyEvaluationSummary.class);
@@ -64,7 +64,7 @@ public class PolicyEvaluationSummaryResourceTest
 
   @Test
   public void testGetPolicyEvaluationSummary_badStage() throws Exception {
-    Response response = summaryRequest(application.getId(), invalidStageId).get();
+    HttpResponse response = summaryRequest(application.getId(), invalidStageId).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid parameter stageTypeId=" + invalidStageId + "."));
   }

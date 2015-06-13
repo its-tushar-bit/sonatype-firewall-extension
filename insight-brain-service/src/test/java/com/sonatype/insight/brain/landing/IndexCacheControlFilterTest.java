@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.landing;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -21,7 +21,7 @@ public class IndexCacheControlFilterTest
 
   @Test
   public void testCacheBustingForIndexPage() throws Exception {
-    Response response = restRequest().followRedirects().anon().get();
+    HttpResponse response = restRequest().followRedirects().anon().get();
     assertResponseStatus(200, response);
     assertThat(response.getHeader(HttpHeaders.CACHE_CONTROL), is("no-cache, no-store, max-age=0, must-revalidate"));
   }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -14,7 +15,6 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class LicenseOverrideResourceAuthzTest
@@ -32,7 +32,7 @@ public class LicenseOverrideResourceAuthzTest
       LicenseOverrideStatus.CONFIRMED, (String)null, "test");
 
     HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(override);
-    Response response = testAuthzPost(request);
+    HttpResponse response = testAuthzPost(request);
     override = fromJson(response, LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
 

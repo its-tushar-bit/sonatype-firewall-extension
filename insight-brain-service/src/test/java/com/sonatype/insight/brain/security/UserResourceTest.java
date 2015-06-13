@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,8 +26,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionResource;
 
-import com.ning.http.client.Cookie;
-import com.ning.http.client.Response;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ public class UserResourceTest
         .parameter(ownerType, ownerId, query);
   }
 
-  private List<User> fromResponse(Response response) {
+  private List<User> fromResponse(HttpResponse response) {
     User[] users = fromJson(response, User[].class);
     if (users == null) {
       return null;
@@ -65,7 +65,7 @@ public class UserResourceTest
   @Test
   public void testCRUD() throws Exception {
     // Get all
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     List<User> users = fromResponse(response);
     assertThat(users, notNullValue());
@@ -166,17 +166,17 @@ public class UserResourceTest
   public void testDelete_ImmediatelyInvalidateSessionsOfDeletedUser() throws Exception {
     // create some user
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
-    Response response = restRequest().body(user).post();
+    HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
-    Cookie adminCookie = extractSessionCookie(response);
+    HttpCookie adminCookie = extractSessionCookie(response);
 
     // log the user in
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
-    Cookie userCookie = extractSessionCookie(response);
+    HttpCookie userCookie = extractSessionCookie(response);
 
     // delete the user
     response = restRequest().path("{userId}").parameter(user.getId()).delete();
@@ -197,7 +197,7 @@ public class UserResourceTest
   public void testDelete_NoNPEWhenUserDeleted() throws Exception {
     // create some user
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
-    Response response = restRequest().body(user).post();
+    HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -219,7 +219,7 @@ public class UserResourceTest
     // log the second user in to create another session then log them out
     response = sessionRequest().auth(user2.getUsername(), "test-password-two").post();
     assertResponseStatus(204, response);
-    Cookie userCookie = extractSessionCookie(response);
+    HttpCookie userCookie = extractSessionCookie(response);
     response = sessionRequest().path(UserSessionResource.LOGOUT_PATH).cookie(userCookie).delete();
     assertResponseStatus(204, response);
 
@@ -240,7 +240,7 @@ public class UserResourceTest
   public void testDelete_Self() throws Exception {
     // create some user
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
-    Response response = restRequest().body(user).post();
+    HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -251,7 +251,7 @@ public class UserResourceTest
     // log the user in
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
-    Cookie userCookie = extractSessionCookie(response);
+    HttpCookie userCookie = extractSessionCookie(response);
 
     // try to delete the user using the same user's session/cookie
     response = restRequest().path("{userId}").parameter(user.getId()).cookie(userCookie).anon().delete();
@@ -264,7 +264,7 @@ public class UserResourceTest
     // Add user so we can change his password
     User user = new User("testChangePassword", "testChangePasswordPassword", "testChangePasswordFirstName",
         "testChangePasswordLastName", "testChangePassword@sonatype.com");
-    Response response = restRequest().body(user).post();
+    HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
     user = fromJson(response, User.class);
     tempEntity.register(user);
@@ -294,7 +294,7 @@ public class UserResourceTest
     User user = tempEntity.newUser("testResetPassword");
     user.setPassword("testResetPasswordPassword");
 
-    Response response = restRequest().path(UserResource.RESET_PASSWORD_PATH).parameter(user.getId()).put();
+    HttpResponse response = restRequest().path(UserResource.RESET_PASSWORD_PATH).parameter(user.getId()).put();
     assertResponseStatus(200, response);
 
     ChangePasswordDTO dto = fromJson(response, ChangePasswordDTO.class);
@@ -304,14 +304,14 @@ public class UserResourceTest
 
   @Test
   public void testFindMembersForGlobalRoles() throws Exception {
-    Response response = findRequest("global", "global", User.ADMIN_USERNAME + "*").get();
+    HttpResponse response = findRequest("global", "global", User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles() throws Exception {
     Organization org = tempEntity.newOrganization();
-    Response response = findRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
+    HttpResponse response = findRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
@@ -322,7 +322,7 @@ public class UserResourceTest
     assertThat(actual.getEmail(), is(email));
   }
 
-  private void assertMember(Response response, String error, MemberType type, String name, String displayName,
+  private void assertMember(HttpResponse response, String error, MemberType type, String name, String displayName,
       String email, String realm) throws IOException
   {
     assertResponseStatus(200, response);

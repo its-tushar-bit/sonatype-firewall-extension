@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -30,8 +32,6 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import com.ning.http.client.Cookie;
-import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
@@ -196,24 +196,19 @@ public abstract class AbstractBrainServiceTest
     }
   }
 
-  protected static void assertResponseStatus(final int expectedStatus, final Response response) throws IOException {
+  protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) throws IOException {
     final int actualStatus = response.getStatusCode();
     assertEquals(
-        "URI:" + response.getUri() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
+        "URI:" + response.getUrl() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
             + response.getResponseBody(), expectedStatus, actualStatus);
   }
 
-  protected Cookie getSessionCookie(final Response response) {
-    for (final Cookie cookie : response.getCookies()) {
-      if (CLMShiroModule.SESSION_COOKIE_NAME.equals(cookie.getName())) {
-        return cookie;
-      }
-    }
-    return null;
+  protected HttpCookie getSessionCookie(final HttpResponse response) {
+    return response.getCookie(CLMShiroModule.SESSION_COOKIE_NAME);
   }
 
-  protected Cookie extractSessionCookie(final Response response) {
-    Cookie cookie = getSessionCookie(response);
+  protected HttpCookie extractSessionCookie(final HttpResponse response) {
+    HttpCookie cookie = getSessionCookie(response);
     if (cookie == null) {
       fail("Missing session cookie");
     }
@@ -229,7 +224,7 @@ public abstract class AbstractBrainServiceTest
     }
   }
 
-  protected <T> T fromJson(Response response, Class<T> type) {
+  protected <T> T fromJson(HttpResponse response, Class<T> type) {
     try {
       return objectMapper.readValue(response.getResponseBody(), type);
     }
@@ -263,7 +258,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected String installLicense() throws Exception {
-    Response response = installLicense(false);
+    HttpResponse response = installLicense(false);
     assertResponseStatus(200, response);
 
     Assert.assertTrue(licenseManager.isValid());
@@ -271,18 +266,18 @@ public abstract class AbstractBrainServiceTest
     return response.getResponseBody();
   }
 
-  protected Response installLicense(boolean forceSuccess) throws Exception {
+  protected HttpResponse installLicense(boolean forceSuccess) throws Exception {
     return uploadLicense(forceSuccess, null, null);
   }
 
-  protected Response uploadLicense(boolean forceSuccess, String username, String password) throws Exception {
+  protected HttpResponse uploadLicense(boolean forceSuccess, String username, String password) throws Exception {
     HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH)
         .query("forceSuccess", Boolean.toString(forceSuccess));
     request.part("file", "sonatype.lic", getClass().getResource("/productlicense/license.lic"));
     if (username != null) {
       request.auth(username, password);
     }
-    Response response = request.post();
+    HttpResponse response = request.post();
     productlicenseWasUninstalled = false;
     return response;
   }

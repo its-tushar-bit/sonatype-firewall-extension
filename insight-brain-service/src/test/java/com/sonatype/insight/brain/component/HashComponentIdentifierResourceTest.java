@@ -12,11 +12,11 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,7 +60,7 @@ public class HashComponentIdentifierResourceTest
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
 
     // create
-    Response response = restRequest().body(hashComponentIdentifier).post();
+    HttpResponse response = restRequest().body(hashComponentIdentifier).post();
     assertResponseStatus(200, response);
     HashComponentIdentifierDTO serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
     assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);

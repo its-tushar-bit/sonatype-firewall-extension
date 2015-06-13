@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -43,7 +44,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 
-import com.ning.http.client.Response;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -343,7 +343,7 @@ public class PolicyMonitorTest
   private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage)
       throws Exception
   {
-    Response response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}")
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}")
         .parameter(applicationPublicId, scanId).body(stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
@@ -352,14 +352,14 @@ public class PolicyMonitorTest
   }
 
   private Policy addPolicy(String ownerType, String ownerId, Policy policy) throws Exception {
-    Response response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .post();
     assertResponseStatus(200, response);
     return fromJson(response, Policy.class);
   }
 
   private Policy updatePolicy(String ownerType, String ownerId, Policy policy) throws Exception {
-    Response response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .put();
     assertResponseStatus(200, response);
     return fromJson(response, Policy.class);

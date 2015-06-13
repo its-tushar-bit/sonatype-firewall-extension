@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -54,7 +54,7 @@ public class OrganizationResourceAuthzTest
     HttpRequest request = restRequest().path(OrganizationResource.ICON_PATH_SYNC).part("organizationId", org.getId())
         .part("hasRobotSource", "false");
     request.auth(unauthorized.getUsername(), unauthorized.getPassword());
-    Response response = request.post();
+    HttpResponse response = request.post();
     assertResponseStatus(200, response);
     assertThat(response.getResponseBody(), is("Insufficient permissions"));
 

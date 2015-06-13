@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
@@ -19,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 
 abstract class AbstractLicenseThreatGroupResourceTest
@@ -36,7 +36,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setOwnerId(ownerId1);
     group.setName("AAA My group");
     group.setThreatLevel(4);
-    Response response = restRequest(ownerPublicId1).body(group).post();
+    HttpResponse response = restRequest(ownerPublicId1).body(group).post();
     assertResponseStatus(200, response);
     group = fromJson(response, LicenseThreatGroup.class);
 
@@ -71,7 +71,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     policy.addConstraint(constraint);
     new PolicyDAO().insert(policy);
 
-    Response response = restRequest(ownerPublicId).path(ltg.getId()).delete();
+    HttpResponse response = restRequest(ownerPublicId).path(ltg.getId()).delete();
     assertResponseStatus(400, response);
 
     String error = "Cannot delete the license threat group because it is used in a condition for the 'policyName' policy";
@@ -87,7 +87,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     HttpRequest request = restRequest(ownerPublicId);
 
     // Get all groups
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
     LicenseThreatGroup[] groups = fromJson(response, LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
@@ -145,7 +145,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
   }
 
   protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(String ownerId) throws Exception {
-    Response response = restRequest(ownerId).path("applicable").get();
+    HttpResponse response = restRequest(ownerId).path("applicable").get();
     assertResponseStatus(200, response);
     return fromJson(response, ApplicableLicenseThreatGroups.class);
   }

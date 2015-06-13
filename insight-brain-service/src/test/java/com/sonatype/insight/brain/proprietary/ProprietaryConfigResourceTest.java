@@ -12,9 +12,9 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.After;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class ProprietaryConfigResourceTest
 
   @Test
   public void testGet_InitialConfig() throws Exception {
-    Response response = restRequest().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     ProprietaryConfig config = fromJson(response, ProprietaryConfig.class);
     assertNotNull(config);
@@ -52,7 +52,7 @@ public class ProprietaryConfigResourceTest
     ProprietaryConfig config = new ProprietaryConfig();
     config.setPackages(packages);
     config.setRegexes(regexes);
-    Response response = restRequest().path("update").body(config).put();
+    HttpResponse response = restRequest().path("update").body(config).put();
     assertResponseStatus(204, response);
 
     response = restRequest().get();
@@ -83,7 +83,7 @@ public class ProprietaryConfigResourceTest
       final String expectedMessage) throws Exception {
     ProprietaryConfig config = new ProprietaryConfig();
     config.setRegexes(regexes);
-    Response response = restRequest().path("update").body(config).put();
+    HttpResponse response = restRequest().path("update").body(config).put();
     assertResponseStatus(400, response);
     assertEquals(expectedMessage, response.getResponseBody());
   }

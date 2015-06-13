@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class ConditionTypeResourceTest
 {
   @Test
   public void testGetConditionTypes() throws Exception {
-    final Response response = restRequest().path(ConditionTypeResource.SERVICE_PATH).get();
+    final HttpResponse response = restRequest().path(ConditionTypeResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] conditionTypes = fromJson(response, Object[].class);
     Assert.assertNotNull(conditionTypes);

@@ -12,13 +12,13 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v1.SearchTestHelper.ComponentInfo;
 import com.sonatype.insight.brain.api.v1.dto.ApiSearchResultDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiSearchResultsDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -83,21 +83,21 @@ public class ApiSearchResourceTest
 
   @Test
   public void testSearchComponent_MissingStageId() throws Exception {
-    Response response = addHash(searchRequest(""), "12345678901234567890").get();
+    HttpResponse response = addHash(searchRequest(""), "12345678901234567890").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Stage has not been specified."));
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
-    Response response = addHash(searchRequest("invalid"), "12345678901234567890").get();
+    HttpResponse response = addHash(searchRequest("invalid"), "12345678901234567890").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid stage: invalid."));
   }
 
   @Test
   public void testSearchComponent_MissingHashAndCoordinates() throws Exception {
-    Response response = searchRequest(Stage.ID_BUILD).get();
+    HttpResponse response = searchRequest(Stage.ID_BUILD).get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(),
         is("Neither hash nor coordinates of component to search for have been specified."));
@@ -105,14 +105,14 @@ public class ApiSearchResourceTest
 
   @Test
   public void testSearchComponent_InvalidHash() throws Exception {
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "invalid-hash").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "invalid-hash").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid hash: invalid-hash."));
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bed").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bed").get();
     assertResponseStatus(400, response);
     assertThat(response.getResponseBody(), is("Invalid hash: 1249e25aebb15358bed."));
   }
@@ -122,7 +122,7 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_RELEASE, appToComponentMap.get("search-app-2"));
 
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
@@ -137,7 +137,7 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
@@ -154,7 +154,7 @@ public class ApiSearchResourceTest
   public void testSearchComponent_ByHash_FullHashString() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd00000000000000000000").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd00000000000000000000").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
@@ -169,7 +169,7 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    Response response = addCoords(searchRequest(Stage.ID_BUILD), "tomcat", "*", "*").get();
+    HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), "tomcat", "*", "*").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
@@ -202,7 +202,7 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    Response response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), "tomcat", "*", "*")
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), "tomcat", "*", "*")
         .get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
@@ -221,7 +221,7 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    Response response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), "*", "tomcat-util",
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), "*", "tomcat-util",
         "*").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
@@ -232,7 +232,7 @@ public class ApiSearchResourceTest
 
   @Test
   public void testSearchComponent_EchoCriteria() throws Exception {
-    Response response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), "gid", "aid", "1")
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), "gid", "aid", "1")
         .get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
@@ -251,7 +251,7 @@ public class ApiSearchResourceTest
   public void testSearchComponent_NoHitsAmongAppComponents() throws Exception {
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
 
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdf").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdf").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
@@ -263,7 +263,7 @@ public class ApiSearchResourceTest
   public void testSearchComponent_AppWithoutAnyReports() throws Exception {
     tempEntity.newApplicationWithParent("search-app-1");
 
-    Response response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd").get();
+    HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));

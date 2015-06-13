@@ -11,9 +11,9 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.After;
 import org.junit.Test;
 
@@ -46,13 +46,13 @@ public class ProprietaryConfigResourceAuthzTest
 
   @Test
   public void testGet_UnauthenticatedAnonymousAllowed() throws Exception {
-    Response response = restRequest().anon().get();
+    HttpResponse response = restRequest().anon().get();
     assertResponseStatus(200, response);
   }
 
   @Test
   public void testGet_UnauthenticatedUserNotAllowed() throws Exception {
-    Response response = restRequest().auth("unknownUser", "unknownPassword").get();
+    HttpResponse response = restRequest().auth("unknownUser", "unknownPassword").get();
     assertResponseStatus(401, response);
   }
 }

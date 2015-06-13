@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class ProductLicenseResourceAuthzTest
@@ -17,7 +17,7 @@ public class ProductLicenseResourceAuthzTest
   public void testInstallLicense() throws Exception {
     grantConfigureSystemPermission();
 
-    Response response = uploadLicense(false, unauthorized.getUsername(), unauthorized.getPassword());
+    HttpResponse response = uploadLicense(false, unauthorized.getUsername(), unauthorized.getPassword());
     assertResponseStatus(403, response);
 
     response = uploadLicense(false, authorized.getUsername(), authorized.getPassword());

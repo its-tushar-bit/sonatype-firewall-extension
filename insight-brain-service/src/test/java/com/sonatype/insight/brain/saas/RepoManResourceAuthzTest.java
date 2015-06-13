@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.saas;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class RepoManResourceAuthzTest
@@ -23,13 +23,13 @@ public class RepoManResourceAuthzTest
 
   @Test
   public void testUploadScan_UnauthorizedAnonymousAllowed() throws Exception {
-    Response response = scanRequest().anon().put();
+    HttpResponse response = scanRequest().anon().put();
     assertResponseStatus(200, response);
   }
 
   @Test
   public void testUploadScan_Unauthorized() throws Exception {
-    Response response = scanRequest().auth("unknownUser", "unknownPassword").put();
+    HttpResponse response = scanRequest().auth("unknownUser", "unknownPassword").put();
     assertResponseStatus(401, response);
   }
 

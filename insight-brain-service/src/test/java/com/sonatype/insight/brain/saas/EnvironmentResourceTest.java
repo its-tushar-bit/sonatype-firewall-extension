@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.saas;
 
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class EnvironmentResourceTest
@@ -18,7 +18,7 @@ public class EnvironmentResourceTest
   public void testSubmitClientEnvironment() throws Exception {
     String queryParams = "p=eclipse&version=2.0.1.qualifier";
     setSaasResponseForURI("session/environment?" + queryParams, "", 200);
-    final Response response = restRequest().path(EnvironmentResource.RESOURCE_PATH).query(queryParams).get();
+    final HttpResponse response = restRequest().path(EnvironmentResource.RESOURCE_PATH).query(queryParams).get();
     assertResponseStatus(200, response);
   }
 

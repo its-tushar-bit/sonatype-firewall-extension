@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
@@ -56,7 +57,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ning.http.client.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
@@ -134,7 +134,7 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(Stage.ID_BUILD);
 
     // The report file is not available yet
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -201,7 +201,7 @@ public class PolicyEvaluateResourceTest
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     // The report file is not available yet
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -265,7 +265,7 @@ public class PolicyEvaluateResourceTest
     String version = "5.5.23";
 
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
@@ -349,7 +349,7 @@ public class PolicyEvaluateResourceTest
         is(empty()));
 
     // evaluate policy
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -445,7 +445,7 @@ public class PolicyEvaluateResourceTest
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     // The report file is not available yet
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -523,7 +523,7 @@ public class PolicyEvaluateResourceTest
     Stage stage = new Stage(Stage.ID_BUILD);
 
     // The report file is not available yet
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(404, response);
 
     // Simulate that the report is available
@@ -579,7 +579,7 @@ public class PolicyEvaluateResourceTest
       " My comment");
 
     // Evaluate policy
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
@@ -660,7 +660,7 @@ public class PolicyEvaluateResourceTest
     String serverUrl = "http://localhost/";
     String cdnUrl = "http://cdn.localhost/";
 
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
@@ -688,7 +688,7 @@ public class PolicyEvaluateResourceTest
 
     mockReport(scanId, "/PolicyEvaluateResourceTest/empty_report.zip");
 
-    Response response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(400, response);
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
@@ -720,7 +720,7 @@ public class PolicyEvaluateResourceTest
     notifications.clear();
 
     // Evaluate policy
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = fromJson(response,
         PolicyEvaluationResult.class);
@@ -757,7 +757,7 @@ public class PolicyEvaluateResourceTest
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
     setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
-    Response response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(404, response);
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(app.getId(), Stage.ID_BUILD);
@@ -791,7 +791,7 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Evaluate policy
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
@@ -839,7 +839,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy for the Build stage
     String scanBuildId = "scanBuildId";
     mockReport(scanBuildId, "/PolicyEvaluateResourceTest/report.zip");
-    Response response = evalRequest(applicationPublicId, scanBuildId, new Stage(Stage.ID_BUILD)).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanBuildId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     List<PolicyViolation> policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
@@ -888,7 +888,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage1.getStageTypeId()), is(empty()));
-    Response response = evalRequest(applicationPublicId, scanId1, stage1).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId1, stage1).post();
     assertResponseStatus(200, response);
     List<ApplicationComponent> appComponents1 = appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(),
         stage1.getStageTypeId());
@@ -939,7 +939,7 @@ public class PolicyEvaluateResourceTest
     String scanId1 = "scanId1";
     // Simulate that the report is available
     mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
-    Response response = evalRequest(applicationPublicId, scanId1, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId1, stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEvaluationResult = fromJson(response,
         PolicyEvaluationResult.class);
@@ -974,7 +974,7 @@ public class PolicyEvaluateResourceTest
 
   @Test
   public void testInvalidStage() throws Exception {
-    Response response = evalRequest(applicationPublicId, "scanid", new Stage("foobar")).post();
+    HttpResponse response = evalRequest(applicationPublicId, "scanid", new Stage("foobar")).post();
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
     assertEquals("Invalid stage id=foobar", response.getResponseBody());
   }
@@ -1003,7 +1003,7 @@ public class PolicyEvaluateResourceTest
 
     // Evaluate the policy
     Stage stage = new Stage(Stage.ID_BUILD);
-    Response response = evalRequest(applicationPublicId, scanId, stage).post();
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
 
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);

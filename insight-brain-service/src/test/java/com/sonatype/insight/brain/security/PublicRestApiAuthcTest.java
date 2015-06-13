@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.HttpCookie;
+
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
-import com.ning.http.client.Cookie;
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,10 +27,10 @@ public class PublicRestApiAuthcTest
 {
   @Test
   public void testSessionCookieInsufficientForAuthentication() throws Exception {
-    Response response = restRequest().path(UserSessionResource.SERVICE_PATH).post();
+    HttpResponse response = restRequest().path(UserSessionResource.SERVICE_PATH).post();
     assertResponseStatus(204, response);
 
-    Cookie sessionCookie = getSessionCookie(response);
+    HttpCookie sessionCookie = getSessionCookie(response);
     assertThat(sessionCookie, is(notNullValue()));
 
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
@@ -49,7 +50,7 @@ public class PublicRestApiAuthcTest
   @Test
   public void testExplicitCredentialsSufficientForAuthentication() throws Exception {
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(404, response);
 
     response = request.put();
@@ -65,7 +66,7 @@ public class PublicRestApiAuthcTest
   @Test
   public void testRequestsDoNotCreateSession() throws Exception {
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
-    Response response = request.get();
+    HttpResponse response = request.get();
     assertResponseStatus(404, response);
     assertThat(getSessionCookie(response), is(nullValue()));
 

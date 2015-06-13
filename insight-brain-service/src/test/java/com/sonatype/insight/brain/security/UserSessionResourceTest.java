@@ -5,13 +5,14 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.HttpCookie;
+
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.ning.http.client.Cookie;
-import com.ning.http.client.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,19 +26,19 @@ public class UserSessionResourceTest
     return super.restRequest().path(UserSessionResource.SERVICE_PATH);
   }
 
-  private Response logout(Cookie cookie) throws Exception {
+  private HttpResponse logout(HttpCookie cookie) throws Exception {
     return restRequest().path(UserSessionResource.LOGOUT_PATH).cookie(cookie).anon().delete();
   }
 
-  private Response login() throws Exception {
+  private HttpResponse login() throws Exception {
     return login(null, null);
   }
 
-  private Response login(String username, String password) throws Exception {
+  private HttpResponse login(String username, String password) throws Exception {
     return restRequest().auth(username, password).post();
   }
 
-  private Response status(Cookie cookie) throws Exception {
+  private HttpResponse status(HttpCookie cookie) throws Exception {
     return restRequest().cookie(cookie).anon().get();
   }
 
@@ -48,7 +49,7 @@ public class UserSessionResourceTest
     getTestProductLicenseManager().uninstallLicense();
 
     // now run the test with bad username
-    Response response = login("admin2", "admin");
+    HttpResponse response = login("admin2", "admin");
     assertResponseStatus(401, response);
     assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
     assertEquals("", response.getResponseBody());
@@ -70,15 +71,15 @@ public class UserSessionResourceTest
     assertResponseStatus(204, response);
 
     // validate cookie is present
-    Cookie loggedInSessionCookie = extractSessionCookie(response);
+    HttpCookie loggedInSessionCookie = extractSessionCookie(response);
     Assert.assertFalse(loggedInSessionCookie.getValue().equals("deleteMe"));
 
     // logout is successful
-    response = logout(response.getCookies().get(0));
+    response = logout(getSessionCookie(response));
     assertResponseStatus(204, response);
 
     // logout removes session id
-    Cookie logoutSessionCookie = extractSessionCookie(response);
+    HttpCookie logoutSessionCookie = extractSessionCookie(response);
     Assert.assertTrue(logoutSessionCookie.getValue().equals("deleteMe"));
   }
 
@@ -89,13 +90,13 @@ public class UserSessionResourceTest
     getTestProductLicenseManager().uninstallLicense();
 
     // logged out by default, so 401 expected
-    Response response = status(null);
+    HttpResponse response = status(null);
     assertResponseStatus(401, response);
 
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
-    Cookie jsessionIdCookie = extractSessionCookie(response);
+    HttpCookie jsessionIdCookie = extractSessionCookie(response);
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
@@ -114,7 +115,7 @@ public class UserSessionResourceTest
   @Test
   public void testLogoutNoAuth() throws Exception {
     // no cookie, no auth
-    Response response = logout(null);
+    HttpResponse response = logout(null);
     assertResponseStatus(204, response);
   }
 }

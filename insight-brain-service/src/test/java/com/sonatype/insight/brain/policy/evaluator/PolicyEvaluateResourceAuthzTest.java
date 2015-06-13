@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
-import com.ning.http.client.Response;
 import org.junit.Test;
 
 public class PolicyEvaluateResourceAuthzTest
@@ -47,7 +47,7 @@ public class PolicyEvaluateResourceAuthzTest
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
-    Response response = evalRequest(app.getPublicId(), scanId, stage).post();
+    HttpResponse response = evalRequest(app.getPublicId(), scanId, stage).post();
     assertResponseStatus(200, response);
   }
 
@@ -57,7 +57,7 @@ public class PolicyEvaluateResourceAuthzTest
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
-    Response response = evalRequest(app.getPublicId(), scanId, stage).auth("unknownUser", "unknownPassword").post();
+    HttpResponse response = evalRequest(app.getPublicId(), scanId, stage).auth("unknownUser", "unknownPassword").post();
     assertResponseStatus(401, response);
   }
 }

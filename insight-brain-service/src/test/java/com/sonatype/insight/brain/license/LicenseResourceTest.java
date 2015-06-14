@@ -29,7 +29,7 @@ public class LicenseResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
-    License[] licenses = fromJson(response, License[].class);
+    License[] licenses = response.getBody(License[].class);
     Assert.assertNotNull(licenses);
     Assert.assertNotEquals(licenses.length, 0);
     assertTrue(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
@@ -42,7 +42,7 @@ public class LicenseResourceTest
     HttpResponse response = restRequest().query("filterSynthetic", true).get();
     assertResponseStatus(200, response);
 
-    License[] licenses = fromJson(response, License[].class);
+    License[] licenses = response.getBody(License[].class);
     Assert.assertNotNull(licenses);
     assertFalse(isPresent(License.NO_SOURCE_LICENSE_ID, licenses));
     assertFalse(isPresent(License.NOT_DECLARED_ID, licenses));

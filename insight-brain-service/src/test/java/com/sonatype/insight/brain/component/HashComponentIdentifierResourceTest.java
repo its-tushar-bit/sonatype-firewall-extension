@@ -62,7 +62,7 @@ public class HashComponentIdentifierResourceTest
     // create
     HttpResponse response = restRequest().body(hashComponentIdentifier).post();
     assertResponseStatus(200, response);
-    HashComponentIdentifierDTO serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
+    HashComponentIdentifierDTO serverResponse = response.getBody(HashComponentIdentifierDTO.class);
     assertHashComponentIdentifierDTO(hash, COMPONENT_IDENTIFIER, comment, createTime, serverResponse);
 
     // read - no GET use case for this resource - use DAO to verify
@@ -76,7 +76,7 @@ public class HashComponentIdentifierResourceTest
     mockComponentSummary(hashComponentIdentifier.getComponentIdentifier(), ComponentSummary.create(false));
     response = restRequest().body(hashComponentIdentifier).put();
     assertResponseStatus(200, response);
-    serverResponse = fromJson(response, HashComponentIdentifierDTO.class);
+    serverResponse = response.getBody(HashComponentIdentifierDTO.class);
 
     assertHashComponentIdentifierDTO(hash, updatedComponentIdentifier, comment, createTime, serverResponse);
 

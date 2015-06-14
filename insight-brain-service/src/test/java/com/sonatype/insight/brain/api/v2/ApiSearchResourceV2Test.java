@@ -90,21 +90,21 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_MissingStageId() throws Exception {
     HttpResponse response = addHash(searchRequest(""), "12345678901234567890").get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Stage has not been specified."));
+    assertThat(response.getBodyText(), is("Stage has not been specified."));
   }
 
   @Test
   public void testSearchComponent_InvalidStageId() throws Exception {
     HttpResponse response = addHash(searchRequest("invalid"), "12345678901234567890").get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid stage: invalid."));
+    assertThat(response.getBodyText(), is("Invalid stage: invalid."));
   }
 
   @Test
   public void testSearchComponent_MissingHashAndCoordinates() throws Exception {
     HttpResponse response = searchRequest(Stage.ID_BUILD).get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(),
+    assertThat(response.getBodyText(),
         is("Neither hash nor coordinates of component to search for have been specified."));
   }
 
@@ -112,14 +112,14 @@ public class ApiSearchResourceV2Test
   public void testSearchComponent_InvalidHash() throws Exception {
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "invalid-hash").get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid hash: invalid-hash."));
+    assertThat(response.getBodyText(), is("Invalid hash: invalid-hash."));
   }
 
   @Test
   public void testSearchComponent_TooShortHash() throws Exception {
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bed").get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid hash: 1249e25aebb15358bed."));
+    assertThat(response.getBodyText(), is("Invalid hash: 1249e25aebb15358bed."));
   }
 
   @Test
@@ -129,7 +129,7 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -144,7 +144,7 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd").get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -160,7 +160,7 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd00000000000000000000").get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -174,7 +174,7 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "69b58197caabec2e0d06").get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
@@ -189,7 +189,7 @@ public class ApiSearchResourceV2Test
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(9));
@@ -224,7 +224,7 @@ public class ApiSearchResourceV2Test
         "sources", "jar");
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -243,7 +243,7 @@ public class ApiSearchResourceV2Test
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("simplejson", "*");
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -263,7 +263,7 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), componentIdentifier)
         .get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(2));
@@ -283,7 +283,7 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), componentIdentifier)
         .get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -295,7 +295,7 @@ public class ApiSearchResourceV2Test
     HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), componentIdentifier)
         .get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -312,7 +312,7 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdf").get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));
@@ -324,7 +324,7 @@ public class ApiSearchResourceV2Test
 
     HttpResponse response = addHash(searchRequest(Stage.ID_BUILD), "1249E25aEbb15358bEdd").get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTOV2 results = fromJson(response, ApiSearchResultsDTOV2.class);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(notNullValue()));
     assertThat(results.results, hasSize(0));

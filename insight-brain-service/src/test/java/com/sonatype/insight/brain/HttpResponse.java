@@ -10,11 +10,14 @@ import java.io.InputStream;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.Cookie;
 import com.ning.http.client.Response;
 
 public class HttpResponse
 {
+  private static final ObjectMapper JSON = new ObjectMapper();
+
   private final Response response;
 
   HttpResponse(Response response) {
@@ -59,19 +62,39 @@ public class HttpResponse
     return null;
   }
 
-  public String getResponseBody() throws IOException {
-    return response.getResponseBody();
+  public <T> T getBody(Class<T> type) {
+    try {
+      return JSON.readValue(response.getResponseBodyAsBytes(), type);
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
-  public InputStream getResponseBodyAsStream() throws IOException {
-    return response.getResponseBodyAsStream();
+  public String getBodyText() {
+    try {
+      return response.getResponseBody();
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
-  public byte[] getResponseBodyAsBytes() throws IOException {
-    return response.getResponseBodyAsBytes();
+  public InputStream getBodyStream() {
+    try {
+      return response.getResponseBodyAsStream();
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
-  public String getResponseBodyExcerpt(int maxLength, String charset) throws IOException {
-    return response.getResponseBodyExcerpt(maxLength, charset);
+  public byte[] getBodyBytes() {
+    try {
+      return response.getResponseBodyAsBytes();
+    }
+    catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }

@@ -40,7 +40,7 @@ public class ApplicationSummaryResourceTest
     HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).get();
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
     assertApplicationSummaryList(applicationListDTO, application);
   }
 
@@ -52,7 +52,7 @@ public class ApplicationSummaryResourceTest
     HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).get();
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
     assertApplicationSummaryList(applicationListDTO, application);
   }
 
@@ -64,7 +64,7 @@ public class ApplicationSummaryResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
     assertApplicationSummaryList(applicationListDTO, application);
   }
 
@@ -76,7 +76,7 @@ public class ApplicationSummaryResourceTest
     HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).anon().get();
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
     assertApplicationSummaryList(applicationListDTO, application);
   }
 
@@ -87,7 +87,7 @@ public class ApplicationSummaryResourceTest
     HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).anon().get();
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
     assertThat(applicationListDTO.getApplicationSummaries().size(), is(0));
   }
 
@@ -98,7 +98,7 @@ public class ApplicationSummaryResourceTest
     HttpResponse response = restRequest().anon().get();
     assertResponseStatus(200, response);
 
-    ApplicationSummaryList applicationListDTO = fromJson(response, ApplicationSummaryList.class);
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
     assertApplicationSummaryList(applicationListDTO, application);
   }
 

@@ -53,13 +53,13 @@ public class ApiSearchResourceAuthzTest
         .query("hash", "1249e25aebb15358bedd");
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);
-    ApiSearchResultsDTO results = fromJson(response, ApiSearchResultsDTO.class);
+    ApiSearchResultsDTO results = response.getBody(ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, is(empty()));
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(200, response);
-    results = fromJson(response, ApiSearchResultsDTO.class);
+    results = response.getBody(ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
     assertThat(results.results, hasSize(1));
     assertThat(results.results.get(0).applicationId, is(app.getPublicId()));

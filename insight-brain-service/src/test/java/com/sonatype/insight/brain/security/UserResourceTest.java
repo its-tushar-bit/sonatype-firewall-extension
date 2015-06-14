@@ -55,7 +55,7 @@ public class UserResourceTest
   }
 
   private List<User> fromResponse(HttpResponse response) {
-    User[] users = fromJson(response, User[].class);
+    User[] users = response.getBody(User[].class);
     if (users == null) {
       return null;
     }
@@ -77,7 +77,7 @@ public class UserResourceTest
         "testCRUD@sonatype.com");
     response = restRequest().body(user).post();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     tempEntity.register(user);
     assertThat(user.getId(), notNullValue());
     assertUser("testCRUD", "testCRUDFirstName", "testCRUDLastName", "testCRUD@sonatype.com", user);
@@ -104,7 +104,7 @@ public class UserResourceTest
     user.setFirstName("testCRUDFirstNameUpdated");
     response = restRequest().body(user).put();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
     user = dao.getByIdNotNull(user.getId());
@@ -128,7 +128,7 @@ public class UserResourceTest
     user.setPassword("testCRUDPasswordUpdated");
     response = restRequest().body(user).put();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     assertUser("testCRUD", "testCRUDFirstNameUpdated", "testCRUDLastName", "testCRUD@sonatype.com", user);
     assertThat(String.valueOf(user.getPassword()), is(UserService.FAKE_PASSWORD));
     user = dao.getByIdNotNull(user.getId());
@@ -168,7 +168,7 @@ public class UserResourceTest
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
     HttpCookie adminCookie = extractSessionCookie(response);
@@ -189,7 +189,7 @@ public class UserResourceTest
     // the admin's session should not have been invalidated
     response = sessionRequest().cookie(adminCookie).get();
     assertResponseStatus(200, response);
-    AuthenticationStatus status = fromJson(response, AuthenticationStatus.class);
+    AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
     assertThat(status.isAuthenticated(), is(true));
   }
 
@@ -199,7 +199,7 @@ public class UserResourceTest
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
 
@@ -208,7 +208,7 @@ public class UserResourceTest
         "test2@sonatype.com");
     response = restRequest().body(user2).post();
     assertResponseStatus(200, response);
-    user2 = fromJson(response, User.class);
+    user2 = response.getBody(User.class);
     tempEntity.register(user2);
     assertThat(user2.getId(), is(notNullValue()));
 
@@ -242,7 +242,7 @@ public class UserResourceTest
     User user = new User("test-user", "test-password", "testFirstName", "testLastName", "test@sonatype.com");
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     tempEntity.register(user);
     MembershipMapping membershipMapping = new MembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         Role.SYSTEM_ADMIN_ROLE_ID, user.getUsername(), MemberType.USER);
@@ -256,7 +256,7 @@ public class UserResourceTest
     // try to delete the user using the same user's session/cookie
     response = restRequest().path("{userId}").parameter(user.getId()).cookie(userCookie).anon().delete();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Cannot delete the currently logged in user."));
+    assertThat(response.getBodyText(), is("Cannot delete the currently logged in user."));
   }
 
   @Test
@@ -266,7 +266,7 @@ public class UserResourceTest
         "testChangePasswordLastName", "testChangePassword@sonatype.com");
     HttpResponse response = restRequest().body(user).post();
     assertResponseStatus(200, response);
-    user = fromJson(response, User.class);
+    user = response.getBody(User.class);
     tempEntity.register(user);
 
     HttpRequest request = restRequest().path(UserResource.MY_PASSWORD_PATH).auth(user.getUsername(),
@@ -279,7 +279,7 @@ public class UserResourceTest
 
     response = request.body(dto).put();
     assertResponseStatus(400, response);
-    assertEquals("Current password is wrong.", response.getResponseBody());
+    assertEquals("Current password is wrong.", response.getBodyText());
 
     // Can change password with correct input
     dto.oldPassword = "testChangePasswordPassword";
@@ -297,7 +297,7 @@ public class UserResourceTest
     HttpResponse response = restRequest().path(UserResource.RESET_PASSWORD_PATH).parameter(user.getId()).put();
     assertResponseStatus(200, response);
 
-    ChangePasswordDTO dto = fromJson(response, ChangePasswordDTO.class);
+    ChangePasswordDTO dto = response.getBody(ChangePasswordDTO.class);
     assertThat(dto.newPassword.length(), is(12));
     assertThat(StringUtils.isAlphanumeric(dto.newPassword), is(true));
   }
@@ -327,7 +327,7 @@ public class UserResourceTest
   {
     assertResponseStatus(200, response);
 
-    FindMembersDTO dto = fromJson(response, FindMembersDTO.class);
+    FindMembersDTO dto = response.getBody(FindMembersDTO.class);
 
     if (!StringUtils.isBlank(error)) {
       assertThat(dto.getError(), is(error));

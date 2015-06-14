@@ -53,7 +53,7 @@ public class DashboardResourceTest
     HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).get();
 
     assertResponseStatus(200, response);
-    NewestRiskDTO[] dtos = fromJson(response, NewestRiskDTO[].class);
+    NewestRiskDTO[] dtos = response.getBody(NewestRiskDTO[].class);
     assertThat(dtos, arrayWithSize(1));
   }
 
@@ -68,7 +68,7 @@ public class DashboardResourceTest
     HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH).get();
 
     assertResponseStatus(200, response);
-    PolicySummaryDTO dto = fromJson(response, PolicySummaryDTO.class);
+    PolicySummaryDTO dto = response.getBody(PolicySummaryDTO.class);
     assertThat(dto, notNullValue());
     assertThat(dto.weeklyDeltaNew, hasSize(12));
   }
@@ -94,7 +94,7 @@ public class DashboardResourceTest
     // Register to make sure the the filter is deleted after the test
     tempEntity.register(dashboardFilter);
 
-    DashboardFilterDTO returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
+    DashboardFilterDTO returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
@@ -105,14 +105,14 @@ public class DashboardResourceTest
     response = request.body(dashboardFilterDTO).put();
 
     assertResponseStatus(200, response);
-    returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
+    returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
     // Now test get
     response = request.get();
     assertResponseStatus(200, response);
-    returnedDashboardFilterDTO = fromJson(response, DashboardFilterDTO.class);
+    returnedDashboardFilterDTO = response.getBody(DashboardFilterDTO.class);
     assertThat(returnedDashboardFilterDTO, notNullValue());
     assertDashboardFilterDTO(returnedDashboardFilterDTO, dashboardFilterDTO);
 
@@ -159,7 +159,7 @@ public class DashboardResourceTest
   public void testGetFilterSummary() throws Exception {
     HttpResponse response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH).get();
     assertResponseStatus(200, response);
-    FilterSummaryDTO dto = fromJson(response, FilterSummaryDTO.class);
+    FilterSummaryDTO dto = response.getBody(FilterSummaryDTO.class);
     assertThat(dto, is(notNullValue()));
   }
 
@@ -167,7 +167,7 @@ public class DashboardResourceTest
   public void testGetComponentSummary() throws Exception {
     HttpResponse response = restRequest().path(DashboardResource.COMPONENTS_SUMMARY_PATH).get();
     assertResponseStatus(200, response);
-    ComponentSummaryDTO dto = fromJson(response, ComponentSummaryDTO.class);
+    ComponentSummaryDTO dto = response.getBody(ComponentSummaryDTO.class);
     assertThat(dto, is(notNullValue()));
   }
 

@@ -22,7 +22,7 @@ public class LicensedStagesResourceTest
   public void testGetLicenseStages() throws Exception {
     HttpResponse response = restRequest().path(LicensedStagesResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
-    Stage[] stages = fromJson(response, Stage[].class);
+    Stage[] stages = response.getBody(Stage[].class);
     assertStages(stages);
   }
 

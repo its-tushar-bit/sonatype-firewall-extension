@@ -82,7 +82,7 @@ public class MembershipMappingResourceTest
     // Initial state
     HttpResponse response = get(IdUtils.TYPE_APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
 
@@ -109,7 +109,7 @@ public class MembershipMappingResourceTest
     // Read for created data
     response = get(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId());
     assertResponseStatus(200, response);
-    applicable = fromJson(response, ApplicableMembershipMappings.class);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -139,7 +139,7 @@ public class MembershipMappingResourceTest
     // Read for updated data
     response = get(IdUtils.TYPE_APPLICATION, app.getPublicId());
     assertResponseStatus(200, response);
-    applicable = fromJson(response, ApplicableMembershipMappings.class);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
     assertThat(applicable.membersByRole, hasSize(appRoles.size()));
@@ -209,7 +209,7 @@ public class MembershipMappingResourceTest
     // Read for created data
     response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -253,7 +253,7 @@ public class MembershipMappingResourceTest
     // Read for created data
     response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
 
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
@@ -284,7 +284,7 @@ public class MembershipMappingResourceTest
     // Read for updated data
     response = get(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
     assertResponseStatus(200, response);
-    applicable = fromJson(response, ApplicableMembershipMappings.class);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
     assertThat(applicable.membersByRole, hasSize(roles.size()));
@@ -310,7 +310,7 @@ public class MembershipMappingResourceTest
 
   private List<Role> testInitialGlobalState(HttpResponse response) throws IOException {
     assertResponseStatus(200, response);
-    ApplicableMembershipMappings applicable = fromJson(response, ApplicableMembershipMappings.class);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));
     assertThat(applicable.membersByRole, is(notNullValue()));
 
@@ -344,7 +344,7 @@ public class MembershipMappingResourceTest
 
     HttpResponse response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, systemAdminRole.getId());
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("There must be at least one user in the System Administrator role."));
+    assertThat(response.getBodyText(), is("There must be at least one user in the System Administrator role."));
   }
 
   private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,

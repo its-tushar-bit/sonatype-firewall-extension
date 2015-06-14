@@ -33,7 +33,7 @@ public class LicenseOverrideResourceAuthzTest
 
     HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(override);
     HttpResponse response = testAuthzPost(request);
-    override = fromJson(response, LicenseOverride.class);
+    override = response.getBody(LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
 
     grantWritePermission(org.getId());
@@ -42,7 +42,7 @@ public class LicenseOverrideResourceAuthzTest
 
     request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()).body(override);
     response = testAuthzPost(request);
-    override = fromJson(response, LicenseOverride.class);
+    override = response.getBody(LicenseOverride.class);
     new LicenseOverrideDAO().delete(override);
   }
 

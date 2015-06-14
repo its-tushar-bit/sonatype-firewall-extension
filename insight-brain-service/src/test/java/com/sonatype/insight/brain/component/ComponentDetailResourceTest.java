@@ -36,8 +36,8 @@ public class ComponentDetailResourceTest
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     HttpResponse response = restRequest().path("applications").query("hash", hash).get();
     assertResponseStatus(200, response);
-    ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = fromJson(response,
-        ApplicationComponentDetailsDTO[].class);
+    ApplicationComponentDetailsDTO[] applicationComponentDetailsDTOs = response
+        .getBody(ApplicationComponentDetailsDTO[].class);
     assertThat(applicationComponentDetailsDTOs, notNullValue());
     assertThat(applicationComponentDetailsDTOs, arrayWithSize(1));
   }
@@ -50,13 +50,13 @@ public class ComponentDetailResourceTest
 
     HttpResponse response = request.get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Unknown component with hash ababababab."));
+    assertThat(response.getBodyText(), is("Unknown component with hash ababababab."));
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
     response = request.get();
     assertResponseStatus(200, response);
-    ComponentDisplayName name = fromJson(response, ComponentDisplayName.class);
+    ComponentDisplayName name = response.getBody(ComponentDisplayName.class);
     DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
   }
 }

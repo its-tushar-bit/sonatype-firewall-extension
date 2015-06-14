@@ -64,13 +64,13 @@ public class PolicyWaiverResourceTest
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
     HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyWaiver).post();
     assertResponseStatus(200, response);
-    policyWaiver = fromJson(response, PolicyWaiver.class);
+    policyWaiver = response.getBody(PolicyWaiver.class);
     assertPolicyWaiver(policyId, ownerId, "My comment", policyWaiver);
 
     // Get
     response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
     assertResponseStatus(200, response);
-    AppliedWaivers policyWaivers = fromJson(response, AppliedWaivers.class);
+    AppliedWaivers policyWaivers = response.getBody(AppliedWaivers.class);
     assertNotNull(policyWaivers);
     assertNotNull(policyWaivers.waiversByOwner);
     assertEquals(1, policyWaivers.waiversByOwner.size());
@@ -84,7 +84,7 @@ public class PolicyWaiverResourceTest
     // Get
     response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
     assertResponseStatus(200, response);
-    policyWaivers = fromJson(response, AppliedWaivers.class);
+    policyWaivers = response.getBody(AppliedWaivers.class);
     assertNotNull(policyWaivers);
     assertNotNull(policyWaivers.waiversByOwner);
     assertEquals(0, policyWaivers.waiversByOwner.size());
@@ -121,7 +121,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
-    AppliedWaivers waivers = fromJson(response, AppliedWaivers.class);
+    AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
     assertNotNull(waivers);
     assertNotNull(waivers.waiversByOwner);
     assertEquals(1, waivers.waiversByOwner.size());
@@ -136,7 +136,7 @@ public class PolicyWaiverResourceTest
 
     response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
-    waivers = fromJson(response, AppliedWaivers.class);
+    waivers = response.getBody(AppliedWaivers.class);
     assertNotNull(waivers);
     assertNotNull(waivers.waiversByOwner);
     assertEquals(2, waivers.waiversByOwner.size());
@@ -154,7 +154,7 @@ public class PolicyWaiverResourceTest
 
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
-    waivers = fromJson(response, AppliedWaivers.class);
+    waivers = response.getBody(AppliedWaivers.class);
     assertNotNull(waivers);
     assertNotNull(waivers.waiversByOwner);
     assertEquals(1, waivers.waiversByOwner.size());
@@ -169,12 +169,12 @@ public class PolicyWaiverResourceTest
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
     HttpResponse response = restRequest(ownerType, ownerPublicId1).body(policyWaiver).post();
     assertResponseStatus(200, response);
-    policyWaiver = fromJson(response, PolicyWaiver.class);
+    policyWaiver = response.getBody(PolicyWaiver.class);
 
     response = restRequest(ownerType, ownerPublicId2).path(policyWaiver.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID " + policyWaiver.getId() + " for " + ownerType + " ID "
-        + ownerPublicId2, response.getResponseBody());
+        + ownerPublicId2, response.getBodyText());
     // Verify that the policy waiver was not deleted
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(ownerId1);
@@ -189,7 +189,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
+    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
 
   @Test
@@ -198,7 +198,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getResponseBody());
+    Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
 
   private void assertPolicyWaiver(String policyId, String ownerId, String comment, PolicyWaiver actual) {
@@ -217,7 +217,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
-    ApplicableContext result = fromJson(response, ApplicableContext.class);
+    ApplicableContext result = response.getBody(ApplicableContext.class);
     assertApplicableContext(appPublicId, application.getName(), "application", result);
   }
 
@@ -232,7 +232,7 @@ public class PolicyWaiverResourceTest
 
     HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
-    ApplicableContext result = fromJson(response, ApplicableContext.class);
+    ApplicableContext result = response.getBody(ApplicableContext.class);
     assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
     assertNotNull(result.getChildren());
     assertEquals(1, result.getChildren().size());
@@ -257,7 +257,7 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .post();
     assertResponseStatus(200, response);
-    policy = fromJson(response, Policy.class);
+    policy = response.getBody(Policy.class);
     return policy;
   }
 }

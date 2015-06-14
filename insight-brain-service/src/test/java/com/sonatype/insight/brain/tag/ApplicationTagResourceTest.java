@@ -30,7 +30,7 @@ public class ApplicationTagResourceTest
     //Get
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    Tag[] tags = fromJson(response, Tag[].class);
+    Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
@@ -42,7 +42,7 @@ public class ApplicationTagResourceTest
     //Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -54,7 +54,7 @@ public class ApplicationTagResourceTest
     //Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
   }

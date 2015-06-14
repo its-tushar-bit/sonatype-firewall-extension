@@ -56,11 +56,11 @@ public class OrganizationResourceAuthzTest
     request.auth(unauthorized.getUsername(), unauthorized.getPassword());
     HttpResponse response = request.post();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is("Insufficient permissions"));
+    assertThat(response.getBodyText(), is("Insufficient permissions"));
 
     request.auth(authorized.getUsername(), authorized.getPassword());
     response = request.post();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is(""));
+    assertThat(response.getBodyText(), is(""));
   }
 }

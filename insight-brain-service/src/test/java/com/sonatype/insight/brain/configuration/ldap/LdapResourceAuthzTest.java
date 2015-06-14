@@ -89,7 +89,7 @@ public class LdapResourceAuthzTest
     grantConfigureSystemPermission();
 
     HttpResponse response = testAuthzPost(restRequest().body(new LdapServer("testAddLdapServer")));
-    new LdapServerDAO().delete(fromJson(response, LdapServer.class));
+    new LdapServerDAO().delete(response.getBody(LdapServer.class));
   }
 
   @Test

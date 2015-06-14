@@ -50,26 +50,26 @@ public class PolicyMonitoringResourceTest
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
     HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
     assertResponseStatus(200, response);
-    policyMonitoring = fromJson(response, PolicyMonitoring.class);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
 
     // Get
     response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(200, response);
-    policyMonitoring = fromJson(response, PolicyMonitoring.class);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
 
     // Update
     policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_BUILD);
     response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
     assertResponseStatus(200, response);
-    policyMonitoring = fromJson(response, PolicyMonitoring.class);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
 
     // Get
     response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(200, response);
-    policyMonitoring = fromJson(response, PolicyMonitoring.class);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
     assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
 
     // Delete
@@ -86,7 +86,7 @@ public class PolicyMonitoringResourceTest
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
     HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
+    assertThat(response.getBodyText(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
   }
 
   @Test
@@ -95,7 +95,7 @@ public class PolicyMonitoringResourceTest
     Application application = tempEntity.newApplicationWithParent(appPublicId);
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
+    assertThat(response.getBodyText(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
   }
 
   @Test
@@ -106,11 +106,11 @@ public class PolicyMonitoringResourceTest
 
     //no Policy Monitoring set
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
-    ApplicablePolicyMonitors applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
+    ApplicablePolicyMonitors applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
-    applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
+    applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, nullValue());
 
@@ -119,7 +119,7 @@ public class PolicyMonitoringResourceTest
     restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).body(policyMonitoring).put();
 
     response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
-    applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
+    applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
@@ -129,7 +129,7 @@ public class PolicyMonitoringResourceTest
     policyMonitoring.setStageTypeId(Stage.ID_OPERATE);
     restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).body(policyMonitoring).put();
     response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
-    applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
+    applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
     assertThat(applicablePolicyMonitors.appPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.appPolicyMonitor.getStageTypeId(), is(Stage.ID_OPERATE));
@@ -138,7 +138,7 @@ public class PolicyMonitoringResourceTest
 
     //sanity check the Org information
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
-    applicablePolicyMonitors = fromJson(response, ApplicablePolicyMonitors.class);
+    applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
     assertThat(applicablePolicyMonitors.appPolicyMonitor, nullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor, notNullValue());
     assertThat(applicablePolicyMonitors.orgPolicyMonitor.getStageTypeId(), is(Stage.ID_RELEASE));

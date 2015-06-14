@@ -130,7 +130,7 @@ public class ReportResourceTest
     HttpResponse response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
-    String bomJsonData = response.getResponseBody();
+    String bomJsonData = response.getBodyText();
     for (JsonNode bomJsonNode : JsonUtils.parse(bomJsonData).get("aaData")) {
       String bomJsonHash = bomJsonNode.get("hash").asText();
       JsonNode identificationSource = bomJsonNode.get("identificationSource");
@@ -158,7 +158,7 @@ public class ReportResourceTest
 
     response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
-    String licensesJsonData = response.getResponseBody();
+    String licensesJsonData = response.getBodyText();
     assertNotNull(licensesJsonData);
     assertFalse(StringUtils.isEmpty(licensesJsonData));
     assertFalse(licensesJsonData.contains(hash));
@@ -166,7 +166,7 @@ public class ReportResourceTest
 
     response = request.subpath("security.json").get();
     assertResponseStatus(200, response);
-    String securityJsonData = response.getResponseBody();
+    String securityJsonData = response.getBodyText();
     assertNotNull(securityJsonData);
     assertFalse(StringUtils.isEmpty(securityJsonData));
     assertFalse(securityJsonData.contains(hash));
@@ -174,7 +174,7 @@ public class ReportResourceTest
 
     response = request.subpath("partialmatched.json").get();
     assertResponseStatus(200, response);
-    String partialmatched = response.getResponseBody();
+    String partialmatched = response.getBodyText();
     assertNotNull(partialmatched);
     assertFalse(StringUtils.isEmpty(partialmatched));
     assertFalse(partialmatched.contains(hash));
@@ -220,7 +220,7 @@ public class ReportResourceTest
     HttpRequest request = restRequest(applicationPublicId, scanId).path("browseReport");
     HttpResponse response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
-    String licensesJsonData = response.getResponseBody();
+    String licensesJsonData = response.getBodyText();
     assertNotNull(licensesJsonData);
     assertFalse(StringUtils.isEmpty(licensesJsonData));
     assertTrue(licensesJsonData.contains(hash));
@@ -262,7 +262,7 @@ public class ReportResourceTest
     response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
     boolean foundClaimedComponent = false;
-    String bomJsonData = response.getResponseBody();
+    String bomJsonData = response.getBodyText();
     for (JsonNode bomJsonNode : JsonUtils.parse(bomJsonData).get("aaData")) {
       String bomJsonHash = bomJsonNode.get("hash").asText();
       JsonNode identificationSource = bomJsonNode.get("identificationSource");
@@ -288,7 +288,7 @@ public class ReportResourceTest
 
     response = request.subpath("licenses.json").get();
     assertResponseStatus(200, response);
-    String licensesJsonData = response.getResponseBody();
+    String licensesJsonData = response.getBodyText();
     assertNotNull(licensesJsonData);
     assertFalse(StringUtils.isEmpty(licensesJsonData));
     assertFalse(licensesJsonData.contains(hash));
@@ -296,7 +296,7 @@ public class ReportResourceTest
 
     response = request.subpath("security.json").get();
     assertResponseStatus(200, response);
-    String securityJsonData = response.getResponseBody();
+    String securityJsonData = response.getBodyText();
     assertNotNull(securityJsonData);
     assertFalse(StringUtils.isEmpty(securityJsonData));
     assertFalse(securityJsonData.contains(hash));
@@ -304,7 +304,7 @@ public class ReportResourceTest
 
     response = request.subpath("partialmatched.json").get();
     assertResponseStatus(200, response);
-    String partialmatched = response.getResponseBody();
+    String partialmatched = response.getBodyText();
     assertNotNull(partialmatched);
     assertFalse(StringUtils.isEmpty(partialmatched));
     assertFalse(partialmatched.contains(hash));
@@ -388,30 +388,30 @@ public class ReportResourceTest
         assertResponseStatus(200, response);
 
         if ("data.json".equals(entry.getName())) {
-          String actual = response.getResponseBody();
+          String actual = response.getBodyText();
           testDataJsonApplyChanges(actual);
         }
         else if ("badges.json".equals(entry.getName())) {
-          assertThat(JsonUtils.parse(response.getResponseBodyAsBytes(), int[].class), equalTo(new int[] { 36, 8, 36 }));
+          assertThat(response.getBody(int[].class), equalTo(new int[] { 36, 8, 36 }));
         }
         else if ("licenses.json".equals(entry.getName())) {
-          String actual = response.getResponseBody();
+          String actual = response.getBodyText();
 
           testLicensesJsonApplyChanges(actual);
           testJsonApplyComponentChanges(actual);
         }
         else if ("licensethreats.json".equals(entry.getName())) {
-          String actual = response.getResponseBody();
+          String actual = response.getBodyText();
 
           testLicenseThreatsJsonApplyChanges(actual);
         }
         else if ("partialmatched.json".equals(entry.getName())) {
-          String actual = response.getResponseBody();
+          String actual = response.getBodyText();
 
           testPartialMatchedJsonApplyChanges(actual);
         }
         else if ("security.json".equals(entry.getName())) {
-          JsonNode actual = JsonUtils.parse(response.getResponseBody());
+          JsonNode actual = JsonUtils.parse(response.getBodyText());
           JsonNode expected = JsonUtils.parse(IOUtil.toString(zipStream));
           for (JsonNode node : expected.get("aaData")) {
             ComponentIdentifierAdapter.injectComponentIdentifier((ObjectNode) node);
@@ -420,21 +420,20 @@ public class ReportResourceTest
           assertThat(actual, is(expected));
         }
         else if ("index.html".equals(entry.getName())) {
-          String actual = response.getResponseBody();
+          String actual = response.getBodyText();
           assertTrue("The app public id was not included in the report",
               actual.contains("applicationId = '" + applicationPublicId + "'"));
         }
         else if ("bom.json".equals(entry.getName())) {
-          String actual = response.getResponseBody();
+          String actual = response.getBodyText();
           testJsonApplyComponentChanges(actual);
         }
         else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-          assertThat(response.getResponseBody(),
+          assertThat(response.getBodyText(),
               equalToIgnoringWhiteSpace(IOUtil.toString(zipStream, "UTF-8")));
         }
         else {
-          assertThat(IOUtil.toByteArray(response.getResponseBodyAsStream()),
-              equalTo(IOUtil.toByteArray(zipStream)));
+          assertThat(response.getBodyBytes(), equalTo(IOUtil.toByteArray(zipStream)));
         }
       }
     }
@@ -475,7 +474,7 @@ public class ReportResourceTest
     HttpResponse response = restRequest(appPublicId, scanId).path("embedReport/index.html").anon().get();
     assertResponseStatus(200, response);
 
-    String content = response.getResponseBody();
+    String content = response.getBodyText();
     assertTrue(content.contains(restRequest()
         .path(UserInterfaceLinksResource.SERVICE_PATH, UserInterfaceLinksResource.REPORT_PATH)
         .parameter(appPublicId, scanId).getUrl()));
@@ -490,7 +489,7 @@ public class ReportResourceTest
     HttpResponse response = restRequest(appPublicId, scanId)
         .path("embedReport", ScanPolicyEvaluator.POLICY_ALERTS_FILENAME).anon().get();
     assertResponseStatus(404, response);
-    assertEquals("Reports have been moved.  Clear cache and reload.", response.getResponseBody());
+    assertEquals("Reports have been moved.  Clear cache and reload.", response.getBodyText());
   }
 
   @Test
@@ -518,7 +517,7 @@ public class ReportResourceTest
 
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType(), equalTo("application/pdf"));
-    assertThat(response.getResponseBodyExcerpt(1024, "US-ASCII"), containsString("%PDF-"));
+    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII"), containsString("%PDF-"));
   }
 
   @Test
@@ -558,7 +557,7 @@ public class ReportResourceTest
 
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType(), equalTo("application/pdf"));
-    assertThat(response.getResponseBodyExcerpt(1024, "US-ASCII"), containsString("%PDF-"));
+    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII"), containsString("%PDF-"));
   }
 
   @Test
@@ -665,7 +664,7 @@ public class ReportResourceTest
     // verify nothing has changed
     response = browseRequest.get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
+    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
 
     // edit the state
     String edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
@@ -675,7 +674,7 @@ public class ReportResourceTest
     // verify the state has changed
     response = browseRequest.get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), containsString("\"state\" : \"accepted\""));
+    assertThat(response.getBodyText(), containsString("\"state\" : \"accepted\""));
 
     // check the audit log reflects this change
     response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}")
@@ -684,7 +683,7 @@ public class ReportResourceTest
 
     String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
-    assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
+    assertThat(response.getBodyText().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
     // edit the state again
     edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\" }";
@@ -694,7 +693,7 @@ public class ReportResourceTest
     // verify the state has changed again
     response = browseRequest.get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), containsString("\"state\" : \"confirmed\""));
+    assertThat(response.getBodyText(), containsString("\"state\" : \"confirmed\""));
 
     // check the audit log reflects this change
     response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}")
@@ -704,7 +703,7 @@ public class ReportResourceTest
     feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
         + "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
-    assertThat(response.getResponseBody().replaceAll("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
+    assertThat(response.getBodyText().replaceAll("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
     // edit the BoM
     final String bomEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
@@ -716,7 +715,7 @@ public class ReportResourceTest
     response = request.subpath("browseReport", "bom.json").get();
     assertResponseStatus(200, response);
     boolean found = false;
-    final String bomJsonString = response.getResponseBody();
+    final String bomJsonString = response.getBodyText();
     final JsonNode bomJsonData = JsonUtils.parse(bomJsonString).get("aaData");
     for (JsonNode bomJsonNode : bomJsonData) {
       if ("commons-pool".equals(bomJsonNode.get("groupId").asText())
@@ -746,7 +745,7 @@ public class ReportResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     int found = 0;
-    String licenseJsonString = response.getResponseBody();
+    String licenseJsonString = response.getBodyText();
     JsonNode licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonData) {
       String groupId = licenseJsonNode.get("groupId").asText();
@@ -765,12 +764,12 @@ public class ReportResourceTest
     response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
         .parameter(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
     assertResponseStatus(200, response);
-    orgLicenseOverride = fromJson(response, LicenseOverride.class);
+    orgLicenseOverride = response.getBody(LicenseOverride.class);
 
     response = request.get();
     assertResponseStatus(200, response);
     found = 0;
-    licenseJsonString = response.getResponseBody();
+    licenseJsonString = response.getBodyText();
     licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonData) {
       String groupId = licenseJsonNode.get("groupId").asText();
@@ -799,12 +798,12 @@ public class ReportResourceTest
     response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
         .parameter(IdUtils.TYPE_APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
     assertResponseStatus(200, response);
-    appLicenseOverride = fromJson(response, LicenseOverride.class);
+    appLicenseOverride = response.getBody(LicenseOverride.class);
 
     response = request.get();
     assertResponseStatus(200, response);
     found = 0;
-    licenseJsonString = response.getResponseBody();
+    licenseJsonString = response.getBodyText();
     licenseJsonData = JsonUtils.parse(licenseJsonString).get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonData) {
       String groupId = licenseJsonNode.get("groupId").asText();
@@ -846,7 +845,7 @@ public class ReportResourceTest
     // verify nothing has changed
     HttpResponse response = browseRequest.get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
+    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
 
     // edit the state
     final String edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
@@ -859,7 +858,7 @@ public class ReportResourceTest
 
     final String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
 
-    assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
+    assertThat(response.getBodyText().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
 
     // force the internal modification count to make it look like we're already up-to-date
     int oldModCount = ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, 888);
@@ -867,7 +866,7 @@ public class ReportResourceTest
     // verify nothing has changed
     response = browseRequest.get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
+    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
 
     // put back the accurate modification count, which should lead to a refresh
     ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, oldModCount);
@@ -875,7 +874,7 @@ public class ReportResourceTest
     // verify the state has changed
     response = browseRequest.get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), containsString("\"state\" : \"accepted\""));
+    assertThat(response.getBodyText(), containsString("\"state\" : \"accepted\""));
   }
 
   @Test
@@ -899,7 +898,7 @@ public class ReportResourceTest
     // verify can still access report
     response = request.subpath("browseReport", "security.json").get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), not(containsString("\"state\" : \"accepted\"")));
+    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
 
     // check the audit log reflects this change
     response = request.subpath("auditLog", "extra.json").get();
@@ -907,7 +906,7 @@ public class ReportResourceTest
 
     final String feed = "{ \"aaData\" : [ { \"policy\" : \"TEST\", \"result\" : \"OK\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"extra.json\" } ] }";
 
-    assertThat(response.getResponseBody().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
+    assertThat(response.getBodyText().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
   }
 
   @Test
@@ -947,7 +946,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
-    try (InputStream actual = response.getResponseBodyAsStream()) {
+    try (InputStream actual = response.getBodyStream()) {
       File temp = File.createTempFile("report", "zip");
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {
@@ -1038,7 +1037,7 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), is("application/zip"));
     assertThat(response.getHeader("Content-Disposition"), containsString("filename="));
-    try (InputStream actual = response.getResponseBodyAsStream()) {
+    try (InputStream actual = response.getBodyStream()) {
       File temp = File.createTempFile("report", "zip");
       FileUtils.copyStreamToFile(new RawInputStreamFacade(actual), temp);
       try (ZipFile zip = new ZipFile(temp)) {

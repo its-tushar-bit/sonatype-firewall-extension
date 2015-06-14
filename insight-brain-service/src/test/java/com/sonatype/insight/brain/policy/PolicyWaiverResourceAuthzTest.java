@@ -37,13 +37,13 @@ public class PolicyWaiverResourceAuthzTest
 
     HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
     HttpResponse response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
-    new PolicyWaiverDAO().delete(fromJson(response, PolicyWaiver.class));
+    new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
 
     grantWritePermission(org.getId());
 
     request.body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
     response = testAuthzPost(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
-    new PolicyWaiverDAO().delete(fromJson(response, PolicyWaiver.class));
+    new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
   }
 
   @Test

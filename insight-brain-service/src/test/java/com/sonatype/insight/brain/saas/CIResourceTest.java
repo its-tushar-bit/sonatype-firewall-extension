@@ -40,7 +40,7 @@ public class CIResourceTest
 
     assertResponseStatus(200, response);
 
-    ScanReceipt receipt = fromJson(response, ScanReceipt.class);
+    ScanReceipt receipt = response.getBody(ScanReceipt.class);
     assertThat(receipt, is(notNullValue()));
     assertThat(receipt.getScanId(), is(scanReceipt.getScanId()));
     assertThat(receipt.getTimeToReport(), is(scanReceipt.getTimeToReport()));

@@ -54,7 +54,7 @@ public class ComponentLabelResourceTest
   public void testGetComponentLabels_AppLevel() throws Exception {
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
-    AppliedLabels componentLabels = fromJson(response, AppliedLabels.class);
+    AppliedLabels componentLabels = response.getBody(AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(0));
@@ -64,7 +64,7 @@ public class ComponentLabelResourceTest
 
     response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
-    componentLabels = fromJson(response, AppliedLabels.class);
+    componentLabels = response.getBody(AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(2));
@@ -88,7 +88,7 @@ public class ComponentLabelResourceTest
   public void testGetComponentLabels_OrgLevel() throws Exception {
     HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).get();
     assertResponseStatus(200, response);
-    AppliedLabels componentLabels = fromJson(response, AppliedLabels.class);
+    AppliedLabels componentLabels = response.getBody(AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(0));
@@ -98,7 +98,7 @@ public class ComponentLabelResourceTest
 
     response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).get();
     assertResponseStatus(200, response);
-    componentLabels = fromJson(response, AppliedLabels.class);
+    componentLabels = response.getBody(AppliedLabels.class);
     Assert.assertThat(componentLabels, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
     Assert.assertThat(componentLabels.labelsByOwner.size(), is(1));
@@ -151,7 +151,7 @@ public class ComponentLabelResourceTest
 
     response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).path(orgLabel.getId()).delete();
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getResponseBody(), is("Cannot find the label with ID " + orgLabel.getId()
+    Assert.assertThat(response.getBodyText(), is("Cannot find the label with ID " + orgLabel.getId()
         + " for application ID test-app on the component " + componentHash + "."));
   }
 
@@ -169,7 +169,7 @@ public class ComponentLabelResourceTest
     response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).path(appLabel.getId())
         .delete();
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getResponseBody(), is("Cannot find the label with ID " + appLabel.getId()
+    Assert.assertThat(response.getBodyText(), is("Cannot find the label with ID " + appLabel.getId()
         + " for organization ID " + app.getOrganizationId() + " on the component " + componentHash + "."));
   }
 }

@@ -139,14 +139,6 @@ public abstract class AbstractBrainServiceTest
     return HttpRequest.to(getCLMServer().getClientConfiguration().getServerAdminUrl());
   }
 
-  private String expandRestUrl(String templateUrl, Object... paramValues) {
-    return UriBuilder.fromPath(templateUrl).build(paramValues).toString();
-  }
-
-  protected String getRestUrl(String templateUrl, Object... paramValues) {
-    return getRestBaseUrl() + expandRestUrl(templateUrl, paramValues);
-  }
-
   protected void setSaasResponseForURI(String uri, Object body, int status) {
     getInsightServer().setResponseForURI(uri, body, status);
   }
@@ -200,7 +192,7 @@ public abstract class AbstractBrainServiceTest
     final int actualStatus = response.getStatusCode();
     assertEquals(
         "URI:" + response.getUrl() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
-            + response.getResponseBody(), expectedStatus, actualStatus);
+            + response.getBodyText(), expectedStatus, actualStatus);
   }
 
   protected HttpCookie getSessionCookie(final HttpResponse response) {
@@ -218,15 +210,6 @@ public abstract class AbstractBrainServiceTest
   protected String toJson(Object object) {
     try {
       return objectMapper.writeValueAsString(object);
-    }
-    catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  protected <T> T fromJson(HttpResponse response, Class<T> type) {
-    try {
-      return objectMapper.readValue(response.getResponseBody(), type);
     }
     catch (IOException e) {
       throw new IllegalStateException(e);
@@ -257,16 +240,14 @@ public abstract class AbstractBrainServiceTest
     installLicense();
   }
 
-  protected String installLicense() throws Exception {
-    HttpResponse response = installLicense(false);
+  protected void installLicense() throws Exception {
+    HttpResponse response = uploadLicense(false);
     assertResponseStatus(200, response);
 
     Assert.assertTrue(licenseManager.isValid());
-
-    return response.getResponseBody();
   }
 
-  protected HttpResponse installLicense(boolean forceSuccess) throws Exception {
+  protected HttpResponse uploadLicense(boolean forceSuccess) throws Exception {
     return uploadLicense(forceSuccess, null, null);
   }
 

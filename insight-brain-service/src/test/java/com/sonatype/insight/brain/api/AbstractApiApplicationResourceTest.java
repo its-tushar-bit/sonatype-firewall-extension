@@ -103,13 +103,13 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the post
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(200, response);
-    ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
+    ApiApplicationDTO applicationResult = response.getBody(ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the get
     response = restRequest().path(applicationResult.id).get();
     assertResponseStatus(200, response);
-    applicationResult = fromJson(response, ApiApplicationDTO.class);
+    applicationResult = response.getBody(ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the update
@@ -121,7 +121,7 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.applicationTags.add(applicationTagBDTO);
     response = restRequest().path(applicationResult.id).body(applicationDTO).put();
     assertResponseStatus(200, response);
-    applicationResult = fromJson(response, ApiApplicationDTO.class);
+    applicationResult = response.getBody(ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
 
     // Test the delete
@@ -139,7 +139,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    ApiApplicationListDTO applicationListDTO = fromJson(response, ApiApplicationListDTO.class);
+    ApiApplicationListDTO applicationListDTO = response.getBody(ApiApplicationListDTO.class);
     assertThat(applicationListDTO, notNullValue());
     assertThat(applicationListDTO.applications, hasSize(numApps + 1));
   }
@@ -158,7 +158,7 @@ public abstract class AbstractApiApplicationResourceTest
     HttpResponse response = restRequest().query("publicId", applications.get(0).getPublicId(),
         applications.get(1).getPublicId()).get();
     assertResponseStatus(200, response);
-    ApiApplicationListDTO applicationListDTO = fromJson(response, ApiApplicationListDTO.class);
+    ApiApplicationListDTO applicationListDTO = response.getBody(ApiApplicationListDTO.class);
     assertThat(applicationListDTO, notNullValue());
     List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
     for (Application application : applications) {
@@ -175,7 +175,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the update
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
-    String errorMessage = response.getResponseBody();
+    String errorMessage = response.getBodyText();
     assertThat(errorMessage,
         is("The applicationId=" + app.getId() + " provided in the url did not match the id=" + applicationDTO.id +
             " provided in the json.")
@@ -191,7 +191,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the update
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(200, response);
-    ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
+    ApiApplicationDTO applicationResult = response.getBody(ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
   }
 
@@ -204,7 +204,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the update
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(200, response);
-    ApiApplicationDTO applicationResult = fromJson(response, ApiApplicationDTO.class);
+    ApiApplicationDTO applicationResult = response.getBody(ApiApplicationDTO.class);
     assertApplication(applicationResult, applicationDTO);
   }
 
@@ -219,7 +219,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the update
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
-    String errorMessage = response.getResponseBody();
+    String errorMessage = response.getBodyText();
     assertThat(errorMessage, is("Cannot change the parent organization of an application."));
   }
 
@@ -233,7 +233,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the update
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
-    String errorMessage = response.getResponseBody();
+    String errorMessage = response.getBodyText();
     assertThat(errorMessage, is("Cannot change public ID of existing application."));
   }
 
@@ -242,14 +242,14 @@ public abstract class AbstractApiApplicationResourceTest
     final String appId = "invalidAppId";
     final HttpResponse response = restRequest().path(appId).delete();
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), equalTo("Could not find an application with ID " + appId + "."));
+    assertThat(response.getBodyText(), equalTo("Could not find an application with ID " + appId + "."));
   }
 
   @Test
   public void testGetNotExistentApplication() throws Exception {
     final HttpResponse response = restRequest().path("invalidId").get();
     assertResponseStatus(404, response);
-    assertThat(response.getResponseBody(), equalTo("Could not find an application with ID invalidId."));
+    assertThat(response.getBodyText(), equalTo("Could not find an application with ID invalidId."));
   }
 
   @Test
@@ -263,7 +263,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     final HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), equalTo(app.getPublicId() + " is already used as an ID."));
+    assertThat(response.getBodyText(), equalTo(app.getPublicId() + " is already used as an ID."));
   }
 
   @Test
@@ -281,7 +281,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the post
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), equalTo("Application must not have an ID set on creation."));
+    assertThat(response.getBodyText(), equalTo("Application must not have an ID set on creation."));
   }
 
   @Test
@@ -299,7 +299,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the post
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(),
+    assertThat(response.getBodyText(),
         equalTo("Application has a contactUserName=" + contactUserName + " that does not exist."));
   }
 
@@ -315,7 +315,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(402, response);
-    assertThat(response.getResponseBody(),
+    assertThat(response.getBodyText(),
         equalTo("You have exceeded the licensed limit of " + appLimit + " applications."));
   }
 
@@ -332,7 +332,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(),
+    assertThat(response.getBodyText(),
         equalTo("Application references an organization (ID=" + orgId + ") that does not exist."));
   }
 
@@ -348,7 +348,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), equalTo("Application must have a parent organization."));
+    assertThat(response.getBodyText(), equalTo("Application must have a parent organization."));
   }
 
   @Test
@@ -367,7 +367,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     final List<Role> appRoles = roleDAO.getApplicationRoles();
 
-    ApiRoleMemberMappingListDTO roleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
     assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
 
@@ -384,7 +384,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Read for created data
     response = request.get();
     assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     final List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
@@ -420,7 +420,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     final List<Role> appRoles = roleDAO.getApplicationRoles();
 
-    ApiRoleMemberMappingListDTO roleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
     assertThat(roleMemberMappings.memberMappings, hasSize(appRoles.size()));
 
@@ -434,7 +434,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Read for created data
     response = request.get();
     assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     List<ApiRoleMemberMappingDTO> returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
@@ -466,7 +466,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Read for updated data
     response = request.get();
     assertResponseStatus(200, response);
-    returnedRoleMemberMappings = fromJson(response, ApiRoleMemberMappingListDTO.class);
+    returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     returnedRoleMemberMappingList = returnedRoleMemberMappings.memberMappings;
     assertThat(returnedRoleMemberMappingList, is(notNullValue()));
@@ -491,7 +491,7 @@ public abstract class AbstractApiApplicationResourceTest
     HttpResponse response = restRequest().path(ApiApplicationResource.ROLE_PATH).get();
     assertResponseStatus(200, response);
 
-    ApiRoleListDTO appRoles = fromJson(response, ApiRoleListDTO.class);
+    ApiRoleListDTO appRoles = response.getBody(ApiRoleListDTO.class);
     assertThat(appRoles, notNullValue());
     assertThat(appRoles.roles, hasSize(4));
 

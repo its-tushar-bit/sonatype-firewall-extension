@@ -124,7 +124,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -158,7 +158,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
@@ -188,14 +188,14 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
     HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
     mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -228,14 +228,14 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 202, "EnhancedMatch_wait.json");
     HttpResponse response = request.body(new ScannedComponent()).post();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertNotNull(ideMatchedComponent.getWaitDelta());
     Assert.assertTrue(ideMatchedComponent.getWaitDelta() > 0);
 
     mockHdsScanResponse(request, 200, "EnhancedMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(componentIdentifier, ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
     Assert.assertEquals("abababababababababab", ideMatchedComponent.getHash());
@@ -266,7 +266,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -283,7 +283,7 @@ public class IdeResourceTest
       null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -316,7 +316,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -333,7 +333,7 @@ public class IdeResourceTest
       null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -366,7 +366,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -382,7 +382,7 @@ public class IdeResourceTest
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json");
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -397,7 +397,7 @@ public class IdeResourceTest
     setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -428,7 +428,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -460,7 +460,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertNull(ideMatchedComponent.getAlerts());
   }
 
@@ -484,7 +484,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -526,7 +526,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_000babababababababab_enhanced.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(1, policyAlerts.size());
@@ -565,7 +565,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -580,7 +580,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -595,7 +595,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     response = request.get();
     assertResponseStatus(200, response);
-    ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -640,7 +640,7 @@ public class IdeResourceTest
     HttpResponse response = request.get();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent(groupId, artifactId, version, ideMatchedComponent);
@@ -689,7 +689,7 @@ public class IdeResourceTest
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    IdeMatchedComponent ideMatchedComponent = fromJson(response, IdeMatchedComponent.class);
+    IdeMatchedComponent ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
     Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar"),
         ideMatchedComponent.getComponentIdentifier());
     assertGavInIdeMatchedComponent("g1", "a1", "v1", ideMatchedComponent);
@@ -708,7 +708,7 @@ public class IdeResourceTest
     setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    String[] versions = fromJson(response, String[].class);
+    String[] versions = response.getBody(String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
   }
 
@@ -719,7 +719,7 @@ public class IdeResourceTest
     setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    String[] versions = fromJson(response, String[].class);
+    String[] versions = response.getBody(String[].class);
     Assert.assertEquals(Arrays.asList("1.1", "2.0"), Arrays.asList(versions));
   }
 
@@ -746,7 +746,7 @@ public class IdeResourceTest
     setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
     HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(200, response);
-    Assert.assertEquals("OK", response.getResponseBody());
+    Assert.assertEquals("OK", response.getBodyText());
   }
 
   @Test

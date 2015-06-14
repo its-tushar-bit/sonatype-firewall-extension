@@ -65,13 +65,13 @@ public class LabelResourceAuthzTest
     HttpRequest request = restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()).body(
         new Label(null, "testing"));
     HttpResponse response = testAuthzPost(request);
-    new LabelDAO().delete(fromJson(response, Label.class));
+    new LabelDAO().delete(response.getBody(Label.class));
 
     grantWritePermission(org.getId());
 
     request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
     response = testAuthzPost(request);
-    new LabelDAO().delete(fromJson(response, Label.class));
+    new LabelDAO().delete(response.getBody(Label.class));
   }
 
   @Test

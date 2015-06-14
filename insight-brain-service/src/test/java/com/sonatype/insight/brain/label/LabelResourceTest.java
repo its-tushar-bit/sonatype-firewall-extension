@@ -58,7 +58,7 @@ public class LabelResourceTest
     // Get all labels
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(0, labels.length);
 
@@ -67,13 +67,13 @@ public class LabelResourceTest
     label.setLabel("MyLabel");
     response = request.body(label).post();
     assertResponseStatus(200, response);
-    label = fromJson(response, Label.class);
+    label = response.getBody(Label.class);
     assertLabel(application.getId(), "MyLabel", Color.white, label);
 
     // Get all labels
     response = request.get();
     assertResponseStatus(200, response);
-    labels = fromJson(response, Label[].class);
+    labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(application.getId(), "MyLabel", Color.white, labels[0]);
@@ -82,13 +82,13 @@ public class LabelResourceTest
     label.setLabel("MyUpdatedLabel");
     response = request.body(label).put();
     assertResponseStatus(200, response);
-    label = fromJson(response, Label.class);
+    label = response.getBody(Label.class);
     assertLabel(application.getId(), "MyUpdatedLabel", Color.white, label);
 
     // Get all labels
     response = request.get();
     assertResponseStatus(200, response);
-    labels = fromJson(response, Label[].class);
+    labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(application.getId(), "MyUpdatedLabel", Color.white, labels[0]);
@@ -100,7 +100,7 @@ public class LabelResourceTest
     // Get all labels
     response = request.get();
     assertResponseStatus(200, response);
-    labels = fromJson(response, Label[].class);
+    labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(0, labels.length);
   }
@@ -129,11 +129,11 @@ public class LabelResourceTest
     response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path(label.getId()).delete();
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy",
-        response.getResponseBody());
+        response.getBodyText());
     // Verify that the label was not deleted
     response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(application.getId(), "MyLabel", Color.blue, labels[0]);
@@ -146,7 +146,7 @@ public class LabelResourceTest
 
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a label with ID YettiId.", response.getResponseBody());
+    Assert.assertEquals("Cannot find a label with ID YettiId.", response.getBodyText());
   }
 
   @Test
@@ -160,11 +160,11 @@ public class LabelResourceTest
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId2).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID " + label.getId() + " for application ID " + appPublicId2,
-        response.getResponseBody());
+        response.getBodyText());
     // Verify that the label was not deleted
     response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId1).get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(application1.getId(), "MyLabel", Color.blue, labels[0]);
@@ -180,7 +180,7 @@ public class LabelResourceTest
     // Get all labels
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(0, labels.length);
 
@@ -189,13 +189,13 @@ public class LabelResourceTest
     label.setLabel("MyLabel");
     response = request.body(label).post();
     assertResponseStatus(200, response);
-    label = fromJson(response, Label.class);
+    label = response.getBody(Label.class);
     assertLabel(organization.getId(), "MyLabel", Color.white, label);
 
     // Get all labels
     response = request.get();
     assertResponseStatus(200, response);
-    labels = fromJson(response, Label[].class);
+    labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(organization.getId(), "MyLabel", Color.white, labels[0]);
@@ -204,13 +204,13 @@ public class LabelResourceTest
     label.setLabel("MyUpdatedLabel");
     response = request.body(label).put();
     assertResponseStatus(200, response);
-    label = fromJson(response, Label.class);
+    label = response.getBody(Label.class);
     assertLabel(organization.getId(), "MyUpdatedLabel", Color.white, label);
 
     // Get all labels
     response = request.get();
     assertResponseStatus(200, response);
-    labels = fromJson(response, Label[].class);
+    labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(organization.getId(), "MyUpdatedLabel", Color.white, labels[0]);
@@ -222,7 +222,7 @@ public class LabelResourceTest
     // Get all labels
     response = request.get();
     assertResponseStatus(200, response);
-    labels = fromJson(response, Label[].class);
+    labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(0, labels.length);
   }
@@ -251,11 +251,11 @@ public class LabelResourceTest
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path(label.getId()).delete();
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy",
-        response.getResponseBody());
+        response.getBodyText());
     // Verify that the label was not deleted
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(organization.getId(), "MyLabel", Color.blue, labels[0]);
@@ -288,12 +288,12 @@ public class LabelResourceTest
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationId).path(label.getId()).delete();
     assertResponseStatus(400, response);
     Assert.assertEquals("Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy"
-        + " in application 'Application Name 1'", response.getResponseBody());
+        + " in application 'Application Name 1'", response.getBodyText());
 
     // Verify that the label was not deleted
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationId).get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(organizationId, "MyLabel", Color.blue, labels[0]);
@@ -306,7 +306,7 @@ public class LabelResourceTest
 
     HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Cannot find a label with ID YettiId.", response.getResponseBody());
+    Assert.assertEquals("Cannot find a label with ID YettiId.", response.getBodyText());
   }
 
   @Test
@@ -322,11 +322,11 @@ public class LabelResourceTest
     assertResponseStatus(404, response);
     Assert.assertEquals(
         "Cannot find a label with ID " + label.getId() + " for organization ID " + organization2.getId(),
-        response.getResponseBody());
+        response.getBodyText());
     // Verify that the label was not deleted
     response = restRequest(IdUtils.TYPE_ORGANIZATION, organization1.getId()).get();
     assertResponseStatus(200, response);
-    Label[] labels = fromJson(response, Label[].class);
+    Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
     assertLabel(organization1.getId(), "MyLabel", Color.blue, labels[0]);
@@ -350,7 +350,7 @@ public class LabelResourceTest
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     assertResponseStatus(200, response);
-    ApplicableLabels applicableLabels = fromJson(response, ApplicableLabels.class);
+    ApplicableLabels applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(appId, appName, "application", 0, applicableLabels.labelsByOwner.get(0));
@@ -359,7 +359,7 @@ public class LabelResourceTest
     // Verify the applicable labels for the organization
     response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
-    applicableLabels = fromJson(response, ApplicableLabels.class);
+    applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(1, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get(0));
@@ -370,7 +370,7 @@ public class LabelResourceTest
     // Verify the applicable labels for the application
     response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
-    applicableLabels = fromJson(response, ApplicableLabels.class);
+    applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(appId, appName, "application", 1, applicableLabels.labelsByOwner.get(0));
@@ -380,7 +380,7 @@ public class LabelResourceTest
     // Verify the applicable labels for the organization
     response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
-    applicableLabels = fromJson(response, ApplicableLabels.class);
+    applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(1, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(orgId, orgName, "organization", 0, applicableLabels.labelsByOwner.get(0));
@@ -391,7 +391,7 @@ public class LabelResourceTest
     // Verify the applicable labels for the application
     response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
-    applicableLabels = fromJson(response, ApplicableLabels.class);
+    applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(appId, appName, "application", 1, applicableLabels.labelsByOwner.get(0));
@@ -402,7 +402,7 @@ public class LabelResourceTest
     // Verify the applicable labels for the organization
     response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
-    applicableLabels = fromJson(response, ApplicableLabels.class);
+    applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(1, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(orgId, orgName, "organization", 1, applicableLabels.labelsByOwner.get(0));
@@ -420,7 +420,7 @@ public class LabelResourceTest
 
     HttpResponse response = request.parameter(appLabel.getId()).get();
     assertResponseStatus(200, response);
-    ApplicableContext context = fromJson(response, ApplicableContext.class);
+    ApplicableContext context = response.getBody(ApplicableContext.class);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));
@@ -429,7 +429,7 @@ public class LabelResourceTest
 
     response = request.parameter(orgLabel.getId()).get();
     assertResponseStatus(200, response);
-    context = fromJson(response, ApplicableContext.class);
+    context = response.getBody(ApplicableContext.class);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(org.getId()));
     Assert.assertThat(context.getName(), is(org.getName()));
@@ -452,7 +452,7 @@ public class LabelResourceTest
     response = request.parameter(orgLabel.getId()).auth(applicationUser.getUsername(), applicationUser.getPassword())
         .get();
     assertResponseStatus(200, response);
-    context = fromJson(response, ApplicableContext.class);
+    context = response.getBody(ApplicableContext.class);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));

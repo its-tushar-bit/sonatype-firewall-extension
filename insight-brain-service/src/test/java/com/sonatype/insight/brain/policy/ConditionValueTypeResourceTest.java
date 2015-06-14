@@ -26,7 +26,7 @@ public class ConditionValueTypeResourceTest
 
     final HttpResponse response = restRequest("application", appPublicId).get();
     assertResponseStatus(200, response);
-    final Object[] conditionValueTypes = fromJson(response, Object[].class);
+    final Object[] conditionValueTypes = response.getBody(Object[].class);
     Assert.assertNotNull(conditionValueTypes);
     Assert.assertTrue(conditionValueTypes.length > 0);
   }
@@ -37,7 +37,7 @@ public class ConditionValueTypeResourceTest
 
     final HttpResponse response = restRequest("organization", orgId).get();
     assertResponseStatus(200, response);
-    final Object[] conditionValueTypes = fromJson(response, Object[].class);
+    final Object[] conditionValueTypes = response.getBody(Object[].class);
     Assert.assertNotNull(conditionValueTypes);
     Assert.assertTrue(conditionValueTypes.length > 0);
   }

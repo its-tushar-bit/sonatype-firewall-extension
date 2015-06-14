@@ -40,7 +40,7 @@ public class LicenseThreatGroupLicenseResourceTest
     // Get
     HttpResponse response = restRequest(ownerType, ownerPublicId, group.getId()).get();
     assertResponseStatus(200, response);
-    LicenseThreatGroupLicense[] licenseThreatGroupLicenses = fromJson(response, LicenseThreatGroupLicense[].class);
+    LicenseThreatGroupLicense[] licenseThreatGroupLicenses = response.getBody(LicenseThreatGroupLicense[].class);
     Assert.assertNotNull(licenseThreatGroupLicenses);
     Assert.assertEquals(0, licenseThreatGroupLicenses.length);
 
@@ -52,7 +52,7 @@ public class LicenseThreatGroupLicenseResourceTest
     assertResponseStatus(200, response);
 
     // Get
-    licenseThreatGroupLicenses = fromJson(response, LicenseThreatGroupLicense[].class);
+    licenseThreatGroupLicenses = response.getBody(LicenseThreatGroupLicense[].class);
     Assert.assertNotNull(licenseThreatGroupLicenses);
     Assert.assertEquals(2, licenseThreatGroupLicenses.length);
     assertLicenseThreatGroupLicense(ownerId, group.getId(), "Apache-2.0", licenseThreatGroupLicenses[0]);

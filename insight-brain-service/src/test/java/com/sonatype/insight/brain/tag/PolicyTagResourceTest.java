@@ -33,7 +33,7 @@ public class PolicyTagResourceTest
     // Get
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    Tag[] tags = fromJson(response, Tag[].class);
+    Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
@@ -41,7 +41,7 @@ public class PolicyTagResourceTest
     Tag tag = tempEntity.newTag(org.getId(), "tag name");
     response = request.body(tag).post();
     assertResponseStatus(200, response);
-    Tag policyTag = fromJson(response, Tag.class);
+    Tag policyTag = response.getBody(Tag.class);
     assertThat(policyTag, is(notNullValue()));
     assertThat(policyTag.getId(), is(notNullValue()));
     assertThat(policyTag.getId(), is(tag.getId()));
@@ -51,7 +51,7 @@ public class PolicyTagResourceTest
     // Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -63,7 +63,7 @@ public class PolicyTagResourceTest
     // Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
   }

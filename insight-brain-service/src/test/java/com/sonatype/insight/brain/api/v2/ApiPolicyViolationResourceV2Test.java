@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
@@ -49,8 +48,8 @@ public class ApiPolicyViolationResourceV2Test
         .query("p", orgPolicy.getId()).get();
 
     assertResponseStatus(200, response);
-    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiApplicationViolationListDTOV2.class);
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = response
+        .getBody(ApiApplicationViolationListDTOV2.class);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
     ApiApplicationViolationDTOV2 apiApplicationViolationDTO =

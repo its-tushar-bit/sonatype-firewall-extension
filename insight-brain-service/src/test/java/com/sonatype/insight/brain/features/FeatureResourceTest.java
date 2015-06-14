@@ -31,7 +31,7 @@ public class FeatureResourceTest
     // Get all features
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    String[] features = fromJson(response, String[].class);
+    String[] features = response.getBody(String[].class);
     Assert.assertNotNull(features);
     Assert.assertTrue(Arrays.asList(features).contains("policy"));
     Assert.assertTrue(Arrays.asList(features).contains("labels"));
@@ -44,7 +44,7 @@ public class FeatureResourceTest
     uninstallLicense();
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    String[] features = fromJson(response, String[].class);
+    String[] features = response.getBody(String[].class);
     Assert.assertThat(features, is(notNullValue()));
     Assert.assertThat(features, is(emptyArray()));
   }

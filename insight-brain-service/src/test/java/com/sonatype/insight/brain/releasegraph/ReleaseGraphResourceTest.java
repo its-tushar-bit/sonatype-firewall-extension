@@ -62,7 +62,7 @@ public class ReleaseGraphResourceTest
   public void testGetImage_NeitherIdentifierNorGav() throws Exception {
     HttpResponse response = getRequest(appId, scanId).get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid component identifier"));
+    assertThat(response.getBodyText(), is("Invalid component identifier"));
   }
 
   @Test
@@ -73,7 +73,7 @@ public class ReleaseGraphResourceTest
             ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar")), "ignored",
         "ignored", "ignored").get();
     assertResponseStatus(200, response);
-    byte[] image = response.getResponseBodyAsBytes();
+    byte[] image = response.getBodyBytes();
     assertThat(image.length, is(greaterThan(0)));
   }
 
@@ -82,7 +82,7 @@ public class ReleaseGraphResourceTest
     copyReport("report-legacy.zip");
     HttpResponse response = addCoords(getRequest(appId, scanId), "tomcat", "tomcat-util", "5.5.23").get();
     assertResponseStatus(200, response);
-    byte[] image = response.getResponseBodyAsBytes();
+    byte[] image = response.getBodyBytes();
     assertThat(image.length, is(greaterThan(0)));
   }
 }

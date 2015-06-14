@@ -39,12 +39,12 @@ public class ApplicationResourceAuthzTest
     HttpRequest request = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES);
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);
-    ApplicationManagementSummaryDTO[] entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
+    ApplicationManagementSummaryDTO[] entities = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(entities, is(emptyArray()));
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).get();
     assertResponseStatus(200, response);
-    entities = fromJson(response, ApplicationManagementSummaryDTO[].class);
+    entities = response.getBody(ApplicationManagementSummaryDTO[].class);
     assertThat(entities.length, is(1));
     assertThat(entities[0].getId(), is(app.getId()));
   }
@@ -93,11 +93,11 @@ public class ApplicationResourceAuthzTest
     request.auth(unauthorized.getUsername(), unauthorized.getPassword());
     HttpResponse response = request.post();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is("Insufficient permissions"));
+    assertThat(response.getBodyText(), is("Insufficient permissions"));
 
     request.auth(authorized.getUsername(), authorized.getPassword());
     response = request.post();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is(""));
+    assertThat(response.getBodyText(), is(""));
   }
 }

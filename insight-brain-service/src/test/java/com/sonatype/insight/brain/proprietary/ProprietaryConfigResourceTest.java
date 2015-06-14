@@ -40,7 +40,7 @@ public class ProprietaryConfigResourceTest
   public void testGet_InitialConfig() throws Exception {
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    ProprietaryConfig config = fromJson(response, ProprietaryConfig.class);
+    ProprietaryConfig config = response.getBody(ProprietaryConfig.class);
     assertNotNull(config);
     assertEquals(0, config.getPackages().size());
   }
@@ -57,7 +57,7 @@ public class ProprietaryConfigResourceTest
 
     response = restRequest().get();
     assertResponseStatus(200, response);
-    config = fromJson(response, ProprietaryConfig.class);
+    config = response.getBody(ProprietaryConfig.class);
     assertEquals(packages, config.getPackages());
   }
 
@@ -85,6 +85,6 @@ public class ProprietaryConfigResourceTest
     config.setRegexes(regexes);
     HttpResponse response = restRequest().path("update").body(config).put();
     assertResponseStatus(400, response);
-    assertEquals(expectedMessage, response.getResponseBody());
+    assertEquals(expectedMessage, response.getBodyText());
   }
 }

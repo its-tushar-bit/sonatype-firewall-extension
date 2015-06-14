@@ -53,8 +53,8 @@ public class ApiPolicyViolationResourceTest
         .get();
 
     assertResponseStatus(200, response);
-    ApiApplicationViolationListDTO apiApplicationViolationListDTO = fromJson(response,
-        ApiApplicationViolationListDTO.class);
+    ApiApplicationViolationListDTO apiApplicationViolationListDTO = response
+        .getBody(ApiApplicationViolationListDTO.class);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
     ApiApplicationViolationDTO apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations.get(0);

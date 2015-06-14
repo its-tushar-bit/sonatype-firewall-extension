@@ -346,7 +346,7 @@ public class PolicyMonitorTest
     HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}")
         .parameter(applicationPublicId, scanId).body(stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
     return policyEval;
   }
@@ -355,13 +355,13 @@ public class PolicyMonitorTest
     HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .post();
     assertResponseStatus(200, response);
-    return fromJson(response, Policy.class);
+    return response.getBody(Policy.class);
   }
 
   private Policy updatePolicy(String ownerType, String ownerId, Policy policy) throws Exception {
     HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .put();
     assertResponseStatus(200, response);
-    return fromJson(response, Policy.class);
+    return response.getBody(Policy.class);
   }
 }

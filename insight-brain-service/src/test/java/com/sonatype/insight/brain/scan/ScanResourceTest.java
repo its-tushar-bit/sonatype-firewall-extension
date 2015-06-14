@@ -44,7 +44,7 @@ public class ScanResourceTest
   public void testUploadBinary() throws Exception {
     HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "app01.zip").post();
     assertResponseStatus(200, response);
-    ScanTicket result = fromJson(response, ScanTicket.class);
+    ScanTicket result = response.getBody(ScanTicket.class);
     assertThat(result, is(notNullValue()));
     assertThat(result.ticketId, is(notNullValue()));
     waitForScanTaskToBeProcessed(app.getPublicId(), result.ticketId);
@@ -55,7 +55,7 @@ public class ScanResourceTest
     HttpResponse response = uploadRequest("bad-app-id", Stage.ID_BUILD, "app01.zip").query("noFormData", "true").post();
     assertResponseStatus(200, response);
     assertThat(response.getContentType(), startsWith("text/plain"));
-    assertThat(response.getResponseBody(), is("Could not find an application with public ID bad-app-id."));
+    assertThat(response.getBodyText(), is("Could not find an application with public ID bad-app-id."));
   }
 
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {
@@ -65,7 +65,7 @@ public class ScanResourceTest
     while (System.currentTimeMillis() - start <= 10000) {
       HttpResponse response = request.get();
       assertResponseStatus(200, response);
-      ScanTicket scanTicket = fromJson(response, ScanTicket.class);
+      ScanTicket scanTicket = response.getBody(ScanTicket.class);
       if (scanTicket.currentStep >= scanTicket.totalSteps) {
         System.out.println("Scan task " + scanTicketId + " for appPublicId " + appPublicId + " was finished after "
             + (System.currentTimeMillis() - start) + " ms");

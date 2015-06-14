@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,8 +71,7 @@ public abstract class AbstractApiOrganizationResourceTest
 
     final HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    final ApiOrganizationListDTO organizationListDTO = JsonHelpers
-        .fromJson(response.getResponseBody(), ApiOrganizationListDTO.class);
+    final ApiOrganizationListDTO organizationListDTO = response.getBody(ApiOrganizationListDTO.class);
     assertThat(organizationListDTO, notNullValue());
 
     assertThat(organizationListDTO.organizations, notNullValue());
@@ -116,8 +114,7 @@ public abstract class AbstractApiOrganizationResourceTest
     // Note: Org roles are same as app roles in DTO
     final List<Role> orgRoles = roleDAO.getApplicationRoles();
 
-    ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
     assertThat(roleMemberMappings.memberMappings, hasSize(orgRoles.size()));
 
@@ -134,8 +131,7 @@ public abstract class AbstractApiOrganizationResourceTest
     // Read for created data
     response = request.get();
     assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     assertThat(returnedRoleMemberMappings.memberMappings, is(notNullValue()));
@@ -171,8 +167,7 @@ public abstract class AbstractApiOrganizationResourceTest
     // Note: Org roles are same as app roles in DTO
     final List<Role> orgRoles = roleDAO.getApplicationRoles();
 
-    ApiRoleMemberMappingListDTO roleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO roleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
     assertThat(roleMemberMappings, is(notNullValue()));
     assertThat(roleMemberMappings.memberMappings, hasSize(orgRoles.size()));
 
@@ -186,8 +181,7 @@ public abstract class AbstractApiOrganizationResourceTest
     // Read for created data
     response = request.get();
     assertResponseStatus(200, response);
-    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(),
-        ApiRoleMemberMappingListDTO.class);
+    ApiRoleMemberMappingListDTO returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
 
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     assertThat(returnedRoleMemberMappings.memberMappings, is(notNullValue()));
@@ -218,7 +212,7 @@ public abstract class AbstractApiOrganizationResourceTest
     // Read for updated data
     response = request.get();
     assertResponseStatus(200, response);
-    returnedRoleMemberMappings = JsonHelpers.fromJson(response.getResponseBody(), ApiRoleMemberMappingListDTO.class);
+    returnedRoleMemberMappings = response.getBody(ApiRoleMemberMappingListDTO.class);
     assertThat(returnedRoleMemberMappings, is(notNullValue()));
     assertThat(returnedRoleMemberMappings.memberMappings, is(notNullValue()));
     assertThat(returnedRoleMemberMappings.memberMappings, hasSize(orgRoles.size()));

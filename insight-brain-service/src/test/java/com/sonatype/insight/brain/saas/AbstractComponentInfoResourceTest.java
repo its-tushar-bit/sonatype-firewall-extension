@@ -154,7 +154,7 @@ public abstract class AbstractComponentInfoResourceTest
 
     HttpResponse response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
-    ComponentLicenses licenses = fromJson(response, ComponentLicenses.class);
+    ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, hasSize(1));
     assertThat(licenses.declaredlicenses.get(0).license.getLicenseId(), is("Apache-2.0"));
     assertThat(licenses.observedlicenses, hasSize(0));
@@ -166,7 +166,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
+    ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
     assertThat(componentDetails, is(notNullValue()));
     assertThat(componentDetails.getHash(), is(hash));
     assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
@@ -185,7 +185,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
-    ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);
+    ComponentDetailsList componentDetailsList = response.getBody(TestComponentDetailsList.class);
     assertThat(componentDetailsList, is(notNullValue()));
     assertThat(componentDetailsList.getList(), hasSize(1));
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -204,7 +204,7 @@ public abstract class AbstractComponentInfoResourceTest
         "reportId", reportId).get();
     assertResponseStatus(200, response);
 
-    ComponentDetails componentDetails = fromJson(response, TestNamedComponentDetails.class);
+    ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
     assertThat(componentDetails, is(notNullValue()));
     assertThat(componentDetails.getHash(), is(hash));
     assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
@@ -228,7 +228,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpResponse response = request.query("reportId", reportId).get();
     assertResponseStatus(200, response);
 
-    ComponentDetailsList componentDetailsList = fromJson(response, TestComponentDetailsList.class);
+    ComponentDetailsList componentDetailsList = response.getBody(TestComponentDetailsList.class);
     assertThat(componentDetailsList, is(notNullValue()));
     assertThat(componentDetailsList.getList(), hasSize(1));
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);

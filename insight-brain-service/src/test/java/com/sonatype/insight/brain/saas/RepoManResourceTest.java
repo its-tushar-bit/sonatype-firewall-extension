@@ -41,7 +41,7 @@ public class RepoManResourceTest
 
     assertResponseStatus(200, response);
 
-    ScanReceipt receipt = fromJson(response, ScanReceipt.class);
+    ScanReceipt receipt = response.getBody(ScanReceipt.class);
     assertNotNull(receipt);
     assertEquals(scanReceipt.getScanId(), receipt.getScanId());
     assertEquals(scanReceipt.getTimeToReport(), receipt.getTimeToReport());

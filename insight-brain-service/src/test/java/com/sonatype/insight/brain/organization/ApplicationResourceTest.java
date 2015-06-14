@@ -62,14 +62,14 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("OK"));
+    assertThat(response.getBodyText(), equalTo("OK"));
 
     applicationDAO.delete(application);
 
     // validate service always returns 200, the actual result is in the response body
     response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("Invalid application ID " + applicationPublicId + "."));
+    assertThat(response.getBodyText(), equalTo("Invalid application ID " + applicationPublicId + "."));
   }
 
   @Test
@@ -83,14 +83,14 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("OK"));
+    assertThat(response.getBodyText(), equalTo("OK"));
 
     applicationDAO.delete(application);
 
     // validate service always returns 200, the actual result is in the response body
     response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), equalTo("Invalid application ID " + applicationPublicId + "."));
+    assertThat(response.getBodyText(), equalTo("Invalid application ID " + applicationPublicId + "."));
   }
 
   @Test
@@ -108,7 +108,7 @@ public class ApplicationResourceTest
 
     assertResponseStatus(200, response);
 
-    ApplicationDTO applicationResult = fromJson(response, ApplicationDTO.class);
+    ApplicationDTO applicationResult = response.getBody(ApplicationDTO.class);
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -130,7 +130,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getResponseBody());
+    Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getBodyText());
 
     // Test Get Icon (default icon)
     HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
@@ -154,7 +154,7 @@ public class ApplicationResourceTest
     application.setName(applicationName + "updated");
     response = restRequest().body(application).put();
     assertResponseStatus(200, response);
-    applicationResult = fromJson(response, ApplicationDTO.class);
+    applicationResult = response.getBody(ApplicationDTO.class);
     Assert.assertEquals(application.getId(), applicationResult.getId());
     Assert.assertEquals(applicationPublicId, applicationResult.getPublicId());
     Assert.assertEquals(applicationName + "updated", applicationResult.getName());
@@ -193,7 +193,7 @@ public class ApplicationResourceTest
         .part("applicationId", application.getId()).part("hasRobotSource", "false")
         .part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
-    Assert.assertEquals("", response.getResponseBody());
+    Assert.assertEquals("", response.getBodyText());
 
     iconBytes = IconUtils.loadInvalidIcon();
 
@@ -201,7 +201,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
-    Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getResponseBody());
+    Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getBodyText());
   }
 
   private byte[] loadDefaultIcon() throws IOException {
@@ -210,9 +210,9 @@ public class ApplicationResourceTest
 
   private void testValidIconResponse(HttpResponse iconResponse) throws Exception {
     assertResponseStatus(200, iconResponse);
-    Assert.assertNotNull(iconResponse.getResponseBodyAsBytes());
+    Assert.assertNotNull(iconResponse.getBodyBytes());
     BufferedImage icon;
-    try (InputStream iconStream = iconResponse.getResponseBodyAsStream()) {
+    try (InputStream iconStream = iconResponse.getBodyStream()) {
       icon = ImageIO.read(iconStream);
     }
     Assert.assertNotNull(icon);
@@ -280,7 +280,7 @@ public class ApplicationResourceTest
 
     assertResponseStatus(404, response);
     Assert.assertEquals("Could not find an application with public ID " + applicationPublicId + ".",
-        response.getResponseBody());
+        response.getBodyText());
   }
 
   @Test
@@ -296,7 +296,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).post();
     assertResponseStatus(402, response);
-    Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getResponseBody());
+    Assert.assertEquals("You have exceeded the licensed limit of 1 applications.", response.getBodyText());
   }
 
   @Test
@@ -312,7 +312,7 @@ public class ApplicationResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
-    ApplicationDTO[] applications = fromJson(response, ApplicationDTO[].class);
+    ApplicationDTO[] applications = response.getBody(ApplicationDTO[].class);
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
@@ -323,7 +323,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.GET_APPLICATION_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
 
-    ApplicationDTO applicationSummary = fromJson(response, ApplicationDTO.class);
+    ApplicationDTO applicationSummary = response.getBody(ApplicationDTO.class);
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
     Assert.assertEquals(application.getName(), applicationSummary.getName());
@@ -357,8 +357,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
         .parameter(application.getPublicId(), scanId1).get();
     assertResponseStatus(200, response);
-    ApplicationManagementSummaryDTO summary = fromJson(response,
-        ApplicationManagementSummaryDTO.class);
+    ApplicationManagementSummaryDTO summary = response.getBody(ApplicationManagementSummaryDTO.class);
 
     Assert.assertEquals(application.getName(), summary.getName());
     Assert.assertEquals(application.getId(), summary.getId());
@@ -374,7 +373,7 @@ public class ApplicationResourceTest
         .parameter(application.getPublicId(), scanId2).get();
     assertResponseStatus(200, response);
 
-    summary = fromJson(response, ApplicationManagementSummaryDTO.class);
+    summary = response.getBody(ApplicationManagementSummaryDTO.class);
 
     Assert.assertEquals(application.getName(), summary.getName());
     Assert.assertEquals(application.getId(), summary.getId());
@@ -394,7 +393,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
         .parameter(application.getPublicId(), "12345678").get();
     assertResponseStatus(404, response);
-    Assert.assertEquals("Unable to locate requested scan", response.getResponseBody());
+    Assert.assertEquals("Unable to locate requested scan", response.getBodyText());
   }
 
   @Test
@@ -430,8 +429,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).get();
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummaryDTO[] applications = fromJson(response,
-        ApplicationManagementSummaryDTO[].class);
+    ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
 
     Assert.assertEquals(Arrays.asList(applications).toString(), 1, applications.length);
@@ -482,7 +480,7 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).get();
     assertResponseStatus(200, response);
 
-    applications = fromJson(response, ApplicationManagementSummaryDTO[].class);
+    applications = response.getBody(ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
     Assert.assertEquals(1, applications[0].getScansCount());
 
@@ -491,8 +489,7 @@ public class ApplicationResourceTest
         .parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummaryDTO applicationSummary = fromJson(response,
-        ApplicationManagementSummaryDTO.class);
+    ApplicationManagementSummaryDTO applicationSummary = response.getBody(ApplicationManagementSummaryDTO.class);
     Assert.assertNotNull(applicationSummary);
     Assert.assertEquals(application.getId(), applicationSummary.getId());
     Assert.assertEquals(application.getName(), applicationSummary.getName());
@@ -544,8 +541,7 @@ public class ApplicationResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
 
-    ApplicationManagementSummaryDTO[] applications = fromJson(response,
-        ApplicationManagementSummaryDTO[].class);
+    ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
     Assert.assertEquals(1, applications.length);
   }
@@ -560,7 +556,7 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")
-    Map<String, String> applicationNames = fromJson(response, Map.class);
+    Map<String, String> applicationNames = response.getBody(Map.class);
     Assert.assertNotNull(applicationNames);
 
     Assert.assertEquals(applicationNames.toString(), 1, applicationNames.size());
@@ -578,7 +574,7 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     @SuppressWarnings("unchecked")
-    Map<String, String> applicationNames = fromJson(response, Map.class);
+    Map<String, String> applicationNames = response.getBody(Map.class);
     Assert.assertNotNull(applicationNames);
 
     Assert.assertEquals(applicationNames.toString(), 1, applicationNames.size());
@@ -597,7 +593,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Application must have a parent organization.", response.getResponseBody());
+    Assert.assertEquals("Application must have a parent organization.", response.getBodyText());
   }
 
   @Test
@@ -608,7 +604,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).put();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
+    Assert.assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
   }
 
   @Test
@@ -619,7 +615,7 @@ public class ApplicationResourceTest
 
     HttpResponse response = restRequest().body(application).put();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot change the parent organization of an application.", response.getResponseBody());
+    Assert.assertEquals("Cannot change the parent organization of an application.", response.getBodyText());
   }
 
   @Test

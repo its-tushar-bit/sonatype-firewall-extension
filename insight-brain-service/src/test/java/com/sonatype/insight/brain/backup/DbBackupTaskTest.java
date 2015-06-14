@@ -48,7 +48,7 @@ public class DbBackupTaskTest
 
     HttpResponse response = adminRequest().path("tasks", DbBackupTask.PATH).post();
     assertResponseStatus(200, response);
-    String message = response.getResponseBody();
+    String message = response.getBodyText();
     assertThat(message, startsWith(DbBackupTask.RESPONSE_MESSAGE_PREFIX));
     File dbBackupDir = new File(message.substring(DbBackupTask.RESPONSE_MESSAGE_PREFIX.length()));
     assertThat(dbBackupDir.isDirectory(), is(true));

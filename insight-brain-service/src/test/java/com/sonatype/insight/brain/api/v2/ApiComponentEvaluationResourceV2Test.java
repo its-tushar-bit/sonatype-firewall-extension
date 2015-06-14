@@ -75,7 +75,7 @@ public class ApiComponentEvaluationResourceV2Test
     String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     HttpResponse response = restRequest(app.getId()).body(jsonRequest).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("A component identifier must have at least one coordinate."));
+    assertThat(response.getBodyText(), is("A component identifier must have at least one coordinate."));
   }
 
   @Test
@@ -88,7 +88,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
+    assertThat(response.getBodyText(), is(MISSING_COORDINATES + "[extension]"));
   }
 
   @Test
@@ -122,7 +122,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("One of either componentIdentifier or hash must be supplied."));
+    assertThat(response.getBodyText(), is("One of either componentIdentifier or hash must be supplied."));
   }
 
   @Test
@@ -132,7 +132,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("No components provided for evaluation"));
+    assertThat(response.getBodyText(), is("No components provided for evaluation"));
   }
 
 
@@ -143,7 +143,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("No components provided for evaluation"));
+    assertThat(response.getBodyText(), is("No components provided for evaluation"));
   }
 
   @Test
@@ -159,12 +159,12 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
 
     response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(true));
     assertThat(details.errorMessage, startsWith("Internal Server Error (ID "));
@@ -208,12 +208,12 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
 
     response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
@@ -263,12 +263,12 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
 
     response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
@@ -315,12 +315,12 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
 
     response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
@@ -373,12 +373,12 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
 
     response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
@@ -431,12 +431,12 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationTicketDTOV2 evaluationResult = fromJson(response, ApiComponentEvaluationTicketDTOV2.class);
+    ApiComponentEvaluationTicketDTOV2 evaluationResult = response.getBody(ApiComponentEvaluationTicketDTOV2.class);
 
     response = getComponentEvaluationResult(evaluationResult);
     assertResponseStatus(200, response);
 
-    ApiComponentEvaluationResultDTOV2 details = fromJson(response, ApiComponentEvaluationResultDTOV2.class);
+    ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
@@ -466,7 +466,7 @@ public class ApiComponentEvaluationResourceV2Test
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is(MISSING_COORDINATES + "[extension]"));
+    assertThat(response.getBodyText(), is(MISSING_COORDINATES + "[extension]"));
   }
 
   private void mockHDSInternalServiceError() {

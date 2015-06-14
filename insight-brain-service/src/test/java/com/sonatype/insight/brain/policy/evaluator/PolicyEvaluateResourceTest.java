@@ -141,7 +141,7 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/MultipleMatchesForSameGAV/report.zip");
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(3, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -209,7 +209,7 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(1, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -267,7 +267,7 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
     assertThat(policyEval.getAffectedComponentCount(), is(1));
     assertThat(policyEval.getCriticalComponentCount(), is(0));
@@ -351,7 +351,7 @@ public class PolicyEvaluateResourceTest
     // evaluate policy
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(7, policyEval.getAffectedComponentCount());
     Assert.assertEquals(7, policyEval.getCriticalComponentCount());
@@ -383,7 +383,7 @@ public class PolicyEvaluateResourceTest
         .path(ReportResource.SERVICE_PATH, "browseReport", ScanPolicyEvaluator.POLICY_THREATS_FILENAME)
         .parameter(applicationPublicId, scanId).get();
     assertResponseStatus(200, response);
-    final JsonNode policyThreats = JsonUtils.parse(response.getResponseBody()).get("aaData");
+    final JsonNode policyThreats = JsonUtils.parse(response.getBodyText()).get("aaData");
     Assert.assertNotNull(policyThreats);
     Assert.assertTrue(policyThreats.size() > 0);
     Assert.assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
@@ -404,7 +404,7 @@ public class PolicyEvaluateResourceTest
     // evaluate policy again
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    policyEval = fromJson(response, PolicyEvaluationResult.class);
+    policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
@@ -455,7 +455,7 @@ public class PolicyEvaluateResourceTest
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
 
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(0, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -468,7 +468,7 @@ public class PolicyEvaluateResourceTest
     // Threat Level 2 should show up as moderate
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    policyEval = fromJson(response, PolicyEvaluationResult.class);
+    policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(7, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -481,7 +481,7 @@ public class PolicyEvaluateResourceTest
     // Threat Level 4 should show up as severe
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    policyEval = fromJson(response, PolicyEvaluationResult.class);
+    policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(7, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -494,7 +494,7 @@ public class PolicyEvaluateResourceTest
     // Threat Level 8 should show up as severe
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    policyEval = fromJson(response, PolicyEvaluationResult.class);
+    policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(7, policyEval.getAffectedComponentCount());
     Assert.assertEquals(7, policyEval.getCriticalComponentCount());
@@ -530,7 +530,7 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(3, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -581,7 +581,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(1, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -606,7 +606,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    policyEval = fromJson(response, PolicyEvaluationResult.class);
+    policyEval = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEval);
     Assert.assertEquals(0, policyEval.getAffectedComponentCount());
     Assert.assertEquals(0, policyEval.getCriticalComponentCount());
@@ -662,7 +662,7 @@ public class PolicyEvaluateResourceTest
 
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEval = fromJson(response, PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     List<PolicyAlert> policyAlerts = policyEval.getAlerts();
     Map<String, Object> model = PolicyAlertEmailer.createPolicyMailModel(serverUrl, cdnUrl, applicationPublicId,
         scanId, stage, new ContactDTO(null, "displayName", "email", null), policyAlerts);
@@ -722,8 +722,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEvaluationResult = fromJson(response,
-        PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
     List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
     Assert.assertNotNull(policyAlerts);
@@ -742,7 +741,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy again for the same scan
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    policyEvaluationResult = fromJson(response, PolicyEvaluationResult.class);
+    policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
     Assert.assertEquals(1, policyAlerts.size());
     Assert.assertTrue(policyEvaluationResult.isReevaluation());
@@ -941,8 +940,7 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId1, "/PolicyEvaluateResourceTest/report.zip");
     HttpResponse response = evalRequest(applicationPublicId, scanId1, stage).post();
     assertResponseStatus(200, response);
-    PolicyEvaluationResult policyEvaluationResult = fromJson(response,
-        PolicyEvaluationResult.class);
+    PolicyEvaluationResult policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     assertPolicyEvaluation(app.getId(), scanId1, false /* isReevaluation */);
 
     // Make sure we don't have two evaluations at exactly the same time
@@ -959,7 +957,7 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy again for scanid1
     response = evalRequest(applicationPublicId, scanId1, stage).post();
     assertResponseStatus(200, response);
-    policyEvaluationResult = fromJson(response, PolicyEvaluationResult.class);
+    policyEvaluationResult = response.getBody(PolicyEvaluationResult.class);
     Assert.assertNotNull(policyEvaluationResult);
     Assert.assertTrue(policyEvaluationResult.isReevaluation());
     assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
@@ -976,7 +974,7 @@ public class PolicyEvaluateResourceTest
   public void testInvalidStage() throws Exception {
     HttpResponse response = evalRequest(applicationPublicId, "scanid", new Stage("foobar")).post();
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
-    assertEquals("Invalid stage id=foobar", response.getResponseBody());
+    assertEquals("Invalid stage id=foobar", response.getBodyText());
   }
 
   @Test

@@ -51,12 +51,12 @@ public class LicenseThreatGroupResourceAuthzTest
 
     HttpRequest request = restRequest().body(new LicenseThreatGroup(null, "Test LTG", 5));
     HttpResponse response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
-    new LicenseThreatGroupDAO().delete(fromJson(response, LicenseThreatGroup.class));
+    new LicenseThreatGroupDAO().delete(response.getBody(LicenseThreatGroup.class));
 
     grantWritePermission(org.getId());
 
     response = testAuthzPost(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
-    new LicenseThreatGroupDAO().delete(fromJson(response, LicenseThreatGroup.class));
+    new LicenseThreatGroupDAO().delete(response.getBody(LicenseThreatGroup.class));
   }
 
   @Test

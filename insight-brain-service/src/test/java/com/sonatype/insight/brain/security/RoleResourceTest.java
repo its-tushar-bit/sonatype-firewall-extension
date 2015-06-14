@@ -45,7 +45,7 @@ public class RoleResourceTest
   public void testGetAllRoles() throws Exception {
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    RoleDTO[] roles = fromJson(response, RoleDTO[].class);
+    RoleDTO[] roles = response.getBody(RoleDTO[].class);
     assertThat(roles, not(emptyArray()));
   }
 
@@ -54,7 +54,7 @@ public class RoleResourceTest
     Role role = tempEntity.newRole(false, Permission.CLAIM_COMPONENT);
     HttpResponse response = restRequest().path(RoleResource.ROLE_ID_PATH).parameter(role.getId()).get();
     assertResponseStatus(200, response);
-    RoleDTO roleDTO = fromJson(response, RoleDTO.class);
+    RoleDTO roleDTO = response.getBody(RoleDTO.class);
     assertThat(roleDTO, notNullValue());
     assertThat(roleDTO.id, is(role.getId()));
   }
@@ -63,7 +63,7 @@ public class RoleResourceTest
   public void testGetTemplateForNewRole() throws Exception {
     HttpResponse response = restRequest().path(RoleResource.NEW_PATH).get();
     assertResponseStatus(200, response);
-    RoleDTO role = fromJson(response, RoleDTO.class);
+    RoleDTO role = response.getBody(RoleDTO.class);
     assertThat(role, notNullValue());
     assertThat(role.permissionCategories, hasSize(2));
   }
@@ -79,7 +79,7 @@ public class RoleResourceTest
 
     HttpResponse response = restRequest().body(roleDTO).post();
     assertResponseStatus(200, response);
-    RoleDTO newRoleDTO = fromJson(response, RoleDTO.class);
+    RoleDTO newRoleDTO = response.getBody(RoleDTO.class);
     assertThat(newRoleDTO.id, is(notNullValue()));
     tempEntity.register(roleDAO.getByIdNotNull(newRoleDTO.id));
 
@@ -99,7 +99,7 @@ public class RoleResourceTest
 
     HttpResponse response = restRequest().body(roleDTO).put();
     assertResponseStatus(200, response);
-    RoleDTO updatedRoleDTO = fromJson(response, RoleDTO.class);
+    RoleDTO updatedRoleDTO = response.getBody(RoleDTO.class);
     assertThat(updatedRoleDTO.id, is(roleDTO.id));
 
     assertRoleDTO(updatedRoleDTO, roleDTO, categoryDisplayName);

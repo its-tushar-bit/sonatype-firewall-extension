@@ -51,7 +51,7 @@ public class PolicyEvaluationSummaryResourceTest
     HttpResponse response = summaryRequest(application.getId(), stage.getStageTypeId()).get();
     assertResponseStatus(200, response);
 
-    PolicyEvaluationSummary policyEvaluationSummary = fromJson(response, PolicyEvaluationSummary.class);
+    PolicyEvaluationSummary policyEvaluationSummary = response.getBody(PolicyEvaluationSummary.class);
 
     assertThat(policyEvaluationSummary, notNullValue());
     assertThat(policyEvaluationSummary.getReportUrl(),
@@ -66,6 +66,6 @@ public class PolicyEvaluationSummaryResourceTest
   public void testGetPolicyEvaluationSummary_badStage() throws Exception {
     HttpResponse response = summaryRequest(application.getId(), invalidStageId).get();
     assertResponseStatus(400, response);
-    assertThat(response.getResponseBody(), is("Invalid parameter stageTypeId=" + invalidStageId + "."));
+    assertThat(response.getBodyText(), is("Invalid parameter stageTypeId=" + invalidStageId + "."));
   }
 }

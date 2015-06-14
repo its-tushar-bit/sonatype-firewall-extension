@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import com.yammer.dropwizard.testing.JsonHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +47,7 @@ public abstract class AbstractApiPolicyResourceTest
   public void testGetPolicies() throws Exception {
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    ApiPolicyListDTO apiPolicyListDTO = JsonHelpers.fromJson(response.getResponseBody(), ApiPolicyListDTO.class);
+    ApiPolicyListDTO apiPolicyListDTO = response.getBody(ApiPolicyListDTO.class);
 
     assertThat(apiPolicyListDTO, notNullValue());
     assertThat(apiPolicyListDTO.policies, notNullValue());

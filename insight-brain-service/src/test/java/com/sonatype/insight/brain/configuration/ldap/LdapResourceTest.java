@@ -80,7 +80,7 @@ public class LdapResourceTest
 
     HttpResponse response = restRequest().body(server).post();
     assertResponseStatus(200, response);
-    server = fromJson(response, LdapServer.class);
+    server = response.getBody(LdapServer.class);
     assertNotNull(server);
     assertNotNull(server.getId());
     assertEquals("LdapConfigurationResourceTest", server.getName());
@@ -96,7 +96,7 @@ public class LdapResourceTest
     // Get all
     response = restRequest().get();
     assertResponseStatus(200, response);
-    LdapServer[] ldapConfigurations = fromJson(response, LdapServer[].class);
+    LdapServer[] ldapConfigurations = response.getBody(LdapServer[].class);
     assertNotNull(ldapConfigurations);
     assertEquals(1, ldapConfigurations.length);
     LdapServer echo = ldapConfigurations[0];
@@ -113,7 +113,7 @@ public class LdapResourceTest
 
     response = restRequest().body(server).put();
     assertResponseStatus(200, response);
-    server = fromJson(response, LdapServer.class);
+    server = response.getBody(LdapServer.class);
 
     assertNotNull(server);
     assertEquals(ldapServerId, server.getId());
@@ -140,20 +140,20 @@ public class LdapResourceTest
     // PUT new, a.k.a. "insert"
     HttpResponse response = request.parameter(orig.getServerId()).body(orig).put();
     assertResponseStatus(200, response);
-    LdapUserMapping umap = fromJson(response, LdapUserMapping.class);
+    LdapUserMapping umap = response.getBody(LdapUserMapping.class);
     assertUserMappingEquals(orig, umap);
 
     // GET
     response = request.get();
     assertResponseStatus(200, response);
-    umap = fromJson(response, LdapUserMapping.class);
+    umap = response.getBody(LdapUserMapping.class);
     assertUserMappingEquals(orig, umap);
 
     // PUT existing, a.k.a "update"
     umap.setUserEmailAttribute(orig.getUserEmailAttribute() + "changed");
     response = request.body(umap).put();
     assertResponseStatus(200, response);
-    umap = fromJson(response, LdapUserMapping.class);
+    umap = response.getBody(LdapUserMapping.class);
     Assert.assertEquals(orig.getUserEmailAttribute() + "changed", umap.getUserEmailAttribute());
   }
 
@@ -164,7 +164,7 @@ public class LdapResourceTest
 
     HttpResponse response = restRequest().path(LdapResource.USER_MAPPING_PATH).parameter(server.getId()).get();
     assertResponseStatus(200, response);
-    LdapUserMapping umap = fromJson(response, LdapUserMapping.class);
+    LdapUserMapping umap = response.getBody(LdapUserMapping.class);
     Assert.assertNotNull(umap);
     Assert.assertEquals(server.getId(), umap.getServerId());
   }
@@ -176,7 +176,7 @@ public class LdapResourceTest
 
     HttpResponse response = restRequest().path(LdapResource.CONNECTION_PATH).parameter(server.getId()).get();
     assertResponseStatus(200, response);
-    LdapConnection conn = fromJson(response, LdapConnection.class);
+    LdapConnection conn = response.getBody(LdapConnection.class);
     Assert.assertNotNull(conn);
     Assert.assertEquals(server.getId(), conn.getServerId());
   }
@@ -189,7 +189,7 @@ public class LdapResourceTest
 
     HttpResponse response = request.body(conn).put();
     assertResponseStatus(200, response);
-    conn = fromJson(response, LdapConnection.class);
+    conn = response.getBody(LdapConnection.class);
     assertNotNull(conn);
     assertNotNull(conn.getId());
     String ldapConnId = conn.getId();
@@ -215,7 +215,7 @@ public class LdapResourceTest
     // Get by serverId
     response = request.get();
     assertResponseStatus(200, response);
-    LdapConnection echo = fromJson(response, LdapConnection.class);
+    LdapConnection echo = response.getBody(LdapConnection.class);
 
     assertNotNull(echo);
     assertEquals(ldapConnId, echo.getId());
@@ -255,7 +255,7 @@ public class LdapResourceTest
 
     response = request.body(conn).put();
     assertResponseStatus(200, response);
-    conn = fromJson(response, LdapConnection.class);
+    conn = response.getBody(LdapConnection.class);
 
     assertNotNull(conn);
     assertEquals(ldapConnId, ldapConnId);
@@ -298,7 +298,7 @@ public class LdapResourceTest
     LdapServer server = createLdapServer("LdapServerResourceTest");
     HttpResponse response = restRequest().body(server).post();
     assertResponseStatus(200, response);
-    server = fromJson(response, LdapServer.class);
+    server = response.getBody(LdapServer.class);
 
     uninstallLicense();
     response = restRequest().body(server).put();
@@ -323,7 +323,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
   }
@@ -341,7 +341,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
   }
@@ -359,7 +359,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
   }
@@ -377,7 +377,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
   }
@@ -396,7 +396,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(), allOf(containsString("Incorrect DN"), containsString(systemUserDN)));
@@ -415,7 +415,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(), containsString("Cannot authenticate user"));
@@ -432,7 +432,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(),
@@ -454,7 +454,7 @@ public class LdapResourceTest
 
     HttpResponse response = testConnectionRequest(conn).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
     assertThat(status.getMessage(), containsString("Nonexistent realm: invalidrealm"));
@@ -481,7 +481,7 @@ public class LdapResourceTest
 
       HttpResponse response = testConnectionRequest(conn).put();
       assertResponseStatus(200, response);
-      LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+      LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
       Assert.assertEquals(LdapConnectionStatus.Status.OK, status.getStatus());
     }
@@ -514,7 +514,7 @@ public class LdapResourceTest
 
     response = request.put();
     assertResponseStatus(200, response);
-    LdapUser[] users = fromJson(response, LdapUser[].class);
+    LdapUser[] users = response.getBody(LdapUser[].class);
     Arrays.sort(users);
     assertThat(users.length, is(2));
     assertThat(users[0].getUsername(), is("Beta"));
@@ -539,20 +539,20 @@ public class LdapResourceTest
 
     HttpResponse response = request.body(login).put();
     assertResponseStatus(200, response);
-    LdapConnectionStatus status = fromJson(response, LdapConnectionStatus.class);
+    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
     assertThat(status.getStatus(), is(LdapConnectionStatus.Status.FAILURE));
 
     tempEntity.newLdapConnection(server.getId(), ldapServer.getPort());
 
     response = request.body(login).put();
     assertResponseStatus(200, response);
-    status = fromJson(response, LdapConnectionStatus.class);
+    status = response.getBody(LdapConnectionStatus.class);
     assertThat(status.getStatus(), is(LdapConnectionStatus.Status.FAILURE));
 
     login.setPassword("far2simple");
     response = request.body(login).put();
     assertResponseStatus(200, response);
-    status = fromJson(response, LdapConnectionStatus.class);
+    status = response.getBody(LdapConnectionStatus.class);
     assertThat(status.getStatus(), is(LdapConnectionStatus.Status.OK));
   }
 

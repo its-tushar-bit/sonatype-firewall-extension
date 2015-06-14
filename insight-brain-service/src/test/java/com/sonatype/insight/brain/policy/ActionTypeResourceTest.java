@@ -18,7 +18,7 @@ public class ActionTypeResourceTest
   public void testGetActionTypes() throws Exception {
     final HttpResponse response = restRequest().path(ActionTypeResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
-    final Object[] actionTypes = fromJson(response, Object[].class);
+    final Object[] actionTypes = response.getBody(Object[].class);
     Assert.assertNotNull(actionTypes);
     Assert.assertTrue(actionTypes.length > 0);
   }

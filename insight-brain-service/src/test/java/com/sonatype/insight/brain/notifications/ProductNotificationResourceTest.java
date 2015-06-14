@@ -55,7 +55,7 @@ public class ProductNotificationResourceTest
     int pageSize = 10;
     HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
-    ProductNotificationListDTO notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
+    ProductNotificationListDTO notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
     assertThat(notificationListDTO.notifications.size(), is(2));
     assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), false);
@@ -64,7 +64,7 @@ public class ProductNotificationResourceTest
     // Get second page, should be empty
     response = listRequest(pageSize, 2).get();
     assertResponseStatus(200, response);
-    notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
+    notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
     assertThat(notificationListDTO.notifications.size(), is(0));
   }
@@ -77,7 +77,7 @@ public class ProductNotificationResourceTest
     int pageSize = 10;
     HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
-    ProductNotificationListDTO notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
+    ProductNotificationListDTO notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
     assertThat(notificationListDTO.notifications.size(), is(1));
     // test that the notification is what is expected with viewed = false
@@ -90,7 +90,7 @@ public class ProductNotificationResourceTest
     assertResponseStatus(200, response);
 
     // test the returned value has viewed flag set
-    ProductNotificationDTO returnedValue = fromJson(response, ProductNotificationDTO.class);
+    ProductNotificationDTO returnedValue = response.getBody(ProductNotificationDTO.class);
     assertThat(returnedValue, notNullValue());
     assertThat(returnedValue.id, is(notificationDTO.id));
     assertThat(returnedValue.viewed, is(true));
@@ -98,7 +98,7 @@ public class ProductNotificationResourceTest
     // Get the notifications again
     response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
-    notificationListDTO = fromJson(response, ProductNotificationListDTO.class);
+    notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO, not(nullValue()));
     assertThat(notificationListDTO.notifications.size(), is(1));
     // test that the notification is what is expected with viewed = true

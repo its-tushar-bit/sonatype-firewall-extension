@@ -38,16 +38,16 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setThreatLevel(4);
     HttpResponse response = restRequest(ownerPublicId1).body(group).post();
     assertResponseStatus(200, response);
-    group = fromJson(response, LicenseThreatGroup.class);
+    group = response.getBody(LicenseThreatGroup.class);
 
     response = restRequest(ownerPublicId2).path(group.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a license threat group with ID " + group.getId() + " for " + getOwnerType()
-        + " ID " + ownerPublicId2, response.getResponseBody());
+        + " ID " + ownerPublicId2, response.getBodyText());
     // Verify that the group was not deleted
     response = restRequest(ownerPublicId1).get();
     assertResponseStatus(200, response);
-    LicenseThreatGroup[] groups = fromJson(response, LicenseThreatGroup[].class);
+    LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(1, groups.length);
     assertLicenseThreatGroup(ownerId1, "AAA My group", 4, groups[0]);
@@ -79,7 +79,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
       error = error + " " + policyLocation;
     }
 
-    Assert.assertEquals(error, response.getResponseBody());
+    Assert.assertEquals(error, response.getBodyText());
     Assert.assertNotNull(ltgDAO.getById(ltg.getId()));
   }
 
@@ -89,7 +89,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     // Get all groups
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    LicenseThreatGroup[] groups = fromJson(response, LicenseThreatGroup[].class);
+    LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     int initialLicenseThreatGroupCount = groups.length;
 
@@ -100,13 +100,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setThreatLevel(10);
     response = request.body(group).post();
     assertResponseStatus(200, response);
-    group = fromJson(response, LicenseThreatGroup.class);
+    group = response.getBody(LicenseThreatGroup.class);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, group);
 
     // Get all groups
     response = request.get();
     assertResponseStatus(200, response);
-    groups = fromJson(response, LicenseThreatGroup[].class);
+    groups = response.getBody(LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
     assertLicenseThreatGroup(ownerId, "AAA My group", 10, groups[0]);
@@ -115,13 +115,13 @@ abstract class AbstractLicenseThreatGroupResourceTest
     group.setName("AAA My updated group");
     response = request.body(group).put();
     assertResponseStatus(200, response);
-    group = fromJson(response, LicenseThreatGroup.class);
+    group = response.getBody(LicenseThreatGroup.class);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, group);
 
     // Get all groups
     response = request.get();
     assertResponseStatus(200, response);
-    groups = fromJson(response, LicenseThreatGroup[].class);
+    groups = response.getBody(LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
     assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
@@ -133,7 +133,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     // Get all groups
     response = request.get();
     assertResponseStatus(200, response);
-    groups = fromJson(response, LicenseThreatGroup[].class);
+    groups = response.getBody(LicenseThreatGroup[].class);
     Assert.assertNotNull(groups);
     Assert.assertEquals(initialLicenseThreatGroupCount, groups.length);
   }
@@ -147,7 +147,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
   protected ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(String ownerId) throws Exception {
     HttpResponse response = restRequest(ownerId).path("applicable").get();
     assertResponseStatus(200, response);
-    return fromJson(response, ApplicableLicenseThreatGroups.class);
+    return response.getBody(ApplicableLicenseThreatGroups.class);
   }
 
   protected void assertLicenseThreatGroupsByOwner(String ownerId, String ownerName, String ownerType,

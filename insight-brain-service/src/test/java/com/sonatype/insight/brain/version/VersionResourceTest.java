@@ -22,7 +22,7 @@ public class VersionResourceTest
   public void testGetVersionInfo_Licensed() throws Exception {
     HttpResponse response = restRequest().path(VersionResource.SERVICE_PATH).anon().get();
     assertResponseStatus(200, response);
-    Map<String, String> versionInfo = fromJson(response, Map.class);
+    Map<String, String> versionInfo = response.getBody(Map.class);
     assertNotNull(versionInfo);
     for (String key : new String[] { "name", "version", "timestamp", "tag", "build" }) {
       assertTrue("Testing: " + key + " of " + versionInfo.toString(), versionInfo.get(key).length() > 0);

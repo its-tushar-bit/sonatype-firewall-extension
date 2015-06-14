@@ -115,10 +115,10 @@ public class PolicyResourceAuthzTest
 
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is("Insufficient permissions"));
+    assertThat(response.getBodyText(), is("Insufficient permissions"));
 
     response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
     assertResponseStatus(200, response);
-    assertThat(response.getResponseBody(), is(""));
+    assertThat(response.getBodyText(), is(""));
   }
 }

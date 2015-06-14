@@ -30,7 +30,7 @@ public class TagResourceTest
     // Get
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    Tag[] tags = fromJson(response, Tag[].class);
+    Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
 
@@ -38,12 +38,12 @@ public class TagResourceTest
     Tag tag = new Tag(org.getId(), "Tag Name", "Tag description", Color.yellow);
     response = request.body(tag).post();
     assertResponseStatus(200, response);
-    assertTag(tag, fromJson(response, Tag.class));
+    assertTag(tag, response.getBody(Tag.class));
 
     // Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -53,12 +53,12 @@ public class TagResourceTest
     tag.setName("Tag Updated Name");
     response = request.body(tag).put();
     assertResponseStatus(200, response);
-    assertTag(tag, fromJson(response, Tag.class));
+    assertTag(tag, response.getBody(Tag.class));
 
     // Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
     assertTag(tag, tags[0]);
@@ -70,7 +70,7 @@ public class TagResourceTest
     // Get
     response = request.get();
     assertResponseStatus(200, response);
-    tags = fromJson(response, Tag[].class);
+    tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(0));
   }

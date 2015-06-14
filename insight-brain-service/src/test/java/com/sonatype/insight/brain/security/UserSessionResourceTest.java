@@ -52,19 +52,19 @@ public class UserSessionResourceTest
     HttpResponse response = login("admin2", "admin");
     assertResponseStatus(401, response);
     assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
-    assertEquals("", response.getResponseBody());
+    assertEquals("", response.getBodyText());
 
     // now run the test with bad password
     response = login(User.ADMIN_USERNAME, "wrong password");
     assertResponseStatus(401, response);
     assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
-    assertEquals("", response.getResponseBody());
+    assertEquals("", response.getBodyText());
 
     // now run the test with no header, validate failure
     response = login();
     assertResponseStatus(401, response);
     assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
-    assertEquals("", response.getResponseBody());
+    assertEquals("", response.getBodyText());
 
     // now run with valid data
     response = login(User.ADMIN_USERNAME, "admin123");
@@ -100,7 +100,7 @@ public class UserSessionResourceTest
 
     response = status(jsessionIdCookie);
     assertResponseStatus(200, response);
-    AuthenticationStatus status = fromJson(response, AuthenticationStatus.class);
+    AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
     Assert.assertTrue(status.isAuthenticated());
     Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 

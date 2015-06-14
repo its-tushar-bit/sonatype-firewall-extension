@@ -40,7 +40,7 @@ public class OrganizationResourceTest
 
     HttpResponse response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
-    organization = fromJson(response, Organization.class);
+    organization = response.getBody(Organization.class);
     assertNotNull(organization);
     assertNotNull(organization.getId());
     assertEquals("OrganizationResourceTest", organization.getName());
@@ -49,7 +49,7 @@ public class OrganizationResourceTest
     // Get
     response = restRequest().get();
     assertResponseStatus(200, response);
-    Organization[] organizations = fromJson(response, Organization[].class);
+    Organization[] organizations = response.getBody(Organization[].class);
     assertNotNull(organizations);
     assertEquals(1, organizations.length);
     organization = organizations[0];
@@ -62,7 +62,7 @@ public class OrganizationResourceTest
     response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
         .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals("defaulticon_organization.png is not a valid image.", response.getResponseBody());
+    Assert.assertEquals("defaulticon_organization.png is not a valid image.", response.getBodyText());
 
     // Get icon (default icon)
     HttpResponse iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
@@ -80,7 +80,7 @@ public class OrganizationResourceTest
     iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
     assertResponseStatus(200, iconResponse);
     BufferedImage icon = null;
-    try (InputStream iconStream = iconResponse.getResponseBodyAsStream()) {
+    try (InputStream iconStream = iconResponse.getBodyStream()) {
       icon = ImageIO.read(iconStream);
     }
     Assert.assertNotNull(icon);
@@ -91,7 +91,7 @@ public class OrganizationResourceTest
     organization.setName("OrganizationResourceTest updated");
     response = restRequest().body(organization).put();
     assertResponseStatus(200, response);
-    organization = fromJson(response, Organization.class);
+    organization = response.getBody(Organization.class);
     assertNotNull(organization);
     assertEquals(organizationId, organizationId);
     assertEquals("OrganizationResourceTest updated", organization.getName());
@@ -132,7 +132,7 @@ public class OrganizationResourceTest
     Organization organization = new Organization("OrganizationResourceTest");
     HttpResponse response = restRequest().body(organization).post();
     assertResponseStatus(200, response);
-    organization = fromJson(response, Organization.class);
+    organization = response.getBody(Organization.class);
     tempEntity.register(organization);
     uninstallLicense();
     response = restRequest().body(organization).put();
@@ -153,7 +153,7 @@ public class OrganizationResourceTest
     setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
     HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     assertResponseStatus(200, response);
-    Assert.assertNotNull(response.getResponseBodyAsBytes());
+    Assert.assertNotNull(response.getBodyBytes());
   }
 
   private byte[] loadDefaultIcon() throws IOException {

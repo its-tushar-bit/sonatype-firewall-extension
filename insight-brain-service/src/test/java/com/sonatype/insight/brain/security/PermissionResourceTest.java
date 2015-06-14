@@ -31,7 +31,7 @@ public class PermissionResourceTest
     HttpResponse response = restRequest().parameter(IdUtils.TYPE_GLOBAL, "*").body(EnumSet.of(Permission.CONFIGURE_SYSTEM))
         .put();
     assertResponseStatus(200, response);
-    List<Permission> permissions = Arrays.asList(fromJson(response, Permission[].class));
+    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
     Assert.assertTrue(permissions.contains(Permission.CONFIGURE_SYSTEM));
   }
 
@@ -41,7 +41,7 @@ public class PermissionResourceTest
     HttpResponse response = restRequest().parameter(IdUtils.TYPE_GLOBAL, "*").body(EnumSet.of(Permission.CONFIGURE_SYSTEM))
         .auth("testNonAdminUser", "secret").put();
     assertResponseStatus(200, response);
-    List<Permission> permissions = Arrays.asList(fromJson(response, Permission[].class));
+    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
     Assert.assertFalse(permissions.contains(Permission.CONFIGURE_SYSTEM));
   }
 }

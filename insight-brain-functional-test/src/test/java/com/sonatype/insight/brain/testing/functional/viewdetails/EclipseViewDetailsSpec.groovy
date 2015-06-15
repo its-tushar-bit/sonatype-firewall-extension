@@ -110,7 +110,7 @@ class EclipseViewDetailsSpec
           groupId: CATALINA_HOST_MANAGER.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID],
           artifactId: CATALINA_HOST_MANAGER.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID],
           version: CATALINA_HOST_MANAGER.componentIdentifier.coordinates[ComponentIdentifier.VERSION], deferLoad: true
-      page.reload()
+      page.setAuthHeaders(User.ADMIN_USERNAME, 'admin123')
 
     then: 'Details of the vulnerabilities are shown'
       waitFor { securityViolationTable.displayed }

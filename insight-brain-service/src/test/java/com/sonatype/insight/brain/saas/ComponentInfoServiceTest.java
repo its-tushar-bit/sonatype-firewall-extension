@@ -916,4 +916,47 @@ public class ComponentInfoServiceTest
       assertThat(expected.getMessage(), is("The report ID must be specified."));
     }
   }
+
+  @Test
+  public void testGetComponentDetails_TruncatesFullSha1WhenLoadingHashBasedData() throws Exception {
+    String hash = "01234567890123456789";
+    String fullHash = hash + hash;
+
+    Label label = tempEntity.newLabel(application.getId(), "red");
+    tempEntity.newComponentLabel(application.getId(), label.getId(), hash);
+
+    // policy that triggers if the component label was loaded properly by hash
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    addPolicy(applicationPublicId, policy1);
+
+    // policy that doesn't trigger if the corresponding waiver was loaded properly by hash
+    Constraint constraint2 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint2.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    Policy policy2 = new Policy("PolicyId2", "Policy Name 2");
+    policy2.setThreatLevel(8);
+    policy2.addConstraint(constraint1);
+    policy2.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+    addPolicy(applicationPublicId, policy2);
+    tempEntity.newWaiver(hash, policy2.getId(), application.getId());
+
+    NamedComponentDetails saasComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    saasComponentDetails.setHash(hash);
+    mockSaasGetComponentDetails(saasComponentDetails);
+
+    NamedComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_COORDINATES,
+        MatchState.EXACT.getId(), fullHash, false /* proprietary */, httpRequestMock);
+    assertNotNull(componentDetails);
+    assertEquals(hash, componentDetails.getHash());
+    assertEquals(MAVEN_COORDINATES, componentDetails.getComponentIdentifier());
+    assertEquals(MatchState.EXACT.getId(), componentDetails.getMatchState());
+    assertEquals(IdentificationSource.SONATYPE.getId(), componentDetails.getIdentificationSource());
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertEquals(1, policyAlerts.size());
+    assertEquals(policy1.getName(), policyAlerts.get(0).getTrigger().getPolicyName());
+  }
 }

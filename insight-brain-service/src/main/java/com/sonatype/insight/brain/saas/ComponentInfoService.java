@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -149,6 +150,9 @@ public class ComponentInfoService
       String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
+
+    // clients like Nexus provide full SHA1 values
+    hash = HashHelper.truncateHash(hash);
 
     NamedComponentDetails componentDetails;
 

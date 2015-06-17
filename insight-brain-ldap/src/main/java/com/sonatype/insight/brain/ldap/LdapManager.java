@@ -123,12 +123,12 @@ public class LdapManager
    */
   public List<LdapUser> getUsers(String[] names, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getUsers(names, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).getUsers(names, maxResults);
   }
 
   public List<LdapGroup> getGroups(String[] names, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).getGroups(names, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).getGroups(names, maxResults);
   }
 
   /**
@@ -141,7 +141,7 @@ public class LdapManager
    */
   public List<LdapUser> findUsersByName(String name, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByName(name, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).queryUsersByName(name, maxResults);
   }
 
   /**
@@ -153,7 +153,7 @@ public class LdapManager
    */
   public List<LdapUser> findUsersByGroup(String groupName, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryUsersByGroup(groupName, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).queryUsersByGroup(groupName, maxResults);
   }
 
   /**
@@ -165,7 +165,7 @@ public class LdapManager
    */
   public List<LdapGroup> findGroupsByName(String name, long maxResults) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    return new LdapQuery(conn, userDao.getByServerId(conn.getServerId())).queryGroupsByName(name, maxResults);
+    return new LdapQuery(conn, getUserMapping(conn)).queryGroupsByName(name, maxResults);
   }
 
   /**
@@ -248,6 +248,14 @@ public class LdapManager
     return servers.get(0).getName();
   }
 
+  private LdapUserMapping getUserMapping(LdapConnection connection) {
+    LdapUserMapping umap = userDao.getByServerId(connection.getServerId());
+    if (umap == null) {
+      throw new IllegalStateException("LDAP user mapping is not configured");
+    }
+    return umap;
+  }
+
   /**
    * Slower authentication check; short-circuits if connection or mapping are missing.
    * 
@@ -255,13 +263,9 @@ public class LdapManager
    */
   public LdapUser authenticateUser(String username, char[] password) throws NamingException {
     LdapConnection conn = getDecryptedConnection();
-    LdapUserMapping umap = userDao.getByServerId(conn.getServerId());
-    if (umap == null) {
-      throw new IllegalStateException("LDAP user mapping is not configured");
-    }
     checkValidConnection(conn);
     try {
-      LdapUser user = new LdapQuery(conn, umap).authenticateUser(username, password, true);
+      LdapUser user = new LdapQuery(conn, getUserMapping(conn)).authenticateUser(username, password, true);
       resetConnectionFailures();
       return user;
     }

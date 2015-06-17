@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -308,7 +307,7 @@ public class MembershipMappingResourceTest
     assertResponseStatus(204, response);
   }
 
-  private List<Role> testInitialGlobalState(HttpResponse response) throws IOException {
+  private List<Role> testInitialGlobalState(HttpResponse response) {
     assertResponseStatus(200, response);
     ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
     assertThat(applicable, is(notNullValue()));

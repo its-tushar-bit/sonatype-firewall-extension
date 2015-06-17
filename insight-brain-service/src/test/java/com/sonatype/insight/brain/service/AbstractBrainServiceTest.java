@@ -188,7 +188,7 @@ public abstract class AbstractBrainServiceTest
     }
   }
 
-  protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) throws IOException {
+  protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) {
     final int actualStatus = response.getStatusCode();
     assertEquals(
         "URI:" + response.getUrl() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.Arrays;
 import java.util.List;
@@ -323,7 +322,7 @@ public class UserResourceTest
   }
 
   private void assertMember(HttpResponse response, String error, MemberType type, String name, String displayName,
-      String email, String realm) throws IOException
+      String email, String realm)
   {
     assertResponseStatus(200, response);
 

@@ -55,6 +55,7 @@ public class CLMShiroModule
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
     manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
+    manager.addFilter("secureCookies", new SecureCookiesFilter());
     addTemporaryAnonymousPaths(manager);
     manager.createChain("/*assets/**", "anon"); // assets for the web interface
     manager.createChain("/cip/**", "anon"); // assets for report CIP
@@ -62,6 +63,7 @@ public class CLMShiroModule
     manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
+    manager.createChain("/rest/user/session", "authcBasic, secureCookies");
     manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing
                                                               // if not authenticated
     manager.createChain("/rest/version", "anon"); // product version info

@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
 public class UserSessionResourceTest
@@ -36,6 +38,10 @@ public class UserSessionResourceTest
 
   private HttpResponse login(String username, String password) throws Exception {
     return restRequest().auth(username, password).post();
+  }
+
+  private HttpResponse secureLogin() throws Exception {
+    return restRequest().auth().header("X-Forwarded-Proto", "https").post();
   }
 
   private HttpResponse status(HttpCookie cookie) throws Exception {
@@ -117,5 +123,23 @@ public class UserSessionResourceTest
     // no cookie, no auth
     HttpResponse response = logout(null);
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testLogin_CookiesNotSecure() throws Exception {
+    HttpResponse response = login(User.ADMIN_USERNAME, "admin123");
+    assertResponseStatus(204, response);
+
+    HttpCookie jsessionIdCookie = extractSessionCookie(response);
+    assertThat(jsessionIdCookie.getSecure(), is(false));
+  }
+
+  @Test
+  public void testSecureLogin_CookiesSecure() throws Exception {
+    HttpResponse response = secureLogin();
+    assertResponseStatus(204, response);
+
+    HttpCookie jsessionIdCookie = extractSessionCookie(response);
+    assertThat(jsessionIdCookie.getSecure(), is(true));
   }
 }

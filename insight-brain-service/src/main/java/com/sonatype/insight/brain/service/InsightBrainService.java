@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.inject.Named;
 
@@ -48,6 +49,8 @@ public class InsightBrainService
 {
   private static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
+  private static final String PRODUCT_NAME = "Sonatype CLM";
+
   static {
     // INSIGHT-4557
     System.setProperty("java.awt.headless", "true");
@@ -73,8 +76,12 @@ public class InsightBrainService
 
   public static final String ABOUT_ASSET_PATH = "/about-assets/";
 
+  private static final String INSTANCE_ID = UUID.randomUUID().toString();
+
   public static void main(final String[] args) {
     try {
+      printInstanceId("Starting");
+      addShutdownLogger();
       JavaRuntimeChecker.checkJreIsSupported();
       JavaXXMaxPermSizeChecker.check();
 
@@ -93,10 +100,21 @@ public class InsightBrainService
     }
   }
 
+  private static void addShutdownLogger() {
+    Runtime.getRuntime().addShutdownHook(new Thread("Shutdown Logger")
+    {
+      @Override
+      public void run() {
+        printInstanceId("Stopping");
+      }
+    });
+  }
+
   @Override
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     MDCUsernameScope.forSystem();
 
+    printInstanceId("Started");
     printVersion();
 
     super.run(configuration, environment);
@@ -124,9 +142,16 @@ public class InsightBrainService
     String version = new VersionService().getVersion("Unknown");
     log.info("|------------------------------------------");
     log.info("|");
-    log.info("| Initializing Sonatype CLM {}", version);
+    log.info("| Initializing {} {}", PRODUCT_NAME, version);
     log.info("|");
     log.info("|------------------------------------------");
+  }
+
+  private static void printInstanceId(String messagePrefix) {
+    String message = messagePrefix + " " + PRODUCT_NAME + " instance ID " + INSTANCE_ID + ".";
+    // Log to stdout first because the standard logging may not be operational at this point.
+    System.out.println(message);
+    log.info(message);
   }
 
   private static boolean validateTempDir() {

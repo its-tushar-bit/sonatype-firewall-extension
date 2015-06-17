@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -148,7 +149,8 @@ public class InsightBrainService
   }
 
   private static void printInstanceId(String messagePrefix) {
-    String message = messagePrefix + " " + PRODUCT_NAME + " instance ID " + INSTANCE_ID + ".";
+    String message = messagePrefix + " " + PRODUCT_NAME + " instance ID " + INSTANCE_ID + " on " + getLocalHostString()
+        + ".";
     // Log to stdout first because the standard logging may not be operational at this point.
     System.out.println(message);
     log.info(message);
@@ -299,5 +301,21 @@ public class InsightBrainService
       }
     }, new CLMShiroModule(config.isAnonymousClientAccessAllowed()),
         new CLMShiroAopModule(config.isAnonymousClientAccessAllowed()));
+  }
+
+  private static String getLocalHostString() {
+    try {
+      InetAddress localHost = InetAddress.getLocalHost();
+      if (localHost == null) {
+        log.error("InetAddress.getLocalHost() returned null.");
+        return null;
+      }
+
+      return "hostname " + localHost.getHostName() + " (IP address " + localHost.getHostAddress() + ")";
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+      return null;
+    }
   }
 }

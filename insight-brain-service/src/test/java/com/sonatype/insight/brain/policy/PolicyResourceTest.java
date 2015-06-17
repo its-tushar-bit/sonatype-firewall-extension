@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

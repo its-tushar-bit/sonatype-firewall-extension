@@ -102,19 +102,19 @@ public class UserSessionResourceTest
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
-    HttpCookie jsessionIdCookie = extractSessionCookie(response);
+    HttpCookie sessionCookie = extractSessionCookie(response);
 
-    response = status(jsessionIdCookie);
+    response = status(sessionCookie);
     assertResponseStatus(200, response);
     AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
     Assert.assertTrue(status.isAuthenticated());
     Assert.assertEquals(User.ADMIN_USERNAME, status.getUsername());
 
-    response = logout(jsessionIdCookie);
+    response = logout(sessionCookie);
     assertResponseStatus(204, response);
 
     // this cookie should no longer be valid
-    response = status(jsessionIdCookie);
+    response = status(sessionCookie);
     assertResponseStatus(401, response);
   }
 
@@ -130,8 +130,8 @@ public class UserSessionResourceTest
     HttpResponse response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
-    HttpCookie jsessionIdCookie = extractSessionCookie(response);
-    assertThat(jsessionIdCookie.getSecure(), is(false));
+    HttpCookie sessionCookie = extractSessionCookie(response);
+    assertThat(sessionCookie.getSecure(), is(false));
   }
 
   @Test
@@ -139,7 +139,7 @@ public class UserSessionResourceTest
     HttpResponse response = secureLogin();
     assertResponseStatus(204, response);
 
-    HttpCookie jsessionIdCookie = extractSessionCookie(response);
-    assertThat(jsessionIdCookie.getSecure(), is(true));
+    HttpCookie sessionCookie = extractSessionCookie(response);
+    assertThat(sessionCookie.getSecure(), is(true));
   }
 }

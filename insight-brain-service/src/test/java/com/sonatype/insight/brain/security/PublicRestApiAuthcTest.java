@@ -63,7 +63,7 @@ public class PublicRestApiAuthcTest
     testBadAuthentication("admin", "wrong password");
   }
 
-  public void testBadAuthentication(String username, String password) throws Exception {
+  private void testBadAuthentication(String username, String password) throws Exception {
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").auth(username, password);
     HttpResponse response = request.get();
     assertResponseStatus(401, response);

@@ -45,11 +45,13 @@ abstract class AbstractResourceWithIcon
 
   private final BaseUrl baseUrl;
 
-  private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
+  private final ErrorResponseGenerator errorResponseGenerator;
 
-  protected AbstractResourceWithIcon(SaasClient client, BaseUrl baseUrl) {
+  protected AbstractResourceWithIcon(SaasClient client, BaseUrl baseUrl, ErrorResponseGenerator errorResponseGenerator)
+  {
     this.client = client;
     this.baseUrl = baseUrl;
+    this.errorResponseGenerator = errorResponseGenerator;
   }
 
   protected void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,

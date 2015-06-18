@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -53,9 +54,9 @@ public class OrganizationResource
 
   @Inject
   public OrganizationResource(final InsightWork work, final SaasClient client, final BaseUrl baseUrl,
-                              final OrganizationService organizationService)
+      final OrganizationService organizationService, ErrorResponseGenerator errorResponseGenerator)
   {
-    super(client, baseUrl);
+    super(client, baseUrl, errorResponseGenerator);
     this.work = work;
     this.organizationService = organizationService;
   }

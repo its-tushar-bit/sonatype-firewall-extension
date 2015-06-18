@@ -67,11 +67,12 @@ public class PolicyResource
 
   private final PolicyImportExport policyImportExport;
 
-  private ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
+  private final ErrorResponseGenerator errorResponseGenerator;
 
   @Inject
-  public PolicyResource(PolicyImportExport policyImportExport) {
+  public PolicyResource(PolicyImportExport policyImportExport, ErrorResponseGenerator errorResponseGenerator) {
     this.policyImportExport = policyImportExport;
+    this.errorResponseGenerator = errorResponseGenerator;
   }
 
   @GET

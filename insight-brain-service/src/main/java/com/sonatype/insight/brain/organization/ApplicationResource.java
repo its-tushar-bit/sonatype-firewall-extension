@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -85,9 +86,9 @@ public class ApplicationResource
   @Inject
   public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final SaasClient client,
       final ScanPolicyEvaluator scanPolicyEvaluator, final ApplicationAdapter applicationAdapter,
-      final ApplicationService applicationService)
+      final ApplicationService applicationService, ErrorResponseGenerator errorResponseGenerator)
   {
-    super(client, baseUrl);
+    super(client, baseUrl, errorResponseGenerator);
     this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;

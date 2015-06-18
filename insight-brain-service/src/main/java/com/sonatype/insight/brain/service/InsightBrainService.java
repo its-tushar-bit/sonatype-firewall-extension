@@ -299,7 +299,7 @@ public class InsightBrainService
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
-    }, new CLMShiroModule(config.isAnonymousClientAccessAllowed()),
+    }, new CLMShiroModule(config.isAnonymousClientAccessAllowed(), config.isCsrfProtection()),
         new CLMShiroAopModule(config.isAnonymousClientAccessAllowed()));
   }
 

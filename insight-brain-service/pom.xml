@@ -566,6 +566,7 @@
                 <include>wro4j/lib/bootstrap/bootstrap-*.js</include>
                 <include>wro4j/lib/bootstrap-slider-2.0.0-sonatype-1.js</include>
                 <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
+                <include>wro4j/lib/angular-${angularjs.version}/angular-cookies.js</include>
                 <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>wro4j/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>wro4j/lib/ui-bootstrap-tpls-*.js</include>

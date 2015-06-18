@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -154,6 +156,21 @@ public class OrganizationResourceTest
     HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getBodyBytes());
+  }
+
+  @Test
+  public void testSetIconSync_ValidateCsrfToken() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    HttpRequest request = restRequest().path(OrganizationResource.ICON_PATH_SYNC).part("organizationId", org.getId())
+        .part("hasRobotSource", "false").part("file", "icon.png", new byte[0]);
+
+    HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is(""));
+
+    response = request.noCsrfToken().post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
   }
 
   private byte[] loadDefaultIcon() throws IOException {

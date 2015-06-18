@@ -16,10 +16,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -54,12 +57,14 @@ public class ScanResource
       @PathParam("applicationPublicId") String appPublicId,
       @FormDataParam("file") InputStream is, 
       @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
       @QueryParam("stageId") String stageId,
       @QueryParam("sendNotifications") boolean sendNotifications,
       @QueryParam("noFormData") boolean noFormData) 
           throws Exception
   {
     try {
+      AntiCsrfFilter.validate(csrfToken, headers);
       ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
           sendNotifications);
       if (noFormData) {

@@ -241,24 +241,21 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void installLicense() throws Exception {
-    HttpResponse response = uploadLicense(false);
+    HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(200, response);
 
     Assert.assertTrue(licenseManager.isValid());
   }
 
-  protected HttpResponse uploadLicense(boolean forceSuccess) throws Exception {
-    return uploadLicense(forceSuccess, null, null);
+  protected HttpRequest licenseRequest() {
+    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH)
+        .csrfToken("nonce", null, "nonce");
+    request.part("file", "sonatype.lic", getClass().getResource("/productlicense/license.lic"));
+    return request;
   }
 
-  protected HttpResponse uploadLicense(boolean forceSuccess, String username, String password) throws Exception {
-    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH)
-        .query("forceSuccess", Boolean.toString(forceSuccess));
-    request.part("file", "sonatype.lic", getClass().getResource("/productlicense/license.lic"));
-    if (username != null) {
-      request.auth(username, password);
-    }
-    HttpResponse response = request.post();
+  protected HttpResponse uploadLicense(HttpRequest licenseRequest) throws Exception {
+    HttpResponse response = licenseRequest.post();
     productlicenseWasUninstalled = false;
     return response;
   }

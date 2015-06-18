@@ -14,12 +14,14 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -112,10 +114,11 @@ abstract class AbstractResourceWithIcon
   }
 
   protected String setIconSync(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
-      InputStream uploadedInputStream, FormDataContentDisposition fileDetail)
+      InputStream uploadedInputStream, FormDataContentDisposition fileDetail, String csrfToken, HttpHeaders headers)
   {
     String errorMessage = "";
     try {
+      AntiCsrfFilter.validate(csrfToken, headers);
       setIcon(ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail);
     }
     catch (Exception e) {

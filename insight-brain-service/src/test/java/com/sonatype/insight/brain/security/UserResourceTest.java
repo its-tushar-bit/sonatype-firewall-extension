@@ -170,6 +170,10 @@ public class UserResourceTest
     user = response.getBody(User.class);
     tempEntity.register(user);
     assertThat(user.getId(), is(notNullValue()));
+
+    // log the admin in
+    response = sessionRequest().auth().post();
+    assertResponseStatus(204, response);
     HttpCookie adminCookie = extractSessionCookie(response);
 
     // log the user in

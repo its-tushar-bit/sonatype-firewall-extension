@@ -17,10 +17,13 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -52,40 +55,43 @@ public class ProductLicenseResource
   @UnlicensedPath
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public String installLicense(@FormDataParam("file") InputStream is,
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
       @AuthzErrorMsg @QueryParam("forceSuccess") boolean forceSuccess)
   {
     try {
-      licenseManager.installLicense(is);
-      log.info("CLM License successfully installed");
-      // Note an empty string triggers success in the UI
-      return "";
+      AntiCsrfFilter.validate(csrfToken, headers);
+      try {
+        licenseManager.installLicense(is);
+        log.info("CLM License successfully installed");
+        // Note an empty string triggers success in the UI
+        return "";
+      }
+      catch (LicensingException e) {
+        // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
+        String msg = "The provided license file is invalid. Please verify you selected the correct file."
+            + " If the problem persists, please contact our support team.";
+
+        // log the actual exception (especially its message which isn't otherwise revealed) to help support
+        log.debug("Unable to install license", e);
+
+        throw new BadRequestException(msg, e);
+      }
+      catch (IOException e) {
+        String msg = "The license file was unable to install. Please ensure server has access to "
+            + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.";
+
+        log.error("Unable to install license", e);
+
+        throw new BadRequestException(msg, e);
+      }
     }
-    catch (LicensingException e) {
-      // as per CLM-870, the actual exception msg is deemed inappropriate so we provide a stock msg
-      String msg = "The provided license file is invalid. Please verify you selected the correct file."
-          + " If the problem persists, please contact our support team.";
-
-      // log the actual exception (especially its message which isn't otherwise revealed) to help support
-      log.debug("Unable to install license", e);
-
+    catch (Exception e) {
       // IE<10 will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
       // error page which then fails to load because of cross site scripting probs
       if (forceSuccess) {
-        return msg;
+        return e.getMessage();
       }
-
-      throw new BadRequestException(msg, e);
-    } catch (IOException e) {
-      String msg = "The license file was unable to install. Please ensure server has access to "
-          + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.";
-
-      log.error("Unable to install license", e);
-
-      if (forceSuccess) {
-        return msg;
-      }
-
-      throw new BadRequestException(msg, e);
+      throw e;
     }
   }
 

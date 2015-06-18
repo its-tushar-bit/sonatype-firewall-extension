@@ -41,8 +41,11 @@ public class CLMShiroModule
 
   private final boolean anonymousClientAccessAllowed;
 
-  public CLMShiroModule(final boolean anonymousClientAccessAllowed) {
+  private final boolean csrfProtection;
+
+  public CLMShiroModule(final boolean anonymousClientAccessAllowed, boolean csrfProtection) {
     this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
+    this.csrfProtection = csrfProtection;
   }
 
   @Override
@@ -56,22 +59,8 @@ public class CLMShiroModule
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
     manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
     manager.addFilter("secureCookies", new SecureCookiesFilter());
-    addTemporaryAnonymousPaths(manager);
-    manager.createChain("/*assets/**", "anon"); // assets for the web interface
-    manager.createChain("/cip/**", "anon"); // assets for report CIP
-    manager.createChain("/favicon.ico", "anon"); // favicon for web interface
-    manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
-    manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
-    manager.createChain("/rest/user/session", "authcBasic, secureCookies");
-    manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing
-                                                              // if not authenticated
-    manager.createChain("/rest/version", "anon"); // product version info
-    manager.createChain("/about", "anon"); // about product release static link
-    manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
-    manager.createChain("/ui/links/**", "anon"); // only redirects
-    manager.createChain("/api/**", "noSessionCreation, authcBasicMandatory");
-    manager.createChain("/**/*", "authcBasic");
+    manager.addFilter("antiCsrf", new AntiCsrfFilter(csrfProtection));
+    configureFilterChains(manager);
     // change the auth type so browsers dont prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasicMandatory")).setAuthcScheme(AUTHC_SCHEME);
@@ -82,19 +71,63 @@ public class CLMShiroModule
     binder().requestInjection(new SessionCookieCustomizer());
   }
 
-  // to be removed once all clients use authentication
-  private void addTemporaryAnonymousPaths(DefaultFilterChainManager manager) {
-    String clientAuthFilterName = anonymousClientAccessAllowed ? "authcBasic[permissive]" : "authcBasic";
+  private void configureFilterChains(DefaultFilterChainManager manager) {
+    configureFilterChainsForIntegrations(manager);
 
-    manager.createChain("/rest/integration/applications", clientAuthFilterName);
-    manager.createChain("/rest/report/*/*/embedReport/**", clientAuthFilterName);
-    manager.createChain("/rest/application/services/names", clientAuthFilterName);
-    manager.createChain("/rest/application/validate/*", clientAuthFilterName);
-    manager.createChain("/rest/policy/*/evaluate", clientAuthFilterName);
-    manager.createChain("/rest/ci/scan/*", clientAuthFilterName);
-    manager.createChain("/rest/rm/scan/*", clientAuthFilterName);
-    manager.createChain("/rest/config/proprietary", clientAuthFilterName);
-    manager.createChain("/rest/policy/stages", clientAuthFilterName); // licensed build stages
+    manager.createChain("/*assets/**", "anon"); // assets for the web interface
+    manager.createChain("/cip/**", "anon"); // assets for report CIP
+    manager.createChain("/favicon.ico", "anon"); // favicon for web interface
+    manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
+    manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
+    manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects
+    manager.createChain("/rest/user/session/logout", "anon"); // client logout requires no auth, will simply do nothing
+                                                              // if not authenticated
+    manager.createChain("/rest/version", "anon"); // product version info
+    manager.createChain("/about", "anon"); // about product release static link
+    manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
+    manager.createChain("/ui/links/**", "anon"); // only redirects
+
+    // public REST API, no sessions supported/allowed
+    manager.createChain("/api/**", "noSessionCreation, authcBasicMandatory");
+
+    // login, only means to create sessions, also used by integrations for auth validation
+    manager.createChain("/rest/user/session", "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
+        + "], authcBasic, secureCookies");
+
+    configureFilterChainsForNonAjaxFormSubmissions(manager);
+
+    // internal REST API
+    manager.createChain("/**/*", "noSessionCreation, antiCsrf, authcBasic");
+  }
+
+  private void configureFilterChainsForNonAjaxFormSubmissions(DefaultFilterChainManager manager) {
+    // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
+    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED + "], authcBasic";
+    manager.createChain("/rest/application/icon/sync", filters);
+    manager.createChain("/rest/organization/icon/sync", filters);
+    manager.createChain("/rest/policy/*/*/import/ie", filters);
+    manager.createChain("/rest/product/license", filters);
+    manager.createChain("/rest/scan/*", filters);
+  }
+
+  private void configureFilterChainsForIntegrations(DefaultFilterChainManager manager) {
+    // client integrations don't have CSRF tokens and need access via explicit auth
+    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], authcBasic";
+    manager.createChain("/rest/ide/scan/**", filters);
+    manager.createChain("/rest/quality/evaluations/*/*", filters);
+    manager.createChain("/rest/report/*/*/downloadBundle", filters);
+
+    // for backward-compat, these can still support anonymous access
+    filters += (anonymousClientAccessAllowed ? "[permissive]" : "");
+    manager.createChain("/rest/integration/applications", filters);
+    manager.createChain("/rest/report/*/*/embedReport/**", filters);
+    manager.createChain("/rest/application/services/names", filters);
+    manager.createChain("/rest/application/validate/*", filters);
+    manager.createChain("/rest/policy/*/evaluate", filters);
+    manager.createChain("/rest/ci/scan/*", filters);
+    manager.createChain("/rest/rm/scan/*", filters);
+    manager.createChain("/rest/config/proprietary", filters);
+    manager.createChain("/rest/policy/stages", filters); // licensed build stages
   }
 
   @Override

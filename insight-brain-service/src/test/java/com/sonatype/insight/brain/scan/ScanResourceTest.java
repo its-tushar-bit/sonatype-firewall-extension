@@ -58,6 +58,19 @@ public class ScanResourceTest
     assertThat(response.getBodyText(), is("Could not find an application with public ID bad-app-id."));
   }
 
+  @Test
+  public void testUploadBinary_ValidateCsrfToken() throws Exception {
+    HttpRequest request = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "app01.zip");
+
+    HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(ScanTicket.class), is(notNullValue()));
+
+    response = request.query("noFormData", "true").noCsrfToken().post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+  }
+
   private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {
     // Allow 10 seconds for the scan task to be processed
     HttpRequest request = restRequest().path("{ticketId}").parameter(appPublicId, scanTicketId);

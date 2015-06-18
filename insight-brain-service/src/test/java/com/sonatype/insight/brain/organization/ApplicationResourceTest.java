@@ -204,6 +204,22 @@ public class ApplicationResourceTest
     Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getBodyText());
   }
 
+  @Test
+  public void testSetIconSync_ValidateCsrfToken() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("test");
+    HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH_SYNC)
+        .part("applicationId", application.getId()).part("hasRobotSource", "false")
+        .part("file", "icon.png", new byte[0]);
+
+    HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is(""));
+
+    response = request.noCsrfToken().post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+  }
+
   private byte[] loadDefaultIcon() throws IOException {
     return IconUtils.loadIconFromProductAssets("defaulticon_application.png");
   }

@@ -1,0 +1,160 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import java.util.Arrays;
+import java.util.UUID;
+
+import javax.servlet.Filter;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.util.StringUtils;
+import org.apache.shiro.web.filter.authc.AuthenticationFilter;
+import org.apache.shiro.web.servlet.SimpleCookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Filter using the "cookie-to-header token" approach to prevent cross-site request forgery. To be used in front of
+ * another filter that handles logins.
+ */
+public class AntiCsrfFilter
+    extends AuthenticationFilter
+{
+  private static final Logger log = LoggerFactory.getLogger(AntiCsrfFilter.class);
+
+  private static final String ERROR_MSG = "Invalid cross-site request forgery token";
+
+  public static final String CSRF_COOKIE_NAME = "CLM-CSRF-TOKEN";
+
+  public static final String CSRF_HEADER_NAME = "X-CSRF-TOKEN";
+
+  public static final String EXPLICIT_AUTH_ALLOWED = "explicitAuthAllowed";
+
+  public static final String FORM_POST_ALLOWED = "formPostAllowed";
+
+  private static class PathConfig
+  {
+    // allow requests that don't use session cookie for auth without CSRF token
+    final boolean explicitAuthAllowed;
+
+    // allow requests that post old-school forms to pass the filter for manual validation in a later phase
+    final boolean formPostAllowed;
+
+    public PathConfig(String config) {
+      String[] flags = StringUtils.split(config);
+      explicitAuthAllowed = flags != null && Arrays.asList(flags).contains(EXPLICIT_AUTH_ALLOWED);
+      formPostAllowed = flags != null && Arrays.asList(flags).contains(FORM_POST_ALLOWED);
+    }
+  }
+
+  public AntiCsrfFilter(boolean enabled) {
+    setEnabled(enabled);
+  }
+
+  @Override
+  public Filter processPathConfig(String path, String config) {
+    appliedPaths.put(path, new PathConfig(config));
+    return this;
+  }
+
+  @Override
+  protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+    PathConfig pathConfig = (PathConfig) mappedValue;
+    HttpServletRequest httpRequest = (HttpServletRequest) request;
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+    Cookie csrfCookie = getCsrfCookie(httpRequest);
+    if (csrfCookie == null) {
+      addCsrfCookie(httpRequest, httpResponse);
+    }
+
+    if (isSafeMethod(httpRequest)) {
+      return true;
+    }
+    if (pathConfig.formPostAllowed && isFormPost(httpRequest)) {
+      return true;
+    }
+    if (pathConfig.explicitAuthAllowed && !getSubject(request, response).isAuthenticated()) {
+      return true;
+    }
+
+    return isCsrfHeaderValid(httpRequest, csrfCookie);
+  }
+
+  private boolean isSafeMethod(HttpServletRequest request) {
+    String method = request.getMethod();
+    return "GET".equals(method) || "HEAD".equals(method);
+  }
+
+  private boolean isFormPost(HttpServletRequest request) {
+    return "POST".equals(request.getMethod()) && request.getContentType() != null
+        && MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(MediaType.valueOf(request.getContentType()));
+  }
+
+  private boolean isCsrfHeaderValid(HttpServletRequest request, Cookie csrfCookie) {
+    String csrfHeader = request.getHeader(CSRF_HEADER_NAME);
+    return csrfHeader != null && csrfCookie != null && csrfHeader.equals(csrfCookie.getValue());
+  }
+
+  private Cookie getCsrfCookie(HttpServletRequest request) {
+    for (Cookie cookie : request.getCookies()) {
+      if (CSRF_COOKIE_NAME.equals(cookie.getName())) {
+        return cookie;
+      }
+    }
+    return null;
+  }
+
+  private void addCsrfCookie(HttpServletRequest request, HttpServletResponse response) {
+    SimpleCookie csrfCookie = new SimpleCookie(CSRF_COOKIE_NAME);
+    csrfCookie.setValue(UUID.randomUUID().toString());
+    csrfCookie.setPath("/");
+    csrfCookie.setHttpOnly(false);
+    csrfCookie.saveTo(request, response);
+  }
+
+  @Override
+  protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
+    httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    httpResponse.setContentType("text/plain");
+    httpResponse.getWriter().print(ERROR_MSG);
+    if (getSubject(request, response).isAuthenticated()) {
+      log.debug("Rejecting request from {} with valid session due to invalid cross-site request forgery token",
+          request.getRemoteAddr());
+    }
+    else {
+      log.debug("Rejecting request from {} without session due to invalid cross-site request forgery token",
+          request.getRemoteAddr());
+    }
+    // abort filter chain, this request ends here
+    return false;
+  }
+
+  /**
+   * Allows manual CSRF validation by the REST resource for no other reason than to support IE9. Once IE9 is no longer
+   * supported, nuke this, along with {@link #FORM_POST_ALLOWED}.
+   */
+  public static void validate(String csrfToken, HttpHeaders headers) {
+    String csrfHeader = headers.getRequestHeaders().getFirst(CSRF_HEADER_NAME);
+    if (csrfHeader == null) {
+      // if this was indeed a non-AJAX request, the token better be in the form data
+      csrfHeader = csrfToken;
+    }
+    javax.ws.rs.core.Cookie csrfCookie = headers.getCookies().get(CSRF_COOKIE_NAME);
+    if (csrfHeader == null || csrfCookie == null || !csrfHeader.equals(csrfCookie.getValue())) {
+      throw new UnauthenticatedException(ERROR_MSG);
+    }
+  }
+}

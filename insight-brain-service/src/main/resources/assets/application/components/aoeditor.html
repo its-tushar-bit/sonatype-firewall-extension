@@ -97,6 +97,7 @@
           <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
           <button id='evaluate-bundle-upload' class='btn btn-primary pull-right' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
           <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
+          <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
         </form>
       </div>
     </div>
@@ -121,6 +122,7 @@
               ng-click='doSubmit()'>Import
       </button>
       <input type='submit' upload-submit='uploaded(content, completed)' class='hide'/>
+      <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
     </form>
   </div>
   </script>
@@ -241,6 +243,7 @@
             <input name='{{ao.type}}Id' value='{{ao.getId()}}' type='hidden'/>
             <input name='hasRobotSource' ng-model='hasRobotSource' type='hidden'/>
             <input name='robotHash' ng-model='robotHash' type='hidden'/>
+            <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
           </form>
         </div>
       </div>

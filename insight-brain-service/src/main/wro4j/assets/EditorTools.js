@@ -6,7 +6,7 @@
 /* global angular, AngularUtils, $ */
 (function() {
   'use strict';
-  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable']),
+  var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable', 'ngCookies']),
       validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'];
 
   module.run(['editableOptions', function (editableOptions) {
@@ -18,15 +18,18 @@
     '$http',
     '$timeout',
     '$window',
+    '$cookies',
     'Messages',
     'CLMLocations',
     'selectedApplication',
     'ApplicationStore',
     'StageTypeStore',
     '$q',
-    function($scope, $http, $timeout, $window, messages, CLMLocations, selectedApplication, ApplicationStore,
+    function($scope, $http, $timeout, $window, $cookies, messages, CLMLocations, selectedApplication, ApplicationStore,
             StageTypeStore, $q) {
       $scope.currentState = 'init';
+      $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
+      $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
 
       function setError(message) {
         $scope.requestActive = false;
@@ -279,7 +282,7 @@
     };
   }]);
 
-  module.controller('ImportPolicyController', ['$scope', '$http', '$timeout', '$window', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, $window, messages, clmAppLocations) {
+  module.controller('ImportPolicyController', ['$scope', '$http', '$timeout', '$window', '$cookies', 'Messages', 'CLMAppLocations', function ($scope, $http, $timeout, $window, $cookies, messages, clmAppLocations) {
     function fileCheck() {
       if (!fileElement) {
         fileElement =  angular.element('form[name=importPolicy] input[type=file]')[0];
@@ -305,6 +308,8 @@
 
     $scope.btnDisabled = true;
     $scope.importPolicyUrl = clmAppLocations.getIeImportPolicyUrl();
+    $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
+    $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
 
     $timeout(fileCheck, 100);
 
@@ -357,14 +362,16 @@
     };
   }]);
 
-  module.service('editorTools', ['$parse', '$q', '$timeout', 'regexFactory', '$http', 'CLMAppLocations', 'Messages',
-      function($parse, $q, $timeout, regexFactory, $http, CLMAppLocations, Messages) {
+  module.service('editorTools', ['$parse', '$q', '$timeout', 'regexFactory', '$http', '$cookies', 'CLMAppLocations', 'Messages',
+      function($parse, $q, $timeout, regexFactory, $http, $cookies, CLMAppLocations, Messages) {
         function EditorController($scope, idSelector, hiddenId, form) {
           var defer, me = this;
           $scope.isPostingIcon = false;
 
           $scope.alerts = [];
           $scope.hasRobotSource = false;
+          $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
+          $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
 
           $scope.pushAlert = function(obj) {
             $scope.alerts.length = 0;

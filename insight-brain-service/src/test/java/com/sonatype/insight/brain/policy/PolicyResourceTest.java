@@ -31,6 +31,7 @@ import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
 import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
@@ -312,6 +313,21 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getBodyText(),
         is("The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?"));
+  }
+
+  @Test
+  public void testImportPolies_ValidateCsrfTokenInIeMode() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    HttpRequest request = restRequest(ORG, org.getId()).path("import/ie").part("file", "policies.json",
+        new PolicyExportResult());
+
+    HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is(not("Invalid cross-site request forgery token")));
+
+    response = request.noCsrfToken().post();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
   }
 
   @Test

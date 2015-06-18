@@ -20,6 +20,7 @@ import java.util.TreeMap;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.AsyncHttpClient;
@@ -46,6 +47,21 @@ public class HttpRequest
     }
   }
 
+  private static class CsrfToken
+  {
+    final String cookieValue;
+
+    final String headerValue;
+
+    final String formValue;
+
+    public CsrfToken(String cookieValue, String headerValue, String formValue) {
+      this.cookieValue = cookieValue;
+      this.headerValue = headerValue;
+      this.formValue = formValue;
+    }
+  }
+
   private static final String ADMIN_USERNAME = User.ADMIN_USERNAME;
 
   private static final String ADMIN_PASSWORD = "admin123";
@@ -57,6 +73,8 @@ public class HttpRequest
   private Url url;
 
   private boolean redirects;
+
+  private CsrfToken csrfToken;
 
   private String username;
 
@@ -74,6 +92,7 @@ public class HttpRequest
 
   private HttpRequest(Url url) {
     this.url = url;
+    csrfToken = new CsrfToken("nonce", "nonce", null);
     username = ADMIN_USERNAME;
     password = ADMIN_PASSWORD;
     headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -83,6 +102,7 @@ public class HttpRequest
   private HttpRequest(HttpRequest parent) {
     this.url = new Url(parent.getUrl());
     redirects = parent.redirects;
+    csrfToken = parent.csrfToken;
     username = parent.username;
     password = parent.password;
     headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -148,6 +168,20 @@ public class HttpRequest
     return this;
   }
 
+  public HttpRequest csrfToken(String cookieValue, String headerValue) {
+    return csrfToken(cookieValue, headerValue, null);
+  }
+
+  public HttpRequest csrfToken(String cookieValue, String headerValue, String formValue) {
+    csrfToken = new CsrfToken(cookieValue, headerValue, formValue);
+    return this;
+  }
+
+  public HttpRequest noCsrfToken() {
+    csrfToken = new CsrfToken(null, null, null);
+    return this;
+  }
+
   public HttpRequest anon() {
     return auth(null, null);
   }
@@ -182,9 +216,11 @@ public class HttpRequest
     return this;
   }
 
-  public HttpRequest cookie(HttpCookie cookie) {
-    if (cookie != null) {
-      cookies.put(cookie.getName(), cookie);
+  public HttpRequest cookie(HttpCookie... cookies) {
+    for (HttpCookie cookie : cookies) {
+      if (cookie != null) {
+        this.cookies.put(cookie.getName(), cookie);
+      }
     }
     return this;
   }
@@ -246,6 +282,16 @@ public class HttpRequest
     for (HttpCookie cookie : cookies.values()) {
       builder.addCookie(new Cookie(cookie.getDomain(), cookie.getName(), cookie.getValue(), cookie.getPath(),
           (int) cookie.getMaxAge(), cookie.getSecure(), cookie.getVersion()));
+    }
+
+    if (csrfToken.cookieValue != null && !cookies.containsKey(AntiCsrfFilter.CSRF_COOKIE_NAME)) {
+      builder.addCookie(new Cookie(null, AntiCsrfFilter.CSRF_COOKIE_NAME, csrfToken.cookieValue, null, 0, false, 0));
+    }
+    if (csrfToken.headerValue != null) {
+      builder.setHeader(AntiCsrfFilter.CSRF_HEADER_NAME, csrfToken.headerValue);
+    }
+    if (csrfToken.formValue != null && parts != null && !noBody) {
+      builder.addBodyPart(new StringPart(AntiCsrfFilter.CSRF_HEADER_NAME, csrfToken.formValue, "UTF-8"));
     }
 
     if (username != null) {

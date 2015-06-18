@@ -21,12 +21,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
@@ -154,13 +156,14 @@ public class OrganizationResource
   @Authorize(permission = Permission.WRITE)
   @AuthzErrorMsg
   public String setIconSync(
+      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
       @FormDataParam("organizationId") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail)
   {
     return super.setIconSync(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash,
-        uploadedInputStream, fileDetail);
+        uploadedInputStream, fileDetail, csrfToken, headers);
   }
 
   /**

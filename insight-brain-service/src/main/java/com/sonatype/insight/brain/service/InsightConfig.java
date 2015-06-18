@@ -99,6 +99,13 @@ public class InsightConfig
   private boolean anonymousClientAccessAllowed = true;
 
   /**
+   * @since 1.16.0
+   */
+  @NotNull
+  @JsonProperty
+  private boolean csrfProtection = true;
+
+  /**
    * @since 1.14.0
    */
   @NotNull
@@ -255,6 +262,14 @@ public class InsightConfig
    */
   public void setAnonymousClientAccessAllowed(final boolean anonymousClientAccessAllowed) {
     this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
+  }
+
+  public boolean isCsrfProtection() {
+    return csrfProtection;
+  }
+
+  public void setCsrfProtection(boolean csrfProtection) {
+    this.csrfProtection = csrfProtection;
   }
 
   /**

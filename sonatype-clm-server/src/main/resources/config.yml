@@ -16,6 +16,9 @@ sonatypeWork: ./sonatype-work/clm-server
 # Defaults to true for backward compatibility.
 #anonymousClientAccessAllowed: true
 
+# Enables/disables cross-site request forgery protection. Defaults to true for increased security.
+#csrfProtection: true
+
 # A custom fragment to add to the "user-agent" for HTTP calls
 #userAgentSuffix: "example fragment"
 

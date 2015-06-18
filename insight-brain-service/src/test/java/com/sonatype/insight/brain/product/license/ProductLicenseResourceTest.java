@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.product.license;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class ProductLicenseResourceTest
   public void testInstallFailedWithNormalBrowser() throws Exception {
     getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
-    HttpResponse response = uploadLicense(false);
+    HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(400, response);
 
     assertEquals("The provided license file is invalid. Please verify you selected the correct file."
@@ -37,7 +38,7 @@ public class ProductLicenseResourceTest
     getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
     // IE is expecting a 200 response back, so we need to validate the error
-    HttpResponse response = uploadLicense(true);
+    HttpResponse response = uploadLicense(licenseRequest().query("forceSuccess", true));
     assertResponseStatus(200, response);
 
     assertEquals("The provided license file is invalid. Please verify you selected the correct file."
@@ -48,10 +49,21 @@ public class ProductLicenseResourceTest
   public void testInstallFailedIOError() throws Exception {
     getTestProductLicenseManager().setForceInstallIOFailure(true);
 
-    HttpResponse response = uploadLicense(false);
+    HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(400, response);
 
     assertEquals("The license file was unable to install. Please ensure server has access to "
         + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.", response.getBodyText());
+  }
+
+  @Test
+  public void testInstall_ValidateCsrfToken() throws Exception {
+    HttpResponse response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce"));
+    assertResponseStatus(401, response);
+
+    response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce").query(
+        "forceSuccess", true));
+    assertResponseStatus(200, response);
+    assertEquals("Invalid cross-site request forgery token", response.getBodyText());
   }
 }

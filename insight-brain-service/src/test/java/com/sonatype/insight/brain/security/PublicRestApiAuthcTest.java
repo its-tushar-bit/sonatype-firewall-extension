@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
+import com.google.common.net.HttpHeaders;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,16 +36,47 @@ public class PublicRestApiAuthcTest
 
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
     response = request.get();
-    assertResponseStatus(401, response);
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
 
     response = request.put();
-    assertResponseStatus(401, response);
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
 
     response = request.post();
-    assertResponseStatus(401, response);
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
 
     response = request.delete();
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.SESSION_COOKIE_MESSAGE);
+  }
+
+  @Test
+  public void testNoAuthentication() throws Exception {
+    testBadAuthentication(null, null);
+  }
+
+  @Test
+  public void testInvalidUser() throws Exception {
+    testBadAuthentication("yeti", "password");
+  }
+
+  @Test
+  public void testInvalidPassword() throws Exception {
+    testBadAuthentication("admin", "wrong password");
+  }
+
+  public void testBadAuthentication(String username, String password) throws Exception {
+    HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").auth(username, password);
+    HttpResponse response = request.get();
     assertResponseStatus(401, response);
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.INVALID_AUTHENTICATION_MESSAGE);
+
+    response = request.put();
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.INVALID_AUTHENTICATION_MESSAGE);
+
+    response = request.post();
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.INVALID_AUTHENTICATION_MESSAGE);
+
+    response = request.delete();
+    assertResponse401(response, BasicHttpAuthenticationMandatoryFilter.INVALID_AUTHENTICATION_MESSAGE);
   }
 
   @Test
@@ -81,5 +113,11 @@ public class PublicRestApiAuthcTest
     response = request.delete();
     assertResponseStatus(404, response);
     assertThat(getSessionCookie(response), is(nullValue()));
+  }
+
+  private void assertResponse401(HttpResponse response, String expectedMessage) {
+    assertResponseStatus(401, response);
+    assertThat(response.getBodyText(), is(expectedMessage));
+    assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE), is(nullValue()));
   }
 }

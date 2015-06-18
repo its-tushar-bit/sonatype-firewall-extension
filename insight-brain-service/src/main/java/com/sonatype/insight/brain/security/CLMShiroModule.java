@@ -57,18 +57,21 @@ public class CLMShiroModule
     expose(FilterChainResolver.class);
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class);
     DefaultFilterChainManager manager = new DefaultFilterChainManager();
-    manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
-    manager.addFilter("secureCookies", new SecureCookiesFilter());
-    manager.addFilter("antiCsrf", new AntiCsrfFilter(csrfProtection));
+    configureFilters(manager);
     configureFilterChains(manager);
-    // change the auth type so browsers dont prompt for login details
-    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
-    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasicMandatory")).setAuthcScheme(AUTHC_SCHEME);
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(CLMRealm.class);
     bindRealm().to(LdapRealm.class);
     binder().requestInjection(new SessionCookieCustomizer());
+  }
+
+  private void configureFilters(DefaultFilterChainManager manager) {
+    manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
+    manager.addFilter("secureCookies", new SecureCookiesFilter());
+    manager.addFilter("antiCsrf", new AntiCsrfFilter(csrfProtection));
+    // change the auth type so browsers don't prompt for login details
+    BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
   }
 
   private void configureFilterChains(DefaultFilterChainManager manager) {

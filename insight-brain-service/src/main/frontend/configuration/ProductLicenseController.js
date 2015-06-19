@@ -8,15 +8,17 @@
   'use strict';
 
   var module = angular.module('ProductLicense',
-      ['AngularCommon', 'ngUpload', 'CLMLocation']);
+      ['AngularCommon', 'ngUpload', 'ngCookies', 'CLMLocation']);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'isAuthorized',
-    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, isAuthorized) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', 'Messages', 'ErrorDialog', 'isAuthorized',
+    function($http, $scope, clmLocations, $timeout, $window, $cookies, Messages, ErrorDialog, isAuthorized) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
       $scope.isAuthorized = isAuthorized;
+      $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
+      $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
 
       $scope.doLoad = function() {
         if (isAuthorized) {

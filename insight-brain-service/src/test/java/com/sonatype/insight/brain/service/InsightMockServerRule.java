@@ -10,8 +10,6 @@ import java.io.IOException;
 import com.sonatype.insight.mock.InsightMockServer;
 
 import org.junit.rules.ExternalResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.9.1
@@ -19,8 +17,6 @@ import org.slf4j.LoggerFactory;
 public class InsightMockServerRule
     extends ExternalResource
 {
-  private static final Logger log = LoggerFactory.getLogger(InsightMockServerRule.class);
-
   private final int port;
 
   private final boolean isProxyRequired;
@@ -45,7 +41,7 @@ public class InsightMockServerRule
   public void start() throws Exception {
     long start = System.currentTimeMillis();
 
-    log.debug("Starting InsightMockServer on port {}", port);
+    System.out.println("Starting InsightMockServer on port " + port);
     insightMockServer = new InsightMockServer();
     insightMockServer.setHttpPort(port);
     if (isProxyRequired) {
@@ -53,7 +49,7 @@ public class InsightMockServerRule
       insightMockServer.setProxyAuthentication("proxyuser", "proxypass");
     }
     insightMockServer.start();
-    log.debug("Started InsightMockServer in {}", System.currentTimeMillis() - start);
+    System.out.println("Started InsightMockServer in " + (System.currentTimeMillis() - start) + " ms.");
   }
 
   public void stop() {
@@ -63,7 +59,7 @@ public class InsightMockServerRule
       insightMockServer = null;
     }
 
-    log.debug("Stopped InsightMockServer in {}", System.currentTimeMillis() - start);
+    System.out.println("Stopped InsightMockServer in " + (System.currentTimeMillis() - start) + " ms.");
   }
 
   void setResponseForURI(String uri, Object body, int status) {

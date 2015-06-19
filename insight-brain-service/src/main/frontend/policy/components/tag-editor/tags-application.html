@@ -1,0 +1,54 @@
+<div id='tags'>
+  <div class="content-section">
+    <div load-error='error' reload='doLoad()'></div>
+    <div style='margin:25px' ng-show='tags == null && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
+    </div>
+    <div ng-show='!error && tags != null'>
+      <div class="content-header">
+        <h4>
+          <span>{{ ao.selected.name }} Tags</span>
+        </h4>
+      </div>
+      <div class='row'>
+        <div class='span6'>
+          <div class='label-list'>
+            <div class='input-prepend fullWidthPrependedTextBox'>
+              <span class='add-on'><i ng-class="{'icon-search': !tagSearch, 'icon-remove': tagSearch}" ng-click="tagSearch = ''"></i></span>
+              <input type='text' placeholder='Filter Tags' ng-model='tagSearch' prevent-submit style='width:221px'>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class='row-fluid'>
+        <div class='span6'>
+          <div class="label-list">
+            <h5>Applied Tags</h5>
+            <div>
+              <span ng-repeat='tag in appliedTags = (tags | filter: { isApplied: "true", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
+                <span class='clm-tag {{tag.color}}Label' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
+                  {{tag.name | truncate}}
+                </span>
+              </span>
+            </div>
+            <em ng-show='appliedTags.length == 0'>No tags applied {{ tagSearch ? 'matching ' + tagSearch : '' }}</em>
+          </div>
+        </div>
+        <div class='span6'>
+          <div class="label-list">
+            <h5>Available Tags</h5>
+            <div>
+              <span ng-repeat='tag in availableTags = (tags | filter: { isApplied: "false", name: tagSearch } | orderBy:"name")' ng-click='toggleApply(tag)'>
+                <span class='clm-tag {{tag.color}}Label' data-tooltip="{{tag.description}}" data-tooltip-placement="bottom">
+                  {{tag.name | truncate}}
+                </span>
+              </span>
+            </div>
+            <em ng-show='availableTags.length == 0'>No tags available {{ tagSearch ? 'matching ' + tagSearch : '' }}</em>
+          </div>
+        </div>
+      </div>
+      <div clm-alerts='alerts'></div>
+    </div>
+  </div>
+</div>

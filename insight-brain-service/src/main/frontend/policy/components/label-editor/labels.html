@@ -1,0 +1,70 @@
+<div id='labels'>
+  <div class="content-section">
+    <div load-error='error' reload='doLoad()'></div>
+    <div style='margin:25px' ng-show='applicableLabels == null && !error'>
+      <h5><i class='icon-time'></i> Loading...</h5>
+    </div>
+    <div ng-show='!error && applicableLabels != null'>
+      <div id='{{applicableLabel.ownerId}}' ng-repeat='applicableLabel in applicableLabels'
+           ng-show='applicableLabel.editable || applicableLabel.labels.length > 0'>
+        <div class="content-header">
+          <h4>
+            <span ng-switch='applicableLabel.editable'>
+                <span ng-switch-when='true'>{{applicableLabel.ownerName}} Labels</span>
+                <span ng-switch-default>Labels Inherited from {{applicableLabel.ownerName}}</span>
+            </span>
+          </h4>
+        </div>
+        <div class="label-list">
+          <span ng-if='applicableLabel.editable'>
+            <button type='button' class='btn add-new new-entity-button' ng-click='createNew()' style='margin-bottom: 7px;'>
+              <i class='icon icon-plus'></i> New Label
+            </button>
+          </span>
+        </div>
+        <div class="label-list">
+          <span ng-repeat='label in applicableLabel.labels | orderBy:"label"' ng-click='editLabel(applicableLabel.editable, label)'>
+            <span class='clmLabel {{label.color}}Label' ng-class="{active: selectedLabel.id == label.id}">
+              <span data-tooltip="{{label.description}}" data-tooltip-placement="bottom" data-tooltip-append-to-body="true">{{label.label}}</span>
+              <i ng-if='applicableLabel.editable' ng-class='{ "icon-white" : isWhite(label) }' ng-click='deleteLabel(label, $event)'
+                 class='icon-remove label-remove' title="Delete {{label.label}}"></i>
+            </span>
+          </span>
+          <em ng-show='labels.length == 0'>No labels available</em>
+          <div ng-if='applicableLabel.editable'>
+            <div clm-alerts='alerts'></div>
+          </div>
+        </div>
+        <div ng-if='applicableLabel.editable && selectedLabel' class="label-list config">
+          <div class='fade in well clm-well' style='width:544px;' ng-controller='LabelEditorController'>
+            <form name='labelEditor' class='clm-form' style='margin-bottom:0' ng-submit='saveLabel()'>
+              <div clm-control-group for="labelEditorLabel" label="Label Name">
+                <input clm-input id="labelEditorLabel" name='label' type="text" maxlength='50'
+                  ng-model='selectedLabel.label' placeholder="ex. Blacklisted" focus-input="true" required unique-label
+                  valid-name-characters messages='{uniqueLabel: "Duplicate Label"}'>
+              </div>
+              <div clm-control-group label="Select Color">
+                <span ng-repeat="color in colors" ng-click='setColor(color);'>
+                  <span class='clmLabel {{color}}Label' ng-class='{ active : selectedLabel.color == color}' style='min-width:33px'>
+                    <span>{{selectedLabel.label}}</span>
+                  </span>
+                </span>
+              </div>
+              <div clm-control-group for='description' label="Description">
+                <textarea clm-input id='description' name='description' maxlength="255" rows="3" style="width:530px;resize:none;" ng-model='selectedLabel.description'
+                          placeholder="ex. Components which have been blacklisted from use"></textarea>
+              </div>
+              <div clm-alerts='editorAlerts'></div>
+              <button class="btn btn-link btn-cancel" type='button' ng-click='cancelEditLabel()'>Cancel</button>
+              <div class="pull-right clm-primary-buttons-wide">
+                <button class="btn btn-primary" ng-disabled='!canSaveEdit(labelEditor.$valid, selectedLabel)'>Save</button>
+              </div>
+              <div style="clear: both;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div error-Modal></div>
+</div>

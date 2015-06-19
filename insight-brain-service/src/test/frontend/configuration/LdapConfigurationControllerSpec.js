@@ -1,0 +1,455 @@
+describe('Tests for the LdapConfigurationController', function() {
+  var scope, dialogScope;
+
+  beforeEach(module('LdapConfiguration', 'HttpInterceptors', function($provide, $stateProvider) {
+    $provide.value('$modal', {
+      open: function(config) {
+        dialogScope = scope.$new();
+        dialogScope.$close = function() {
+        };
+        inject(function($controller) {
+          $controller(config.controller, {
+            $scope: dialogScope
+          });
+        });
+        return {
+          result: {
+            then: function(success, failure) {
+              success();
+            }
+          }
+        };
+      }
+    });
+    $stateProvider.state('management.organization', {});
+    SpecUtil.mockPermissionService($provide);
+  }));
+
+  describe('LdapConfigurationController', function() {
+    var httpBackend, state;
+
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
+      httpBackend = $httpBackend;
+
+      $state.current.name = 'ldap';
+
+      scope = $rootScope.$new();
+      scope.ldapNameForm = {
+        $save : angular.noop
+      };
+      state = $state;
+
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([]);
+
+      httpBackend.whenGET('../assets/management.html?').respond('<div></div>');
+      httpBackend.whenGET('../configuration-assets/components/configuration-navigator.html?').respond('<div></div>');
+      httpBackend.whenGET('../configuration-assets/components/ldap.html?').respond('<div></div>');
+      httpBackend.whenGET('../configuration-assets/components/ldap-connection.html?').respond('<div></div>');
+
+      $controller('LdapConfigurationController', {
+        $scope: scope,
+        $state: state,
+        isAuthorized : true
+      });
+
+      httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    });
+
+    it('create/update/delete ldap server', inject(function(CLMLocations) {
+
+      // retrieve (empty configuration)
+
+      expect(scope.ldap).not.toBeUndefined();
+      expect(scope.ldap.isDirty()).toBeFalsy();
+      expect(scope.ldap.id).toBeNull();
+      expect(scope.ldap.name).toEqual('');
+
+      // create
+
+      scope.ldap.name = 'config1';
+
+      expect(scope.ldap.isDirty()).toBeTruthy();
+
+      httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond(
+        function(method, url, data) {
+          return [200, {
+            id: 'id1',
+            name: angular.fromJson(data).name
+          }, {}];
+        });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.ldap.id).toEqual('id1');
+
+      // update
+
+      scope.ldap.name = 'config1changed';
+
+      expect(scope.ldap.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond(
+        function(method, url, data) {
+          var ldapConfig = angular.fromJson(data);
+          return [200, {
+            id: ldapConfig.id,
+            name: ldapConfig.name
+          }, {}];
+        });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.ldap.isDirty()).toBeFalsy();
+      expect(scope.ldap.id).toEqual('id1');
+
+      // delete
+
+      expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
+
+      scope.confirmDeleteConfiguration();
+
+      expect(angular.element('#deleteConfigurationModal').css('display')).not.toBe('none');
+
+      httpBackend.expectDELETE(SpecUtil.toRegExp(CLMLocations.getLdapConfig() + '/id1')).respond({});
+      scope.deleteConfiguration();
+      httpBackend.flush();
+
+      expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
+
+      expect(scope.ldap).toBeNull();
+
+    }));
+  });
+
+  describe('LdapConnectionController', function() {
+    var httpBackend, state, getConfigLdapUrl;
+
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
+      httpBackend = $httpBackend;
+
+      getConfigLdapUrl = function(service) {
+        return CLMLocations.getLdapConfig() + '/123/' + service;
+      };
+
+      $state.current.name = 'ldap.connection';
+
+      scope = $rootScope.$new();
+      state = $state;
+
+      scope.ldap = {id: "123"};
+      scope.getConfigLdapUrl = getConfigLdapUrl;
+
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond({ serverId: scope.ldap.id });
+
+      $controller('LdapConnectionController', {
+        $scope: scope,
+        $state: state
+      });
+
+      httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    });
+
+    it('create/update/delete ldap connection', inject(function(CLMLocations) {
+
+      // retrieve (empty configuration)
+
+      expect(scope.ldapConn).not.toBeUndefined();
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapConn.id).toBeUndefined();
+
+      // create
+
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.hostname = 'example.com';
+      scope.ldapConn.port = 389;
+      scope.ldapConn.searchBase = 'DC=example,DC=com';
+      scope.ldapConn.authenticationMethod = 'SIMPLE';
+      scope.ldapConn.saslRealm = '';
+      scope.ldapConn.username = 'guest';
+      scope.ldapConn.password = 'anon';
+      scope.ldapConn.connectionTimeout = 60;
+      scope.ldapConn.retryDelay = 10;
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
+        return [200, angular.extend({
+          id: 'id1'
+        }, angular.copy(scope.ldapConn)), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.ldapConn.id).toEqual('id1');
+
+      // update
+
+      scope.ldapConn.authenticationMethod = 'DIGESTMD5';
+      scope.ldapConn.saslRealm = 'testing';
+      scope.ldapConn.username = 'user';
+      scope.ldapConn.password = 'pass';
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('connection'))).respond(function(method, url, data) {
+        return [200, angular.copy(scope.ldapConn), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapConn.id).toEqual('id1');
+      expect(scope.alerts.length).toEqual(1);
+      expect(scope.alerts[0].msg).toEqual('Configuration saved.');
+    }));
+
+    it('displays confirmation dialog when navigating away from edited data', function() {
+
+      scope.ldapConn.username = 'new_name';
+
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.ldapConnectionEditor = {
+        $dirty: true,
+        $setPristine: angular.noop
+      };
+      spyOn(scope.ldapConnectionEditor, '$setPristine');
+      scope.reset();
+
+      dialogScope.discardChanges();
+
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+      expect(scope.ldapConnectionEditor.$setPristine).toHaveBeenCalled();
+    });
+
+    it('test connection', inject(function(CLMLocations) {
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.hostname = 'example.com';
+      scope.ldapConn.port = 389;
+      scope.ldapConn.authenticationMethod = 'SIMPLE';
+      scope.ldapConn.username = 'guest';
+      scope.ldapConn.password = 'anon';
+
+      // configuration is good
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+        function(method, url, data) {
+          return [200, {status: 'OK'}, {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('success');
+
+      // configuration is bad
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+        function(method, url, data) {
+          return [200, {status: 'FAILURE', message: 'foo bar'}, {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('error');
+      expect(scope.alerts[0].msg).toBe('foo bar');
+
+      // clm server misbehaves
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+        function(method, url, data) {
+          return [500, 'foo bar', {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('error');
+      expect(scope.alerts[0].msg).toBe('foo bar');
+
+      // can't connect to clm server
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl('testConnection'))).respond(
+        function(method, url, data) {
+          return [0, '', {}];
+        });
+      scope.testConnection();
+      httpBackend.flush();
+      expect(scope.alerts.length).toBe(1);
+      expect(scope.alerts[0].type).toBe('error');
+      expect(scope.alerts[0].msg).toBe('Unable to reach CLM server');
+
+    }));
+
+    it('set default protocol port', inject(function() {
+      // empty
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.port = undefined;
+      scope.$apply();
+      expect(scope.ldapConn.port).toBe(389);
+      scope.ldapConn.protocol = 'LDAPS';
+      scope.ldapConn.port = undefined;
+      scope.$apply();
+      expect(scope.ldapConn.port).toBe(636);
+
+      // default
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.port = 636; // old value
+      scope.$apply();
+      expect(scope.ldapConn.port).toBe(389);
+      scope.ldapConn.protocol = 'LDAPS';
+      scope.ldapConn.port = 389; // old value
+      scope.$apply();
+      expect(scope.ldapConn.port).toBe(636);
+
+      // non default non empty is preserved as is
+      scope.ldapConn.protocol = 'LDAP';
+      scope.ldapConn.port = 1; // old value
+      scope.$apply();
+      expect(scope.ldapConn.port).toBe(1);
+      scope.ldapConn.protocol = 'LDAPS';
+      scope.ldapConn.port = 1; // old value
+      scope.$apply();
+      expect(scope.ldapConn.port).toBe(1);
+    }));
+  });
+
+  describe('LdapUsermappingController', function() {
+    var httpBackend, state, getConfigLdapUrl;
+
+    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMLocations) {
+      httpBackend = $httpBackend;
+
+      getConfigLdapUrl = function() {
+        return CLMLocations.getLdapConfig() + '/123/userMapping';
+      };
+
+      $state.current.name = 'ldap.usermapping';
+
+      scope = $rootScope.$new();
+      state = $state;
+
+      scope.ldap = {id: "123"};
+      scope.getConfigLdapUrl = getConfigLdapUrl;
+
+      httpBackend.expectGET(SpecUtil.toRegExp(getConfigLdapUrl())).respond({
+        serverId: scope.ldap.id,
+        userPasswordAttribute: null
+      });
+
+      $controller('LdapUsermappingController', {
+        $scope: scope,
+        $state: state
+      });
+
+      httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    });
+
+    it('create/update/delete ldap user mapping', inject(function(CLMLocations) {
+
+      // retrieve (empty configuration)
+
+      expect(scope.ldapUserMapping).not.toBeUndefined();
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapUserMapping.id).toBeUndefined();
+      expect(scope.ldapUserMapping.serverId).toBe('123');
+
+      // create
+
+      scope.ldapUserMapping.userBaseDN = 'userBaseDN';
+      scope.ldapUserMapping.userSubtree = true;
+      scope.ldapUserMapping.userObjectClass = 'userObjectClass';
+      scope.ldapUserMapping.userFilter = 'userFilter';
+      scope.ldapUserMapping.userIDAttribute = 'userIDAttribute';
+      scope.ldapUserMapping.realNameAttribute = 'realNameAttribute';
+      scope.ldapUserMapping.emailAttribute = 'emailAttribute';
+      scope.ldapUserMapping.passwordAttribute = 'passwordAttribute';
+      scope.ldapUserMapping.groupMappingType = 'NONE';
+      scope.ldapUserMapping.groupBaseDN = 'groupBaseDN';
+      scope.ldapUserMapping.groupSubtree = 'groupSubtree';
+      scope.ldapUserMapping.groupObjectClass = 'groupObjectClass';
+      scope.ldapUserMapping.groupIDAttribute = 'groupIDAttribute';
+      scope.ldapUserMapping.groupMemberAttribute = 'groupMemberAttribute';
+      scope.ldapUserMapping.groupMemberFormat = 'groupMemberFormat';
+      scope.ldapUserMapping.userMemberOfGroupAttribute = 'userMemberOfGroupAttribute';
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
+        return [200, angular.extend({
+          id: 'id1'
+        }, angular.copy(scope.ldapUserMapping)), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+      expect(scope.alerts.length).toEqual(1);
+      expect(scope.alerts[0].msg).toEqual('Configuration saved.');
+      expect(scope.ldapUserMapping.id).toEqual('id1');
+
+      // update
+
+      scope.ldapUserMapping.groupMappingType = 'SIMPLE';
+
+      expect(scope.isDirty()).toBeTruthy();
+
+      httpBackend.expectPUT(SpecUtil.toRegExp(getConfigLdapUrl())).respond(function(method, url, data) {
+        return [200, angular.copy(scope.ldapUserMapping), {}];
+      });
+      scope.save();
+      expect(scope.saving).toBeTruthy();
+      httpBackend.flush();
+      expect(scope.saving).toBeFalsy();
+
+      expect(scope.isDirty()).toBeFalsy();
+      expect(scope.ldapUserMapping.id).toEqual('id1');
+      expect(scope.alerts.length).toEqual(1);
+      expect(scope.alerts[0].msg).toEqual('Configuration saved.');
+    }));
+
+    it('displays confirmation dialog when navigating away from edited data', function() {
+
+      scope.ldapUserMapping.userBaseDN = 'userBaseDN';
+
+      var e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).toBeTruthy();
+
+      scope.ldapUserMappingEditor = {
+        $dirty: true,
+        $setPristine: angular.noop
+      };
+      spyOn(scope.ldapUserMappingEditor, '$setPristine');
+      scope.reset();
+
+      dialogScope.discardChanges();
+
+      e = scope.$broadcast('pageChangeStarted');
+      expect(e.defaultPrevented).not.toBeTruthy();
+      expect(scope.ldapUserMappingEditor.$setPristine).toHaveBeenCalled();
+    });
+
+  });
+});

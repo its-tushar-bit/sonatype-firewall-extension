@@ -1,0 +1,50 @@
+<!doctype html>
+<html ng-app='viewdetails'>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Component Detail</title>
+
+    <!-- build:css(.tmp) ../../viewdetails-lib.css -->
+    <link href="scss/bootstrap.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) ../../viewdetails-scss.css -->
+    <link href="scss/viewdetails.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:css ../../viewdetails.css -->
+    <link href="../../viewdetails.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:js ../../viewdetails-lib.js -->
+    <script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../../lib/angular-<%= config.pom.angularJsVersion %>/angular.min.js"></script>
+    <!-- endbuild -->
+
+    <script src='../../../../policy-assets/js/brain.client.js?<%= config.buildTimestamp %>'></script>
+
+    <!-- build:js ../../viewdetails.js -->
+    <script src="../../viewdetails.js"></script>
+    <!-- endbuild -->
+    <script>
+      var clmEndpoint = {
+        type : 'ide',
+        showContext : false,
+        linkTarget : '_self'
+      };
+
+      // disable the context menu to prevent the user from reloading the page which would break the integration with the IDE plugin's Java code
+      $(document).bind('contextmenu', function(e) {
+        return false;
+      });
+    </script>
+  </head>
+  <body ng-include='"../../details.html?<%= config.buildTimestamp %>"' ng-controller='view'>
+    <noscript>
+      <div class='alert alert-error alert-centered'>
+      It appears that javascript is disabled.  Please verify security settings for the domain used for your Sonatype CLM server.
+      </div>
+    </noscript>
+  </body>
+</html>

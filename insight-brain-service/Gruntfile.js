@@ -1,428 +1,304 @@
 /**
- * @license Copyright (c) 2012-2014 Sonatype, Inc. All rights reserved. Includes
+ * @license Copyright (c) 2011-present Sonatype, Inc. All rights reserved. Includes
  * the third-party code listed at
  * http://links.sonatype.com/products/clm/attributions. "Sonatype" is a
  * trademark of Sonatype, Inc.
  */
-(function () {
+(function() {
   'use strict';
-  var LIVERELOAD_PORT = 35729;
-  var liveReloadSnippet = require('connect-livereload')({ port: LIVERELOAD_PORT });
-  var proxySnippet = require('grunt-connect-proxy/lib/utils').proxyRequest;
-  var mountFolder = function(connect, dir) {
-    return connect.static(require('path').resolve(dir));
-  };
 
   module.exports = function(grunt) {
-    // parse angularjs.version out of pom file
-    function getAngularVersion() {
+    function extractFromPom(nodeName) {
       var DOMParser = require('xmldom').DOMParser;
       var doc = new DOMParser().parseFromString(grunt.file.read('pom.xml'));
-      var node = doc.documentElement.getElementsByTagName('angularjs.version')[0];
+      var node = doc.documentElement.getElementsByTagName(nodeName)[0];
       return node.firstChild.nodeValue;
     }
-
-    var config = {
-      components: 'src/main/resources/assets',
-      filtered: 'src/main/filtered-resources/assets',
-      gruntFiltered: 'grunt/filtered',
-      assets: 'src/main/wro4j',
-      brainClientAssets: 'src/main/brain-client',
-      dist: 'grunt/working/dist',
-      tmp: 'grunt/working/tmp',
-      debug: 'grunt/working/debug',
-      scss: 'grunt/scss',
-      docs: 'grunt/docs',
-      angularJsVersion: getAngularVersion(),
-      pkg: grunt.file.readJSON('package.json')
-    };
 
     require('load-grunt-tasks')(grunt);
     require('time-grunt')(grunt);
 
     grunt.initConfig({
-      config: config,
-      jshint: {
-        options: {
-          jshintrc: '.jshintrc'
+      config: {
+        pom: {
+          angularJsVersion: extractFromPom('angularjs.version'),
+          angularDebug: extractFromPom('angular.debug'),
+          clmVersion: extractFromPom('version')
         },
-        all: [
-          'Gruntfile.js',
-          '<%= config.assets %>/{,*/}*.js',
-          '<%= config.brainClientAssets %>/{,*/}*.js'
-        ]
+        buildTimestamp: new Date().getTime(),
+        frontend: 'src/main/frontend',
+        generated: 'target/classes/assets-new',
+        styleguide: 'target/styleguide',
+        temp: '.tmp'
       },
       clean: {
-        dist: {
-          files: [
-            {
-              dot: true,
-              src: [
-                '<%= config.tmp %>',
-                '<%= config.dist %>'
-              ]
-            }
-          ]
-        },
-        server: '<%= config.tmp %>',
-        debug: '<%= config.debug %>',
-        docs: '<%= config.docs %>'
-      },
-      connect: {
-        options: {
-          port: 9090,
-          hostname: '0.0.0.0'
-        },
-        proxies: [
-          {
-            context: '/rest',
-            host: 'localhost',
-            port: 8070,
-            https: false,
-            changeOrigin: false
-          }
+        build: [
+          '<%= config.generated %>'
         ],
-        clmServer: {
-          options: {
-            middleware: function(connect) {
-              return [
-                liveReloadSnippet,
-                proxySnippet,
-                mountFolder(connect, config.components),
-                mountFolder(connect, config.debug),
-                mountFolder(connect, config.gruntFiltered)
-              ];
-            }
-          }
-        },
-        styleguide: {
-          options: {
-            port: 9070,
-            middleware: function(connect) {
-              return [
-                mountFolder(connect, config.docs)
-              ];
-            },
-            keepalive: true
-          }
-        },
-        metrics: {
-          options: {
-            middleware: function(connect) {
-              return [
-                function(req, res, options) {
-                  req.headers.Authorization = 'Basic YWRtaW46YWRtaW4xMjM=';
-                  proxySnippet(req, res, options);
-                },
-                mountFolder(connect, config.components),
-                mountFolder(connect, config.debug),
-                mountFolder(connect, config.gruntFiltered)
-              ];
-            }
-          }
-        },
-        test: {
-          options: {
-            middleware: function(connect) {
-              return [
-                mountFolder(connect, config.tmp),
-                mountFolder(connect, config.dist)
-              ];
-            }
-          }
-        }
-      },
-      concat: {
-        styleguide: {
-          options: {
-            banner: '/*\n###Import Common CSS\n*/\n@import "../../../scss/bootstrap.scss";\n@import "../../../../src/main/wro4j/scss/global";\n'
-          },
-          expand: true,
-          cwd: '<%= config.assets %>/scss',
-          dest: '<%= config.tmp %>/scss',
-          src: '{,*/}{,*/}*.scss'
-        }
-      },
-      concurrent: {
-        copy: [
-          'copy:dist',
-          'copy:scripts',
-          'copy:styles'
+        temp: [
+          '<%= config.temp %>'
+        ],
+        styleguide: [
+          '<%= config.styleguide %>'
         ]
       },
       copy: {
-        dist: {
-          files: [{
-            expand: true,
-            cwd: '<%= config.filtered %>/',
-            dest: '<%= config.dist %>/',
-            src: ['{,*/}{,*/}*.js', 'assets/management.html', 'policy/index.html']
-          }, {
-            expand: true,
-            dot: true,
-            cwd: '<%= config.components %>',
-            dest: '<%= config.dist %>',
-            src: [
-              '{,*/}{,*/}{,*/}*.html',
-              'assets/lib/**/*',
-              'assets/img/{,*/}*.{gif,webp}',
-              'assets/fonts/*'
-            ]
-          }, {
-            expand: true,
-            dot: true,
-            cwd: '<%= config.gruntFiltered %>',
-            dest: '<%= config.dist %>',
-            src: [
-              '{,*/}{,*/}*.html'
-            ]
-          }]
-        },
-        scripts: {
+        build_cip: {
           expand: true,
-          cwd: '<%= config.assets %>/',
-          dest: '<%= config.tmp %>/',
-          src: '{,*/}*.js'
+          cwd: '<%= config.frontend %>',
+          src: [
+            'cip/**/*.js',
+            'policy/js/cip-loader.js'
+          ],
+          dest: '<%= config.generated %>'
         },
-        styles: {
-          expand: true,
-          cwd: '<%= config.assets %>/',
-          dest: '<%= config.tmp %>/',
-          src: '{,*/}*.css'
-        },
-        filtered: {
-          src: '<%= config.gruntFiltered %>/assets/index.html',
-          dest: '<%= config.debug %>/assets/index.html',
-          options: {
-            process: function(content, path) {
-              return grunt.template.process(content);
-            }
+        build_brain_client: {
+          files: {
+            '<%= config.generated %>/policy/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js',
+            '<%= config.generated %>/assets/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js'
           }
         },
-        debug: {
-          files: [{
-            expand: true,
-            cwd: '<%= config.filtered %>/',
-            dest: '<%= config.debug %>/',
-            src: ['{,*/}{,*/}*.js', 'assets/management.html', 'policy/index.html']
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/application',
-            dest: '<%= config.debug %>/application-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/assets',
-            dest: '<%= config.debug %>/assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/policy',
-            dest: '<%= config.debug %>/policy-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/organization',
-            dest: '<%= config.debug %>/organization-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/configuration',
-            dest: '<%= config.debug %>/configuration-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/security',
-            dest: '<%= config.debug %>/security-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/report',
-            dest: '<%= config.debug %>/report-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.components %>/dashboard',
-            dest: '<%= config.debug %>/dashboard-assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.assets %>/',
-            dest: '<%= config.debug %>/assets',
-            src: '{,*/}{,*/}*'
-          }, {
-            expand: true,
-            cwd: '<%= config.brainClientAssets %>/',
-            dest: '<%= config.debug %>/policy-assets/js',
-            src: '{,*/}{,*/}*'
-          },
-          /* This is a hack to get around how we currently minify lib css into a css directory */
-          {
-            expand: true,
-            cwd: '<%= config.assets %>/lib/bootstrap',
-            dest: '<%= config.debug %>/assets/lib',
-            src: '*.css'
-          }, {
-            expand: true,
-            cwd: '<%= config.assets %>/lib/glyphicons',
-            dest: '<%= config.debug %>/assets/lib',
-            src: '*.css'
-          }, {
-            expand: true,
-            cwd: '<%= config.assets %>/lib/X-editable',
-            dest: '<%= config.debug %>/assets/lib',
-            src: '*.css'
+        build: {
+          expand: true,
+          cwd: '<%= config.frontend %>',
+          src: ['**/*.{html,eot,svg,ttf,woff,png,gif}', 'assets/lib/**/*.{js,css}'],
+          dest: '<%= config.generated %>'
+        },
+        develop: {
+          expand: true,
+          cwd: '<%= config.temp %>/concat',
+          src: ['**/*'],
+          dest: '<%= config.generated %>/assets'
+        }
+      },
+      csslint: {
+        build: [
+          '<%= config.frontend %>/**/*.css',
+          '!<%= config.frontend %>/assets/lib/**/*'
+        ]
+      },
+      cssmin: {
+        build_cip: {
+          files: {
+            '<%= config.generated %>/cip/cip.css': [
+              '<%= config.frontend %>/cip/*.css',
+              '<%= config.frontend %>/assets/version-graph/content.css',
+              '<%= config.temp %>/scss/cip.css',
+              '<%= config.frontend %>/assets/multi-select.css'
+            ]
           }
-          /* End hack */
+        }
+      },
+      filerev: {
+        build: {
+          src: [
+            '<%= config.generated %>/**/*.{js,css}',
+            '!<%= config.generated %>/assets/lib/**/*',
+            '!<%= config.generated %>/**/brain.client.js',
+            '!<%= config.generated %>/policy/js/cip-loader.js'
           ]
         }
       },
-      karma: {
-        unit: {
-          configFile: 'karma.conf.js',
-          singleRun: true
+      filerev_replace: {
+        options: {
+          assets_root: '<%= config.generated %>/policy/js'
+        },
+        compiled_assets: {
+          src: '<%= config.generated %>/policy/js/cip-loader.js'
         }
       },
-      sass: {
-        clmServer: {
-          files: [{
-            expand: true,
-            flatten: true,
-            src: '<%= config.scss %>/*.scss',
-            dest: '<%= config.debug %>/assets/scss/',
-            ext: '.css'
-          }]
+      jshint: {
+        build: [
+          '<%= config.frontend %>/**/*.js',
+          '!<%= config.frontend %>/assets/lib/**/*',
+          '!<%= config.frontend %>/policy/js/cip-loader.js'
+        ]
+      },
+      template: {
+        options: {
+          data: function() {
+            return grunt.config.get();
+          }
+        },
+        build_cip: {
+          files: {
+            '<%= config.generated %>/policy/js/cip-loader.js': '<%= config.generated %>/policy/js/cip-loader.js',
+            '<%= config.generated %>/policy/js/brain.client.js': '<%= config.generated %>/policy/js/brain.client.js',
+            '<%= config.generated %>/assets/js/brain.client.js': '<%= config.generated %>/assets/js/brain.client.js'
+          }
+        },
+        build: {
+          expand: true,
+          cwd: '<%= config.generated %>',
+          src: '**/index.html',
+          dest: '<%= config.generated %>'
+        }
+      },
+      uglify: {
+        options: {
+          preserveComments: 'some'
         }
       },
       useminPrepare: {
-        src: ['<%= config.gruntFiltered %>/assets/index.html'],
-        options: {
-          dest: '<%= config.dist %>',
-          staging: '<%= config.tmp %>',
-          root: '<%= config.tmp %>'
+        build: {
+          files: {
+            src: [
+              '<%= config.frontend %>/assets/index.html'
+            ]
+          },
+          options: {
+            dest: '<%= config.generated %>/assets/',
+            staging: '<%= config.temp %>',
+            type: 'html'
+          }
+        },
+        // build_version_graph relies on the symmetry between ide/eclipse and rm/nexus. If this symmetry is broken
+        // a task target for each will be required
+        build_version_graph: {
+          files: {
+            src: [
+              '<%= config.frontend %>/assets/version-graph/*/*/index.html',
+              '<%= config.frontend %>/assets/version-graph/*/*/viewdetails.html'
+            ]
+          },
+          options: {
+            // useminPrepare has a bug with relative paths https://github.com/yeoman/grunt-usemin/issues/297
+            dest: '<%= config.generated %>/assets/version-graph/ide/eclipse',
+            staging: '<%= config.temp %>/concat/assets/version-graph/ide',
+            type: 'html'
+          }
         }
       },
       usemin: {
-        html: ['<%= config.dist %>/{,*/}*.html'],
-        css: ['<%= config.dist %>/css/{,*/}*.css'],
+        html: [
+          '<%= config.generated %>/assets/index.html',
+          '<%= config.generated %>/assets/version-graph/ide/eclipse/index.html',
+          '<%= config.generated %>/assets/version-graph/ide/eclipse/viewdetails.html',
+          '<%= config.generated %>/assets/version-graph/rm/nexus/index.html',
+          '<%= config.generated %>/assets/version-graph/rm/nexus/viewdetails.html'
+        ],
         options: {
-          dirs: ['<%= config.dist %>']
+          assetsDirs: [
+            '<%= config.generated %>/assets',
+            '<%= config.generated %>/assets/version-graph/ide/eclipse',
+            '<%= config.generated %>/assets/version-graph/rm/nexus'
+          ]
         }
       },
-      open: {
-        server: {
-          url: 'http://localhost:<%= connect.options.port %>/assets/index.html'
-        }
-      },
-      phantomas: {
-        index : {
-          options : {
-            indexPath : './grunt/metrics/phantomas/',
-            url       : 'http://localhost:<%= connect.options.port %>/assets/index.html',
-            numberOfRuns: 10
+      sass: {
+        build_cip: {
+          files: {
+            '<%= config.temp %>/scss/cip.css': '<%= config.frontend %>/scss/cip.scss',
+            '<%= config.temp %>/scss/viewdetails.css': '<%= config.frontend %>/scss/viewdetails.scss'
+          }
+        },
+        build: {
+          files: {
+            '<%= config.temp %>/scss/bootstrap.css': '<%= config.frontend %>/assets/lib/bootstrap/bootstrap.scss',
+            '<%= config.temp %>/scss/scss.css': '<%= config.frontend %>/scss/scss.scss'
           }
         }
       },
       styleguide: {
-        styledocco: {
+        build: {
           options: {
+            name: 'CLM Living Style Guide',
             framework: {
-              name: 'styledocco'
+              name: 'styledocco',
+              options: {
+                // Node ignores PATHEXT in Windows for spawn. See https://github.com/joyent/node/issues/2318
+                preprocessor: process.platform === 'win32' ? 'sass.bat' : 'sass'
+              }
             },
-            name: 'CLM Living Style Guide'
+            template: {
+              include: [
+                '<%= config.temp %>/scss/bootstrap.css'
+              ]
+            }
           },
           files: {
-            '<%= config.docs %>': '<%= config.tmp %>/scss/*.css'
+            '<%= config.styleguide %>': '<%= config.frontend %>/scss/*.scss'
           }
         }
       },
       watch: {
-        assets: {
+        develop: {
+          cwd: '',
           files: [
-            '<%= config.assets %>/{,*/}{,*/}*.css',
-            '<%= config.assets %>/{,*/}{,*/}*.js'
+            '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js}'
           ],
-          tasks: ['copy:debug']
+          tasks: [
+            'copy:build',
+            'template:build',
+            'useminPrepare:build',
+            'concat:generated',
+            'copy:develop',
+            'usemin'
+          ]
         },
-        scssAssets: {
-          files: '<%= config.assets %>/{,*/}{,*/}*.scss',
-          tasks: ['sass:clmServer']
-        },
-        brainClientAssets: {
-          files: ['<%= config.brainClientAssets %>/{,*/}{,*/}*'],
-          tasks: ['copy:debug']
-        },
-        components: {
-          files: ['<%= config.components %>/{,*/}{,*/}{,*/}*'],
-          tasks: ['copy:debug']
-        },
-        filtered: {
-          files: ['<%= config.gruntFiltered %>/{,*/}{,*/}{,*/}*'],
-          tasks: ['copy:filtered']
-        },
-        livereload: {
-          options: {
-            livereload: LIVERELOAD_PORT
-          },
-          files: [
-            '<%= config.gruntFiltered %>/{,*/}{,*/}*.html',
-            '<%= config.components %>/{,*/}{,*/}{,*/}*.html',
-            '<%= config.debug %>/assets/{,*/}{,*/}*.js',
-            '<%= config.debug %>/assets/{,*/}{,*/}*.css'
+        develop_styles: {
+          cwd: '<%= config.frontend %>',
+          file: ['**/*.{css,scss}'],
+          tasks: [
+            'copy:build',
+            'template:build',
+            'sass:build',
+            'useminPrepare:build',
+            'concat:generated',
+            'copy:develop',
+            'usemin'
           ]
         }
       }
     });
 
-    grunt.registerTask('server', [
-      'clean:debug',
-      'configureProxies',
-      'sass:clmServer',
-      'copy:filtered',
-      'copy:debug',
-      'connect:clmServer',
-      'open',
-      'watch'
-    ]);
-
-    grunt.registerTask('test', [
-      'jshint',
-      'clean:server',
-      'concurrent:copy',
-      'karma'
-    ]);
-
     grunt.registerTask('build', [
-      'clean:dist',
+      // Current CSS will fail build if linted
+      //'csslint:build',
+      'jshint',
+      'clean',
+      'copy:build',
+      'copy:build_cip',
+      'copy:build_brain_client',
+      'template',
+      'sass',
       'useminPrepare',
-      'sass:clmServer',
-      'concurrent:copy',
-      'concat',
-      'uglify',
-      'usemin'
+      'concat:generated',
+      'uglify:generated',
+      'cssmin:generated',
+      'cssmin:build_cip',
+      'filerev',
+      'usemin',
+      'filerev_replace',
+
+      'livingstyle',
+
+      'clean:temp'
     ]);
 
-    grunt.registerTask('metrics', [
-      'clean:debug',
-      'configureProxies',
-      'sass:clmServer',
-      'copy:filtered',
-      'copy:debug',
-      'connect:metrics',
-      'phantomas:index'
+    grunt.registerTask('develop', [
+      'jshint',
+      'clean',
+      'copy:build',
+      'copy:build_cip',
+      'copy:build_brain_client',
+      'template',
+      'sass',
+      'useminPrepare',
+      'concat:generated',
+      'cssmin:build_cip',
+      'copy:develop',
+      'usemin',
+
+      'watch:develop',
+
+      'clean:temp'
     ]);
 
     grunt.registerTask('livingstyle', [
-      'clean:docs',
-      'concat:styleguide',
-      'styleguide',
-      'clean:server',
-      'connect:styleguide'
-    ]);
-
-    grunt.registerTask('default', [
-      'test',
-      'build'
-    ]);
+      'clean:styleguide',
+      'sass:build',
+      'styleguide:build'
+    ])
   };
 }());

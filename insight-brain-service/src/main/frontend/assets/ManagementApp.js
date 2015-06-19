@@ -1,0 +1,57 @@
+/**
+ * @license Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+ /* global angular, clmBuildTimestamp */
+(function() {
+  'use strict';
+  angular.module('managementApp',
+    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'RoleModule', 'LdapConfiguration']);
+}());
+
+(function() {
+  'use strict';
+
+  var managementModule = angular.module('ManagementModule', ['ui.router'], ['$stateProvider', function($stateProvider) {
+    $stateProvider.state('management', {
+      url: '/management',
+      templateUrl: '../assets/management.html?' + clmBuildTimestamp,
+      controller: 'ManagementController',
+      data : {
+        title : 'Management'
+      }
+    });
+  }]);
+
+  managementModule.controller('ManagementController', ['$scope', '$state', 'commonCodeFactory', function($scope, $state, commonCodeFactory) {
+    $scope.$state = $state;
+
+    $scope.panes = [
+      {
+        name: 'Organizations',
+        state: 'management/organization',
+        isEnabled: true
+      },
+      {
+        name: 'Applications',
+        state: 'management/application',
+        isEnabled: true
+      }
+    ];
+
+    for (var i = 0; i < $scope.panes.length; i++) {
+      var normalizedState = $scope.panes[i].state.replace('/', '.');
+      if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
+        $scope.$state.selectedPane = $scope.panes[i];
+        break;
+      }
+    }
+
+    $scope.syncAlerts = [];
+    var error = commonCodeFactory.getEncodedQueryString('errorMessage');
+    if (error) {
+      $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
+    }
+  }]);
+}());

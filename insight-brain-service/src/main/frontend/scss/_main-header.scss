@@ -1,0 +1,383 @@
+/*
+  #Main Header
+*/
+
+
+$main-header-color: #CCCCCC;
+$main-header-highlight: #2476FC;
+$header-dropdown-panel-border: 1px solid $grey-4;
+$header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
+$notification-item-border: 1px solid $grey-1;
+$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
+
+/*
+  First Row
+*/
+
+.header {
+
+  i {
+    vertical-align: middle;
+  }
+
+  img {
+    height: 24px;
+    width: 24px;
+  }
+
+  .dropdown-toggle, .dropdown-contents > li > a {
+    color: $main-header-color;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  .brand {
+    padding: 8px 19px 6px 21px;
+    color: #FFFFFF;
+    text-shadow: none;
+    line-height: 24px;
+  }
+
+  .navbar-inner {
+    background-color: #000000;
+    background-image: none;
+    min-height: inherit;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    border: 0;
+    filter: none;
+  }
+
+  .navbar-version {
+    font-size:10px;
+    line-height:10px;
+    text-shadow: none;
+  }
+}
+
+.header-responsive {
+  > ul {
+    display: inline-block;
+    margin-bottom: 0;
+  }
+}
+
+.header-navigation-menu {
+  li {
+    span {
+      padding-top: 5px;
+      padding-right: 10px !important;
+      padding-left: 10px !important;
+      display: inline-block;
+      border-bottom: 3px solid transparent;
+
+      &:hover {
+        background-color: #f4f4f4;
+
+        i:before {
+          color: $main-header-highlight !important;
+        }
+      }
+    }
+
+    &:first-child {
+      margin-left: 9px;
+    }
+  }
+
+  i:before {
+    color: $main-header-color;
+  }
+
+  .active {
+    span {
+      background-color: $main-header-highlight;
+    }
+
+    i:before {
+      color: #FFFFFF !important;
+    }
+  }
+}
+
+/*
+  Header Dropdown Menu
+```
+  <div class="header navbar">
+    <div class="navbar-inner">
+      <div class="header-dropdown-menu">
+        <div class="dropdown open">
+          <a class="dropdown-toggle">
+            <i class="glyphicons-sonatype medium user"></i><span>Dropdown Label</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-arrow">
+            <li class="disabled">Header</li>
+            <li>
+              <ul class="dropdown-contents">
+                <li>
+                  <a>Item</a>
+                </li>
+                <li>
+                  <a>Item</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+```
+*/
+
+.header-dropdown-menu {
+  font-family: Proxima Nova Semibold;
+  float: left;
+  padding-right: 20px;
+
+  .alert {
+    padding: 8px;
+    margin-bottom: 0px;
+    border-radius: 0px;
+  }
+
+  .dropdown > a > span {
+    @extend .bold;
+    vertical-align: 3px;
+    padding-left: 10px;
+  }
+
+  .count-circle {
+    left: 8px;
+    top: 18px;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+  }
+
+  .count-circle.exclamation {
+    @extend .bold;
+    color: #B94A48;
+    background-color: #F2DEDE;
+    font-size: 16px;
+    border: solid thin #B94A48;
+  }
+
+  //This is simply for the icon that shows in the header
+  i::before {
+    color: $main-header-color !important;
+  }
+
+  ul:first-child {
+    padding-bottom: 12px;
+  }
+
+  li.disabled {
+    background-color: $off-white !important;
+    border-bottom: $header-dropdown-panel-border;
+    font-size: 14px;
+    padding: 12px 8px !important;
+    color: $slate !important;
+  }
+
+  .dropdown {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .dropdown-menu {
+    -webkit-box-shadow: $dropdown-menu-box-shadow;
+    -moz-box-shadow: $dropdown-menu-box-shadow;
+    box-shadow: $dropdown-menu-box-shadow;
+    border: $header-dropdown-panel-border;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+  }
+
+  .dropdown-contents {
+    height: auto;
+    max-height: 318px;
+    overflow-x: hidden;
+    margin-left: 0;
+    list-style: none;
+
+    li {
+      font-family: Proxima Nova Regular;
+      font-size: 14px;
+      line-height: 18px;
+      background-color: $off-white !important;
+      border-bottom: $notification-item-border;
+      white-space: nowrap;
+      word-wrap: break-word;
+
+      & > a {
+        color: $off-black;
+        padding: 8px;   // here to avoid dead zones on click targets
+        display: block; // for top & bottom padding
+      }
+
+      * {
+        vertical-align: top;
+      }
+
+      &:hover {
+        background-color: $grey-1 !important;
+        cursor: pointer;
+      }
+    }
+  }
+
+  /*
+   * Arrow to the top of a twitter dropdown menu
+   */
+  .dropdown-menu-arrow::before {
+    border-bottom: 8px solid $header-dropdown-panel-background-color-rgba;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    content: "";
+    display: inline-block;
+    left: 1px;
+    position: absolute;
+    top: -8px;
+  }
+  .dropdown-menu-arrow::after {
+    border-bottom: 8px solid $off-white;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    content: "";
+    display: inline-block;
+    left: 2px;
+    position: absolute;
+    top: -8px;
+  }
+  .dropdown.pull-right > .dropdown-menu-arrow::before {
+    left: inherit;
+    right: 1px;
+  }
+  .dropdown.pull-right > .dropdown-menu-arrow::after {
+    left: inherit;
+    right: 2px;
+  }
+}
+
+.notification-menu {
+  margin-right: 20px;
+  padding-right: 20px;
+  border-right: 1px solid $main-header-color;
+
+  .dropdown.pull-right > .dropdown-menu-arrow::before {
+    right: 98px;
+  }
+
+  .dropdown.pull-right > .dropdown-menu-arrow::after {
+    right: 100px;
+  }
+
+  .dropdown-menu {
+    right: -100px;
+    padding-bottom: 12px;
+  }
+
+  .dropdown-contents {
+    width: 360px;
+  }
+
+  li.notification-link {
+    color: $off-black;
+    min-height: 36px;
+    padding: 8px;
+
+    &.selected {
+      background-color: $grey-1 !important;
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &.viewed {
+      color: $slate;
+    }
+  }
+
+
+
+  .notification-age {
+    float: left;
+    font-size: 20px;
+    padding-right: 8px;
+    line-height: 20px;
+    width: 35px;
+    text-align: right;
+  }
+
+  .notification-age-label {
+    float: left;
+    width: 50px;
+    padding-right: 16px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .notification-text {
+    display: inline;
+    white-space: normal;
+  }
+
+  .dropdown-sub-menu {
+    right: 360px;
+    position: absolute;
+    top: 0px;
+    margin-right: 12px;
+    list-style: none;
+    -webkit-box-shadow: $dropdown-menu-box-shadow;
+    -moz-box-shadow: $dropdown-menu-box-shadow;
+    box-shadow: $dropdown-menu-box-shadow;
+    border: $header-dropdown-panel-border;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    padding-bottom: 12px;
+    background-color: $off-white;
+  }
+
+  .dropdown-sub-menu::before {
+    border-left: 8px solid $off-white;
+    border-bottom: 10px solid transparent;
+    border-top: 10px solid transparent;
+    right: -8px;
+    content: "";
+    display: inline-block;
+    top: 16px;
+    position: absolute;
+  }
+
+  .dropdown-sub-menu::after {
+    border-left: 8px solid rgba(254, 254, 254, 0.2);;
+    border-bottom: 8px solid transparent;
+    border-top: 8px solid transparent;
+    right: -8px;
+    top: 16px;
+    content: "";
+    display: inline-block;
+    position: absolute;
+  }
+
+  .dropdown-sub-menu li, .dropdown-sub-menu li:hover {
+    background-color: $off-white !important;
+    cursor: auto !important;
+  }
+
+  #detail-html-container {
+    width: 500px;
+    height: 318px;
+    overflow: auto;
+    white-space: normal !important;
+    padding: 8px;
+  }
+}
+

@@ -23,9 +23,13 @@
     <angularjs.version>1.3.15</angularjs.version>
     <jasmine.version>1.3.1.4</jasmine.version>
     <saga.version>1.5.2</saga.version>
+    <jasmine.brain.id.new>test-brain-assets-new</jasmine.brain.id.new>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
+    <jasmine.cip.id.new>test-cip-assets-new</jasmine.cip.id.new>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
+    <jasmine.version.graph.id.new>test-version-graph-assets-new</jasmine.version.graph.id.new>
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
+    <jasmine.view.details.id.new>test-view-details-assets-new</jasmine.view.details.id.new>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>1.9.7</phantomjs.version>
@@ -517,6 +521,36 @@
         <!-- Only the last execution of this plugin is subject to collection of coverage information, unfortunately. -->
         <executions>
           <execution>
+            <id>${jasmine.cip.id.new}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <preloadSources>
+                <source>frontend/cip/cip-test-util.js</source>
+              </preloadSources>
+              <sourceIncludes>
+                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
+                <include>frontend/assets/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/cip/*.js</include>
+                <include>frontend/assets/lib/ui-bootstrap-tpls-*.min.js</include>
+                <include>frontend/assets/lib/datepicker/bootstrap-datepicker.js</include>
+                <include>frontend/util/*.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>frontend/SpecUtil.js</include>
+                <include>frontend/**/lib/*.js</include>
+                <include>frontend/**/*MockData.js</include>
+                <include>frontend/**/cip*.js</include>
+                <include>frontend/**/CIP*.js</include>
+              </specIncludes>
+              <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
             <id>${jasmine.cip.id}</id>
             <phase>test</phase>
             <goals>
@@ -551,7 +585,47 @@
                 <include>resources/assets/**/cip*.js</include>
                 <include>resources/assets/**/CIP*.js</include>
               </specIncludes>
-              <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
+              <junitXmlReportFileName>TEST-cip-legacy.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.brain.id.new}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
+                <include>frontend/assets/lib/bootstrap/bootstrap-*.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/assets/lib/ui-bootstrap-tpls-*.min.js</include>
+                <include>frontend/assets/lib/X-editable/bootstrap-editable.min.js</include>
+                <include>frontend/assets/**/*.js</include>
+                <include>frontend/**/*.js</include>
+              </sourceIncludes>
+              <sourceExcludes>
+                <exclude>frontend/assets/lib/angular-${angularjs.version}/*.min.js</exclude>
+                <exclude>frontend/assets/lib/protovis/protovis-msie.min.js</exclude>
+                <exclude>frontend/assets/version-graph/*.js</exclude>
+                <exclude>frontend/cip/*.js</exclude>
+                <exclude>frontend/policy/js/*.js</exclude>
+              </sourceExcludes>
+              <specIncludes>
+                <include>frontend/SpecUtil.js</include>
+                <include>frontend/**/lib/*.js</include>
+                <include>frontend/**/*MockData.js</include>
+                <include>frontend/**/*-spec.js</include>
+                <include>frontend/**/*Spec.js</include>
+              </specIncludes>
+              <specExcludes>
+                <exclude>frontend/**/cip*.js</exclude>
+                <exclude>frontend/**/CIP*.js</exclude>
+                <exclude>frontend/version-graph/**/*.js</exclude>
+              </specExcludes>
+              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
             </configuration>
           </execution>
           <execution>
@@ -591,7 +665,30 @@
                 <exclude>resources/assets/**/CIP*.js</exclude>
                 <exclude>resources/assets/version-graph/**/*.js</exclude>
               </specExcludes>
-              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
+              <junitXmlReportFileName>TEST-server-legacy.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.version.graph.id.new}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular.min.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
+                <include>frontend/brain-client/*.js</include>
+                <include>frontend/assets/lib/protovis/protovis.min.js</include>
+                <include>frontend/assets/version-graph/appcheck.js</include>
+                <include>frontend/assets/version-graph/cip.js</include>
+                <include>frontend/assets/ComponentDisplayModule.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>frontend/**/lib/*.js</include>
+                <include>frontend/version-graph/VersionGraphSpec.js</include>
+              </specIncludes>
             </configuration>
           </execution>
           <execution>
@@ -617,6 +714,26 @@
               <specIncludes>
                 <include>resources/assets/**/lib/*.js</include>
                 <include>resources/assets/version-graph/VersionGraphSpec.js</include>
+              </specIncludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.view.details.id.new}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular.min.js</include>
+                <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
+                <include>frontend/brain-client/*.js</include>
+                <include>frontend/assets/version-graph/viewdetails.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>frontend/**/lib/*.js</include>
+                <include>frontend/version-graph/ViewDetailsSpec.js</include>
               </specIncludes>
             </configuration>
           </execution>
@@ -853,6 +970,38 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>0.0.23</version>
+        <executions>
+          <execution>
+            <id>install-node-and-npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>v0.10.18</nodeVersion>
+              <npmVersion>1.3.8</npmVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm-install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>grunt-build</id>
+            <goals>
+              <goal>grunt</goal>
+            </goals>
+            <configuration>
+              <arguments>build</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
 
     <pluginManagement>
@@ -918,9 +1067,21 @@
       E.g. mvn phantomjs:install jasmine:test -P test-brain
     -->
     <profile>
+      <id>test-cip-new</id>
+      <properties>
+        <jasmine.cip.id.new>default-cli</jasmine.cip.id.new>
+      </properties>
+    </profile>
+    <profile>
       <id>test-cip</id>
       <properties>
         <jasmine.cip.id>default-cli</jasmine.cip.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-brain-new</id>
+      <properties>
+        <jasmine.brain.id.new>default-cli</jasmine.brain.id.new>
       </properties>
     </profile>
     <profile>
@@ -930,9 +1091,21 @@
       </properties>
     </profile>
     <profile>
+      <id>test-version-graph-new</id>
+      <properties>
+        <jasmine.version.graph.id.new>default-cli</jasmine.version.graph.id.new>
+      </properties>
+    </profile>
+    <profile>
       <id>test-version-graph</id>
       <properties>
         <jasmine.version.graph.id>default-cli</jasmine.version.graph.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-view-details-new</id>
+      <properties>
+        <jasmine.view.details.id.new>default-cli</jasmine.view.details.id.new>
       </properties>
     </profile>
     <profile>
@@ -953,39 +1126,6 @@
         <wro4j.minimize>false</wro4j.minimize>
         <wro4j.brain.resources>${project.build.directory}/classes/assets/</wro4j.brain.resources>
       </properties>
-    </profile>
-    <profile>
-      <id>csslint</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>ro.isdc.wro4j</groupId>
-            <artifactId>wro4j-maven-plugin</artifactId>
-            <version>${wro4j.version}</version>
-            <executions>
-              <execution>
-                <phase>generate-resources</phase>
-                <id>default-cli</id>
-                <goals>
-                  <goal>csslint</goal>
-                </goals>
-                <configuration>
-                  <failNever>true</failNever>
-                  <targetGroups>css,cip</targetGroups>
-                  <options>box-model,display-property-grouping,duplicate-properties,empty-rules,known-properties,box-sizing,bulletproof-font-face,font-faces,regex-selectors,unqualified-attributes,zero-units,overqualified-elements,duplicate-background-images,floats,font-sizes,ids,important,qualified-headings,unique-headings</options>
-                </configuration>
-              </execution>
-            </executions>
-            <configuration>
-              <wroFile>${basedir}/wro.xml</wroFile>
-              <extraConfigFile>${basedir}/wro.properties</extraConfigFile>
-              <wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
-              <ignoreMissingResources>false</ignoreMissingResources>
-              <contextFolder>${basedir}/src/main/wro4j/</contextFolder>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
     <profile>
       <id>obfuscate</id>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html ng-app='viewdetails'>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Component Detail</title>
+
+    <!-- build:css(.tmp) ../../viewdetails-lib.css -->
+    <link href="scss/bootstrap.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:css(.tmp) ../../viewdetails-scss.css -->
+    <link href="scss/viewdetails.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:css ../../viewdetails.css -->
+    <link href="../../viewdetails.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:js ../../viewdetails-lib.js -->
+    <script src="../../../lib/jquery/jquery-1.8.3.min.js"></script>
+    <script src="../../../lib/angular-<%= config.pom.angularJsVersion %>/angular.min.js"></script>
+    <!-- endbuild -->
+
+    <script src='../../../../policy-assets/js/brain.client.js?<%= config.buildTimestamp %>'></script>
+
+    <!-- build:js ../../viewdetails.js -->
+    <script src="../../viewdetails.js"></script>
+    <!-- endbuild -->
+    <script>
+      var clmEndpoint = {
+        type : 'rm',
+        showContext : true,
+        linkTarget : '_blank'
+      };
+    </script>
+  </head>
+  <body ng-include='"../../details.html?<%= config.buildTimestamp %>"' ng-controller='view'>
+  </body>
+</html>

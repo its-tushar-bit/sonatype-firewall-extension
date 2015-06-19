@@ -1,0 +1,430 @@
+/*
+  #Form elements
+*/
+/*
+  ##Text inputs
+
+  See clmControlGroup and clmInput directives.
+
+```
+<form class='clm-form'>
+  <p>
+    <label for='normal'>An input that is not required and hasn't been updated</label>
+    <input type='text' id='normal' class='ng-valid' placeholder='ex. Antiquated Value'>
+  </p>
+  <p>
+    <label for='required'>An input that is required and hasn't been updated</label>
+    <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
+  </p>
+  <p>
+    <label for='valid'>An input that has been updated and is valid</label>
+    <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
+  </p>
+  <p>
+    <label for='invalid'>An input that has been updated and is invalid</label>
+    <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
+  </p>
+</form>
+```
+*/
+.clm-form input[type=text], .clm-form input[type=number], .clm-form input[type=email],
+.clm-form input[type=password], .clm-form textarea {
+  width: 95% !important;
+
+  &[required].ng-invalid {
+    border-left: 5px solid $invalid-red !important;
+  }
+  &[required].ng-valid {
+    border-left: 5px solid $valid-green !important;
+  }
+  &:not([required]) {
+    border-left: 5px solid $valid-green !important;
+  }
+  &.ng-valid.ng-dirty {
+    border: 1px solid $valid-green !important;
+    border-left-width: 5px !important;
+  }
+  &.ng-invalid.ng-dirty {
+    border: 1px solid $invalid-red !important;
+    border-left-width: 5px !important;
+  }
+}
+
+.clm-form input[type=text].with-threat-dropdown {
+  width: 421px !important;
+}
+
+.clm-primary-buttons {
+  padding-right: 5px;
+}
+.clm-primary-buttons-wide {
+  padding-right: 10px;
+}
+/*
+  ##Toggle Switches
+  Toggle switches use the [Bootstrap Toggle](http://www.bootstraptoggle.com/) plugin. Height is set programmatically
+  to 32px using "height: '24px'", where there is 8px of margins.
+
+  ```
+    <div class="checkbox toggle-checkbox">
+      <label>
+        <input type="checkbox" toggle-checkbox data-on="Can" data-off="Cannot" ng-model="permission.value">
+        Do Action
+      </label>
+    </div>
+  ```
+*/
+.toggle-checkbox {
+  padding-left: 24px;
+}
+
+.toggle-checkbox .toggle-handle {
+  padding: 4px 7px;
+  height: calc(100% - 8px);
+}
+
+.toggle-checkbox .btn {
+  background-image: none;
+  box-shadow: none;
+  border-color: $link-blue;
+  font-family: Proxima Nova Semibold, serif;
+  font-size: 14px;
+}
+
+.toggle-checkbox .toggle {
+  margin-right: 16px;
+  border-width: 2px;
+}
+
+.toggle-checkbox .toggle:not([disabled='disabled']):hover {
+  border-color: $deep-blue;
+}
+
+.toggle-checkbox .btn-default {
+  color: $link-blue;
+  background-color: $off-white;
+}
+
+.toggle-checkbox .btn-primary {
+  color: $off-white;
+  background-color: $link-blue;
+  text-shadow: none;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'], .toggle-checkbox .toggle[disabled='disabled'] .btn {
+  border-color: $light-blue;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'], .toggle-checkbox .toggle[disabled='disabled'] * {
+  cursor: not-allowed;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'] .btn-default {
+  color: $light-blue;
+}
+
+.toggle-checkbox .toggle[disabled='disabled'] .btn-primary {
+  background-color: $light-blue;
+}
+
+/*
+  ##Inline Controls with Description
+
+  ```
+    <table class="inline-control-table">
+      <tbody>
+        <tr>
+          <td>
+            <h3>Header One</h3>
+          </td>
+        </tr>
+        <tr>
+          <td class='inline-control'>
+            <label for='foo'>Foo</label>
+            <input type='text' id='foo' placeholder='ex. Foo'>
+          </td>
+          <td>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ullamcorper velit. Etiam in lacus ac nunc feugiat luctus.
+          </td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td>
+            <h3>Header Two</h3>
+          <td>
+        </tr>
+        <tr>
+          <td class='inline-control'>
+            <label for='bar'>Bar</label>
+            <input type='text' id='bar' placeholder='ex. Bar'>
+          </td>
+          <td>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent id ullamcorper velit. Etiam in lacus ac nunc feugiat luctus.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  ```
+*/
+.inline-table {
+  border-spacing: 0 5px;
+  border-collapse: separate;
+}
+.inline-table label {
+  margin: 0;
+}
+.inline-control {
+  white-space: nowrap;
+  padding-right: 24px;
+}
+//
+//.inline-control-group:after {
+//  content: "";
+//  clear: both;
+//  display: table;
+//}
+/*
+  ##Validation popovers
+  Modified version of bootstrap popover styling, should appear at the far right edge of an invalidated input
+
+  See clmInput directive.
+
+  ```
+  <div class="popover input-popover fade top in" style="top: 10px; left: 10px; display: block;">
+    <div class="arrow"></div>
+    <div class="popover-content">Please enter a value</div>
+ </div>
+  ```
+*/
+.input-popover{
+  background-color: $errorBackground !important;
+  color: $errorText;
+  border: 1px solid $errorBorder;
+  z-index: $zindexModal + 1;
+  @include border-radius($borderRadiusSmall);
+}
+.input-popover .top{
+  margin-top:-2px
+}
+.input-popover .right{
+  margin-left:2px
+}
+.input-popover .bottom{
+  margin-top:2px
+}
+.input-popover .left{
+  margin-left:-2px
+}
+.input-popover .top .popover-arrow{
+  bottom:-11px;
+  left:80%;
+}
+.input-popover .popover-content {
+  padding: 0 10px;
+}
+.input-popover.top .arrow {
+  left: 80%;
+  border-top-color: $errorBorder !important;
+}
+.input-popover.top .arrow:after {
+  border-top-color: $errorBackground !important;
+}
+.input-popover.top .arrow:before {
+  display: none;
+}
+
+/*
+  ##Form Actions
+```
+    <button type='button' class='btn btn-link btn-cancel'>Cancel</button>
+    <button type='button' class='btn'>Reset</button>
+    <button type='button' class='btn btn-warning'>Update</button>
+    <button type='button' class='btn btn-success'>Action</button>
+    <button type='button' class='btn btn-primary'>Submit</button>
+    <button type='button' class='btn btn-primary' disabled>Submit</button>
+```
+*/
+
+.btn-cancel {
+  color: $gray !important;
+  box-sizing: content-box;
+  padding-left: 0;
+  padding-right:0;
+}
+.btn-cancel:hover {
+  color: darken($gray, 25%) !important;
+}
+
+.btn-primary.disabled, .btn-primary[disabled] {
+  color: $off-white;
+  background-color: $light-blue;
+  text-shadow: none;
+}
+
+/*
+  ##Modal Forms
+```
+<div class="modal fade in">
+  <div class="modal-header">
+    <button type="button" class="close" aria-hidden="true">&times;</button>
+    <h3>Title</h3>
+  </div>
+  <div class='clm-form well clm-well'>
+    <form name="form">
+      <label for='normal'>An input that is not required and hasn't been updated</label>
+      <input type='text' id='normal' class='ng-valid'>
+      <label for='required'>An input that is required and hasn't been updated</label>
+      <input type='text' id='required' class='ng-invalid' required>
+      <button class='btn btn-link btn-cancel'>Cancel</button>
+      <button class='btn btn-primary pull-right'>Submit</button>
+    </form>
+  </div>
+</div>
+```
+*/
+.modal-footer {
+  text-align: left;
+}
+.modal form {
+  margin: 0;
+}
+/*
+  ##Alerts
+
+  See clmAlerts directive.
+
+```
+  <div class='alert alert-success'>
+    A green alert indicates that a successful action took place.
+  </div>
+
+  <div class='alert alert-error'>
+    A red alert indicates that an error occurred.
+  </div>
+```
+*/
+.alert {
+  word-break: break-word;
+}
+/*
+  ##Well
+```
+  <div class='well clm-well'>
+    <from class='clm-form'>
+      Forms are displayed within a well.
+    </form>
+  </div>
+```
+*/
+.clm-well {
+  border: 2px solid $grey-4 !important;
+  margin-bottom:0px !important;
+}
+
+/*
+  #List Editor Form
+
+  See listEditor, clmControlGroup and clmInput directives.
+
+```
+  <div class='clm-form well clm-well'>
+    <form class='clm-form list-editor-form'>
+      <div class='control-group'>
+        <label for='current-entry'>Text Entry</label>
+        <div class='controls'>
+          <div class='input-append controls'>
+            <input type='text'>
+            <button class='btn' title='Add Entry'>Add</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <form class='clm-form list-editor-form'>
+      <div class='control-group'>
+        <label for='current-entry'>Combobox Entry</label>
+        <div class='controls'>
+          <div class='input-append controls'>
+            <select>
+              <option>Option</option>
+            </select>
+            <button class='btn' title='Add Entry'>Add</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class='checkbox'>
+      <label>
+        <input type='checkbox'> Checkbox
+      </label>
+    </div>
+    <div class='well well-small list-editor-well'>
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <div title='AddedEntry'>AddedEntry</div>
+              </td>
+              <td>
+                <button class='btn btn-mini' title='Remove Entry'>
+                  <i class='icon-minus-sign'></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <button class='btn btn-link btn-cancel'>Cancel</button>
+    <span class='pull-right'>
+      <button class='btn btn-primary'>Done</button>
+    </span>
+  </div>
+```
+*/
+.list-editor-form {
+  margin-bottom: 0px;
+}
+.list-editor-form input[type=text] {
+  width: 440px !important;
+}
+.modal .list-editor-form input[type=text] {
+  width: 449px !important;
+}
+.modal .list-editor-form select {
+  width: 467px !important;
+}
+.list-editor-well {
+  padding: 3px;
+  margin-bottom: 20px;
+  height: 120px;
+  background: #fff;
+}
+.list-editor-well>div {
+  height:100%;
+  overflow-y:auto
+}
+.list-editor-well table {
+  margin:auto;
+  width: 100%;
+}
+.list-editor-well tr {
+  border-bottom: 1px solid #DDDDDD;
+}
+.list-editor-well td {
+  padding-bottom: 5px;
+  vertical-align: top;
+}
+.list-editor-well td:nth-child(1) {
+  max-width: 370px;
+  padding-left: 5px;
+}
+.list-editor-well td:nth-child(1)>div {
+  max-width: 100%;
+  text-overflow:ellipsis;
+  overflow:hidden
+}
+.list-editor-well td:nth-child(2) {
+  text-align: right;
+}

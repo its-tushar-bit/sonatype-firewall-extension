@@ -1,6 +1,6 @@
 {
   "name": "insight-brain-service",
-  "version": "1.11.01",
+  "version": "1.16.0-SNAPSHOT",
   "homepage": "https://github.com/sonatype/insight-brain",
   "authors": [
     "Sonatype"

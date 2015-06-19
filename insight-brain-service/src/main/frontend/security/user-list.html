@@ -1,0 +1,171 @@
+<div class='mid-content'>
+  <script type='text/ng-template' id='delete-user-modal'>
+<div class="modal-header"><h3>Delete User</h3></div>
+<div class="modal-body"><p>Are you sure you want to delete user <strong>{{username}}</strong>?</p></div>
+<div class="modal-footer">
+  <div clm-alerts="alerts" no-close="true"></div>
+  <button class="btn btn-link btn-cancel" ng-click="cancel()">Cancel</button>
+  <button class="btn btn-danger floatRight" ng-click="discard()">Delete</button>
+</div>
+  </script>
+  <script type='text/ng-template' id='reset-password-modal'>
+<div class="modal-header">
+  <button type="button" class="close" ng-click="$close()">&times</button>
+  <h3>Reset Password</h3>
+</div>
+<div ng-switch="state">
+  <div ng-switch-when="ready">
+    <div class="modal-body">
+      <p>Are you sure you want to reset the password for <strong>{{user.username}}</strong>? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" ng-click="cancelClick()">Cancel</button>
+      <button class="btn btn-danger" ng-click="resetClick()">Reset</button>
+    </div>
+  </div>
+  <div ng-switch-when="pending">
+    <div class="modal-body">
+      <span>Reset pending...</span>
+    </div>
+    <div class="modal-footer">
+    </div>
+  </div>
+  <div ng-switch-when="complete">
+    <div class="modal-body">
+      <span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
+      <span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
+        <input id="generatedPassword" style="width:120px;cursor:auto;" type="text" ng-model="newPassword" readonly select-text focus-input="state == 'complete'"/>
+        <button ng-show="flashInstalled()" title="Copy to clipboard" class="btn" type="button" zero-clipboard="generatedPassword">
+          <i class="glyphicons-sonatype clipboard"></i>
+        </button>
+      </span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="okClick()">OK</button>
+    </div>
+  </div>
+  <div ng-switch-when="failed">
+    <div class="modal-body">
+      <span>{{error}}</span>
+    </div>
+    <div class="modal-footer">
+    </div>
+  </div>
+</div>
+  </script>
+  <script type='text/ng-template' id='user-item'>
+<div ng-show='context.users' class="accordion users">
+  <button id='user-new' ng-if='!user' type='button' class='btn add-new new-user-button' ng-click='newUserClick()'>
+    <i class='icon icon-plus'></i> New User
+  </button>
+  <div ng-if='user'>
+    <ul ng-show="!user.id" class="tri-pane" style="min-width:0px;margin-top:10px;">
+      <li class="active">
+        <a style="text-transform:none;">Add New User</a>
+      </li>
+    </ul>
+    <form id='{{user.id}}user-form' name="userForm" class='clm-form well clm-well' ng-submit="saveClick(user)" novalidate autocomplete="off">
+      <div>
+        <div clm-control-group for="firstName" label="First Name">
+          <input clm-input id="firstName" name="firstName" type="text" ng-required="true" valid-name-characters
+                 placeholder="ex. Isaac" ng-model="user.firstName" focus-input="user"
+                 has-whitespace="suggestedFirstName">
+        </div>
+        <div clm-control-group for="lastName" label="Last Name">
+          <input clm-input id="lastName" name="lastName" type="text" ng-required="true" valid-name-characters
+                 placeholder="ex. Asimov" ng-model="user.lastName" has-whitespace="suggestedLastName">
+        </div>
+        <div clm-control-group for="email" label="Email">
+          <input clm-input id='email' name="email" type="email" ng-required="true" placeholder="ex. iasimov@sonatype.com"
+                 ng-model="user.email">
+        </div>
+        <div ng-if="!user.id">
+          <div clm-control-group for="username" label="Username">
+            <input clm-input id="username" name="username" type="text" ng-required="!user.id" ng-pattern="/^\S*$/"
+                   valid-name-characters is-duplicate is-duplicate-array="context.users" is-duplicate-id-field="id"
+                   is-duplicate-case-sensitive="false" placeholder="ex. iasimov" ng-model="user.username"
+                   messages="{pattern: 'Must not contain spaces', duplicate: 'Username already taken'}">
+          </div>
+          <div clm-control-group for="password" label="Password">
+            <input clm-input id='password' name="password" type="password" ng-required="!user.id"
+                   placeholder="ex. correcthorsebatterystaple" ng-model="user.password">
+          </div>
+          <div clm-control-group for="passwordValidate" label="Validate Password">
+            <input clm-input id="passwordValidate" name="passwordValidate" type="password" ng-required="!user.id"
+                   placeholder="ex. correcthorsebatterystaple" ng-model="user.passwordValidate"
+                   clm-match="user.password"
+                   messages="{ match : 'Passwords must match!'}">
+          </div>
+        </div>
+      </div>
+      <div clm-alerts="alerts" no-close="true"></div>
+      <button id='{{user.id}}user-form-cancel' type="button" class='btn btn-link btn-cancel' type='button'
+              ng-click='cancelClick(user)'>Cancel
+      </button>
+      <div class="pull-right clm-primary-buttons">
+        <button id='{{user.id}}user-form-save' class='btn btn-primary' type='button' ng-click='saveClick(user)'
+                ng-disabled='userForm.$invalid || userForm.$pristine || saving'>Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+</script>
+  <div load-wrapper="error" reload="doLoad()">
+    <div authorization-wrapper="isAuthorized">
+      <div expand-user-on-event='userEditClick'></div>
+      <h1 class='page-title'>
+        <div class='container config'>Users</div>
+      </h1>
+      <div class='container config'>
+        <h5 ng-hide='context.users'>
+          <i class='icon-time'></i> Loading...
+        </h5>
+        <div style='margin-left:-15px'>
+          <div ng-show='context.users' class="accordion users">
+            <div user-item context="context" user="user"></div>
+          </div>
+          <div class="accordion-group users" ng-class="{'white': isCurrentUser(user) }" ng-repeat='user in context.users'>
+            <div class="accordion-heading">
+              <div class='btn-group floatRight'>
+                <button type='button' class="btn btn-mini user-button hover-buttons" title="Edit User" ng-disabled='context.userEditMap[user.id]' ng-click="editClick(user)">
+                  <i class="icon-pencil"></i>
+                </button>
+                <button type='button' class="btn btn-mini user-button hover-buttons" title="Reset Password" ng-click="resetPasswordClick(user)">
+                  <i class="icon-reset-pw"></i>
+                </button>
+                <button type='button' class="btn btn-mini user-button hover-buttons" title="Remove User" ng-click="removeClick(user)">
+                  <i class="icon-trash"></i>
+                </button>
+              </div>
+              <a class="accordion-toggle user-top collapsed" style="padding-bottom:4px;" data-toggle="collapse" data-target="#collapse{{user.id}}">
+                <h4 style="display:inline;margin-top:0px;margin-bottom:4px;">{{user.username}} ({{user.firstName}} {{user.lastName}})</h4><span ng-if="isCurrentUser(user)" style="margin-left:5px;font-size:10px;color:darkgreen;">Current User</span>
+              </a>
+            </div>
+            <div id="collapse{{user.id}}" class="accordion-body collapse">
+              <div class="accordion-inner" style="padding:0px 15px;" ng-if="!context.userEditMap[user.id]">
+                <table style="margin-bottom:5px;">
+                  <tr>
+                    <td class="summary-label">First Name:</td>
+                    <td>{{user.firstName}}</td>
+                  </tr>
+                  <tr>
+                    <td class="summary-label">Last Name:</td>
+                    <td>{{user.lastName}}</td>
+                  </tr>
+                  <tr>
+                    <td class="summary-label">E-mail Address:</td>
+                    <td>{{user.email}}</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="accordion-inner" style="padding:0px;" ng-if="context.userEditMap[user.id]">
+                <div user-item user='user' context='context'></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

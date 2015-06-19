@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+
+    Copyright (c) 2011-2013 Sonatype, Inc. All rights reserved.
+    Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+    "Sonatype" is a trademark of Sonatype, Inc.
+
+-->
+<html lang="en" ng-app="managementApp" ng-strict-di>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title ng-bind="'CLM ' + ($state.current.data.title ? $state.current.data.title : '')">CLM Management</title>
+    <link rel='shortcut icon' href='favicon.ico'/>
+    <script type='text/javascript'>
+        var clmBuildTimestamp = '<%= config.buildTimestamp %>', clmServerVersion = '<%= config.pom.clmVersion %>',
+            angularDebug = <%= config.pom.angularDebug %>;
+    </script>
+
+  <!--build:css(.tmp) css/lib-scss.css -->
+  <link href="scss/bootstrap.css" rel="stylesheet">
+  <!-- endbuild -->
+
+  <!-- build:css css/lib.css -->
+  <link href="lib/bootstrap/bootstrap-slider-2.0.0.css" rel="stylesheet">
+  <link href="lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css" rel="stylesheet">
+  <link href="lib/glyphicon/glyphicons.css" rel="stylesheet">
+  <link href="lib/glyphicon/halflings.css" rel="stylesheet">
+  <link href="lib/X-editable/xeditable.css" rel="stylesheet">
+  <!-- endbuild -->
+
+  <!--build:css(.tmp) css/style-scss.css -->
+  <link href="scss/scss.css" rel="stylesheet">
+  <!-- endbuild -->
+
+  <!--build:css css/style.css -->
+  <link href="../application/application.css" rel="stylesheet">
+  <link href="app-security.css" rel="stylesheet">
+  <link href="dashboard.css" rel="stylesheet">
+  <link href="glyphicons-sonatype.css" rel="stylesheet">
+  <link href="insight.css" rel="stylesheet">
+  <link href="management.css" rel="stylesheet">
+  <link href="multi-select.css" rel="stylesheet">
+  <link href="report-list.css" rel="stylesheet">
+  <link href="sonatype-icons.css" rel="stylesheet">
+  <link href="threat.css" rel="stylesheet">
+  <link href="../policy/labels.css" rel="stylesheet">
+  <link href="../policy/policy.css" rel="stylesheet">
+  <link href="../user/user.css" rel="stylesheet">
+  <!-- endbuild -->
+
+  <!-- build:js js/lib.js -->
+  <script src='lib/jquery/jquery-1.8.3.min.js'></script>
+  <script src="lib/bootstrap/bootstrap-2.3.1.min.js"></script>
+  <script src='lib/bootstrap/bootstrap-slider-2.0.0-sonatype-1.js'></script>
+  <script src='lib/angular-<%= config.pom.angularJsVersion %>/angular.min.js'></script>
+  <script src='lib/angular-<%= config.pom.angularJsVersion %>/angular-aria.min.js'></script>
+  <script src='lib/angular-<%= config.pom.angularJsVersion %>/angular-route.min.js'></script>
+  <script src='lib/angular-<%= config.pom.angularJsVersion %>/angular-sanitize.min.js'></script>
+  <script src='lib/angular-ui-router-0.2.15.min.js'></script>
+  <script src='lib/angular-ui-utils-0.0.3.js'></script>
+  <script src="lib/ui-bootstrap-tpls-0.8.0.min.js"></script>
+  <script src="lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.min.js"></script>
+  <script src="lib/X-editable/xeditable-0.1.8.min.js"></script>
+  <script src='lib/ng-upload-0.3.4.js'></script>
+  <script src='lib/d3/d3.min.js'></script>
+  <script src='lib/Base64.js'></script>
+  <script src='lib/zeroclipboard/ZeroClipboard-1.3.2.min.js'></script>
+  <!-- endbuild -->
+
+  <!-- build:js js/core.js -->
+  <script src="../application/ApplicationController.js"></script>
+  <script src="ComponentDisplayModule.js"></script>
+  <script src="DashboardModule.js"></script>
+  <script src="EditorTools.js"></script>
+  <script src="FormsModule.js"></script>
+  <script src="MainHeader.js"></script>
+  <script src="MainModule.js"></script>
+  <script src="ManagementApp.js"></script>
+  <script src="PolicyEditor.js"></script>
+  <script src="ReportApp.js"></script>
+  <script src="Resource.js"></script>
+  <script src="../configuration/ConfigurationController.js"></script>
+  <script src="../configuration/LdapConfigurationController.js"></script>
+  <script src="../configuration/ProductLicenseController.js"></script>
+  <script src="../dashboard/ComponentController.js"></script>
+  <script src="../dashboard/FilterController.js"></script>
+  <script src="../organization/OrganizationController.js"></script>
+  <script src="../policy/AppSecurityController.js"></script>
+  <script src="../policy/LabelController.js"></script>
+  <script src="../policy/LicenseThreatGroupsController.js"></script>
+  <script src="../policy/PolicyController.js"></script>
+  <script src="../policy/TagController.js"></script>
+  <script src="../report/ReportController.js"></script>
+  <script src="../report/ReportViolationsController.js"></script>
+  <script src="../security/RoleModule.js"></script>
+  <script src="../security/UserModule.js"></script>
+  <script src="../util/AngularCommon.js"></script>
+  <script src="../util/BootstrapAddonsModule.js"></script>
+  <script src="../util/CLMAppLocation.js"></script>
+  <script src="../util/CLMLocation.js"></script>
+  <script src="../util/HttpInterceptors.js"></script>
+  <script src="../util/PermissionService.js"></script>
+  <script src="../util/ProductFeatures.js"></script>
+  <script src="../util/Stores.js"></script>
+  <script src="../util/Validators.js"></script>
+  <!-- endbuild -->
+</head>
+<body>
+  <div main-header></div>
+  <div ng-show='!error'>
+    <div ui-view></div>
+  </div>
+  <div ng-cloak ng-if='error' class='alert alert-error' style='margin:86px auto;width:50%;max-width:400px'>
+    <h3>Error</h3>
+    <p>An unrecoverable error has occurred while loading the page.</p>
+    <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
+  </div>
+  <div id="unsavedModal" class="master-modal modal hide fade" ng-controller="UnsavedController" data-backdrop="static" data-keyboard="false">
+    <div class="modal-header"><h3>Unsaved Changes</h3></div>
+    <div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-link btn-cancel" ng-click="close(false)">Cancel</button>
+      <button type="button" class="btn btn-danger pull-right" ng-click="close(true)">Continue</button>
+    </div>
+  </div>
+</body>
+</html>

@@ -78,7 +78,9 @@ public class CLMShiroModule
     configureFilterChainsForIntegrations(manager);
 
     manager.createChain("/*assets/**", "anon"); // assets for the web interface
+    manager.createChain("/new/*assets/**", "anon");  // assets for the web interface
     manager.createChain("/cip/**", "anon"); // assets for report CIP
+    manager.createChain("/new/cip/**", "anon"); // assets for report CIP
     manager.createChain("/favicon.ico", "anon"); // favicon for web interface
     manager.createChain("/rest/ide/asset/**", "anon"); // assets for the IDE CIP and details view
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects

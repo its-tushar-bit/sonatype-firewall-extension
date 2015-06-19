@@ -1,0 +1,84 @@
+.sonatype-icons.dashboard:before {
+  content: '\e604';
+}
+
+.sonatype-icons.reporting:before {
+  content: '\e606';
+}
+
+.sonatype-icons.organizational-design:before {
+  content: '\e607';
+}
+
+.sonatype-icon-menu:before {
+  font-size: 16px !important;
+  padding-right: 10px !important;
+  line-height: 18px !important;
+  vertical-align: middle;
+}
+
+.sonatype-icons.add-organization:before {
+  content: '\e60e';
+}
+
+.sonatype-icons.add-application:before {
+  content: '\e008';
+}
+
+.sonatype-icons.add-policy:before {
+  content: '\e60d';
+}
+
+.sonatype-icons.add-label:before {
+  content: '\e60a';
+}
+
+.sonatype-icons.add-license-threat-group:before {
+  content: '\e60b';
+}
+
+.sonatype-icons.add-tag:before {
+  content: '\e60c';
+}
+
+.sonatype-icons.up:before {
+  content: '\e0d4';
+}
+
+.sonatype-icons.down:before {
+  content: '\e0d6';
+}
+
+.sonatype-icons.fail:before {
+  content: '\e037';
+  font-size: inherit;
+  color: #74071C;
+}
+
+.sonatype-icons.warn:before {
+  content: '\e03f';
+  font-size: inherit;
+  color: #EE7116;
+}
+
+.sonatype-icons.pad-left:before {
+  padding-left: 3px;
+}
+
+.sonatype-icons-hover:hover:before {
+  *zoom: 1;
+  font: 24px/30px 'sonatype-icons';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: inherit;
+  font-size: inherit;
+  opacity: 0.4;
+}
+
+.sonatype-icons-hover.warn:hover:before {
+  content: '\e03f';
+}
+
+.sonatype-icons-hover.fail:hover:before {
+  content: '\e037';
+}

@@ -1,0 +1,194 @@
+/**
+ * @license Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/* global angular */
+(function() {
+  'use strict';
+
+  angular.module('CLMLocation', ['CommonServices']).factory('CLMLocations', [
+    'BaseUrl', '$window', function(baseUrl, $window) {
+      return {
+        getLicensesUrl: function() {
+          return baseUrl.get() + '/rest/license';
+        },
+
+        getConditionTypeUrl: function() {
+          return baseUrl.get() + '/rest/policy/conditionType';
+        },
+
+        getActionStageUrl: function() {
+          return baseUrl.get() + '/rest/policy/stageType';
+        },
+
+        getApplicationsUrl: function() {
+          return baseUrl.get() + '/rest/application';
+        },
+
+        getApplicationUrl: function(applicationPublicId) {
+          return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
+        },
+
+        getApplicationSummariesUrl: function() {
+          return baseUrl.get() + '/rest/application/services/summary';
+        },
+
+        getApplicationSummaryUrl: function(applicationPublicId) {
+          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId);
+        },
+
+        getOrganizationsUrl: function() {
+          return baseUrl.get() + '/rest/organization';
+        },
+
+        getLicenseSummaryUrl: function() {
+          return baseUrl.get() + '/rest/product/license';
+        },
+
+        getLicenseUploadUrl: function() {
+          return baseUrl.get() + '/rest/product/license' + (!$window.FormData ? '?forceSuccess=true' : '');
+        },
+
+        evaluatePolicyUrl: function(applicationPublicId, scanId) {
+          return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;
+        },
+
+        getProprietaryConfig: function() {
+          return baseUrl.get() + '/rest/config/proprietary';
+        },
+
+        getLdapConfig: function() {
+          return baseUrl.get() + '/rest/config/ldap';
+        },
+
+        getReportUrl: function(applicationPublicId, scanId) {
+          return baseUrl.get() + '/rest/report/' + encodeURIComponent(applicationPublicId) + '/' +
+              encodeURIComponent(scanId) + '/browseReport/index.html';
+        },
+        
+        getSessionUrl: function() {
+          return baseUrl.get() + '/rest/user/session';
+        },
+
+        getSessionLogoutUrl: function() {
+          return baseUrl.get() + '/rest/user/session/logout';
+        },
+
+        getUserUrl : function () {
+          return baseUrl.get() + '/rest/user';
+        },
+
+        getRoleByIdUrl : function(roleId) {
+          return baseUrl.get() + '/rest/security/roles/' + roleId;
+        },
+
+        getRoleForNewUrl : function() {
+          return baseUrl.get() + '/rest/security/roles/new';
+        },
+
+        getRoleListUrl : function() {
+          return baseUrl.get() + '/rest/security/roles';
+        },
+
+        getPermissionUrl : function() {
+          return baseUrl.get() + '/rest/user/permissions';
+        },
+
+        getChangeMyPasswordUrl : function () {
+          return baseUrl.get() + '/rest/user/password';
+        },
+
+        getChangePasswordUrl : function (userId) {
+          return baseUrl.get() + '/rest/user/' + userId + '/password';
+        },
+
+        getApplicationScanSummary : function (applicationPublicId, scanId) {
+          return baseUrl.get() + '/rest/application/services/summary/' + encodeURIComponent(applicationPublicId) + '/' + scanId;
+        },
+        
+        getBundleUploadUrl : function (applicationPublicId, stageId, sendNotifications) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '?stageId=' + stageId +
+              '&sendNotifications=' + sendNotifications + (!$window.FormData ? '&noFormData=true' : '');
+        },
+        
+        getEvaluationStatusUrl : function (applicationPublicId, ticketId) {
+          return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '/' + ticketId;
+        },
+
+        getOrganizationTagUrl : function(organizationId) {
+          return baseUrl.get() + '/rest/tag/organization/' + encodeURIComponent(organizationId);
+        },
+        getOrganizationAppliedTagUrl : function(organizationId) {
+          return this.getOrganizationTagUrl(organizationId) + '/applied';
+        },
+        getOrganizationPolicyTagUrl : function(organizationId) {
+          return this.getOrganizationTagUrl(organizationId) + '/policy';
+        },
+        getApplicationTagUrl : function(applicationPublicId) {
+          return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
+        },
+        getApplicableOrganizationTags : function(applicationPublicId) {
+          return baseUrl.get() + '/rest/tag/application/' + encodeURIComponent(applicationPublicId) + '/applicable';
+        },
+        getDeleteApplicationTagUrl : function(applicationPublicId, tagId) {
+          return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;
+        },
+        getProductFeaturesUrl : function() {
+          return baseUrl.get() + '/rest/features';
+        },
+
+        /**
+         * Retrieve the list of components with violations in the most recent stage.  Supports filters
+         * @since 1.11
+         */
+        getComponentRisksUrl : function () {
+          return baseUrl.get() + '/rest/dashboard/policy/componentRisks';
+        },
+
+        /**
+         * Retrieve the list of application risk in the most recent stage.  Supports filters
+         * @since 1.11
+         */
+        getApplicationRisksUrl : function () {
+          return baseUrl.get() + '/rest/dashboard/policy/applicationRisks';
+        },
+
+        getNewestRisksUrl: function() {
+          return baseUrl.get() + '/rest/dashboard/policy/newestRisks';
+        },
+
+        getPolicySummaryUrl: function() {
+          return baseUrl.get() + '/rest/dashboard/policy/summary';
+        },
+
+        getApplicationTagsUrl : function() {
+          return baseUrl.get() + '/rest/tag/application';
+        },
+
+        getDashboardFilters : function() {
+          return baseUrl.get() + '/rest/dashboard/filters';
+        },
+        getDashboardViewingSummaryUrl : function() {
+          return baseUrl.get() + '/rest/dashboard/filters/summary';
+        },
+        getDashboardComponentMatchSummaryUrl : function() {
+          return baseUrl.get() + '/rest/dashboard/components/summary';
+        },
+
+        getComponentDetailsUrl: function(hash) {
+          return baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash;
+        },
+        getComponentNameUrl: function(hash) {
+          return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
+        },
+        getNotificationUrl: function() {
+          return baseUrl.get() + '/rest/productNotifications';
+        },
+        getNotificationViewedUrl: function() {
+          return baseUrl.get() + '/rest/productNotifications/viewed';
+        }
+      };
+    }
+  ]);
+}());

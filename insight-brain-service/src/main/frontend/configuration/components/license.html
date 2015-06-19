@@ -1,0 +1,89 @@
+<script type="text/ng-template" id="install-license-form">
+  <form ng-upload action='{{uploadUrl}}' class='form' style='margin: 0px;display: inline-block' method='post'>
+    <label for="license-input" firefox-input-click class='btn btn-primary'>
+      <i class='icon-white icon-plus-sign'></i>&nbsp;{{ license ? 'Update' : 'Install' }} License
+    </label>
+    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file" on-file-change="onFileChanged()" manual-file-clear/>
+    <input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
+  </form>
+</script>
+<div class='mid-content' authorization-wrapper="isAuthorized">
+  <div id='license'>
+    <h1 class='page-title'>
+      <div class='container config'>Product License</div>
+    </h1>
+    <div class='container config'>
+      <div load-error='error' reload='doLoad()'></div>
+      <div ng-show='!error && !isLoaded()'>
+          <h5><i class='icon icon-time'></i> Loading...</h5>
+      </div>
+      <div ng-show='!error && isLoaded()'>
+        <div ng-if='!license' style="padding-top:10px">
+          <div ng-include="'install-license-form'"></div>
+        </div>
+        <div ng-if='license'>
+          <div class='form-horizontal configuration'>
+            <div class='control-group'>
+              <label class='control-label'>Expires:</label>
+              <div id='license-expiry' class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
+            </div>
+            <div class='control-group'>
+              <label class='control-label'>Fingerprint:</label>
+              <div id='license-fingerprint' class='controls' style='padding-top:5px'>{{license.fingerprint}}</div>
+            </div>
+            <div class='control-group'>
+              <span ng-include="'install-license-form'"></span>
+              <label class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
+                <i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="eulaModal" data-backdrop="static" class="modal hide">
+    <div class="modal-body">
+      <div class="well well-small" style="padding-top:0px;" clm-include="'../configuration-assets/components/eula.html'"></div>
+    </div>
+    <div class="modal-footer">
+      <button class='btn' data-dismiss='modal' ng-click='eulaDeclined()'>I Decline</button>
+      <button class='btn btn-primary' ng-click='eulaAccepted()'>I Accept</button>
+    </div>
+  </div>
+  <div id="licenseUninstallConfirmationModal" data-backdrop="static" class="modal hide">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <h3>Uninstall License</h3>
+    </div>
+    <div class="modal-body">
+      <p>If you uninstall the CLM License, the system will be rendered unusable, are you sure you want to continue?</p>
+    </div>
+    <div class="modal-footer">
+      <button class='btn' data-dismiss='modal'>Cancel</button>
+      <button class='btn btn-danger' ng-click='uninstallLicense()'>Uninstall</button>
+    </div>
+  </div>
+  <div id="licenseInstalledModal" data-backdrop="static" class="modal hide">
+    <div class="modal-header">
+      <h3>License Installed!</h3>
+    </div>
+    <div class="modal-body">
+      <p>Your license has been installed.  The page will reload in a moment, or <a href='#' ng-click='reload()'>refresh</a> now</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="reload()">Refresh</button>
+    </div>
+  </div>
+  <div id="licenseUninstalledModal" data-backdrop="static" class="modal hide">
+    <div class="modal-header">
+      <h3>License Uninstalled!</h3>
+    </div>
+    <div class="modal-body">
+      <p>Your license has been uninstalled.  The page will reload in a moment, or <a href='#' ng-click='reload()'>refresh</a> now</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="reload()">Refresh</button>
+    </div>
+  </div>
+</div>

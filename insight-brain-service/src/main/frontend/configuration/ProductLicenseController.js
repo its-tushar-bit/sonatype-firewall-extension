@@ -1,0 +1,145 @@
+/**
+ * @license Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+/* global angular, $ */
+(function() {
+  'use strict';
+
+  var module = angular.module('ProductLicense',
+      ['AngularCommon', 'ngUpload', 'CLMLocation']);
+
+  module.controller('ProductLicenseController', [
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', 'Messages', 'ErrorDialog', 'isAuthorized',
+    function($http, $scope, clmLocations, $timeout, $window, Messages, ErrorDialog, isAuthorized) {
+
+      $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
+      $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
+      $scope.isAuthorized = isAuthorized;
+
+      $scope.doLoad = function() {
+        if (isAuthorized) {
+          $scope.error = null;
+          $http.get($scope.summaryUrl).success(function(data) {
+            $scope.license = data;
+          }).error(function(data, status) {
+            if (status !== 402) {
+              $scope.error = {
+                status: status,
+                data: data
+              };
+            } else {
+              $scope.license = false;
+            }
+          });
+        }
+      };
+
+      function showLicense() {
+        $('#eulaModal').modal('hide');
+        $('#licenseInstalledModal').modal('show');
+        $timeout($scope.reload, 5000);
+      }
+
+      function showError(content) {
+        $('#eulaModal').modal('hide');
+        ErrorDialog.open(content);
+      }
+
+      $scope.reload = function() {
+        $window.location.reload();
+      };
+
+      $scope.viewUninstallLicense = function() {
+        $('#licenseUninstallConfirmationModal').modal('show');
+      };
+
+      $scope.onFileChanged = function() {
+        $('#eulaModal').modal('show');
+      };
+
+      $scope.eulaDeclined = function() {
+        $window.location.reload();
+      };
+
+      $scope.eulaAccepted = function() {
+        if ($window.FormData) {
+          var form = new FormData();
+          form.append('file', $('#license-input')[0].files[0]);
+          $http.post($scope.uploadUrl, form, {
+            headers : {
+              'Content-Type' : undefined
+            },
+            transformRequest: angular.identity
+          }).success(function () {
+            showLicense();
+          }).error(function () {
+            showError(Messages.getHttpErrorMessage(arguments));
+          });
+        }
+        else {
+          $('input[type=submit]').trigger('click');
+        }
+      };
+
+      $scope.installLicense = function(content, completed) {
+        if (completed) {
+          if (content.length === 0) {
+            showLicense();
+          }
+          else {
+            $scope.clearValue();
+            $timeout(function() {
+              showError(content);
+            }, 0);
+          }
+        }
+      };
+
+      $scope.uninstallLicense = function() {
+        $http['delete']($scope.uploadUrl).success(function() {
+          $('#licenseUninstallConfirmationModal').modal('hide');
+          $('#licenseUninstalledModal').modal('show');
+          $timeout($scope.reload, 5000);
+        }).error(function() {
+          ErrorDialog.open(arguments);
+        });
+      };
+
+      $scope.isLoaded = function() {
+        return typeof $scope.license !== 'undefined';
+      };
+
+      $scope.doLoad();
+
+    }
+  ]);
+
+  module.directive('onFileChange', [
+    function() {
+      return {
+        restrict: 'A',
+        scope: false,
+        link: function(scope, elem, attr) {
+          angular.element(elem).bind('change', function() {
+            if (attr.onFileChange) {
+              scope.$apply(attr.onFileChange);
+            }
+          });
+        }
+      };
+    }
+  ]);
+
+  module.directive('manualFileClear', function() {
+    return {
+      restrict: 'A',
+      link: function(scope, elem) {
+        scope.clearValue = function() {
+          elem.attr('value', '');
+        };
+      }
+    };
+  });
+}());

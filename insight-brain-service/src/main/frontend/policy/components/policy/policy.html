@@ -1,0 +1,90 @@
+<div id="policy" style='min-width:955px'>
+  <script type='text/ng-template' id='policy-quick-add'>
+<div>
+  <div ng-if='!policy'>
+    <button type='button' class='btn add-new new-entity-button' ng-click='click()'>
+      <i class='icon icon-plus'></i> New Policy
+    </button>
+  </div>
+  <div ng-if='policy' class='border-box'>
+    <div clm-include='"../assets/components/policy-editor/policy-inline-editor.html"'></div>
+  </div>
+</div>
+  </script>
+  <div class="content-section">
+    <div load-error='error' reload='doLoad()'></div>
+    <h5 style='margin:25px' ng-show='!applicablePolicies && !error'>
+      <i class='icon-time'></i> Loading...
+    </h5>
+    <div class='fade' ng-class='{in : applicablePolicies }' id="monitoring">
+      <div class="content-header">
+        <h4><i class='clickable glyphicons-halflings-sonatype lighter' id="policy-monitoring-expand"
+               ng-class="{ 'expand' : !monitoringExpanded,
+                           'collapse' : monitoringExpanded }"
+               ng-click='toggleSection("monitoring", monitoringExpanded); monitoringExpanded = !monitoringExpanded'></i> Policy Monitoring
+        </h4>
+      </div>
+      <div class="accordion monitoringContent">
+        <div class="accordion-body collapse">
+          <!-- ngIf isnt used because of an IE9 (and IE10 i believe) where the select value only shows the first letter -->
+          <div class="form-horizontal configuration" style="width: 700px;" ng-show="isPolicyMonitoringLicensed()">
+            <form id="monitoring-form" name="monitoringForm">
+              <div class='control-group'>
+                <label class="control-label" style="width: auto;padding-right: 5px;" for="policy-monitoring">
+                  Monitor the latest scan from CLM stage
+                </label>
+                <div class='controls'>
+                  <select id="policy-monitoring" name="policyMonitoring" ng-model="policyMonitoring.stageTypeId"
+                          ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
+                    <option value="">{{ policyMonitoringPlaceHolder }}</option>
+                  </select>
+                  <span class="icon-question-sign"
+                        data-popover="Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured per policy (below)."
+                        data-popover-placement="right" data-popover-trigger="mouseenter" data-popover-append-to-body="true"></span>
+                </div>
+              </div>
+              <div clm-alerts='policyMonitoringAlerts'></div>
+            </form>
+          </div>
+          <div ng-if="!isPolicyMonitoringLicensed()">
+            <label class="control-label disabled-functionality">
+              Policy Monitoring is not supported by your CLM License.  Read more about this feature in the <a href="http://links.sonatype.com/products/clm/doc/policymonitoring" target="_blank">CLM Documentation.</a>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class='fade' ng-class='{in : applicablePolicies }' id="policyList">
+      <div clm-alerts='alerts' class='policies'></div>
+      <!-- Note that i check for .editable in ng-show, this is because I ALWAYS want to show the section header for the app tests -->
+      <div id='{{applicablePolicy.ownerId}}' ng-repeat='applicablePolicy in applicablePolicies' ng-show='applicablePolicy.editable || applicablePolicy.policies.length > 0'>
+        <div class="content-header">
+          <h4 ng-switch='applicablePolicy.editable'>
+            <i class='clickable glyphicons-halflings-sonatype lighter'
+               ng-class="{ 'expand' : !isExpanded(applicablePolicy),
+                           'collapse' : isExpanded(applicablePolicy) }"
+               ng-click='toggleAll(applicablePolicy)'></i>
+            <span ng-switch-when='true'>{{applicablePolicy.ownerName}} Policies</span>
+            <span ng-switch-default>Effective Policies Inherited from {{applicablePolicy.ownerName}}</span>
+          </h4>
+        </div>
+        <div ng-if='applicablePolicy.editable' class='policies' style='margin-bottom:5px'>
+          <div inline-policy-creator tags='tags' owner-name='applicablePolicy.ownerName'></div>
+        </div>
+        <div ng-switch='applicablePolicy.policies.length'>
+          <div ng-switch-when='0'><em style="margin-left:25px;">No policies defined</em></div>
+          <!-- Note that we cannot (currently) have a template loaded in same div as ngSwitch
+          see https://issues.sonatype.org/browse/CLM-1462-->
+          <div ng-switch-default>
+            <div owner-name='applicablePolicy.ownerName'
+                 policy-items='applicablePolicy.policies'
+                 editable='applicablePolicy.editable'
+                 remove='viewRemovePolicy'
+                 tags='tags'
+                 policy-tag-map='policyTagMap'></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

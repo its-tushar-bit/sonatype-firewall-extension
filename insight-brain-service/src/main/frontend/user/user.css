@@ -1,0 +1,49 @@
+.user-parent, .user-parent h4 {
+  -moz-background-clip: padding; /* for Firefox */
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip: padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+}
+
+.users {
+  min-width: 469px;
+  max-width: 469px;
+}
+
+.users form, .users .accordion {
+  margin: 0px;
+}
+
+.user-button > i {
+  margin-top: 0px;
+}
+
+.summary-label {
+  text-align: left;
+  padding-left: 5px;
+  padding-right: 10px;
+}
+
+.user-form-label {
+  text-align: left !important;
+  padding-left: 20px;
+}
+
+.new-user-button {
+  margin-left: 15px;
+  margin-top: 15px;
+}
+
+.user-button-bar {
+  text-align: right;
+  padding-bottom: 5px;
+  padding-right: 5px;
+}
+
+.user-list-loading {
+  text-align: center;
+  margin: 30px;
+}
+
+.users .accordion-heading > .floatRight {
+  padding-right: 5px;
+}

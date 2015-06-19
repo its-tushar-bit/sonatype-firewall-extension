@@ -1,0 +1,387 @@
+<script type="text/ng-template" id="dashboard-table">
+  <div load-wrapper="error" reload="doLoad()">
+    <div ng-if="!data" class="dashboard-loading">
+      <h5>
+        <i class='icon-time'></i> Loading...
+      </h5>
+    </div>
+    <div ng-if="data !== undefined && data !== null">
+      <div class='scrollable-container'>
+        <div class='scrollable-container-inner'>
+          <div ng-transclude></div>
+          <div ng-if='data.length === 0'>
+            <span class='clm-bar-text-offset'>
+              <em id='no-data'>
+                <span ng-if="$state.is('dashboard.overview.newest-risk')">No data available in the last 30 days given the applied filters and available permissions.</span>
+                <span ng-if="!$state.is('dashboard.overview.newest-risk')">No data available given the applied filters and available permissions.</span>
+              </em>
+            </span>
+          </div>
+        </div>
+      </div>
+      <span id="max-results-shown" class="pull-right" ng-if="data.length > maxResults">
+        <div ng-if="$state.is('dashboard.overview.newest-risk')">Showing the newest {{maxResults}} results</div>
+        <div ng-if="!$state.is('dashboard.overview.newest-risk')">Showing the top {{maxResults}} results</div>
+      </span>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="horizontal-percentage-graph">
+  <div>
+    <span class="percentage-graph {{item.colorCss}}" ng-style="{width: formatPercentage(item.count, model.total, 3) + '%'}" ng-repeat="item in model.items"></span>
+  </div>
+  <div class="percentage-graph-legend">
+    <div ng-repeat="item in model.items" class="percentage-graph-legend-item">
+      <div class="percentage-graph-legend-color {{item.colorCss}}"></div>
+      <p>{{item.label}}</p>
+      <p id="{{item.label}}-count">{{item.count}} ({{formatPercentage(item.count, model.total)}}%)</p>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="dashboard-component-match-results">
+  <div load-wrapper="error" reload="doLoad()">
+    <h5 ng-if="!data && !error" class="dashboard-loading">
+      <i class='icon-time'></i> Loading...
+    </h5>
+    <div id='component-match-results' ng-if="data">
+      <div class="span6">
+        <h4 class="dashboard-section-header">Non-Proprietary Component Match Results</h4>
+        <div class="component-match-content">
+          <div class="component-match-graph-section">
+            <div horizontal-percentage-graph model="data"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="dashboard-view-summary">
+  <div load-wrapper="error" reload="doLoad()">
+    <h5 ng-if="!data && !error" class="dashboard-loading">
+      <i class='icon-time'></i> Loading...
+    </h5>
+    <div id='summary-data' ng-if="data">
+      <div class="span6">
+        <h4 class="dashboard-section-header">Viewing</h4>
+        <form class="form-horizontal" role="form">
+          <div class="form-group dashboard-viewing-item first span2">
+            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-app-icon"></i></div>
+            <h2 id="summary-matched-applications">{{data.matchedApplications}}</h2>
+            <div class="dashboard-viewing-summary">
+              <h5>APPLICATIONS</h5>
+              <p>
+                OF&nbsp;<span id="summary-total-applications">{{data.totalApplications}}</span>&nbsp;(<span id="summary-percent-applications">{{formatPercentage(data.matchedApplications, data.totalApplications)}}%</span>)
+              </p>
+            </div>
+          </div>
+          <div class="form-group dashboard-viewing-item span2">
+            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-policy-icon"></i></div>
+            <h2 id="summary-matched-policies">{{data.matchedPolicies}}</h2>
+            <div class="dashboard-viewing-summary">
+              <h5>POLICIES</h5>
+              <p>
+                OF&nbsp;<span id="summary-total-policies">{{data.totalPolicies}}</span>&nbsp;(<span id="summary-percent-policies">{{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%</span>)
+              </p>
+            </div>
+          </div>
+          <div class="form-group dashboard-viewing-item span2">
+            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-component-icon"></i></div>
+            <h2 id="summary-matched-components">{{data.matchedComponents}}</h2>
+            <div class="dashboard-viewing-summary">
+              <h5>COMPONENTS</h5>
+              <p>
+                OF&nbsp;<span id="summary-total-components">{{data.totalComponents}}</span>&nbsp;(<span id="summary-percent-components">{{formatPercentage(data.matchedComponents, data.totalComponents)}}%</span>)
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="policy-trends-dialog">
+  <div class="modal-header">
+    <button id="policy-trends-dialog-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
+    <h3>Policy Violation Trends</h3>
+  </div>
+  <div load-wrapper="error" reload="doLoad()">
+    <h5 ng-if="!policySummaryData && !error" class="policy-trends-loading">
+      <i class='icon-time'></i> Calculating policy violation trends...
+    </h5>
+    <div ng-if="policySummaryData" id="policySummaryData">
+      <table class="table policy-summary-table">
+        <thead>
+        <tr>
+          <th class="category-header">CATEGORY</th>
+          <th>COUNT</th>
+          <th tooltip="Average age of violations in the category" tooltip-placement="top"
+              tooltip-append-to-body="true">
+            AVG
+          </th>
+          <th tooltip="90 percent of violations have been in the category less than this time" tooltip-placement="top"
+              tooltip-append-to-body="true">
+            90%
+          </th>
+          <th colspan="3">DELTA</th>
+          <th>WEEKLY DELTAS</th>
+          <th>12 WEEK TREND</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="category in policySummaryData"
+            ng-class="{ 'natural' : category.naturalOrder, 'inverse' : category.naturalOrder === false, 'neutral' : category.naturalOrder === undefined }">
+          <td>{{category.name}}</td>
+          <td>{{category.counts}}</td>
+          <td>{{category.avg | terseTimeSpan}}</td>
+          <td>{{category.p90 | terseTimeSpan}}</td>
+          <td class="delta-column">
+            <i class="sonatype-icons pull-left" ng-class="{'up': category.delta > 0, 'down': category.delta < 0}"></i>
+          </td>
+          <td class="buffer-column"></td>
+          <td class="delta-column">{{category.delta}}</td>
+          <td>
+            <div value-bars data="category.barChartData"></div>
+          </td>
+          <td>
+            <div sparkline class="chart sparkline" data="category.sparklineData"></div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+  </div>
+</script>
+<script type="text/ng-template" id="component-heat-map-help">
+  <div class="modal-header">
+    <button id="component-heat-map-help-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
+    <h3>Component Heat Map</h3>
+  </div>
+  <div class="heat-map-help" id="component-heat-map-help-content">
+    <div>
+      <div class="left-column">
+        <h5>Total Risk Score</h5>
+        In the component heat map, risk scores are given for each component. Total Risk is the sum of threat levels for
+        unique component violations across displayed threat level categories. The heat map includes a gradient of
+        colors. As a particular value approaches the maximum for the column, the color will darken.
+      </div>
+      <div class="right-column">
+        <div>
+          <span class="risk-cell"><b>TOTAL RISK</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>CRITICAL</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>SEVERE</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>MODERATE</b></span>
+        </div>
+        <div>
+          <span class="risk-cell total-risk">50</span>
+          <span class="risk-operator"><b>=</b></span>
+          <span class="risk-cell critical-risk">17</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell severe-risk">20</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell moderate-risk">13</span>
+        </div>
+        <div>
+          <span class="risk-cell"></span>
+          <span class="risk-operator"></span>
+          <span class="arrow left"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+  </div>
+</script>
+<script type="text/ng-template" id="application-heat-map-help">
+  <div class="modal-header">
+    <button id="application-heat-map-help-close" type='button' class='close' ng-click='$dismiss()'>&times;</button>
+    <h3>Application Heat Map</h3>
+  </div>
+  <div class="heat-map-help" id="application-heat-map-help-content">
+    <div>
+      <div class="left-column">
+        <h5>Total Risk Score</h5>
+        In the application heat map, risk scores are given for each application. Total Risk is the sum of threat levels
+        for policy violations across all stages. The heat map includes a gradient of colors. As a particular value
+        approaches the maximum for the column, the color will darken.
+      </div>
+      <div class="right-column">
+        <div>
+          <span class="risk-cell"><b>TOTAL RISK</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>CRITICAL</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>SEVERE</b></span>
+          <span class="risk-operator"></span>
+          <span class="risk-cell"><b>MODERATE</b></span>
+        </div>
+        <div>
+          <span class="risk-cell total-risk">50</span>
+          <span class="risk-operator"><b>=</b></span>
+          <span class="risk-cell critical-risk">17</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell severe-risk">20</span>
+          <span class="risk-operator"><b>+</b></span>
+          <span class="risk-cell moderate-risk">13</span>
+        </div>
+        <div>
+          <span class="risk-cell"></span>
+          <span class="risk-operator"></span>
+          <span class="arrow left"></span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="left-column">
+        <h5>Risk Across Stages</h5>
+        Expanding the row, each cell represents a sum of violations for threat level categories and stages. The
+        violations are broken down by threat level as well.
+      </div>
+      <div class="right-column">
+        <div class="inline-block">
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>BUILD</b></span>
+            <span class="stage-risk-cell total-risk">50</span>
+            <span class="risk-operator">=</span>
+            <span class="stage-risk-cell critical-risk">18</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell severe-risk">17</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell moderate-risk">15</span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>STAGE RELEASE</b></span>
+            <span class="stage-risk-cell total-risk">20</span>
+            <span class="risk-operator">=</span>
+            <span class="stage-risk-cell critical-risk">8</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell severe-risk">9</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell moderate-risk">3</span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>RELEASE</b></span>
+            <span class="stage-risk-cell total-risk">20</span>
+            <span class="risk-operator">=</span>
+            <span class="stage-risk-cell critical-risk">5</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell severe-risk">10</span>
+            <span class="risk-operator">+</span>
+            <span class="stage-risk-cell moderate-risk">5</span>
+          </div>
+          <div>
+            <span class="stage-cell"></span>
+            <span class="stage-risk-cell"></span>
+            <span class="risk-operator"></span>
+            <span class="arrow left small"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="left-column">
+        <h5>Sum of Unique Violations</h5>
+        The total for each category is a sum of unique violations across all stages. Consider three separate violations
+        that occur across various stages: <b>v<sub>A</sub></b> with threat level 1, <b>v<sub>B</sub></b> with threat
+        level 2, and <b>v<sub>C</sub></b> with threat level 3.
+      </div>
+      <div class="right-column">
+        <div class="arrow up"></div>
+        <div class="inline-block">
+          <div class="stage-row">
+            <span class="stage-cell"></span>
+            <span class="risk-cell critical-risk"><b>v<sub>A</sub>, v<sub>B</sub>, v<sub>C</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>1 + 2 + 3 = 6</b></span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>BUILD</b></span>
+            <span class="risk-cell"><b>v<sub>A</sub>, v<sub>B</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>1 + 2 = 3</b></span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>STAGE RELEASE</b></span>
+            <span class="risk-cell"><b>v<sub>B</sub>, v<sub>C</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>2 + 3 = 5</b></span>
+          </div>
+          <div class="stage-row">
+            <span class="stage-cell glyphicons-sonatype link"><b>RELEASE</b></span>
+            <span class="risk-cell"><b>v<sub>A</sub>, v<sub>C</sub></b></span>
+            <span class="risk-operator"><b>=</b></span>
+            <span><b>1 + 3 = 4</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
+  </div>
+</script>
+<div class='container'>
+  <div class='row'>
+    <div class='span12'>
+      <h1 class="left-align-h1 dashboard-section-header">
+        Dashboard
+        <button id="show-trend-dialog" class="btn pull-right secondary" ng-click="showTrendDialog()">
+          <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
+        </button>
+      </h1>
+    </div>
+  </div>
+  <div class='row dashboard-summary-section'>
+    <div class="span6">
+      <div class="row" dashboard-view-summary filters="filters"></div>
+    </div>
+    <div class="span6">
+      <div class='row' dashboard-component-match-results filters="filters"></div>
+    </div>
+  </div>
+  <div load-error='error' reload='doLoad()'></div>
+  <div class='row dashboard-tables' ng-hide='error'>
+    <div class='span12' id="highest-risk">
+      <ul class="nav nav-tabs scrollable-container-header">
+        <li>
+          <h4>Risk</h4>
+        </li>
+        <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.applications') }">
+          <a id='tab-button-application' ui-sref="dashboard.overview.applications">
+            <div>
+              By Application
+              <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.is('dashboard.overview.applications')">
+                <i id="application-heat-map-help-icon" class="glyphicons-sonatype help small"
+                  tooltip="Click here for help about the Application Heat Map" tooltip-placement="top"
+                  tooltip-append-to-body="true"></i>
+              </div>
+            </div>
+          </a>
+        </li>
+        <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.components') }">
+          <a id='tab-button-component' ui-sref="dashboard.overview.components">
+            <div>
+              By Component
+              <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.is('dashboard.overview.components')">
+                <i id="component-heat-map-help-icon" class="glyphicons-sonatype help small"
+                  tooltip="Click here for help about the Component Heat Map" tooltip-placement="top"
+                  tooltip-append-to-body="true"></i>
+              </div>
+            </div>
+          </a>
+        </li>
+        <li class="pull-right"  ng-class="{ active : $state.is('dashboard.overview.newest-risk') }">
+          <a id='tab-button-newest' ui-sref="dashboard.overview.newest-risk">Newest</a>
+        </li>
+      </ul>
+       <div ui-view></div>
+    </div>
+  </div>
+  <div filter-panel filters="filters" fatal-error="error"></div>
+</div>

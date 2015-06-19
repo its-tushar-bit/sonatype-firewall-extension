@@ -415,6 +415,7 @@
               <exclude>**/*.css</exclude>
               <exclude>**/*.html</exclude>
               <exclude>**/src/main/wro4j/lib/**/*</exclude>
+              <exclude>**/src/main/frontend/assets/lib/**/*</exclude>
             </excludes>
           </configuration>
         </plugin>

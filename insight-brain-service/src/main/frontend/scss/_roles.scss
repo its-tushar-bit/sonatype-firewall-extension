@@ -1,0 +1,77 @@
+/*
+  Role list
+```
+  <div class="container roles">
+    <div class="role-items">
+      <div class="role-item">
+        <div class="role-summary">
+          <h3>Sample role</h3>
+          <div>A sample description for this sample role, hopefully just long enough to trigger line wrapping and validate max width</div>
+        </div>
+        <div class="role-detail-button">
+          <i class="icon-chevron-right">
+        </div>
+      </div>
+    </div>
+  </div>
+```
+*/
+
+//Note this is the requested width of the role summary text, plus 22px for the button width and padding
+$role-list-width: 606px;
+
+.container.roles {
+  min-width: $role-list-width;
+  width: $role-list-width;
+
+  h2 {
+    margin-bottom: 0px;
+    margin-top: 15px;
+  }
+
+  form > h2 {
+    border-bottom: $small-gray-border;
+    margin-bottom: 12px;
+  }
+
+  table {
+    margin-bottom: 36px
+  }
+
+  .toggle-off.btn {
+    padding-left: 20px;
+  }
+}
+
+.role-items {
+  margin: 0px;
+}
+
+.role-item {
+  cursor: pointer;
+}
+
+tr:first-child .role-summary {
+  border-top: $small-gray-border;
+}
+
+.role-summary {
+  border-bottom: $small-gray-border;
+  padding-bottom: 8px;
+  vertical-align: middle;
+  width: 100%;
+
+  h3 {
+    line-height: initial;
+    margin: 12px 0px 6px 0px;
+  }
+
+  & > div {
+    margin-left: 24px;
+  }
+}
+
+.role-detail-button {
+  vertical-align: middle;
+  padding-left: 8px;
+}

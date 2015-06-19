@@ -1,0 +1,221 @@
+<script type='text/ng-template' id='change-password-template'>
+  <div class='modal-header'>
+    <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
+    <h3>Change Password</h3>
+  </div>
+  <form name='passwordForm' class='clm-form well clm-well' ng-submit='save()'>
+    <div clm-control-group for='originalPassword' label="Current Password">
+      <input clm-input type="password" id="originalPassword" name="originalPassword"
+             ng-model='result.originalPassword' required focus-input='true'>
+    </div>
+    <hr/>
+    <div clm-control-group for='newPassword' label="New Password">
+      <input clm-input type="password" id="newPassword" name="newPassword"
+             ng-model='result.newPassword' required>
+    </div>
+    <div clm-control-group for='confirmPassword' label="Confirm New Password">
+      <input clm-input type="password" id="confirmPassword" name='confirmPassword'
+             ng-model='result.confirmPassword' required ui-validate=" '$value==result.newPassword' "
+             ui-validate-watch=" 'result.newPassword' "
+             messages="{validator: 'Passwords must match!'}">
+    </div>
+    <div clm-alerts="error" no-close="true"></div>
+    <button type='button' class="btn btn-link btn-cancel" ng-click='$dismiss()'>Cancel</button>
+    <button type='submit' class="btn btn-primary pull-right" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
+  </form>
+</script>
+<script type='text/ng-template' id='dropdown-detail-panel-template'>
+  <div ng-transclude></div>
+  <ul ng-if="item.selected" class="dropdown-sub-menu">
+    <li class="disabled">{{item.summaryText}}</li>
+    <li id="detail-html-container">
+      <div ng-bind-html="item.detailHtml"></div>
+    </li>
+  </ul>
+</script>
+<div class="header navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container-fluid">
+      <span class="title brand">
+        <img src="img/sonatype-24.png" style="float:left;" alt="Logo" height="24" width="24"/>
+        <span>&nbsp;Sonatype CLM</span>
+        <span class="navbar-version">{{getServerVersion()}}</span>
+      </span>
+      <div class="pull-right">
+        <div id="system-configuration-menu" class="header-dropdown-menu" ng-if="hasAnyPermission()">
+          <div class="dropdown pull-right">
+            <a id="system-configuration-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium cogwheel'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled">SYSTEM&nbsp;PREFERENCES</li>
+              <li>
+                <ul class="dropdown-contents">
+                  <li id="system-configuration-users" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('users') }">
+                    <a href='index.html#/users'>Users</a>
+                  </li>
+                  <li id="system-configuration-roles" ng-if="permissions.VIEW_ROLES" ng-class="{'active': $state.is('roles') }">
+                    <a href='index.html#/roles'>Roles</a>
+                  </li>
+                  <li id="system-configuration-administrators" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('administrators') }">
+                    <a href='index.html#/administrators'>Administrators</a>
+                  </li>
+                  <li id="system-configuration-product-license" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.is('productlicense') }">
+                    <a href='index.html#/productlicense'>Product License</a>
+                  </li>
+                  <li id="system-configuration-proprietary" ng-if="permissions.MANAGE_PROPRIETARY" ng-class="{'active': $state.is('proprietarycomponents') }">
+                    <a href='index.html#/proprietarycomponents'>Proprietary Components</a>
+                  </li>
+                  <li id="system-configuration-ldap" ng-if="permissions.CONFIGURE_SYSTEM" ng-class="{'active': $state.includes('ldap') }">
+                    <a href='index.html#/ldap'>LDAP</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="help-menu" class="header-dropdown-menu">
+          <div class="dropdown pull-right">
+            <a id="help-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+              <i class='glyphicons-sonatype medium help'></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-arrow">
+              <li class="disabled">SUPPORT&nbsp;OPTIONS</li>
+              <li>
+                <ul class="dropdown-contents">
+                  <li>
+                    <a id="documentation-link" href="http://links.sonatype.com/products/clm/doc/{{majorMinorVersion}}" title="Go to Online Help"
+                       target="_blank">Online Help</a>
+                  </li>
+                  <li>
+                    <a id="support-link" href="http://links.sonatype.com/products/clm/support"
+                       title="Submit a request to Sonatype support" target="_blank">Request Support</a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class='header-responsive'>
+        <ul class='inline header-navigation-menu'>
+          <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
+            <a ui-sref="dashboard.overview.newest-risk">
+              <span><i class='sonatype-icons medium dashboard'></i></span>
+            </a>
+          </li><!-- fix chrome bounce
+          --><li ng-class="{ 'active' : $state.includes('violations') }" tooltip='Reporting' tooltip-placement='bottom'>
+            <a ui-sref="violations">
+              <span><i class='sonatype-icons medium reporting'></i></span>
+            </a>
+          </li><!-- fix chrome bounce
+          --><li ng-class="{ 'active' : $state.includes('management') }" tooltip='Manage Applications and Organizations'
+              tooltip-placement='bottom'>
+            <a ui-sref="management.organization">
+              <span><i class='sonatype-icons medium organizational-design'></i></span>
+            </a>
+          </li>
+          <li>
+           <!-- This div is here strictly to support dev and is not intended for client facing content -->
+            <div id="functionalTestingSupport" style="color: red;"></div>
+          </li>
+        </ul>
+        <div class="pull-right">
+          <div id="global-create-menu" class="header-dropdown-menu">
+            <div class="dropdown">
+              <a id="global-create-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#">
+                <i class='glyphicons-halflings-sonatype medium plus'></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-arrow">
+                <li class="disabled">CREATE</li>
+                <li>
+                  <ul class="dropdown-contents">
+                    <li>
+                      <a id='global-create-org' class='sonatype-icons sonatype-icon-menu add-organization' ui-sref='management.organization.view({organizationId: "_new_"})'>New Organization</a>
+                    </li>
+                    <li>
+                      <a id='global-create-app' class='sonatype-icons sonatype-icon-menu add-application' ui-sref='management.application.view({applicationPublicId: "_new_"})'>New Application</a>
+                    </li>
+                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                      <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.organization.view.policies.new({organizationId: $state.params.organizationId})'>New Policy</a>
+                    </li>
+                    <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                      <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.application.view.policies.new({applicationPublicId: $state.params.applicationPublicId})'>New Policy</a>
+                    </li>
+                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                      <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.organization.view.labels.new({organizationId: $state.params.organizationId})'>New Label</a>
+                    </li>
+                    <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                      <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.application.view.labels.new({applicationPublicId: $state.params.applicationPublicId})'>New Label</a>
+                    </li>
+                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                      <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.organization.view.licenses.new({organizationId: $state.params.organizationId})'>New License Threat Group</a>
+                    </li>
+                    <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
+                      <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.application.view.licenses.new({applicationPublicId: $state.params.applicationPublicId})'>New License Threat Group</a>
+                    </li>
+                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
+                      <a id='global-create-tag' class='sonatype-icons sonatype-icon-menu add-tag' ui-sref='management.organization.view.tags.new({organizationId: $state.params.organizationId})'>New Tag</a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div id="user-menu" class="header-dropdown-menu">
+            <div class="dropdown">
+              <a id="user-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">
+                <i class='glyphicons-sonatype medium user'></i><span id="user-name">{{ displayName }}</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-arrow">
+                <li class="disabled">CURRENT&nbsp;USER</li>
+                <li>
+                  <ul class="dropdown-contents">
+                    <li ng-controller='ChangePassword' ng-show='canChangePassword()'>
+                      <a id='change-password' ng-click="change()">Change Password</a>
+                    </li>
+                    <li ng-controller='LogoutController'>
+                      <a id='logout' ng-click="logout()">Logout</a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div id="notification-menu" class="header-dropdown-menu notification-menu" ng-controller="Notifications">
+            <div class="dropdown pull-right">
+              <a id="notification-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#" ng-click="clearSelected()">
+                <i class='glyphicons-sonatype medium inbox'></i>
+                <div ng-if="unreadNotificationCount" class="count-circle pull-right" ng-class="{'exclamation': errorText}">{{unreadNotificationCount}}</div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-arrow">
+                <li class="disabled">NOTIFICATIONS</li>
+                <li><ul class="dropdown-contents">
+                  <li ng-if="loading && !errorText">
+                    <div class="alert alert-info">Loading notification content from server...</div>
+                  </li>
+                  <li ng-if="errorText">
+                    <div class="alert alert-danger">{{errorText}}</div>
+                  </li>
+                  <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="openDetail(notification); $event.stopPropagation();" class="notification-link" ng-class="{'viewed': notification.viewed, 'selected': selectedNotification == notification}">
+                    <div class="notification-age">{{notification.age}}</div>
+                    <div class="notification-age-label">{{notification.ageQualifier}}</div>
+                    <div class="notification-text">{{notification.summaryText}}</div>
+                  </li>
+                  <li ng-if="selectedNotification" ng-click="$event.stopPropagation();">
+                    <ul class="dropdown-sub-menu">
+                      <li class="disabled">{{selectedNotification.summaryText}}</li>
+                      <li id="detail-html-container">
+                        <div ng-bind-html="selectedNotification.detailHtml"></div>
+                      </li>
+                    </ul>
+                  </li>
+                </ul></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

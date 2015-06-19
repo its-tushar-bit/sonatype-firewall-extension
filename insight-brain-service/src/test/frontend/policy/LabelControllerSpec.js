@@ -1,0 +1,326 @@
+describe('LabelController.js', function() {
+  var LabelMockData = {
+    getLabels: function() {
+      return LabelMockData.getApplicableLabels().labelsByOwner[0].labels;
+    },
+    getApplicableLabels: function() {
+      return {
+        "labelsByOwner": [
+          {
+            "ownerId": "appownerid",
+            "ownerName": "appname",
+            "ownerType": "application",
+            "labels": [
+              {
+                "id": "applabelid",
+                "ownerId": "appownerid",
+                "label": "AppLabel",
+                "labelLowercase": "applabel",
+                "color": "red"
+              },
+              {
+                "id": "applabelid_01",
+                "ownerId": "appownerid",
+                "label": "AnotherAppLabel",
+                "labelLowercase": "anotherapplabel",
+                "color": "red"
+              }
+            ]
+          },
+          {
+            "ownerId": "orgownerid",
+            "ownerName": "orgname",
+            "ownerType": "organization",
+            "labels": [
+              {
+                "id": "orglabelid",
+                "ownerId": "orgownerid",
+                "label": "OrgLabel",
+                "labelLowercase": "orglabel",
+                "color": "red"
+              }
+            ]
+          }
+        ]
+      };
+    }
+  };
+
+  var testScope, dialogScope;
+
+  beforeEach(module('Labels', 'HttpInterceptors', function($provide) {
+    $provide.value('$modal', {
+      open: function(config) {
+        dialogScope = testScope.$new();
+        dialogScope.$close = function() {
+        };
+        inject(function($controller) {
+          $controller(config.controller, {
+            $scope: dialogScope
+          });
+        });
+        return {
+          result: {
+            then: function(success, failure) {
+              success();
+            }
+          }
+        };
+      }
+    });
+
+    $provide.value('ApplicationId', {
+      encoded: function() {
+        return 'bom1-12345678';
+      }
+    });
+    $provide.value('OrganizationId', {
+      encoded: function() {
+        return null;
+      }
+    });
+  }));
+
+  beforeEach(inject(function($rootScope) {
+    testScope = $rootScope.$new();
+  }));
+
+  afterEach(function() {
+    if (testScope) {
+      testScope.$destroy();
+    }
+  });
+
+  describe('LabelController Label Name Tests', function() {
+    var scope,
+        compileInput,
+        setInput;
+
+    beforeEach(inject(function($rootScope, $compile, $sniffer) {
+      var inputElement;
+      scope = testScope;
+      compileInput = function(input) {
+        inputElement = angular.element(input);
+        var formElement = angular.element("<form name='form'></form>");
+        formElement.append(inputElement);
+        $compile(formElement)(scope);
+      };
+      setInput = function(val) {
+        inputElement.val(val);
+
+        var evt = document.createEvent('HTMLEvents');
+        evt.initEvent(($sniffer.hasEvent('input')) ? 'input' : 'change', false, false);
+        inputElement[0].dispatchEvent(evt);
+      };
+    }));
+
+    it('Test Spaces', function() {
+      compileInput("<input type='text' maxlength='50' name='label' ng-model='label' unique-label valid-name-characters />");
+      setInput('foo');
+      expect(scope.form.$invalid).toEqual(false);
+      expect(scope.form.label.$invalid).toEqual(false);
+
+      setInput('foo bar');
+      expect(scope.form.$invalid).toEqual(false);
+      expect(scope.form.label.$invalid).toEqual(false);
+    });
+
+    it('Test Duplicate', function() {
+      scope.selectedLabel = {};
+      compileInput("<input type='text' maxlength='50' name='label' ng-model='selectedLabel.label' unique-label valid-name-characters />");
+      scope.applicableLabels = [{
+        labels: [{
+          id: 'bar',
+          label: 'bar'
+        }]
+      }];
+      setInput('foo');
+      expect(scope.form.$invalid).toEqual(false);
+      expect(scope.form.label.$invalid).toEqual(false);
+
+      setInput('bar');
+      expect(scope.form.$invalid).toEqual(true);
+      expect(scope.form.label.$invalid).toEqual(true);
+      expect(scope.form.label.$error.uniqueLabel).toEqual(true);
+    });
+  });
+
+  describe('Editing tests', function() {
+    var scope,
+        labelEditController,
+        labelController;
+
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations) {
+      scope = testScope.$new();
+      testScope.alerts = [];
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(LabelMockData.getLabels());
+      $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabels());
+      labelController = $controller('LabelController', {$scope: testScope});
+      labelEditController = $controller('LabelEditorController', {$scope: scope});
+      $httpBackend.flush();
+    }));
+
+    afterEach(inject(function($httpBackend) {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    }));
+
+    it('Can set color', function() {
+      scope.createNew();
+      var color = scope.colors[0];
+      scope.setColor(color);
+      expect(scope.selectedLabel.color).toEqual(color);
+    });
+
+    it('Can cancel edit', function() {
+      spyOn(scope, '$emit');
+      scope.cancelEditLabel();
+      expect(scope.$emit).toHaveBeenCalledWith('labels.cancelEditLabel');
+    });
+
+    it('Can delete a label', inject(function($httpBackend, CLMAppLocations, Dialog) {
+      var callback;
+      spyOn(Dialog, 'open').andReturn({ result : { then : function () { callback = arguments[0]; } } });
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl() + '/' +
+          testScope.applicableLabels[0].labels[0].id)).respond(204);
+
+      scope.deleteLabel(testScope.applicableLabels[0].labels[0], { stopPropagation : angular.noop });
+      callback();
+      $httpBackend.flush();
+
+      expect(testScope.applicableLabels[0].labels.length).toEqual(1);
+    }));
+
+    it('Can save a new Label', inject(function($httpBackend, CLMAppLocations) {
+      scope.createNew();
+      $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getLabelsUrl())).respond(204);
+      scope.saveLabel();
+      $httpBackend.flush();
+    }));
+
+    describe('Cancel Deselects', function() {
+      it('New Label', function() {
+        scope.createNew();
+        scope.alerts.push({type: 'mock', 'msg': 'mock alert'});
+        expect(scope.selectedLabel).not.toBeUndefined();
+
+        scope.cancelEditLabel();
+        expect(scope.selectedLabel).toEqual(null);
+        expect(scope.alerts.length).toEqual(0);
+      });
+
+      it('Existing Label', function() {
+        scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
+        scope.alerts.push({type: 'mock', 'msg': 'mock alert'});
+        expect(scope.selectedLabel.id).not.toBeUndefined();
+
+        scope.cancelEditLabel();
+        expect(scope.selectedLabel).toEqual(null);
+        expect(scope.alerts.length).toEqual(0);
+      });
+    });
+
+    describe('Dirty Checks', function() {
+      describe('Dirty New Label', function() {
+        beforeEach(function() {
+          scope.createNew();
+          scope.selectedLabel.name = 'foo';
+          expect(scope.selectedLabel.isDirty()).toEqual(true);
+
+          var e = scope.$broadcast('pageChangeStarted', null);
+          expect(e.defaultPrevented).toEqual(true);
+        });
+
+        it('Create New Attempted', function() {
+          scope.createNew();
+
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('This label may contain unsaved changes, continuing will discard them.');
+          expect(scope.selectedLabel.name).toEqual('foo');
+        });
+
+        it('Edit Existing Attempted', function() {
+          scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('This label may contain unsaved changes, continuing will discard them.');
+          expect(scope.selectedLabel.name).toEqual('foo');
+        });
+      });
+
+      describe('Dirty Existing Label', function() {
+        beforeEach(function() {
+          scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
+          scope.selectedLabel.name = 'foo';
+          expect(scope.selectedLabel.isDirty()).toEqual(true);
+
+          var e = scope.$broadcast('pageChangeStarted', null);
+          expect(e.defaultPrevented).toEqual(true);
+        });
+
+        it('Edit Existing Attempted', function() {
+          scope.editLabel(true, testScope.applicableLabels[0].labels[1]);
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('This label may contain unsaved changes, continuing will discard them.');
+          expect(scope.selectedLabel.name).toEqual('foo');
+        });
+
+        it('Create New Attempted', function() {
+          scope.createNew();
+          expect(dialogScope).not.toBeUndefined();
+          expect(dialogScope.body).toBe('This label may contain unsaved changes, continuing will discard them.');
+          expect(scope.selectedLabel.name).toEqual('foo');
+        });
+      });
+
+      describe('Unmodified Existing Label', function() {
+        beforeEach(function() {
+          scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
+          expect(scope.selectedLabel.isDirty()).toEqual(false);
+
+          var e = scope.$broadcast('pageChangeStarted', null);
+          expect(e.defaultPrevented).toEqual(false);
+        });
+
+        it('Edit Existing Attempted', function() {
+          scope.editLabel(true, testScope.applicableLabels[0].labels[1]);
+          expect(scope.alerts.length).toEqual(0);
+          expect(scope.selectedLabel.id).toEqual(testScope.applicableLabels[0].labels[1].id);
+        });
+
+        it('Create New Attempted', function() {
+          scope.createNew();
+          expect(scope.alerts.length).toEqual(0);
+          expect(scope.selectedLabel.id).toBeDefined();
+        });
+      });
+
+      it('Unmodified New Label - Edit Existing Attempted', function() {
+        scope.createNew();
+        expect(scope.selectedLabel.isDirty()).toEqual(false);
+
+        var e = scope.$broadcast('pageChangeStarted', null);
+        expect(e.defaultPrevented).toEqual(false);
+
+        scope.editLabel(true, testScope.applicableLabels[0].labels[0]);
+        expect(scope.alerts.length).toEqual(0);
+        expect(scope.selectedLabel.id).toEqual(testScope.applicableLabels[0].labels[0].id);
+      });
+
+      it('handles owner changes', inject(function($httpBackend, CLMAppLocations) {
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getApplicableLabelsUrl())).respond(LabelMockData.getApplicableLabels());
+        testScope.$broadcast('ownerChanged', {
+          ownerId : LabelMockData.getApplicableLabels().labelsByOwner[0].ownerId,
+          changes : [ { field : 'organizationId', newValue : 'new_org_id' } ]
+        });
+
+        $httpBackend.flush();
+
+        testScope.$broadcast('ownerChanged', {
+          ownerId : LabelMockData.getApplicableLabels().labelsByOwner[0].ownerId,
+          changes : [ { field : 'name', newValue : 'NEW NAME' } ]
+        });
+        expect(testScope.applicableLabels[0].ownerName).toBe("NEW NAME");
+      }));
+    });
+  });
+});

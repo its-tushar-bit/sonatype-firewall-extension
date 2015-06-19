@@ -1,0 +1,246 @@
+.label-remove {
+  opacity: 0.2
+}
+
+.label-remove:hover {
+  opacity: 0.4;
+}
+
+.clmLabel, .clm-tag {
+  font-size: 12px;
+  font-family: Proxima Nova Bold, sans-serif;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  display: inline-block;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 25em;
+  line-height: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.clmLabel {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+  vertical-align: middle;
+}
+
+.clmLabel span {
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: text-top;
+  word-break: break-all;
+}
+
+.clmLabel-dropdown {
+  color: black !important;
+}
+
+.whiteLabel, .Label {
+  border-color: #c6c6c6;
+}
+
+form[name="labelEditor"] .clmLabel {
+  padding: 5px 10px;
+}
+
+.clmLabel:hover {
+  border-color: #C1C1C1;
+}
+
+/*
+ * Note: These styles apply to both labels and tags,
+ * be sure to verify any changes with both elements
+ */
+.yellowLabel, .greyLabel, .whiteLabel, .Label {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.whiteLabel, .whiteLabel::before {
+  background-color: #FFFFF0 !important;
+  color: black !important;
+}
+
+.greyLabel, .greyLabel::before {
+  background-color: #C6C6C6 !important;
+  color: black;
+}
+
+.greyLabel:hover {
+  border-color: #909090;
+}
+
+.blackLabel, .greenLabel, .orangeLabel, .redLabel, .blueLabel {
+  color: white !important;
+}
+
+.blackLabel .icon-remove, .greenLabel .icon-remove, .orangeLabel .icon-remove, .redLabel .icon-remove, .blueLabel .icon-remove {
+  background-image: url("../lib/glyphicon/glyphicons_halflings-white.png") !important;
+}
+
+.blackLabel, .blackLabel:hover, .blackLabel::before {
+  border-color: #000;
+  background-color: #444444 !important;
+}
+
+.blackLabel::after {
+  border: 1px solid #000 !important;
+}
+
+.greenLabel, .greenLabel:hover, .greenLabel::before {
+  background-color: #099843 !important;
+}
+
+.greenLabel:hover {
+  border-color: #04642A;
+}
+
+.yellowLabel, .yellowLabel:hover, .yellowLabel::before {
+  background-color: #F5C649 !important;
+  color: black !important;
+}
+
+.yellowLabel:hover {
+  border-color: #D2A429;
+}
+
+.orangeLabel, .orangeLabel:hover, .orangeLabel::before {
+  background-color: #F2862F !important;
+  border-color: #C56213;
+}
+
+.orangeLabel::after {
+  border: 1px solid #C56213 !important;
+}
+
+.redLabel, .redLabel:hover, .redLabel::before {
+  background-color: #880625 !important;
+}
+
+.redLabel:hover {
+  border-color: #460011;
+}
+
+.blueLabel, .blueLabel:hover, .blueLabel::before {
+  background-color: #2476C3 !important;
+}
+
+.blueLabel:hover {
+  border-color: #17558E;
+}
+
+.labelContainer:last-child {
+  margin-right: 0px;
+}
+
+.labelContainer {
+  display: inline-block;
+  cursor: pointer;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  position: relative;
+  margin-right: 5px;
+  transition: border linear .2s, box-shadow linear .2s;
+}
+
+.clmLabel.active, .clm-tag.active {
+  border: 2px solid rgb(82, 168, 236);
+  outline: 0;
+  outline: thin solid 9;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+.label-list, .tag-list {
+  margin-bottom: 10px;
+}
+
+.tooltip-inner {
+  min-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Differentiate the visual styling of a Tag from a Label by adding a sideways trapezoid on the left */
+.clm-tag {
+  background-color: #f4f4f4;
+  vertical-align: middle;
+  min-height: 15px;
+  margin: 0 0 7px 15px;
+  position: relative;
+  text-decoration: none;
+  padding: 0.55em 0.4em 0.55em 1.3em;
+  -webkit-border-radius: 0 0.25em 0.25em 0;
+  -moz-border-radius: 0 0.25em 0.25em 0;
+  border-radius: 0 0.25em 0.25em 0;
+  z-index: 100;
+}
+
+.clm-tag::before {
+  content: '';
+  background-color: #f4f4f4;
+  width: 1.67em;
+  height: 1.74em;
+  position: absolute;
+  left: -0.94em;
+  top: .26em;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+  -webkit-border-radius: 0 0 0 0.25em;
+  -moz-border-radius: 0 0 0 0.25em;
+  border-radius: 0 0 0 0.25em;
+  border-left: 1px solid rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  z-index: 1;
+}
+
+.clm-tag.active::before {
+  border-left: 2px solid rgb(82, 168, 236);
+  border-bottom: 2px solid rgb(82, 168, 236);
+  outline: 0;
+  outline: thin solid 9;
+  left: -1.1em;
+}
+
+.clm-tag::after {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  background: #fff;
+  -webkit-border-radius: 4.167em;
+  -moz-border-radius: 4.167em;
+  border-radius: 4.167em;
+  border: 1px solid #c6c6c6;
+  position: absolute;
+  top: 0.8em;
+  left: -0.4em;
+  z-index: 9999;
+}
+
+/* hover a box over the corner of the parent container */
+.applied-tag-count {
+  position: relative;
+  color: white;
+  border-radius: 0.25em;
+  -webkit-border-radius: 0.25em;
+  -moz-border-radius: 0.25em;
+  display: inline-block;
+  min-width: 1.25em;
+  text-align: center;
+  margin-left: -1.25em;
+  z-index: 999;
+  line-height: 1.25em;
+  top: -1em;
+  right: -0.5em;
+  background-color: #eb1213;
+}

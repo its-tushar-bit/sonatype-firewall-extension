@@ -1,0 +1,71 @@
+<div application-risk-table>
+    <div ng-controller="applicationRiskTable">
+      <table class="table table-risk" id="application-risk" sortable="-totalApplicationRisk.totalRisk">
+        <thead>
+        <tr>
+          <th><div sort-columns="applicationName">APPLICATION</div></th>
+          <th class="total-risk">
+            <div sort-columns="-totalApplicationRisk.totalRisk" centered="true">TOTAL RISK</div>
+          </th>
+          <th id="threat-header-critical" ng-if="policyThreatLevelCategories.critical">
+            <div sort-columns="-totalApplicationRisk.criticalRisk" centered="true" title="Policy Threat Levels 8 - 10">CRITICAL</div>
+          </th>
+          <th id="threat-header-severe" ng-if="policyThreatLevelCategories.severe">
+            <div sort-columns="-totalApplicationRisk.severeRisk" centered="true" title="Policy Threat Levels 4 - 8">SEVERE</div>
+          </th>
+          <th id="threat-header-moderate" ng-if="policyThreatLevelCategories.moderate">
+            <div sort-columns="-totalApplicationRisk.moderateRisk" centered="true" title="Policy Threat Levels 2 - 3">MODERATE</div>
+          </th>
+          <th id="threat-header-low" ng-if="policyThreatLevelCategories.low">
+            <div sort-columns="-totalApplicationRisk.lowRisk" centered="true" title="Policy Threat Levels 0 - 1">LOW</div>
+          </th>
+        </tr>
+        </thead>
+        <tr ng-repeat-start="application in applications"
+            ng-class="{ striped : striped[$index] }">
+          <td><i class="glyphicons-halflings-sonatype lighter"
+                 ng-class="{ clickable : canExpand(application),
+                             expand : canExpand(application),
+                             collapse : isExpanded(application),
+                             emptyIconGlyph : !canExpand(application) }"
+                 ng-click='expand(application)'></i> {{application.applicationName}}</td>
+          <td class="total-risk"
+              alpha-background="{{application.totalApplicationRisk.totalRisk | safeDivide:totalRisk}}"
+              ng-class="{ 'black-text': (application.totalApplicationRisk.totalRisk | safeDivide:totalRisk) < 0.5 }">
+            {{application.totalApplicationRisk.totalRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.critical" class="critical-risk"
+              alpha-background="{{application.totalApplicationRisk.criticalRisk | safeDivide:criticalRisk}}"
+              ng-class="{ 'muted-text': application.totalApplicationRisk.criticalRisk === 0 }">
+            {{application.totalApplicationRisk.criticalRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.severe" class="severe-risk"
+              alpha-background="{{application.totalApplicationRisk.severeRisk | safeDivide:severeRisk}}"
+              ng-class="{ 'muted-text': application.totalApplicationRisk.severeRisk === 0 }">
+            {{application.totalApplicationRisk.severeRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk"
+              alpha-background="{{application.totalApplicationRisk.moderateRisk | safeDivide:moderateRisk}}"
+              ng-class="{ 'muted-text': application.totalApplicationRisk.moderateRisk === 0 }">
+            {{application.totalApplicationRisk.moderateRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.low" class="low-risk"
+              alpha-background="{{application.totalApplicationRisk.lowRisk | safeDivide:lowRisk}}"
+              ng-class="{ 'muted-text': application.totalApplicationRisk.lowRisk === 0 }">
+            {{application.totalApplicationRisk.lowRisk}}</td>
+        </tr>
+        <tr class='stage' ng-repeat-end ng-repeat='stage in application.stageRisks'
+            ng-if='expanded[application.applicationId]'>
+          <td><a title="View application report" class="glyphicons-sonatype link"
+                 ng-href="index.html#/reports/{{encodeURIComponent(application.applicationId)}}/{{stage.scanId | EncodeURIComponent}}"
+                 target="_blank">{{stage.stageTypeName | uppercase}}</a></td>
+          <td class="total-risk" ng-class="{ 'muted-text': stage.risk.totalRisk === 0 }">
+            {{stage.risk.totalRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.critical" class="critical-risk" ng-class="{ 'muted-text': stage.risk.criticalRisk === 0 }">
+            {{stage.risk.criticalRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.severe" class="severe-risk" ng-class="{ 'muted-text': stage.risk.severeRisk === 0 }">
+            {{stage.risk.severeRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.moderate" class="moderate-risk" ng-class="{ 'muted-text': stage.risk.moderateRisk === 0 }">
+            {{stage.risk.moderateRisk}}</td>
+          <td ng-if="policyThreatLevelCategories.low" class="low-risk" ng-class="{ 'muted-text': stage.risk.lowRisk === 0 }">
+            {{stage.risk.lowRisk}}</td>
+        </tr>
+      </table>
+    </div>
+  </div>

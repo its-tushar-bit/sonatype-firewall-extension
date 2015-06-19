@@ -9,7 +9,3 @@ dependency-reduced-pom.xml
 *.iml
 *.eml
 .DS_Store
-insight-brain-service/.sass-cache/
-insight-brain-service/.tmp/
-insight-brain-service/node/
-insight-brain-service/node_modules/

@@ -269,7 +269,6 @@ public final class Report
     fill(data.putArray("effectiveLicenseCounts"), licenseCounts);
     fill(data.putArray("securityPunchCard"), securityPunchCard);
     fill(data.putArray("licensePunchCard"), licensePunchCard);
-    filterKeyFindings(data, security);
 
     saveReportEntry(reportFile, "data.json", data);
 
@@ -605,100 +604,6 @@ public final class Report
     }
     licenseThreatsJson.put("aaData", licenseTable);
     saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
-  }
-
-  /**
-   * @deprecated As of INSIGHT-4409, key findings are no longer included in the reports.
-   */
-  @Deprecated
-  private static void filterKeyFindings(final ObjectNode data, final ContainerNode<?> security) {
-    final Set<String> textSet = new HashSet<>();
-
-    ArrayNode sourceFindings = (ArrayNode) data.get("keyFindings");
-    if (sourceFindings == null) {
-      sourceFindings = data.putArray("keyFindings");
-    }
-
-    final Iterator<JsonNode> sourceIter = sourceFindings.elements();
-
-    // simply iterate through the list, and dump any items that are duplicate key findings, or that are marked as
-    // 'Not Applicable'
-    while (sourceIter.hasNext()) {
-      final JsonNode sourceFinding = sourceIter.next();
-
-      final String text = asText(sourceFinding.get("text"));
-
-      // if we already have this keyFinding to be shown, no need to show others
-      if (textSet.contains(text)) {
-        sourceIter.remove();
-      }
-      else {
-        final JsonNode svNode = sourceFinding.get("sv");
-
-        // if svNode is null we are dealing with a freemium report, so simply add the key finding text
-        if (svNode == null) {
-          textSet.add(text);
-        }
-        else {
-          boolean foundMatch = false;
-
-          // need to compare against each row in the security data to find a match, and decide if the match is
-          // applicable
-          for (final JsonNode row : security.get("aaData")) {
-            final Iterator<String> iter = svNode.fieldNames();
-
-            boolean recordMatch = true;
-
-            // simple agnostic means to check the coordinates
-            while (iter.hasNext()) {
-              final String key = iter.next();
-
-              final String sourceVal = asText(svNode.get(key));
-              final String targetVal = asText(row.get(key));
-
-              if (!(sourceVal == null && targetVal == null || sourceVal != null && sourceVal.equals(targetVal))) {
-                recordMatch = false;
-                break;
-              }
-            }
-
-            foundMatch = recordMatch;
-
-            // if we found a match, check the status, if not applicable, junk it
-            if (recordMatch && "Not Applicable".equals(asText(row.get("status")))) {
-              sourceIter.remove();
-              break;
-            }
-            else if (recordMatch) {
-              textSet.add(text);
-              break;
-            }
-          }
-
-          // This is a case that shouldn't be hit besides in dev, if no match
-          // found in the security table, dump it
-          if (!foundMatch) {
-            sourceIter.remove();
-          }
-        }
-      }
-    }
-  }
-
-  private static String asText(final JsonNode node) {
-    String text;
-    if (node != null) {
-      text = node.asText();
-      // NOTE: asText() turns null into the string "null", cf.
-      // https://github.com/FasterXML/jackson-databind/issues/25
-      if ("null".equals(text)) {
-        text = null;
-      }
-    }
-    else {
-      text = null;
-    }
-    return text;
   }
 
   public static void printPdf(final File reportFile, final String projectName, final String stageName,

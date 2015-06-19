@@ -13,11 +13,9 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -1149,17 +1147,6 @@ public class ReportResourceTest
 
   private void testDataJsonApplyChanges(String json) throws IOException {
     final ContainerNode<?> data = JsonUtils.parse(json);
-
-    // keyFindings must not have duplicates
-    JsonNode keyFindings = data.get("keyFindings");
-    Assert.assertNotNull(keyFindings);
-    Assert.assertTrue(keyFindings.size() > 0);
-    Set<String> uniqueKeyFindings = new LinkedHashSet<>();
-    for (int i = 0; i < keyFindings.size(); i++) {
-      String keyFinding = keyFindings.get(i).get("text").asText();
-      uniqueKeyFindings.add(keyFinding);
-    }
-    Assert.assertEquals(keyFindings.toString(), uniqueKeyFindings.size(), keyFindings.size());
 
     Assert.assertEquals(2, data.get("weakcopyleftLicenseCount").asInt());
     Assert.assertEquals(2, data.get("nonStandardLicenseCount").asInt());

@@ -304,14 +304,16 @@ public class InsightBrainService
         config.getAdditionalDBParams());
     OperationalDataStoreProvider.init(odsDatabaseConfig);
 
-    return Arrays.<Module> asList(new AbstractModule()
+    Module bindings = new AbstractModule()
     {
       @Override
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
-    }, new CLMShiroModule(config.isAnonymousClientAccessAllowed(), config.isCsrfProtection()),
-        new CLMShiroAopModule(config.isAnonymousClientAccessAllowed()));
+    };
+    Module authc = new CLMShiroModule(config.isAnonymousClientAccessAllowed(), config.isCsrfProtection());
+    Module authz = new CLMShiroAopModule(config.isAnonymousClientAccessAllowed());
+    return Arrays.asList(bindings, authc, authz);
   }
 
   private static String getLocalHostString() {

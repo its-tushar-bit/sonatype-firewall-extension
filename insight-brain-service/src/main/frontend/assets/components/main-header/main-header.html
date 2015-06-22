@@ -97,7 +97,7 @@
           </div>
         </div>
       </div>
-      <div class='header-responsive'>
+      <div class='header-content'>
         <ul class='inline header-navigation-menu'>
           <li ng-class="{ 'active' : $state.includes('dashboard') }" tooltip='Dashboard' tooltip-placement='bottom' ng-if='isDashboardLicensed()'>
             <a ui-sref="dashboard.overview.newest-risk">
@@ -111,7 +111,7 @@
           </li><!-- fix chrome bounce
           --><li ng-class="{ 'active' : $state.includes('management') }" tooltip='Manage Applications and Organizations'
               tooltip-placement='bottom'>
-            <a ui-sref="management.organization">
+            <a ui-sref="management">
               <span><i class='sonatype-icons medium organizational-design'></i></span>
             </a>
           </li>

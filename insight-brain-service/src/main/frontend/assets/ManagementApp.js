@@ -26,28 +26,6 @@
 
   managementModule.controller('ManagementController', ['$scope', '$state', 'commonCodeFactory', function($scope, $state, commonCodeFactory) {
     $scope.$state = $state;
-
-    $scope.panes = [
-      {
-        name: 'Organizations',
-        state: 'management/organization',
-        isEnabled: true
-      },
-      {
-        name: 'Applications',
-        state: 'management/application',
-        isEnabled: true
-      }
-    ];
-
-    for (var i = 0; i < $scope.panes.length; i++) {
-      var normalizedState = $scope.panes[i].state.replace('/', '.');
-      if ($scope.$state.current.name.indexOf(normalizedState) !== -1) {
-        $scope.$state.selectedPane = $scope.panes[i];
-        break;
-      }
-    }
-
     $scope.syncAlerts = [];
     var error = commonCodeFactory.getEncodedQueryString('errorMessage');
     if (error) {

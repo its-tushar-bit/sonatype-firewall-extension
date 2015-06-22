@@ -15,6 +15,10 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
 */
 
 .header {
+  margin: 0px auto;
+  width: 100%;
+  min-width: 1144px;
+  max-width: 1366px;
 
   i {
     vertical-align: middle;
@@ -58,7 +62,7 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 }
 
-.header-responsive {
+.header-content {
   > ul {
     display: inline-block;
     margin-bottom: 0;

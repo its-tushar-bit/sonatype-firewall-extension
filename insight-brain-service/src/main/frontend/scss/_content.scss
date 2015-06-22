@@ -46,3 +46,60 @@
 .nav-crumb .last-crumb {
   color: #909090;
 }
+
+/*
+  ##Layout Containers
+
+  ```
+    <div class="root-container">
+      <div class="navigation-container">
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+        Cool nav content<br>
+      </div>
+      <div class="body-container">
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+      </div>
+    </div>
+  ```
+*/
+
+.root-container {
+  margin: 41px auto 0px auto;
+  max-width: 1366px;
+  height: calc(100vh - 41px);
+}
+
+.navigation-container {
+  width: 120px;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  height: 100%;
+  float: left;
+  overflow: auto;
+}
+
+.body-container {
+  max-width: 1246px;
+  height: 100%;
+  overflow: auto;
+}

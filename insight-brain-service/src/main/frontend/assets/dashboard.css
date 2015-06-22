@@ -122,30 +122,8 @@
 }
 
 @media (max-width: 800px) {
-  .header-responsive {
-    clear: both;
-  }
-
   .dashboard-content, .mid-content {
-    padding-top: 90px !important;
     padding-left: 20px;
-  }
-
-  .navigation, .subnavigation {
-    top: 80px !important;
-  }
-
-  .subnavigation ul:nth-child(3) {
-    top: 80px !important;
-  }
-
-  .content {
-    top: 80px !important;
-  }
-
-  .notification-menu {
-    margin-right: 0 !important;
-    border-right: none !important;
   }
 }
 

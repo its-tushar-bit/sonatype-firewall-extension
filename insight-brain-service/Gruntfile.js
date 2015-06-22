@@ -223,7 +223,6 @@
       },
       watch: {
         develop: {
-          cwd: '',
           files: [
             '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js}'
           ],
@@ -237,8 +236,9 @@
           ]
         },
         develop_styles: {
-          cwd: '<%= config.frontend %>',
-          file: ['**/*.{css,scss}'],
+          files: [
+            '<%= config.frontend %>/**/*.{css,scss}'
+          ],
           tasks: [
             'copy:build',
             'template:build',
@@ -290,7 +290,7 @@
       'copy:develop',
       'usemin',
 
-      'watch:develop',
+      'watch',
 
       'clean:temp'
     ]);

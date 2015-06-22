@@ -10,7 +10,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -60,7 +59,7 @@ public class PolicyEvaluateResource
   public PolicyEvaluationResult evaluate(
       @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
       final String applicationPublicId,
-      @QueryParam("scanId") final String scanId, final Stage stage, @HeaderParam("user-agent") final String userAgent)
+      @QueryParam("scanId") final String scanId, final Stage stage)
       throws IOException
   {
     log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", applicationPublicId,

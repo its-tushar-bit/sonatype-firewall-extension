@@ -32,7 +32,7 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
+  public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int insightMockServerPort = PortAllocator.findFreePort(8090);

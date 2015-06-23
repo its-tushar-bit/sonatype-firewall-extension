@@ -32,8 +32,6 @@
     <jasmine.view.details.id.new>test-view-details-assets-new</jasmine.view.details.id.new>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
     <grunt.task>build</grunt.task>
-    <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
-    <phantomjs.version>1.9.7</phantomjs.version>
     <wro4j.brain.resources>${project.build.directory}/generated/assets/</wro4j.brain.resources>
     <wro4j.minimize>true</wro4j.minimize>
     <angular.debug>false</angular.debug>
@@ -505,14 +503,6 @@
       <plugin>
         <groupId>com.github.klieber</groupId>
         <artifactId>phantomjs-maven-plugin</artifactId>
-        <version>${phantomjs-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>install</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>com.github.searls</groupId>

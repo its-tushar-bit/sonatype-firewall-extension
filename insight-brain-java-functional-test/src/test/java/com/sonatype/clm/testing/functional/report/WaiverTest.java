@@ -1,0 +1,274 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.report;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ReportCip;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.ReportPage;
+import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
+import com.sonatype.clm.testing.functional.pages.WaiverCip;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
+import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.service.InsightWork;
+
+import com.codeborne.selenide.Configuration;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.open;
+
+public class WaiverTest
+    extends AbstractFunctionalTest
+{
+  private static final String policyName = "All components";
+
+  private static final String scanId = "306e0a923df34c64b836358182b1b902";
+
+  private static final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+
+  private static final String cannedTestReport = "/canned-reports/small-report.zip";
+
+  public static final int numberOfComponents = 4;
+
+  private Application app;
+  
+  private TestReportEvaluator evaluator;
+
+  @BeforeClass
+  public static void startup() {
+    open(ReportListPage.URL);
+    loginAsAdmin();
+  }
+
+  @Before
+  public void start() {
+    app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName());
+    evaluator = new TestReportEvaluator(app, scanId, getClass().getResource(cannedTestReport), Configuration.baseUrl,
+        work);
+  }
+
+  @Test
+  public void testViewWaivedPolicyViolations() throws Exception {
+    createGavViolatingPolicy(app.getOrganizationId());
+    
+    evaluator.evaluatePolicy();
+    waiveComponent();
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    AddWaiverDialog.root().should(disappear);
+
+    evaluator.reevaluatePolicy();
+
+    refreshOrOpen(ReportPage.url(app, scanId));
+    ReportPage.policyTabButton().click();
+
+    ReportPolicyPage.waivedView().shouldBe(visible).click();
+
+    ReportPolicyPage.row(0).coordinates().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+  }
+
+  @Test
+  public void testViewComponentPolicyWaivers() throws Exception {
+    createGavViolatingPolicy(app.getOrganizationId());
+
+    evaluator.evaluatePolicy();
+    waiveComponent();
+    AddWaiverDialog.comment().setValue("TEST COMMENT");
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    AddWaiverDialog.root().should(disappear);
+
+    WaiverCip.viewWaivers().click();
+
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+
+    assertWaiver(ViewWaiversDialog.row(0), "TEST COMMENT");
+
+    ViewWaiversDialog.row(0).removeButton().click();
+    ConfirmRemoveWaiverDialog.removeButton().should(visible).click();
+
+    ViewWaiversDialog.rows().shouldHaveSize(0);
+    ViewWaiversDialog.emptyText().shouldBe(visible);
+    ViewWaiversDialog.closeButton().click();
+
+    String longComment = StringUtils.repeat("A", 1001);
+    String truncatedLongComment = longComment.substring(0, 1000);
+
+    WaiverCip.row(0).waiveButton().click();
+    AddWaiverDialog.comment().setValue(longComment);
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    AddWaiverDialog.root().should(disappear);
+
+    WaiverCip.viewWaivers().shouldBe(visible).click();
+
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+    ViewWaiversDialog.row(0).comment().shouldHave(text(truncatedLongComment));
+
+    ViewWaiversDialog.row(0).removeButton().click();
+    ConfirmRemoveWaiverDialog.cancelButton().shouldBe(visible).click();
+    ConfirmRemoveWaiverDialog.cancelButton().shouldNotBe(visible);
+
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+    assertWaiver(ViewWaiversDialog.row(0), truncatedLongComment);
+
+    ViewWaiversDialog.closeButton().click();
+
+    ViewWaiversDialog.closeButton().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testWaiverDialogCanBeInteractedWith() throws Exception {
+    createGavViolatingPolicy(app.getOrganizationId());
+
+    evaluator.evaluatePolicy();
+
+    waiveComponent();
+
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
+    AddWaiverDialog.scope().shouldHaveSize(2);
+
+    AddWaiverDialog.selectedScope().shouldHave(value(app.getPublicId()));
+
+    AddWaiverDialog.scope(app.getOrganizationId()).click();
+
+    AddWaiverDialog.selectedScope().shouldHave(value(app.getOrganizationId()));
+
+    AddWaiverDialog.scope(app.getPublicId()).click();
+
+    AddWaiverDialog.selectedScope().shouldHave(value(app.getPublicId()));
+
+    AddWaiverDialog.apply().shouldHaveSize(2);
+
+    AddWaiverDialog.allComponents().shouldBe(visible);
+    AddWaiverDialog.selectedComponent().shouldBe(visible);
+
+    AddWaiverDialog.allComponents().shouldNotBe(selected);
+    AddWaiverDialog.selectedComponent().shouldBe(selected);
+
+    AddWaiverDialog.allComponents().setSelected(true);
+  }
+
+  @Test
+  public void testApplicationPolicyDoesNotPromptForScopeOfWaiver() throws Exception {
+    createGavViolatingPolicy(app.getId());
+
+    evaluator.evaluatePolicy();
+
+    waiveComponent();
+
+    AddWaiverDialog.scopeContainer().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testOrganizationPolicyPromptsForScopeOfWaiver() throws Exception {
+    createGavViolatingPolicy(app.getOrganizationId());
+
+    evaluator.evaluatePolicy();
+
+    waiveComponent();
+
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testWaiverCanBeAppliedToSelectedComponentForChildrenOfOrganization() throws Exception {
+    createGavViolatingPolicy(app.getOrganizationId());
+
+    evaluator.evaluatePolicy();
+
+    waiveComponent();
+
+    AddWaiverDialog.scope(app.getOrganizationId()).setSelected(true);
+
+    AddWaiverDialog.selectedComponent().shouldBe(selected);
+
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    AddWaiverDialog.root().should(disappear);
+
+    evaluator.reevaluatePolicy();
+
+    refreshOrOpen(ReportPage.url(app, scanId));
+    ReportPage.policyTabButton().click();
+
+    ReportPolicyPage.rows().shouldHaveSize(numberOfComponents);
+    ReportPolicyPage.resultsWithNoScore().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testWaiverCanBeAppliedToAllComponentsForApplication() throws Exception {
+    createGavViolatingPolicy(app.getId());
+
+    evaluator.evaluatePolicy();
+
+    waiveComponent();
+
+    AddWaiverDialog.allComponents().setSelected(true);
+
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    AddWaiverDialog.root().should(disappear);
+
+    evaluator.reevaluatePolicy();
+
+    refreshOrOpen(ReportPage.url(app, scanId));
+    ReportPage.policyTabButton().click();
+
+    ReportPolicyPage.rows().shouldHaveSize(numberOfComponents);
+    ReportPolicyPage.resultsWithNoScore().shouldHaveSize(numberOfComponents);
+  }
+
+  private void assertWaiver(ExistingWaiver waiver, String comment) {
+    waiver.policy().shouldHave(text(policyName));
+    waiver.created().shouldHave(text(new SimpleDateFormat("yyyy-MM-dd").format(new Date())));
+    waiver.owner().shouldHave(text(app.getName()));
+    waiver.comment().shouldHave(text(comment));
+  }
+
+  private void waiveComponent() {
+    refreshOrOpen(ReportPage.url(app, scanId));
+    ReportPage.policyTabButton().shouldBe(visible).click();
+
+    ReportPolicyPage.rows().shouldHaveSize(4);
+    ReportPolicyPage.row(0).openCip();
+    ReportCip.policyTab().should(appear).click();
+    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
+    AddWaiverDialog.root().should(appear);
+    AddWaiverDialog.comment().shouldBe(visible);
+  }
+
+  private void createGavViolatingPolicy(String ownerId) {
+    // create policy
+    Condition condition = new Condition(CoordinatesConditionType.ID, "match", "*");
+    Constraint constraint = new Constraint();
+    constraint.setName("All coordinates");
+    constraint.addCondition(condition);
+    Policy policy = new Policy();
+    policy.setName(policyName);
+    policy.addConstraint(constraint);
+    policy.setOwnerId(ownerId);
+
+    // add policy
+    tempEntity.newPolicy(policy);
+  }
+}

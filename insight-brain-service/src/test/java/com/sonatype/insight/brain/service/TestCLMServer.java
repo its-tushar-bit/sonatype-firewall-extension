@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.service;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+
 import com.google.inject.Module;
 
 /**
@@ -30,17 +32,18 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules) {
+  TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int insightMockServerPort = PortAllocator.findFreePort(8090);
 
     insightMockServer = new InsightMockServerRule(insightMockServerPort, isProxyRequiredToReachHds);
     brain = new TestInsightBrainServiceRule(PortAllocator.findFreePort(8070), PortAllocator.findFreePort(8071),
-        null /* baseUrl */, "http://localhost:" + insightMockServerPort, isProxyRequiredToReachHds, modules);
+        null /* baseUrl */, "http://localhost:" + insightMockServerPort, isProxyRequiredToReachHds, modules)
+        .setConfigurator(configurator);
   }
 
-  public void start() throws Throwable {
+  public void start() throws Exception {
     long start = System.currentTimeMillis();
     startCount++;
 
@@ -76,7 +79,7 @@ public class TestCLMServer
     return insightMockServer;
   }
 
-  public boolean isProxyRequiredToReachHds() {
-    return isProxyRequiredToReachHds;
+  public boolean isReusable(boolean proxyRequired, Configurator configurator) {
+    return proxyRequired == isProxyRequiredToReachHds && configurator == brain.getConfigurator();
   }
 }

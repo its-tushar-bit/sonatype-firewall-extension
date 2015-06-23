@@ -40,6 +40,13 @@ public class TestInsightBrainService
 {
   private static final Logger log = LoggerFactory.getLogger(TestInsightBrainService.class);
 
+  public interface Configurator
+  {
+    void configure(InsightConfig config);
+  }
+
+  private Configurator configurator;
+
   private int testPort;
 
   private int testAdminPort;
@@ -87,6 +94,10 @@ public class TestInsightBrainService
     testProxyConfig.setPort(port);
     testProxyConfig.setUsername(user);
     testProxyConfig.setPassword(pass);
+  }
+
+  public void setConfigurator(Configurator configurator) {
+    this.configurator = configurator;
   }
 
   public File getWorkDir() {
@@ -182,6 +193,9 @@ public class TestInsightBrainService
 
     if (testProxyConfig != null) {
       config.setProxyConfig(testProxyConfig);
+    }
+    if (configurator != null) {
+      configurator.configure(config);
     }
     insightConfig = config;
 

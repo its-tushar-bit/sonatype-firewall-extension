@@ -311,7 +311,7 @@ public class InsightBrainService
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
     };
-    Module authc = new CLMShiroModule(config.isAnonymousClientAccessAllowed(), config.isCsrfProtection());
+    Module authc = new CLMShiroModule(config);
     Module authz = new CLMShiroAopModule(config.isAnonymousClientAccessAllowed());
     return Arrays.asList(bindings, authc, authz);
   }

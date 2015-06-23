@@ -114,6 +114,13 @@ public class InsightConfig
   @Pattern(regexp = "[^\\p{Cntrl}]*")
   private String userAgentSuffix = "";
 
+  /**
+   * @since 1.16.0
+   */
+  @NotNull
+  @JsonProperty
+  private ReverseProxyAuthenticationConfig reverseProxyAuthentication = new ReverseProxyAuthenticationConfig();
+
   public ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -304,5 +311,13 @@ public class InsightConfig
 
   void setDbBackupDir(String dbBackupDir) {
     this.dbBackupDir = dbBackupDir;
+  }
+
+  public ReverseProxyAuthenticationConfig getReverseProxyAuthentication() {
+    return reverseProxyAuthentication;
+  }
+
+  void setReverseProxyAuthentication(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
+    this.reverseProxyAuthentication = reverseProxyAuthentication;
   }
 }

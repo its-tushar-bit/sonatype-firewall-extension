@@ -9,6 +9,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.ldap.LdapRealm;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import org.apache.shiro.authc.Authenticator;
@@ -43,9 +45,12 @@ public class CLMShiroModule
 
   private final boolean csrfProtection;
 
-  public CLMShiroModule(final boolean anonymousClientAccessAllowed, boolean csrfProtection) {
-    this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
-    this.csrfProtection = csrfProtection;
+  private final ReverseProxyAuthenticationConfig reverseProxyAuthentication;
+
+  public CLMShiroModule(InsightConfig config) {
+    this.anonymousClientAccessAllowed = config.isAnonymousClientAccessAllowed();
+    this.csrfProtection = config.isCsrfProtection();
+    this.reverseProxyAuthentication = config.getReverseProxyAuthentication();
   }
 
   @Override
@@ -63,6 +68,7 @@ public class CLMShiroModule
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
     bindRealm().to(CLMRealm.class);
     bindRealm().to(LdapRealm.class);
+    bindRealm().to(ReverseProxyRealm.class);
     binder().requestInjection(new SessionCookieCustomizer());
   }
 
@@ -70,6 +76,7 @@ public class CLMShiroModule
     manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
     manager.addFilter("secureCookies", new SecureCookiesFilter());
     manager.addFilter("antiCsrf", new AntiCsrfFilter(csrfProtection));
+    manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
     // change the auth type so browsers don't prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);
   }
@@ -92,22 +99,22 @@ public class CLMShiroModule
     manager.createChain("/tasks/**", "anon"); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", "anon"); // only redirects
 
-    // public REST API, no sessions supported/allowed
+    // public REST API, no sessions supported/allowed, no SSO support
     manager.createChain("/api/**", "noSessionCreation, authcBasicMandatory");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], authcBasic, secureCookies");
+        + "], reverseProxy, authcBasic, secureCookies");
 
     configureFilterChainsForNonAjaxFormSubmissions(manager);
 
     // internal REST API
-    manager.createChain("/**/*", "noSessionCreation, antiCsrf, authcBasic");
+    manager.createChain("/**/*", "noSessionCreation, antiCsrf, reverseProxy, authcBasic");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(DefaultFilterChainManager manager) {
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
-    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED + "], authcBasic";
+    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED + "], reverseProxy, authcBasic";
     manager.createChain("/rest/application/icon/sync", filters);
     manager.createChain("/rest/organization/icon/sync", filters);
     manager.createChain("/rest/policy/*/*/import/ie", filters);
@@ -117,7 +124,7 @@ public class CLMShiroModule
 
   private void configureFilterChainsForIntegrations(DefaultFilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
-    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], authcBasic";
+    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic";
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
     manager.createChain("/rest/report/*/*/downloadBundle", filters);

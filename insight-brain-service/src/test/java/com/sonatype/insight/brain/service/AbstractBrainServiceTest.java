@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.security.CLMShiroModule;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -73,34 +74,43 @@ public abstract class AbstractBrainServiceTest
   protected static HdsProductNotificationService mockHdsProductNotificationService;
 
   @Before
-  public void initTest() throws Throwable {
-    if (testCLMServer != null && isProxyRequiredToReachHds() != testCLMServer.isProxyRequiredToReachHds()) {
+  public void initTest() throws Exception {
+    initServer(null);
+  }
+
+  protected void initServer(Configurator configurator) throws Exception {
+    if (testCLMServer != null && !testCLMServer.isReusable(isProxyRequiredToReachHds(), configurator)) {
       testCLMServer.stop();
       testCLMServer = null;
     }
 
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules());
+      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator);
       testCLMServer.start();
     }
   }
 
   @After
   public void cleanupTest() throws Exception {
-    testCLMServer.getInsightServer().reset();
-
+    boolean installLicense = false;
     if (savedLicenseFingerprint != null) {
       licenseFingerprinter.setDummyLicenseFingerprint(savedLicenseFingerprint);
       savedLicenseFingerprint = null;
-      installLicense();
+      installLicense = true;
     }
-
     if (licenseManager.wasChanged()) {
       licenseManager.reset();
-      installLicense();
+      installLicense = true;
     }
     if (productlicenseWasUninstalled) {
-      installLicense();
+      installLicense = true;
+    }
+
+    if (testCLMServer != null) {
+      testCLMServer.getInsightServer().reset();
+      if (installLicense) {
+        installLicense();
+      }
     }
   }
 

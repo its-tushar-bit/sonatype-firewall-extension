@@ -43,6 +43,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
@@ -391,6 +392,48 @@ public class LdapManagerTest
     new LdapUserMappingDAO().insert(umap);
 
     manager.authenticateUser("test*user", "te*st".toCharArray());
+  }
+
+  @Test
+  public void testGetUser() throws Exception {
+    startLdapServer();
+    setSearchBase();
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().insert(umap);
+
+    LdapUser user = manager.getUser("test_user");
+    assertThat(user, is(notNullValue()));
+    assertThat(user.getUsername(), is("test_user"));
+    assertThat(user.getRealName(), is("Test User"));
+    assertThat(user.getMembership(), containsInAnyOrder("ab", "xb", "abc"));
+  }
+
+  @Test(expected = NameNotFoundException.class)
+  public void testGetUser_NoWildcardMatching() throws Exception {
+    startLdapServer();
+    setSearchBase();
+    LdapUserMapping umap = createUserMapping();
+    new LdapUserMappingDAO().insert(umap);
+
+    manager.getUser("test_*");
+  }
+
+  @Test
+  public void testGetUser_WildcardEscaped() throws Exception {
+    startLdapServer();
+    setSearchBase();
+    LdapUserMapping umap = createUserMapping();
+    umap.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+    umap.setUserMemberOfGroupAttribute("departmentNumber");
+    new LdapUserMappingDAO().insert(umap);
+
+    LdapUser user = manager.getUser("test*user");
+    assertThat(user, is(notNullValue()));
+    assertThat(user.getUsername(), is("test*user"));
+    assertThat(user.getRealName(), is("Test*User"));
+    assertThat(user.getMembership(), containsInAnyOrder("ab", "bc", "bx"));
   }
 
   @Test

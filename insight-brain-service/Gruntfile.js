@@ -276,6 +276,21 @@
       'clean:temp'
     ]);
 
+    grunt.registerTask('m2e', [
+      'clean',
+      'copy:build',
+      'copy:build_cip',
+      'copy:build_brain_client',
+      'template',
+      'sass',
+      'useminPrepare',
+      'concat:generated',
+      'cssmin:build_cip',
+      'copy:develop',
+      'usemin',
+      'clean:temp'
+    ]);
+
     grunt.registerTask('develop', [
       'jshint',
       'clean',

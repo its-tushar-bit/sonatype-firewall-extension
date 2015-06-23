@@ -31,6 +31,7 @@
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id.new>test-view-details-assets-new</jasmine.view.details.id.new>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
+    <grunt.task>build</grunt.task>
     <phantomjs-maven-plugin.version>0.7</phantomjs-maven-plugin.version>
     <phantomjs.version>1.9.7</phantomjs.version>
     <wro4j.brain.resources>${project.build.directory}/generated/assets/</wro4j.brain.resources>
@@ -997,7 +998,8 @@
               <goal>grunt</goal>
             </goals>
             <configuration>
-              <arguments>build</arguments>
+              <srcdir>${basedir}/src/main/frontend</srcdir>
+              <arguments>${grunt.task}</arguments>
             </configuration>
           </execution>
         </executions>
@@ -1123,6 +1125,7 @@
       </activation>
       <properties>
         <angular.debug>true</angular.debug>
+        <grunt.task>m2e</grunt.task>
         <wro4j.minimize>false</wro4j.minimize>
         <wro4j.brain.resources>${project.build.directory}/classes/assets/</wro4j.brain.resources>
       </properties>
@@ -1167,46 +1170,6 @@
                       <type>txt</type>
                     </artifact>
                   </artifacts>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>livingstyle</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.3.1</version>
-            <executions>
-              <execution>
-                <phase>initialize</phase>
-                <id>install-node-modules</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>npm</executable>
-                  <arguments>
-                    <argument>install</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-              <execution>
-                <phase>generate-resources</phase>
-                <id>build-living-styleguide</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>grunt</executable>
-                  <arguments>
-                    <argumet>styleguide</argumet>
-                  </arguments>
                 </configuration>
               </execution>
             </executions>

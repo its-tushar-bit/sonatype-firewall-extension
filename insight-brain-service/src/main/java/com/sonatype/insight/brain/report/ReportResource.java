@@ -88,6 +88,8 @@ public class ReportResource
 {
   public static final String SERVICE_PATH = "rest/report/{applicationPublicId}/{scanId}";
 
+  public static final String BROWSE_PATH = "browseReport";
+
   public static final String PRINT_PATH = "printReport";
 
   public static final String DOWNLOAD_BUNDLE_PATH = "downloadBundle";
@@ -179,7 +181,7 @@ public class ReportResource
    * @since 1.7
    */
   @GET
-  @Path("browseReport/{path:.*}")
+  @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
   public Response browseReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,

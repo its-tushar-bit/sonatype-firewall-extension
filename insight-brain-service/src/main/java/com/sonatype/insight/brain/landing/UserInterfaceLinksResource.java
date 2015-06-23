@@ -40,6 +40,8 @@ public class UserInterfaceLinksResource
 
   public static final String REPORT_PATH = "application/{applicationPublicId}/report/{scanId}";
 
+  public static final String EMBEDDABLE_REPORT_PATH = "application/{applicationPublicId}/report/{scanId}/embeddable";
+
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
 
   private final BaseUrl baseUrl;
@@ -74,6 +76,19 @@ public class UserInterfaceLinksResource
   }
 
   /**
+   * @since 1.16
+   */
+  @GET
+  @Path(EMBEDDABLE_REPORT_PATH)
+  public Response linkToEmbeddableReport(@PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ReportResource.SERVICE_PATH).path(ReportResource.BROWSE_PATH).path("index.html");
+    return redirect(uriBuilder.build(applicationPublicId, scanId));
+  }
+
+  /**
    * @since 1.9
    */
   @GET
@@ -91,6 +106,17 @@ public class UserInterfaceLinksResource
    */
   public static String getReportUrl(String applicationPublicId, String scanId) {
     return UriBuilder.fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
+        .build(applicationPublicId, scanId).toString();
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the embeddable HTML report of the given application and scan.
+   * 
+   * @since 1.16
+   */
+  public static String getEmbeddableReportUrl(String applicationPublicId, String scanId) {
+    return UriBuilder
+        .fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH)
         .build(applicationPublicId, scanId).toString();
   }
 

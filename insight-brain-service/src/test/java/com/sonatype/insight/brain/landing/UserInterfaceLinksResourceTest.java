@@ -46,6 +46,14 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToEmbeddableReport() throws Exception {
+    assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"),
+        is(UserInterfaceLinksResource.SERVICE_PATH + "/application/app%20id/report/scan%20id/embeddable"));
+    HttpResponse response = get(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, "app id", "scan id");
+    assertRedirect(response, "rest/report/app%20id/scan%20id/browseReport/index.html");
+  }
+
+  @Test
   public void testLinkToPdf() throws Exception {
     assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"), is(UserInterfaceLinksResource.SERVICE_PATH
         + "/application/app%20id/report/scan%20id/pdf"));

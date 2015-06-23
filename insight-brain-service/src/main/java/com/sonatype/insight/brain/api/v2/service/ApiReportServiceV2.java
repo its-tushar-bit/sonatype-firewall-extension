@@ -83,6 +83,8 @@ public class ApiReportServiceV2
 
     report.reportPdfUrl = UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), eval.getScanId());
     report.reportHtmlUrl = UserInterfaceLinksResource.getReportUrl(app.getPublicId(), eval.getScanId());
+    report.embeddableReportHtmlUrl = UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(),
+        eval.getScanId());
     report.reportDataUrl = ApiReportDataResourceV2.getDataUrl(app.getPublicId(), eval.getScanId());
 
     return report;

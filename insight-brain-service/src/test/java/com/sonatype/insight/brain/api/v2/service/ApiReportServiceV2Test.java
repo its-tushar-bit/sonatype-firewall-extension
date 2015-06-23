@@ -80,6 +80,8 @@ public class ApiReportServiceV2Test
       if (app.getId().equals(report.applicationId) && expectedStageId.equals(report.stage)) {
         assertEquals(UserInterfaceLinksResource.getPdfUrl(app.getPublicId(), expectedScanId), report.reportPdfUrl);
         assertEquals(UserInterfaceLinksResource.getReportUrl(app.getPublicId(), expectedScanId), report.reportHtmlUrl);
+        assertEquals(UserInterfaceLinksResource.getEmbeddableReportUrl(app.getPublicId(), expectedScanId),
+            report.embeddableReportHtmlUrl);
         assertEquals(ApiReportDataResourceV2.getDataUrl(app.getPublicId(), expectedScanId), report.reportDataUrl);
         return;
       }

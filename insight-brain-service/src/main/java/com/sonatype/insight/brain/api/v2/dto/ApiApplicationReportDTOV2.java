@@ -23,6 +23,11 @@ public class ApiApplicationReportDTOV2
 
   public String reportHtmlUrl;
 
+  /**
+   * @since 1.16
+   */
+  public String embeddableReportHtmlUrl;
+
   public String reportPdfUrl;
 
   public String reportDataUrl;

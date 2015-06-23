@@ -59,7 +59,7 @@ public abstract class AbstractFunctionalTest
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
     clmLicenseManager = new CLMLicenseManager(productLicenseManager, licenseFingerprinter);
-    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules());
+    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), null);
     try {
       testCLMServer.start();
       Configuration.baseUrl = "http://localhost:" + testCLMServer.getCLMServer().getPort() + "/";

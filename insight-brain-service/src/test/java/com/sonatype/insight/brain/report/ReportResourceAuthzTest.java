@@ -84,7 +84,7 @@ public class ReportResourceAuthzTest
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
 
     HttpRequest request = restRequest().path("reevaluatePolicy").parameter(app.getPublicId(), "scanId");
-    testAuthzGet(request);
+    testAuthzPost(request);
   }
 
   @Test

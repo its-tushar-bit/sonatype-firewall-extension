@@ -609,7 +609,7 @@ public class ReportResourceTest
     // ReEvaluate
     policy.setName(policy.getName() + " Updated");
     policyDAO.update(policy);
-    response = restRequest(applicationPublicId, scanId).path("reevaluatePolicy").get();
+    response = restRequest(applicationPublicId, scanId).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
     PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),

@@ -42,7 +42,7 @@ var clmEndpointTemplate = {
       function checkObjectAndSubObjectsForEnoughBacon(o) {
         for (var f in o) {
           if (o.hasOwnProperty(f)) {
-            if (f.match(/^get/) && f !== "getVersion" && typeof(o[f]) === 'function') {
+            if (f.match(/^get.*Url$/) && f !== "getCurrentReportReevaluateUrl" && typeof(o[f]) === 'function') {
               shouldStartWithBacon(o[f]);
             }
             else if (typeof(o[f]) === "object") {

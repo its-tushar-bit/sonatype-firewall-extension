@@ -31,6 +31,8 @@
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id.new>test-view-details-assets-new</jasmine.view.details.id.new>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
+    <jasmine.brain.client.id>test-brain-client-assets</jasmine.brain.client.id>
+    <jasmine.brain.client.id.new>test-brain-client-assets-new</jasmine.brain.client.id.new>
     <grunt.task>build</grunt.task>
     <wro4j.brain.resources>${project.build.directory}/generated/assets/</wro4j.brain.resources>
     <wro4j.minimize>true</wro4j.minimize>
@@ -600,6 +602,7 @@
               <sourceExcludes>
                 <exclude>frontend/assets/lib/angular-${angularjs.version}/*.min.js</exclude>
                 <exclude>frontend/assets/lib/protovis/protovis-msie.min.js</exclude>
+                <exclude>frontend/assets/brain-client/*.js</exclude>
                 <exclude>frontend/assets/version-graph/*.js</exclude>
                 <exclude>frontend/cip/*.js</exclude>
                 <exclude>frontend/policy/js/*.js</exclude>
@@ -654,6 +657,7 @@
               <specExcludes>
                 <exclude>resources/assets/**/cip*.js</exclude>
                 <exclude>resources/assets/**/CIP*.js</exclude>
+                <exclude>resources/assets/brain-client/**/*.js</exclude>
                 <exclude>resources/assets/version-graph/**/*.js</exclude>
               </specExcludes>
               <junitXmlReportFileName>TEST-server-legacy.xml</junitXmlReportFileName>
@@ -745,6 +749,36 @@
               <specIncludes>
                 <include>resources/assets/**/lib/*.js</include>
                 <include>resources/assets/version-graph/ViewDetailsSpec.js</include>
+              </specIncludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.brain.client.id}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>brain-client/*.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>resources/assets/brain-client/BrainClientSpec.js</include>
+              </specIncludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>${jasmine.brain.client.id.new}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <sourceIncludes>
+                <include>frontend/brain-client/*.js</include>
+              </sourceIncludes>
+              <specIncludes>
+                <include>frontend/brain-client/BrainClientSpec.js</include>
               </specIncludes>
             </configuration>
           </execution>
@@ -1104,6 +1138,18 @@
       <id>test-view-details</id>
       <properties>
         <jasmine.view.details.id>default-cli</jasmine.view.details.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-brain-client</id>
+      <properties>
+        <jasmine.brain.client.id>default-cli</jasmine.brain.client.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-brain-client-new</id>
+      <properties>
+        <jasmine.brain.client.id.new>default-cli</jasmine.brain.client.id.new>
       </properties>
     </profile>
     <profile>

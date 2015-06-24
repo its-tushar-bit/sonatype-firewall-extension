@@ -234,7 +234,7 @@ public class ReportResource
    * Re-evaluates the policy for a scan. The policy must have been evaluated for the given scan at least once. This
    * method should not send policy evaluation notifications.
    */
-  @GET
+  @POST
   @Path("reevaluatePolicy")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public Response reevaluatePolicy(

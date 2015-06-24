@@ -117,6 +117,25 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
     "getVersion": function() {
       return "<%= config.pom.clmVersion %>";
     },
+
+    /**
+     * Gets the headers required to pass CSRF protection.
+     *
+     * @since version 1.16
+     */
+    'getCsrfHeaders' : function () {
+      return { 'X-CSRF-TOKEN' : document.cookie.replace(/((^|.*;\s*)CLM-CSRF-TOKEN\s*=\s*([^;]*).*)|^.*$/, '$3') };
+    },
+
+    /**
+     * Gets the URL to re-evaluate the policy for the currently viewed report.
+     *
+     * @since version 1.16
+     */
+    'getCurrentReportReevaluateUrl' : function () {
+      return '../reevaluatePolicy';
+    },
+
     'ci': {
       /**
        * Get the URL for the agnostic coordinate ComponentDetails resource

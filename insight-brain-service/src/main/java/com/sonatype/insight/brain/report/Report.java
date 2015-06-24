@@ -131,7 +131,7 @@ public final class Report
     return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
   }
 
-  public static int[] applyChanges(final Application application, final File reportFile, final File auditDir)
+  public static void applyChanges(final Application application, final File reportFile, final File auditDir)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -139,7 +139,7 @@ public final class Report
     final ReportType reportType = getType(reportFile);
 
     if (ReportType.ERROR.equals(reportType)) {
-      return new int[] { -1, -1 };
+      return;
     }
 
     embedApplicationPublicId(application, reportFile);
@@ -165,7 +165,7 @@ public final class Report
     }
 
     if (ReportType.SAMPLE.equals(reportType)) {
-      return JsonUtils.parse(extractEntry(reportFile, "badges.json").buf, int[].class);
+      return;
     }
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier = parseDependencyDepths(JsonUtils.parse(extractEntry(
@@ -280,8 +280,6 @@ public final class Report
     cache(getCacheFile(reportFile, "badges.json"), badges.toString().getBytes("UTF-8"));
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
-
-    return new int[] { securityAlerts, licenseAlerts, buildAlerts };
   }
 
   @VisibleForTesting

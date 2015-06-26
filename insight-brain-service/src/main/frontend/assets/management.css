@@ -627,11 +627,6 @@ ul.tri-pane.left {
 /**
  * Error blocks
  */
-.clm-error {
-  margin: 100px auto;
-  width: 50%;
-}
-
 .error {
   color: #b94a48;
 }

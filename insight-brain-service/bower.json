@@ -9,5 +9,9 @@
   "private": true,
   "devDependencies": {
     "bootstrap-sass-official": "https://github.com/twbs/bootstrap-sass.git#v2.3.2.0"
+  },
+  "dependencies": {
+    "components-font-awesome": "~4.3.0",
+    "fuse.js": "~1.2.2"
   }
 }

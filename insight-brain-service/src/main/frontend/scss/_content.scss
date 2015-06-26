@@ -103,3 +103,38 @@
   height: 100%;
   overflow: auto;
 }
+
+/*
+  ## Load error
+
+  ```
+  <div class="alert alert-error clm-error">
+    <div>
+      <i class="fa fa-warning"></i>
+      <span>An error occurred loading data. (Unable to reach CLM server)</span>
+    </div>
+    <div>
+      <button type="button" class="btn btn-danger"><i class="fa fa-refresh"></i>Retry</button>
+    </div>
+  </div>
+  ```
+*/
+.alert-error.clm-error {
+  margin: 5px;
+  padding: 12px 8px;
+  border-color: $fail_fg;
+  background-color: $fail_bg;
+  color: $fail_fg;
+  border-radius: 0px;
+
+  .btn-danger {
+    background-color: $fail_fg;
+    background-image: initial;
+    background-repeat: initial;
+    margin-top: 24px;
+  }
+
+  i.fa::before {
+    margin-right: 8px;
+  }
+}

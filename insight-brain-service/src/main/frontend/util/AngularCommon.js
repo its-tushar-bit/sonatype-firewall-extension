@@ -311,16 +311,17 @@ var AngularStateUtils = {
       return {
         restrict: 'A',
         priority: 99,
-        template: '<div ng-show="error != null" class="alert alert-error clm-error"><p><strong>Error</strong></p>' +
-            '<p><span>An error occurred loading data. </span>' +
-            '<span ng-switch on="error.status">' +
-            '<span ng-switch-when="0">(Unable to reach CLM server)</span>' +
-            '<span ng-switch-default>({{getDetails()}})</span>' +
-            '</span></p>' +
-            '<p><button type="button" class="btn btn-danger" ng-click="reload()">Reload</button></p></div>',
+        template: '<div ng-show="error != null" class="alert alert-error clm-error">' +
+            '<div><i class="fa fa-warning"></i>' +
+            '<span>{{message || "An error occurred loading data."}} </span>' +
+            '<span ng-if="error">{{getDetails()}}</span>' +
+            '</div>' +
+            '<div><button type="button" class="btn btn-danger" ng-click="reload()">' +
+            '<i class="fa fa-refresh"></i>Retry</button></div></div>',
         scope: {
           error: '=loadError',
-          reload: '&reload'
+          reload: '&reload',
+          message: '='
         },
         link: function($scope) {
           $scope.getDetails = function() {
@@ -344,16 +345,15 @@ var AngularStateUtils = {
       replace : true,
       template : '<div><div ng-show="!error" ng-transclude></div>' +
         '<div ng-if="error != null" class="alert alert-error clm-error">' +
-          '<p><strong>Error</strong></p>' +
-          '<p><span>An error occurred loading data. </span>' +
-            '<span ng-switch on="error.status">' +
-              '<span ng-switch-when="0">(Unable to reach CLM server)</span>' +
-              '<span ng-switch-default>({{getDetails()}})</span>' +
-            '</span></p>' +
-          '<p><button type="button" class="btn btn-danger" ng-click="reload()">Reload</button></p></div>',
+          '<div><i class="fa fa-warning"></i>' +
+          '<span>{{message || "An error occurred loading data."}} </span>' +
+          '<span ng-if="error">{{getDetails()}}</span></div>' +
+          '<div><button type="button" class="btn btn-danger" ng-click="reload()">' +
+          '<i class="fa fa-refresh"></i>Retry</button></div></div>',
       scope : {
         error : '=loadWrapper',
-        reload : '&'
+        reload : '&',
+        message : '='
       },
       link: function($scope) {
         $scope.getDetails = function() {

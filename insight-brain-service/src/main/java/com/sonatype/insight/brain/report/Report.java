@@ -182,10 +182,6 @@ public final class Report
     int policyComponentCount = 0;
     int insecureArtifactCount = 0;
 
-    int securityAlerts = 0;
-    int licenseAlerts = 0;
-    int buildAlerts = 0;
-
     final ArrayList<int[]> securityPunchCard = new ArrayList<int[]>();
     final ArrayList<int[]> licensePunchCard = new ArrayList<int[]>();
 
@@ -213,11 +209,6 @@ public final class Report
           insecureArtifactCount++;
         }
 
-        securityAlerts++;
-        if (!"Acknowledged".equals(status)) {
-          buildAlerts++;
-        }
-
         final int counter = severity < 4 ? 2 : severity < 7 ? 1 : 0;
         updatePunchCard(securityPunchCard, componentIdentifier, depthsByIdentifier, counter);
       }
@@ -240,7 +231,6 @@ public final class Report
           // Punch card expects 0 to be the highest threat with 2 being the lowest
           final int threatDepth = threatLevel < 4 ? 2 : threatLevel < 8 ? 1 : 0;
           updatePunchCard(licensePunchCard, component.getComponentIdentifier(), depthsByIdentifier, threatDepth);
-          licenseAlerts++;
         }
       }
     }
@@ -271,13 +261,6 @@ public final class Report
     fill(data.putArray("licensePunchCard"), licensePunchCard);
 
     saveReportEntry(reportFile, "data.json", data);
-
-    final StringBuilder badges = new StringBuilder("[");
-    badges.append(securityAlerts).append(',');
-    badges.append(licenseAlerts).append(',');
-    badges.append(buildAlerts).append(']');
-
-    cache(getCacheFile(reportFile, "badges.json"), badges.toString().getBytes("UTF-8"));
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
   }
@@ -655,8 +638,7 @@ public final class Report
       if (archive.getEntry("sample.txt") != null) {
         return ReportType.SAMPLE;
       }
-      if (archive.getEntry("security.json") == null && archive.getEntry("licenses.json") == null
-          && archive.getEntry("badges.json") == null) {
+      if (archive.getEntry("security.json") == null && archive.getEntry("licenses.json") == null) {
         return ReportType.ERROR;
       }
       return ReportType.FULL;

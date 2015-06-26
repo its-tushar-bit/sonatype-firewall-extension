@@ -389,9 +389,6 @@ public class ReportResourceTest
           String actual = response.getBodyText();
           testDataJsonApplyChanges(actual);
         }
-        else if ("badges.json".equals(entry.getName())) {
-          assertThat(response.getBody(int[].class), equalTo(new int[] { 36, 8, 36 }));
-        }
         else if ("licenses.json".equals(entry.getName())) {
           String actual = response.getBodyText();
 

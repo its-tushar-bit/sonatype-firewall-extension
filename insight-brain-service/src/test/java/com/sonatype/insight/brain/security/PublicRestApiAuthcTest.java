@@ -31,7 +31,7 @@ public class PublicRestApiAuthcTest
     HttpResponse response = restRequest().path(UserSessionResource.SERVICE_PATH).post();
     assertResponseStatus(204, response);
 
-    HttpCookie sessionCookie = getSessionCookie(response);
+    HttpCookie sessionCookie = response.getSessionCookie();
     assertThat(sessionCookie, is(notNullValue()));
 
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing").anon().cookie(sessionCookie);
@@ -100,19 +100,19 @@ public class PublicRestApiAuthcTest
     HttpRequest request = restRequest().path(PublicApiPaths.BASE_PATH, "any/thing");
     HttpResponse response = request.get();
     assertResponseStatus(404, response);
-    assertThat(getSessionCookie(response), is(nullValue()));
+    assertThat(response.getSessionCookie(), is(nullValue()));
 
     response = request.put();
     assertResponseStatus(404, response);
-    assertThat(getSessionCookie(response), is(nullValue()));
+    assertThat(response.getSessionCookie(), is(nullValue()));
 
     response = request.post();
     assertResponseStatus(404, response);
-    assertThat(getSessionCookie(response), is(nullValue()));
+    assertThat(response.getSessionCookie(), is(nullValue()));
 
     response = request.delete();
     assertResponseStatus(404, response);
-    assertThat(getSessionCookie(response), is(nullValue()));
+    assertThat(response.getSessionCookie(), is(nullValue()));
   }
 
   private void assertResponse401(HttpResponse response, String expectedMessage) {

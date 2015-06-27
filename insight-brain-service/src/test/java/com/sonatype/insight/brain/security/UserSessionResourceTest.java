@@ -17,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
@@ -77,15 +78,17 @@ public class UserSessionResourceTest
     assertResponseStatus(204, response);
 
     // validate cookie is present
-    HttpCookie loggedInSessionCookie = extractSessionCookie(response);
+    HttpCookie loggedInSessionCookie = response.getSessionCookie();
+    assertThat(loggedInSessionCookie, is(notNullValue()));
     Assert.assertFalse(loggedInSessionCookie.getValue().equals("deleteMe"));
 
     // logout is successful
-    response = logout(getSessionCookie(response));
+    response = logout(loggedInSessionCookie);
     assertResponseStatus(204, response);
 
     // logout removes session id
-    HttpCookie logoutSessionCookie = extractSessionCookie(response);
+    HttpCookie logoutSessionCookie = response.getSessionCookie();
+    assertThat(logoutSessionCookie, is(notNullValue()));
     Assert.assertTrue(logoutSessionCookie.getValue().equals("deleteMe"));
   }
 
@@ -102,7 +105,8 @@ public class UserSessionResourceTest
     response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
-    HttpCookie sessionCookie = extractSessionCookie(response);
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie, is(notNullValue()));
 
     response = status(sessionCookie);
     assertResponseStatus(200, response);
@@ -130,7 +134,8 @@ public class UserSessionResourceTest
     HttpResponse response = login(User.ADMIN_USERNAME, "admin123");
     assertResponseStatus(204, response);
 
-    HttpCookie sessionCookie = extractSessionCookie(response);
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie, is(notNullValue()));
     assertThat(sessionCookie.getSecure(), is(false));
   }
 
@@ -139,7 +144,8 @@ public class UserSessionResourceTest
     HttpResponse response = secureLogin();
     assertResponseStatus(204, response);
 
-    HttpCookie sessionCookie = extractSessionCookie(response);
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie, is(notNullValue()));
     assertThat(sessionCookie.getSecure(), is(true));
   }
 }

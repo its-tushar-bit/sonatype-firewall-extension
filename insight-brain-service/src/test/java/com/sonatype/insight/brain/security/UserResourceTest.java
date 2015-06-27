@@ -174,12 +174,14 @@ public class UserResourceTest
     // log the admin in
     response = sessionRequest().auth().post();
     assertResponseStatus(204, response);
-    HttpCookie adminCookie = extractSessionCookie(response);
+    HttpCookie adminCookie = response.getSessionCookie();
+    assertThat(adminCookie, is(notNullValue()));
 
     // log the user in
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
-    HttpCookie userCookie = extractSessionCookie(response);
+    HttpCookie userCookie = response.getSessionCookie();
+    assertThat(userCookie, is(notNullValue()));
 
     // delete the user
     response = restRequest().path("{userId}").parameter(user.getId()).delete();
@@ -222,7 +224,8 @@ public class UserResourceTest
     // log the second user in to create another session then log them out
     response = sessionRequest().auth(user2.getUsername(), "test-password-two").post();
     assertResponseStatus(204, response);
-    HttpCookie userCookie = extractSessionCookie(response);
+    HttpCookie userCookie = response.getSessionCookie();
+    assertThat(userCookie, is(notNullValue()));
     response = sessionRequest().path(UserSessionResource.LOGOUT_PATH).cookie(userCookie).delete();
     assertResponseStatus(204, response);
 
@@ -254,7 +257,8 @@ public class UserResourceTest
     // log the user in
     response = sessionRequest().auth(user.getUsername(), "test-password").post();
     assertResponseStatus(204, response);
-    HttpCookie userCookie = extractSessionCookie(response);
+    HttpCookie userCookie = response.getSessionCookie();
+    assertThat(userCookie, is(notNullValue()));
 
     // try to delete the user using the same user's session/cookie
     response = restRequest().path("{userId}").parameter(user.getId()).cookie(userCookie).anon().delete();

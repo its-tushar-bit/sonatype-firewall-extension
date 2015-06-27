@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpCookie;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +22,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
-import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -42,7 +40,6 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public abstract class AbstractBrainServiceTest
@@ -203,18 +200,6 @@ public abstract class AbstractBrainServiceTest
     assertEquals(
         "URI:" + response.getUrl() + ", StatusText:" + response.getStatusText() + ", ResponseBody:"
             + response.getBodyText(), expectedStatus, actualStatus);
-  }
-
-  protected HttpCookie getSessionCookie(final HttpResponse response) {
-    return response.getCookie(CLMShiroModule.SESSION_COOKIE_NAME);
-  }
-
-  protected HttpCookie extractSessionCookie(final HttpResponse response) {
-    HttpCookie cookie = getSessionCookie(response);
-    if (cookie == null) {
-      fail("Missing session cookie");
-    }
-    return cookie;
   }
 
   protected String toJson(Object object) {

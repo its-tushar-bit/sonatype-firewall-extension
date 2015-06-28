@@ -55,7 +55,7 @@ public class TestInsightBrainService
 
   private String testKeystorePassword;
 
-  private String testSaasAddress;
+  private String testHdsUrl;
 
   private String testBaseUrl;
 
@@ -80,8 +80,8 @@ public class TestInsightBrainService
     testKeystorePassword = password;
   }
 
-  public void setSaasAddress(final String saasAddress) {
-    testSaasAddress = saasAddress;
+  public void setHdsUrl(final String hdsUrl) {
+    testHdsUrl = hdsUrl;
   }
 
   public void setBaseUrl(final String baseUrl) {
@@ -186,8 +186,8 @@ public class TestInsightBrainService
       config.getHttpConfiguration().setSslConfiguration(sslConfiguration);
     }
     config.setSonatypeWork(getWorkDir().getPath());
-    if (testSaasAddress != null) {
-      config.setSaasAddress(testSaasAddress);
+    if (testHdsUrl != null) {
+      config.setSaasAddress(testHdsUrl);
     }
     config.setBaseUrl(testBaseUrl);
 

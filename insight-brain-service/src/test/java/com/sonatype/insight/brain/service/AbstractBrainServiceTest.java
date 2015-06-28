@@ -146,21 +146,21 @@ public abstract class AbstractBrainServiceTest
     return HttpRequest.to(getCLMServer().getClientConfiguration().getServerAdminUrl());
   }
 
-  protected void setSaasResponseForURI(String uri, Object body, int status) {
+  protected void setHdsResponseForURI(String uri, Object body, int status) {
     getInsightServer().setResponseForURI(uri, body, status);
   }
 
-  protected void setSaasResponseForURI(String uri, int status, String bodyResource) {
-    setSaasResponseForURI(uri, getClass().getResource(bodyResource), status);
+  protected void setHdsResponseForURI(String uri, int status, String bodyResource) {
+    setHdsResponseForURI(uri, getClass().getResource(bodyResource), status);
   }
 
   protected void mockScanReceipt(ScanReceipt scanReceipt) {
-    setSaasResponseForURI("rest/ci/scan", toJson(scanReceipt), 200);
-    setSaasResponseForURI("rest/rm/scan", toJson(scanReceipt), 200);
+    setHdsResponseForURI("rest/ci/scan", toJson(scanReceipt), 200);
+    setHdsResponseForURI("rest/rm/scan", toJson(scanReceipt), 200);
   }
 
   protected void mockReport(String scanId, String resourceName) {
-    setSaasResponseForURI("rest/ci/report?scanId=" + scanId, 200, resourceName);
+    setHdsResponseForURI("rest/ci/report?scanId=" + scanId, 200, resourceName);
   }
 
   protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)
@@ -168,7 +168,7 @@ public abstract class AbstractBrainServiceTest
   {
     String uri = UriBuilder.fromPath("rest/component/summary")
         .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
-    setSaasResponseForURI(uri, toJson(componentSummary), 200);
+    setHdsResponseForURI(uri, toJson(componentSummary), 200);
   }
 
   protected void setSecurityAuditLog(String appId, String jsonResource) {

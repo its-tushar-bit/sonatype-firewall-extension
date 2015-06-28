@@ -87,7 +87,7 @@ extends BaseSpec {
 
   def "Should be able to claim an unknown component"() {
     given: 'A GAV not found in our data'
-    saasRule.setResponseForURI(createUri(CID), '{"isKnown": false }', 200)
+    hdsRule.setResponseForURI(createUri(CID), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip
     def claimForm = cip.claimComponent.claimForm
@@ -116,7 +116,7 @@ extends BaseSpec {
     results[0].coordinates == getExpectedDisplayNameString()
 
     when: 'We go to the component info page'
-    mockSaasComponentDetailsListResponse(CID);
+    mockHdsComponentDetailsListResponse(CID);
     cip.componentInfo.show()
 
     then: 'The claimed component coordinates are shown'
@@ -131,7 +131,7 @@ extends BaseSpec {
 
   def "Should be able to update an already claimed component"() {
     given: 'A GAV not found in our data'
-    saasRule.setResponseForURI(createUri(UCID), '{"isKnown": false }', 200)
+    hdsRule.setResponseForURI(createUri(UCID), '{"isKnown": false }', 200)
     PolicyReportRow firstRow = results[0]
     Cip cip = firstRow.cip
     ClaimComponentModule component = cip.claimComponent
@@ -158,7 +158,7 @@ extends BaseSpec {
     results[0].coordinates == getExpectedUpdatedDisplayNameString()
 
     when: 'We go to the component info page'
-    mockSaasComponentDetailsListResponse(UCID);
+    mockHdsComponentDetailsListResponse(UCID);
     cip.componentInfo.show()
 
     then: 'The claimed component coordinates are shown'
@@ -214,7 +214,7 @@ extends BaseSpec {
     licenses.validateLicense('', '', 'Beerware', app.name, 'Overridden', 'Beerware', '', false)
 
     when: 'We go to the component info page'
-    mockSaasComponentDetailsListResponse(UCID);
+    mockHdsComponentDetailsListResponse(UCID);
     cip.componentInfo.show()
 
     then: 'The effective license is shown'
@@ -256,8 +256,8 @@ extends BaseSpec {
         queryParam('componentIdentifier', ComponentIdentifierAdapter.toJson(componentIdentifier)).build().toString()
   }
 
-  void mockSaasComponentDetailsListResponse(ComponentIdentifier identifier) {
-    saasRule.setResponseForURI("rest/ci/componentDetails/list?componentIdentifier=" +
+  void mockHdsComponentDetailsListResponse(ComponentIdentifier identifier) {
+    hdsRule.setResponseForURI("rest/ci/componentDetails/list?componentIdentifier=" +
         UrlEncoded.encodeString(JsonUtils.writeUnformatted(identifier)) +
         "&hash=" + getExpectedHash() + "&matchState=exact", '{"list":[]}', 200)
   }

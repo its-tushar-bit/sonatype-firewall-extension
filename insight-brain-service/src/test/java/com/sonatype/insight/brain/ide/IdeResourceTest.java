@@ -89,12 +89,12 @@ public class IdeResourceTest
 
   private void mockHdsScanResponse(HttpRequest request, int status, String resource) {
     String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
-    setSaasResponseForURI(hdsUrl, status, "/IdeResourceTest/" + resource);
+    setHdsResponseForURI(hdsUrl, status, "/IdeResourceTest/" + resource);
   }
 
   private void mockHdsResponse(HttpRequest request, String body, int status) {
     String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
-    setSaasResponseForURI(hdsUrl, body, status);
+    setHdsResponseForURI(hdsUrl, body, status);
   }
 
   private String convertScanUrlToHdsUrl(String brainUrl) {
@@ -633,10 +633,10 @@ public class IdeResourceTest
     HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
     HttpRequest request = simpleScanRequest(applicationPublicId, hash).query("proprietary", false);
-    MatchedComponent saasResponse = new MatchedComponent();
-    saasResponse.setHash(hash);
-    saasResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
-    mockHdsResponse(request, toJson(saasResponse), 200);
+    MatchedComponent hdsResponse = new MatchedComponent();
+    hdsResponse.setHash(hash);
+    hdsResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
+    mockHdsResponse(request, toJson(hdsResponse), 200);
     HttpResponse response = request.get();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);
@@ -705,7 +705,7 @@ public class IdeResourceTest
   @Test
   public void testGetComponentVersions() throws Exception {
     HttpRequest request = versionsRequest("gid", "aid");
-    setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
+    setHdsResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = response.getBody(String[].class);
@@ -716,7 +716,7 @@ public class IdeResourceTest
   public void testGetComponentVersions_ByComponentIdentifier() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", null);
     HttpRequest request = versionsRequest(componentIdentifier);
-    setSaasResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
+    setHdsResponseForURI(convertVersionsUrlToHdsUrl(request.getUrl()), "[\"1.1\", \"2.0\"]", 200);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     String[] versions = response.getBody(String[].class);
@@ -743,7 +743,7 @@ public class IdeResourceTest
   public void testGetAsset() throws Exception {
     // Note this is now deprecated functionality, only legacy (2.5.0 and earlier) versions of the ide plugin will access
     // this resource
-    setSaasResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
+    setHdsResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
     HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
     assertResponseStatus(200, response);
     Assert.assertEquals("OK", response.getBodyText());

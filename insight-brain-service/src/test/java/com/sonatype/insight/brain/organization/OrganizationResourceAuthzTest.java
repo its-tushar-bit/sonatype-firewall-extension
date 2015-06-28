@@ -25,7 +25,7 @@ public class OrganizationResourceAuthzTest
   @Test
   public void testGenerateIcon() throws Exception {
     String hash = "abababababababababab";
-    setSaasResponseForURI("rest/application/icon/generate/" + hash, new byte[0], 200);
+    setHdsResponseForURI("rest/application/icon/generate/" + hash, new byte[0], 200);
     HttpRequest request = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hash);
     testAuthcGet(request);
   }

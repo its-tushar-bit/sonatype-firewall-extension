@@ -67,7 +67,7 @@ public class HashComponentIdentifierServiceTest
   }
 
   @Before
-  public void resetMockSaasClient() throws Exception {
+  public void resetMockHdsClient() throws Exception {
     reset(mockHdsClient);
   }
 

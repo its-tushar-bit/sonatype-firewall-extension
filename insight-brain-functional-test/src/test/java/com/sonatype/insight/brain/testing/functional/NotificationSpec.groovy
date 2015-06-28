@@ -21,7 +21,7 @@ class NotificationSpec
     Date now = new Date()
     long tenMinutesAgo = now.getTime() - (1000 * 60 * 10)
     long tenHoursAgo = now.getTime() - (1000 * 60 * 60 * 10)
-    saasRule.setResponseForURI('rest/productNotifications', '{"productNotifications":[{' +
+    hdsRule.setResponseForURI('rest/productNotifications', '{"productNotifications":[{' +
         '"id" : "1",' +
         '"type" : "DEFAULT",' +
         '"summaryText" : "summary1",' +

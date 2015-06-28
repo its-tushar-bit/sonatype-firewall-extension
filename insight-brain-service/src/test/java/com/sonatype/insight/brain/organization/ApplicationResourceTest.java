@@ -544,7 +544,7 @@ public class ApplicationResourceTest
   }
 
   @Test(timeout = 10000)
-  public void testGetApplications_DoesNotContactSaasAndPotentiallyBlockToGetLastPolicyAlerts() throws Exception {
+  public void testGetApplications_DoesNotContactHdsAndPotentiallyBlockToGetLastPolicyAlerts() throws Exception {
     final String applicationPublicId = "ApplicationResourceTest-AppId";
     final String applicationName = "ApplicationResourceTest-Name";
     final String appId = tempEntity.newApplicationWithParent(applicationPublicId, applicationName).getId();
@@ -552,7 +552,7 @@ public class ApplicationResourceTest
 
     // create eval log entry pointing at missing report
     tempEntity.newPolicyEvaluation(appId, Stage.ID_BUILD, scanId);
-    setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
+    setHdsResponseForURI("/rest/ci/report?scanId=" + scanId, "Not Found", 404);
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
@@ -637,8 +637,8 @@ public class ApplicationResourceTest
   @Test
   public void testGenerateIcon() throws Exception {
     String hashcode = "abababababababababab";
-    String saasUrl = "rest/application/icon/generate/" + hashcode;
-    setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
+    String hdsUrl = "rest/application/icon/generate/" + hashcode;
+    setHdsResponseForURI(hdsUrl, loadDefaultIcon(), 200);
     HttpResponse response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     testValidIconResponse(response);
   }

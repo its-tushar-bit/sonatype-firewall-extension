@@ -64,16 +64,16 @@ public class HdsIdeResourcePerformanceUtils
     return request;
   }
 
-  public static HdsClient createHdsClient(String saasAddress) {
+  public static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
-    config.setSaasAddress(saasAddress);
+    config.setSaasAddress(hdsUrl);
     return new HdsClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
         new TestLicenseFingerprinter()), new VersionService());
   }
 
   public static InsightWork createInsightWork() throws IOException {
     InsightConfig insightConfig = new InsightConfig();
-    File workDir = File.createTempFile("saasIde", "tmp");
+    File workDir = File.createTempFile("hdsIde", "tmp");
     workDir.delete();
     workDir.mkdirs();
     insightConfig.setSonatypeWork(workDir.getAbsolutePath());

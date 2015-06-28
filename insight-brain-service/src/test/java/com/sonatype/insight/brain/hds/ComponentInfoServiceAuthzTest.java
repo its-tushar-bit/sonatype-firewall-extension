@@ -55,7 +55,7 @@ public class ComponentInfoServiceAuthzTest
   }
 
   @SuppressWarnings("unchecked")
-  private void configureSaasClientMock() throws IOException {
+  private void configureHdsClientMock() throws IOException {
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
     componentDetailsList.setList(new ArrayList<ComponentDetails>());
@@ -67,7 +67,7 @@ public class ComponentInfoServiceAuthzTest
 
   @Test
   public void testGetComponentDetailsList_EvaluateComponentPermission_Authorized() throws Exception {
-    configureSaasClientMock();
+    configureHdsClientMock();
     grantEvaluateComponentPermission(app.getId());
     componentInfoService.getComponentDetailsList_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId(), null /* httpRequest */);
@@ -88,7 +88,7 @@ public class ComponentInfoServiceAuthzTest
 
   @Test
   public void testGetComponentDetails_EvaluateComponentPermission_Authorized() throws Exception {
-    configureSaasClientMock();
+    configureHdsClientMock();
     grantEvaluateComponentPermission(app.getId());
     componentInfoService.getComponentDetails_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
@@ -111,7 +111,7 @@ public class ComponentInfoServiceAuthzTest
 
   @Test
   public void testGetComponentDetailsList_ReadPermission_Authorized() throws Exception {
-    configureSaasClientMock();
+    configureHdsClientMock();
     grantReadPermission(app.getId());
     try {
       componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), "reportId",
@@ -138,7 +138,7 @@ public class ComponentInfoServiceAuthzTest
 
   @Test
   public void testGetComponentDetails_ReadPermission_Authorized() throws Exception {
-    configureSaasClientMock();
+    configureHdsClientMock();
     grantReadPermission(app.getId());
     try {
       componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), "reportId", COMPONENT_IDENTIFIER,
@@ -165,7 +165,7 @@ public class ComponentInfoServiceAuthzTest
 
   @Test
   public void testGetLicenses_Authorized() throws Exception {
-    configureSaasClientMock();
+    configureHdsClientMock();
     grantReadPermission(app.getId());
     componentInfoService.getLicenses(app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
   }

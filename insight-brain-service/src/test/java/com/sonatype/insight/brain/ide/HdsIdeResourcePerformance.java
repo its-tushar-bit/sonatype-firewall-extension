@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.InsightWork;
 
-public class SaasIdeResourcePerformance
+public class HdsIdeResourcePerformance
 {
   // private static final int CONNECTIONS_PER_CLIENT = 4;
   //
@@ -48,7 +48,7 @@ public class SaasIdeResourcePerformance
       policies[i] = HdsIdeResourcePerformanceUtils.createSvPolicy();
     }
 
-    List<Long> results = new SaasIdeResourcePerformance(32, 32, "http://localhost:8080/insight-portal", policies)
+    List<Long> results = new HdsIdeResourcePerformance(32, 32, "http://localhost:8080/insight-portal", policies)
         .execute("c8e086158a709a128ff5");
 
     long sum = 0l;
@@ -77,7 +77,7 @@ public class SaasIdeResourcePerformance
 
   private final int iterations;
 
-  private SaasIdeResourcePerformance(int connections, int iterations, String server, Policy... policies)
+  private HdsIdeResourcePerformance(int connections, int iterations, String server, Policy... policies)
       throws Exception
   {
 

@@ -30,9 +30,9 @@ public class TestInsightBrainServiceRule
 
   private final String baseUrl;
 
-  private final String saasAddress;
+  private final String hdsUrl;
 
-  private final boolean isSaasProxyRequired;
+  private final boolean isHdsProxyRequired;
 
   private final List<Module> modules;
 
@@ -40,14 +40,14 @@ public class TestInsightBrainServiceRule
 
   private TestInsightBrainService brain;
 
-  public TestInsightBrainServiceRule(int port, int adminPort, String baseUrl, String saasAddress,
-      boolean isSaasProxyRequired, List<Module> modules)
+  public TestInsightBrainServiceRule(int port, int adminPort, String baseUrl, String hdsUrl,
+      boolean isHdsProxyRequired, List<Module> modules)
   {
     this.port = port;
     this.adminPort = adminPort;
     this.baseUrl = baseUrl;
-    this.saasAddress = saasAddress;
-    this.isSaasProxyRequired = isSaasProxyRequired;
+    this.hdsUrl = hdsUrl;
+    this.isHdsProxyRequired = isHdsProxyRequired;
     this.modules = modules;
   }
 
@@ -71,11 +71,11 @@ public class TestInsightBrainServiceRule
     if (baseUrl != null) {
       brain.setBaseUrl(baseUrl);
     }
-    if (saasAddress != null) {
-      brain.setSaasAddress(saasAddress);
+    if (hdsUrl != null) {
+      brain.setHdsUrl(hdsUrl);
     }
-    if (isSaasProxyRequired) {
-      brain.setProxyConfig("127.0.0.1", new URL(saasAddress).getPort(), "proxyuser", "proxypass");
+    if (isHdsProxyRequired) {
+      brain.setProxyConfig("127.0.0.1", new URL(hdsUrl).getPort(), "proxyuser", "proxypass");
     }
     if (modules != null) {
       brain.addModules(modules);

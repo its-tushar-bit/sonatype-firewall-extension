@@ -44,7 +44,7 @@ extends GebReportingSpec {
 
   @Shared
   @ClassRule
-  InsightMockServerRule saasRule = new InsightMockServerRule(hdsPort, false)
+  InsightMockServerRule hdsRule = new InsightMockServerRule(hdsPort, false)
 
   @Shared
   @ClassRule

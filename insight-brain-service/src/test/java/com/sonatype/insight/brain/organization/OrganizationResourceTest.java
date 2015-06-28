@@ -151,8 +151,8 @@ public class OrganizationResourceTest
   @Test
   public void testGenerateIcon() throws Exception {
     String hashcode = "abababababababababab";
-    String saasUrl = "rest/application/icon/generate/" + hashcode;
-    setSaasResponseForURI(saasUrl, loadDefaultIcon(), 200);
+    String hdsUrl = "rest/application/icon/generate/" + hashcode;
+    setHdsResponseForURI(hdsUrl, loadDefaultIcon(), 200);
     HttpResponse response = restRequest().path(OrganizationResource.GENERATE_ICON_PATH).parameter(hashcode).get();
     assertResponseStatus(200, response);
     Assert.assertNotNull(response.getBodyBytes());

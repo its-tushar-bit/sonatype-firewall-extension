@@ -63,7 +63,7 @@ public class HdsProductNotificationServiceTest
   }
 
   @Before
-  public void resetMockSaasClient() {
+  public void resetMockHdsClient() {
     reset(mockHdsClient);
   }
 
@@ -141,7 +141,7 @@ public class HdsProductNotificationServiceTest
   }
 
   @Test
-  public void testGetNotifications_ErrorOnSaasClient() throws Exception {
+  public void testGetNotifications_ErrorOnHdsClient() throws Exception {
     HdsProductNotificationService hdsProductNotificationServiceSpy = spy(hdsNotificationService);
 
     ProductNotificationList expectedProductNotificationList = createNotifications();
@@ -154,7 +154,7 @@ public class HdsProductNotificationServiceTest
     List<ProductNotification> retrievedNotifications = hdsProductNotificationServiceSpy.getNotifications();
     assertNotifications(retrievedNotifications, expectedNotifications);
 
-    // Now verify cached not cleared on saas client errors
+    // Now verify cached not cleared on hds client errors
     RuntimeException expectedException = new RuntimeException("Test Exception");
     when(mockHdsClient.get(eq(ProductNotificationList.class),
         eq(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH),

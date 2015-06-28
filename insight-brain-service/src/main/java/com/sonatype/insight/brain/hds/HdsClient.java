@@ -270,7 +270,7 @@ public class HdsClient
       return fromHttpResponse(response, clazz);
     }
     finally {
-      log.debug("Completed SaaS request in {} ms.", System.currentTimeMillis() - start);
+      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
     }
   }
 

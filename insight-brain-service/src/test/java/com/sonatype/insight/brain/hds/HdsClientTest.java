@@ -192,7 +192,7 @@ public class HdsClientTest
   }
 
   @Test
-  public void testDoNotLeakUserCredentialsToSaas() throws Exception {
+  public void testDoNotLeakUserCredentialsToHds() throws Exception {
     final Set<String> headers = new HashSet<>();
     handler = new AbstractHandler()
     {

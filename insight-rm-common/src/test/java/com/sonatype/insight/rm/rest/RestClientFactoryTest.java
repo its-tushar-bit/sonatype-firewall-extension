@@ -33,7 +33,7 @@ public class RestClientFactoryTest
 {
 
   @Test
-  public void testSaasUnreachable() throws Exception {
+  public void testHdsUnreachable() throws Exception {
     HttpResponseException hre = new HttpResponseException(504, "nobody there");
     ScanClient scanClient = mock(ScanClient.class);
     when(scanClient.uploadRepoManScan(any(File.class))).thenThrow(hre);

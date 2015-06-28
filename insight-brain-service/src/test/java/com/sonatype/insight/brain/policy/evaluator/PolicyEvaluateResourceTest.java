@@ -755,7 +755,7 @@ public class PolicyEvaluateResourceTest
   public void testEvaluate_NoPolicyEvalAuditEntryCreatedIfReportMissing() throws Exception {
     final String scanId = "PolicyEvaluateResourceTest_ScanId";
 
-    setSaasResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
+    setHdsResponseForURI("/rest/ci/report?scanId=" + scanId, "Internal Error", 500);
     HttpResponse response = evalRequest(applicationPublicId, scanId, new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(404, response);
 

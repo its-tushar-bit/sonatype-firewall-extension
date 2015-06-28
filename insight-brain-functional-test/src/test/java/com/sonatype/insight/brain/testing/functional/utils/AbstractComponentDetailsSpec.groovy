@@ -67,7 +67,7 @@ extends BaseSpec {
     mockComponentDetailsList(PREZI_DETAILS_LIST_FILE, PREZI_DIST)
 
     // validation of a license category Policy will trigger this request to populate a cache of licenses
-    saasRule.setResponseForURI('rest/license', this.getClass().getResource(LICENSES_FILE).text, 200)
+    hdsRule.setResponseForURI('rest/license', this.getClass().getResource(LICENSES_FILE).text, 200)
   }
 
   String createComponentDetailURL(ComponentIdentifier componentIdentifier) {
@@ -98,13 +98,13 @@ extends BaseSpec {
   ComponentDetails mockComponentDetails(String jsonFilename) {
     ComponentDetails hdsComponentResponse = parseJsonFile(jsonFilename, ComponentDetails.class)
     hdsComponentResponse.catalogDate = new Date().minus(366).time  // ensure that catalog data is consistent
-    saasRule.setResponseForURI(createComponentDetailURL(hdsComponentResponse.componentIdentifier), toJson(hdsComponentResponse), 200)
+    hdsRule.setResponseForURI(createComponentDetailURL(hdsComponentResponse.componentIdentifier), toJson(hdsComponentResponse), 200)
     return hdsComponentResponse
   }
 
   void mockComponentDetailsList(String jsonFilename, ComponentDetails component) {
     ComponentDetailsList hdsComponentListResponse = parseJsonFile(jsonFilename, ComponentDetailsList.class)
-    saasRule.setResponseForURI(createComponentDetailListURL(component.componentIdentifier), toJson(hdsComponentListResponse), 200)
+    hdsRule.setResponseForURI(createComponentDetailListURL(component.componentIdentifier), toJson(hdsComponentListResponse), 200)
   }
 
   /**

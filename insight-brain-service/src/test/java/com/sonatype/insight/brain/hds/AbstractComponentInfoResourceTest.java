@@ -146,11 +146,11 @@ public abstract class AbstractComponentInfoResourceTest
 
   @Test
   public void testGetLicenses() throws Exception {
-    ComponentDetails saasComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
-    saasComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
-    setSaasResponseForURI(
-        convertToSaasUrl(detailsRequest(applicationPublicId, MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
-        toJson(saasComponentDetails), 200);
+    ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
+    setHdsResponseForURI(
+        convertToHdsUrl(detailsRequest(applicationPublicId, MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
+        toJson(hdsComponentDetails), 200);
 
     HttpResponse response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
@@ -175,11 +175,11 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   protected void testGetComponentDetailsList_EvaluateComponentPermission() throws Exception {
-    ComponentDetails saasComponentDetails = newComponentDetails(MAVEN_COORDINATES);
-    ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
-    saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails));
+    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
-    setSaasResponseForURI(convertToSaasUrl(request.getUrl(), applicationPublicId), toJson(saasComponentDetailsList),
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), toJson(hdsComponentDetailsList),
         200);
 
     HttpResponse response = request.get();
@@ -189,7 +189,7 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(componentDetailsList, is(notNullValue()));
     assertThat(componentDetailsList.getList(), hasSize(1));
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertComponentDetails(componentDetails, saasComponentDetails);
+    assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
   protected void testGetComponentDetails_ReadPermission() throws Exception {
@@ -218,11 +218,11 @@ public abstract class AbstractComponentInfoResourceTest
         "target/test-classes/AbstractComponentInfoResourceTest/GetComponentDetailsWithReadPermission", reportId),
         getCLMServer().getReportDir(application.getId(), reportId));
 
-    ComponentDetails saasComponentDetails = newComponentDetails(MAVEN_COORDINATES);
-    ComponentDetailsList saasComponentDetailsList = new ComponentDetailsList();
-    saasComponentDetailsList.setList(Arrays.asList(saasComponentDetails));
+    ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
-    setSaasResponseForURI(convertToSaasUrl(request.getUrl(), applicationPublicId), toJson(saasComponentDetailsList),
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), toJson(hdsComponentDetailsList),
         200);
 
     HttpResponse response = request.query("reportId", reportId).get();
@@ -232,10 +232,10 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(componentDetailsList, is(notNullValue()));
     assertThat(componentDetailsList.getList(), hasSize(1));
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertComponentDetails(componentDetails, saasComponentDetails);
+    assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
-  private String convertToSaasUrl(String brainUrl, String applicationId) {
+  private String convertToHdsUrl(String brainUrl, String applicationId) {
     return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+)(.*)", "$2/componentDetails$4");
   }
 

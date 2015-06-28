@@ -56,7 +56,7 @@ public class HashComponentIdentifierServiceAuthzTest
   }
 
   @Before
-  public void resetMockSaasClient() throws Exception {
+  public void resetMockHdsClient() throws Exception {
     reset(mockHdsClient);
     when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
         anyMapOf(String.class, String.class))).thenReturn(componentSummary);

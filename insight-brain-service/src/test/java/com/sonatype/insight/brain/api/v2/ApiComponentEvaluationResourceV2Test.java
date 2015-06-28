@@ -470,12 +470,12 @@ public class ApiComponentEvaluationResourceV2Test
   }
 
   private void mockHDSInternalServiceError() {
-    setSaasResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH, "Internal Error", 500);
+    setHdsResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH, "Internal Error", 500);
 
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    setSaasResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH,
+    setHdsResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH,
         toJson(componentEvaluationDataList), 200);
   }
 

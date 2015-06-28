@@ -32,13 +32,13 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -86,7 +86,7 @@ public class ApplicationResource
   private ApplicationService applicationService;
 
   @Inject
-  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final SaasClient client,
+  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final HdsClient client,
       final ScanPolicyEvaluator scanPolicyEvaluator, final ApplicationAdapter applicationAdapter,
       final ApplicationService applicationService, ErrorResponseGenerator errorResponseGenerator)
   {

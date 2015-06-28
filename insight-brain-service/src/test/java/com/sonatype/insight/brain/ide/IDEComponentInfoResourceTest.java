@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import com.sonatype.insight.brain.saas.AbstractComponentInfoResourceTest;
+import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceTest;
 
 import org.junit.Test;
 

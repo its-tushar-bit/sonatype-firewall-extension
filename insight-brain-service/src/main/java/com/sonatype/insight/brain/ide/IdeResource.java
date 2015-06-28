@@ -33,6 +33,8 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.hds.AugmentUtil;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -42,8 +44,6 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.saas.AugmentUtil;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -59,7 +59,7 @@ public class IdeResource
 {
   public static final String SERVICE_PATH = "rest/ide";
 
-  private final SaasClient client;
+  private final HdsClient client;
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
@@ -68,7 +68,7 @@ public class IdeResource
   private final BaseUrl baseUrl;
 
   @Inject
-  public IdeResource(InsightWork work, BaseUrl baseUrl, SaasClient client) {
+  public IdeResource(InsightWork work, BaseUrl baseUrl, HdsClient client) {
     this.work = work;
     this.baseUrl = baseUrl;
     this.client = client;

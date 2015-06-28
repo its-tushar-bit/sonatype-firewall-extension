@@ -20,8 +20,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
-import com.sonatype.insight.brain.saas.ComponentInfoService;
-import com.sonatype.insight.brain.saas.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 @Path(IDEComponentInfoResource.SERVICE_PATH)

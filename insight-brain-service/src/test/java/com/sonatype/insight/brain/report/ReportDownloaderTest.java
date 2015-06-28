@@ -12,8 +12,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -40,13 +40,13 @@ public class ReportDownloaderTest
   @Rule
   public LogOutput log = new LogOutput(ReportDownloader.class);
 
-  private SaasClient mockSaasClient;
+  private HdsClient mockHdsClient;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    mockSaasClient = mock(SaasClient.class);
-    binder.bind(SaasClient.class).toInstance(mockSaasClient);
+    mockHdsClient = mock(HdsClient.class);
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
   }
 
   @Test
@@ -57,7 +57,7 @@ public class ReportDownloaderTest
     queryParams.put("scanId", scanId);
 
     NotFoundException expectedException = new NotFoundException("test");
-    when(mockSaasClient.get(InputStream.class, "rest/ci/report", queryParams)).
+    when(mockHdsClient.get(InputStream.class, "rest/ci/report", queryParams)).
         thenThrow(expectedException);
 
     File reportFile = work.getReportFile(app.getId(), scanId);

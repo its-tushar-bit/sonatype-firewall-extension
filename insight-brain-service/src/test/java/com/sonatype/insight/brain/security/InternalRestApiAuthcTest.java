@@ -9,6 +9,8 @@ import java.net.HttpCookie;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.hds.CIResource;
+import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.integration.ApplicationSummaryResource;
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
@@ -17,8 +19,6 @@ import com.sonatype.insight.brain.policy.LicensedStagesResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigResource;
 import com.sonatype.insight.brain.report.ReportResource;
-import com.sonatype.insight.brain.saas.CIResource;
-import com.sonatype.insight.brain.saas.RepoManResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
 import org.junit.Test;

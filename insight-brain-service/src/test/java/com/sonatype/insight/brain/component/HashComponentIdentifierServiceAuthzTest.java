@@ -10,8 +10,8 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
@@ -47,18 +47,18 @@ public class HashComponentIdentifierServiceAuthzTest
   private HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Mock
-  private SaasClient mockSaasClient;
+  private HdsClient mockHdsClient;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.bind(SaasClient.class).toInstance(mockSaasClient);
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
   }
 
   @Before
   public void resetMockSaasClient() throws Exception {
-    reset(mockSaasClient);
-    when(mockSaasClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+    reset(mockHdsClient);
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
         anyMapOf(String.class, String.class))).thenReturn(componentSummary);
   }
 

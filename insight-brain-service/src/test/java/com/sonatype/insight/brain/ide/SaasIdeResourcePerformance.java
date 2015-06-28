@@ -45,7 +45,7 @@ public class SaasIdeResourcePerformance
 
     Policy[] policies = new Policy[1];
     for (int i = 0; i < policies.length; i++) {
-      policies[i] = SaasIdeResourcePerformanceUtils.createSvPolicy();
+      policies[i] = HdsIdeResourcePerformanceUtils.createSvPolicy();
     }
 
     List<Long> results = new SaasIdeResourcePerformance(32, 32, "http://localhost:8080/insight-portal", policies)
@@ -84,8 +84,8 @@ public class SaasIdeResourcePerformance
     pool = Executors.newFixedThreadPool(connections);
 
     this.iterations = iterations * connections;
-    work = SaasIdeResourcePerformanceUtils.createInsightWork();
-    resource = new IdeResource(work, null, SaasIdeResourcePerformanceUtils.createSaasClient(server));
+    work = HdsIdeResourcePerformanceUtils.createInsightWork();
+    resource = new IdeResource(work, null, HdsIdeResourcePerformanceUtils.createHdsClient(server));
 
     // trigger db
     testApplication = new Application();
@@ -93,12 +93,12 @@ public class SaasIdeResourcePerformance
     testApplication.setName("perf-test");
     new ApplicationDAO().insert(testApplication);
 
-    SaasIdeResourcePerformanceUtils.addPolicy(testApplication, policies, work);
+    HdsIdeResourcePerformanceUtils.addPolicy(testApplication, policies, work);
   }
 
   List<Long> execute(String hash) throws Exception {
     List<ClientRunnable> callables = new ArrayList<>();
-    HttpServletRequest request = SaasIdeResourcePerformanceUtils.createRequest();
+    HttpServletRequest request = HdsIdeResourcePerformanceUtils.createRequest();
     new ClientRunnable(resource, testApplication.getPublicIdLowercase(), hash, request).call();
     try {
       for (int i = 0; i < iterations; i++) {

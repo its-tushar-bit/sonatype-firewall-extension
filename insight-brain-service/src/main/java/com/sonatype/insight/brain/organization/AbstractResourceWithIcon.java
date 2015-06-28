@@ -20,7 +20,7 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.IconDAO;
-import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -43,13 +43,13 @@ abstract class AbstractResourceWithIcon
 
   private static final Logger log = LoggerFactory.getLogger(AbstractResourceWithIcon.class);
 
-  private final SaasClient client;
+  private final HdsClient client;
 
   private final BaseUrl baseUrl;
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
-  protected AbstractResourceWithIcon(SaasClient client, BaseUrl baseUrl, ErrorResponseGenerator errorResponseGenerator)
+  protected AbstractResourceWithIcon(HdsClient client, BaseUrl baseUrl, ErrorResponseGenerator errorResponseGenerator)
   {
     this.client = client;
     this.baseUrl = baseUrl;

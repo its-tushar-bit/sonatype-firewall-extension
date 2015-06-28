@@ -19,11 +19,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -36,17 +36,17 @@ import com.sonatype.insight.error.exception.BadRequestException;
 @Named
 public class HashComponentIdentifierService
 {
-  private final SaasClient client;
+  private final HdsClient client;
 
   private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   private final LicenseOverrideDAO licenseOverrideDAO;
 
   @Inject
-  public HashComponentIdentifierService(final SaasClient saasClient,
+  public HashComponentIdentifierService(final HdsClient hdsClient,
       final HashComponentIdentifierDAO hashComponentIdentifierDAO, final LicenseOverrideDAO licenseOverrideDAO)
   {
-    this.client = saasClient;
+    this.client = hdsClient;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
     this.licenseOverrideDAO = licenseOverrideDAO;
   }

@@ -10,8 +10,8 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.saas.ScanUploader;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 

@@ -14,11 +14,11 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNamePart;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -58,22 +58,22 @@ public class HashComponentIdentifierServiceTest
   private HashComponentIdentifierService hashComponentIdentifierService;
 
   @Mock
-  private SaasClient mockSaasClient;
+  private HdsClient mockHdsClient;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.bind(SaasClient.class).toInstance(mockSaasClient);
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
   }
 
   @Before
   public void resetMockSaasClient() throws Exception {
-    reset(mockSaasClient);
+    reset(mockHdsClient);
   }
 
   @Test
   public void testSet_KnownToHDS() throws Exception {
-    when(mockSaasClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
         anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(true));
 
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
@@ -118,7 +118,7 @@ public class HashComponentIdentifierServiceTest
     hashComponentIdentifier.setCreateTime(CREATED_TIME);
 
     // Component must be unknown or we cannot claim it
-    when(mockSaasClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
         anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(false));
 
     // Create the claimed component

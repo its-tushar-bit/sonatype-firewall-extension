@@ -19,7 +19,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.saas.SaasClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.IOUtil;
@@ -32,12 +32,12 @@ public class ReportDownloader
 {
   private static final Logger log = LoggerFactory.getLogger(ReportDownloader.class);
 
-  private final SaasClient client;
+  private final HdsClient client;
   
   private final FileCleaner fileCleaner;
 
   @Inject
-  public ReportDownloader(final SaasClient client, final FileCleaner fileCleaner) {
+  public ReportDownloader(final HdsClient client, final FileCleaner fileCleaner) {
     this.client = client;
     this.fileCleaner = fileCleaner;
   }

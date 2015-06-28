@@ -37,13 +37,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
-import com.sonatype.insight.brain.saas.ComponentDetailsLoader;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.SystemRunnable;
@@ -82,7 +82,7 @@ public class ApiComponentEvaluationServiceV2
 
   private final ApiComponentDetailsAdapter componentDetailsAdapter;
 
-  private final SaasClient client;
+  private final HdsClient client;
 
   private final InsightWork work;
 
@@ -92,7 +92,7 @@ public class ApiComponentEvaluationServiceV2
   @Inject
   public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO,
       final ComponentPolicyEvaluator componentPolicyEvaluator, final ComponentDetailsLoader componentDetailsLoader,
-      final ApiComponentDetailsAdapter componentDetailsAdapter, final SaasClient client, final InsightWork work,
+      final ApiComponentDetailsAdapter componentDetailsAdapter, final HdsClient client, final InsightWork work,
       final ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;

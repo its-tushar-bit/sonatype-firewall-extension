@@ -25,9 +25,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -55,7 +55,7 @@ public class OrganizationResource
   private final InsightWork work;
 
   @Inject
-  public OrganizationResource(final InsightWork work, final SaasClient client, final BaseUrl baseUrl,
+  public OrganizationResource(final InsightWork work, final HdsClient client, final BaseUrl baseUrl,
       final OrganizationService organizationService, ErrorResponseGenerator errorResponseGenerator)
   {
     super(client, baseUrl, errorResponseGenerator);

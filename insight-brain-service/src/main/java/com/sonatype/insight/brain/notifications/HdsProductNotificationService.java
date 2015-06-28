@@ -23,8 +23,8 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationList;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
-import com.sonatype.insight.brain.saas.SaasClient;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -49,14 +49,14 @@ public class HdsProductNotificationService
 
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
-  private final SaasClient saasClient;
+  private final HdsClient hdsClient;
 
   private final UserViewedProductNotificationDAO notificationViewedDAO;
 
   @Inject
-  public HdsProductNotificationService(final SaasClient saasClient,
+  public HdsProductNotificationService(final HdsClient hdsClient,
       final UserViewedProductNotificationDAO notificationViewedDAO) {
-    this.saasClient = saasClient;
+    this.hdsClient = hdsClient;
     this.expirationTime = new Date();
     this.notificationViewedDAO = notificationViewedDAO;
   }
@@ -78,7 +78,7 @@ public class HdsProductNotificationService
       if (isCacheExpired()) {
         log.info("Updating notification cache from HDS");
         try {
-          ProductNotificationList productNotificationList = saasClient.get(ProductNotificationList.class,
+          ProductNotificationList productNotificationList = hdsClient.get(ProductNotificationList.class,
               HDS_PRODUCT_NOTIFICATION_PATH, Collections.<String, String>emptyMap());
           Set<String> notificationIds = new HashSet<>();
           notifications.clear();

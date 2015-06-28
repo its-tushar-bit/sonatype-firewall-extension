@@ -22,11 +22,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.saas.SaasClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -61,7 +61,7 @@ public class ApiComponentEvaluationServiceV2Test
   private ApiComponentEvaluationServiceV2 apiComponentEvaluationService;
 
   @Mock
-  private SaasClient client;
+  private HdsClient client;
 
   private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
@@ -72,7 +72,7 @@ public class ApiComponentEvaluationServiceV2Test
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.bind(SaasClient.class).toInstance(client);
+    binder.bind(HdsClient.class).toInstance(client);
   }
   
   @Before

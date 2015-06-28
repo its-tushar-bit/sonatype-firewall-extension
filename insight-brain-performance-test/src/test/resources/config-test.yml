@@ -1,5 +1,5 @@
-saasAddress: "https://clm-staging.sonatype.com/"
-#saasAddress: "http://localhost:8080/insight-portal"
+hdsUrl: "https://clm-staging.sonatype.com/"
+#hdsUrl: "http://localhost:8080/insight-portal"
 
 # Directory for data files.
 sonatypeWork: ./target/sonatype-work/clm-server

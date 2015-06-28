@@ -74,7 +74,7 @@ public class HdsClientProxyTest
     proxyConfig.setHostname("localhost");
     proxyConfig.setPort(port);
     config.setProxyConfig(proxyConfig);
-    config.setSaasAddress("https://www.somehost.com/");
+    config.setHdsUrl("https://www.somehost.com/");
     initClient();
   }
 

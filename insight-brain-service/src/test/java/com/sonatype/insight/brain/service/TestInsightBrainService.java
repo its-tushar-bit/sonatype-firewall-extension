@@ -187,7 +187,7 @@ public class TestInsightBrainService
     }
     config.setSonatypeWork(getWorkDir().getPath());
     if (testHdsUrl != null) {
-      config.setSaasAddress(testHdsUrl);
+      config.setHdsUrl(testHdsUrl);
     }
     config.setBaseUrl(testBaseUrl);
 

@@ -48,7 +48,7 @@ public class InsightConfig
 
   @NotNull
   @JsonProperty
-  private String saasAddress = "https://clm.sonatype.com/";
+  private String hdsUrl = "https://clm.sonatype.com/";
 
   @NotNull
   @JsonProperty
@@ -133,8 +133,8 @@ public class InsightConfig
     return releaseGraphCacheSize;
   }
 
-  public String getSaasAddress() {
-    return saasAddress;
+  public String getHdsUrl() {
+    return hdsUrl;
   }
 
   public File getSonatypeWork() {
@@ -157,8 +157,14 @@ public class InsightConfig
     this.releaseGraphCacheSize = releaseGraphCacheSize;
   }
 
-  public void setSaasAddress(final String saasAddress) {
-    this.saasAddress = saasAddress;
+  public void setHdsUrl(final String hdsUrl) {
+    this.hdsUrl = hdsUrl;
+  }
+
+  @SuppressWarnings("unused")
+  // for Jackson, supports deserialization of configs from 1.15-
+  private void setSaasAddress(final String hdsUrl) {
+    setHdsUrl(hdsUrl);
   }
 
   public void setSonatypeWork(final String sonatypeWork) {

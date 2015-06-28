@@ -80,7 +80,7 @@ public class HdsClientTest
     server.start();
 
     config = new InsightConfig();
-    config.setSaasAddress("http://localhost:" + server.getConnectors()[0].getLocalPort());
+    config.setHdsUrl("http://localhost:" + server.getConnectors()[0].getLocalPort());
     config.setUserAgentSuffix(USER_AGENT_SUFFIX);
     initClient();
   }
@@ -348,7 +348,7 @@ public class HdsClientTest
 
   @Test
   public void testTransformUnknownHost() throws Exception {
-    config.setSaasAddress("http://an.unresolvable.hostname/");
+    config.setHdsUrl("http://an.unresolvable.hostname/");
     initClient();
     try {
       client.get(String.class, "/any", null);

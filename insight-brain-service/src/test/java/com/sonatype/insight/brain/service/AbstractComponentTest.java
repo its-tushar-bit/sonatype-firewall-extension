@@ -69,7 +69,7 @@ public class AbstractComponentTest
     catch (IOException e) {
       throw new IllegalStateException(e);
     }
-    config.setSaasAddress("http://unknownhost");
+    config.setHdsUrl("http://unknownhost");
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);

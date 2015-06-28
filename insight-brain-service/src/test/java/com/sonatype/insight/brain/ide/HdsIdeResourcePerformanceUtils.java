@@ -66,7 +66,7 @@ public class HdsIdeResourcePerformanceUtils
 
   public static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
-    config.setSaasAddress(hdsUrl);
+    config.setHdsUrl(hdsUrl);
     return new HdsClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
         new TestLicenseFingerprinter()), new VersionService());
   }

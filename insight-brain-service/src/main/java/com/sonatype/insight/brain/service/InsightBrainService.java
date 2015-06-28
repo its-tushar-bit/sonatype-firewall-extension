@@ -268,7 +268,7 @@ public class InsightBrainService
     env.addFilter(getInstance(AuthenticationLoggingFilter.class), AuthenticationLoggingFilter.URL_PATTERN);
 
     log.info("Server base URL: {}", config.getBaseUrl());
-    log.debug("HDS address: {}", config.getSaasAddress());
+    log.debug("HDS URL: {}", config.getHdsUrl());
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
   }
 

@@ -34,14 +34,26 @@
       config: {
         pom: {
           angularJsVersion: extractFromPom('angularjs.version'),
-          angularDebug: extractFromPom('angular.debug'),
           clmVersion: extractFromPom('version')
         },
+        angularDebug: false,
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
         generated: 'target/classes/assets-new',
         styleguide: 'target/styleguide',
         temp: '.tmp'
+      },
+      configure_override: {
+        build: {
+          config: {
+            angularDebug: false
+          }
+        },
+        develop: {
+          config: {
+            angularDebug: true
+          }
+        }
       },
       clean: {
         build: [
@@ -283,7 +295,13 @@
       }
     });
 
+    grunt.task.registerMultiTask('configure_override', 'Set configuration for Grunt task', function() {
+      grunt.config.merge(this.data);
+    });
+
     grunt.registerTask('build', [
+      'configure_override:build',
+
       // Current CSS will fail build if linted
       //'csslint:build',
       'jshint',
@@ -308,6 +326,8 @@
     ]);
 
     grunt.registerTask('m2e', [
+      'configure_override:develop',
+
       'clean',
       'copy:build',
       'copy:build_cip',
@@ -323,6 +343,8 @@
     ]);
 
     grunt.registerTask('develop', [
+      'configure_override:develop',
+
       'jshint',
       'clean',
       'copy:build',
@@ -347,6 +369,6 @@
       'file-creator:styleguide',
       'styleguide:build',
       'clean:temp'
-    ])
+    ]);
   };
 }());

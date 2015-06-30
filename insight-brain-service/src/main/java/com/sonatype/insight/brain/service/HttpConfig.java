@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.service;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.yammer.dropwizard.config.HttpConfiguration;
+import com.yammer.dropwizard.config.LoggingConfiguration.ConsoleConfiguration;
+import com.yammer.dropwizard.config.LoggingConfiguration.FileConfiguration;
+import com.yammer.dropwizard.config.RequestLogConfiguration;
 import com.yammer.dropwizard.util.Duration;
 
 /**
@@ -36,5 +39,19 @@ public class HttpConfig
     setMaxIdleTime(Duration.minutes(15));
     // NOTE: DropWizard's default connector (BLOCKING) is known to cause hanging requests, cf. CLM-1297
     setConnectorType(ConnectorType.NONBLOCKING);
+
+    final RequestLogConfiguration requestLogConfiguration = new RequestLogConfiguration();
+    ConsoleConfiguration consoleConfig = new ConsoleConfiguration();
+    consoleConfig.setEnabled(false);
+    requestLogConfiguration.setConsoleConfiguration(consoleConfig);
+
+    final FileConfiguration fileConfiguration = new FileConfiguration();
+    fileConfiguration.setEnabled(true);
+    fileConfiguration.setCurrentLogFilename("./log/request.log");
+    fileConfiguration.setArchivedLogFilenamePattern("./log/request-%d.log.gz");
+    fileConfiguration.setArchivedFileCount(90); // avoid filling disk with infinite archives
+    requestLogConfiguration.setFileConfiguration(fileConfiguration);
+
+    setRequestLogConfiguration(requestLogConfiguration);
   }
 }

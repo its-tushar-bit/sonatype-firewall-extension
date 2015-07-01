@@ -58,7 +58,7 @@ class FirstSuccessfulRealmAuthenticator
           log.trace("Realm [{}] returned null during a multi-realm authentication attempt.", realm);
         }
         catch (Throwable t) {
-          log.trace("Realm [{}] threw an exception during a multi-realm authentication attempt:", realm, t);
+          log.debug("Realm [{}] threw an exception during a multi-realm authentication attempt:", realm, t);
         }
       }
       else {

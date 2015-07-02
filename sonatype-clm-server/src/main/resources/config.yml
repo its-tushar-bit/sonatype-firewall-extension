@@ -84,7 +84,7 @@ http:
   #password: "guest"
 
 # Configures reverse proxy authentication for the web UI.
-reverseProxyAuthentication:
+#reverseProxyAuthentication:
 
     # Enables/disables authentication via a reverse proxy. Once the reverse proxy has authenticated a user's identity,
     # it is expected to forward the username to the CLM server via the HTTP header configured below. The CLM server

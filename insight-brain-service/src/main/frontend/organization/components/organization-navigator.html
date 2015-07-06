@@ -1,5 +1,5 @@
 <div>
-  <div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}">
+  <div class="subnavigation" ng-class="{'subnavigation-expanded' : !$state.params.organizationId}" style="display:none">
     <div load-error='error' reload='doLoad()'></div>
     <div ng-hide='error'>
       <a id='nav-create-org' class="btn new-entity-button" href='#/management/organization/_new_'>

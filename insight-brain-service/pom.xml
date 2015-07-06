@@ -611,6 +611,7 @@
                 <exclude>frontend/assets/version-graph/*.js</exclude>
                 <exclude>frontend/cip/*.js</exclude>
                 <exclude>frontend/policy/js/*.js</exclude>
+                <exclude>frontend/**/lib/**/test/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
                 <include>frontend/SpecUtil.js</include>

@@ -144,12 +144,8 @@ a:focus {
 }
 
 .content {
-  position: absolute;
-  top: 41px;
-  left: 275px;
   min-width: 840px;
 }
-
 .content .nav-tabs {
   border-bottom-color: black;
 }

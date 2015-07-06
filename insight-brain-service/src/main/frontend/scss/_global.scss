@@ -153,7 +153,6 @@ ul + p {
 h1 + div > *:first-child, h2 + div > *:first-child, h3 + div > *:first-child, h4 + div > *:first-child {
   margin-top: 0;
 }
-
 /*
   #Colors
 */
@@ -435,3 +434,73 @@ $main-background-color: white;
 
 //Common borders
 $small-gray-border: 1px solid lightgray;
+
+/*
+  #Components
+*/
+/*
+  ##Buttons
+
+  ```
+    <button class="btn secondary" type="button">Secondary Button</button>
+  ```
+*/
+.btn {
+  border-right: 4px;
+  min-width: 100px;
+  background-image: none;
+  box-shadow: none;
+
+  &.btn-secondary {
+    background-color: $grey-1;
+    border: 1px solid $grey-4;
+    color: $slate;
+    background-image: none;
+    box-shadow: none;
+
+    &:disabled {
+      border-color: $grey-2;
+      color: $grey-4;
+    }
+
+    &:hover {
+      border-color: $slate;
+    }
+
+    &:active {
+      background-color: $grey-2;
+      box-shadow: none;
+    }
+  }
+}
+/*
+  ##Inputs
+
+  ```
+    <div class="tree-view-filter search input-prepend">
+      <span class="add-on">
+        <i role="button" class="fa fa-filter"></i>
+      </span>
+      <input type="text" placeholder="Appended Input">
+    </div>
+  ```
+*/
+.input-prepend {
+  .add-on {
+    background-color: $white;
+    border-right: none;
+    box-shadow: none;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .add-on:first-child, .btn:first-child {
+    border-radius: 0;
+  }
+
+  input {
+    border-left: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+}

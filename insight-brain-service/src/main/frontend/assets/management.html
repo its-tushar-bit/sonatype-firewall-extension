@@ -16,7 +16,7 @@
         </div>
         <div class="tree-view-new-organization">
           <button class="btn btn-secondary"
-                  ui-sref="management.organization.view({organizationId: '_new_'})">
+                  ui-sref="management.organization-view({organizationId: '_new_'})">
             <i class="fa fa-plus"></i>
             New Organization
           </button>
@@ -25,8 +25,8 @@
              ng-repeat="organization in organizations | orderBy:'name'"
              ng-if="organization.isVisible">
           <a class="tree-view-item"
-             ng-class="{ selected : $state.includes('management.organization.view', {organizationId: organization.id}) }"
-             ui-sref="management.organization.view.policies({organizationId: organization.id})"
+             ng-class="{ selected : $state.includes('management.organization-view', {organizationId: organization.id}) }"
+             ui-sref="management.organization-view({organizationId: organization.id})"
              ng-click="organization.isExpanded = true">
             <span class="twisty"
                   ng-class="{ empty: organization.applications.length == 0,
@@ -38,11 +38,11 @@
          --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
          -->{{organization.name}}
             <div class="tree-view-new-application"
-                 ng-class="{ hide : !$state.includes('management.organization.view', {organizationId: organization.id}) }">
+                 ng-class="{ hide : !$state.includes('management.organization-view', {organizationId: organization.id}) }">
               <button class="btn btn-secondary"
                       ng-click="$event.preventDefault();
                               $event.stopPropagation();
-                              $state.go('management.application.view', {applicationPublicId: '_new_'});">
+                              $state.go('management.application-view', {applicationPublicId: '_new_'});">
                 <i class="fa fa-plus"></i>
                 New Application
               </button>
@@ -51,8 +51,8 @@
           <a class="tree-view-item"
              ng-repeat="application in organization.applications | orderBy:'name'"
              ng-if="organization.isExpanded && application.isVisible"
-             ui-sref="management.application.view.policies({applicationPublicId: application.publicId})"
-             ng-class="{ selected : $state.includes('management.application.view', {applicationPublicId: application.publicId}) }">
+             ui-sref="management.application-view({applicationPublicId: application.publicId})"
+             ng-class="{ selected : $state.includes('management.application-view', {applicationPublicId: application.publicId}) }">
             <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
        -->{{application.name}}
           </a>

@@ -60,11 +60,11 @@
   managementModule.factory('organizationTreeViewFactory', ['$state', '$stateParams', function($state, $stateParams) {
     var me = {};
     me.isOrganizationOrChildSelected = function(organization) {
-      var isOrganizationViewed = $state.includes('management.organization.view', {organizationId: organization.id});
+      var isOrganizationViewed = $state.includes('management.organization-view', {organizationId: organization.id});
       if (isOrganizationViewed) {
         return true;
       }
-      var isApplicationState = $state.includes('management.application.view');
+      var isApplicationState = $state.includes('management.application-view');
       if (!isApplicationState) {
         return false;
       }

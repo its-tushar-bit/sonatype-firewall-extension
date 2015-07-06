@@ -20,7 +20,7 @@ describe('ManagementModule', function() {
     }
   }));
 
-  describe('organizationTreeViewController', function() {
+  describe('OrganizationTreeViewController', function() {
     var $controller, $httpBackend, organizationTreeViewFactory, CLMLocations,
         organizations = StoreMockData.getOrganizations(),
         applications = StoreMockData.getApplications();
@@ -32,9 +32,9 @@ describe('ManagementModule', function() {
       CLMLocations = _CLMLocations_;
 
       scope = _$rootScope_.$new();
-      $controller('organizationTreeViewController', { $scope: scope });
+      $controller('OrganizationTreeViewController', { $scope: scope });
 
-      spyOn(organizationTreeViewFactory, 'loader').andCallThrough();
+      spyOn(organizationTreeViewFactory, 'create').andCallThrough();
 
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(angular.copy(organizations));
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(angular.copy(applications));
@@ -70,13 +70,13 @@ describe('ManagementModule', function() {
 
     it('selects organizations', function() {
       scope = {};
-      scope.organizations = organizationTreeViewFactory.build(angular.copy(organizations), angular.copy(applications));
+      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
 
       spyOn($state, 'includes').andReturn(true);
       var isSelected = organizationTreeViewFactory.isOrganizationOrChildSelected(scope.organizations[0]);
       expect(isSelected).toBe(true);
       expect($state.includes.calls.length).toBe(1);
-      expect($state.includes).toHaveBeenCalledWith('management.organization.view', {
+      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
         organizationId: organizations[0].id
       });
       $state.includes.reset();
@@ -84,16 +84,11 @@ describe('ManagementModule', function() {
       $state.includes.andReturn(false);
       isSelected = organizationTreeViewFactory.isOrganizationOrChildSelected(scope.organizations[0]);
       expect(isSelected).toBe(false);
-      expect($state.includes.calls.length).toBe(3);
-      expect($state.includes).toHaveBeenCalledWith('management.organization.view', {
+      expect($state.includes.calls.length).toBe(2);
+      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
         organizationId: organizations[0].id
       });
-      expect($state.includes).toHaveBeenCalledWith('management.application.view', {
-        applicationPublicId: applications[0].publicId
-      });
-      expect($state.includes).toHaveBeenCalledWith('management.application.view', {
-        applicationPublicId: applications[1].publicId
-      });
+      expect($state.includes).toHaveBeenCalledWith('management.application-view');
     });
 
     it('loads applications', function() {
@@ -101,7 +96,7 @@ describe('ManagementModule', function() {
 
       spyOn(organizationTreeViewFactory, 'isOrganizationOrChildSelected').andReturn(true);
 
-      scope.organizations = organizationTreeViewFactory.build(angular.copy(organizations), angular.copy(applications));
+      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
 
       expect(scope.organizations).toBeDefined();
       expect(scope.organizations.length).toBe(organizations.length);
@@ -134,7 +129,7 @@ describe('ManagementModule', function() {
 
     it('filters organizations', function() {
       scope = {};
-      scope.organizations = organizationTreeViewFactory.build(angular.copy(organizations), angular.copy(applications));
+      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
 
       organizationTreeViewFactory.filter(scope.organizations, 'ONE');
       expect(scope.organizations).toBeDefined();
@@ -165,7 +160,7 @@ describe('ManagementModule', function() {
 
     it('filters applications', function() {
       scope = {};
-      scope.organizations = organizationTreeViewFactory.build(angular.copy(organizations), angular.copy(applications));
+      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
 
       organizationTreeViewFactory.filter(scope.organizations, 'TEN');
       expect(scope.organizations).toBeDefined();

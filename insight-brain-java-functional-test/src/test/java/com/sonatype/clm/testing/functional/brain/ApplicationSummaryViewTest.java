@@ -17,6 +17,7 @@ public class ApplicationSummaryViewTest
 
   private Application application;
 
+  @Override
   @Before
   public void init() {
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION);

@@ -17,6 +17,7 @@ public class OrganizationSummaryViewTest
 
   private Organization organization;
 
+  @Override
   @Before
   public void init() {
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);

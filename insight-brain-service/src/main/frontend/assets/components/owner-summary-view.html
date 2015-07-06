@@ -1,0 +1,14 @@
+<div class="tile-container">
+  <div class="tile" id='owner-summary' ng-controller="OwnerSummaryController">
+    <div load-wrapper="error" loading="!owner" reload="doLoad()">
+      <h1><span owner-image="owner"></span> {{owner.name}}</h1>
+      <div class="sub-header" ng-if="owner.description">{{owner.description}}</div>
+      <div class="pill-container">
+      </div>
+    </div>
+  </div>
+  <div class="tile">
+    <h2>Organization Name</h2>
+    <div class="sub-header">a description</div>
+  </div>
+</div>

@@ -86,7 +86,7 @@
           expand: true,
           cwd: '<%= config.frontend %>',
           src: [
-            '**/*.{html,eot,svg,ttf,woff,woff2,png,gif}',
+            '**/*.{html,eot,svg,ttf,woff,woff2,png,gif,jpg}',
             '!assets/lib/*',
             'assets/lib/**/*.{js,css,eot,svg,ttf,woff,woff2}',
             '!assets/lib/**/test/*'
@@ -267,7 +267,7 @@
       watch: {
         develop: {
           files: [
-            '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js}'
+            '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js,jpg}'
           ],
           tasks: [
             'copy:build',

@@ -7,40 +7,17 @@
 (function() {
   'use strict';
 
-  angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization', 'Stores'], [
+  angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Organization', 'Stores', 'OwnerModule'], [
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('management.organization', {
         parent: 'management',
         url: '/organization',
         controller: 'OrganizationController',
         templateUrl: '../organization-assets/components/organization-navigator.html?' + clmBuildTimestamp
-      }).state('management.organization.view', {
-        parent: 'management.organization',
-        url: '/{organizationId}',
-        controller: 'OrganizationEditorController',
-        data: {
-          passThroughAlerts: []
-        },
-        templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
-        resolve : {
-          selectedOrganization : ['$q', '$stateParams', 'OrganizationStore', function ($q, $stateParams, OrganizationStore) {
-            if ($stateParams.organizationId === '_new_') {
-              return OrganizationStore.create();
-            }
-
-            var deferred = $q.defer();
-            OrganizationStore.get().then(function (data) {
-              for (var i=0; i<data.length; i++) {
-                if (data[i].id === $stateParams.organizationId) {
-                  deferred.resolve(data[i].$clone());
-                  return;
-                }
-              }
-              deferred.resolve(null);
-            }, /* Errors will be handled at state parent */ angular.noop);
-            return deferred.promise;
-          }]
-        }
+      }).state('management.organization-view', {
+        parent: 'management',
+        url: '/organization/{organizationId}',
+        templateUrl: 'components/owner-summary-view.html?' + clmBuildTimestamp
       }).state('management.organization.view.policies', {
         parent: 'management.organization.view',
         url: '/policies',
@@ -332,7 +309,7 @@
         $scope.selectedOrganization.$save().then(function() {
           me.saveIcon().then(function() {
             if ($state.params.organizationId === '_new_') {
-              $state.transitionTo('management.organization.view.policies',
+              $state.transitionTo('management.organization-view',
                   { organizationId: $scope.selectedOrganization.id });
             }
           }, function(error) {
@@ -341,7 +318,7 @@
                 type: 'error',
                 msg: 'An error occurred while saving the icon. (' + error + ')'
               });
-              $state.transitionTo('management.organization.view.policies',
+              $state.transitionTo('management.organization-view',
                   { organizationId: $scope.selectedOrganization.id });
             }
           });

@@ -43,33 +43,6 @@ describe('ApplicationController', function() {
     expect(scope.applications.length).toEqual(1);
     expect(scope.applications[0].publicId).toEqual('bom1-12345678');
   });
-
-  it('passes through alerts', inject(function($state, $httpBackend) {
-    $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
-
-    $state.transitionTo('management.application.view', {
-      applicationPublicId : '_new_'
-    });
-
-    $httpBackend.flush();
-
-    expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-    expect($state.current.data.passThroughAlerts.length).toEqual(0);
-    $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'apptest'});
-
-    $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
-
-    $state.transitionTo('management.application.view.policies', { applicationPublicId: 'publicID' });
-
-    $httpBackend.flush();
-
-    expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-    expect($state.current.data.passThroughAlerts.length).toEqual(1);
-    expect($state.current.data.passThroughAlerts[0].msg).toEqual('apptest');
-    expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
-  }));
 });
 
 describe('ApplicationEditorController', function() {

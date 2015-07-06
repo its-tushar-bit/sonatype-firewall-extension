@@ -57,33 +57,6 @@ describe('Tests for the OrganizationController', function() {
       expect(scope.organizations[2].id).toEqual('3');
       expect(scope.organizations[2].name).toEqual('org3');
     });
-
-    it('passes through alerts', inject(function($state, $httpBackend) {
-      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-      $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
-      $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
-
-      $state.transitionTo('management.organization.view', {
-        organizationId : '_new_'
-      });
-
-      $httpBackend.flush();
-
-      expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-      expect($state.current.data.passThroughAlerts.length).toEqual(0);
-      $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'orgtest'});
-
-      $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
-
-      $state.transitionTo('management.organization.view.policies', { organizationId: 'ID' });
-
-      $httpBackend.flush();
-
-      expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-      expect($state.current.data.passThroughAlerts.length).toEqual(1);
-      expect($state.current.data.passThroughAlerts[0].msg).toEqual('orgtest');
-      expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
-    }));
   });
 
   describe('OrganizationEditorController', function() {
@@ -241,10 +214,7 @@ describe('Tests for the OrganizationController', function() {
         scope.save();
 
         httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-        httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
-        httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
-        httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
-
+        httpBackend.expectGET('components/owner-summary-view.html?').respond('<div></div>');
         httpBackend.flush();
 
         window.FormData = hasFormData;

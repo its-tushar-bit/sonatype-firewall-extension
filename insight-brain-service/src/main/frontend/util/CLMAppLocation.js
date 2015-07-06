@@ -91,6 +91,13 @@
 
         getEntityId: getId,
 
+        getOwnerImageUrl : function (owner) {
+          var servicePath = owner.publicId ? 'application' : 'organization',
+              id = window.encodeURIComponent(owner.publicId || owner.id);
+
+          return baseUrl.get() + '/rest/' + servicePath + '/icon/' + id;
+        },
+
         getApplicablePolicies: function() {
           return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
         },

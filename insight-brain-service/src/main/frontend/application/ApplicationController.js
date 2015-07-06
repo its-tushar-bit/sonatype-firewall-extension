@@ -8,39 +8,17 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'Stores'],
+      ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'Stores', 'OwnerModule'],
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.application', {
           parent: 'management',
           url: '/application',
           controller: 'applicationController',
           templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
-        }).state('management.application.view', {
-          parent: 'management.application',
-          url: '/{applicationPublicId}',
-          controller: 'applicationEditorController',
-          data: {
-            passThroughAlerts: []
-          },
-          templateUrl: '../application-assets/components/aoeditor.html?' + clmBuildTimestamp,
-          resolve : {
-            selectedApplication : ['$q', '$stateParams', 'ApplicationStore', function ($q, $stateParams, ApplicationStore) {
-              if ($stateParams.applicationPublicId === '_new_') {
-                return ApplicationStore.create();
-              }
-              var deferred = $q.defer();
-              ApplicationStore.get().then(function (data) {
-                for (var i=0; i<data.length; i++) {
-                  if (data[i].publicId === $stateParams.applicationPublicId) {
-                    deferred.resolve(data[i].$clone());
-                    return;
-                  }
-                }
-                deferred.resolve(null);
-              }, /* Errors will be handled at state parent */ angular.noop);
-              return deferred.promise;
-            }]
-          }
+        }).state('management.application-view', {
+          parent: 'management',
+          url: '/application/{applicationPublicId}',
+          templateUrl: 'components/owner-summary-view.html?' + clmBuildTimestamp
         }).state('management.application.view.policies', {
           parent: 'management.application.view',
           url: '/policies',

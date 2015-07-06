@@ -343,19 +343,21 @@ var AngularStateUtils = {
       priority : 99,
       transclude : true,
       replace : true,
-      template : '<div><div ng-show="!error" ng-transclude></div>' +
-        '<div ng-if="error != null" class="alert alert-error clm-error">' +
-          '<div><i class="fa fa-warning"></i>' +
-          '<span>{{message || "An error occurred loading data."}} </span>' +
-          '<span ng-if="error">{{getDetails()}}</span></div>' +
-          '<div><button type="button" class="btn btn-danger" ng-click="reload()">' +
-          '<i class="fa fa-refresh"></i>Retry</button></div></div>',
+      template : '<div>' +
+                   '<div ng-if="!error && isLoading()"><i class="fa fa-clock"></i> Loading....</div>' +
+                   '<div ng-show="!error && !isLoading()" ng-transclude></div>' +
+                   '<div load-error="error" reload="reload()" message="errorMessage" />' +
+                 '</div>',
       scope : {
         error : '=loadWrapper',
-        reload : '&',
-        message : '='
+        errorMessage : '=message',
+        loading : '=?',
+        reload : '&'
       },
       link: function($scope) {
+        $scope.isLoading = function () {
+          return $scope.loading;
+        };
         $scope.getDetails = function() {
           return messages.getHttpErrorMessage($scope.error);
         };

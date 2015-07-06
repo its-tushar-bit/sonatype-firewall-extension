@@ -1,0 +1,49 @@
+/*
+  #Tile System
+*/
+/*
+  ##Tiles
+```
+<div class="body-container">
+  <div class="tile-container">
+    <div class="tile">
+      <h1>First Tile</h1>
+    </div>
+    <div class="tile">
+      <h2>Another title</h2>
+      <div class="sub-header">Another day</div>
+    </div>
+  </div>
+</div>
+```
+*/
+.tile-container {
+  padding : 8px;
+}
+
+.tile {
+  margin-bottom : 8px;
+  padding : 8px;
+  border : 1px solid $grey-2;
+  background-color : white;
+
+  h1, h2 {
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+
+  // Application / Organization Icon
+  h1 img {
+    width : 26px;
+    height : 26px;
+    vertical-align: bottom;
+  }
+  
+  .sub-header {
+    margin-bottom : 12px;
+  }
+
+  &:last-child {
+    margin-bottom : 0px;
+  }
+}

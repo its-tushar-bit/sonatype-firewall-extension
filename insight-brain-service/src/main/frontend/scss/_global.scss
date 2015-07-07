@@ -325,6 +325,18 @@ h1 + div > *:first-child, h2 + div > *:first-child, h3 + div > *:first-child, h4
         <td>#fce2e2</td>
         <td style='background-color: #fce2e2'></td>
       </tr>
+      <tr>
+        <td>Failure Active</td>
+        <td>$fail_active</td>
+        <td>#5c0000</td>
+        <td style='background-color: #5c0000'></td>
+      </tr>
+      <tr>
+        <td>Failure Disabled</td>
+        <td>$fail_disabled</td>
+        <td>#dd9595</td>
+        <td style='background-color: #dd9595'></td>
+      </tr>
     </tbody>
   </table>
 */
@@ -360,6 +372,8 @@ $invalid-red: #c70000;
 
 $fail_fg: #831d1d;
 $fail_bg: #fce2e2;
+$fail_active: #5c0000;
+$fail_disabled: #dd9595;
 
 /*
   ##Threat Colors

@@ -1,0 +1,114 @@
+/*
+  ##Buttons
+
+  ```
+  <div>
+    <button class='btn'>Default</button> <button class='btn' disabled='true'>Default</button> <a href='#' class='btn'>Default</a> <a href='#' class='btn disabled'>Default</a> 
+  </div>
+  <div>
+    <button class='btn btn-primary'>Primary</button> <button class='btn btn-primary' disabled='true'>Primary</button> <a href='#' class='btn btn-primary'>Primary</a> <a href='#' class='btn btn-primary disabled'>Primary</a> 
+  </div>
+  <div>
+    <button class='btn btn-tertiary'>Tertiary</button> <button class='btn btn-tertiary' disabled='true'>Tertiary</button> <a href='#' class='btn btn-tertiary'>Tertiary</a> <a href='#' class='btn btn-tertiary disabled'>Tertiary</a> 
+  </div>
+  <div>
+    <button class='btn btn-error'>Error</button> <button class='btn btn-error' disabled='true'>Error</button> <a href='#' class='btn btn-error'>Error</a> <a href='#' class='btn btn-error disabled'>Error</a> 
+  </div>
+  ```
+*/
+.btn {
+  @extend .semi-bold;
+  background-color: $grey-1;
+
+  border: 1px solid $grey-4;
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  display: inline-block;
+
+  font-color: $slate;
+  font-size: 14px;
+  text-align: center;
+
+  padding: 5px 12px;
+
+  vertical-align: middle;
+
+  &.disabled, &[disabled] {
+    background-color: $grey-1;
+    border-color: $grey-2;
+    cursor: not-allowed;
+    font-color: $grey-4;
+  }
+
+  &:hover, &:focus {
+    border-color: $slate;
+  }
+
+  &:active {
+    background-color: $grey-2;
+    border-color: $slate;
+  }
+
+  &.btn-primary {
+    background-color: $link-blue;
+    border-color: transparent;
+    color: $off-white;
+
+    &.disabled, &[disabled] {
+      background-color: $light-blue;
+    }
+
+    &:hover, &:focus {
+      border-color: $dark-blue;
+    }
+
+    &:active {
+      background-color: $dark-blue;
+    }
+  }
+
+  &.btn-tertiary {
+    background-color: transparent;
+    border-color: transparent;
+    color: $slate;
+
+    &.disabled, &[disabled] {
+      color: $grey-4;
+    }
+
+    &:hover, &:focus {
+      border-color: $grey-4;
+    }
+
+    &:active {
+      border-color: $slate;
+    }
+  }
+
+  &.btn-error {
+    background-color: $fail_bg;
+    color: $fail_fg;
+    border-color: $fail_fg;
+
+    &.disabled, &[disabled] {
+      background-color: $fail_disabled;
+    }
+
+    &:hover, &:focus {
+      border-color: $fail_active;
+    }
+
+    &:active {
+      background-color: $fail_active;
+    }
+  }
+}
+
+// For now we scope min-width to new elements
+.root-container, .clm-modal {
+  .btn {
+    min-width: 100px;
+  }
+}

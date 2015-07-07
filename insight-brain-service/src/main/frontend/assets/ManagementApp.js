@@ -95,16 +95,16 @@
           return;
         }
 
-        var filter = $scope.filter.value;
+        var filterValue = $scope.filter.value;
         var filteredOrganizations = [];
-        if (filter && filter.length >= 3) {
+        if (filterValue && filterValue.length >= 3) {
           var organizationFuse = new Fuse($scope.organizations, {
             id: 'id',
             threshold: 0.3,
             keys: [ 'name' ]
           });
 
-          filteredOrganizations = organizationFuse.search(filter);
+          filteredOrganizations = organizationFuse.search(filterValue);
         }
 
         for (var i = 0; i < $scope.organizations.length; i++) {
@@ -113,11 +113,11 @@
               anyApplicationVisible = false,
               filteredApplications;
 
-          if (!filter || filter.length < 3 || filteredOrganizations.indexOf(organization.id) > -1) {
+          if (!filterValue || filterValue.length < 3 || filteredOrganizations.indexOf(organization.id) > -1) {
             organizationVisible = true;
           }
 
-          if (filter && filter.length >= 3) {
+          if (filterValue && filterValue.length >= 3) {
             var applicationFuse = new Fuse(organization.applications, {
               id: 'id',
               threshold: 0.3,
@@ -126,19 +126,19 @@
                 'name'
               ]
             });
-            filteredApplications = applicationFuse.search(filter);
+            filteredApplications = applicationFuse.search(filterValue);
           }
 
           for (var j = 0; j < organization.applications.length; j++) {
             var application = organization.applications[j];
 
-            application.isVisible = organizationVisible || !filter || filter.length < 3 ||
+            application.isVisible = organizationVisible || !filterValue || filterValue.length < 3 ||
               filteredApplications.indexOf(application.id) > -1;
             anyApplicationVisible = anyApplicationVisible || application.isVisible;
           }
 
-          organization.isExpanded = !filter ||
-            filter.length < 3 ? organization.isExpanded : anyApplicationVisible;
+          organization.isExpanded = !filterValue ||
+            filterValue.length < 3 ? organization.isExpanded : anyApplicationVisible;
           organization.isVisible = organizationVisible || anyApplicationVisible;
         }
       }

@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/*jshint -W079, unused: true */
 var clmBuildTimestamp = '<%= config.buildTimestamp %>';
+/*jshint +W079, unused: false */
 /*global window, $ */
-/*jslint plusplus:true */
 (function() {
-  "use strict";
+  'use strict';
 
   function toParams(componentType, hash, matchState, proprietary, coordinates) {
     var params = {};
@@ -47,8 +48,8 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
     };
   }
 
-  var features = ["policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy",
-                  "component-identifier"],// Lowercase
+  var features = ['policy', 'labels', 'release-graph', 'policy-violations', 'notification', 'reevaluate-policy',
+                  'component-identifier'],// Lowercase
       param = window.$ ? $.param : function(obj) {
         var string = '',
             field;
@@ -66,11 +67,11 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
           for (var i = 0; i < scripts.length; i++) {
             if (scripts[i].src) {
               index = scripts[i].src.indexOf('policy-assets/js/brain.client.js');
-              if (index == -1) {
+              if (index === -1) {
                 index = scripts[i].src.indexOf('assets/js/brain.client.js');
               }
 
-              if (index != -1) {
+              if (index !== -1) {
                 return scripts[i].src.substring(0, index);
               }
             }
@@ -86,14 +87,14 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
      * @since version 1.12
      * @param newBasePath - the new BasePath
      */
-    "setBasePath": function(newBasePath){
+    'setBasePath': function(newBasePath){
       basePath = newBasePath;
     },
     /**
      * Check if the Brain instance supports a feature
      * @since version 1.1
      */
-    "hasFeature": function(feature) {
+    'hasFeature': function(feature) {
       var i;
       feature = feature.toLowerCase();
       for (i = 0; i < features.length; i++) {
@@ -114,8 +115,8 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
      * Get the Brain's version.
      * @since version 1.1
      */
-    "getVersion": function() {
-      return "<%= config.pom.clmVersion %>";
+    'getVersion': function() {
+      return '<%= config.pom.clmVersion %>';
     },
 
     /**

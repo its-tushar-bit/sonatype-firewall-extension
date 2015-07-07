@@ -8,7 +8,7 @@
   'use strict';
 
   function pad(str) {
-    return ('' + str).length < 2 ? pad("0" + str, 2) : str;
+    return ('' + str).length < 2 ? pad('0' + str, 2) : str;
   }
 
   function dateToString(date) {
@@ -303,8 +303,8 @@
   ]);
 
   claimApp.directive('disablenav', function() {
-    return function(scope, element, attrs) {
-      element.bind("keydown.nav", function(e) {
+    return function(scope, element) {
+      element.bind('keydown.nav', function(e) {
         // 9 is tab, others are arrow keys
         if (e.keyCode === 9 || (e.keyCode >= 37 && e.keyCode <= 40)) {
           e.stopPropagation();
@@ -314,7 +314,7 @@
   });
 
   claimApp.directive('clmDatepicker', function() {
-    return function(scope, element, attrs) {
+    return function(scope, element) {
       element.datepicker({
         format: 'mm/dd/yyyy',
         autoclose: true,
@@ -334,7 +334,7 @@
 
 /* add claim component tab as an information panel plugin */
 (function() {
-  "use strict";
+  'use strict';
 
   function doLoad() {
     function ClaimComponentTab(node, options) {
@@ -367,7 +367,7 @@
 
     ClaimComponentTab.prototype.destroy = function() {
       var nodeEl = $(this.node).find('.claimComponent');
-      nodeEl.on('$destroy', function(event) {
+      nodeEl.on('$destroy', function() {
         nodeEl.scope().$destroy();
       });
       this.node.empty();

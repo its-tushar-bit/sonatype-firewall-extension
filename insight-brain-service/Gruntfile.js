@@ -162,6 +162,9 @@
         }
       },
       jshint: {
+        options: {
+          jshintrc: true
+        },
         build: [
           '<%= config.frontend %>/**/*.js',
           '!<%= config.frontend %>/assets/lib/**/*',

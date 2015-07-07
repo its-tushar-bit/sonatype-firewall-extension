@@ -75,9 +75,9 @@
             for (var i = 0; i < $scope.hierarchy.length; i++) {
               if ($scope.hierarchy[i].ownerType !== 'application') {
                 $scope.statuses.push({
-                  value: "DELETE",
+                  value: 'DELETE',
                   label: 'Inherit Status (' +
-                      ($scope.hierarchy[i].licenseOverride ? getStatusName($scope.hierarchy[i].licenseOverride.status) : "Open") +
+                      ($scope.hierarchy[i].licenseOverride ? getStatusName($scope.hierarchy[i].licenseOverride.status) : 'Open') +
                       ')'
                 });
                 break;
@@ -319,7 +319,7 @@
       };
 
       // Remove licenses when changing status
-      $scope.$watch('override.status', function(val) {
+      $scope.$watch('override.status', function() {
         if ($scope.override) {
           $scope.override.licenseIds = [];
         }

@@ -6,6 +6,14 @@
 /*global angular, window, document, Brain, clmEndpoint */
 (function() {
   'use strict';
+
+  function defaultLogFn(message) {
+    logQueue.push(arguments);
+    if (window.console) {
+      window.console.error(message);
+    }
+  }
+
   var query,
       module,
       injector,
@@ -30,13 +38,6 @@
     return aUpper < bUpper ? -1 : (aUpper > bUpper ? 1 : 0);
   }
 
-  function defaultLogFn(message) {
-    logQueue.push(arguments);
-    if (window.console) {
-      window.console.error(message);
-    }
-  }
-
   query = (function() {
     var search = window.location.search,
         result = {};
@@ -44,7 +45,7 @@
       return result;
     }
     search = search.substring(1).split('&');
-    angular.forEach(search, function(item, index) {
+    angular.forEach(search, function(item) {
       var field = item.split('=');
       result[decode(field[0])] = decode(field[1]);
     });
@@ -53,7 +54,7 @@
 
   (function() {
     var style = '<style type="text/css">',
-        head = document.head || document.getElementsByTagName("head")[0];
+        head = document.head || document.getElementsByTagName('head')[0];
 
     if (query.fontName) {
       style += 'body { font-family: ' + query.fontName + ',Arial, Helvetica, sans-serif;}';
@@ -62,14 +63,14 @@
     if (query.fontSize) {
       style += 'font-size:' + query.fontSize + 'pt;';
     }
-    style += "line-height: normal;}";
+    style += 'line-height: normal;}';
 
-    style += "td.severity-column {	font-weight: bold;color: #656565;padding: 8px 5px 2px 15px !important;";
+    style += 'td.severity-column {	font-weight: bold;color: #656565;padding: 8px 5px 2px 15px !important;';
     if (query.fontSize) {
       style += 'font-size:' + (3 + Number(query.fontSize)) + 'pt;}';
-      style += " h5 { font-size: " + (1 + Number(query.fontSize)) + "pt;";
+      style += ' h5 { font-size: ' + (1 + Number(query.fontSize)) + 'pt;';
     }
-    style += "}</style>";
+    style += '}</style>';
     angular.element(head).append(style);
 
     delete query.fontSize;
@@ -78,7 +79,7 @@
 
   function transformPolicyAlerts(alerts) {
     var retval = [];
-    angular.forEach(alerts, function(alert, alertIndex) {
+    angular.forEach(alerts, function(alert) {
       var threat;
       if (alert.trigger.threatLevel > 7) {
         threat = 4;
@@ -245,7 +246,7 @@
 
         promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, identifier.format, hash, matchState, proprietary, identifier.coordinates), {
           headers: {
-            "Accept": "application/json"
+            'Accept': 'application/json'
           }
         }));
         if (clmEndpoint.showContext) {
@@ -258,7 +259,7 @@
           $scope.data.declaredLicenses = toLicenseNames($scope.data.declaredLicenses);
           $scope.data.overriddenLicenses = toLicenseNames($scope.data.overriddenLicenses);
           $scope.data.policyAlerts = transformPolicyAlerts($scope.data.policyAlerts);
-          angular.forEach($scope.data.securityVulnerabilities, function(item, index) {
+          angular.forEach($scope.data.securityVulnerabilities, function(item) {
             if (item.severity !== null) {
               item.severity = Math.floor(item.severity);
             }
@@ -293,10 +294,10 @@
       };
       $scope.getSvUrl = function(item) {
         if (item.source === 'osvdb') {
-          return "http://osvdb.org/" + item.refId;
+          return 'http://osvdb.org/' + item.refId;
         }
         else if (item.source === 'cve') {
-          return "http://cve.mitre.org/cgi-bin/cvename.cgi?name=" + item.refId;
+          return 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + item.refId;
         }
       };
       $scope.getSvName = function(issue) {

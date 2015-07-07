@@ -114,9 +114,9 @@
     return ajaxSetup.apply($, arguments);
   };
   $.extend(true, window, {
-    "Insight": {
-      "clearGav": createStateFn(null),
-      "registerMarkUpgradeListener": function (listener) {
+    'Insight': {
+      'clearGav': createStateFn(null),
+      'registerMarkUpgradeListener': function (listener) {
         waitOnInjector(['Coordinates', '$rootScope', function (Coordinates, $rootScope) {
           $rootScope.$on('markUpgrade', function (event, gav) {
             if (Coordinates.getFormat() === 'maven') {
@@ -125,7 +125,7 @@
           });
         }]);
       },
-      "registerViewDetailsListener": function (listener) {
+      'registerViewDetailsListener': function (listener) {
         waitOnInjector(['Coordinates', 'Properties', 'SelectedApp', '$rootScope', function (Coordinates, Properties, SelectedApp, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
 
@@ -145,7 +145,7 @@
           });
         }]);
       },
-      "registerCoordsViewDetailsListener": function (listener) {
+      'registerCoordsViewDetailsListener': function (listener) {
         waitOnInjector(['Coordinates', 'SelectedApp', 'Properties', '$rootScope', function (Coordinates, SelectedApp, Properties, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
             var coordinates = [],
@@ -170,7 +170,7 @@
           });
         }]);
       },
-      "registerCoordsMarkUpgradeListener": function (listener) {
+      'registerCoordsMarkUpgradeListener': function (listener) {
         waitOnInjector(['$rootScope', function ($rootScope) {
           $rootScope.$on('markUpgrade', function (event, gav) {
             listener(gav.groupId, gav.artifactId, gav.version);
@@ -202,7 +202,7 @@
       /**
        * @deprecated since 1.13.0 Included for backwards compatibility with existing clients
        */
-      "setGav": function (arg) {
+      'setGav': function (arg) {
         waitOnInjector(['Coordinates', 'SelectedApp', 'State', 'Properties', '$rootScope', function (Coordinates, SelectedApp, State, Properties, $rootScope) {
           safeApply($rootScope, function () {
             if (arg.appId) {
@@ -231,14 +231,14 @@
           });
         }], true);
       },
-      "setHeaders" : function (headers) {
+      'setHeaders' : function (headers) {
         waitOnInjector(['$http', '$rootScope', function ($http, $rootScope) {
           safeApply($rootScope, function () {
             angular.extend($http.defaults.headers.common, headers);
           });
         }]);
       },
-      "setError": function (arg) {
+      'setError': function (arg) {
         waitOnInjector(['$rootScope', 'Coordinates', 'State', function ($rootScope, Coordinates, State) {
           safeApply($rootScope, function () {
             Coordinates.set(null);
@@ -255,16 +255,16 @@
           });
         }], true);
       },
-      "setAuthFailureHandler" : function (handler) {
+      'setAuthFailureHandler' : function (handler) {
         authHandler = handler;
       },
-      "setPending": createStateFn('pending'),
-      "setUnassigned": createStateFn('unassigned'),
-      "setFiltered": createStateFn('filtered'),
+      'setPending': createStateFn('pending'),
+      'setUnassigned': createStateFn('unassigned'),
+      'setFiltered': createStateFn('filtered'),
       /**
        * @since 1.12
        */
-      "setLogger" : function (newLogFn) {
+      'setLogger' : function (newLogFn) {
         // iterate over each exception 
         $.each(logQueue, function (index, args) {
           setTimeout(function () {

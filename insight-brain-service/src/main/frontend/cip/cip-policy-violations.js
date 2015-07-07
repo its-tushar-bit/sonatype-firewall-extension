@@ -45,13 +45,6 @@
     policyViolationApp.controller('PolicyViolationsController', [
       '$http', '$scope', '$q', '$modal', 'PolicyViolationData', 'Messages',
       function($http, $scope, $q, $modal, policyViolationData, messages) {
-        function errorFn(data, status, headersFn, config) {
-          $scope.alerts.push({
-            type: 'error',
-            msg: messages.getHttpErrorMessage(arguments)
-          });
-        }
-        
 
         // because we need to support reports generated from older servers, we must tweak the data so that it
         // fits what the html expects
@@ -126,13 +119,13 @@
             var policyAlerts = result[1].data.aaData || [];
 
             $scope.processedPolicyAlerts = [];
-            angular.forEach(policyAlerts, function(policyAlert, policyAlertIndex) {
+            angular.forEach(policyAlerts, function(policyAlert) {
               var processedActions = [];
-              angular.forEach(policyAlert.actions, function(action, actionIndex) {
+              angular.forEach(policyAlert.actions, function(action) {
                 addIfNotFound(processedActions, processAction(action, actionTypes));
               });
               
-              angular.forEach(policyAlert.trigger.componentFacts, function(componentFact, componentFactIndex) {
+              angular.forEach(policyAlert.trigger.componentFacts, function(componentFact) {
                 if (componentFact.hash === policyViolationData.hash) {
                   var processedConstraints = [];
                   angular.forEach(componentFact.constraintFacts, function(constraintFact){
@@ -167,9 +160,9 @@
               var policyThreats = result.data.aaData || [];
               $scope.processedPolicyAlerts = [];
 
-              angular.forEach(policyThreats, function(policyThreat, policyThreatIndex) {
+              angular.forEach(policyThreats, function(policyThreat) {
                 if (policyThreat.hash === policyViolationData.hash) {
-                  angular.forEach(policyThreat.activeViolations, function(activeViolation, activeViolationIndex) {
+                  angular.forEach(policyThreat.activeViolations, function(activeViolation) {
                     var actions = [];
                     angular.forEach(activeViolation.actions, function(action){
                       addIfNotFound(actions, action);
@@ -256,7 +249,7 @@
             $scope.owner = {
               type : $scope.waiverTargets[0].type
             };
-          }).error(function(data, status) {
+          }).error(function() {
             $scope.waiverLoading = false;
             $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
           });
@@ -269,10 +262,10 @@
           $scope.waiveAssignError = null;
 
           $http.post(CLM.path + 'rest/policyWaiver/' + $scope.owner.type + '/' + $scope.waiver.ownerId,
-                  $scope.waiver).success(function(responseData) {
+                  $scope.waiver).success(function() {
             $scope.waiverSaving = false;
             $scope.$close();
-          }).error(function(data, status, headersFn, config) {
+          }).error(function() {
             $scope.waiverSaving = false;
             $scope.waiveAssignError = messages.getHttpErrorMessage(arguments);
           });
@@ -283,7 +276,7 @@
     policyViolationApp.controller('ViewWaiverController', [
       '$scope', '$http', 'PolicyViolationData', 'Messages',
       function($scope, $http, policyViolationData, messages) {
-        function handleHttpError(data, status, headerFn, config) {
+        function handleHttpError() {
           $scope.appError = messages.getHttpErrorMessage(arguments);
         }
 
@@ -294,8 +287,8 @@
               policyViolationData.hash).success(function(data) {
             $scope.waiversLoading = false;
             $scope.waivers = [];
-            angular.forEach(data.waiversByOwner, function(waiversByOwner, ownerIndex) {
-              angular.forEach(waiversByOwner.waivers, function(waiver, waiverIndex) {
+            angular.forEach(data.waiversByOwner, function(waiversByOwner) {
+              angular.forEach(waiversByOwner.waivers, function(waiver) {
                 waiver.type = waiversByOwner.ownerType;
                 waiver.ownerName = waiversByOwner.ownerName;
                 $scope.waivers.push(waiver);

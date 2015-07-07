@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular, clmBuildTimestamp */
+ /* global Fuse */
 (function() {
   'use strict';
   angular.module('managementApp',
@@ -48,7 +48,7 @@
 
         for (var i = 0; i < organization.applications.length; i++) {
           var application = organization.applications[i];
-          var isApplicationViewed = $stateParams.applicationPublicId == application.publicId;
+          var isApplicationViewed = $stateParams.applicationPublicId === application.publicId;
           if (isApplicationViewed) {
             return true;
           }
@@ -71,7 +71,7 @@
 
           for (var j = applications.length - 1; j >= 0; j--) {
             var application = applications[j];
-            if (application.organizationId == organization.id) {
+            if (application.organizationId === organization.id) {
               organizationApplication.applications.push({
                 id: application.id,
                 name: application.name,

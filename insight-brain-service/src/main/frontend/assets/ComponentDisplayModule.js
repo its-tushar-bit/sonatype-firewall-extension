@@ -65,7 +65,7 @@
 
   module.service('ComponentDisplayNameUtil', function() {
     var renderToString = function(displayName) {
-      return jQuery.map(displayName.parts, function(part) {
+      return $.map(displayName.parts, function(part) {
         return part.value;
       }).join('');
     };

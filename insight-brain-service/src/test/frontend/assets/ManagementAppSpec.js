@@ -20,21 +20,21 @@ describe('ManagementModule', function() {
     }
   }));
 
-  describe('OrganizationTreeViewController', function() {
-    var $controller, $httpBackend, organizationTreeViewFactory, CLMLocations,
+  describe('OwnerTreeViewController', function() {
+    var $controller, $httpBackend, $state, CLMLocations,
         organizations = StoreMockData.getOrganizations(),
         applications = StoreMockData.getApplications();
 
-    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _organizationTreeViewFactory_, _CLMLocations_) {
+    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$state_, _CLMLocations_) {
       $controller = _$controller_;
       $httpBackend = _$httpBackend_;
-      organizationTreeViewFactory = _organizationTreeViewFactory_;
+      $state = _$state_;
       CLMLocations = _CLMLocations_;
 
       scope = _$rootScope_.$new();
-      $controller('OrganizationTreeViewController', { $scope: scope });
+      $controller('OwnerTreeViewController', { $scope: scope });
 
-      spyOn(organizationTreeViewFactory, 'create').andCallThrough();
+      spyOn($state, 'includes').andReturn(false);
 
       $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(angular.copy(organizations));
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(angular.copy(applications));
@@ -44,68 +44,11 @@ describe('ManagementModule', function() {
 
     it('loads organizations and applications', function() {
       expect(scope.organizations).toBeDefined();
-      expect(organizationTreeViewFactory.create).toHaveBeenCalled();
-    });
-
-    it('filters organization and applications', function() {
-      scope.filter = '';
-      spyOn(organizationTreeViewFactory, 'filter').andCallThrough();
-      scope.filter = 'foo';
-      scope.$digest();
-
-      expect(organizationTreeViewFactory.filter).toHaveBeenCalled();
-      expect(organizationTreeViewFactory.filter).toHaveBeenCalledWith(scope.organizations, 'foo');
-    })
-  });
-
-  describe('organizationTreeViewFactory', function() {
-    var organizationTreeViewFactory, $state,
-        organizations = StoreMockData.getOrganizations(),
-        applications = StoreMockData.getApplications();
-
-    beforeEach(inject(function(_$state_, _organizationTreeViewFactory_) {
-      $state = _$state_;
-      organizationTreeViewFactory = _organizationTreeViewFactory_;
-    }));
-
-    it('selects organizations', function() {
-      scope = {};
-      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
-
-      spyOn($state, 'includes').andReturn(true);
-      var isSelected = organizationTreeViewFactory.isOrganizationOrChildSelected(scope.organizations[0]);
-      expect(isSelected).toBe(true);
-      expect($state.includes.calls.length).toBe(1);
-      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
-        organizationId: organizations[0].id
-      });
-      $state.includes.reset();
-
-      $state.includes.andReturn(false);
-      isSelected = organizationTreeViewFactory.isOrganizationOrChildSelected(scope.organizations[0]);
-      expect(isSelected).toBe(false);
-      expect($state.includes.calls.length).toBe(2);
-      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
-        organizationId: organizations[0].id
-      });
-      expect($state.includes).toHaveBeenCalledWith('management.application-view');
-    });
-
-    it('loads applications', function() {
-      scope = {};
-
-      spyOn(organizationTreeViewFactory, 'isOrganizationOrChildSelected').andReturn(true);
-
-      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
-
-      expect(scope.organizations).toBeDefined();
       expect(scope.organizations.length).toBe(organizations.length);
       expect(scope.organizations[0].id).toBe(organizations[0].id);
       expect(scope.organizations[0].name).toBe(organizations[0].name);
       expect(scope.organizations[0].isVisible).toBe(true);
-      expect(scope.organizations[0].isExpanded).toBe(true);
-      expect(organizationTreeViewFactory.isOrganizationOrChildSelected.calls.length).toBe(2);
-      expect(organizationTreeViewFactory.isOrganizationOrChildSelected).toHaveBeenCalledWith(scope.organizations[0]);
+      expect(scope.organizations[0].isExpanded).toBe(false);
 
       expect(scope.organizations[0].applications).toBeDefined();
       expect(scope.organizations[0].applications.length).toBe(2);
@@ -123,15 +66,24 @@ describe('ManagementModule', function() {
       expect(scope.organizations[1].applications).toBeDefined();
       expect(scope.organizations[1].applications.length).toBe(0);
       expect(scope.organizations[1].isVisible).toBe(true);
-      expect(scope.organizations[1].isExpanded).toBe(true);
-      expect(organizationTreeViewFactory.isOrganizationOrChildSelected).toHaveBeenCalledWith(scope.organizations[1]);
+      expect(scope.organizations[1].isExpanded).toBe(false);
+    });
+
+    it('checks if an organization or application is selected', function() {
+      expect($state.includes.calls.length).toBe(4);
+      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
+        organizationId: organizations[0].id
+      });
+      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
+        organizationId: organizations[1].id
+      });
+      expect($state.includes).toHaveBeenCalledWith('management.application-view');
     });
 
     it('filters organizations', function() {
-      scope = {};
-      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
+      scope.filter = 'ONE';
+      scope.$digest();
 
-      organizationTreeViewFactory.filter(scope.organizations, 'ONE');
       expect(scope.organizations).toBeDefined();
       expect(scope.organizations.length).toBe(2);
       expect(scope.organizations[0].id).toBe(organizations[0].id);
@@ -159,10 +111,9 @@ describe('ManagementModule', function() {
     });
 
     it('filters applications', function() {
-      scope = {};
-      scope.organizations = organizationTreeViewFactory.create(angular.copy(organizations), angular.copy(applications));
+      scope.filter = 'TEN';
+      scope.$digest();
 
-      organizationTreeViewFactory.filter(scope.organizations, 'TEN');
       expect(scope.organizations).toBeDefined();
       expect(scope.organizations.length).toBe(2);
       expect(scope.organizations[0].id).toBe(organizations[0].id);

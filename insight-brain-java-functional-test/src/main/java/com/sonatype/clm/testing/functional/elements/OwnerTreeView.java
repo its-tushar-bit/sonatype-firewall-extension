@@ -7,16 +7,20 @@ package com.sonatype.clm.testing.functional.elements;
 
 import java.util.List;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 public class OwnerTreeView
 {
+  public static final Condition NODE_SELECTED_CLASS = cssClass("selected");
+
   public static SelenideElement filter() {
     return $(".tree-view-filter input");
   }
@@ -41,9 +45,8 @@ public class OwnerTreeView
   {
     private final SelenideElement element;
 
-    public static final String COLLAPSE_CLASS = "collapse";
-    public static final String EXPAND_CLASS = "expand";
-    public static final String SELECTED_CLASS = "selected";
+    public static final Condition COLLAPSED_CLASS = cssClass("collapse");
+    public static final Condition EXPANDED_CLASS = cssClass("expand");
 
     public OrganizationNode(SelenideElement element) {
       this.element = element;
@@ -58,7 +61,7 @@ public class OwnerTreeView
     }
 
     public SelenideElement newApplicationButton() {
-      return $(".tree-view-new-application");
+      return element.$(".tree-view-new-application");
     }
 
     public ElementsCollection applicationElements() {
@@ -79,8 +82,6 @@ public class OwnerTreeView
   public static class ApplicationNode
   {
     private final SelenideElement element;
-
-    public static final String SELECTED_CLASS = "selected";
 
     public ApplicationNode(SelenideElement element) {
       this.element = element;

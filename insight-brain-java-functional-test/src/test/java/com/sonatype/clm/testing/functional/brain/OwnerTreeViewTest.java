@@ -6,7 +6,9 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -18,11 +20,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
 import com.codeborne.selenide.SelenideElement;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.open;
 
@@ -40,52 +42,62 @@ public class OwnerTreeViewTest
 
   @Before
   public void before() {
-    for (int i = 0; i < 5; i++) {
-      Organization organization = tempEntity.newOrganization("Organization " + i + UUID.randomUUID());
-      organizations.add(organization);
-      for (int j = 0; j < 5; j++) {
+    ImmutableMap<String, List<String>> organizations = ImmutableMap.<String, List<String>>builder()
+        .put("Red Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
+        .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
+        .put("Blue Squadron", Arrays.asList("Merrick Simms")).build();
+
+    for (Entry<String, List<String>> organizationMeta : organizations.entrySet()) {
+      Organization organization = tempEntity.newOrganization(organizationMeta.getKey());
+      this.organizations.add(organization);
+
+      for (String applicationName : organizationMeta.getValue()) {
         Application application = tempEntity
-            .newApplication("Application " + j + UUID.randomUUID(), "id_" + UUID.randomUUID(), organization.getId());
-        applications.add(application);
+            .newApplication(applicationName, UUID.randomUUID().toString(), organization.getId());
+        this.applications.add(application);
       }
     }
+
     refreshOrOpen(OrganizationManagementPage.URL);
-    OwnerTreeView.organizationElements().shouldHaveSize(5);
+    OwnerTreeView.organizationElements().shouldHaveSize(3);
   }
 
   @Test
   public void testInitialLoad() {
     List<OrganizationNode> organizationNodes = OwnerTreeView.organizations();
-    for (int i = 0; i < 5; i++) {
-      Organization organization = organizations.get(i);
-      OrganizationNode organizationNode = organizationNodes.get(i);
+    assertOrganizationLoaded(organizationNodes.get(0), "Blue Squadron", "Merrick Simms");
+    assertOrganizationLoaded(organizationNodes.get(1), "Green Squadron", "Arvel Crynyd", "Jake Farrell");
+    assertOrganizationLoaded(organizationNodes.get(2), "Red Squadron", "Biggs Darklighter", "Garven Dreis",
+        "Luke Skywalker");
+  }
 
-      SelenideElement twisty = organizationNode.twisty();
-      SelenideElement organizationElement = organizationNode.treeViewElement();
+  private void assertOrganizationLoaded(OrganizationNode organizationNode, String organizationName,
+      String... applicationNames)
+  {
+    SelenideElement twisty = organizationNode.twisty();
+    SelenideElement organizationElement = organizationNode.treeViewElement();
 
-      twisty.shouldHave(cssClass(OrganizationNode.EXPAND_CLASS));
-      organizationElement.shouldNotHave(cssClass(OrganizationNode.SELECTED_CLASS));
-      organizationElement.isDisplayed();
-      organizationElement.shouldHave(text(organization.getName()));
+    twisty.shouldHave(OrganizationNode.EXPANDED_CLASS);
+    organizationElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    organizationElement.isDisplayed();
+    organizationElement.shouldHave(text(organizationName));
 
-      twisty.click();
-      twisty.shouldHave(cssClass(OrganizationNode.COLLAPSE_CLASS));
-      organizationNode.applicationElements().shouldHaveSize(5);
+    twisty.click();
+    twisty.shouldHave(OrganizationNode.COLLAPSED_CLASS);
+    organizationNode.applicationElements().shouldHaveSize(applicationNames.length);
 
-      List<ApplicationNode> applicationNodes = organizationNode.applications();
-      for (int j = 0; j < 5; j++) {
-        Application application = applications.get(5 * i + j);
-        ApplicationNode applicationNode = applicationNodes.get(j);
+    List<ApplicationNode> applicationNodes = organizationNode.applications();
+    for (int i = 0; i < applicationNames.length; i++) {
+      ApplicationNode applicationNode = applicationNodes.get(i);
 
-        SelenideElement applicationElement = applicationNode.treeViewElement();
-        applicationElement.isDisplayed();
-        applicationElement.shouldNotHave(cssClass(ApplicationNode.SELECTED_CLASS));
-        applicationElement.shouldHave(text(application.getName()));
-      }
-
-      twisty.click();
-      twisty.shouldHave(cssClass(OrganizationNode.EXPAND_CLASS));
+      SelenideElement applicationElement = applicationNode.treeViewElement();
+      applicationElement.isDisplayed();
+      applicationElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
+      applicationElement.shouldHave(text(applicationNames[i]));
     }
+
+    twisty.click();
+    twisty.shouldHave(OrganizationNode.EXPANDED_CLASS);
   }
 
   @Test
@@ -95,30 +107,34 @@ public class OwnerTreeViewTest
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
     treeViewElement.click();
-    treeViewElement.shouldHave(cssClass(OrganizationNode.SELECTED_CLASS));
-    twisty.shouldHave(cssClass(OrganizationNode.COLLAPSE_CLASS));
+    treeViewElement.shouldHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    twisty.shouldHave(OrganizationNode.COLLAPSED_CLASS);
   }
 
   @Test
   public void testSelectApplication() {
     OrganizationNode organizationNode = OwnerTreeView.organizations().get(0);
-    organizationNode.twisty().click();
+    SelenideElement organizationTreeViewElement = organizationNode.treeViewElement();
+    organizationTreeViewElement.click();
+    organizationTreeViewElement.shouldHave(OwnerTreeView.NODE_SELECTED_CLASS);
 
     ApplicationNode applicationNode = organizationNode.applications().get(0);
-    SelenideElement treeViewElement = applicationNode.treeViewElement();
-    treeViewElement.click();
-    treeViewElement.shouldHave(cssClass(ApplicationNode.SELECTED_CLASS));
+    SelenideElement applicationTreeViewElement = applicationNode.treeViewElement();
+    applicationTreeViewElement.click();
+    applicationTreeViewElement.shouldHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    organizationTreeViewElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
   }
 
   @Test
-  public void testOrganizationFilter() {
-    Organization queriedOrganization = organizations.get(0);
-    OwnerTreeView.filter().setValue(queriedOrganization.getName());
-    assertSingleOrganizationVisible(queriedOrganization);
+  public void testOrganizationSubstringFilter() {
+    OwnerTreeView.filter().setValue("Green Sq");
+    assertSingleOrganizationVisible("Green Squadron", 2);
+  }
 
-    queriedOrganization = organizations.get(1);
-    OwnerTreeView.filter().setValue(queriedOrganization.getId());
-    assertSingleOrganizationVisible(queriedOrganization);
+  @Test
+  public void testApplicationFuzzyFilter() {
+    OwnerTreeView.filter().setValue("Skiwalkr");
+    assertSingleApplicationVisible("Red Squadron", "Luke Skywalker");
   }
 
   @Test
@@ -126,39 +142,36 @@ public class OwnerTreeViewTest
     Application queriedApplication = applications.get(0);
     Organization applicationOrganization = organizations.get(0);
     OwnerTreeView.filter().setValue(queriedApplication.getName());
-    assertSingleApplicationVisible(applicationOrganization, queriedApplication);
+    assertSingleApplicationVisible(applicationOrganization.getName(), queriedApplication.getName());
 
-    queriedApplication = applications.get(5);
+    queriedApplication = applications.get(3);
     applicationOrganization = organizations.get(1);
     OwnerTreeView.filter().setValue(queriedApplication.getPublicId());
-    assertSingleApplicationVisible(applicationOrganization, queriedApplication);
-
-    queriedApplication = applications.get(10);
-    applicationOrganization = organizations.get(2);
-    OwnerTreeView.filter().setValue(queriedApplication.getId());
-    assertSingleApplicationVisible(applicationOrganization, queriedApplication);
+    assertSingleApplicationVisible(applicationOrganization.getName(), queriedApplication.getName());
   }
 
-  private void assertSingleOrganizationVisible(Organization organization) {
+  private void assertSingleOrganizationVisible(String organizationName, int applicationCount) {
     OwnerTreeView.organizationElements().shouldHaveSize(1);
     OrganizationNode organizationNode = OwnerTreeView.organizations().get(0);
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
-    treeViewElement.shouldNotHave(cssClass(OrganizationNode.SELECTED_CLASS));
-    treeViewElement.shouldHave(text(organization.getName()));
-    organizationNode.applicationElements().shouldHaveSize(5);
+    treeViewElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    treeViewElement.shouldHave(text(organizationName));
+    organizationNode.applicationElements().shouldHaveSize(applicationCount);
   }
 
-  private void assertSingleApplicationVisible(Organization organization, Application application) {
+  private void assertSingleApplicationVisible(String organizationName, String applicationName) {
     OwnerTreeView.organizationElements().shouldHaveSize(1);
     OrganizationNode organizationNode = OwnerTreeView.organizations().get(0);
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
-    treeViewElement.shouldNotHave(cssClass(OrganizationNode.SELECTED_CLASS));
-    treeViewElement.shouldHave(text(organization.getName()));
+    treeViewElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    treeViewElement.shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(1);
 
     ApplicationNode applicationNode = organizationNode.applications().get(0);
-    applicationNode.treeViewElement().shouldHave(text(application.getName()));
+    SelenideElement applicationTreeViewElement = applicationNode.treeViewElement();
+    applicationTreeViewElement.isDisplayed();
+    applicationTreeViewElement.shouldHave(text(applicationName));
   }
 }

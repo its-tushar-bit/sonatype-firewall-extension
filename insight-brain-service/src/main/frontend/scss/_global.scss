@@ -315,25 +315,25 @@ h1 + div > *:first-child, h2 + div > *:first-child, h3 + div > *:first-child, h4
       </tr>
       <tr>
         <td>Failure Foreground</td>
-        <td>$fail_fg</td>
+        <td>$fail-fg</td>
         <td>#831d1d</td>
         <td style='background-color: #831d1d'></td>
       </tr>
       <tr>
         <td>Failure Background</td>
-        <td>$fail_bg</td>
+        <td>$fail-bg</td>
         <td>#fce2e2</td>
         <td style='background-color: #fce2e2'></td>
       </tr>
       <tr>
         <td>Failure Active</td>
-        <td>$fail_active</td>
+        <td>$fail-active</td>
         <td>#5c0000</td>
         <td style='background-color: #5c0000'></td>
       </tr>
       <tr>
         <td>Failure Disabled</td>
-        <td>$fail_disabled</td>
+        <td>$fail-disabled</td>
         <td>#dd9595</td>
         <td style='background-color: #dd9595'></td>
       </tr>
@@ -370,10 +370,10 @@ $yellow: #f5c648;
 $valid-green: #84c900;
 $invalid-red: #c70000;
 
-$fail_fg: #831d1d;
-$fail_bg: #fce2e2;
-$fail_active: #5c0000;
-$fail_disabled: #dd9595;
+$fail-fg: #831d1d;
+$fail-bg: #fce2e2;
+$fail-active: #5c0000;
+$fail-disabled: #dd9595;
 
 /*
   ##Threat Colors

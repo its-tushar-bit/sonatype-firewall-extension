@@ -88,20 +88,20 @@
   }
 
   &.btn-error {
-    background-color: $fail_bg;
-    color: $fail_fg;
-    border-color: $fail_fg;
+    background-color: $fail-bg;
+    color: $fail-fg;
+    border-color: $fail-fg;
 
     &.disabled, &[disabled] {
-      background-color: $fail_disabled;
+      background-color: $fail-disabled;
     }
 
     &:hover, &:focus {
-      border-color: $fail_active;
+      border-color: $fail-active;
     }
 
     &:active {
-      background-color: $fail_active;
+      background-color: $fail-active;
     }
   }
 }

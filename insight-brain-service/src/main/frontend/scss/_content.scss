@@ -130,13 +130,13 @@
 .alert-error.clm-error {
   margin: 5px;
   padding: 12px 8px;
-  border-color: $fail_fg;
-  background-color: $fail_bg;
-  color: $fail_fg;
+  border-color: $fail-fg;
+  background-color: $fail-bg;
+  color: $fail-fg;
   border-radius: 0px;
 
   .btn-danger {
-    background-color: $fail_fg;
+    background-color: $fail-fg;
     background-image: initial;
     background-repeat: initial;
     margin-top: 24px;

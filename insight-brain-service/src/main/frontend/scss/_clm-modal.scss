@@ -1,0 +1,74 @@
+.modal-backdrop {
+  background-color: rgba($off-black, 0.4) !important;
+}
+
+/*
+ ##CLM Modals
+
+```
+<div class='modal-backdrop'>
+</div>
+<div class='clm-modal'>
+  <div class='clm-modal-header'>
+    <h2>A Modal Title</h2>
+  </div>
+  <div class='clm-modal-body'>
+    Your content
+  </div>
+  <div class='clm-modal-footer'>
+    <button class='btn btn-primary'>Save</button> <button class='btn'>Cancel</button>
+  </div>
+</div>
+```
+
+##CLM Modal Error
+
+```
+<div class='modal-backdrop'>
+</div>
+<div class='clm-modal'>
+  <div class='clm-modal-header'>
+    <h2>A Modal Title</h2>
+  </div>
+  <div class='clm-modal-body'>
+    Your content
+  </div>
+  <div class='clm-modal-footer error'>
+    <button class='btn btn-error'>Retry</button> <button class='btn'>Cancel</button>
+  </div>
+</div>
+```
+
+ */
+.clm-modal {
+  border: 1px solid $off-black;
+
+  .clm-modal-header {
+    padding: 12px 8px;
+    border-bottom: 1px solid $grey-4;
+
+    h2 {
+      margin: 0px
+    }
+  }
+
+  .clm-modal-body {
+    padding: 12px;
+  }
+
+  .clm-modal-footer {
+    background-color: $grey-1;
+    border-top: 1px solid $grey-4;
+    padding: 12px;
+
+    &.error {
+      background-color: $fail_bg;
+      border: 1px solid $fail_fg;
+      color: $fail_fg;
+    }
+
+    .btn {
+      margin-right: 12px;
+    }
+  }
+}

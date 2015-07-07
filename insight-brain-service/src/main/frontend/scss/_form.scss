@@ -6,52 +6,275 @@
 
   See clmControlGroup and clmInput directives.
 
-```
-<form class='clm-form'>
-  <p>
-    <label for='normal'>An input that is not required and hasn't been updated</label>
-    <input type='text' id='normal' class='ng-valid' placeholder='ex. Antiquated Value'>
-  </p>
-  <p>
-    <label for='required'>An input that is required and hasn't been updated</label>
-    <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
-  </p>
-  <p>
-    <label for='valid'>An input that has been updated and is valid</label>
-    <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
-  </p>
-  <p>
-    <label for='invalid'>An input that has been updated and is invalid</label>
-    <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
-  </p>
-</form>
-```
+  ```
+    <form class='clm-form'>
+      <p>
+        <label for='normal'>An input that is not required and hasn't been updated</label>
+        <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
+      </p>
+      <p>
+        <label for='required'>An input that is required and hasn't been updated</label>
+        <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
+      </p>
+      <p>
+        <label for='valid'>An input that has been updated and is valid</label>
+        <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
+      </p>
+      <p>
+        <label for='invalid'>An input that has been updated and is invalid</label>
+        <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
+      </p>
+      <p>
+        <label for='disabled' class='disabled'>A disabled label requires the disabled class</label>
+        <input type='text' id='disabled' disabled class='ng-valid' value='Disabled'>
+      </p>
+      <p>
+        <label for='wide'>A wide input</label>
+        <input type='text' id='wide' class='ng-valid wide' placeholder='ex. A very long value can fit in here.'>
+      </p>
+    </form>
+  ```
 */
-.clm-form input[type=text], .clm-form input[type=number], .clm-form input[type=email],
-.clm-form input[type=password], .clm-form textarea {
-  width: 95% !important;
+.clm-form {
+  label {
+    color: $off-black;
 
-  &[required].ng-invalid {
-    border-left: 5px solid $invalid-red !important;
+    &.disabled {
+      color: $grey-4;
+    }
   }
-  &[required].ng-valid {
-    border-left: 5px solid $valid-green !important;
+
+  input[type=text], input[type=number], input[type=email], input[type=password], textarea {
+    @extend body;
+    @include box-shadow(none);
+    @include border-radius(0);
+    @include size(22px, 240px);
+
+    padding: 4px 8px;
+    border: 1px solid $grey-4;
+    border-left: 4px solid $valid-green;
+
+    &.wide {
+      width: 395px;
+    }
+
+    &[required] {
+      &.ng-invalid {
+        border-left-color: $invalid-red;
+      }
+      &.ng-valid {
+        border-left-color: $valid-green;
+      }
+    }
+    &.ng-valid.ng-dirty {
+      border-color: $valid-green;
+    }
+    &.ng-invalid.ng-dirty {
+      border-color: $invalid-red;
+    }
+    &.ng-untouched {
+      border-left: 4px double $valid-green;
+    }
+
+    &:disabled {
+      border-color: $grey-3;
+      border-left: 4px double $grey-3;
+      background: $white;
+    }
   }
-  &:not([required]) {
-    border-left: 5px solid $valid-green !important;
-  }
-  &.ng-valid.ng-dirty {
-    border: 1px solid $valid-green !important;
-    border-left-width: 5px !important;
-  }
-  &.ng-invalid.ng-dirty {
-    border: 1px solid $invalid-red !important;
-    border-left-width: 5px !important;
+
+  input[type=text].with-threat-dropdown {
+    width: 421px !important;
   }
 }
+/*
+  ##Radio inputs
 
-.clm-form input[type=text].with-threat-dropdown {
-  width: 421px !important;
+  ```
+    <form class='clm-form' style='padding: 5px'>
+      <label class="radio">
+        <input type="radio" name="optionsRadios" id="optionOne" value="one" checked>
+        <span>Selected option</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="optionsRadios" id="optionTwo" value="two">
+        <span>Unselected option</span>
+      </label>
+      <label class="radio disabled">
+        <input type="radio" name="optionsRadios" id="optionThree" value="three" disabled>
+        <span>Disabled option label requires the disabled class</span>
+      </label>
+    </form>
+  ```
+*/
+.clm-form {
+  .radio {
+    display: block;
+    cursor: pointer;
+    margin-bottom: 12px;
+
+    // Monochrome radio button to override native implementation. Native is hidden and pseudo selectors on the label's
+    // text's span build a monochrome circle
+    input[type=radio] {
+      border: 0;
+      clip: rect(0, 0, 0, 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      width: 1px;
+
+      & + span {
+        display: block;
+      }
+
+      & + span:before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        vertical-align: 0;
+        border-radius: 8px;
+        border: 3px solid $white;
+        box-shadow: 0 0 0 1px $black;
+        margin-right: 8px;
+      }
+
+      &:checked + span:before {
+        background: black;
+      }
+
+      // Implementations for focus marker on custom radio button
+      &:focus + span:before {
+        // IE
+        outline: thin dotted invert;
+        // Webkit
+        outline: 4px auto -webkit-focus-ring-color;
+        outline-offset: -2px;
+      }
+
+      @-moz-document url-prefix() {
+        // Mozilla
+        &:focus + span:before {
+          outline: 4px solid transparentize($light-blue, 0.5);
+          outline-offset: -2px;
+        }
+      }
+    }
+
+    &.disabled {
+      color: $slate;
+      cursor: not-allowed;
+
+      input[type=radio] {
+        & + span:before {
+          box-shadow: 0 0 0 1px $slate;
+        }
+
+        &:checked + span:before {
+          background: $slate;
+        }
+      }
+    }
+  }
+}
+/*
+  ##Checkbox inputs
+
+  ```
+    <form class='clm-form' style='padding: 5px'>
+      <label class="checkbox">
+        <input type="checkbox" value="one" checked>
+        <span>Selected option</span>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" value="two">
+        <span>Unselected option</span>
+      </label>
+      <label class="checkbox disabled">
+        <input type="checkbox" value="two" disabled>
+        <span>Disabled option label requires disabled class</span>
+      </label>
+    </form>
+  ```
+*/
+.clm-form {
+  .checkbox {
+    display: block;
+    cursor: pointer;
+    margin-bottom: 12px;
+
+    // Monochrome checkbox to override native implementation. Native is hidden and pseudo selectors on the label's
+    // text's span build a monochrome square
+    input[type=checkbox] {
+      border: 0;
+      clip: rect(0, 0, 0, 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      width: 1px;
+
+      & + span {
+        display: block;
+        position: relative;
+      }
+
+      & + span:before {
+        content: '';
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        vertical-align: 0;
+        border-radius: 2px;
+        border: 1px solid $slate;
+        margin-right: 8px;
+      }
+
+      &:checked + span:after {
+        font: normal normal normal 14px/1 FontAwesome;
+        content: "\f00c";
+        display: inline-block;
+        position: absolute;
+        left: 2px;
+        top: 2px;
+      }
+
+      // Implementations for focus marker on custom checkbox
+      &:focus + span:before {
+        // IE
+        outline: thin dotted invert;
+        // Webkit
+        outline: 4px auto -webkit-focus-ring-color;
+        outline-offset: -2px;
+      }
+
+      @-moz-document url-prefix() {
+        // Mozilla
+        &:focus + span:before {
+          outline: 4px solid transparentize($light-blue, 0.5);
+          outline-offset: -2px;
+        }
+      }
+    }
+
+    &.disabled {
+      color: $slate;
+      cursor: not-allowed;
+
+      input[type=radio] {
+        & + span:before {
+          border-color: $slate;
+        }
+
+        &:checked + span:after {
+          color: $slate;
+        }
+      }
+    }
+  }
 }
 
 .clm-primary-buttons {
@@ -65,11 +288,33 @@
   Toggle switches use the [Bootstrap Toggle](http://www.bootstraptoggle.com/) plugin. Height is set programmatically
   to 32px using "height: '24px'", where there is 8px of margins.
 
+  Markup:
   ```
     <div class="checkbox toggle-checkbox">
       <label>
         <input type="checkbox" toggle-checkbox data-on="Can" data-off="Cannot" ng-model="permission.value">
         Do Action
+      </label>
+    </div>
+  ```
+
+  Rendered:
+  ```
+    <div class="checkbox toggle-checkbox">
+      <label>
+        <div class="toggle btn btn-primary" style="width: 53px; height: 24px;">
+          <input type="checkbox">
+          <div class="toggle-group">
+            <label class="btn btn-primary toggle-on" style="line-height: 24px;">
+              Can
+            </label>
+            <label class="btn btn-default active toggle-off" style="line-height: 24px;">
+              Cannot
+            </label>
+            <span class="toggle-handle btn btn-default"></span>
+          </div>
+        </div>
+        <span>Edit</span>
       </label>
     </div>
   ```

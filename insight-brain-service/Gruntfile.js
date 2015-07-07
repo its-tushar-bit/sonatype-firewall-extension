@@ -267,6 +267,7 @@
             template: {
               include: [
                 '<%= config.temp %>/scss/bootstrap.css',
+                '<%= config.frontend %>/assets/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
                 '<%= config.frontend %>/assets/lib/components-font-awesome/css/font-awesome.css',
                 '<%= config.temp %>/styleguide.css'
               ]

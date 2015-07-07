@@ -81,7 +81,7 @@ describe('ManagementModule', function() {
     });
 
     it('filters organizations', function() {
-      scope.filter = 'ONE';
+      scope.filter.value = 'ONE';
       scope.$digest();
 
       expect(scope.organizations).toBeDefined();
@@ -111,7 +111,7 @@ describe('ManagementModule', function() {
     });
 
     it('filters applications', function() {
-      scope.filter = 'TEN';
+      scope.filter.value = 'TEN';
       scope.$digest();
 
       expect(scope.organizations).toBeDefined();

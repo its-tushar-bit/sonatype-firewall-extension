@@ -10,10 +10,10 @@
           <div class="tree-view-filter search input-prepend">
             <span class="add-on">
               <i role="button" class="fa fa-filter"
-                 ng-class="{ 'fa-filter': !filter, 'fa-times': filter }"
-                 ng-click="filter = ''"></i>
+                 ng-class="{ 'fa-filter': !filter.value, 'fa-times': filter.value }"
+                 ng-click="filter.value = ''"></i>
             </span>
-            <input type="text" ng-model="filter" autocomplete="off" placeholder="App or Org Name / ID">
+            <input type="text" ng-model="filter.value" autocomplete="off" placeholder="App or Org Name / ID">
           </div>
           <div class="tree-view-new-organization">
             <button class="btn btn-secondary"

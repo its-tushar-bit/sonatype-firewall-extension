@@ -34,8 +34,8 @@
   }]);
 
   managementModule.controller('OwnerTreeViewController', [
-    '$q', '$scope', '$state', 'OrganizationStore', 'ApplicationStore',
-    function($q, $scope, $state, organizationStore, applicationStore) {
+    '$q', '$scope', '$state', '$stateParams', 'OrganizationStore', 'ApplicationStore',
+    function($q, $scope, $state, $stateParams, organizationStore, applicationStore) {
       function isOrganizationOrChildSelected(organization) {
         var isOrganizationViewed = $state.includes('management.organization-view', {organizationId: organization.id});
         if (isOrganizationViewed) {
@@ -95,15 +95,16 @@
           return;
         }
 
+        var filter = $scope.filter.value;
         var filteredOrganizations = [];
-        if ($scope.filter && $scope.filter.length >= 3) {
+        if (filter && filter.length >= 3) {
           var organizationFuse = new Fuse($scope.organizations, {
             id: 'id',
             threshold: 0.3,
             keys: [ 'name' ]
           });
 
-          filteredOrganizations = organizationFuse.search($scope.filter);
+          filteredOrganizations = organizationFuse.search(filter);
         }
 
         for (var i = 0; i < $scope.organizations.length; i++) {
@@ -112,11 +113,11 @@
               anyApplicationVisible = false,
               filteredApplications;
 
-          if (!$scope.filter || $scope.filter.length < 3 || filteredOrganizations.indexOf(organization.id) > -1) {
+          if (!filter || filter.length < 3 || filteredOrganizations.indexOf(organization.id) > -1) {
             organizationVisible = true;
           }
 
-          if ($scope.filter && $scope.filter.length >= 3) {
+          if (filter && filter.length >= 3) {
             var applicationFuse = new Fuse(organization.applications, {
               id: 'id',
               threshold: 0.3,
@@ -125,24 +126,27 @@
                 'name'
               ]
             });
-            filteredApplications = applicationFuse.search($scope.filter);
+            filteredApplications = applicationFuse.search(filter);
           }
 
           for (var j = 0; j < organization.applications.length; j++) {
             var application = organization.applications[j];
 
-            application.isVisible = organizationVisible || !$scope.filter || $scope.filter.length < 3 ||
+            application.isVisible = organizationVisible || !filter || filter.length < 3 ||
               filteredApplications.indexOf(application.id) > -1;
             anyApplicationVisible = anyApplicationVisible || application.isVisible;
           }
 
-          organization.isExpanded = !$scope.filter ||
-            $scope.filter.length < 3 ? organization.isExpanded : anyApplicationVisible;
+          organization.isExpanded = !filter ||
+            filter.length < 3 ? organization.isExpanded : anyApplicationVisible;
           organization.isVisible = organizationVisible || anyApplicationVisible;
         }
       }
 
       $scope.$state = $state;
+      $scope.filter = {
+        value: ''
+      };
 
       $scope.doLoad = function() {
         delete $scope.error;
@@ -162,8 +166,8 @@
         });
       };
 
-      $scope.$watch('filter', function() {
-        filter($scope.organizations, $scope.filter);
+      $scope.$watch('filter.value', function() {
+        filter();
       }, function(error) {
         $scope.error = error;
       });

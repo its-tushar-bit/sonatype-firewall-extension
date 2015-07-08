@@ -9,7 +9,7 @@ describe('ManagementModule', function() {
       }
     })
   }));
-  beforeEach(module('ManagementModule'));
+  beforeEach(module('ManagementModule', 'OwnerModule'));
 
   afterEach(inject(function($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();

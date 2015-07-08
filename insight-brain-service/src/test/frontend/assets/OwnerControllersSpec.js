@@ -76,12 +76,10 @@ describe('OwnerControllers', function () {
         var ownerResource;
         beforeEach(inject(['$controller', '$rootScope', function ($controller, $rootScope) {
           ownerResource = {
-            $clone : function () {
-              return {
-                $save : angular.noop,
-                isDirty : angular.noop
-              };
-            }
+            $new : true,
+            $save : angular.noop,
+            isDirty : angular.noop,
+            $clone : angular.noop
           };
 
           controllerScope = $rootScope.$new();
@@ -91,7 +89,8 @@ describe('OwnerControllers', function () {
           $controller('OwnerEditorController', {
             $scope : controllerScope,
             owner : ownerResource,
-            ownerType : type
+            ownerType : type,
+            siblings : []
           });
         }]));
 
@@ -128,7 +127,7 @@ describe('OwnerControllers', function () {
                 controllerScope.dirtyOwner.publicId = 'my-new';
               }
             });
-            expect(ownerResource.name).toBeUndefined();
+            expect(ownerResource.name).toEqual('My new ' + type); // new objects work with the original
 
             controllerScope.save();
           });
@@ -149,7 +148,7 @@ describe('OwnerControllers', function () {
             expect($state.go).toHaveBeenCalledWith('management.' + type + '-view', type === 'application' ? {
               applicationPublicId: controllerScope.dirtyOwner.publicId
             } : {
-              id: 'abcd'
+              organizationId: 'abcd'
             });
             expect(controllerScope.$close).toHaveBeenCalled();
           }));

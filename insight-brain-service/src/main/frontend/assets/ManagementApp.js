@@ -34,8 +34,8 @@
   }]);
 
   managementModule.controller('OwnerTreeViewController', [
-    '$q', '$scope', '$state', '$stateParams', 'OrganizationStore', 'ApplicationStore',
-    function($q, $scope, $state, $stateParams, organizationStore, applicationStore) {
+    '$q', '$scope', '$state', '$stateParams', 'OrganizationStore', 'ApplicationStore', 'OwnerEditor',
+    function($q, $scope, $state, $stateParams, organizationStore, applicationStore, OwnerEditor) {
       function isOrganizationOrChildSelected(organization) {
         var isOrganizationViewed = $state.includes('management.organization-view', {organizationId: organization.id});
         if (isOrganizationViewed) {
@@ -143,6 +143,8 @@
         }
       }
 
+      var applications, organizations;
+
       $scope.$state = $state;
       $scope.filter = {
         value: ''
@@ -157,13 +159,23 @@
         ];
 
         $q.all(loadPromises).then(function(results) {
-          var organizations = angular.copy(results[0]),
-              applications = angular.copy(results[1]);
+          organizations = results[0];
+          applications = results[1];
 
-          create(organizations, applications);
+          create(angular.copy(organizations), angular.copy(applications));
         }, function(error) {
           $scope.error = error;
         });
+      };
+
+      $scope.createApplication = function (parent) {
+        var application = applicationStore.create();
+        application.organizationId = parent.id;
+        OwnerEditor.open(application, 'application', applications);
+      };
+
+      $scope.createOrganization = function () {
+        OwnerEditor.open(organizationStore.create(), 'organization', organizations);
       };
 
       $scope.$watch('filter.value', function() {

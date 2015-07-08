@@ -7,32 +7,108 @@
 (function () {
   'use strict';
 
-  var module = angular.module('OwnerModule', ['Stores']);
+  var module = angular.module('OwnerModule', ['Stores', 'ui.bootstrap']);
 
-  module.controller('OwnerSummaryController', ['$scope', '$state', 'ApplicationStore', 'OrganizationStore', function ($scope, $state, ApplicationStore,OrganizationStore) {
-    $scope.doLoad = function () {
-      var isApp = $state.current.name.indexOf('application') !== -1,
-          stateIdField = isApp ? 'applicationPublicId' : 'organizationId',
-          idField = isApp ? 'publicId' : 'id';
+  module.controller('OwnerSummaryController', ['$scope', '$state', 'OwnerEditor', 'ApplicationStore', 'OrganizationStore',
+      function($scope, $state, OwnerEditor, ApplicationStore, OrganizationStore) {
+        var siblings;
 
-      $scope.type = isApp ? 'application' : 'organization';
-      delete $scope.error;
+        $scope.doLoad = function() {
+          var isApp = $state.current.name.indexOf('application') !== -1, stateIdField = isApp ? 'applicationPublicId'
+                  : 'organizationId', idField = isApp ? 'publicId' : 'id';
 
-      (isApp ? ApplicationStore : OrganizationStore).get().then(function (candidates) {
-        angular.forEach(candidates, function (candidate) {
-          if (candidate[idField] === $state.params[stateIdField]) {
-            $scope.owner = candidate;
+          $scope.type = isApp ? 'application' : 'organization';
+          delete $scope.error;
+
+          (isApp ? ApplicationStore : OrganizationStore).get().then(function(candidates) {
+            siblings = candidates;
+            angular.forEach(candidates, function(candidate) {
+              if (candidate[idField] === $state.params[stateIdField]) {
+                $scope.owner = candidate;
+              }
+            });
+
+            if (!$scope.owner) {
+              $scope.error = 'Unable to locate ' + $scope.type;
+            }
+          }, function() {
+            $scope.error = arguments;
+          });
+        };
+
+        $scope.edit = function() {
+          OwnerEditor.open($scope.owner, $scope.type, siblings);
+        };
+
+        $scope.doLoad();
+      }]);
+
+  module.controller('OwnerEditorController', ['$scope', '$state', 'owner', 'ownerType', 'siblings', 'Messages',
+      function($scope, $state, owner, ownerType, siblings, messages) {
+        $scope.dirtyOwner = owner.$new ? owner : owner.$clone(); // only create a copy for an existing
+        $scope.ownerType = ownerType;
+        $scope.siblings = siblings;
+
+        $scope.save = function() {
+          var isNew = owner.$new;
+          delete $scope.error;
+
+          $scope.dirtyOwner.$save().then(function(updatedOwner) {
+            if (isNew) {
+              $state.go('management.' + ownerType + '-view', ownerType === 'application' ? {
+                applicationPublicId: updatedOwner.publicId
+              } : {
+                organizationId: updatedOwner.id
+              });
+            }
+            $scope.$close();
+          }, function(error) {
+            $scope.error = messages.getHttpErrorMessage(error);
+          });
+        };
+
+        $scope.getTypeName = function() {
+          return ownerType === 'application' ? 'Application' : 'Organization';
+        };
+
+        $scope.cancel = function() {
+          $scope.$dismiss();
+        };
+
+        $scope.$on('pageChangeStarted', function(event) {
+          if ($scope.dirtyOwner.isDirty()) {
+            event.preventDefault();
           }
         });
 
-        if (!$scope.owner) {
-          $scope.error = 'Unable to locate ' + $scope.type;
-        }
-      }, function () {
-        $scope.error = arguments;
-      });
+        $scope.$on('pageChangeAccepted', function() {
+          $scope.$dismiss();
+        });
+      }]);
+
+  module.service('OwnerEditor', ['$modal', function($modal) {
+    return {
+      open: function(owner, ownerType, siblings) {
+        $modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          controller: 'OwnerEditorController',
+          templateUrl: 'components/owner-editor.html',
+          resolve: {
+            owner: function() {
+              return owner;
+            },
+            ownerType: function() {
+              return ownerType;
+            },
+            siblings: function () {
+              return siblings;
+            }
+          }
+        });
+      }
     };
-    $scope.doLoad();
   }]);
 
   module.directive('ownerImage', ['CLMAppLocations', function (CLMAppLocations) {
@@ -59,5 +135,4 @@
       }
     };
   }]);
-
 }());

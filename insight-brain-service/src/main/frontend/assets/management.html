@@ -16,8 +16,7 @@
             <input type="text" ng-model="filter.value" autocomplete="off" placeholder="App or Org Name / ID">
           </div>
           <div class="tree-view-new-organization">
-            <button class="btn btn-secondary"
-                    ui-sref="management.organization-view({organizationId: '_new_'})">
+            <button class="btn" ng-click="createOrganization()">
               <i class="fa fa-plus"></i>
               New Organization
             </button>
@@ -40,10 +39,10 @@
            -->{{organization.name}}
               <div class="tree-view-new-application"
                    ng-class="{ hide : !$state.includes('management.organization-view', {organizationId: organization.id}) }">
-                <button class="btn btn-secondary"
+                <button class="btn"
                         ng-click="$event.preventDefault();
-                                $event.stopPropagation();
-                                $state.go('management.application-view', {applicationPublicId: '_new_'});">
+                                  $event.stopPropagation();
+                                  createApplication(organization);">
                   <i class="fa fa-plus"></i>
                   New Application
                 </button>

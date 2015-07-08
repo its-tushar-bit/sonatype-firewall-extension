@@ -41,6 +41,10 @@ public class OwnerTreeView
     );
   }
 
+  public static SelenideElement newOrganizationButton() {
+    return $(".tree-view-new-organization button");
+  }
+
   public static class OrganizationNode
   {
     private final SelenideElement element;
@@ -61,7 +65,7 @@ public class OwnerTreeView
     }
 
     public SelenideElement newApplicationButton() {
-      return element.$(".tree-view-new-application");
+      return element.$(".tree-view-new-application button");
     }
 
     public ElementsCollection applicationElements() {

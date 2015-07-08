@@ -3,6 +3,7 @@ describe('OwnerControllers', function () {
 
   function createTests(type, storeName, owner) {
     var promise,
+        refreshPromise,
         controllerScope;
 
     function callPromiseError() {
@@ -15,6 +16,7 @@ describe('OwnerControllers', function () {
 
     beforeEach(function () {
       promise = { then : jasmine.createSpy('promiseThen') };
+      refreshPromise = { then : jasmine.createSpy('refreshPromiseThen') };
     });
 
     afterEach(function () {
@@ -24,6 +26,7 @@ describe('OwnerControllers', function () {
     describe('OwnerSummaryController', function () {
       beforeEach(inject(['$controller', '$rootScope', storeName, function ($controller, $rootScope, store) {
         spyOn(store, 'get').andReturn(promise);
+        spyOn(store, 'refresh').andReturn(refreshPromise);
 
         controllerScope = $rootScope.$new();
         $controller('OwnerSummaryController', {
@@ -63,8 +66,8 @@ describe('OwnerControllers', function () {
 
         // reload successfully
         controllerScope.doLoad();
-        expect(promise.then.calls.length).toEqual(2);
-        callPromiseSuccess([owner]);
+        expect(refreshPromise.then).toHaveBeenCalled();
+        refreshPromise.then.mostRecentCall.args[0]([owner]);
         expect(controllerScope.owner).toEqual(owner);
         expect(controllerScope.type).toEqual(type);
         expect(controllerScope.error).toBeUndefined();

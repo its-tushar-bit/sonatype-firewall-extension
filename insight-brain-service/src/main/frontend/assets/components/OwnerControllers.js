@@ -18,9 +18,8 @@
                   : 'organizationId', idField = isApp ? 'publicId' : 'id';
 
           $scope.type = isApp ? 'application' : 'organization';
-          delete $scope.error;
 
-          (isApp ? ApplicationStore : OrganizationStore).get().then(function(candidates) {
+          (isApp ? ApplicationStore : OrganizationStore)[$scope.error ? 'refresh' : 'get']().then(function(candidates) {
             siblings = candidates;
             angular.forEach(candidates, function(candidate) {
               if (candidate[idField] === $state.params[stateIdField]) {
@@ -34,6 +33,8 @@
           }, function() {
             $scope.error = arguments;
           });
+
+          delete $scope.error;
         };
 
         $scope.edit = function() {

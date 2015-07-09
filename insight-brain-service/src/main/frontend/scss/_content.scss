@@ -109,7 +109,11 @@
   max-width: 1246px;
   height: 100%;
   overflow: auto;
-  background : url("../img/tile_bg_@2X.jpg");
+  background : url("../img/tile_bg.png");
+
+  @media only screen and (-webkit-device-pixel-ratio: 2) {
+    background: url("../img/tile_bg_@2X.jpg");
+  }
 }
 
 /*

@@ -482,7 +482,6 @@
 /*
   ##Form Actions
 ```
-    <button type='button' class='btn btn-link btn-cancel'>Cancel</button>
     <button type='button' class='btn'>Reset</button>
     <button type='button' class='btn btn-warning'>Update</button>
     <button type='button' class='btn btn-success'>Action</button>
@@ -490,17 +489,6 @@
     <button type='button' class='btn btn-primary' disabled>Submit</button>
 ```
 */
-
-.btn-cancel {
-  color: $gray !important;
-  box-sizing: content-box;
-  padding-left: 0;
-  padding-right:0;
-}
-.btn-cancel:hover {
-  color: darken($gray, 25%) !important;
-}
-
 .btn-primary.disabled, .btn-primary[disabled] {
   color: $off-white;
   background-color: $light-blue;

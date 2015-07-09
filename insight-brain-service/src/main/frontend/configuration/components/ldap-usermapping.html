@@ -94,10 +94,10 @@
     <div clm-alerts='alerts'></div>
     <button id='ldap-mapping-cancel' class="btn btn-link btn-cancel" ng-disabled="!isDirty()" ng-click="reset()">Cancel</button>
     <div class="pull-right clm-primary-buttons">
-      <button id='ldap-mapping-check' class='btn btn-success' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress"
+      <button id='ldap-mapping-check' class='btn btn-tertiary' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress"
               ng-click="checkUserMapping()">Check User Mapping
       </button>
-      <button id='ldap-mapping-checklogin' class='btn btn-success' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress"
+      <button id='ldap-mapping-checklogin' class='btn btn-tertiary' ng-disabled="ldapUserMappingEditor.$invalid || testInProgress"
               ng-click="checkLogin()">Check Login
       </button>
       <button id='ldap-mapping-save' class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>

@@ -135,10 +135,7 @@
   color: $fail-fg;
   border-radius: 0px;
 
-  .btn-danger {
-    background-color: $fail-fg;
-    background-image: initial;
-    background-repeat: initial;
+  .btn {
     margin-top: 24px;
   }
 

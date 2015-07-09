@@ -316,7 +316,7 @@ var AngularStateUtils = {
             '<span>{{message || "An error occurred loading data."}} </span>' +
             '<span ng-if="error">{{getDetails()}}</span>' +
             '</div>' +
-            '<div><button type="button" class="btn btn-danger" ng-click="reload()">' +
+            '<div><button type="button" class="btn btn-error" ng-click="reload()">' +
             '<i class="fa fa-refresh"></i>Retry</button></div></div>',
         scope: {
           error: '=loadError',

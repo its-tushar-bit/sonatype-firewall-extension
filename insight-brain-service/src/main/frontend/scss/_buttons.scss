@@ -88,8 +88,8 @@
   }
 
   &.btn-error {
-    background-color: $fail-bg;
-    color: $fail-fg;
+    background-color: $fail-fg;
+    color: $off-white;
     border-color: $fail-fg;
 
     &.disabled, &[disabled] {

@@ -62,7 +62,7 @@
   <div ng-show='!saving && ldapConn'>
     <button id='ldap-connection-cancel' class="btn btn-link btn-cancel" ng-disabled="!isDirty()" ng-click="reset()">Cancel</button>
     <div class="pull-right clm-primary-buttons">
-      <button id='ldap-connection-test' class='btn btn-success' ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
+      <button id='ldap-connection-test' class='btn btn-tertiary' ng-disabled="ldapConnectionEditor.$invalid || testInProgress"
               ng-click="testConnection()">Test Connection
       </button>
       <button id='ldap-connection-save' class="btn btn-primary" ng-disabled="!canSaveEdit()" ng-click="save()">Save</button>

@@ -7,6 +7,7 @@
       <label for="editor-owner-name">{{::getTypeName()}} Name</label>
       <input type="text" ng-model="dirtyOwner.name" name="name" id="editor-owner-name"
              focus-input="true"
+             ng-maxlength='60'
              ng-required="true"
              has-whitespace="suggestedName"
              valid-name-characters
@@ -15,6 +16,7 @@
       <div ng-if="ownerType === 'application' && !(dirtyOwner.id)">
         <label for="editor-owner-public-id">Application Id</label>
         <input type="text" name="publicId" id="editor-owner-public-id"
+               ng-maxlength='50'
                ng-model="dirtyOwner.publicId"
                ng-required="true"
                no-spaces="true"

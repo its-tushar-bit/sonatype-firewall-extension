@@ -101,8 +101,12 @@
         <span>Unselected option</span>
       </label>
       <label class="radio disabled">
-        <input type="radio" name="optionsRadios" id="optionThree" value="three" disabled>
+        <input type="radio" name="disabledOptionsRadios" id="optionThree" value="three" disabled>
         <span>Disabled option label requires the disabled class</span>
+      </label>
+      <label class="radio disabled">
+        <input type="radio" name="disabledOptionsRadios" id="optionFour" value="four" checked disabled>
+        <span>Disabled checked option label requires the disabled class</span>
       </label>
     </form>
   ```
@@ -112,6 +116,7 @@
     display: block;
     cursor: pointer;
     margin-bottom: 12px;
+    padding-left: 24px;
 
     // Monochrome radio button to override native implementation. Native is hidden and pseudo selectors on the label's
     // text's span build a monochrome circle
@@ -126,23 +131,41 @@
       width: 1px;
 
       & + span {
-        display: block;
+        position: relative;
+        padding-left: 24px;
+        cursor: pointer;
+        display: inline-block;
+        height: 25px;
+        line-height: 25px;
+        font-size: 1rem;
+      }
+
+      & + span:before, & + span:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin-top: 3px;
+        width: 16px;
+        height: 16px;
+        z-index: 0;
       }
 
       & + span:before {
-        content: '';
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        vertical-align: 0;
-        border-radius: 8px;
-        border: 3px solid $white;
-        box-shadow: 0 0 0 1px $black;
-        margin-right: 8px;
+        border-radius: 50%;
+        border: 1px solid $slate;
       }
 
-      &:checked + span:before {
-        background: black;
+      &:checked + span:after {
+        border-radius: 50%;
+        border: 1px solid $slate;
+        background-color: $slate;
+        z-index: 0;
+        -webkit-transform: scale(.5);
+        -moz-transform: scale(.5);
+        -ms-transform: scale(.5);
+        -o-transform: scale(.5);
+        transform: scale(.5);
       }
 
       // Implementations for focus marker on custom radio button
@@ -150,8 +173,8 @@
         // IE
         outline: thin dotted invert;
         // Webkit
-        outline: 4px auto -webkit-focus-ring-color;
-        outline-offset: -2px;
+        outline: 20px auto -webkit-focus-ring-color;
+        outline-offset: -8px;
       }
 
       @-moz-document url-prefix() {
@@ -164,16 +187,14 @@
     }
 
     &.disabled {
-      color: $slate;
-      cursor: not-allowed;
-
       input[type=radio] {
         & + span:before {
-          box-shadow: 0 0 0 1px $slate;
+          border-color: $grey-4;
         }
 
-        &:checked + span:before {
-          background: $slate;
+        &:checked + span:after {
+          border-color: $grey-4;
+          background-color: $grey-4;
         }
       }
     }
@@ -193,8 +214,12 @@
         <span>Unselected option</span>
       </label>
       <label class="checkbox disabled">
-        <input type="checkbox" value="two" disabled>
+        <input type="checkbox" value="three" disabled>
         <span>Disabled option label requires disabled class</span>
+      </label>
+      <label class="checkbox disabled">
+        <input type="checkbox" value="two" checked disabled>
+        <span>Disabled checked option label requires disabled class</span>
       </label>
     </form>
   ```
@@ -204,6 +229,7 @@
     display: block;
     cursor: pointer;
     margin-bottom: 12px;
+    padding-left: 24px;
 
     // Monochrome checkbox to override native implementation. Native is hidden and pseudo selectors on the label's
     // text's span build a monochrome square
@@ -227,7 +253,7 @@
         display: inline-block;
         width: 16px;
         height: 16px;
-        vertical-align: 0;
+        vertical-align: -4px;
         border-radius: 2px;
         border: 1px solid $slate;
         margin-right: 8px;
@@ -261,9 +287,6 @@
     }
 
     &.disabled {
-      color: $slate;
-      cursor: not-allowed;
-
       input[type=radio] {
         & + span:before {
           border-color: $slate;

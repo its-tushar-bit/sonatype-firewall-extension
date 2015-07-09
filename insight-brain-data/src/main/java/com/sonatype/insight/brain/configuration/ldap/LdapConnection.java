@@ -121,7 +121,7 @@ public class LdapConnection
    * @since 1.7
    */
   @Column(name = "retry_delay")
-  private long retryDelay = 300;
+  private long retryDelay = 30;
 
   public LdapConnection() {
   }

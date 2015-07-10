@@ -113,6 +113,8 @@
 */
 .clm-form {
   .radio {
+    @extend .regular;
+    font-size: 14px;
     display: block;
     cursor: pointer;
     margin-bottom: 12px;
@@ -124,7 +126,6 @@
       border: 0;
       clip: rect(0, 0, 0, 0);
       height: 1px;
-      margin: -1px;
       overflow: hidden;
       padding: 0;
       position: absolute;
@@ -135,9 +136,6 @@
         padding-left: 24px;
         cursor: pointer;
         display: inline-block;
-        height: 25px;
-        line-height: 25px;
-        font-size: 1rem;
       }
 
       & + span:before, & + span:after {
@@ -145,9 +143,9 @@
         position: absolute;
         left: 0;
         top: 0;
-        margin-top: 3px;
-        width: 16px;
-        height: 16px;
+        margin-top: 2px;
+        width: 14px;
+        height: 14px;
         z-index: 0;
       }
 
@@ -173,8 +171,8 @@
         // IE
         outline: thin dotted invert;
         // Webkit
-        outline: 20px auto -webkit-focus-ring-color;
-        outline-offset: -8px;
+        outline: 16px auto -webkit-focus-ring-color;
+        outline-offset: -7px;
       }
 
       @-moz-document url-prefix() {
@@ -226,6 +224,8 @@
 */
 .clm-form {
   .checkbox {
+    @extend .regular;
+    font-size: 14px;
     display: block;
     cursor: pointer;
     margin-bottom: 12px;
@@ -251,9 +251,9 @@
       & + span:before {
         content: '';
         display: inline-block;
-        width: 16px;
-        height: 16px;
-        vertical-align: -4px;
+        width: 14px;
+        height: 14px;
+        vertical-align: -3px;
         border-radius: 2px;
         border: 1px solid $slate;
         margin-right: 8px;
@@ -264,8 +264,8 @@
         content: "\f00c";
         display: inline-block;
         position: absolute;
-        left: 2px;
-        top: 2px;
+        left: 1px;
+        top: 3px;
       }
 
       // Implementations for focus marker on custom checkbox

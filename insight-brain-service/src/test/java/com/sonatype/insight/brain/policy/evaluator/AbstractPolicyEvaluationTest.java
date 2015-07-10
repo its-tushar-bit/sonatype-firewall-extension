@@ -39,7 +39,6 @@ public abstract class AbstractPolicyEvaluationTest
   protected ComponentPolicyEvaluator componentPolicyEvaluator = new ComponentPolicyEvaluator();
 
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
-    DroolsGenerator.generate(policy);
     return evaluate(new Stage(BuildStageType.ID), policy, components);
   }
 

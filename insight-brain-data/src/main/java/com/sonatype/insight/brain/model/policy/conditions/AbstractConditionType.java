@@ -53,6 +53,8 @@ public abstract class AbstractConditionType<T>
     return internalEvaluateCondition(component, operator, value);
   }
 
+  protected abstract String generateDroolsConditionValue(String value);
+
   @Override
   public final String generateDroolsCode(Condition condition) {
     return "ConditionTypes." + getClass().getSimpleName() + ".evaluateCondition(this, \"" + condition.getOperator()

@@ -50,7 +50,7 @@
             </td>
             <td>
               <img class="image-thumbnail"
-                ng-src="{{'../rest/application/icon/' + (applicationComponent.application.publicId | EncodeURIComponent)}}">
+                ng-src="{{'../../rest/application/icon/' + (applicationComponent.application.publicId | EncodeURIComponent)}}">
               {{applicationComponent.application.organizationName}} : {{applicationComponent.application.name}}
             </td>
             <td class="share-risk-column"><span risk-pie risk="{{totalRisk === 0 ? 0 : (applicationComponent.risk/totalRisk)}}" height="24" width="24"

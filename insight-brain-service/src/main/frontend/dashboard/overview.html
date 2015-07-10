@@ -326,62 +326,65 @@
     <button class="btn btn-link btn-cancel" ng-click="$dismiss()">Close</button>
   </div>
 </script>
-<div class='container'>
+<div>
   <div filter-panel filters="filters" fatal-error="error"></div>
-  <div class='row'>
-    <div class='span12'>
-      <h1 class="left-align-h1 dashboard-section-header">
-        Dashboard
-        <button id="show-trend-dialog" class="btn pull-right btn-secondary" ng-click="showTrendDialog()">
-          <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
-        </button>
-      </h1>
+  <div class="dashboard-body-container">
+    <div breadcrumb></div>
+    <div class='row'>
+      <div class='span12'>
+        <h1 class="left-align-h1 dashboard-section-header">
+          Dashboard
+          <button id="show-trend-dialog" class="btn pull-right btn-secondary" ng-click="showTrendDialog()">
+            <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
+          </button>
+        </h1>
+      </div>
     </div>
-  </div>
-  <div class='row dashboard-summary-section'>
-    <div class="span6">
-      <div class="row" dashboard-view-summary filters="filters"></div>
+    <div class='row dashboard-summary-section'>
+      <div class="span6">
+        <div class="row" dashboard-view-summary filters="filters"></div>
+      </div>
+      <div class="span6">
+        <div class='row' dashboard-component-match-results filters="filters"></div>
+      </div>
     </div>
-    <div class="span6">
-      <div class='row' dashboard-component-match-results filters="filters"></div>
-    </div>
-  </div>
-  <div load-error='error' reload='doLoad()'></div>
-  <div class='row dashboard-tables' ng-hide='error'>
-    <div class='span12' id="highest-risk">
-      <ul class="nav nav-tabs scrollable-container-header">
-        <li>
-          <h4>Risk</h4>
-        </li>
-        <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.applications') }">
-          <a id='tab-button-application' ui-sref="dashboard.overview.applications">
-            <div>
-              By Application
-              <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.is('dashboard.overview.applications')">
-                <i id="application-heat-map-help-icon" class="glyphicons-sonatype help small"
-                  tooltip="Click here for help about the Application Heat Map" tooltip-placement="top"
-                  tooltip-append-to-body="true"></i>
+    <div load-error='error' reload='doLoad()'></div>
+    <div class='row dashboard-tables' ng-hide='error'>
+      <div class='span12' id="highest-risk">
+        <ul class="nav nav-tabs scrollable-container-header">
+          <li>
+            <h4>Risk</h4>
+          </li>
+          <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.applications') }">
+            <a id='tab-button-application' ui-sref="dashboard.overview.applications">
+              <div>
+                By Application
+                <div class="modal-help-icon" modal-help="application-heat-map-help" ng-if="$state.is('dashboard.overview.applications')">
+                  <i id="application-heat-map-help-icon" class="glyphicons-sonatype help small"
+                     tooltip="Click here for help about the Application Heat Map" tooltip-placement="top"
+                     tooltip-append-to-body="true"></i>
+                </div>
               </div>
-            </div>
-          </a>
-        </li>
-        <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.components') }">
-          <a id='tab-button-component' ui-sref="dashboard.overview.components">
-            <div>
-              By Component
-              <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.is('dashboard.overview.components')">
-                <i id="component-heat-map-help-icon" class="glyphicons-sonatype help small"
-                  tooltip="Click here for help about the Component Heat Map" tooltip-placement="top"
-                  tooltip-append-to-body="true"></i>
+            </a>
+          </li>
+          <li class="pull-right" ng-class="{ active : $state.is('dashboard.overview.components') }">
+            <a id='tab-button-component' ui-sref="dashboard.overview.components">
+              <div>
+                By Component
+                <div class="modal-help-icon" modal-help="component-heat-map-help" ng-if="$state.is('dashboard.overview.components')">
+                  <i id="component-heat-map-help-icon" class="glyphicons-sonatype help small"
+                     tooltip="Click here for help about the Component Heat Map" tooltip-placement="top"
+                     tooltip-append-to-body="true"></i>
+                </div>
               </div>
-            </div>
-          </a>
-        </li>
-        <li class="pull-right"  ng-class="{ active : $state.is('dashboard.overview.newest-risk') }">
-          <a id='tab-button-newest' ui-sref="dashboard.overview.newest-risk">Newest</a>
-        </li>
-      </ul>
-       <div ui-view></div>
+            </a>
+          </li>
+          <li class="pull-right"  ng-class="{ active : $state.is('dashboard.overview.newest-risk') }">
+            <a id='tab-button-newest' ui-sref="dashboard.overview.newest-risk">Newest</a>
+          </li>
+        </ul>
+        <div ui-view></div>
+      </div>
     </div>
   </div>
 </div>

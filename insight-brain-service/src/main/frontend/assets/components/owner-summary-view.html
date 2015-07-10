@@ -1,15 +1,38 @@
 <div class="tile-container">
-  <div class="tile" id='owner-summary' ng-controller="OwnerSummaryController">
+  <div class="tile summary-tile" id='owner-summary' ng-controller="OwnerSummaryController">
     <div load-wrapper="error" loading="!owner" reload="doLoad()">
       <h1><span owner-image="owner"></span> {{owner.name}}</h1>
       <div class="sub-header" ng-if="owner.description">{{owner.description}}</div>
-      <div class="pill-container">
-      </div>
       <button ng-click='edit()'>Edit</button>
+      <ul class="nav nav-pills">
+        <li class="active"><a data-toggle="pill" ng-href="">Application Types</a></li>
+        <li><a data-toggle="pill" ng-href="">Policy</a></li>
+        <li><a data-toggle="pill" ng-href="">Component Labels</a></li>
+        <li><a data-toggle="pill" ng-href="">License Threat Groups</a></li>
+        <li><a data-toggle="pill" ng-href="">Access</a></li>
+      </ul>
     </div>
-  </div>
-  <div class="tile">
-    <h2>Organization Name</h2>
-    <div class="sub-header">a description</div>
+  </div><!--
+  --><div class="tile-scroll-container">
+    <div class="tile">
+      <h2>Application Types</h2>
+      <div class="sub-header">a description</div>
+    </div>
+    <div class="tile">
+      <h2>Policy</h2>
+      <div class="sub-header">a description</div>
+    </div>
+    <div class="tile">
+      <h2>Component Labels</h2>
+      <div class="sub-header">a description</div>
+    </div>
+    <div class="tile">
+      <h2>License Threat Groups</h2>
+      <div class="sub-header">a description</div>
+    </div>
+    <div class="tile">
+      <h2>Access</h2>
+      <div class="sub-header">a description</div>
+    </div>
   </div>
 </div>

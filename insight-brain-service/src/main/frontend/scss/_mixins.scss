@@ -1,0 +1,10 @@
+@mixin main-content($top: '') {
+  max-width: 1366px;
+  min-width: 1024px;
+  width: 100%;
+  margin: 0 auto;
+
+  @if $top != '' {
+    height: calc(100vh - #{$top});
+  }
+}

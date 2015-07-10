@@ -83,22 +83,25 @@
     </div>
   ```
 */
-
+body {
+  //we want to let the navigation-container and body-container control the vertical scrolling
+  overflow-y: hidden;
+}
 .root-container {
-  margin: 39px auto 0px auto;
-  max-width: 1366px;
-  height: calc(100vh - 41px);
+  @include main-content(35px);
+  white-space: nowrap;
 }
 
 .navigation-container {
+  width: 22%;
   min-width: 215px;
-  max-width: 330px;
+  max-width: 300px;
   height: 100%;
-  width: 25%;
-  float: left;
+  display: inline-block;
   overflow: auto;
   background-color: $grey-2;
   border-right: 1px solid $grey-3;
+  white-space: normal;
 
   // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing
   // the background and text from disappearing. Witnessed on Chrome 43.0.2357.130 (64-bit) on a MBP laptop screen.
@@ -106,8 +109,72 @@
 }
 
 .body-container {
-  max-width: 1246px;
+  background : url("../img/tile_bg_@2X.jpg");
+  display: inline-block;
+  width: calc(78% - 1px);
   height: 100%;
+  white-space: normal;
+}
+
+/*
+  ##Single pane layout container
+
+  ```
+    <div class="dashboard-root-container">
+      <div class="dashboard-body-container">
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+      </div>
+    </div>
+  ```
+*/
+.dashboard-root-container {
+  @include main-content(35px);
+  margin-top: 10px;
+}
+
+.dashboard-body-container {
+  margin: 0px auto;
+  width: 850px;
+  @media (min-width: 1200px) {
+    width: 1110px;
+  }
+}
+
+/*
+  ##Single pane scrollable layout container
+
+  ```
+    <div class="dashboard-root-container">
+      <div class="dashboard-body-container">
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+        Place awesome content here<br>
+      </div>
+    </div>
+  ```
+*/
+.scrollable-root-container {
+  @include main-content(35px);
   overflow: auto;
   background : url("../img/tile_bg.png");
 

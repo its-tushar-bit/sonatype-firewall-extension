@@ -6,19 +6,68 @@
 ```
 <div class="body-container">
   <div class="tile-container">
-    <div class="tile">
+    <div class="tile summary-tile">
       <h1>First Tile</h1>
+      <ul class="nav nav-pills">
+        <li class="active"><a href="">Application Types</a></li>
+        <li><a href="">Policy</a></li>
+        <li><a href="">Component Labels</a></li>
+        <li><a href="">License Threat Groups</a></li>
+        <li><a href="">Access</a></li>
+      </ul>
     </div>
-    <div class="tile">
-      <h2>Another title</h2>
-      <div class="sub-header">Another day</div>
+    <div class="tile-scroll-container">
+      <div class="tile">
+        <h2>Another title</h2>
+        <div class="sub-header">Another day</div>
+      </div>
     </div>
   </div>
 </div>
 ```
 */
 .tile-container {
+  height: 100%;
+  min-width: 800px;
+  float: left;
+  width: 100%;
+}
+
+.tile-scroll-container {
   padding : 8px;
+  overflow-y: scroll;
+  overflow-x: visible;
+  width: calc(100% - 16px);
+  height: calc(100% - 150px);
+}
+
+.nav.nav-pills {
+  padding: 8px;
+  background-color: $grey-2;
+  margin-bottom: 0px;
+
+  a {
+    min-width: 100px;
+    padding: 8px 12px;
+    display: inline-block;
+    text-align: center;
+    border-radius: 4px;
+    color: inherit;
+
+    &:hover, &:focus {
+      color: inherit;
+      border: 1px solid $grey-4;
+      padding: 7px 11px;
+    }
+  }
+
+  li:not(:last-child) {
+    margin-right: 8px;
+  }
+
+  li.active > a {
+    background-color: $off-white;
+  }
 }
 
 .tile {
@@ -45,5 +94,9 @@
 
   &:last-child {
     margin-bottom : 0px;
+  }
+
+  &.summary-tile {
+    margin: 8px 24px 0px 8px;
   }
 }

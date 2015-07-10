@@ -217,7 +217,6 @@ $filter-item-top-bottom-padding: 10px;
   border-right: $small-gray-border;
   background-color: $main-background-color;
   overflow: hidden;
-  margin-left: -175px;
   z-index: 1;
 }
 
@@ -316,13 +315,6 @@ $filter-item-top-bottom-padding: 10px;
 .double-chevron-right:before, .double-chevron-left:before {
   padding-right: 13px;
   vertical-align: middle;
-}
-
-//to handle when header menu is two rows, make sure to drop the filter down
-@media (max-width: 800px) {
-  .filter-panel-container {
-    padding-top: 40px !important;
-  }
 }
 
 /*
@@ -740,7 +732,7 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 /*
 Dashboard tables
  ```
- <div class="dashboard-content">
+ <div class="dashboard-body-container">
   <ul class="nav nav-tabs scrollable-container-header">
     <li>
       <h4>Descriptor</h4>
@@ -776,15 +768,15 @@ Dashboard tables
  ```
 */
 
-.dashboard-content .nav.nav-tabs {
+.dashboard-root-container .nav.nav-tabs {
   margin:0px;
 }
 
-.dashboard-content .nav.nav-tabs .active {
+.dashboard-root-container .nav.nav-tabs .active {
   margin-bottom: 0px;
 }
 
-.dashboard-content .nav.nav-tabs .active a {
+.dashboard-root-container .nav.nav-tabs .active a {
   border-top: $dashboard-border;
   border-right: $dashboard-border;
   border-left: $dashboard-border;
@@ -792,15 +784,15 @@ Dashboard tables
   margin-bottom: -2px;
 }
 
-.dashboard-content h4 {
+.dashboard-root-container h4 {
   font-size : 19.5px
 }
 
-.dashboard-content .nav.nav-tabs h4 {
+.dashboard-root-container .nav.nav-tabs h4 {
   margin:0px;
   padding-top: 8px;
 }
 
-.dashboard-content td {
+.dashboard-root-container td {
   border-top: 0px;
 }

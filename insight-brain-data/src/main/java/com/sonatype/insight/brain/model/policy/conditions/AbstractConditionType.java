@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
 public abstract class AbstractConditionType<T>
-    implements ConditionType<T>
+    implements ConditionType
 {
   @Override
   public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
@@ -40,7 +40,6 @@ public abstract class AbstractConditionType<T>
 
   protected abstract boolean internalEvaluateCondition(Component component, String operator, T value);
 
-  @Override
   public final boolean evaluateCondition(Component component, String operator, T value) {
     /*
      * Only interested in facts about known components, or facts about match state and proprietary state of unknown

@@ -47,7 +47,7 @@ public class Condition
   }
 
   public ValidationResult validate(String ownerId) {
-    ConditionType<?> conditionType = ConditionTypes.getById(conditionTypeId);
+    ConditionType conditionType = ConditionTypes.getById(conditionTypeId);
     if (conditionType == null) {
       return new ValidationResult("Invalid condition type id: '" + conditionTypeId + "'");
     }

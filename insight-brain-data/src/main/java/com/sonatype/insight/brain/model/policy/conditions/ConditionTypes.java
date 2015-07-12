@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.policy.ConditionType;
 
 public class ConditionTypes
 {
-  private static final Map<String, ConditionType<?>> allConditionTypes = new LinkedHashMap<String, ConditionType<?>>();
+  private static final Map<String, ConditionType> allConditionTypes = new LinkedHashMap<>();
 
   // The instances below support the Drools code produced by AbstractConditionType.generateDroolsCode()
 
@@ -62,16 +62,16 @@ public class ConditionTypes
     add(IdentificationSourceConditionType);
   }
 
-  public static Collection<ConditionType<?>> getAll() {
+  public static Collection<ConditionType> getAll() {
     return allConditionTypes.values();
   }
 
-  public static ConditionType<?> getById(final String conditionTypeId) {
+  public static ConditionType getById(final String conditionTypeId) {
     // TODO throw exception if conditionTypeId is unknown
     return allConditionTypes.get(conditionTypeId);
   }
 
-  private static void add(final ConditionType<?> conditionType) {
+  private static void add(final ConditionType conditionType) {
     if (allConditionTypes.keySet().contains(conditionType.getId())) {
       throw new IllegalStateException("Duplicate condition type id: " + conditionType.getId());
     }

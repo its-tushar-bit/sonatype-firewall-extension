@@ -272,7 +272,7 @@ public class Policy
     SortedSet<PolicyThreatCategory> threatCategories = new TreeSet<>();
     for (Constraint constraint : getConstraints()) {
       for (Condition condition : constraint.getConditions()) {
-        ConditionType<?> conditionType = ConditionTypes.getById(condition.getConditionTypeId());
+        ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
         threatCategories.add(conditionType.getThreatCategory());
       }
     }

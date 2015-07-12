@@ -21,7 +21,7 @@ public class PolicyThreatCategoryUtil
     SortedSet<PolicyThreatCategory> policyThreatCategories = new TreeSet<>();
     for (ConstraintFact constraintFact : constraintFacts) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-        ConditionType<?> conditionType = ConditionTypes.getById(conditionFact.getConditionTypeId());
+        ConditionType conditionType = ConditionTypes.getById(conditionFact.getConditionTypeId());
         if (conditionType == null) {
           policyThreatCategories.add(PolicyThreatCategory.OTHER);
         }

@@ -64,7 +64,7 @@ public class LabelConditionType
   @Override
   public String generateDroolsConditionValue(String value) {
     Label label = new LabelDAO().getById(value);
-    return "\"" + value + "\"" + asDroolsComment("label: " + label.getLabel());
+    return asDroolsString(value) + asDroolsComment("label: " + label.getLabel());
   }
 
   @Override

@@ -43,7 +43,7 @@ public class IdentificationSourceConditionType
 
   @Override
   public String generateDroolsConditionValue(String value) {
-    return "\"" + value + "\"";
+    return asDroolsString(value);
   }
 
   @Override

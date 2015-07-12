@@ -43,7 +43,7 @@ public class MatchStateConditionType
 
   @Override
   public String generateDroolsConditionValue(String value) {
-    return "\"" + value + "\"";
+    return asDroolsString(value);
   }
 
   @Override

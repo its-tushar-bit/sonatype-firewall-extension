@@ -61,7 +61,7 @@ public class LicenseConditionType
 
   @Override
   public String generateDroolsConditionValue(String value) {
-    return "\"" + value + "\"";
+    return asDroolsString(value);
   }
 
   @Override

@@ -84,6 +84,10 @@ public abstract class AbstractConditionType<T>
     return "Integer.valueOf( " + value + " )";
   }
 
+  protected static String asDroolsFloat(String value) {
+    return "Float.valueOf( (float) " + value + " )";
+  }
+
   @Override
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.OTHER;

@@ -67,7 +67,7 @@ public class LicenseThreatGroupConditionType
 
   @Override
   public String generateDroolsConditionValue(String value) {
-    return "\"" + value + "\"" + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(value));
+    return asDroolsString(value) + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(value));
   }
 
   @Override

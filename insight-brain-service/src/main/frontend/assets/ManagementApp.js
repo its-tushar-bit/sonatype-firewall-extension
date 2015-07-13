@@ -121,10 +121,7 @@
             var applicationFuse = new Fuse(organization.applications, {
               id: 'id',
               threshold: 0.3,
-              keys: [
-                'publicId',
-                'name'
-              ]
+              keys: [ 'name' ]
             });
             filteredApplications = applicationFuse.search(filterValue);
           }

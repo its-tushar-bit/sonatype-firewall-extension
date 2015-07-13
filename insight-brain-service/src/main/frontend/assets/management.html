@@ -7,20 +7,23 @@
           Organizations and Applications
         </div>
         <div load-wrapper="error" loading="!organizations" reload="doLoad()">
-          <div class="tree-view-filter search input-prepend">
-            <span class="add-on">
-              <i role="button" class="fa fa-filter"
-                 ng-class="{ 'fa-filter': !filter.value, 'fa-times': filter.value }"
-                 ng-click="filter.value = ''"></i>
-            </span>
-            <input type="text" ng-model="filter.value" autocomplete="off" placeholder="App or Org Name / ID">
-          </div>
           <div class="tree-view-new-organization">
             <button class="btn" ng-click="createOrganization()">
               <i class="fa fa-plus"></i>
               New Organization
             </button>
           </div>
+          <div class="tree-view-filter search input-prepend">
+            <span class="add-on">
+              <i role="button" class="fa fa-filter"
+                 ng-class="{ 'fa-filter': !filter.value, 'fa-times': filter.value }"
+                 ng-click="filter.value = ''"></i>
+            </span>
+            <input type="text" ng-model="filter.value" autocomplete="off" placeholder="App or Org Name">
+          </div>
+          <h4 ng-if="filter.value && filter.value.length >= 3">
+            Filter Results
+          </h4>
           <div class="tree-view-organization-group"
                ng-repeat="organization in organizations | orderBy:'name'"
                ng-if="organization.isVisible">
@@ -28,13 +31,16 @@
                ng-class="{ selected : $state.includes('management.organization-view', {organizationId: organization.id}) }"
                ui-sref="management.organization-view({organizationId: organization.id})"
                ng-click="organization.isExpanded = true">
-              <span class="twisty"
-                    ng-class="{ empty: organization.applications.length == 0,
-                              expand: organization.applications.length > 0 && !organization.isExpanded,
-                              collapse: organization.applications.length > 0 && organization.isExpanded }"
+              <div class="twisty-container"
                     ng-click="$event.preventDefault();
-                              $event.stopPropagation();
-                              organization.isExpanded = !organization.isExpanded;"></span><!--
+                                $event.stopPropagation();
+                                organization.isExpanded =
+                                  $state.includes('management.organization-view', {organizationId: organization.id}) || !organization.isExpanded;">
+                <span class="twisty"
+                      ng-class="{ empty: organization.applications.length == 0,
+                                expand: organization.applications.length > 0 && !organization.isExpanded,
+                                collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
+              </div><!--
            --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
            -->{{organization.name}}
               <div class="tree-view-new-application"

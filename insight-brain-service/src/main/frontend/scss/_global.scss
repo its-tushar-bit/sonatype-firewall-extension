@@ -448,38 +448,3 @@ $main-background-color: white;
 
 //Common borders
 $small-gray-border: 1px solid lightgray;
-
-/*
-  #Components
-*/
-/*
-  ##Inputs
-
-  ```
-    <div class="tree-view-filter search input-prepend">
-      <span class="add-on">
-        <i role="button" class="fa fa-filter"></i>
-      </span>
-      <input type="text" placeholder="Appended Input">
-    </div>
-  ```
-*/
-.input-prepend {
-  .add-on {
-    background-color: $white;
-    border-right: none;
-    box-shadow: none;
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  .add-on:first-child, .btn:first-child {
-    border-radius: 0;
-  }
-
-  input {
-    border-left: none;
-    box-shadow: none;
-    border-radius: 0;
-  }
-}

@@ -224,25 +224,42 @@ body {
         <div class="tree-view-header">
           Organizations and Applications
         </div>
+        <div class="tree-view-new-organization">
+          <button class="btn">
+            <i class="fa fa-plus"></i>
+            New Organization
+          </button>
+        </div>
         <div class="tree-view-filter search input-prepend">
           <span class="add-on">
             <i role="button" class="fa fa-filter"></i>
           </span>
           <input type="text" placeholder="App or Org Name / ID">
         </div>
-        <div class="tree-view-new-organization">
-          <button class="btn secondary">
-            <i class="fa fa-plus"></i>
-            New Organization
-          </button>
-        </div>
         <div class="tree-view-organization-group">
           <a class="tree-view-item">
-              <span class="twisty collapse"></span><!--
+            <div class="twisty-container">
+              <span class="twisty expand"></span>
+            </div><!--
            --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
            -->Sonatype
           </a>
+        </div>
+        <div class="tree-view-organization-group">
           <a class="tree-view-item selected">
+            <div class="twisty-container">
+              <span class="twisty collapse"></span>
+            </div><!--
+           --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
+           -->Sonatype
+          </a>
+          <div class="tree-view-new-application">
+            <button class="btn">
+              <i class="fa fa-plus"></i>
+              New Application
+            </button>
+          </div>
+          <a class="tree-view-item">
             <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
          -->CLM
           </a>
@@ -339,6 +356,10 @@ body {
         border-bottom: 1px solid $grey-4;
         padding-top: 7px;
         padding-bottom: 7px;
+
+        .twisty.collapse {
+          border-top-color: $grey-4;
+        }
       }
 
       &:last-of-type:not(:first-of-type) {
@@ -346,31 +367,35 @@ body {
       }
     }
 
-    .twisty {
-      content: "";
-      -webkit-font-smoothing: antialiased;
+    .twisty-container {
       display: inline-block;
-      width: 0;
-      cursor: pointer;
-      vertical-align: text-top;
 
-      &.empty {
-        width: 16px;
-        height: 16px;
-      }
+      .twisty {
+        content: "";
+        -webkit-font-smoothing: antialiased;
+        display: inline-block;
+        width: 0;
+        cursor: pointer;
+        vertical-align: text-top;
 
-      &.collapse {
-        border-top: 5px solid $slate;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        margin: 6px 3px;
-      }
+        &.empty {
+          width: 16px;
+          height: 16px;
+        }
 
-      &.expand {
-        border-left: 5px solid $slate;
-        border-top: 5px solid transparent;
-        border-bottom: 5px solid transparent;
-        margin: 3px 8px 3px 3px;
+        &.collapse {
+          border-top: 5px solid $slate;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          margin: 6px 3px;
+        }
+
+        &.expand {
+          border-left: 5px solid $slate;
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          margin: 3px 8px 3px 3px;
+        }
       }
     }
   }

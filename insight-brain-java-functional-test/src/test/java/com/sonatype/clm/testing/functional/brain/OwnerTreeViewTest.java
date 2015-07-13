@@ -143,11 +143,6 @@ public class OwnerTreeViewTest
     Organization applicationOrganization = organizations.get(0);
     OwnerTreeView.filter().setValue(queriedApplication.getName());
     assertSingleApplicationVisible(applicationOrganization.getName(), queriedApplication.getName());
-
-    queriedApplication = applications.get(3);
-    applicationOrganization = organizations.get(1);
-    OwnerTreeView.filter().setValue(queriedApplication.getPublicId());
-    assertSingleApplicationVisible(applicationOrganization.getName(), queriedApplication.getName());
   }
 
   private void assertSingleOrganizationVisible(String organizationName, int applicationCount) {

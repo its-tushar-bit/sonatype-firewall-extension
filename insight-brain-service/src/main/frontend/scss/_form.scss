@@ -306,6 +306,47 @@
 .clm-primary-buttons-wide {
   padding-right: 10px;
 }
+
+/*
+  #Components
+*/
+/*
+  ##Inputs
+
+  ```
+    <div class="tree-view-filter search input-prepend">
+      <span class="add-on">
+        <i role="button" class="fa fa-filter"></i>
+      </span>
+      <input type="text" placeholder="Appended Input">
+    </div>
+  ```
+*/
+.input-prepend {
+  .add-on {
+    background-color: $white;
+    border-right: none;
+    box-shadow: none;
+    padding-left: 8px;
+    padding-right: 8px;
+
+    & + input {
+      border-left: none;
+      box-shadow: none;
+      border-radius: 0;
+
+      &::-ms-clear {
+        width: 0;
+        height: 0;
+      }
+    }
+  }
+
+  .add-on:first-child, .btn:first-child {
+    border-radius: 0;
+  }
+}
+
 /*
   ##Toggle Switches
   Toggle switches use the [Bootstrap Toggle](http://www.bootstraptoggle.com/) plugin. Height is set programmatically

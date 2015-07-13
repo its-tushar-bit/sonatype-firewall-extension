@@ -13,6 +13,13 @@ StoreMockData = {
       }
     ];
   },
+  newOrganization: function() {
+    return {
+      "id": "org_3",
+      "name": "org_THREE",
+      "nameLowercaseNoWhitespace": "org_three"
+    };
+  },
   getApplications: function() {
     return [
       {
@@ -38,5 +45,15 @@ StoreMockData = {
         "contact": null
       }
     ];
+  },
+  newApplication: function() {
+    return {
+      "id": "app_30",
+      "publicId":"app_public_thirty",
+      "name":"app_THIRTY",
+      "organizationId":"org_2",
+      "organizationName":"org_TWO",
+      "contact": null
+    };
   }
 };

@@ -36,6 +36,57 @@
   managementModule.controller('OwnerTreeViewController', [
     '$q', '$scope', '$state', '$stateParams', 'OrganizationStore', 'ApplicationStore', 'OwnerEditor',
     function($q, $scope, $state, $stateParams, organizationStore, applicationStore, OwnerEditor) {
+      var organizations, applications;
+
+      function newApplication(applicationResource) {
+        var application = {
+          id: applicationResource.id,
+          name: applicationResource.name,
+          organizationId: applicationResource.organizationId,
+          publicId: applicationResource.publicId,
+          isVisible: true
+        };
+
+        $scope.$watch(function() {
+          return applicationResource.name;
+        }, function(newApplicationName) {
+          application.name = newApplicationName;
+        });
+
+        return application;
+      }
+
+      function newOrganization(organizationResource) {
+        var organization = {
+          id: organizationResource.id,
+          name: organizationResource.name,
+          applications: [],
+          isVisible: true
+        };
+
+        $scope.$watch(function() {
+          return organizationResource.name;
+        }, function(newOrganizationName) {
+          organization.name = newOrganizationName;
+        });
+
+        $scope.$watch(function() {
+          return applications.length;
+        }, function() {
+          var organizationApplications = [];
+          for (var i = 0; i < applications.length; i++) {
+            if (applications[i].organizationId === organization.id) {
+              organizationApplications.push(applications[i]);
+            }
+          }
+
+          ownerCollectionChanged(organization.applications, organizationApplications, newApplication);
+          organization.isExpanded = isOrganizationOrChildSelected(organization);
+        });
+
+        return organization;
+      }
+
       function isOrganizationOrChildSelected(organization) {
         var isOrganizationViewed = $state.includes('management.organization-view', {organizationId: organization.id});
         if (isOrganizationViewed) {
@@ -55,39 +106,6 @@
         }
 
         return false;
-      }
-
-      function create(organizations, applications) {
-        var organizationApplications = [];
-
-        for (var i = 0; i < organizations.length; i++) {
-          var organization = organizations[i];
-          var organizationApplication = {
-            id: organization.id,
-            name: organization.name,
-            applications: [],
-            isVisible: true
-          };
-
-          for (var j = applications.length - 1; j >= 0; j--) {
-            var application = applications[j];
-            if (application.organizationId === organization.id) {
-              organizationApplication.applications.push({
-                id: application.id,
-                name: application.name,
-                publicId: application.publicId,
-                isVisible: true
-              });
-
-              applications.splice(j, 1);
-            }
-          }
-
-          organizationApplication.isExpanded = isOrganizationOrChildSelected(organizationApplication);
-          organizationApplications.push(organizationApplication);
-        }
-
-        $scope.organizations = organizationApplications;
       }
 
       function filter() {
@@ -140,7 +158,49 @@
         }
       }
 
-      var applications, organizations;
+      // Check for added and deleted records between ownerCollection and newOwnerCollection. Update ownerCollection accordingly
+      function ownerCollectionChanged(ownerCollection, newOwnerCollection, newOwnerConstructor) {
+        var i, j,
+            // Copy the collections as to not affect the underlying Resource Store nor the tree view model
+            ownerCollectionCopy = angular.copy(ownerCollection),
+            newOwnerCollectionCopy = angular.copy(newOwnerCollection);
+
+        // Remove all entries existing in both collections
+        for (i = ownerCollectionCopy.length - 1; i >= 0; i--) {
+          var ownerCopy = ownerCollectionCopy[i];
+          for (j = newOwnerCollectionCopy.length - 1; j >= 0; j--) {
+            var newOwnerCopy = newOwnerCollectionCopy[j];
+            if (ownerCopy.id === newOwnerCopy.id) {
+              ownerCollectionCopy.splice(i, 1);
+              newOwnerCollectionCopy.splice(j, 1);
+              break;
+            }
+          }
+        }
+
+        // Add all new entries
+        for (i = 0; i < newOwnerCollectionCopy.length; i++) {
+          for (j = 0; j < newOwnerCollection.length; j++) {
+            // Add the original entry to associate tree view item with the underlying data
+            if (newOwnerCollectionCopy[i].id === newOwnerCollection[j].id) {
+              var newOwner = newOwnerConstructor(newOwnerCollection[j]);
+              ownerCollection.push(newOwner);
+              break;
+            }
+          }
+        }
+
+        // Remove all deleted entries
+        for (i = 0; i < ownerCollectionCopy.length; i++) {
+          for (j = ownerCollection.length - 1; j >= 0; j--) {
+            // Remove from the original collection
+            if (ownerCollectionCopy[i].id === ownerCollection[j].id) {
+              ownerCollection.splice(j, 1);
+              break;
+            }
+          }
+        }
+      }
 
       $scope.$state = $state;
       $scope.filter = {
@@ -156,10 +216,23 @@
         ];
 
         $q.all(loadPromises).then(function(results) {
+          $scope.organizations = [];
           organizations = results[0];
           applications = results[1];
 
-          create(angular.copy(organizations), angular.copy(applications));
+          for (var i = 0; i < organizations.length; i++) {
+            var organization = organizations[i];
+            var organizationApplication = newOrganization(organization);
+            $scope.organizations.push(organizationApplication);
+          }
+
+          $scope.$watch(function() {
+            return organizations.length;
+          }, function() {
+            if ($scope.organizations.length !== organizations.length) {
+              ownerCollectionChanged($scope.organizations, organizations, newOrganization);
+            }
+          });
         }, function(error) {
           $scope.error = error;
         });

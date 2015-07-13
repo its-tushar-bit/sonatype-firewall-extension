@@ -141,10 +141,11 @@ body {
 .dashboard-root-container {
   @include main-content(35px);
   margin-top: 10px;
+  overflow-y: auto;
 }
 
 .dashboard-body-container {
-  margin: 0px auto;
+  margin: 0 auto;
   width: 850px;
   @media (min-width: 1200px) {
     width: 1110px;

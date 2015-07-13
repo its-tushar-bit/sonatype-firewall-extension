@@ -45,6 +45,10 @@
   }
 
   input[type=text], input[type=number], input[type=email], input[type=password], textarea {
+    @extend .regular;
+    font-size: 14px;
+    line-height: 18px;
+
     @include box-shadow(none);
     @include border-radius(0);
     @include size(22px, 240px);

@@ -3,17 +3,6 @@
  */
 
 @charset "UTF-8";
-body {
-  background: #ffffff;
-  color: #333333;
-  display: block;
-  position: absolute;
-  height: auto;
-  bottom: 0;
-  top: 0;
-  left: 0;
-  right: 0;
-}
 
 a, a:hover, a:active, a:focus {
   color: #2476C3;

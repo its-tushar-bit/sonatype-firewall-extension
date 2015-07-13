@@ -15,7 +15,8 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
 */
 
 .header {
-  @include main-content();
+  width: 100%;
+  background-color: $off-black;
   i {
     vertical-align: middle;
   }
@@ -41,7 +42,8 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   .navbar-inner {
-    background-color: #000000;
+    @include main-content();
+    background-color: $off-black;
     background-image: none;
     min-height: inherit;
     -webkit-box-shadow: none;
@@ -52,12 +54,18 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     -webkit-border-radius: 0px;
     -moz-border-radius: 0px;
     border-radius: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
   }
 
   .navbar-version {
     font-size:10px;
     line-height:10px;
     text-shadow: none;
+  }
+
+  &.navbar {
+    margin-bottom: 0px;
   }
 }
 

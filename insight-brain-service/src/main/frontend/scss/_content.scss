@@ -21,6 +21,8 @@
 */
 .nav-crumb {
   vertical-align: middle;
+  margin-top: 0px;
+  padding-top: 16px;
 }
 
 .nav-crumb i:before {
@@ -51,6 +53,7 @@
   ##Layout Containers
 
   ```
+  <div class="main-view">
     <div class="root-container">
       <div class="navigation-container">
         Cool nav content<br>
@@ -67,26 +70,44 @@
         Cool nav content<br>
       </div>
       <div class="body-container">
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
-        Place awesome content here<br>
+        <div class="tile-container">
+          <div class="tile summary-tile">
+            <h1>First Tile</h1>
+            <ul class="nav nav-pills">
+              <li class="active"><a href="">Application Types</a></li>
+              <li><a href="">Policy</a></li>
+              <li><a href="">Component Labels</a></li>
+              <li><a href="">License Threat Groups</a></li>
+              <li><a href="">Access</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
   ```
 */
 body {
   //we want to let the navigation-container and body-container control the vertical scrolling
   overflow-y: hidden;
+  background-color: $grey-3;
+  color: #333333;
+  display: block;
+  position: absolute;
+  height: auto;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
 }
+.main-view {
+  @include main-content();
+  width: calc(100% - 2px);
+  background-color: $off-white;
+  border-left: solid 1px $grey-4;
+  border-right: solid 1px $grey-4;
+}
+
 .root-container {
   @include main-content(35px);
   white-space: nowrap;
@@ -141,7 +162,7 @@ body {
 */
 .dashboard-root-container {
   @include main-content(35px);
-  margin-top: 10px;
+  padding-top: 10px;
   overflow-y: auto;
 }
 
@@ -151,6 +172,32 @@ body {
   @media (min-width: 1200px) {
     width: 1110px;
   }
+}
+
+/*
+  ##Simple container with left right padding, for content that gets a little too close to the edge
+
+  ```
+    <div class="report-list-container">
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+      Place awesome content here<br>
+    </div>
+  ```
+*/
+.report-list-container {
+  padding-left: 8px;
+  padding-right: 8px;
+  overflow-y: auto;
 }
 
 /*

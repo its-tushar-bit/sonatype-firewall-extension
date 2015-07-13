@@ -102,6 +102,7 @@ body {
   background-color: $grey-2;
   border-right: 1px solid $grey-3;
   white-space: normal;
+  vertical-align: top;
 
   // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing
   // the background and text from disappearing. Witnessed on Chrome 43.0.2357.130 (64-bit) on a MBP laptop screen.

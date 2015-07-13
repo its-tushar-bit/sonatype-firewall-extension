@@ -45,7 +45,6 @@
   }
 
   input[type=text], input[type=number], input[type=email], input[type=password], textarea {
-    @extend body;
     @include box-shadow(none);
     @include border-radius(0);
     @include size(22px, 240px);

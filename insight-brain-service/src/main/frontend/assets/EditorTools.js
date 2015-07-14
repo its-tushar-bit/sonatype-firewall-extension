@@ -496,4 +496,20 @@
           }
         };
       }]);
+
+  module.directive('noSpaces', function () {
+   var regexp = /\s/;
+   return {
+     require: 'ngModel',
+     link: function (scope, element, attrs, ctrl) {
+       ctrl.$validators.noSpaces = function (modelValue, viewValue) {
+         if (ctrl.$isEmpty(modelValue)) {
+           return true;
+         }
+         return !regexp.test(viewValue);
+       };
+     }
+   };
+  });
+
 }());

@@ -68,6 +68,9 @@
           else if (error.required) {
             message = 'Please enter a value';
           }
+          else if (error.noSpaces) {
+            message = 'Spaces or tabs are not allowed';
+          }
           return message;
         }
 

@@ -27,7 +27,7 @@
 
   display: inline-block;
 
-  font-color: $slate;
+  color: $slate;
   font-size: 14px;
   text-align: center;
 
@@ -39,7 +39,7 @@
     background-color: $grey-1;
     border-color: $grey-2;
     cursor: not-allowed;
-    font-color: $grey-4;
+    color: $grey-4;
   }
 
   &:hover, &:focus {

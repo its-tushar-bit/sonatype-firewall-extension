@@ -131,11 +131,17 @@ body {
 }
 
 .body-container {
-  background : url("../img/tile_bg_@2X.jpg");
   display: inline-block;
   width: calc(78% - 1px);
   height: 100%;
   white-space: normal;
+  background : url("../img/tile_bg.png");
+
+  @media only screen and (-webkit-min-device-pixel-ratio: 2),
+  only screen and (min-resolution: 2dppx),
+  only screen and (min-resolution: 192dpi) {
+    background: url("../img/tile_bg_@2X.jpg");
+  }
 }
 
 /*
@@ -225,11 +231,6 @@ body {
 .scrollable-root-container {
   @include main-content(35px);
   overflow: auto;
-  background : url("../img/tile_bg.png");
-
-  @media only screen and (-webkit-device-pixel-ratio: 2) {
-    background: url("../img/tile_bg_@2X.jpg");
-  }
 }
 
 /*

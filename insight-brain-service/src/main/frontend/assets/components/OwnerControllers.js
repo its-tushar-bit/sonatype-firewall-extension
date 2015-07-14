@@ -94,6 +94,7 @@
           animation: false,
           backdrop: 'static',
           keyboard: false,
+          windowClass: 'owner-editor-modal clm-modal',
           controller: 'OwnerEditorController',
           templateUrl: 'components/owner-editor.html',
           resolve: {

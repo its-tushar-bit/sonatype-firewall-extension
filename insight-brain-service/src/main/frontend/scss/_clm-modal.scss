@@ -42,6 +42,8 @@
  */
 .clm-modal {
   $external-border: 1px solid $off-black;
+  border-radius: 0px;
+  border-width: 0px;
 
   .clm-modal-header {
     padding: 12px 8px;

@@ -368,11 +368,6 @@ body {
           vertical-align: -2px;
         }
       }
-
-      &.inverse {
-        color: white;
-        background-color: black;
-      }
     }
 
     a.tree-view-item {
@@ -448,4 +443,15 @@ body {
       }
     }
   }
+}
+
+/*
+ ##Sections
+```
+  <div class='section'>foo</div>
+  <div>bar</div>
+```
+*/
+.section {
+  margin-bottom: 24px;
 }

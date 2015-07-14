@@ -85,3 +85,19 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
     content: nth($icon,3);
   }
 }
+
+.fa {
+  &.inverse {
+    background-color: $slate;
+    color: $off-white;
+  }
+
+  &.size-20px {
+    font-size: 20px;
+
+    &.inverse {
+      font-size: 90%;
+      padding: 2px;
+    }
+  }
+}

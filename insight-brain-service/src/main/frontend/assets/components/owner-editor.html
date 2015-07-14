@@ -1,6 +1,10 @@
 <div class="clm-modal" id="owner-editor">
   <div class="clm-modal-header">
-    <h2>{{:: dirtyOwner.id ? 'Edit' : 'New'}} {{:: getTypeName()}}</h2>
+    <h2>
+      <i class="fa inverse size-20px"
+           ng-class="{ 'fa-terminal': ownerType === 'application', 'fa-sitemap': ownerType === 'organization'}">
+      </i> {{:: dirtyOwner.id ? 'Edit' : 'New'}} {{:: getTypeName()}}
+    </h2>
   </div>
   <form name="ownerEditor" role="form" ng-submit="save()" class="clm-form">
     <div class="clm-modal-body">
@@ -16,7 +20,7 @@
       <div ng-if="ownerType === 'application' && !(dirtyOwner.id)">
         <label for="editor-owner-public-id">Application Id</label>
         <input type="text" name="publicId" id="editor-owner-public-id"
-               ng-maxlength='50'
+               ng-maxlength="60"
                ng-model="dirtyOwner.publicId"
                ng-required="true"
                no-spaces="true"
@@ -27,10 +31,9 @@
       </div>
     </div>
     <div class="clm-modal-footer" ng-class="{ error : error }">
-      <div ng-if="error"><i class="fa fa-warning"></i> {{error}}</div>
-      <button class="btn" type="submit"
-              ng-class="{ 'btn-primary' : !error, 'btn-error' : error }"
-              ng-disabled="ownerEditor.$invalid">{{error ? 'Retry' : 'Create'}}</button>
+      <div ng-if="error" class="section"><i class="fa fa-warning"></i> {{error}}</div>
+      <button ng-if="!error" class="btn btn-primary" type="submit" ng-disabled="ownerEditor.$invalid">Create</button>
+      <button ng-if="error" class="btn btn-error" type="submit" ng-disabled="ownerEditor.$invalid"><i class="fa fa-refresh"></i> Retry</button>
       <button class="btn" type="button" ng-click="$dismiss()">Cancel</button>
     </div>
   </form>

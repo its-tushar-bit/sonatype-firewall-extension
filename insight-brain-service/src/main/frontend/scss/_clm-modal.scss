@@ -41,10 +41,11 @@
 
  */
 .clm-modal {
-  border: 1px solid $off-black;
+  $external-border: 1px solid $off-black;
 
   .clm-modal-header {
     padding: 12px 8px;
+    border: $external-border;
     border-bottom: 1px solid $grey-4;
 
     h2 {
@@ -53,11 +54,14 @@
   }
 
   .clm-modal-body {
-    padding: 12px;
+    border-left: $external-border;
+    border-right: $external-border;
+    padding: 24px 12px;
   }
 
   .clm-modal-footer {
     background-color: $grey-1;
+    border: $external-border;
     border-top: 1px solid $grey-4;
     padding: 12px;
 

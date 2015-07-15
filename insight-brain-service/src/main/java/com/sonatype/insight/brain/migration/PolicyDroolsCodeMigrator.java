@@ -13,9 +13,11 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.SchemaInfo;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -35,22 +37,34 @@ public class PolicyDroolsCodeMigrator
 
   private final InsightWork insightWork;
 
+  private final SchemaInfoDAO schemaInfoDAO;
+
+  static final int DROOLS_CODE_VERSION = 2;
+
   static final String MARKER_FILE_NAME = "policy-drools-code-migrated";
 
   @Inject
-  public PolicyDroolsCodeMigrator(InsightWork insightWork) {
+  public PolicyDroolsCodeMigrator(InsightWork insightWork, SchemaInfoDAO schemaInfoDAO) {
     this.insightWork = insightWork;
+    this.schemaInfoDAO = schemaInfoDAO;
   }
 
   void migrate() throws IOException {
-    long start = System.currentTimeMillis();
-    log.debug("Generating policy code...");
-
     File markerFile = new File(insightWork.getWorkDir(), MARKER_FILE_NAME);
-    if (markerFile.exists()) {
+
+    SchemaInfo schemaInfo = schemaInfoDAO.get();
+    int droolsCodeVersion = schemaInfo.getDroolsCodeVersion();
+    if (droolsCodeVersion <= 0) {
+      droolsCodeVersion = markerFile.exists() ? 1 : 0;
+    }
+
+    if (droolsCodeVersion >= DROOLS_CODE_VERSION) {
       log.debug("Policy code already generated.");
       return;
     }
+
+    long start = System.currentTimeMillis();
+    log.debug("Generating policy code...");
 
     PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getAll();
@@ -60,10 +74,16 @@ public class PolicyDroolsCodeMigrator
       policyDAO.update(policy);
     }
 
-    alterDroolsCodeColumnToNotAllowNulls();
+    schemaInfo.setDroolsCodeVersion(DROOLS_CODE_VERSION);
+    schemaInfoDAO.update(schemaInfo);
 
-    markerFile.getParentFile().mkdirs();
-    markerFile.createNewFile();
+    if (droolsCodeVersion < 1) {
+      alterDroolsCodeColumnToNotAllowNulls();
+    }
+
+    if (droolsCodeVersion < 2 && !markerFile.delete()) {
+      log.debug("Failed to delete obsolete marker file {}", markerFile);
+    }
 
     log.info("Generated policy code for {} policies in {} ms.", policies.size(), System.currentTimeMillis() - start);
   }

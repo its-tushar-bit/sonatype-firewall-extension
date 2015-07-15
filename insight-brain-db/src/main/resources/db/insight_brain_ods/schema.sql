@@ -6,6 +6,13 @@ CREATE TABLE test_table (
   name varchar(50) NOT NULL
 );
 
+CREATE TABLE schema_info (
+  schema_info_id varchar(50) NOT NULL,
+  drools_code_version int NOT NULL,
+  CONSTRAINT schema_info_pk PRIMARY KEY (schema_info_id)
+);
+INSERT INTO schema_info (schema_info_id, drools_code_version) VALUES ('1', 2);
+
 CREATE TABLE organization (
   organization_id varchar(50) NOT NULL,
   name varchar(60) NOT NULL,

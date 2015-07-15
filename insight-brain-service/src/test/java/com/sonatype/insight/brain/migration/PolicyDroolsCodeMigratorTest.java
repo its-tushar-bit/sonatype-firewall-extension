@@ -6,20 +6,20 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
-import java.io.IOException;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.SchemaInfoDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.db.H2DatabaseMigrator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.SchemaInfo;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -28,34 +28,45 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class PolicyDroolsCodeMigratorTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @Inject
+  private PolicyDroolsCodeMigrator migrator;
 
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  @Inject
+  private InsightWork work;
+
+  @Inject
+  private SchemaInfoDAO schemaInfoDAO;
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Test
-  public void testMigrate() throws Exception {
+  public void testMigrate_FromBeforePersistedDroolsCode() throws Exception {
     // Create test data
     Application app = tempEntity.newApplicationWithParent("PolicyDroolsCodeMigratorTest-App",
         "PolicyDroolsCodeMigratorTestAppId");
     Policy policyApp = tempEntity.newPolicy(app.getId(), "policyApp");
     Policy policyOrg = tempEntity.newPolicy(app.getOrganizationId(), "policyOrg");
 
+    // Fake schema state before migration
+    SchemaInfo schemaInfo = schemaInfoDAO.get();
+    schemaInfo.setDroolsCodeVersion(0);
+    schemaInfoDAO.update(schemaInfo);
+
     // Change the db to have policy.drools_code nullable and all values null
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
         "/PolicyDroolsCodeMigratorTest/set_policy_drools_code_to_null_success.sql");
-    PolicyDAO policyDAO = new PolicyDAO();
     policyApp = policyDAO.getById(policyApp.getId());
     assertThat(policyApp.getDroolsCode(), is(nullValue()));
     policyOrg = policyDAO.getById(policyOrg.getId());
     assertThat(policyOrg.getDroolsCode(), is(nullValue()));
 
     // Run the migrator
-    InsightWork insightWork = createInsightWork();
-    PolicyDroolsCodeMigrator migrator = new PolicyDroolsCodeMigrator(insightWork);
     migrator.migrate();
+
+    assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
 
     // Assert the code was generated for all policies
     policyApp = policyDAO.getById(policyApp.getId());
@@ -85,11 +96,31 @@ public class PolicyDroolsCodeMigratorTest
     throw e;
   }
 
-  private InsightWork createInsightWork() throws IOException {
-    InsightConfig insightConfig = new InsightConfig();
-    File workDir = tempDir.newFolder();
-    insightConfig.setSonatypeWork(workDir.getAbsolutePath());
-    InsightWork work = new InsightWork(insightConfig);
-    return work;
+  @Test
+  public void testMigrate_FromBeforePersistedDroolsCodeVersion() throws Exception {
+    // Create test data
+    Application app = tempEntity.newApplicationWithParent("PolicyDroolsCodeMigratorTest-App",
+        "PolicyDroolsCodeMigratorTestAppId");
+    Policy policyApp = tempEntity.newPolicy(app.getId(), "policyApp");
+    Policy policyOrg = tempEntity.newPolicy(app.getOrganizationId(), "policyOrg");
+
+    // Fake schema state before migration
+    File markerFile = new File(work.getWorkDir(), PolicyDroolsCodeMigrator.MARKER_FILE_NAME);
+    assertThat(markerFile.createNewFile(), is(true));
+    SchemaInfo schemaInfo = schemaInfoDAO.get();
+    schemaInfo.setDroolsCodeVersion(0);
+    schemaInfoDAO.update(schemaInfo);
+
+    // Run the migrator
+    migrator.migrate();
+
+    assertThat(schemaInfoDAO.get().getDroolsCodeVersion(), is(PolicyDroolsCodeMigrator.DROOLS_CODE_VERSION));
+    assertThat(markerFile.exists(), is(false));
+
+    // Assert the code was generated for all policies
+    policyApp = policyDAO.getById(policyApp.getId());
+    assertThat(policyApp.getDroolsCode(), is(notNullValue()));
+    policyOrg = policyDAO.getById(policyOrg.getId());
+    assertThat(policyOrg.getDroolsCode(), is(notNullValue()));
   }
 }

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v1.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 public class ApiSecurityIssueDTO
 {
   public String source;
@@ -13,6 +16,7 @@ public class ApiSecurityIssueDTO
 
   public Float severity;
 
+  @JsonInclude(Include.NON_NULL)
   public String status;
 
   /**

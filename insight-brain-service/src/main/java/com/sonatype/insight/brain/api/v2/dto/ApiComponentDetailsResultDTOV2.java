@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 1.13.0
+ * @since 1.16.0
  */
-public class ApiComponentEvaluationRequestDTOV2
-    extends ApiComponentDetailsRequestDTOV2
+public class ApiComponentDetailsResultDTOV2
 {
+  public List<ApiComponentDetailsDTOV2> componentDetails = new ArrayList<>();
 }

@@ -11,6 +11,7 @@ import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -58,6 +59,7 @@ public class ApiComponentDetailsAdapter
     if (component.getCatalogDate() != null) {
       componentDetailsDTO.catalogDate = new Date(component.getCatalogDate());
     }
+    componentDetailsDTO.relativePopularity = component.getRelativePopularity();
 
     componentDetailsDTO.licenseData = licenseDataAdapter.convertToDTO(component);
     componentDetailsDTO.securityData = securityDataAdapter.convertToDTO(component);
@@ -66,6 +68,36 @@ public class ApiComponentDetailsAdapter
     for (PolicyAlert policyAlert : policyAlerts) {
       componentDetailsDTO.policyData.policyViolations.add(convert(policyAlert));
     }
+    return componentDetailsDTO;
+  }
+
+  /**
+   * @since 1.16.0
+   */
+  public ApiComponentDetailsDTOV2 convertToDTO(ComponentEvaluationData componentDetailsFromHds) {
+    ApiComponentDetailsDTOV2 componentDetailsDTO = new ApiComponentDetailsDTOV2();
+    componentDetailsDTO.component = new ApiComponentDTOV2();
+    componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(componentDetailsFromHds.componentIdentifier);
+    componentDetailsDTO.component.hash = componentDetailsFromHds.hash;
+    if (componentDetailsFromHds.matchState == null) {
+      componentDetailsDTO.matchState = MatchState.UNKNOWN.getId();
+    }
+    else {
+      // The matchState (which is an id) from HDS may be unknown to the CLM server and we don't want the CLM server to
+      // fail in this case.
+      MatchState matchState = MatchState.getById(componentDetailsFromHds.matchState);
+      componentDetailsDTO.matchState = matchState == null ? MatchState.UNKNOWN.getId() : matchState.getId();
+    }
+
+    if (componentDetailsFromHds.catalogDate != null) {
+      componentDetailsDTO.catalogDate = new Date(componentDetailsFromHds.catalogDate);
+    }
+    componentDetailsDTO.relativePopularity = componentDetailsFromHds.relativePopularity;
+
+    componentDetailsDTO.licenseData = licenseDataAdapter.convertToDTO(componentDetailsFromHds);
+    componentDetailsDTO.securityData = securityDataAdapter.convertToDTO(componentDetailsFromHds);
+
     return componentDetailsDTO;
   }
 

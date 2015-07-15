@@ -1,0 +1,365 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.google.inject.Binder;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class ApiComponentDetailsServiceV2Test
+    extends AbstractComponentTest
+{
+  private static final String MISSING_COORDINATES = "The following coordinates are missing for given format: ";
+
+  private static final int CHUNK_SIZE = 5;
+
+  @Inject
+  private ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
+
+  @Mock
+  private HdsClient client;
+
+  private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(HdsClient.class).toInstance(client);
+  }
+
+  @Before
+  public void before() {
+    apiComponentDetailsServiceV2.setChunkSize(CHUNK_SIZE);
+  }
+
+  private void mockHdsRequest(ComponentIdentifier componentIdentifier, String hash) throws IOException {
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash));
+    mockHdsRequest(hdsResult);
+  }
+
+  private void mockHdsRequest(ComponentEvaluationDataList hdsResult) throws IOException {
+    when(
+        client.post(eq(ComponentEvaluationDataList.class), eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH),
+            anyObject(), eq(ApiComponentDetailsServiceV2.PURPOSE_INTEGRATION))).thenReturn(hdsResult);
+  }
+
+  @Test
+  public void testGetComponentDetails_chunked() throws Exception {
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+        "Apache-2.0")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
+
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    int numChunks = 2;
+    for (int chunk = 0; chunk < numChunks; chunk++) {
+      ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+      hdsResult.components = new ArrayList<>();
+
+      for (int i = 0; i < CHUNK_SIZE; i++) {
+        ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g" + i,
+            "a" + i, "v" + i, "e" + i);
+        ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h" + i);
+        request.components.add(component);
+
+        hdsResult.components.add(componentEvaluationV2Helper
+            .createComponentEvaluationData(componentIdentifier, component.hash, MatchState.EXACT, i,
+                declaredLicenseSet, observedLicenseSet, securityVulnerabilities, i /* popularity */));
+      }
+      mockHdsRequest(hdsResult);
+    }
+    int numComponents = CHUNK_SIZE * 2;
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result, notNullValue());
+    assertThat(result.componentDetails, notNullValue());
+    assertThat(result.componentDetails, hasSize(numComponents));
+    int i = 0;
+    for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : result.componentDetails) {
+      assertComponentDetails(componentDetailsDTOV2, request.components.get(i), MatchState.EXACT.getId(),
+          new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, i
+              % CHUNK_SIZE /* popularity */);
+      i++;
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_invalidComponentIdentifier_noCoordinates() throws Exception {
+    String jsonRequest = "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
+    ApiComponentEvaluationRequestDTOV2 request = JsonUtils.parse(jsonRequest, ApiComponentEvaluationRequestDTOV2.class);
+    try {
+      apiComponentDetailsServiceV2.getComponentDetails(request);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("A component identifier must have at least one coordinate."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_invalidComponentIdentifier_noExtension() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", null);
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
+    request.components.add(component);
+
+    try {
+      apiComponentDetailsServiceV2.getComponentDetails(request);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is(MISSING_COORDINATES + "[extension]"));
+    }
+  }
+
+  private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = hash;
+    componentEvaluationData.componentIdentifier = componentIdentifier;
+    componentEvaluationData.declaredLicenses = Collections.emptySet();
+    componentEvaluationData.observedLicenses = Collections.emptySet();
+    componentEvaluationData.securityVulnerabilities = Collections.emptyList();
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+
+    return componentEvaluationData;
+  }
+
+  @Test
+  public void testGetComponentDetails_validation_nullComponentIdentifier() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
+    component.hash = "h1";
+    request.components.add(component);
+
+    ComponentIdentifier resultComponentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    mockHdsRequest(resultComponentIdentifier, component.hash);
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result, notNullValue());
+    assertThat(result.componentDetails, notNullValue());
+    assertThat(result.componentDetails, hasSize(1));
+    assertComponentDetails(result.componentDetails.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(resultComponentIdentifier), "h1");
+  }
+
+  @Test
+  public void testGetComponentDetails_validation_nullHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
+    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", "e1");
+    component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+    request.components.add(component);
+
+    mockHdsRequest(componentIdentifier, "h1");
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result, notNullValue());
+    assertThat(result.componentDetails, notNullValue());
+    assertThat(result.componentDetails, hasSize(1));
+    assertComponentDetails(result.componentDetails.get(0), component.componentIdentifier, "h1");
+  }
+
+  @Test
+  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
+    request.components.add(component);
+
+    try {
+      apiComponentDetailsServiceV2.getComponentDetails(request);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("One of either componentIdentifier or hash must be supplied."));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_nullComponents() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    request.components = null;
+
+    try {
+      apiComponentDetailsServiceV2.getComponentDetails(request);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("No components provided in the request"));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_emptyComponents() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+    request.components = Collections.emptyList();
+
+    try {
+      apiComponentDetailsServiceV2.getComponentDetails(request);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("No components provided in the request"));
+    }
+  }
+
+  @Test
+  public void testGetComponentDetails_matchByComponentIdentifier() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, null);
+    request.components.add(component1);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, null);
+    request.components.add(component2);
+
+    mockHdsRequest(componentIdentifier1, "h1");
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result, notNullValue());
+    assertThat(result.componentDetails, notNullValue());
+    assertThat(result.componentDetails, hasSize(1));
+    assertComponentDetails(result.componentDetails.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1");
+  }
+
+  @Test
+  public void testGetComponentDetails_multipleMatchByHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(null, "h1");
+    request.components.add(component1);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier1, "h1"));
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier2, "h1"));
+    mockHdsRequest(hdsResult);
+
+    ApiComponentDetailsResultDTOV2 result = apiComponentDetailsServiceV2.getComponentDetails(request);
+
+    assertThat(result, notNullValue());
+    assertThat(result.componentDetails, notNullValue());
+    assertThat(result.componentDetails, hasSize(2));
+    assertComponentDetails(result.componentDetails.get(0),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier1), "h1");
+    assertComponentDetails(result.componentDetails.get(1),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier2), "h1");
+  }
+
+  private void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
+      ApiComponentIdentifierDTOV2 expectedComponentIdentifier, String expectedHash)
+  {
+    assertThat(resultComponentDTO, notNullValue());
+    assertThat(resultComponentDTO.component, notNullValue());
+    assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
+        is(expectedComponentIdentifier.getFormat()));
+    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
+        is(expectedComponentIdentifier.getCoordinates()));
+    assertThat(resultComponentDTO.component.hash, is(expectedHash));
+  }
+
+  public void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
+      ApiComponentDTOV2 requestComponentDTO, String matchState, List<License> declaredLicenses,
+      List<License> observedLicenses, List<SecurityVulnerability> securityVulnerabilities, Integer relativePopularity)
+  {
+    ApiComponentIdentifierDTOV2 expectedComponentIdentifier = requestComponentDTO.componentIdentifier;
+    String expectedHash = requestComponentDTO.hash;
+
+    assertThat(resultComponentDTO, notNullValue());
+    assertThat(resultComponentDTO.component, notNullValue());
+    assertThat(resultComponentDTO.component.componentIdentifier.getFormat(),
+        is(expectedComponentIdentifier.getFormat()));
+    assertThat(resultComponentDTO.component.componentIdentifier.getCoordinates(),
+        is(expectedComponentIdentifier.getCoordinates()));
+    assertThat(resultComponentDTO.component.hash, is(expectedHash));
+    assertThat(resultComponentDTO.matchState, is(matchState));
+    assertThat(resultComponentDTO.relativePopularity, is(relativePopularity));
+
+    assertThat(resultComponentDTO.licenseData, notNullValue());
+    assertThat(resultComponentDTO.licenseData.declaredLicenses.size(), is(declaredLicenses.size()));
+    for (int i = 0; i < declaredLicenses.size(); i++) {
+      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseId, is(declaredLicenses.get(i)
+          .getLicenseId()));
+      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseName, is(declaredLicenses.get(i)
+          .getLicenseName()));
+    }
+
+    assertThat(resultComponentDTO.licenseData.observedLicenses.size(), is(observedLicenses.size()));
+    for (int i = 0; i < observedLicenses.size(); i++) {
+      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseId, is(observedLicenses.get(i)
+          .getLicenseId()));
+      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseName, is(observedLicenses.get(i)
+          .getLicenseName()));
+    }
+    assertThat(resultComponentDTO.licenseData.overriddenLicenses, is(nullValue()));
+
+    assertThat(resultComponentDTO.securityData, notNullValue());
+    assertThat(resultComponentDTO.securityData.securityIssues.size(), is(securityVulnerabilities.size()));
+    for (int i = 0; i < securityVulnerabilities.size(); i++) {
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source, is(securityVulnerabilities.get(i)
+          .getSource()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference, is(securityVulnerabilities.get(i)
+          .getRefId()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity, is(securityVulnerabilities.get(i)
+          .getSeverity()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).url, is(securityVulnerabilities.get(i).getUrl()));
+    }
+
+    assertThat(resultComponentDTO.policyData, nullValue());
+  }
+}

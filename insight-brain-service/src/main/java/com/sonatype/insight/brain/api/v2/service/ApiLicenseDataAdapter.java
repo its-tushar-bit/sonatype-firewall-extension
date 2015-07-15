@@ -7,16 +7,20 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 /**
@@ -35,6 +39,16 @@ public class ApiLicenseDataAdapter
   public ApiLicenseDataDTO convertToDTO(final Component component) {
     ApiLicenseDataDTO licenseDataDTO = new ApiLicenseDataDTO();
     convert(component, licenseDataDTO);
+
+    return licenseDataDTO;
+  }
+
+  /**
+   * @since 1.16.0
+   */
+  public ApiLicenseDataDTO convertToDTO(ComponentEvaluationData componentDetailsFromHds) {
+    ApiLicenseDataDTO licenseDataDTO = new ApiLicenseDataDTO();
+    convert(componentDetailsFromHds, licenseDataDTO);
 
     return licenseDataDTO;
   }
@@ -74,12 +88,27 @@ public class ApiLicenseDataAdapter
     convertLicenses(licenseDataDTO.overriddenLicenses, component.getLicenseOverrideIds());
   }
 
+  private void convert(ComponentEvaluationData componentDetailsFromHds, ApiLicenseDataDTO licenseDataDTO) {
+    licenseDataDTO.status = LicenseOverrideStatus.OPEN.getName();
+    convertLicenses(licenseDataDTO.declaredLicenses, componentDetailsFromHds.declaredLicenses);
+    convertLicenses(licenseDataDTO.observedLicenses, componentDetailsFromHds.observedLicenses);
+  }
+
   private void convertLicenses(final List<ApiLicenseDTO> licenses, final Collection<String> licenseIds) {
     for (String licenseId : licenseIds) {
       ApiLicenseDTO license = new ApiLicenseDTO();
       license.licenseId = licenseId;
       license.licenseName = multiLicenseDAO.getByIdNotNull(licenseId).getShortDisplayName();
       licenses.add(license);
+    }
+  }
+
+  private void convertLicenses(List<ApiLicenseDTO> licenseDTOs, Set<License> licenses) {
+    for (License license : licenses) {
+      ApiLicenseDTO licenseDTO = new ApiLicenseDTO();
+      licenseDTO.licenseId = license.getLicenseId();
+      licenseDTO.licenseName = multiLicenseDAO.getByIdNotNull(licenseDTO.licenseId).getShortDisplayName();
+      licenseDTOs.add(licenseDTO);
     }
   }
 }

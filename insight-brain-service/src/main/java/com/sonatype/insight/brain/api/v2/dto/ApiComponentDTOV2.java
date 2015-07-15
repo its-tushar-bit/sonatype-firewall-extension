@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @since 1.13.0
  */
@@ -15,5 +18,6 @@ public class ApiComponentDTOV2
 
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
-  public boolean proprietary;
+  @JsonInclude(Include.NON_NULL)
+  public Boolean proprietary = false;
 }

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.model.Application;
@@ -199,10 +200,10 @@ public class ApiComponentEvaluationResourceV2Test
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
-            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 1),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability>emptyList()));
+            Collections.<SecurityVulnerability> emptyList(), 2));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -215,8 +216,8 @@ public class ApiComponentEvaluationResourceV2Test
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
-    assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());
@@ -224,10 +225,10 @@ public class ApiComponentEvaluationResourceV2Test
     assertThat(details.results.size(), is(2));
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-        securityVulnerabilities, policies);
+        securityVulnerabilities, 1, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+        Collections.<SecurityVulnerability> emptyList(), 2, Collections.<String, Policy> emptyMap());
   }
 
   @Test
@@ -254,10 +255,10 @@ public class ApiComponentEvaluationResourceV2Test
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
-            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 10),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability>emptyList()));
+            Collections.<SecurityVulnerability> emptyList(), 20));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -270,8 +271,8 @@ public class ApiComponentEvaluationResourceV2Test
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
-    assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());
@@ -279,10 +280,10 @@ public class ApiComponentEvaluationResourceV2Test
     assertThat(details.results.size(), is(2));
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-        securityVulnerabilities, policies);
+        securityVulnerabilities, 10, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+        Collections.<SecurityVulnerability> emptyList(), 20, Collections.<String, Policy> emptyMap());
   }
 
   @Test
@@ -307,9 +308,9 @@ public class ApiComponentEvaluationResourceV2Test
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
-            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 11),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component1.hash,
-            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities));
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 22));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -322,21 +323,23 @@ public class ApiComponentEvaluationResourceV2Test
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
-    assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());
     assertThat(details.results, notNullValue());
     assertThat(details.results.size(), is(2));
-    componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
-        componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1"),
-        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-        securityVulnerabilities, policies);
-    componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
-        componentEvaluationV2Helper.createComponent(componentIdentifier2, "h1"),
-        MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-        securityVulnerabilities, policies);
+    componentEvaluationV2Helper
+        .assertComponentDetails(details.results.get(0),
+            componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1"), MatchState.EXACT.getId(),
+            new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 11,
+            policies);
+    componentEvaluationV2Helper
+        .assertComponentDetails(details.results.get(1),
+            componentEvaluationV2Helper.createComponent(componentIdentifier2, "h1"), MatchState.EXACT.getId(),
+            new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, 22,
+            policies);
   }
 
   @Test
@@ -364,10 +367,10 @@ public class ApiComponentEvaluationResourceV2Test
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
-            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities),
+            MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 21),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability>emptyList()));
+            Collections.<SecurityVulnerability> emptyList(), 22));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -380,8 +383,8 @@ public class ApiComponentEvaluationResourceV2Test
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
-    assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());
@@ -389,10 +392,10 @@ public class ApiComponentEvaluationResourceV2Test
     assertThat(details.results.size(), is(2));
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0), request.components.get(0),
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
-        securityVulnerabilities, policies);
+        securityVulnerabilities, 21, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
         MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+        Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
   }
 
   @Test
@@ -421,11 +424,11 @@ public class ApiComponentEvaluationResourceV2Test
         componentEvaluationV2Helper.createComponentEvaluationData(
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1"), component1.hash,
             MatchState.UNKNOWN, 0, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability>emptyList()),
+            Collections.<SecurityVulnerability> emptyList(), 1),
         componentEvaluationV2Helper.createComponentEvaluationData(
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2"), component1.hash,
             MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
-            Collections.<SecurityVulnerability>emptyList()));
+            Collections.<SecurityVulnerability> emptyList(), 2));
     mockComponentDetails(componentEvaluationDataList);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -438,8 +441,8 @@ public class ApiComponentEvaluationResourceV2Test
 
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
-    assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());
@@ -448,11 +451,11 @@ public class ApiComponentEvaluationResourceV2Test
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1",
         MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+        Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2",
         MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
-        Collections.<SecurityVulnerability>emptyList(), Collections.<String, Policy>emptyMap());
+        Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
   }
 
   @Test
@@ -470,12 +473,13 @@ public class ApiComponentEvaluationResourceV2Test
   }
 
   private void mockHDSInternalServiceError() {
-    setHdsResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH, "Internal Error", 500);
-
+    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
+        "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION), "Internal Error", 500);
   }
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
-    setHdsResponseForURI(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH,
+    setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
+        "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION),
         toJson(componentEvaluationDataList), 200);
   }
 

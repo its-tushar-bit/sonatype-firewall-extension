@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.api.v1.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 public class ApiLicenseDataDTO
 {
   // licenses of component, in no particular order
@@ -15,7 +18,9 @@ public class ApiLicenseDataDTO
 
   public List<ApiLicenseDTO> observedLicenses = new ArrayList<>();
 
+  @JsonInclude(Include.NON_NULL)
   public List<ApiLicenseDTO> overriddenLicenses = new ArrayList<>();
 
+  @JsonInclude(Include.NON_NULL)
   public String status;
 }

@@ -45,9 +45,9 @@ public class ComponentEvaluationV2Helper
   private PolicyDAO policyDAO = new PolicyDAO();
 
   public ComponentEvaluationData createComponentEvaluationData(final ComponentIdentifier componentIdentifier,
-      final String hash, final MatchState matchState, final int index,
-      final Set<License> declaredLicenses, final Set<License> observedLicenses,
- final List<SecurityVulnerability> securityVulnerabilities)
+      final String hash, final MatchState matchState, final int index, final Set<License> declaredLicenses,
+      final Set<License> observedLicenses, final List<SecurityVulnerability> securityVulnerabilities,
+      final Integer relativePopularity)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -58,6 +58,7 @@ public class ComponentEvaluationV2Helper
     componentEvaluationData.observedLicenses = observedLicenses;
     componentEvaluationData.catalogDate = new Date().getTime();
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
+    componentEvaluationData.relativePopularity = relativePopularity;
 
     return componentEvaluationData;
   }
@@ -140,16 +141,17 @@ public class ComponentEvaluationV2Helper
   public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
       final ApiComponentDTOV2 requestComponentDTO, final String matchState, final List<License> declaredLicenses,
       final List<License> observedLicenses, final List<SecurityVulnerability> securityVulnerabilities,
-      final Map<String, Policy> policies)
+      final Integer relativePopularity, final Map<String, Policy> policies)
   {
     assertComponentDetails(resultComponentDTO , requestComponentDTO.componentIdentifier, requestComponentDTO.hash,
-        matchState, declaredLicenses, observedLicenses,securityVulnerabilities, policies);
+        matchState, declaredLicenses, observedLicenses, securityVulnerabilities, relativePopularity, policies);
   }
 
   public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-      final ApiComponentIdentifierDTOV2 expectedComponentIdentifier, final String expectedHash, final String matchState,
-      final List<License> declaredLicenses, final List<License> observedLicenses,
-      final List<SecurityVulnerability> securityVulnerabilities, final Map<String, Policy> policies)
+      final ApiComponentIdentifierDTOV2 expectedComponentIdentifier, final String expectedHash,
+      final String matchState, final List<License> declaredLicenses, final List<License> observedLicenses,
+      final List<SecurityVulnerability> securityVulnerabilities, final Integer relativePopularity,
+      final Map<String, Policy> policies)
   {
     assertThat(resultComponentDTO, notNullValue());
     assertThat(resultComponentDTO.component, notNullValue());
@@ -159,6 +161,7 @@ public class ComponentEvaluationV2Helper
         is(expectedComponentIdentifier.getCoordinates()));
     assertThat(resultComponentDTO.component.hash, is(expectedHash));
     assertThat(resultComponentDTO.matchState, is(matchState));
+    assertThat(resultComponentDTO.relativePopularity, is(relativePopularity));
 
 
     assertThat(resultComponentDTO.licenseData, notNullValue());

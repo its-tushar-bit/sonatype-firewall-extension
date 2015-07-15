@@ -19,12 +19,10 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
@@ -38,7 +36,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -54,7 +51,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.inject.Singleton;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +62,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ApiComponentEvaluationServiceV2
 {
-  public static final String HDS_EVALUATION_COMPONENTS_PATH = "rest/evaluation/components";
-
-  private int chunkSize = 100;
+  public static final String PURPOSE_EVALUATION = "evaluation";
 
   private static final Logger log = LoggerFactory.getLogger(ApiComponentEvaluationServiceV2.class);
 
@@ -76,13 +70,13 @@ public class ApiComponentEvaluationServiceV2
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
+
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
   private final ApiComponentDetailsAdapter componentDetailsAdapter;
-
-  private final HdsClient client;
 
   private final InsightWork work;
 
@@ -91,15 +85,16 @@ public class ApiComponentEvaluationServiceV2
 
   @Inject
   public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO,
+      final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
       final ComponentPolicyEvaluator componentPolicyEvaluator, final ComponentDetailsLoader componentDetailsLoader,
-      final ApiComponentDetailsAdapter componentDetailsAdapter, final HdsClient client, final InsightWork work,
+      final ApiComponentDetailsAdapter componentDetailsAdapter, final InsightWork work,
       final ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
+    this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsLoader = componentDetailsLoader;
     this.componentDetailsAdapter = componentDetailsAdapter;
-    this.client = client;
     this.work = work;
     this.errorResponseGenerator = errorResponseGenerator;
   }
@@ -133,7 +128,7 @@ public class ApiComponentEvaluationServiceV2
 
   // For testing
   void setChunkSize(final int chunkSize) {
-    this.chunkSize = chunkSize;
+    apiComponentDetailsServiceV2.setChunkSize(chunkSize);
   }
 
   private void validateRequest(final ApiComponentEvaluationRequestDTOV2 evaluationRequest) {
@@ -194,7 +189,8 @@ public class ApiComponentEvaluationServiceV2
       evaluationResultDTO.applicationId = application.getId();
 
       try {
-        List<ComponentEvaluationData> componentEvaluationDataList = getComponentDetailsList(evaluationRequestDTO);
+        List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
+            .getComponentDetailsListFromHds(evaluationRequestDTO, PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
           NamedComponentDetails componentDetails = convert(componentEvaluationData);
           // use the claimed component data if found
@@ -277,6 +273,7 @@ public class ApiComponentEvaluationServiceV2
       componentDetails
           .setSecurityVulnerabilities(convertToSecurityVulnerability(componentEvaluationData.securityVulnerabilities));
       componentDetails.setMatchState(componentEvaluationData.matchState);
+      componentDetails.setRelativePopularity(componentEvaluationData.relativePopularity);
       return componentDetails;
     }
 
@@ -288,62 +285,6 @@ public class ApiComponentEvaluationServiceV2
       }
 
       return new ArrayList<>(vulnerabilities);
-    }
-
-    private List<ComponentEvaluationData> getComponentDetailsList(
-        final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
-        throws IOException
-    {
-      ComponentEvaluationDataList returnList = new ComponentEvaluationDataList();
-      returnList.components = new ArrayList<>();
-
-      int indexAdjust = 0;
-      List<List<ApiComponentDTOV2>> componentChunks = createChunks(evaluationRequestDTO.components, chunkSize);
-      for (List<ApiComponentDTOV2> componentChunk : componentChunks) {
-        ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk);
-        ComponentEvaluationDataList componentEvaluationDataList = client.post(ComponentEvaluationDataList.class,
-            HDS_EVALUATION_COMPONENTS_PATH, componentEvaluationDataRequestList);
-
-        for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList.components) {
-          componentEvaluationData.requestIndex += indexAdjust * chunkSize;
-          returnList.components.add(componentEvaluationData);
-        }
-        indexAdjust++;
-      }
-
-      return returnList.components;
-    }
-
-    private ComponentEvaluationDataRequestList convert(final List<ApiComponentDTOV2> components) {
-      ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
-      componentEvaluationDataRequestList.components = new ArrayList<>();
-      for (ApiComponentDTOV2 componentDTO : components) {
-        ComponentEvaluationDataRequest componentEvaluationDataRequest = convert(componentDTO);
-        componentEvaluationDataRequestList.components.add(componentEvaluationDataRequest);
-      }
-      return componentEvaluationDataRequestList;
-    }
-
-    private ComponentEvaluationDataRequest convert(final ApiComponentDTOV2 componentDTO) {
-      ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
-      componentEvaluationDataRequest.hash = componentDTO.hash;
-      if (componentDTO.componentIdentifier != null) {
-        componentEvaluationDataRequest.componentIdentifier = new ComponentIdentifier(
-            componentDTO.componentIdentifier.getFormat(), componentDTO.componentIdentifier.getCoordinates());
-        componentEvaluationDataRequest.componentIdentifier.ensureComplete();
-      }
-      return componentEvaluationDataRequest;
-    }
-
-    private <T> List<List<T>> createChunks(List<T> bigList, int n) {
-      List<List<T>> chunks = new ArrayList<>();
-
-      for (int i = 0; i < bigList.size(); i += n) {
-        List<T> chunk = bigList.subList(i, Math.min(bigList.size(), i + n));
-        chunks.add(chunk);
-      }
-
-      return chunks;
     }
   }
 

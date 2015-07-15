@@ -11,6 +11,8 @@ import com.sonatype.insight.brain.api.v1.dto.ApiLicenseDataDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.utils.ISODateSerializer;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
@@ -25,9 +27,12 @@ public class ApiComponentDetailsDTOV2
   @JsonSerialize(using = ISODateSerializer.class)
   public Date catalogDate;
 
+  public Integer relativePopularity;
+
   public ApiLicenseDataDTO licenseData;
 
   public ApiSecurityDataDTO securityData;
 
+  @JsonInclude(Include.NON_NULL)
   public ApiComponentPolicyViolationListDTOV2 policyData;
 }

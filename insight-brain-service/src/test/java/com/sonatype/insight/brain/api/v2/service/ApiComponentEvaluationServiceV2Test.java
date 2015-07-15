@@ -103,16 +103,14 @@ public class ApiComponentEvaluationServiceV2Test
             componentEvaluationV2Helper.createMavenComponentIdentifier("g" + i, "a" + i, "v" + i, "e" + i);
         ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h" + i);
         request.components.add(component);
-        componentEvaluationDataList.components.add(
-            componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier, component.hash,
-                MatchState.EXACT, i,
-                declaredLicenseSet, observedLicenseSet, securityVulnerabilities));
+        componentEvaluationDataList.components.add(componentEvaluationV2Helper.createComponentEvaluationData(
+            componentIdentifier, component.hash, MatchState.EXACT, i, declaredLicenseSet, observedLicenseSet,
+            securityVulnerabilities, i /* popularity */));
       }
-      when(client.post(
-              eq(ComponentEvaluationDataList.class),
-              eq(ApiComponentEvaluationServiceV2.HDS_EVALUATION_COMPONENTS_PATH),
-              anyObject())
-      ).thenReturn(componentEvaluationDataList);
+      when(
+          client.post(eq(ComponentEvaluationDataList.class),
+              eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), anyObject(),
+              eq(ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION))).thenReturn(componentEvaluationDataList);
     }
     int numComponents = CHUNK_SIZE * 2;
 
@@ -121,8 +119,8 @@ public class ApiComponentEvaluationServiceV2Test
     ApiComponentEvaluationResultDTOV2 details = getComponentEvaluationResult(ticket);
 
     assertThat(details, notNullValue());
-    assertThat(details.isError, is(false));
     assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());
@@ -131,8 +129,8 @@ public class ApiComponentEvaluationServiceV2Test
     int i = 0;
     for (ApiComponentDetailsDTOV2 componentDetailsDTOV2 : details.results) {
       componentEvaluationV2Helper.assertComponentDetails(componentDetailsDTOV2, request.components.get(i),
-          MatchState.EXACT.getId(),
-          new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet), securityVulnerabilities, policies);
+          MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
+          securityVulnerabilities, i % CHUNK_SIZE /* popularity */, policies);
       i++;
     }
   }

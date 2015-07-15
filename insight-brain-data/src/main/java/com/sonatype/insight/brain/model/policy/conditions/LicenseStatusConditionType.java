@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
 
 public class LicenseStatusConditionType
-    extends AbstractConditionType<String>
+    extends AbstractComponentConditionType<String>
 {
   public static final String ID = "LicenseStatus";
 

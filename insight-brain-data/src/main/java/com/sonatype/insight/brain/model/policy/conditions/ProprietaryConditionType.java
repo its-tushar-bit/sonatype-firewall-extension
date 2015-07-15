@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 
 public class ProprietaryConditionType
-    extends AbstractConditionType<String>
+    extends AbstractComponentConditionType<String>
 {
   public static final String ID = "Proprietary";
 

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IdentificationSourceValueType;
 
 public class IdentificationSourceConditionType
-    extends AbstractConditionType<String>
+    extends AbstractComponentConditionType<String>
 {
   public static final String ID = "IdentificationSource";
 

@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.MatchStateValueType;
 
 public class MatchStateConditionType
-    extends AbstractConditionType<String>
+    extends AbstractComponentConditionType<String>
 {
   public static final String ID = "MatchState";
 

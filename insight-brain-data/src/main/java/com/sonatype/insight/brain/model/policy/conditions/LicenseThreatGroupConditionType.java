@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
 
 public class LicenseThreatGroupConditionType
-    extends AbstractConditionType<String>
+    extends AbstractComponentConditionType<String>
 {
   public static final String ID = "License Threat Group";
 

@@ -21,7 +21,7 @@ import org.joda.time.format.PeriodFormat;
 import org.joda.time.format.PeriodFormatter;
 
 public class AgeInDaysConditionType
-    extends AbstractConditionType<Integer>
+    extends AbstractComponentConditionType<Integer>
 {
   public static final String ID = "AgeInDays";
 

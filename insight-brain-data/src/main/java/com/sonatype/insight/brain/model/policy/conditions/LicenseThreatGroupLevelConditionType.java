@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
 
 public class LicenseThreatGroupLevelConditionType
-    extends AbstractConditionType<Integer>
+    extends AbstractComponentConditionType<Integer>
 {
   public static final String ID = "License Threat Group Level";
 

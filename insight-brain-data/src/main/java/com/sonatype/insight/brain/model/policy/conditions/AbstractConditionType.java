@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.model.policy.conditions;
 
-import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 
-public abstract class AbstractConditionType<T>
+public abstract class AbstractConditionType
     implements ConditionType
 {
   @Override
@@ -38,27 +36,7 @@ public abstract class AbstractConditionType<T>
     return getName() + ' ' + condition.getOperator() + (condition.getValue() != null ? ' ' + condition.getValue() : "");
   }
 
-  protected abstract boolean internalEvaluateCondition(Component component, String operator, T value);
-
-  public final boolean evaluateCondition(Component component, String operator, T value) {
-    /*
-     * Only interested in facts about known components, or facts about match state and proprietary state of unknown
-     * components.
-     */
-    if (MatchState.UNKNOWN == component.getMatchState() && !(this instanceof MatchStateConditionType)
-        && !(this instanceof ProprietaryConditionType)) {
-      return false;
-    }
-    return internalEvaluateCondition(component, operator, value);
-  }
-
   protected abstract String generateDroolsConditionValue(String value);
-
-  @Override
-  public final String generateDroolsCode(Condition condition) {
-    return "ConditionTypes." + getClass().getSimpleName() + ".evaluateCondition(this, \"" + condition.getOperator()
-        + "\", " + generateDroolsConditionValue(condition.getValue()) + ")";
-  }
 
   protected static String asDroolsComment(String text) {
     return " /* " + text.replace("*/", "").replaceAll("[\r\n]+", " ") + " */";

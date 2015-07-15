@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
 
 public class CoordinatesConditionType
-    extends AbstractConditionType<String>
+    extends AbstractComponentConditionType<String>
 {
   public static final String ID = "Coordinates";
 

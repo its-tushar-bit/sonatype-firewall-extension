@@ -80,22 +80,6 @@ public class Component
     return componentIdentifier != null ? componentIdentifier.get(VERSION) : null;
   }
 
-
-  public List<SecurityVulnerability> getSecurityVulnerabilitiesByStatusId(String securityVulnerabilityStatusId) {
-    if (getSecurityVulnerabilities().isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getById(securityVulnerabilityStatusId);
-    List<SecurityVulnerability> result = new ArrayList<>();
-    for (SecurityVulnerability securityVulnerability : securityVulnerabilities) {
-      if (status.equals(securityVulnerability.getStatus())) {
-        result.add(securityVulnerability);
-      }
-    }
-    return result;
-  }
-
   public List<SecurityVulnerability> getSecurityVulnerabilities() {
     if (securityVulnerabilities == null) {
       return Collections.emptyList();

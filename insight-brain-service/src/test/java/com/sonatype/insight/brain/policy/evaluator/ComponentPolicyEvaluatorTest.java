@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -33,6 +34,8 @@ import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -703,5 +706,71 @@ public class ComponentPolicyEvaluatorTest
     assertThat(waivedPolicyAlerts.get(0).getTrigger().getComponentFacts(), hasSize(1));
     ComponentFact waivedComponentFact = waivedPolicyAlerts.get(0).getTrigger().getComponentFacts().get(0);
     assertThat(policyResults.getPolicyWaiver(waivedComponentFact).getId(), is(policyWaiver.getId()));
+  }
+
+  @Test
+  public void testEvaluate_VulnerabilityConditions_Conjunction() {
+    Constraint constraint = new Constraint("cid", "CVSS >= 7 and <= 9", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "9"));
+    constraint.addCondition(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is not",
+        SecurityVulnerabilityStatus.NOT_APPLICABLE.getId()));
+
+    Policy policy = new Policy("pid", "Security-High");
+    policy.addConstraint(constraint);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component1.setHash("12345678901234567890");
+    component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
+        SecurityVulnerabilityStatus.NOT_APPLICABLE));
+    component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 4.0f));
+
+    Component component2 = ComponentFactory.forGav("g1", "a1", "v2", MatchState.EXACT);
+    component1.setHash("12345678901234567891");
+    component2.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f));
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(component1, component2));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component2, policy.getId(), policy.getName(), FailActionType.ID, constraint.getId(),
+        constraint.getName(), SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy.getId(), policy.getName(), FailActionType.ID, constraint.getId(),
+        constraint.getName(), SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
+  }
+
+  @Test
+  public void testEvaluate_VulnerabilityConditions_Disjunction() {
+    Constraint constraint = new Constraint("cid", "cname", LogicalOperator.OR);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "9"));
+    constraint.addCondition(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is not",
+        SecurityVulnerabilityStatus.NOT_APPLICABLE.getId()));
+
+    Policy policy = new Policy("pid", "pname");
+    policy.addConstraint(constraint);
+    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
+
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    component1.setHash("12345678901234567890");
+    component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
+        SecurityVulnerabilityStatus.NOT_APPLICABLE));
+    component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 4.0f));
+
+    Component component2 = ComponentFactory.forGav("g1", "a1", "v2", MatchState.EXACT);
+    component2.setHash("12345678901234567891");
+    component2.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f));
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(component1, component2));
+    assertThat(policyAlerts, hasSize(1));
+    assertFactCounts(1, 2, policyAlerts.get(0));
+    assertContainsPolicyAlert(component1, policy.getId(), policy.getName(), FailActionType.ID, constraint.getId(),
+        constraint.getName(), SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component1, policy.getId(), policy.getName(), FailActionType.ID, constraint.getId(),
+        constraint.getName(), SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy.getId(), policy.getName(), FailActionType.ID, constraint.getId(),
+        constraint.getName(), SecurityVulnerabilitySeverityConditionType.ID, policyAlerts);
+    assertContainsPolicyAlert(component2, policy.getId(), policy.getName(), FailActionType.ID, constraint.getId(),
+        constraint.getName(), SecurityVulnerabilityStatusConditionType.ID, policyAlerts);
   }
 }

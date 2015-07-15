@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.PercentageValueType;
 
 public class RelativePopularityConditionType
-    extends AbstractConditionType<Integer>
+    extends AbstractComponentConditionType<Integer>
 {
   public static final String ID = "RelativePopularity";
 

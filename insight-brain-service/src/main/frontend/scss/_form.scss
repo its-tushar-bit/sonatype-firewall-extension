@@ -120,7 +120,8 @@
     font-size: 14px;
     display: block;
     cursor: pointer;
-    margin-bottom: 12px;
+    margin-bottom: 7px;
+    margin-top: -3px;
     padding-left: 24px;
 
     // Monochrome radio button to override native implementation. Native is hidden and pseudo selectors on the label's

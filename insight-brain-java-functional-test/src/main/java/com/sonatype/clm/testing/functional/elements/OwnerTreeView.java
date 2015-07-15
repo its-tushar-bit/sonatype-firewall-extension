@@ -49,8 +49,8 @@ public class OwnerTreeView
   {
     private final SelenideElement element;
 
-    public static final Condition COLLAPSED_CLASS = cssClass("collapse");
-    public static final Condition EXPANDED_CLASS = cssClass("expand");
+    public static final Condition COLLAPSE_CLASS = cssClass("collapse");
+    public static final Condition EXPAND_CLASS = cssClass("expand");
 
     public OrganizationNode(SelenideElement element) {
       this.element = element;

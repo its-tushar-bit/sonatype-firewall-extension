@@ -77,13 +77,13 @@ public class OwnerTreeViewTest
     SelenideElement twisty = organizationNode.twisty();
     SelenideElement organizationElement = organizationNode.treeViewElement();
 
-    twisty.shouldHave(OrganizationNode.EXPANDED_CLASS);
+    twisty.shouldHave(OrganizationNode.EXPAND_CLASS);
     organizationElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
     organizationElement.isDisplayed();
     organizationElement.shouldHave(text(organizationName));
 
     twisty.click();
-    twisty.shouldHave(OrganizationNode.COLLAPSED_CLASS);
+    twisty.shouldHave(OrganizationNode.COLLAPSE_CLASS);
     organizationNode.applicationElements().shouldHaveSize(applicationNames.length);
 
     List<ApplicationNode> applicationNodes = organizationNode.applications();
@@ -97,7 +97,7 @@ public class OwnerTreeViewTest
     }
 
     twisty.click();
-    twisty.shouldHave(OrganizationNode.EXPANDED_CLASS);
+    twisty.shouldHave(OrganizationNode.EXPAND_CLASS);
   }
 
   @Test
@@ -108,7 +108,7 @@ public class OwnerTreeViewTest
 
     treeViewElement.click();
     treeViewElement.shouldHave(OwnerTreeView.NODE_SELECTED_CLASS);
-    twisty.shouldHave(OrganizationNode.COLLAPSED_CLASS);
+    twisty.shouldHave(OrganizationNode.COLLAPSE_CLASS);
   }
 
   @Test

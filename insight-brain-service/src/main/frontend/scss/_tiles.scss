@@ -41,35 +41,6 @@
   height: calc(100% - 175px);
 }
 
-.nav.nav-pills {
-  padding: 8px;
-  background-color: $grey-2;
-  margin-bottom: 0px;
-
-  a {
-    min-width: 100px;
-    padding: 8px 12px;
-    display: inline-block;
-    text-align: center;
-    border-radius: 4px;
-    color: inherit;
-
-    &:hover, &:focus {
-      color: inherit;
-      border: 1px solid $grey-4;
-      padding: 7px 11px;
-    }
-  }
-
-  li:not(:last-child) {
-    margin-right: 8px;
-  }
-
-  li.active > a {
-    background-color: $off-white;
-  }
-}
-
 .tile {
   margin-bottom : 8px;
   padding : 8px;
@@ -98,5 +69,34 @@
 
   &.summary-tile {
     margin: 8px 24px 0px 8px;
+
+    .nav.nav-pills {
+      padding: 8px;
+      background-color: $grey-2;
+      margin-bottom: 0px;
+
+      a {
+        min-width: 100px;
+        padding: 8px 12px;
+        display: inline-block;
+        text-align: center;
+        border-radius: 4px;
+        color: inherit;
+
+        &:hover, &:focus {
+          color: inherit;
+          border: 1px solid $grey-4;
+          padding: 7px 11px;
+        }
+      }
+
+      li:not(:last-child) {
+        margin-right: 8px;
+      }
+
+      li.active > a {
+        background-color: $off-white;
+      }
+    }
   }
 }

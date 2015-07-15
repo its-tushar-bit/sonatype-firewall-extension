@@ -272,7 +272,6 @@ public class ApiComponentEvaluationServiceV2
       componentDetails.setObservedLicenses(componentEvaluationData.observedLicenses);
       componentDetails
           .setSecurityVulnerabilities(convertToSecurityVulnerability(componentEvaluationData.securityVulnerabilities));
-      componentDetails.setMatchState(componentEvaluationData.matchState);
       componentDetails.setRelativePopularity(componentEvaluationData.relativePopularity);
       return componentDetails;
     }

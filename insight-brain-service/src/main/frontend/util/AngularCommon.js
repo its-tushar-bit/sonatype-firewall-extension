@@ -344,7 +344,7 @@ var AngularStateUtils = {
       transclude : true,
       replace : true,
       template : '<div>' +
-                   '<div ng-if="!error && isLoading()"><i class="fa fa-clock"></i> Loading....</div>' +
+                   '<div ng-if="!error && isLoading()"><i class="fa fa-spin fa-circle-o-notch"></i> Loading....</div>' +
                    '<div ng-show="!error && !isLoading()" ng-transclude></div>' +
                    '<div load-error="error" reload="reload()" message="errorMessage" />' +
                  '</div>',

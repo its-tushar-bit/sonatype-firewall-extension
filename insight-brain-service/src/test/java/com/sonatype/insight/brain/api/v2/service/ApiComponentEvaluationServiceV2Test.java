@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
@@ -38,10 +41,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +86,14 @@ public class ApiComponentEvaluationServiceV2Test
     apiComponentEvaluationService.setChunkSize(CHUNK_SIZE);
   }
 
+  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentEvaluationDataList hdsResult)
+      throws IOException
+  {
+    when(
+        client.post(eq(ComponentEvaluationDataList.class), eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH),
+            eq(hdsRequest), eq(ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION))).thenReturn(hdsResult);
+  }
+
   @Test
   public void testEvaluateComponents_chunked() throws Exception {
     LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
@@ -107,10 +118,7 @@ public class ApiComponentEvaluationServiceV2Test
             componentIdentifier, component.hash, MatchState.EXACT, i, declaredLicenseSet, observedLicenseSet,
             securityVulnerabilities, i /* popularity */));
       }
-      when(
-          client.post(eq(ComponentEvaluationDataList.class),
-              eq(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH), anyObject(),
-              eq(ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION))).thenReturn(componentEvaluationDataList);
+      mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(request), componentEvaluationDataList);
     }
     int numComponents = CHUNK_SIZE * 2;
 
@@ -133,6 +141,40 @@ public class ApiComponentEvaluationServiceV2Test
           securityVulnerabilities, i % CHUNK_SIZE /* popularity */, policies);
       i++;
     }
+  }
+
+  @Test
+  public void testEvaluateComponents_matchByLongHash() throws Exception {
+    ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
+
+    String hash = "12345678901234567890";
+    String longHash = hash + "a";
+    // The CLM request uses long hash
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(null, longHash);
+    request.components.add(component);
+
+    // The HDS request uses short hash
+    ComponentEvaluationDataRequestList hdsRequest = componentEvaluationV2Helper.toHdsRequest(request);
+    hdsRequest.components.get(0).hash = hash;
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier, hash,
+        MatchState.EXACT, 0, Collections.<License> emptySet(), Collections.<License> emptySet(),
+        Collections.<SecurityVulnerability> emptyList(), null));
+    mockHdsRequest(hdsRequest, hdsResult);
+
+    ApiComponentEvaluationTicketDTOV2 ticket = apiComponentEvaluationService.evaluateComponents(app.getId(), request);
+    ApiComponentEvaluationResultDTOV2 details = getComponentEvaluationResult(ticket);
+
+    assertThat(details, notNullValue());
+    assertThat(details.errorMessage, nullValue());
+    assertThat(details.isError, is(false));
+    assertThat(details.results, hasSize(1));
+    assertThat(details.results.get(0).component.hash, is(hash));
+    assertThat(details.results.get(0).component.componentIdentifier.getFormat(), is(componentIdentifier.getFormat()));
+    assertThat(details.results.get(0).component.componentIdentifier.getCoordinates(),
+        is(componentIdentifier.getCoordinates()));
   }
 
   private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(

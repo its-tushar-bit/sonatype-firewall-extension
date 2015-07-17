@@ -16,11 +16,14 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -200,5 +203,21 @@ public class ComponentEvaluationV2Helper
       assertThat(violation.policyId, is(policies.get(violation.policyId).getId()));
       assertThat(violation.policyName, is(policies.get(violation.policyId).getName()));
     }
+  }
+
+  public ComponentEvaluationDataRequestList toHdsRequest(ApiComponentEvaluationRequestDTOV2 clmRequest) {
+    ComponentEvaluationDataRequestList hdsRequest = new ComponentEvaluationDataRequestList();
+    hdsRequest.components = new ArrayList<>();
+    for (ApiComponentDTOV2 componentDTO : clmRequest.components) {
+      ComponentEvaluationDataRequest componentEvaluationDataRequest = new ComponentEvaluationDataRequest();
+      componentEvaluationDataRequest.hash = componentDTO.hash;
+      if (componentDTO.componentIdentifier != null) {
+        componentEvaluationDataRequest.componentIdentifier = new ComponentIdentifier(
+            componentDTO.componentIdentifier.getFormat(), componentDTO.componentIdentifier.getCoordinates());
+        componentEvaluationDataRequest.componentIdentifier.ensureComplete();
+      }
+      hdsRequest.components.add(componentEvaluationDataRequest);
+    }
+    return hdsRequest;
   }
 }

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
@@ -119,6 +120,11 @@ public class ApiComponentDetailsServiceV2
       ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO, String purpose)
   {
     long start = System.currentTimeMillis();
+
+    // The client may use long hashes. Truncate all hashes to the length used by CLM.
+    for (ApiComponentDTOV2 apiComponentDTOV2 : componentDetailsRequestDTO.components) {
+      apiComponentDTOV2.hash = HashHelper.truncateHash(apiComponentDTOV2.hash);
+    }
 
     ComponentEvaluationDataList returnList = new ComponentEvaluationDataList();
     returnList.components = new ArrayList<>();

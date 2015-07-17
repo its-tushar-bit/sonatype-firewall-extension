@@ -76,9 +76,9 @@
           expand: true,
           cwd: '<%= config.frontend %>',
           src: [
-            '**/*.{html,eot,svg,ttf,woff,woff2,png,gif,jpg}',
+            '**/*.{html,ttf,woff,woff2,png,gif,jpg}',
             '!assets/lib/*',
-            'assets/lib/**/*.{js,css,eot,svg,ttf,woff,woff2}',
+            'assets/lib/**/*.{js,css,ttf,woff,woff2}',
             '!assets/lib/**/test/*'
           ],
           dest: '<%= config.generated %>'
@@ -165,7 +165,7 @@
         build: {
           expand: true,
           cwd: '<%= config.generated %>',
-          src: '**/index.html',
+          src: ['**/index.html', 'assets/css/style-scss.*.css'],
           dest: '<%= config.generated %>'
         }
       },
@@ -303,7 +303,6 @@
       'copy:build',
       'copy:build_cip',
       'copy:build_brain_client',
-      'template',
       'sass',
       'useminPrepare',
       'concat:generated',
@@ -313,6 +312,7 @@
       'filerev',
       'usemin',
       'filerev_replace',
+      'template',
 
       'livingstyle',
 
@@ -326,13 +326,13 @@
       'copy:build',
       'copy:build_cip',
       'copy:build_brain_client',
-      'template',
       'sass',
       'useminPrepare',
       'concat:generated',
       'cssmin:build_cip',
       'copy:develop',
       'usemin',
+      'template',
       'clean:temp'
     ]);
 
@@ -344,13 +344,13 @@
       'copy:build',
       'copy:build_cip',
       'copy:build_brain_client',
-      'template',
       'sass',
       'useminPrepare',
       'concat:generated',
       'cssmin:build_cip',
       'copy:develop',
       'usemin',
+      'template',
 
       'watch',
 

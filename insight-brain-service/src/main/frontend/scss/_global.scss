@@ -43,26 +43,17 @@
 */
 @font-face {
   font-family: Proxima Nova Regular;
-  src: url('../fonts/proximanova-reg-webfont.eot');
-  src: url('../fonts/proximanova-reg-webfont.woff') format('woff'),
-  url('../fonts/proximanova-reg-webfont.ttf') format('truetype'),
-  url('../fonts/proximanova-reg-webfont.svg#webfont') format('svg');
+  src: url('../fonts/proximanova-reg-webfont.woff?<%= config.buildTimestamp %>') format('woff');
 }
 @font-face {
   font-family: Proxima Nova Bold;
   font-weight: bold;
-  src: url('../fonts/proximanova-bold-webfont.eot');
-  src: url('../fonts/proximanova-bold-webfont.woff') format('woff'),
-  url('../fonts/proximanova-bold-webfont.ttf') format('truetype'),
-  url('../fonts/proximanova-bold-webfont.svg#webfont') format('svg');
+  src: url('../fonts/proximanova-bold-webfont.woff?<%= config.buildTimestamp %>') format('woff');
 }
 @font-face {
   font-family: Proxima Nova Semibold;
   font-weight: bold;
-  src: url('../fonts/proximanova-sbold-webfont.eot');
-  src: url('../fonts/proximanova-sbold-webfont.woff') format('woff'),
-  url('../fonts/proximanova-sbold-webfont.ttf') format('truetype'),
-  url('../fonts/proximanova-sbold-webfont.svg#webfont') format('svg');
+  src: url('../fonts/proximanova-sbold-webfont.woff?<%= config.buildTimestamp %>') format('woff');
 }
 .bold {
   font-family: Proxima Nova Bold, sans-serif;

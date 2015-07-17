@@ -47,11 +47,7 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 
 @font-face {
   font-family: $sonatype-icon-font-name;
-  src:url('#{$sonatype-icon-font-path}.eot');
-  src:url('#{$sonatype-icon-font-path}.eot?#iefix') format('embedded-opentype'),
-  url('#{$sonatype-icon-font-path}.woff') format('woff'),
-  url('#{$sonatype-icon-font-path}.ttf') format('truetype'),
-  url('#{$sonatype-icon-font-path}.svg#sonatype') format('svg');
+  src: url('#{$sonatype-icon-font-path}.woff?<%= config.buildTimestamp %>') format('woff');
   font-weight: normal;
   font-style: normal;
 }

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, window, document, Brain, clmEndpoint */
+/*global angular, window, Brain, clmEndpoint */
 (function() {
   'use strict';
   var query,
@@ -49,31 +49,6 @@
       result[decode(field[0])] = decode(field[1]);
     });
     return result;
-  }());
-
-  (function() {
-    var style = '<style type="text/css">',
-        head = document.head || document.getElementsByTagName("head")[0];
-
-    if (query.fontName) {
-      style += 'body { font-family: ' + query.fontName + ',Arial, Helvetica, sans-serif;}';
-    }
-    style += '.table th, .table td {';
-    if (query.fontSize) {
-      style += 'font-size:' + query.fontSize + 'pt;';
-    }
-    style += "line-height: normal;}";
-
-    style += "td.severity-column {	font-weight: bold;color: #656565;padding: 8px 5px 2px 15px !important;";
-    if (query.fontSize) {
-      style += 'font-size:' + (3 + Number(query.fontSize)) + 'pt;}';
-      style += " h5 { font-size: " + (1 + Number(query.fontSize)) + "pt;";
-    }
-    style += "}</style>";
-    angular.element(head).append(style);
-
-    delete query.fontSize;
-    delete query.fontName;
   }());
 
   function transformPolicyAlerts(alerts) {

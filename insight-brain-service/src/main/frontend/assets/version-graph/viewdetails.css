@@ -33,6 +33,16 @@ td.refCol {
   white-space: nowrap;
 }
 
+td.severity-column {
+  font-weight: bold;
+  color: #656565;
+  padding: 8px 5px 2px 15px !important;
+}
+
+.table th, .table td {
+  line-height: normal;
+}
+
 table.table th {
   border-bottom: 1px solid #c9d0e2;
   border-right: 1px solid #cfd0d2;

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.migration;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public class PolicyDroolsCodeMigrator
     this.schemaInfoDAO = schemaInfoDAO;
   }
 
-  void migrate() throws IOException {
+  void migrate() {
     File markerFile = new File(insightWork.getWorkDir(), MARKER_FILE_NAME);
 
     SchemaInfo schemaInfo = schemaInfoDAO.get();

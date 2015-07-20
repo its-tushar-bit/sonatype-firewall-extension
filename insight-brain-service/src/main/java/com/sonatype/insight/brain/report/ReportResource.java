@@ -243,7 +243,7 @@ public class ReportResource
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(appId, scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
 
     if (policyEvaluation == null) {
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
@@ -311,7 +311,7 @@ public class ReportResource
     File pdfFile = Report.printPdf(reportFile, "", "", contact);
 
     ApiReportDataDTOV2 reportData = reportDataService.getDataNoAuth(applicationPublicId, scanId);
-    PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), scanId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
 
     File updatedFile = File.createTempFile("report", "zip");

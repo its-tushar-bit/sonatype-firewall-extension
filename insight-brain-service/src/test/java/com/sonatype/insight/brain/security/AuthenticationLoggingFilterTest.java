@@ -11,11 +11,14 @@ import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
+import javax.servlet.ServletRequestWrapper;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.security.UserAuthentication;
+import org.eclipse.jetty.server.Authentication;
+import org.eclipse.jetty.server.Request;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,13 +26,15 @@ import org.slf4j.MDC;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AuthenticationLoggingFilterTest
 {
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
+  private final Request jettyRequest = new Request();
+  private final ServletRequest request = new ServletRequestWrapper(jettyRequest);
   private final HttpServletResponse response = mock(HttpServletResponse.class);
   private final CurrentUser currentUser = mock(CurrentUser.class);
 
@@ -51,7 +56,7 @@ public class AuthenticationLoggingFilterTest
   }
 
   @Test
-  public void addsUsernameToMDC() throws IOException, ServletException {
+  public void testAuthenticatedUser() throws IOException, ServletException {
     final String username = "foo";
 
     prepareMocks(username);
@@ -60,20 +65,22 @@ public class AuthenticationLoggingFilterTest
     filter.doFilter(request, response, chain);
 
     assertThat(chain.mdcUsername, is(username));
+    assertJettyRequestAuthentication(username);
   }
 
   @Test
-  public void anonymousToMDC() throws IOException, ServletException {
+  public void testAnonymous() throws IOException, ServletException {
     prepareMocks(null);
     FilterChainStub chain = new FilterChainStub();
 
     filter.doFilter(request, response, chain);
 
     assertThat(chain.mdcUsername, is(MDCUsernameScope.ANONYMOUS));
+    assertJettyRequestAuthentication(MDCUsernameScope.ANONYMOUS);
   }
 
   @Test
-  public void mdcCleanup() throws IOException, ServletException {
+  public void testMDCIsCleanAfterRequestIsProcessed() throws IOException, ServletException {
     final String username = "foo";
     prepareMocks(username);
 
@@ -81,6 +88,12 @@ public class AuthenticationLoggingFilterTest
 
     Map<String, String> contextMap = MDC.getCopyOfContextMap();
     assertThat(contextMap == null || contextMap.isEmpty(), is(true));
+  }
+
+  private void assertJettyRequestAuthentication(String username) {
+    Authentication authentication = jettyRequest.getAuthentication();
+    assertThat(authentication, instanceOf(UserAuthentication.class));
+    assertThat(((UserAuthentication) authentication).getUserIdentity().getUserPrincipal().getName(), is(username));
   }
 
   private void prepareMocks(String username) {

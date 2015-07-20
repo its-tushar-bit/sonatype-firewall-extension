@@ -5,32 +5,32 @@
       <div class="sub-header" ng-if="owner.description">{{owner.description}}</div>
       <button ng-click='edit()'>Edit</button>
       <ul class="nav nav-pills">
-        <li class="active"><a data-toggle="pill" ng-href="">Application Types</a></li>
-        <li><a data-toggle="pill" ng-href="">Policy</a></li>
-        <li><a data-toggle="pill" ng-href="">Component Labels</a></li>
-        <li><a data-toggle="pill" ng-href="">License Threat Groups</a></li>
-        <li><a data-toggle="pill" ng-href="">Access</a></li>
+        <li class="active"><a data-toggle="pill" data-target="#owner-pill-app-type" ng-href="">Application Types</a></li>
+        <li><a data-toggle="pill" data-target="#owner-pill-policy" ng-href="">Policy</a></li>
+        <li><a data-toggle="pill" data-target="#owner-pill-comp-labels" ng-href="">Component Labels</a></li>
+        <li><a data-toggle="pill" data-target="#owner-pill-ltgs" ng-href="">License Threat Groups</a></li>
+        <li><a data-toggle="pill" data-target="#owner-pill-access" ng-href="">Access</a></li>
       </ul>
     </div>
   </div>
-  <div class="tile-scroll-container">
-    <div class="tile">
+  <div class="tile-scroll-container" scrollspy="#owner-summary">
+    <div class="tile" id="owner-pill-app-type">
       <h2>Application Types</h2>
       <div class="sub-header">a description</div>
     </div>
-    <div class="tile">
+    <div class="tile" id="owner-pill-policy">
       <h2>Policy</h2>
       <div class="sub-header">a description</div>
     </div>
-    <div class="tile">
+    <div class="tile" id="owner-pill-comp-labels">
       <h2>Component Labels</h2>
       <div class="sub-header">a description</div>
     </div>
-    <div class="tile">
+    <div class="tile" id="owner-pill-ltgs">
       <h2>License Threat Groups</h2>
       <div class="sub-header">a description</div>
     </div>
-    <div class="tile">
+    <div class="tile" id="owner-pill-access">
       <h2>Access</h2>
       <div class="sub-header">a description</div>
     </div>

@@ -39,6 +39,8 @@
   overflow-x: visible;
   width: calc(100% - 16px);
   height: calc(100% - 175px);
+  //required for scrollspy
+  position: relative;
 }
 
 .tile {

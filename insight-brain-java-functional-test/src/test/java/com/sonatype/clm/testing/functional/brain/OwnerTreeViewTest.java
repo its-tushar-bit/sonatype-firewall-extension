@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNo
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Permission;
 
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
@@ -143,6 +144,31 @@ public class OwnerTreeViewTest
     Organization applicationOrganization = organizations.get(0);
     OwnerTreeView.filter().setValue(queriedApplication.getName());
     assertSingleApplicationVisible(applicationOrganization.getName(), queriedApplication.getName());
+  }
+
+  @Test
+  public void testShowApplicationParentWithoutPermissions() {
+    createUser();
+    Organization organization = tempEntity.newOrganization("Parent Organization No Permission");
+    Application application = tempEntity.newApplication("No Parent Permissions", "No_Parent_Permissions", organization.getId());
+    grantPermissions(getUsername(), application.getId(), Permission.READ);
+
+    logout();
+    login();
+
+    refreshOrOpen(OrganizationManagementPage.URL);
+    OwnerTreeView.organizationElements().shouldHaveSize(1);
+    OrganizationNode parentNode = OwnerTreeView.organizations().get(0);
+    parentNode.treeViewElement().shouldHave(text("Parent Organization No Permission"));
+    parentNode.twisty().click();
+    parentNode.twisty().shouldHave(OrganizationNode.COLLAPSE_CLASS);
+
+    parentNode.applicationElements().shouldHaveSize(1);
+    ApplicationNode childNode = parentNode.applications().get(0);
+    childNode.treeViewElement().shouldHave(text("No Parent Permissions"));
+
+    logout();
+    loginAsAdmin();
   }
 
   private void assertSingleOrganizationVisible(String organizationName, int applicationCount) {

@@ -43,14 +43,23 @@ StoreMockData = {
         "organizationId":"org_1",
         "organizationName":"org_ONE",
         "contact": null
+      },
+      // Application without parent org to simulate user without permission to parent
+      {
+        "id": "app_30",
+        "publicId":"app_public_thirty",
+        "name":"app_THIRTY",
+        "organizationId":"org_4",
+        "organizationName":"org_FOUR",
+        "contact": null
       }
     ];
   },
   newApplication: function() {
     return {
-      "id": "app_30",
-      "publicId":"app_public_thirty",
-      "name":"app_THIRTY",
+      "id": "app_40",
+      "publicId":"app_public_forty",
+      "name":"app_FORTY",
       "organizationId":"org_2",
       "organizationName":"org_TWO",
       "contact": null

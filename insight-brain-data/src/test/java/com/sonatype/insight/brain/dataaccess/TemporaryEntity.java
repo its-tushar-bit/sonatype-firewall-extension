@@ -92,7 +92,7 @@ import org.junit.rules.ExternalResource;
 public class TemporaryEntity
     extends ExternalResource
 {
-  private static final String USER_PASSWORD_CLEAR = "secret";
+  public static final String USER_PASSWORD_CLEAR = "secret";
 
   private static final String USER_PASSWORD_HASH = "$shiro1$SHA-256$10$Gsv3gW95oRKzzxp37k/wJA==$T2VDhMzPuXN7VTobkLUcwDsxxJJXj5pInbW7YUn8muY=";
 

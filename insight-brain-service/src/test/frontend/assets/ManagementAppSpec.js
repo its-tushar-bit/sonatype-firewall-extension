@@ -11,9 +11,9 @@ describe('ManagementModule', function() {
   }));
   beforeEach(module('ManagementModule', 'OwnerModule'));
 
-  afterEach(inject(function($httpBackend) {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
+  afterEach(inject(function(_$httpBackend_) {
+    _$httpBackend_.verifyNoOutstandingExpectation();
+    _$httpBackend_.verifyNoOutstandingRequest();
 
     if (scope && scope.$destroy) {
       scope.$destroy();
@@ -25,7 +25,7 @@ describe('ManagementModule', function() {
         organizations = StoreMockData.getOrganizations(),
         applications = StoreMockData.getApplications();
 
-    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$state_, _CLMLocations_,
+    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$state_, _$timeout_, _CLMLocations_,
         _OrganizationStore_, _ApplicationStore_)
     {
       $controller = _$controller_;
@@ -44,16 +44,17 @@ describe('ManagementModule', function() {
       $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applications);
       scope.$digest();
       $httpBackend.flush();
+      _$timeout_.flush();
     }));
 
     it('loads organizations and applications', function() {
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(organizations.length);
+      expect(scope.organizations.length).toBe(organizations.length + 1);
+
       expect(scope.organizations[0].id).toBe(organizations[0].id);
       expect(scope.organizations[0].name).toBe(organizations[0].name);
       expect(scope.organizations[0].isVisible).toBe(true);
       expect(scope.organizations[0].isExpanded).toBe(false);
-
       expect(scope.organizations[0].applications).toBeDefined();
       expect(scope.organizations[0].applications.length).toBe(2);
       expect(scope.organizations[0].applications[0].id).toBe(applications[0].id);
@@ -71,15 +72,29 @@ describe('ManagementModule', function() {
       expect(scope.organizations[1].applications.length).toBe(0);
       expect(scope.organizations[1].isVisible).toBe(true);
       expect(scope.organizations[1].isExpanded).toBe(false);
+
+      expect(scope.organizations[2].id).toBe(applications[2].organizationId);
+      expect(scope.organizations[2].name).toBe(applications[2].organizationName);
+      expect(scope.organizations[2].isVisible).toBe(true);
+      expect(scope.organizations[2].isExpanded).toBe(false);
+      expect(scope.organizations[2].applications).toBeDefined();
+      expect(scope.organizations[2].applications.length).toBe(1);
+      expect(scope.organizations[2].applications[0].id).toBe(applications[2].id);
+      expect(scope.organizations[2].applications[0].publicId).toBe(applications[2].publicId);
+      expect(scope.organizations[2].applications[0].name).toBe(applications[2].name);
+      expect(scope.organizations[2].applications[0].isVisible).toBe(true);
     });
 
     it('checks if an organization or application is selected', function() {
-      expect($state.includes.calls.length).toBe(4);
+      expect($state.includes.calls.length).toBe(5);
       expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
         organizationId: organizations[0].id
       });
       expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
         organizationId: organizations[1].id
+      });
+      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
+        organizationId: applications[2].organizationId
       });
       expect($state.includes).toHaveBeenCalledWith('management.application-view');
     });
@@ -89,7 +104,7 @@ describe('ManagementModule', function() {
       scope.$digest();
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(2);
+      expect(scope.organizations.length).toBe(3);
       expect(scope.organizations[0].id).toBe(organizations[0].id);
       expect(scope.organizations[0].name).toBe(organizations[0].name);
       expect(scope.organizations[0].isVisible).toBe(true);
@@ -108,10 +123,20 @@ describe('ManagementModule', function() {
 
       expect(scope.organizations[1].id).toBe(organizations[1].id);
       expect(scope.organizations[1].name).toBe(organizations[1].name);
-      expect(scope.organizations[1].applications).toBeDefined();
-      expect(scope.organizations[1].applications.length).toBe(0);
       expect(scope.organizations[1].isVisible).toBe(false);
       expect(scope.organizations[1].isExpanded).toBe(false);
+      expect(scope.organizations[1].applications).toBeDefined();
+      expect(scope.organizations[1].applications.length).toBe(0);
+
+      expect(scope.organizations[2].id).toBe(applications[2].organizationId);
+      expect(scope.organizations[2].name).toBe(applications[2].organizationName);
+      expect(scope.organizations[2].isVisible).toBe(false);
+      expect(scope.organizations[2].isExpanded).toBe(false);
+      expect(scope.organizations[2].applications.length).toBe(1);
+      expect(scope.organizations[2].applications[0].id).toBe(applications[2].id);
+      expect(scope.organizations[2].applications[0].publicId).toBe(applications[2].publicId);
+      expect(scope.organizations[2].applications[0].name).toBe(applications[2].name);
+      expect(scope.organizations[2].applications[0].isVisible).toBe(false);
     });
 
     it('filters applications', function() {
@@ -119,7 +144,7 @@ describe('ManagementModule', function() {
       scope.$digest();
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(2);
+      expect(scope.organizations.length).toBe(3);
       expect(scope.organizations[0].id).toBe(organizations[0].id);
       expect(scope.organizations[0].name).toBe(organizations[0].name);
       expect(scope.organizations[0].isVisible).toBe(true);
@@ -142,6 +167,16 @@ describe('ManagementModule', function() {
       expect(scope.organizations[1].applications.length).toBe(0);
       expect(scope.organizations[1].isVisible).toBe(false);
       expect(scope.organizations[1].isExpanded).toBe(false);
+
+      expect(scope.organizations[2].id).toBe(applications[2].organizationId);
+      expect(scope.organizations[2].name).toBe(applications[2].organizationName);
+      expect(scope.organizations[2].isVisible).toBe(false);
+      expect(scope.organizations[2].isExpanded).toBe(false);
+      expect(scope.organizations[2].applications.length).toBe(1);
+      expect(scope.organizations[2].applications[0].id).toBe(applications[2].id);
+      expect(scope.organizations[2].applications[0].publicId).toBe(applications[2].publicId);
+      expect(scope.organizations[2].applications[0].name).toBe(applications[2].name);
+      expect(scope.organizations[2].applications[0].isVisible).toBe(false);
     });
 
     it('handles new organization', function() {
@@ -152,26 +187,26 @@ describe('ManagementModule', function() {
       $httpBackend.flush();
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(3);
+      expect(scope.organizations.length).toBe(4);
 
-      expect(scope.organizations[2].id).toBe(newOrganization.id);
-      expect(scope.organizations[2].name).toBe(newOrganization.name);
-      expect(scope.organizations[2].applications).toBeDefined();
-      expect(scope.organizations[2].applications.length).toBe(0);
-      expect(scope.organizations[2].isVisible).toBe(true);
-      expect(scope.organizations[2].isExpanded).toBe(false);
+      expect(scope.organizations[3].id).toBe(newOrganization.id);
+      expect(scope.organizations[3].name).toBe(newOrganization.name);
+      expect(scope.organizations[3].applications).toBeDefined();
+      expect(scope.organizations[3].applications.length).toBe(0);
+      expect(scope.organizations[3].isVisible).toBe(true);
+      expect(scope.organizations[3].isExpanded).toBe(false);
     });
 
     it('handles removed organization', function() {
       OrganizationStore.get().then(function(organizations) {
-        organizations[0].$delete();
-        $httpBackend.expectDELETE(CLMLocations.getOrganizationsUrl() + '/' + organizations[0].id).respond({});
+        organizations[1].$delete();
+        $httpBackend.expectDELETE(CLMLocations.getOrganizationsUrl() + '/' + organizations[1].id).respond({});
       });
       scope.$digest();
       $httpBackend.flush();
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(1);
+      expect(scope.organizations.length).toBe(2);
     });
 
     it('handles changes to organization', function() {
@@ -191,7 +226,7 @@ describe('ManagementModule', function() {
       $httpBackend.flush();
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(2);
+      expect(scope.organizations.length).toBe(3);
 
       expect(scope.organizations[1].applications).toBeDefined();
       expect(scope.organizations[1].applications.length).toBe(1);
@@ -211,7 +246,7 @@ describe('ManagementModule', function() {
       $httpBackend.flush();
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(2);
+      expect(scope.organizations.length).toBe(3);
 
       expect(scope.organizations[0].applications).toBeDefined();
       expect(scope.organizations[0].applications.length).toBe(1);

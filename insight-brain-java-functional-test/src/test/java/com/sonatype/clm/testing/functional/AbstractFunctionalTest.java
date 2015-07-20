@@ -15,6 +15,9 @@ import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.TestCLMServer;
 
@@ -109,6 +112,10 @@ public abstract class AbstractFunctionalTest
     login("admin", "admin123");
   }
 
+  protected void login() {
+    login(getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
+  }
+
   protected static void login(String username, String password) {
     LoginDialog.root().shouldBe(visible);
     LoginDialog.username().setValue(username);
@@ -177,5 +184,19 @@ public abstract class AbstractFunctionalTest
     catch (NoAlertPresentException e) {
       // do nothing
     }
+  }
+
+
+  public String getUsername() {
+    return getClass().getSimpleName();
+  }
+
+  public User createUser() {
+    return tempEntity.newUser(getUsername());
+  }
+
+  public void grantPermissions(String username, String contextId, Permission... perms) {
+    Role role = tempEntity.newRole(false /* global */, perms);
+    tempEntity.newMembershipMapping(contextId, role.getId(), username);
   }
 }

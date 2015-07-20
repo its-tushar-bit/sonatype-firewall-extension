@@ -34,9 +34,10 @@
   }]);
 
   managementModule.controller('OwnerTreeViewController', [
-    '$q', '$scope', '$state', '$stateParams', 'OrganizationStore', 'ApplicationStore', 'OwnerEditor',
-    function($q, $scope, $state, $stateParams, organizationStore, applicationStore, OwnerEditor) {
-      var organizations, applications;
+    '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore', 'OwnerEditor',
+    function($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore, OwnerEditor) {
+      var organizations, applications, organizationWatcher, applicationWatcher,
+          lastOrganizations = [], lastApplications = [];
 
       function newApplication(applicationResource) {
         var application = {
@@ -61,7 +62,8 @@
           id: organizationResource.id,
           name: organizationResource.name,
           applications: [],
-          isVisible: true
+          isVisible: true,
+          isExpanded: $state.includes('management.organization-view', { organizationId: organizationResource.id} )
         };
 
         $scope.$watch(function() {
@@ -70,28 +72,10 @@
           organization.name = newOrganizationName;
         });
 
-        $scope.$watch(function() {
-          return applications.length;
-        }, function() {
-          var organizationApplications = [];
-          for (var i = 0; i < applications.length; i++) {
-            if (applications[i].organizationId === organization.id) {
-              organizationApplications.push(applications[i]);
-            }
-          }
-
-          ownerCollectionChanged(organization.applications, organizationApplications, newApplication);
-          organization.isExpanded = isOrganizationOrChildSelected(organization);
-        });
-
         return organization;
       }
 
-      function isOrganizationOrChildSelected(organization) {
-        var isOrganizationViewed = $state.includes('management.organization-view', {organizationId: organization.id});
-        if (isOrganizationViewed) {
-          return true;
-        }
+      function isOrganizationChildSelected(organization) {
         var isApplicationState = $state.includes('management.application-view');
         if (!isApplicationState) {
           return false;
@@ -158,47 +142,117 @@
         }
       }
 
-      // Check for added and deleted records between ownerCollection and newOwnerCollection. Update ownerCollection accordingly
-      function ownerCollectionChanged(ownerCollection, newOwnerCollection, newOwnerConstructor) {
-        var i, j,
-            // Copy the collections as to not affect the underlying Resource Store nor the tree view model
-            ownerCollectionCopy = angular.copy(ownerCollection),
-            newOwnerCollectionCopy = angular.copy(newOwnerCollection);
+      function organizationsCollectionChanged() {
+        var difference = getCollectionDifference(organizations, lastOrganizations);
 
-        // Remove all entries existing in both collections
-        for (i = ownerCollectionCopy.length - 1; i >= 0; i--) {
-          var ownerCopy = ownerCollectionCopy[i];
-          for (j = newOwnerCollectionCopy.length - 1; j >= 0; j--) {
-            var newOwnerCopy = newOwnerCollectionCopy[j];
-            if (ownerCopy.id === newOwnerCopy.id) {
-              ownerCollectionCopy.splice(i, 1);
-              newOwnerCollectionCopy.splice(j, 1);
-              break;
+        if (difference.removed) {
+          difference.removed.forEach(function(removedOrganization) {
+            $scope.organizations.some(function(organization, organizationIndex) {
+              if (removedOrganization.id === organization.id) {
+                $scope.organizations.splice(organizationIndex, 1);
+                return true;
+              }
+            });
+          });
+        }
+        if (difference.added) {
+          difference.added.forEach(function(addedOrganization) {
+            $scope.organizations.push(newOrganization(addedOrganization));
+          });
+        }
+
+        lastOrganizations = angular.copy(organizations);
+      }
+
+      function applicationsCollectionChanged() {
+        var found,
+            difference = getCollectionDifference(applications, lastApplications);
+
+        if (difference.removed) {
+          difference.removed.some(function(removedApplication) {
+            $scope.organizations.some(function(organization) {
+              found = false;
+              if (removedApplication.organizationId === organization.id) {
+                organization.applications.some(function(application, applicationIndex) {
+                  if (removedApplication.id === application.id) {
+                    organization.applications.splice(applicationIndex, 1);
+                    found = true;
+                    return found;
+                  }
+                });
+              }
+              return found;
+            });
+          });
+        }
+        if (difference.added) {
+          var touchedOrganizations = {};
+          difference.added.forEach(function(addedApplication) {
+            found = false;
+            $scope.organizations.some(function(organization) {
+              if (addedApplication.organizationId === organization.id) {
+                found = true;
+                organization.applications.push(newApplication(addedApplication));
+                touchedOrganizations[organization.id] = organization;
+                return found;
+              }
+            });
+            // Create synthetic organizations for application parents which the user does not have permissions
+            // These do not need to be backed by a Resource as the user cannot edit them
+            if (!found) {
+              var syntheticOrganization = newOrganization({
+                id: addedApplication.organizationId,
+                name: addedApplication.organizationName
+              });
+              syntheticOrganization.applications.push(newApplication(addedApplication));
+              $scope.organizations.push(syntheticOrganization);
+              touchedOrganizations[syntheticOrganization.id] = syntheticOrganization;
+            }
+          });
+
+          for (var key in touchedOrganizations) {
+            if (touchedOrganizations.hasOwnProperty(key)) {
+              touchedOrganizations[key].isExpanded = isOrganizationChildSelected(touchedOrganizations[key]);
             }
           }
         }
 
-        // Add all new entries
-        for (i = 0; i < newOwnerCollectionCopy.length; i++) {
-          for (j = 0; j < newOwnerCollection.length; j++) {
-            // Add the original entry to associate tree view item with the underlying data
-            if (newOwnerCollectionCopy[i].id === newOwnerCollection[j].id) {
-              var newOwner = newOwnerConstructor(newOwnerCollection[j]);
-              ownerCollection.push(newOwner);
-              break;
-            }
-          }
+        lastApplications = angular.copy(applications);
+      }
+
+      function getCollectionDifference(newCollection, oldCollection) {
+        var removedOwners, addedOwners;
+
+        if (oldCollection.length > newCollection.length) {
+          var newCollectionIds = {};
+          newCollection.forEach(function(newOwner) {
+            newCollectionIds[newOwner.id] = true;
+          });
+          removedOwners = oldCollection.filter(function(oldOwner) {
+            return newCollectionIds[oldOwner.id];
+          });
+        } else {
+          var oldCollectionIds = {};
+          oldCollection.forEach(function(oldOwner) {
+            oldCollectionIds[oldOwner.id] = true;
+          });
+          addedOwners = newCollection.filter(function(newOwner) {
+            return !oldCollectionIds[newOwner.id];
+          });
         }
 
-        // Remove all deleted entries
-        for (i = 0; i < ownerCollectionCopy.length; i++) {
-          for (j = ownerCollection.length - 1; j >= 0; j--) {
-            // Remove from the original collection
-            if (ownerCollectionCopy[i].id === ownerCollection[j].id) {
-              ownerCollection.splice(j, 1);
-              break;
-            }
-          }
+        return {
+          added: addedOwners,
+          removed: removedOwners
+        };
+      }
+
+      function clearCollectionWatchers() {
+        if (organizationWatcher) {
+          organizationWatcher();
+        }
+        if (applicationWatcher) {
+          applicationWatcher();
         }
       }
 
@@ -209,6 +263,7 @@
 
       $scope.doLoad = function() {
         delete $scope.error;
+        clearCollectionWatchers();
 
         var loadPromises = [
           organizationStore.refresh(),
@@ -220,18 +275,17 @@
           organizations = results[0];
           applications = results[1];
 
-          for (var i = 0; i < organizations.length; i++) {
-            var organization = organizations[i];
-            var organizationApplication = newOrganization(organization);
-            $scope.organizations.push(organizationApplication);
-          }
+          organizationsCollectionChanged();
+          applicationsCollectionChanged();
 
-          $scope.$watch(function() {
-            return organizations.length;
-          }, function() {
-            if ($scope.organizations.length !== organizations.length) {
-              ownerCollectionChanged($scope.organizations, organizations, newOrganization);
-            }
+          // Apply this after first digest to prevent collection changed event on first load
+          $timeout(function() {
+            organizationWatcher = $scope.$watch(function() {
+              return organizations.length;
+            }, organizationsCollectionChanged);
+            applicationWatcher = $scope.$watch(function() {
+              return applications.length;
+            }, applicationsCollectionChanged);
           });
         }, function(error) {
           $scope.error = error;

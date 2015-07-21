@@ -424,7 +424,7 @@ var AngularStateUtils = {
         restrict: 'A',
         link: function(scope, elem, attr, ctrl) {
           function checkWhitespaceValidator(value) {
-            if (typeof value === 'undefined') {
+            if (typeof value === 'undefined' || value === null) {
               if (elem.data('editable')) {
                 value = elem.data('editable').input.$input.val();
               }

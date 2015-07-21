@@ -12,7 +12,7 @@
     <button class='btn btn-tertiary'>Tertiary</button> <button class='btn btn-tertiary' disabled='true'>Tertiary</button> <a href='#' class='btn btn-tertiary'>Tertiary</a> <a href='#' class='btn btn-tertiary disabled'>Tertiary</a> 
   </div>
   <div>
-    <button class='btn btn-error'>Error</button> <button class='btn btn-error' disabled='true'>Error</button> <a href='#' class='btn btn-error'>Error</a> <a href='#' class='btn btn-error disabled'>Error</a> 
+    <button class='btn btn-error'><i class='fa fa-retry'></i>Error</button> <button class='btn btn-error' disabled='true'>Error</button> <a href='#' class='btn btn-error'>Error</a> <a href='#' class='btn btn-error disabled'>Error</a> 
   </div>
   ```
 */
@@ -34,6 +34,10 @@
   padding: 5px 12px;
 
   vertical-align: middle;
+
+  > .fa {
+    margin-right: 8px;
+  }
 
   &.disabled, &[disabled] {
     background-color: $grey-1;

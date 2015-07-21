@@ -32,7 +32,9 @@
     </div>
     <div class="clm-modal-footer" ng-class="{ error : error }">
       <div ng-if="error" class="section with-icon"><i class="fa fa-warning"></i> {{error}}</div>
-      <button ng-if="!error" class="btn btn-primary" type="submit" ng-disabled="ownerEditor.$invalid">Create</button>
+      <button ng-if="!error" class="btn btn-primary" type="submit" ng-disabled="ownerEditor.$invalid">
+        {{dirtyOwner.id ? 'Update' : 'Create'}}
+      </button>
       <button ng-if="error" class="btn btn-error" type="submit" ng-disabled="ownerEditor.$invalid">
         <i class="fa fa-refresh"></i>Retry
       </button>

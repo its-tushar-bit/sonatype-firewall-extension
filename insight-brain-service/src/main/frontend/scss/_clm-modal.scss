@@ -75,6 +75,10 @@
 
     .btn {
       margin-right: 12px;
+
+      &:not(.btn-primary):not(.btn-error) {
+        margin-left: -4px;
+      }
     }
   }
 }

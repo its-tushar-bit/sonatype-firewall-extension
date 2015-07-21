@@ -6,7 +6,7 @@
       </i> {{:: dirtyOwner.id ? 'Edit' : 'New'}} {{:: getTypeName()}}
     </h2>
   </div>
-  <form name="ownerEditor" role="form" ng-submit="save()" class="clm-form">
+  <form name="ownerEditor" role="form" ng-submit="ownerEditor.$valid && save()" class="clm-form">
     <div class="clm-modal-body">
       <label for="editor-owner-name">{{::getTypeName()}} Name</label>
       <input type="text" ng-model="dirtyOwner.name" name="name" id="editor-owner-name"

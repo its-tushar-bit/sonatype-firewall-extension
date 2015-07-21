@@ -39,15 +39,16 @@ describe('OwnerControllers', function () {
         expect(spy).toHaveBeenCalled();
       }));
 
-      it('Validate pill click causes scroll', inject(function($compile) {
-        spy = spyOn($.fn, 'animate');
-
+      it('Validate pill click causes scroll', inject(function($compile, $timeout) {
         //have to add to dom for click events to be processed
         angular.element('body').append(element);
         $compile(element)(controllerScope);
+        spy = spyOn($.fn, 'scrollTop');
         expect(spy).not.toHaveBeenCalled();
         element.find('#pills .nav li > a').click();
-        expect(spy).toHaveBeenCalled();
+        $timeout.flush();
+        //once to get and once to set
+        expect(spy.callCount).toBe(2);
 
         //remove the element we added to the dom
         element.remove();

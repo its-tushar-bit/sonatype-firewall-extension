@@ -138,25 +138,27 @@
     };
   }]);
 
-  module.directive('scrollspy', function() {
+  module.directive('scrollspy', ['$timeout', function($timeout) {
     return {
       scope : {
         scrollspy : '@'
       },
       link : function($scope, element) {
-        $(element).scrollspy({
+        element.scrollspy({
           target: $scope.scrollspy,
           offset: 0
         });
 
         $($scope.scrollspy + ' .nav li > a').click(function(){
-          var dataTarget = $(this).attr('data-target');
-          $(element).animate({
-            scrollTop: $(dataTarget).position().top + $(element).scrollTop()
-          }, 100);
+          var me = $(this);
+          element.scrollTop($(me.attr('data-target')).position().top + element.scrollTop());
+          $timeout(function(){
+            $($scope.scrollspy + ' .nav li').removeClass('active');
+            me.parent().addClass('active');
+          });
         });
       }
     };
-  });
+  }]);
 
 }());

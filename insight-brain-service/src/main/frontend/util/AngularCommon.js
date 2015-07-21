@@ -1015,21 +1015,28 @@ var AngularStateUtils = {
         }
         return sum;
       },
-      setDimensions : function (element) {
+      setDimensions : function (element, options) {
+       options = angular.extend({
+          bottomPadding: 35,
+          checkBodyScroll: false,
+          minHeight: 400
+        }, options);
+
         var windowHeight = ($window.innerHeight) ? $window.innerHeight : $(document.body).height(),
             containerTop = this.getOffset(element) + parseInt(element.css('padding-top')),
-            bottomPadding = 35,
-            height = Math.max(400, windowHeight - containerTop - bottomPadding);
+            bottomPadding = options.bottomPadding,
+            scrollWidth = options.checkBodyScroll ? (windowHeight - $('body')[0].clientHeight) : 0,
+            height = Math.max(options.minHeight, windowHeight - containerTop - bottomPadding - scrollWidth);
 
         element.height(height + 'px');
       },
-      updateDimensions : function (element) {
+      updateDimensions : function (element, options) {
         var me = this;
         if (element.is(':visible')) {
-          me.setDimensions(element);
+          me.setDimensions(element, options);
         } else {
           return $timeout(function () {
-            me.updateDimensions(element);
+            me.updateDimensions(element, options);
           }, 100);
         }
       }
@@ -1037,29 +1044,58 @@ var AngularStateUtils = {
   }]);
 
   angularCommon.directive('maximizeHeight', ['$timeout', '$window', 'maximizeHeightService', function ($timeout, $window, maximizeHeightService) {
-    return function (scope, element) {
-      function dedupe() {
+    return function(scope, element) {
+      var timerId;
+
+      function debounce() {
         if (timerId) {
           $timeout.cancel(timerId);
         }
-        timerId = $timeout(function () {
+        timerId = $timeout(function() {
           timerId = maximizeHeightService.updateDimensions(element) || timerId;
         }, 20);
       }
 
-      var timerId;
-
-      if (!$.browser.msie || $.browser.version > 8) {
-        $timeout(dedupe, 100);
-        $($window).resize(dedupe);
-      }
-
-      scope.$on('$destroy', function () {
+      scope.$on('$destroy', function() {
         if (timerId) {
           $timeout.cancel(timerId);
         }
-        $($window).unbind('resize', dedupe);
+        $($window).unbind('resize', debounce);
       });
+
+      $timeout(debounce, 100);
+      $($window).resize(debounce);
+
+    };
+  }]);
+
+  angularCommon.directive('maximizeContainerHeight', ['$timeout', '$window', 'maximizeHeightService', function ($timeout, $window, maximizeHeightService) {
+    return function(scope, element) {
+      var timerId;
+
+      function debounce() {
+        if (timerId) {
+          $timeout.cancel(timerId);
+        }
+        timerId = $timeout(function() {
+          timerId = maximizeHeightService.updateDimensions(element, {
+                    bottomPadding: 0,
+                    checkBodyScroll: true,
+                    minHeight: 0
+                  }
+              ) || timerId;
+        }, 20);
+      }
+
+      scope.$on('$destroy', function() {
+        if (timerId) {
+          $timeout.cancel(timerId);
+        }
+        $($window).unbind('resize', debounce);
+      });
+
+      $timeout(debounce, 100);
+      $($window).resize(debounce);
     };
   }]);
 

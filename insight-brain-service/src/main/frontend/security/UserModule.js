@@ -11,7 +11,7 @@
         $stateProvider.state('administrators', {
           url: '/administrators',
           template : '<div authorization-wrapper="isAuthorized">' +
-                      '<div class="scrollable-root-container">' +
+                      '<div class="scrollable-root-container" maximize-container-height>' +
                         '<h1 class="page-title">' +
                           '<div class="container administrators">Administrators</div>' +
                         '</h1>' +

@@ -34,6 +34,7 @@ http:
   # The port on which the HTTP server listens for administrative
   # requests. Subject to the same limitations as "port".
   adminPort: 8071
+
   # We recommend that you password protect access to the admin services
   #adminUsername: user1234
   #adminPassword: pass5678
@@ -42,6 +43,32 @@ http:
   # will be bound. If omitted, the socket will listen on all
   # interfaces.
   #bindHost: 127.0.0.1  # only bind to loopback
+
+  # HTTP request log settings.
+  requestLog:
+
+    # Settings for logging to stdout.
+    console:
+
+      # If true, log requests to stdout.
+      enabled: false
+
+    # Settings for logging to a file.
+    file:
+
+      # If true, log requests to a file.
+      enabled: true
+
+      # The file to which current statements will be logged.
+      currentLogFilename: ./log/request.log
+
+      # When the log file rotates, the archived log will be renamed to this and gzipped. The
+      # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
+      # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
+      archivedLogFilenamePattern: ./log/request-%d.log.gz
+
+      # The number of archived files to keep.
+      archivedFileCount: 5
 
 # Notification mail settings.
 # If enabled, ensure that the baseUrl configuration setting is also enabled and correct, because generated emails often contain links to the server.

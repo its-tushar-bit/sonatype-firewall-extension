@@ -455,4 +455,10 @@ body {
 */
 .section {
   margin-bottom: 24px;
+
+  /* based on default font size */
+  &.with-icon {
+    margin-top: -2px;
+    margin-bottom: 19px;
+  }
 }

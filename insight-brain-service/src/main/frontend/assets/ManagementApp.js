@@ -229,7 +229,7 @@
             newCollectionIds[newOwner.id] = true;
           });
           removedOwners = oldCollection.filter(function(oldOwner) {
-            return newCollectionIds[oldOwner.id];
+            return !newCollectionIds[oldOwner.id];
           });
         } else {
           var oldCollectionIds = {};

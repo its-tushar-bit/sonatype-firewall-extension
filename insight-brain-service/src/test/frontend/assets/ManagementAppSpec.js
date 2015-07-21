@@ -207,6 +207,9 @@ describe('ManagementModule', function() {
 
       expect(scope.organizations).toBeDefined();
       expect(scope.organizations.length).toBe(2);
+
+      expect(scope.organizations[0].id).toBe(organizations[0].id);
+      expect(scope.organizations[1].id).toBe(applications[2].organizationId);
     });
 
     it('handles changes to organization', function() {
@@ -250,6 +253,7 @@ describe('ManagementModule', function() {
 
       expect(scope.organizations[0].applications).toBeDefined();
       expect(scope.organizations[0].applications.length).toBe(1);
+      expect(scope.organizations[0].applications[0].id).toBe(applications[1].id);
     });
 
     it('handles changes to application', function() {

@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.testing.functional.modules.NavListModule
 class ManagementPage
     extends BasePage
 {
-  static url = "assets/index.html#/management/application"
+  static url = "assets/index.html#/management"
 
   static at = { title == 'CLM Management' || title == 'CLM' }
 

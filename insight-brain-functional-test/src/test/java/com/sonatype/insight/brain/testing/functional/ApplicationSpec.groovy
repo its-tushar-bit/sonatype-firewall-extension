@@ -24,7 +24,7 @@ class ApplicationSpec
     org = temporaryEntity.newOrganization('test organization')
 
     grantPermissions(getUsername(), org.getId(), Permission.WRITE, Permission.READ)
-    loginAsUserVia(ApplicationManagementPage)
+    loginAsUserVia(OwnerManagementPage)
   }
 
   def cleanupSpec() {
@@ -33,8 +33,10 @@ class ApplicationSpec
 
   def "Can create a new Application"() {
     when: 'We go to the new application page'
-      ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
-      newApplicationButton.click()
+    OwnerManagementPage ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.ownerTreeView.organization('test organization').treeViewElement.click()
+    waitFor { ownerManagementPage.ownerTreeView.organization('test organization').newApplicationButton.displayed }
+    ownerManagementPage.ownerTreeView.organization('test organization').newApplicationButton.click()
       ApplicationPage applicationPage = at(ApplicationPage)
 
     then: 'Controls not shown'
@@ -68,8 +70,8 @@ class ApplicationSpec
       waitFor { policies.displayed }
 
     and: 'the newly created App appears in the list of Applications'
-      waitFor { applicationList.size() == 1 }
-      application('New Application').displayed
+    waitFor { ownerTreeView.organization('test organization').applications.size() == 1 }
+    ownerTreeView.organization('test organization').application('New Application').displayed
   }
 
   def "Policy evaluation summary lists stages in chronological order"() {
@@ -90,8 +92,8 @@ class ApplicationSpec
       editApp('New Application Updated')
 
     then: 'the list is updated'
-      applicationList.size() == 1
-      waitFor { application('New Application Updated').displayed }
+    ownerTreeView.organization('test organization').applications.size() == 1
+    waitFor { ownerTreeView.organization('test organization').application('New Application Updated').displayed }
       applicationName.text() == 'New Application Updated'
   }
 
@@ -106,19 +108,20 @@ class ApplicationSpec
       deleteButtonAccept.click()
 
     then: 'the list of applications is empty'
-      at ApplicationManagementPage
-      waitFor { applicationList.empty }
+    OwnerManagementPage ownerManagementPage = at OwnerManagementPage
+    waitFor { ownerManagementPage.ownerTreeView.organization('test organization').applications.empty }
   }
 
   def "When adding new Applications, they are listed alphabetically"() {
     when: 'we add multiple Applications'
-      createApp('Z')
-      waitFor { applicationList.size() == 1 }
-      createApp('A', 'a')
+    OwnerManagementPage ownerManagementPage = at OwnerManagementPage
+    ownerManagementPage.createApplication('Z', 'z', 'test organization')
+    waitFor { ownerManagementPage.ownerTreeView.organization('test organization').applications.size() == 1 }
+    ownerManagementPage.createApplication('A', 'a', 'test organization')
 
     then: 'they are listed alphabetically'
-      waitFor { applicationList.size() == 2 }
-      applicationList.collect { it.text() } == ['A', 'Z']
+    waitFor { ownerManagementPage.ownerTreeView.organization('test organization').applications.size() == 2 }
+    ownerManagementPage.ownerTreeView.organization('test organization').applications.collect { it.text() } == ['A', 'Z']
   }
 
   def "Can add a new Policy"() {

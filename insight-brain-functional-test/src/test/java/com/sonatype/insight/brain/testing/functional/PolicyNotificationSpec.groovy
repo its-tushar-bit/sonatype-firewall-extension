@@ -21,8 +21,8 @@ extends BaseSpec {
   public static final String POLICY_NAME = 'Architecture-Quality'
 
   def setupSpec() {
-    def organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrgWithDefaultPolicy('PolicyNotificationSpec', ImportPolicyModule.sampleOrgPolicyFile)
+    def ownerManagementPage = loginAsAdminVia(OwnerManagementPage)
+    ownerManagementPage.ownerTreeView.createOrgWithDefaultPolicy('PolicyNotificationSpec', ImportPolicyModule.sampleOrgPolicyFile)
     organizationPage = (OrganizationPage)browser.page
     policyEditor = organizationPage.policies.findPolicyEditor(POLICY_NAME)
     waitFor { policyEditor.displayed }

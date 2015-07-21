@@ -1,11 +1,69 @@
 <div>
   <div class='marginless-alert' clm-alerts='syncAlerts'></div>
   <div class="navigation">
-    <ul class="nav nav-list">
-      <li ng-repeat='pane in panes' ng-class="{'active': $state.current.name.indexOf(pane.state.replace('/', '.')) !== -1, 'disabled': !pane.isEnabled}">
-        <a href='#/{{pane.state}}' ng-click='$state.selectedPane = pane'>{{pane.name}}</a>
-      </li>
-    </ul>
-  </div>
-  <div ui-view></div>
+    <div class="tree-view" ng-controller="OwnerTreeViewController">
+      <div class="tree-view-header">
+        Organizations and Applications
+      </div>
+      <div load-wrapper="error" loading="!organizations" reload="doLoad()">
+        <div class="tree-view-new-organization">
+          <button class="btn" ui-sref="management.organization({organizationId: '_new_'})">
+            <i class="icon-plus"></i>
+            New Organization
+          </button>
+        </div>
+        <div class="tree-view-filter search input-prepend">
+            <span class="add-on">
+              <i role="button" class="fa fa-filter"
+                 ng-class="{ 'icon-search': !filter.value, 'icon-remove': filter.value }"
+                 ng-click="filter.value = ''"></i>
+            </span>
+          <input type="text" ng-model="filter.value" autocomplete="off" placeholder="App or Org Name">
+        </div>
+        <h4 ng-if="filter.value && filter.value.length >= 3">
+          Filter Results
+        </h4>
+        <div class="tree-view-organization-group"
+             ng-repeat="organization in organizations | orderBy:'name'"
+             ng-if="organization.isVisible">
+          <a class="tree-view-item"
+             ng-class="{ selected : $state.includes('management.organization', {organizationId: organization.id}) }"
+             ui-sref="management.organization.policies({organizationId: organization.id})"
+             ng-click="organization.isExpanded = true">
+            <div class="twisty-container"
+                 ng-click="$event.preventDefault();
+                                $event.stopPropagation();
+                                organization.isExpanded =
+                                  $state.includes('management.organization', {organizationId: organization.id}) || !organization.isExpanded;">
+                <span class="twisty"
+                      ng-class="{ empty: organization.applications.length == 0,
+                                expand: organization.applications.length > 0 && !organization.isExpanded,
+                                collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
+            </div><!--
+           --><i class="sonatype-icons organizational-design tree-view-icon inverse"></i><!--
+           -->{{organization.name}}
+            <div class="tree-view-new-application"
+                 ng-class="{ hide : !$state.includes('management.organization', {organizationId: organization.id}) }">
+              <button class="btn"
+                      ng-click="$event.preventDefault();
+                                  $event.stopPropagation();
+                                  $state.go('management.application', {applicationPublicId: '_new_'});">
+                <i class="icon-plus"></i>
+                New Application
+              </button>
+            </div>
+          </a>
+          <a class="tree-view-item"
+             ng-repeat="application in organization.applications | orderBy:'name'"
+             ng-if="organization.isExpanded && application.isVisible"
+             ui-sref="management.application.policies({applicationPublicId: application.publicId})"
+             ng-class="{ selected : $state.includes('management.application', {applicationPublicId: application.publicId}) }">
+            <i class="sonatype-icons application tree-view-icon inverse"></i><!--
+         -->{{application.name}}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div><!--
+    --><div ui-view class="content"></div>
 </div>

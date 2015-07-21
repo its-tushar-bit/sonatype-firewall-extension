@@ -203,17 +203,13 @@ extends GebReportingSpec {
   }
 
   void createOrganization(name = 'test organization') {
-    OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
-    int size = !organizationList?.empty ? organizationList.size() : 0
-    organizationManagementPage.createOrg(name)
-    waitFor { organizationList.size() > size }
+    OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
+    ownerManagementPage.createOrganization(name)
   }
 
   void createApplication(name = 'test application', id = 'test-application', orgName = 'test organization') {
-    ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
-    int size = !applicationList?.empty ? applicationList.size() : 0
-    applicationManagementPage.createApp(name, id, orgName)
-    waitFor { applicationList.size() > size }
+    OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
+    ownerManagementPage.createApplication(name, id, orgName)
   }
 
   void setLicensedProducts(String... products) {

@@ -12,12 +12,7 @@
       ['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.application', {
           parent: 'management',
-          url: '/application',
-          controller: 'applicationController',
-          templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
-        }).state('management.application.view', {
-          parent: 'management.application',
-          url: '/{applicationPublicId}',
+          url: '/application/{applicationPublicId}',
           controller: 'applicationEditorController',
           data: {
             passThroughAlerts: []
@@ -41,50 +36,50 @@
               return deferred.promise;
             }]
           }
-        }).state('management.application.view.policies', {
-          parent: 'management.application.view',
+        }).state('management.application.policies', {
+          parent: 'management.application',
           url: '/policies',
           controller: 'PolicyController',
           data: {
             passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-        }).state('management.application.view.policies.new', {
-          parent: 'management.application.view.policies',
+        }).state('management.application.policies.new', {
+          parent: 'management.application.policies',
           url: '/new',
           controller: 'PolicyController',
           data: {
             passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-        }).state('management.application.view.labels', {
-          parent: 'management.application.view',
+        }).state('management.application.labels', {
+          parent: 'management.application',
           url: '/labels',
           controller: 'LabelController',
           templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-        }).state('management.application.view.labels.new', {
-          parent: 'management.application.view.labels',
+        }).state('management.application.labels.new', {
+          parent: 'management.application.labels',
           url: '/new',
           controller: 'LabelController',
           data: {
             passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-        }).state('management.application.view.licenses', {
-          parent: 'management.application.view',
+        }).state('management.application.licenses', {
+          parent: 'management.application',
           url: '/licenses',
           controller: 'LicenseThreatGroupController',
           templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
-        }).state('management.application.view.licenses.new', {
-          parent: 'management.application.view.licenses',
+        }).state('management.application.licenses.new', {
+          parent: 'management.application.licenses',
           url: '/new',
           controller: 'LicenseThreatGroupController',
           data: {
             passThroughAlerts: []
           },
           templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' + clmBuildTimestamp
-        }).state('management.application.view.security', {
-          parent: 'management.application.view',
+        }).state('management.application.security', {
+          parent: 'management.application',
           url: '/security',
           controller: 'AppSecurityController',
           templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp,
@@ -93,44 +88,13 @@
               return true;
             }
           }
-        }).state('management.application.view.tags', {
-          parent: 'management.application.view',
+        }).state('management.application.tags', {
+          parent: 'management.application',
           url: '/tags',
           controller: 'TagApplicationController',
           templateUrl: '../policy-assets/components/tag-editor/tags-application.html?' + clmBuildTimestamp
         });
       }]);
-
-  applicationModule.controller('applicationController', [
-    '$scope', '$state', '$location', 'ApplicationStore', function($scope, $state, $location, ApplicationStore) {
-      $scope.location = $location;
-
-      // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
-      $scope.applicationIconTimestamp = {};
-
-      $scope.$state = $state;
-      $scope.isCurrentTab = function(tabName) {
-        return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
-      };
-      $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-        if (toState.data && toState.data.passThroughAlerts && fromState.data && fromState.data.passThroughAlerts) {
-          angular.forEach(fromState.data.passThroughAlerts, function(alert) {
-            toState.data.passThroughAlerts.push(alert);
-          });
-        }
-      });
-
-      $scope.doLoad = function() {
-        $scope.error = null;
-        ApplicationStore.get().then(function(applications) {
-          $scope.applications = applications;
-        }, function(error) {
-          $scope.error = error;
-        });
-      };
-      $scope.doLoad();
-    }
-  ]);
 
   applicationModule.controller('applicationEditorController', [
       '$scope', '$state', '$http', '$q', '$modal', 'OrganizationStore', 'CLMLocations', 'CLMAppLocations',
@@ -142,6 +106,21 @@
         angular.extend(me,
             editorTools.getEditorController($scope, 'selectedApplication.id', angular.element('[name=applicationId]'),
                 angular.element('#iconUploadForm')));
+
+        $scope.isCurrentTab = function(tabName) {
+          return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
+        };
+
+        // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
+        $scope.applicationIconTimestamp = {};
+
+        $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
+          if (toState.data && toState.data.passThroughAlerts && fromState.data && fromState.data.passThroughAlerts) {
+            angular.forEach(fromState.data.passThroughAlerts, function(alert) {
+              toState.data.passThroughAlerts.push(alert);
+            });
+          }
+        });
 
         // Application Editor controller will take care of managing its own icons
         function setApplicationIcon() {
@@ -373,7 +352,7 @@
               }
             }
           }).result.then(function () {
-            $state.transitionTo('management.application');
+            $state.transitionTo('management');
           }, function (error) {
             if (error) {
               ErrorDialog.open(error[0]);
@@ -411,7 +390,7 @@
           $scope.selectedApplication.$save().then(function() {
             me.saveIcon().then(function() {
               if ($state.params.applicationPublicId === '_new_') {
-                $state.transitionTo('management.application.view.policies',
+                $state.transitionTo('management.application.policies',
                     { applicationPublicId: $scope.selectedApplication.publicId });
               }
               var changes = [];
@@ -433,7 +412,7 @@
                   type: 'error',
                   msg: 'An error occurred while saving the icon. (' + error + ')'
                 });
-                $state.transitionTo('management.application.view.policies',
+                $state.transitionTo('management.application.policies',
                     { applicationPublicId: $scope.selectedApplication.publicId });
               }
             });

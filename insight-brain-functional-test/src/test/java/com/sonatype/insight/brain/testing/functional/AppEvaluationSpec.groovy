@@ -46,9 +46,8 @@ extends BaseSpec {
     loginAsUserVia(readOnlyUser.getUsername(), readOnlyUser.getPassword())
     
     when: 'User accesses organization'
-    OrganizationManagementPage orgManPage = to OrganizationManagementPage
-    waitFor { orgManPage.organization("AppEvaluationOrg").displayed }
-    orgManPage.organization("AppEvaluationOrg").click()
+    OwnerManagementPage ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.selectOrganization('AppEvaluationOrg')
 
     then: 'User at organization page and app eval button is visible'
     OrganizationPage orgPage = at(OrganizationPage)
@@ -75,9 +74,8 @@ extends BaseSpec {
   
   def "validate application evaluation available from organization screen"() {
     when: 'User accesses organization'
-    OrganizationManagementPage orgManPage = to OrganizationManagementPage
-    waitFor { orgManPage.organization("AppEvaluationOrg").displayed }
-    orgManPage.organization("AppEvaluationOrg").click()
+    OwnerManagementPage ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.selectOrganization('AppEvaluationOrg')
 
     then: 'User at organization page and app eval button is visible'
     OrganizationPage orgPage = at(OrganizationPage)
@@ -102,9 +100,8 @@ extends BaseSpec {
 
   def "validate application evaluation available from application screen"() {
     when: 'User accesses application'
-    ApplicationManagementPage appManPage = to ApplicationManagementPage
-    waitFor { appManPage.application("AppEvaluationApp2").displayed }
-    appManPage.application("AppEvaluationApp2").click()
+    OwnerManagementPage ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.selectApplication('AppEvaluationOrg', 'AppEvaluationApp2')
 
     then: 'User at application page and app eval button is visible'
     ApplicationPage appPage = at(ApplicationPage)
@@ -130,9 +127,8 @@ extends BaseSpec {
 
   def "validate upload"() {
     when: 'User accesses application and sets params for application evaluation'
-    ApplicationManagementPage appManPage = to ApplicationManagementPage
-    waitFor { appManPage.application("AppEvaluationApp2").displayed }
-    appManPage.application("AppEvaluationApp2").click()
+    OwnerManagementPage ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.selectApplication('AppEvaluationOrg', 'AppEvaluationApp2')
     ApplicationPage appPage = at(ApplicationPage)
     appPage.tools.appEvalButton.displayed
     appPage.tools.appEvalButton.click()

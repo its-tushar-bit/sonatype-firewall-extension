@@ -20,8 +20,8 @@ class PolicyTagSpec
   public static final String POLICY_NAME = 'Architecture-Quality'
 
   def setupSpec() {
-    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrgWithDefaultPolicy('PolicyTagSpec', ImportPolicyModule.sampleOrgPolicyFile)
+    OwnerManagementPage ownerManagementPage = loginAsAdminVia(OwnerManagementPage)
+    ownerManagementPage.ownerTreeView.createOrgWithDefaultPolicy('PolicyTagSpec', ImportPolicyModule.sampleOrgPolicyFile)
     Map samplePolicy = ImportPolicyModule.parsePolicyFile(ImportPolicyModule.sampleOrgPolicyFile)
     tag1 = samplePolicy.tags[0].asImmutable()
     tag2 = samplePolicy.tags[1].asImmutable()

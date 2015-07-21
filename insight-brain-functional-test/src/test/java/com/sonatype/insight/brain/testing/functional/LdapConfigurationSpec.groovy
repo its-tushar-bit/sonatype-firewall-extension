@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConfigurationPage
 import com.sonatype.insight.brain.testing.functional.configuration.LdapConnectionConfigurationPage
-import com.sonatype.insight.brain.testing.functional.configuration.LdapUserAndGroupMappingConfigurationPage
 
 import org.openqa.selenium.Keys
 import spock.lang.Stepwise
@@ -226,6 +225,6 @@ class LdapConfigurationSpec
 
     then: 'The LDAP Server is deleted and we are forwarded to the Org management page'
       waitFor { !delete.present }
-      at OrganizationManagementPage
+      at OwnerManagementPage
   }
 }

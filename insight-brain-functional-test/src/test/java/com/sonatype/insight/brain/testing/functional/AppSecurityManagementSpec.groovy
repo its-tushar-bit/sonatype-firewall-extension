@@ -31,7 +31,7 @@ class AppSecurityManagementSpec
 
     grantPermissions(getUsername(), orgId, Permission.READ)
     grantPermissions(getUsername(), app.getId(), Permission.WRITE, Permission.READ)
-    loginAsUserVia(OrganizationManagementPage)
+    loginAsUserVia(OwnerManagementPage)
   }
 
   def cleanup() {

@@ -20,8 +20,8 @@ class TagSpec
   static Map samplePolicy
 
   def setupSpec() {
-    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrgWithDefaultPolicy('TagSpec', ImportPolicyModule.sampleOrgPolicyFile)
+    def ownerManagementPage = loginAsAdminVia(OwnerManagementPage)
+    ownerManagementPage.ownerTreeView.createOrgWithDefaultPolicy('TagSpec', ImportPolicyModule.sampleOrgPolicyFile)
     samplePolicy = ImportPolicyModule.parsePolicyFile(ImportPolicyModule.sampleOrgPolicyFile)
   }
 
@@ -173,8 +173,8 @@ class TagSpec
 
   def "Policy tags adjust the effective polices and cannot be deleted"() {
     given: 'An Application to apply tags to'
-      def applicationManagementPage = to(ApplicationManagementPage)
-      applicationManagementPage.createApp('TagSpec', 'TagSpec', 'TagSpec')
+    def ownerManagementPage = to(OwnerManagementPage)
+    ownerManagementPage.createApplication('TagSpec', 'TagSpec', 'TagSpec')
 
     when: 'Viewing the inherited organization policies before tag application'
       waitFor { tabs.tagTabButton.displayed }
@@ -200,9 +200,10 @@ class TagSpec
       policies.findPolicyEditor('Security-High').showsTagIcon()
 
     when: 'We view the Tags in the Organization view'
-      to OrganizationManagementPage
-      organization('TagSpec').click()
-      tabs.tagTabButton.click()
+    ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.ownerTreeView.organization('TagSpec').treeViewElement.click()
+    OrganizationPage organizationPage = at OrganizationPage
+    organizationPage.tabs.tagTabButton.click()
 
     then: 'The newly applied Tag is visually shown to be applied'
       waitFor { tags.tagList.size() > 0 }
@@ -235,9 +236,10 @@ class TagSpec
       waitFor { tags.appliedTagList.size() == 2 }
 
     when: 'We view the Tags in the Organization view'
-      to OrganizationManagementPage
-      organization('TagSpec').click()
-      tabs.tagTabButton.click()
+    def ownerManagementPage = to OwnerManagementPage
+    ownerManagementPage.ownerTreeView.organization('TagSpec').treeViewElement.click()
+    OrganizationPage organizationPage = at OrganizationPage
+    organizationPage.tabs.tagTabButton.click()
 
     then: 'The newly applied Tag is visually shown to be applied'
       waitFor { tags.tagList.size() > 0 }

@@ -13,79 +13,6 @@ describe('Tests for the OrganizationController', function() {
     });
   }));
 
-  describe('OrganizationController', function() {
-    var scope, httpBackend, rootScope, state, mockOrganization;
-
-    beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
-      httpBackend = $httpBackend;
-      rootScope = $rootScope;
-
-      $state.current.name = 'management.organization';
-
-      var organizationsData = OrganizationMockData.getGETResponse();
-      mockOrganization = organizationsData[0];
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
-
-      scope = $rootScope.$new();
-
-      scope.aoEditorName = {
-        $save : angular.noop
-      };
-      state = $state;
-
-      $controller('OrganizationController', {
-        $scope: scope,
-        $state: state
-      });
-
-      httpBackend.flush();
-    }));
-
-    afterEach(function() {
-      httpBackend.verifyNoOutstandingExpectation();
-      httpBackend.verifyNoOutstandingRequest();
-      scope.$destroy();
-    });
-
-    it('loads organizations.', function() {
-      expect(scope.organizations).not.toBeUndefined();
-      expect(scope.organizations.length).toEqual(3);
-      expect(scope.organizations[0].id).toEqual('1');
-      expect(scope.organizations[0].name).toEqual('org1');
-      expect(scope.organizations[1].id).toEqual('2');
-      expect(scope.organizations[1].name).toEqual('org2');
-      expect(scope.organizations[2].id).toEqual('3');
-      expect(scope.organizations[2].name).toEqual('org3');
-    });
-
-    it('passes through alerts', inject(function($state, $httpBackend) {
-      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-      $httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
-      $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
-
-      $state.transitionTo('management.organization.view', {
-        organizationId : '_new_'
-      });
-
-      $httpBackend.flush();
-
-      expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-      expect($state.current.data.passThroughAlerts.length).toEqual(0);
-      $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'orgtest'});
-
-      $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
-
-      $state.transitionTo('management.organization.view.policies', { organizationId: 'ID' });
-
-      $httpBackend.flush();
-
-      expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-      expect($state.current.data.passThroughAlerts.length).toEqual(1);
-      expect($state.current.data.passThroughAlerts[0].msg).toEqual('orgtest');
-      expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
-    }));
-  });
-
   describe('OrganizationEditorController', function() {
     var scope, parentScope, httpBackend, rootScope, state, mockOrganization, originalMockOrganization;
 
@@ -98,6 +25,63 @@ describe('Tests for the OrganizationController', function() {
         scope.$destroy();
       }
     }));
+
+    describe('Performs parent functions', function() {
+      beforeEach(inject(function($httpBackend, $rootScope, $controller, $state) {
+        httpBackend = $httpBackend;
+        rootScope = $rootScope;
+
+        $state.current.name = 'management.organization';
+
+        scope = $rootScope.$new();
+
+        scope.aoEditorName = {
+          $save : angular.noop
+        };
+        state = $state;
+
+        $controller('OrganizationEditorController', {
+          $scope: scope,
+          $state: state,
+          selectedOrganization : null
+        });
+      }));
+
+      afterEach(function() {
+        httpBackend.verifyNoOutstandingExpectation();
+        httpBackend.verifyNoOutstandingRequest();
+        scope.$destroy();
+      });
+
+      it('passes through alerts', inject(function($state, $httpBackend, CLMAppLocations) {
+        $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+        $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
+
+        $state.transitionTo('management.organization', {
+          organizationId : '_new_'
+        });
+
+        $httpBackend.flush();
+
+        expect($state.current.data.passThroughAlerts).not.toBeUndefined();
+        expect($state.current.data.passThroughAlerts.length).toEqual(0);
+        $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'orgtest'});
+
+        var organizationsData = OrganizationMockData.getGETResponse();
+        mockOrganization = organizationsData[0];
+        httpBackend.expectGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(organizationsData);
+        $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
+
+        $state.transitionTo('management.organization.policies', { organizationId: 'ID' });
+
+        $httpBackend.flush();
+
+        expect($state.current.data.passThroughAlerts).not.toBeUndefined();
+        expect($state.current.data.passThroughAlerts.length).toEqual(1);
+        expect($state.current.data.passThroughAlerts[0].msg).toEqual('orgtest');
+        expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
+      }));
+    });
 
     describe('Missing Organization', function () {
       beforeEach(inject(function ($controller, $rootScope) {
@@ -241,7 +225,6 @@ describe('Tests for the OrganizationController', function() {
         scope.save();
 
         httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-        httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
         httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
         httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
 
@@ -258,7 +241,6 @@ describe('Tests for the OrganizationController', function() {
         });
 
         httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-        httpBackend.expectGET('../organization-assets/components/organization-navigator.html?').respond('<div></div>');
 
         scope.confirmDelete();
 

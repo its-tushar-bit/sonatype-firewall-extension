@@ -11,12 +11,7 @@
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('management.organization', {
         parent: 'management',
-        url: '/organization',
-        controller: 'OrganizationController',
-        templateUrl: '../organization-assets/components/organization-navigator.html?' + clmBuildTimestamp
-      }).state('management.organization.view', {
-        parent: 'management.organization',
-        url: '/{organizationId}',
+        url: '/organization/{organizationId}',
         controller: 'OrganizationEditorController',
         data: {
           passThroughAlerts: []
@@ -41,43 +36,43 @@
             return deferred.promise;
           }]
         }
-      }).state('management.organization.view.policies', {
-        parent: 'management.organization.view',
+      }).state('management.organization.policies', {
+        parent: 'management.organization',
         url: '/policies',
         controller: 'PolicyController',
         data: {
           passThroughAlerts: []
         },
         templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-      }).state('management.organization.view.policies.new', {
-        parent: 'management.organization.view.policies',
+      }).state('management.organization.policies.new', {
+        parent: 'management.organization.policies',
         url: '/new',
         controller: 'PolicyController',
         data: {
           passThroughAlerts: []
         },
         templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
-      }).state('management.organization.view.labels', {
-        parent: 'management.organization.view',
+      }).state('management.organization.labels', {
+        parent: 'management.organization',
         url: '/labels',
         controller: 'LabelController',
         templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-      }).state('management.organization.view.labels.new', {
-        parent: 'management.organization.view.labels',
+      }).state('management.organization.labels.new', {
+        parent: 'management.organization.labels',
         url: '/new',
         controller: 'LabelController',
         data: {
           passThroughAlerts: []
         },
         templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
-      }).state('management.organization.view.licenses', {
-        parent: 'management.organization.view',
+      }).state('management.organization.licenses', {
+        parent: 'management.organization',
         url: '/licenses',
         controller: 'LicenseThreatGroupController',
         templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
             clmBuildTimestamp
-      }).state('management.organization.view.licenses.new', {
-        parent: 'management.organization.view.licenses',
+      }).state('management.organization.licenses.new', {
+        parent: 'management.organization.licenses',
         url: '/new',
         controller: 'LicenseThreatGroupController',
         data: {
@@ -85,8 +80,8 @@
         },
         templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
         clmBuildTimestamp
-      }).state('management.organization.view.security', {
-        parent: 'management.organization.view',
+      }).state('management.organization.security', {
+        parent: 'management.organization',
         url: '/security',
         controller: 'AppSecurityController',
         templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp,
@@ -95,13 +90,13 @@
             return true;
           }
         }
-      }).state('management.organization.view.tags', {
-        parent: 'management.organization.view',
+      }).state('management.organization.tags', {
+        parent: 'management.organization',
         url: '/tags',
         controller: 'TagController',
         templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
-      }).state('management.organization.view.tags.new', {
-        parent: 'management.organization.view.tags',
+      }).state('management.organization.tags.new', {
+        parent: 'management.organization.tags',
         url: '/new',
         controller: 'TagController',
         templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
@@ -117,14 +112,20 @@
       ['AngularCommon', 'ApplicationSecurityModule', 'CLMAppLocation', 'CommonServices', 'EditorTools', 'Labels',
        'LicenseThreatGroup', 'Policy', 'ResourceModule', 'Tags', 'ui.router']);
 
-  organizationModule.controller('OrganizationController', [
-    '$scope', '$state', '$http', '$location', 'CLMLocations', 'OrganizationStore',
-    function($scope, $state, $http, $location, CLMLocations, OrganizationStore) {
+  organizationModule.controller('OrganizationEditorController', [
+    '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
+    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', 'ErrorDialog', 'LastSelectedOrganization',
+    function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
+             clmAppLocations, messages, CLMAppLocations, selectedOrganization, ErrorDialog, LastSelectedOrganization)
+    {
+      var me = this;
+      angular.extend(me,
+          editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'),
+              angular.element('#iconUploadForm')));
+
       $scope.isCurrentTab = function(tabName) {
         return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
       };
-
-      $scope.$state = $state;
 
       // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
       $scope.organizationIconTimestamp = {};
@@ -136,30 +137,6 @@
           });
         }
       });
-
-      $scope.doLoad = function() {
-        $scope.error = null;
-        OrganizationStore.get().then(function(results) {
-          $scope.organizations = results;
-        }, function(error) {
-          $scope.error = error;
-        });
-      };
-
-      $scope.doLoad();
-    }
-  ]);
-
-  organizationModule.controller('OrganizationEditorController', [
-    '$scope', '$state', '$location', '$http', '$rootScope', '$modal', 'regexFactory', 'CLMLocations', 'editorTools',
-    'CLMAppLocations', 'Messages', 'CLMAppLocations', 'selectedOrganization', 'ErrorDialog', 'LastSelectedOrganization',
-    function($scope, $state, $location, $http, $rootScope, $modal, regexFactory, CLMLocations, editorTools,
-             clmAppLocations, messages, CLMAppLocations, selectedOrganization, ErrorDialog, LastSelectedOrganization)
-    {
-      var me = this;
-      angular.extend(me,
-          editorTools.getEditorController($scope, 'selectedOrganization.id', angular.element('[name=organizationId]'),
-              angular.element('#iconUploadForm')));
 
       // Organization Editor controller will take care of managing its own icons
       function setOrganizationIcon() {
@@ -242,7 +219,7 @@
       
       $scope.$on('$stateChangeStart', function(event, toState){
         //if we are going to the new app page, make sure to set the default org
-        if ($scope.selectedOrganization && toState.name === 'management.application.view') {
+        if ($scope.selectedOrganization && toState.name === 'management.application') {
           LastSelectedOrganization.set({
             id: $scope.selectedOrganization.id,
             name: $scope.selectedOrganization.name
@@ -332,7 +309,7 @@
         $scope.selectedOrganization.$save().then(function() {
           me.saveIcon().then(function() {
             if ($state.params.organizationId === '_new_') {
-              $state.transitionTo('management.organization.view.policies',
+              $state.transitionTo('management.organization.policies',
                   { organizationId: $scope.selectedOrganization.id });
             }
           }, function(error) {
@@ -341,7 +318,7 @@
                 type: 'error',
                 msg: 'An error occurred while saving the icon. (' + error + ')'
               });
-              $state.transitionTo('management.organization.view.policies',
+              $state.transitionTo('management.organization.policies',
                   { organizationId: $scope.selectedOrganization.id });
             }
           });
@@ -369,7 +346,7 @@
           }
         }).result.then(function () {
           $rootScope.$broadcast('organizations.delete', $scope.selectedOrganization.id);
-          $state.transitionTo('management.organization');
+          $state.transitionTo('management');
         }, function (error) {
           if (error) {
             ErrorDialog.open(error[0]);

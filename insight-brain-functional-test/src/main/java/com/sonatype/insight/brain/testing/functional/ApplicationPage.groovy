@@ -16,7 +16,8 @@ import com.sonatype.insight.brain.testing.functional.modules.PolicyMonitoringMod
 import com.sonatype.insight.brain.testing.functional.modules.TagApplicationModule
 
 class ApplicationPage
-extends ApplicationManagementPage {
+extends OwnerManagementPage {
+  static url = "assets/index.html#/management/application"
   static at = { $('#applicationEditor').displayed }
 
   static content = {

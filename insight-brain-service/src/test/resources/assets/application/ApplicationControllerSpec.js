@@ -1,81 +1,63 @@
-describe('ApplicationController', function() {
-  var scope, httpBackend, rootScope, state, mockApplication;
-
-  beforeEach(module('ApplicationModule', 'HttpInterceptors', function($provide) {
-    $provide.value('ApplicationId', {
-      encoded: function() {
-        return 'bom1-12345678';
-      }
-    });
-    $provide.value('OrganizationId', {
-      encoded: function() {
-        return null;
-      }
-    });
-  }));
-
-  beforeEach(inject(function($httpBackend, $rootScope, $controller, $state, CLMAppLocations) {
-    httpBackend = $httpBackend;
-    rootScope = $rootScope;
-
-    $state.current.name = 'management.application';
-
-    var applicationsData = ApplicationMockData.getApplicationsData();
-    mockApplication = applicationsData[0];
-    httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
-
-    scope = $rootScope.$new();
-    state = $state;
-
-    $controller('applicationController', { $scope: scope, $state: state });
-
-    httpBackend.flush();
-  }));
-
-  afterEach(function() {
-    httpBackend.verifyNoOutstandingExpectation();
-    httpBackend.verifyNoOutstandingRequest();
-    scope.$destroy();
-  });
-
-  it('loads applications.', function() {
-    expect(scope.applications).not.toBeUndefined();
-    expect(scope.applications.length).toEqual(1);
-    expect(scope.applications[0].publicId).toEqual('bom1-12345678');
-  });
-
-  it('passes through alerts', inject(function($state, $httpBackend) {
-    $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
-    $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
-
-    $state.transitionTo('management.application.view', {
-      applicationPublicId : '_new_'
-    });
-
-    $httpBackend.flush();
-
-    expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-    expect($state.current.data.passThroughAlerts.length).toEqual(0);
-    $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'apptest'});
-
-    $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
-
-    $state.transitionTo('management.application.view.policies', { applicationPublicId: 'publicID' });
-
-    $httpBackend.flush();
-
-    expect($state.current.data.passThroughAlerts).not.toBeUndefined();
-    expect($state.current.data.passThroughAlerts.length).toEqual(1);
-    expect($state.current.data.passThroughAlerts[0].msg).toEqual('apptest');
-    expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
-  }));
-});
-
 describe('ApplicationEditorController', function() {
   var parentScope, scope, httpBackend, rootScope, state, mockApplication, originalMockApplication, mockOrganization, getOriginalSpy;
 
   beforeEach(module('ApplicationModule', 'OrganizationModule', 'HttpInterceptors'));
+
+  describe('Performs parent functions', function() {
+    beforeEach(inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
+      httpBackend = $httpBackend;
+      var state = {
+        params : {
+          applicationPublicId : 'foo'
+        },
+        current : {}
+      };
+      scope = $rootScope.$new();
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $controller('applicationEditorController', {
+        $scope: scope,
+        $state: state,
+        selectedApplication : null
+      });
+      $httpBackend.flush();
+    }));
+
+    afterEach(function() {
+      httpBackend.verifyNoOutstandingExpectation();
+      httpBackend.verifyNoOutstandingRequest();
+      scope.$destroy();
+    });
+
+    it('passes through alerts', inject(function($state, $httpBackend, CLMAppLocations) {
+      $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
+      $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
+
+      $state.transitionTo('management.application', {
+        applicationPublicId : '_new_'
+      });
+
+      $httpBackend.flush();
+
+      expect($state.current.data.passThroughAlerts).not.toBeUndefined();
+      expect($state.current.data.passThroughAlerts.length).toEqual(0);
+      $state.current.data.passThroughAlerts.push({ type: 'error', msg: 'apptest'});
+
+      var applicationsData = ApplicationMockData.getApplicationsData();
+      mockApplication = applicationsData[0];
+      httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
+      $httpBackend.expectGET('../policy-assets/components/policy/policy.html?').respond('<div></div>');
+
+      $state.transitionTo('management.application.policies', { applicationPublicId: 'publicID' });
+
+      $httpBackend.flush();
+
+      expect($state.current.data.passThroughAlerts).not.toBeUndefined();
+      expect($state.current.data.passThroughAlerts.length).toEqual(1);
+      expect($state.current.data.passThroughAlerts[0].msg).toEqual('apptest');
+      expect($state.current.data.passThroughAlerts[0].type).toEqual('error');
+    }));
+  });
 
   describe('Missing Application', function () {
     beforeEach(inject(function ($controller, $rootScope) {
@@ -332,7 +314,6 @@ describe('ApplicationEditorController', function() {
           });
 
       httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
-      httpBackend.expectGET('../application-assets/components/application-navigator.html?').respond('<div></div>');
 
       expect(angular.element('#deleteApplicationModal').css('display')).toBeUndefined();
 

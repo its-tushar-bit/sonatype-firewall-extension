@@ -9,7 +9,7 @@ class ApplicationManagementSpec
     extends BaseSpec
 {
   def setup() {
-    loginAsAdminVia(ApplicationManagementPage)
+    loginAsAdminVia()
   }
 
   def "display local image"() {
@@ -17,7 +17,7 @@ class ApplicationManagementSpec
       File tempFile = File.createTempFile('ApplicationManagementPageSpec', 'fakeimage.jpg')
       tempFile.deleteOnExit()
 
-      newApplicationButton.click()
+      to ApplicationPage, '_new_'
       //phantomjs and firefox can fail without this interaction; chrome fails with it,
       // throwing up a window alert that changes would be lost
       if (browser.config.properties['geb.env'] != 'chrome') {
@@ -35,9 +35,9 @@ class ApplicationManagementSpec
 
     when: 'we cancel the changes, we can navigate away'
       applicationCancelButton.click()
-      to OrganizationManagementPage
+      to OwnerManagementPage
 
     then:
-      at OrganizationManagementPage
+      at OwnerManagementPage
   }
 }

@@ -22,7 +22,7 @@ class ContactUserSpec
     Application app = temporaryEntity.newApplicationWithParent(appName, appName)
 
     grantPermissions(getUsername(), app.getId(), Permission.WRITE, Permission.READ)
-    loginAsUserVia(ApplicationManagementPage)
+    loginAsUserVia(OwnerManagementPage)
   }
 
   def cleanup() {
@@ -32,9 +32,8 @@ class ContactUserSpec
   def "validate application contact"() {
 
     given: 'User accesses application'
-      ApplicationManagementPage appManPage = to ApplicationManagementPage
-      waitFor { appManPage.application(appName).displayed }
-      appManPage.application(appName).click()
+    OwnerManagementPage ownerManagementPage = at OwnerManagementPage
+    ownerManagementPage.selectApplication(appName, appName)
 
     when: 'User selects admin as contact'
       ApplicationPage appPage = at ApplicationPage

@@ -41,106 +41,16 @@ a:focus {
 .navigation {
   background: #E8E8E8;
   z-index: 1;
-  width: 120px;
+  width: 270px;
   position: fixed;
   top: 41px;
   bottom: 0px;
   left: 0px;
+  overflow-y: auto;
   border-right: 1px solid rgba(0, 0, 0, .1);
   -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
   -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
-}
-
-.navigation .nav-list {
-  margin-top: 2px;
-  padding-left: 21px;
-}
-
-.navigation .nav-list > li > a {
-  margin-left: -21px;
-}
-
-.nav-list > li > a {
-  font-size: 14px;
-  color: #17558E;
-  padding: 7px 15px 7px 21px;
-  font-family: Proxima Nova Semibold, sans-serif;
-}
-
-.navigation .nav-list > .active > a, .navigation .nav-list > .active > a:hover, .navigation .nav-list > .active > a:focus, .navigation .nav > li > a:hover, .navigation .nav > li > a:focus {
-  text-shadow: none;
-}
-
-.navigation .nav > .disabled > a:hover, .navigation .nav > .disabled > a:focus, .subnavigation .nav > .disabled > a:hover, .subnavigation .nav > .disabled > a:focus {
-  text-decoration: none;
-  background-color: transparent;
-  cursor: default;
-}
-
-.subnavigation {
-  background-color: #F1F1F1;
-  width: 150px;
-  margin-left: 121px;
-  position: fixed;
-  top: 41px;
-  bottom: 0px;
-  left: 0px;
-  z-index: 1;
-  overflow: hidden;
-  border-right: 1px solid rgba(0, 0, 0, .1);
-  -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
-  -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
-}
-
-.subnavigation ul:nth-child(3) {
-  overflow: auto;
-  position: absolute;
-  top: 80px;
-  bottom: 0px;
-  width: 116px;
-}
-
-.subnavigation .nav-list > .active > a, .subnavigation .nav-list > .active > a:hover, .subnavigation .nav-list > .active > a:focus, .subnavigation .nav > li > a:hover, .subnavigation .nav > li > a:focus, .nav-list > .active > a, .nav-list > .active > a:hover, .nav-list > .active > a:focus {
-  color: #36424e;
-  text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.9);
-}
-
-.navigation .nav-list > .active > a, .subnavigation .nav-list > .active > a {
-  background-color: transparent;
-  color: #17558E;
-  border-left: 3px solid #2476FC;
-  padding-left: 18px;
-}
-
-.subnavigation .nav-list > .active > a:hover, .subnavigation .nav > li > a:hover, .nav-list > .active > a:hover {
-  background-color: #f4f4f4;
-  color: #2476FC;
-}
-
-.subnavigation .search {
-  margin: 5px;
-}
-
-.subnavigation .search input {
-  width: 100px;
-}
-
-.subnavigation a.new-entity-button {
-  margin: 5px 5px auto;
-  display: block;
-  width: 120px;
-  font-size: 85%;
-  text-align: left;
-}
-
-.subnavigation .new-entity-button > i {
-  vertical-align: text-bottom;
-}
-
-.new-entity-button {
-  padding-left: 8px;
 }
 
 .content {

@@ -22,9 +22,9 @@ class LabelSpec
     createUser()
     grantPermissions(getUsername(), org.getId(), Permission.WRITE, Permission.READ)
 
-    loginAsUserVia(OrganizationManagementPage)
-    waitFor { organization(org.getName()).displayed }
-    organization(org.getName()).click()
+    loginAsUserVia(OwnerManagementPage)
+    waitFor { ownerTreeView.organization(org.getName()).displayed }
+    ownerTreeView.organization(org.getName()).treeViewElement.click()
 
     waitFor{ at OrganizationPage }
   }

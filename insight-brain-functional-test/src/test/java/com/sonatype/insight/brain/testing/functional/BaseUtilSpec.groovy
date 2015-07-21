@@ -17,7 +17,7 @@ class BaseUtilSpec
 {
 
   def setup() {
-    loginAsAdminVia(ApplicationManagementPage)
+    loginAsAdminVia(OwnerManagementPage)
   }
 
   def cleanup() {
@@ -36,10 +36,10 @@ class BaseUtilSpec
   def "We can highlight an element on the page"() {
     when:
       addHtmlToPage(functionalTestingSupport, testName.methodName)
-      highlightElement(newApplicationButton)
+    highlightElement(ownerTreeView.newOrganizationButton)
 
     then:
-      newApplicationButton.firstElement().getCssValue('border').matches('2px solid (red|rgb.*)')
+    ownerTreeView.newOrganizationButton.firstElement().getCssValue('border').matches('2px solid (red|rgb.*)')
       report 'text on page2'
   }
 

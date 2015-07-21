@@ -46,3 +46,186 @@
 .nav-crumb .last-crumb {
   color: #909090;
 }
+
+/*
+  ##Organization Tree View
+
+  ```
+    <div class="navigation-container">
+      <div class="tree-view">
+        <div class="tree-view-header">
+          Organizations and Applications
+        </div>
+        <div class="tree-view-new-organization">
+          <button class="btn">
+            <i class="fa fa-plus"></i>
+            New Organization
+          </button>
+        </div>
+        <div class="tree-view-filter search input-prepend">
+          <span class="add-on">
+            <i role="button" class="fa fa-filter"></i>
+          </span>
+          <input type="text" placeholder="App or Org Name / ID">
+        </div>
+        <div class="tree-view-organization-group">
+          <a class="tree-view-item">
+            <div class="twisty-container">
+              <span class="twisty expand"></span>
+            </div><!--
+           --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
+           -->Sonatype
+          </a>
+        </div>
+        <div class="tree-view-organization-group">
+          <a class="tree-view-item selected">
+            <div class="twisty-container">
+              <span class="twisty collapse"></span>
+            </div><!--
+           --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
+           -->Sonatype
+          </a>
+          <div class="tree-view-new-application">
+            <button class="btn">
+              <i class="fa fa-plus"></i>
+              New Application
+            </button>
+          </div>
+          <a class="tree-view-item">
+            <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
+         -->CLM
+          </a>
+        </div>
+      </div>
+    </div>
+  ```
+*/
+.tree-view {
+  margin-top: 16px;
+  margin-left: 8px;
+  margin-right: 8px;
+
+  .tree-view-header {
+    @extend h3;
+    @extend .semi-bold;
+    color: $slate;
+    margin-bottom: 16px;
+  }
+
+  .tree-view-filter {
+    margin-bottom: 12px;
+    display: block;
+
+    input {
+      width: calc(100% - 44px);
+    }
+  }
+
+  .tree-view-new-organization {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .tree-view-new-application {
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .tree-view-organization-group {
+    .tree-view-icon {
+      margin-right: 8px;
+      margin-left: 8px;
+
+      &:before {
+        padding: 2px;
+        line-height: 12px;
+        font-size: 12px;
+        text-align: center;
+        vertical-align: -2px;
+      }
+
+      &.application {
+        margin-left: 48px;
+      }
+
+      &.inverse:before {
+        color: white;
+        background-color: black;
+      }
+    }
+
+    a.tree-view-item {
+      font-size: 14px;
+      line-height: 16px;
+      color: $slate;
+      text-transform: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      display: block;
+      margin-bottom: 0;
+      margin-left: -8px;
+      margin-right: -8px;
+      padding-top: 7px;
+      padding-bottom: 7px;
+      padding-left: 7px;
+
+      border-top: 1px solid $grey-2;
+      border-bottom: 1px solid $grey-2;
+
+      &:hover {
+        text-decoration: none;
+      }
+
+      &.selected {
+        color: $off-black;
+        background: $off-white;
+        border-top: 1px solid $grey-4;
+        border-bottom: 1px solid $grey-4;
+        padding-top: 7px;
+        padding-bottom: 7px;
+
+        .twisty.collapse {
+          border-top-color: $grey-4;
+        }
+      }
+
+      &:last-of-type:not(:first-of-type) {
+        margin-bottom: 8px;
+      }
+    }
+
+    .twisty-container {
+      display: inline-block;
+
+      .twisty {
+        content: "";
+        -webkit-font-smoothing: antialiased;
+        display: inline-block;
+        width: 0;
+        cursor: pointer;
+        vertical-align: text-top;
+
+        &.empty {
+          width: 16px;
+          height: 16px;
+        }
+
+        &.collapse {
+          border-top: 5px solid $slate;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          margin: 6px 3px;
+        }
+
+        &.expand {
+          border-left: 5px solid $slate;
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          margin: 3px 8px 3px 3px;
+        }
+      }
+    }
+  }
+}

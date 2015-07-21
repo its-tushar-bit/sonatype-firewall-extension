@@ -15,8 +15,8 @@ class TagApplicationSpec
     extends BaseSpec
 {
   def setupSpec() {
-    OrganizationManagementPage organizationManagementPage = loginAsAdminVia(OrganizationManagementPage)
-    organizationManagementPage.createOrg()
+    OwnerManagementPage ownerManagementPage = loginAsAdminVia(OwnerManagementPage)
+    ownerManagementPage.createOrganization()
     waitFor { tabs.tagTabButton.displayed }
     tabs.tagTabButton.click()
     waitFor { tags.displayed }
@@ -24,8 +24,7 @@ class TagApplicationSpec
     tags.buttons.save.click()
     waitFor { tags.tagList.size() == 1 }
 
-    ApplicationManagementPage applicationManagementPage = to(ApplicationManagementPage)
-    applicationManagementPage.createApp('ApplicationTagSpec')
+    ownerManagementPage.createApplication()
   }
 
   def cleanupSpec() {

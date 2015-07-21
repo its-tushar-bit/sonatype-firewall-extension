@@ -24,8 +24,8 @@ class OrganizationSpec
 
   def "Can create a new Organization"() {
     when: 'We click New Organization'
-      OrganizationManagementPage organizationManagementPage = to(OrganizationManagementPage)
-      organizationManagementPage.newOrganizationButton.click()
+      OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
+      ownerManagementPage.ownerTreeView.newOrganizationButton.click()
       OrganizationPage organizationPage = at(OrganizationPage)
 
     then: 'Organization controls are not visible'
@@ -53,8 +53,8 @@ class OrganizationSpec
       waitFor { policies.displayed }
 
     and: 'and the newly created Org appears in the list of Organizations'
-      organizationList.size() == 1
-      organization('New Organization').displayed
+    ownerManagementPage.ownerTreeView.organizations.size() == 1
+    ownerManagementPage.ownerTreeView.organization('New Organization').displayed
   }
 
   def "Can edit an existing Organization"() {
@@ -62,8 +62,8 @@ class OrganizationSpec
       editOrg('New Organization Updated')
 
     then: 'the list is updated'
-      organizationList.size() == 1
-      organization('New Organization Updated').displayed
+    ownerTreeView.organizations.size() == 1
+    ownerTreeView.organization('New Organization Updated').displayed
       organizationName.text() == 'New Organization Updated'
   }
 
@@ -78,17 +78,17 @@ class OrganizationSpec
       deleteButtonAccept.click()
 
     then: 'the list of Orgs is now empty'
-      at OrganizationManagementPage
-      waitFor { organizationList.empty }
+      at OwnerManagementPage
+      waitFor { ownerTreeView.organizations.empty }
   }
 
   def "When adding new Organizations, they are listed alphabetically"() {
     when: 'we add multiple Organizations'
-      createOrg('Z')
-      createOrg('A')
+    createOrganization('Z')
+    createOrganization('A')
 
     then: 'they are listed alphabetically'
-      organizationList.collect { it.text() } == ['A', 'Z']
+    ownerTreeView.organizations.collect { it.getName() } == ['A', 'Z']
   }
 
   def "Can add a new Policy"() {

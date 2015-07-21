@@ -40,7 +40,7 @@
                                 expand: organization.applications.length > 0 && !organization.isExpanded,
                                 collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
             </div><!--
-           --><i class="sonatype-icons organizational-design tree-view-icon inverse"></i><!--
+           --><img class="tree-view-icon" src="img/sonatypeicons-organizational-design.png"><!--
            -->{{organization.name}}
             <div class="tree-view-new-application"
                  ng-class="{ hide : !$state.includes('management.organization', {organizationId: organization.id}) }">
@@ -58,7 +58,7 @@
              ng-if="organization.isExpanded && application.isVisible"
              ui-sref="management.application.policies({applicationPublicId: application.publicId})"
              ng-class="{ selected : $state.includes('management.application', {applicationPublicId: application.publicId}) }">
-            <i class="sonatype-icons application tree-view-icon inverse"></i><!--
+            <i class="sonatype-icons application tree-view-icon"></i><!--
          -->{{application.name}}
           </a>
         </div>

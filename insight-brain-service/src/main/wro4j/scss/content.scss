@@ -129,23 +129,30 @@
   .tree-view-new-application {
     text-align: center;
     margin-top: 12px;
+    margin-right: 8px;
   }
 
   .tree-view-organization-group {
+    img.tree-view-icon {
+      width: 16px;
+      height: 16px;
+      vertical-align: text-bottom;
+    }
+
     .tree-view-icon {
       margin-right: 8px;
       margin-left: 8px;
 
-      &:before {
-        padding: 2px;
-        line-height: 12px;
-        font-size: 12px;
-        text-align: center;
-        vertical-align: -2px;
-      }
-
       &.application {
         margin-left: 48px;
+
+        &:before {
+          text-align: center;
+          vertical-align: -2px;
+          font-size: 16px;
+          line-height: 16px;
+          padding: 0;
+        }
       }
 
       &.inverse:before {
@@ -171,8 +178,8 @@
       padding-bottom: 7px;
       padding-left: 7px;
 
-      border-top: 1px solid $grey-2;
-      border-bottom: 1px solid $grey-2;
+      border-top: 1px solid #e8e8e8;
+      border-bottom: 1px solid #e8e8e8;
 
       &:hover {
         text-decoration: none;

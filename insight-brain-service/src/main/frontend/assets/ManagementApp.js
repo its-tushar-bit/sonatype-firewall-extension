@@ -212,7 +212,8 @@
 
           for (var key in touchedOrganizations) {
             if (touchedOrganizations.hasOwnProperty(key)) {
-              touchedOrganizations[key].isExpanded = isOrganizationChildSelected(touchedOrganizations[key]);
+              touchedOrganizations[key].isExpanded = $state.includes('management.organization-view',
+                  {organizationId: touchedOrganizations[key].id}) || isOrganizationChildSelected(touchedOrganizations[key]);
             }
           }
         }

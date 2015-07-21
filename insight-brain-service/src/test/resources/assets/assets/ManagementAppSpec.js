@@ -81,7 +81,7 @@ describe('ManagementModule', function() {
     });
 
     it('checks if an organization or application is selected', function() {
-      expect($state.includes.calls.length).toBe(5);
+      expect($state.includes.calls.length).toBe(7);
       expect($state.includes).toHaveBeenCalledWith('management.organization', {
         organizationId: organizations[0].id
       });

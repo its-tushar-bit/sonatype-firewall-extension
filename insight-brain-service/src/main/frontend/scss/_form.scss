@@ -62,11 +62,15 @@
     }
 
     &[required] {
-      &.ng-invalid {
+      &.ng-invalid:not(.ng-untouched) {
         border-left-color: $invalid-red;
       }
       &.ng-valid {
         border-left-color: $valid-green;
+      }
+      &.ng-untouched:focus {
+        border-color: $valid-green;
+        box-shadow: 0 0 6px $valid-green;
       }
     }
     &.ng-valid.ng-dirty {

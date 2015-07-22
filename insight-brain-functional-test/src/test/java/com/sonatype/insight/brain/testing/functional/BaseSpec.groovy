@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.CLMLicenseManager
@@ -145,7 +146,9 @@ extends GebReportingSpec {
       applicationDAO.delete(it);
     }
     organizationDAO.getAll().each {
-      organizationDAO.delete(it);
+      if (!Organization.ROOT_ORGANIZATION_ID.equals(it.getId())) {
+        organizationDAO.delete(it);
+      }
     }
   }
 

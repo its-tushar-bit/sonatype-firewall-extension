@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 public class OrganizationDAO
@@ -86,6 +87,9 @@ public class OrganizationDAO
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
 
+    // Make sure the parent org is set to the root on creation
+    organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+
     super.insert(tx, organization);
 
     if (createLicenseThreatGroups) {
@@ -110,6 +114,15 @@ public class OrganizationDAO
   public void update(TransactionContext tx, Organization organization) {
     NameHelper.validate(organization.getName());
 
+    if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
+      // Make sure root org updates do not set the parent org
+      organization.setParentOrganizationId(null);
+    }
+    else {
+      // Make sure the parent org is set to the root on creation
+      organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+    }
+
     Organization existingOrganization = getByName(tx, organization.getName());
     if (existingOrganization != null && !existingOrganization.getId().equals(organization.getId())) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
@@ -120,6 +133,10 @@ public class OrganizationDAO
 
   @Override
   public void delete(TransactionContext tx, Organization organization) {
+    if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
+      // Do not allow the deletion of the root organization
+      throw new BadRequestException("Cannot delete root organization: " + organization.getName());
+    }
     // Cascade to license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, organization.getId());

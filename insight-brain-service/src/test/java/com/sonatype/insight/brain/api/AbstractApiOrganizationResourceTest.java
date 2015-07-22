@@ -75,9 +75,13 @@ public abstract class AbstractApiOrganizationResourceTest
     assertThat(organizationListDTO, notNullValue());
 
     assertThat(organizationListDTO.organizations, notNullValue());
-    assertThat(organizationListDTO.organizations, hasSize(1));
+    // One that was created for the test and one for the root org
+    assertThat(organizationListDTO.organizations, hasSize(2));
 
     ApiOrganizationDTO retrievedOrg = organizationListDTO.organizations.get(0);
+    if (Organization.ROOT_ORGANIZATION_ID.equals(retrievedOrg.id)) {
+      retrievedOrg = organizationListDTO.organizations.get(1);
+    }
     assertThat(retrievedOrg.id, is(organization.getId()));
     assertThat(retrievedOrg.name, is(organization.getName()));
 

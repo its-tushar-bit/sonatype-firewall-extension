@@ -17,9 +17,14 @@ import com.sonatype.insight.model.HasStringId;
 public class Organization
     implements HasStringId
 {
+  public static final String ROOT_ORGANIZATION_ID = "ROOT_ORGANIZATION_ID";
+
   @Id
   @Column(name = "organization_id")
   private String id;
+
+  @Column(name = "parent_organization_id")
+  private String parentOrganizationId;
 
   @Column(name = "name")
   private String name;
@@ -42,6 +47,14 @@ public class Organization
   @Override
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getParentOrganizationId() {
+    return parentOrganizationId;
+  }
+
+  public void setParentOrganizationId(final String parentOrganizationId) {
+    this.parentOrganizationId = parentOrganizationId;
   }
 
   public String getName() {

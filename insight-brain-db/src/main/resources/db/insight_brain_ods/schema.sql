@@ -15,11 +15,14 @@ INSERT INTO schema_info (schema_info_id, drools_code_version) VALUES ('1', 2);
 
 CREATE TABLE organization (
   organization_id varchar(50) NOT NULL,
+  parent_organization_id varchar(50) NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
-  CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace)
+  CONSTRAINT organization_name_uk UNIQUE KEY (name_lowercase_no_whitespace),
+  CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
 );
+INSERT INTO organization (organization_id, parent_organization_id, name, name_lowercase_no_whitespace) VALUES('ROOT_ORGANIZATION_ID', null, 'Root Organization', 'rootorganization');
 
 -- The public_id column is what we expose as AppID to the user
 CREATE TABLE application (

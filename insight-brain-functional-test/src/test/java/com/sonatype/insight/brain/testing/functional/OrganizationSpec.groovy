@@ -53,7 +53,7 @@ class OrganizationSpec
       waitFor { policies.displayed }
 
     and: 'and the newly created Org appears in the list of Organizations'
-    ownerManagementPage.ownerTreeView.organizations.size() == 1
+    ownerManagementPage.ownerTreeView.organizations.size() == 2
     ownerManagementPage.ownerTreeView.organization('New Organization').displayed
   }
 
@@ -62,7 +62,7 @@ class OrganizationSpec
       editOrg('New Organization Updated')
 
     then: 'the list is updated'
-    ownerTreeView.organizations.size() == 1
+    ownerTreeView.organizations.size() == 2
     ownerTreeView.organization('New Organization Updated').displayed
       organizationName.text() == 'New Organization Updated'
   }
@@ -79,7 +79,7 @@ class OrganizationSpec
 
     then: 'the list of Orgs is now empty'
       at OwnerManagementPage
-      waitFor { ownerTreeView.organizations.empty }
+      waitFor { ownerTreeView.organizations.size() == 1 }
   }
 
   def "When adding new Organizations, they are listed alphabetically"() {
@@ -88,7 +88,7 @@ class OrganizationSpec
     createOrganization('A')
 
     then: 'they are listed alphabetically'
-    ownerTreeView.organizations.collect { it.getName() } == ['A', 'Z']
+    ownerTreeView.organizations.collect { it.getName() } == ['A', 'Root Organization', 'Z']
   }
 
   def "Can add a new Policy"() {

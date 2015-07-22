@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -80,6 +81,7 @@ public class OrganizationDAOTest
     String organizationId = organization.getId();
     organization = dao.getById(organizationId);
     Assert.assertEquals("OrganizationDAOTest", organization.getName());
+    assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
 
     // Set an icon for the organization
     BufferedImage image = new BufferedImage(420, 420, BufferedImage.TYPE_INT_ARGB);
@@ -115,8 +117,95 @@ public class OrganizationDAOTest
     int orgCount = 3;
     tempEntity.newOrganizations(orgCount);
 
-    // getAll should return orgCount + 1, to account for org created by AbstractDbDAOTest
-    assertThat(dao.getAll(), hasSize(orgCount + 1));
+    // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest and one for the root org
+    assertThat(dao.getAll(), hasSize(orgCount + 2));
+  }
+
+  @Test
+  public void testCannotDeleteRootOrg() {
+    organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
+    try {
+      dao.delete(organization);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Cannot delete root organization: Root Organization"));
+    }
+  }
+
+  @Test
+  public void testInsert_ParentOrganizationIdIsForcedToRootWhenNull() {
+    organization = new Organization();
+    organization.setId("testId");
+    organization.setName("testName");
+    try {
+      dao.insert(organization);
+      organization = dao.getById("testId");
+      assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
+    } finally {
+      dao.delete(organization);
+    }
+  }
+
+  @Test
+  public void testInsert_ParentOrganizationIdIsForcedToRootWhenNotNull() {
+    organization = new Organization();
+    organization.setId("testId");
+    organization.setName("testName");
+    organization.setParentOrganizationId("dummy org");
+    try {
+      dao.insert(organization);
+      organization = dao.getById("testId");
+      assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
+    } finally {
+      dao.delete(organization);
+    }
+  }
+
+  @Test
+  public void testUpdate_ParentOrganizationIdIsForcedToRootSetWhenNull() {
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
+    organization.setParentOrganizationId(null);
+    dao.update(organization);
+
+    organization = dao.getById(organization.getId());
+    assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
+  }
+
+  @Test
+  public void testUpdate_ParentOrganizationIdIsForcedToRootSetWhenNotNull() {
+    organization = tempEntity.newOrganization("OrganizationDAOTest");
+    organization.setParentOrganizationId("dummy org");
+    dao.update(organization);
+
+    organization = dao.getById(organization.getId());
+    assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
+  }
+
+  @Test
+  public void testUpdateRootOrgs_ParentOrganizationIdIsForcedToNull() {
+    organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
+    organization.setParentOrganizationId("dummyOrg");
+    dao.update(organization);
+
+    organization = dao.getById(organization.getId());
+    assertThat(organization.getParentOrganizationId(), is(nullValue()));
+  }
+
+  @Test
+  public void testUpdateRootOrgName() {
+    organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
+    String originalName = organization.getName();
+    organization.setName("Test Root");
+    try {
+      dao.update(organization);
+
+      organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
+      assertThat(organization.getName(), is("Test Root"));
+    } finally {
+      organization.setName(originalName);
+      dao.update(organization);
+    }
   }
 
   @Test

@@ -53,9 +53,13 @@ public class OrganizationResourceTest
     assertResponseStatus(200, response);
     Organization[] organizations = response.getBody(Organization[].class);
     assertNotNull(organizations);
-    assertEquals(1, organizations.length);
+    // One that was saved and one for the root org
+    assertEquals(2, organizations.length);
     organization = organizations[0];
     assertNotNull(organization);
+    if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
+      organization = organizations[1];
+    }
     assertEquals(organizationId, organization.getId());
     assertEquals("OrganizationResourceTest", organization.getName());
 

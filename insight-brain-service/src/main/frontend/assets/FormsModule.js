@@ -234,7 +234,8 @@
 
             maskElement = $('<div class="form-mask"><div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> Saving</h3></div></div>');
 
-            maskElement.css('top', offset.top).css('left', offset.left).css('width', form.width()).css('height', form.height());
+            //note we are tweaking the size a slight bit to not overrun the margin of the form
+            maskElement.css('top', offset.top + 1).css('left', offset.left + 1).css('width', form.width() - 2).css('height', form.height() - 2);
             form.append(maskElement);
 
             // prior to adding to the DOM the element has no height

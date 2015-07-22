@@ -72,7 +72,7 @@ public class PolicyDAO
 
   public void insert(TransactionContext tx, Policy policy) {
     String ownerId = policy.getOwnerId();
-    
+
     ValidationResult validationResult = policy.validate(ownerId);
     if (validationResult != null && !validationResult.isValid()) {
       throw new InvalidPolicyException(validationResult);
@@ -89,7 +89,7 @@ public class PolicyDAO
     for (Constraint constraint : policy.getConstraints()) {
       constraint.setId(newUUID());
     }
-    
+
     // We need the policy id to be set before the drools code is generated
     if (StringUtils.isBlank(policy.getId())) {
       policy.setId(newUUID());
@@ -207,7 +207,7 @@ public class PolicyDAO
     if (parentApplication != null) {
       // The owner is an application
       if (policyInternalDAO.getByOwnerIdAndName(tx, parentApplication.getOrganizationId(), name) != null) {
-        throw new InvalidPolicyException("A policy with the same name already exists" + " for the parent organization");
+        throw new InvalidPolicyException("A policy with the same name already exists for the parent organization");
       }
     }
     else {
@@ -215,7 +215,7 @@ public class PolicyDAO
       List<Application> applications = applicationDAO.getByOrganizationId(tx, ownerId);
       for (Application application : applications) {
         if (policyInternalDAO.getByOwnerIdAndName(tx, application.getId(), name) != null) {
-          throw new InvalidPolicyException("A policy with the same name already exists" + " for application '"
+          throw new InvalidPolicyException("A policy with the same name already exists for application '"
               + application.getName() + "'");
         }
       }

@@ -1,4 +1,4 @@
-@media (min-width: 1200px) {
+@media (min-width: 1250px) {
   /* Extend first table in two column layouts to prevent horizontal scrollbars */
   .dashboard-charts .span6:first-child .scrollable-container {
     margin-right: -20px;
@@ -38,7 +38,7 @@
   }
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1249px) {
   table.table-risk thead tr th, table.table-risk thead tr th div {
     min-width: 90px !important;
   }

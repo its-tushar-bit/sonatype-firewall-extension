@@ -797,7 +797,7 @@ ul.tri-pane.left {
   border-style: none;
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1249px) {
   .container {
     width: 849px;
     min-width: 849px;
@@ -825,7 +825,7 @@ ul.tri-pane.left {
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1250px) {
   .container {
     width: 1105px;
     min-width: 1105px;

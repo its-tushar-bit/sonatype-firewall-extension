@@ -102,6 +102,7 @@
               });
             }
             else {
+              deferred = $q.defer();
               form.find('*[upload-submit]').click();
             }
             return deferred.promise;

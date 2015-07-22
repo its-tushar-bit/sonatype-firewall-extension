@@ -22,7 +22,6 @@ import org.apache.http.auth.BasicUserPrincipal;
 import org.eclipse.jetty.security.DefaultUserIdentity;
 import org.eclipse.jetty.security.UserAuthentication;
 import org.eclipse.jetty.server.Request;
-import org.slf4j.MDC;
 
 @Named
 public class AuthenticationLoggingFilter
@@ -46,9 +45,11 @@ public class AuthenticationLoggingFilter
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
       throws IOException, ServletException
   {
+    if (!currentUser.isAnonymous()) {
+      setUsernameForRequestLogging(request, currentUser.getUsername());
+    }
     try (MDCUsernameScope mdcUsernameScope = currentUser.isAnonymous() ? MDCUsernameScope.forAnonymous()
         : MDCUsernameScope.forUser(currentUser.getUsername())) {
-      setUsernameForRequestLogging(request, MDC.get(MDCUsernameScope.USERNAME));
       chain.doFilter(request, response);
     }
   }

@@ -76,7 +76,7 @@ public class AuthenticationLoggingFilterTest
     filter.doFilter(request, response, chain);
 
     assertThat(chain.mdcUsername, is(MDCUsernameScope.ANONYMOUS));
-    assertJettyRequestAuthentication(MDCUsernameScope.ANONYMOUS);
+    assertJettyRequestAuthentication(null);
   }
 
   @Test
@@ -92,8 +92,13 @@ public class AuthenticationLoggingFilterTest
 
   private void assertJettyRequestAuthentication(String username) {
     Authentication authentication = jettyRequest.getAuthentication();
-    assertThat(authentication, instanceOf(UserAuthentication.class));
-    assertThat(((UserAuthentication) authentication).getUserIdentity().getUserPrincipal().getName(), is(username));
+    if (username == null) {
+      assertThat(authentication, nullValue());
+    }
+    else {
+      assertThat(authentication, instanceOf(UserAuthentication.class));
+      assertThat(((UserAuthentication) authentication).getUserIdentity().getUserPrincipal().getName(), is(username));
+    }
   }
 
   private void prepareMocks(String username) {

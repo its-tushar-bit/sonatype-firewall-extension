@@ -46,11 +46,11 @@
     color: $grey-4;
   }
 
-  &:hover, &:focus {
+  &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
     border-color: $slate;
   }
 
-  &:active {
+  &:active:not(.disabled):not([disabled]) {
     background-color: $grey-2;
     border-color: $slate;
   }
@@ -64,11 +64,11 @@
       background-color: $light-blue;
     }
 
-    &:hover, &:focus {
+    &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
       border-color: $dark-blue;
     }
 
-    &:active {
+    &:active:not(.disabled):not([disabled]) {
       background-color: $dark-blue;
     }
   }
@@ -82,11 +82,11 @@
       color: $grey-4;
     }
 
-    &:hover, &:focus {
+    &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
       border-color: $grey-4;
     }
 
-    &:active {
+    &:active:not(.disabled):not([disabled]) {
       border-color: $slate;
     }
   }
@@ -100,11 +100,11 @@
       background-color: $fail-disabled;
     }
 
-    &:hover, &:focus {
+    &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
       border-color: $fail-active;
     }
 
-    &:active {
+    &:active:not(.disabled):not([disabled]) {
       background-color: $fail-active;
     }
   }

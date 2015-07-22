@@ -6,7 +6,8 @@
 /*global angular */
 (function() {
   'use strict';
-  angular.module('FormsModule', ['AngularCommon'])
+
+  var module = angular.module('FormsModule', ['AngularCommon'])
   /**
    * Watches for changes to the input validity and shows a popover above the input field if invalid input is seen, or
    * if a required field loses focus without having been set.
@@ -206,4 +207,71 @@
               '</div>'
         };
       });
+
+
+  module.directive('formMask', [function () {
+    return {
+      link: function (scope, form) {
+        var maskElement;
+
+        scope.$on('destroy', function () {
+          if (maskElement) {
+            maskElement.remove();
+          }
+        });
+
+        scope.$watch('formMaskActive', function (newValue) {
+          var msgElement;
+
+          if (maskElement && !newValue) {
+            // remove mask
+            maskElement.remove();
+            maskElement = null;
+          }
+          else if (!maskElement && newValue) {
+            // open mask
+            var offset = form.offset();
+
+            maskElement = $('<div class="form-mask"><div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> Saving</h3></div></div>');
+
+            maskElement.css('top', offset.top).css('left', offset.left).css('width', form.width()).css('height', form.height());
+            form.append(maskElement);
+
+            // prior to adding to the DOM the element has no height
+            msgElement = $('.form-mask-msg', form);
+            msgElement.css('margin-top', - msgElement.outerHeight());
+          }
+          else if (maskElement && newValue === 'successful') {
+            msgElement = $('.form-mask-msg', form);
+            msgElement.addClass('success');
+            msgElement.html('<h3><i class="fa fa-check-circle"></i> Success!</h3>');
+          }
+        });
+      }
+    };
+  }]);
+
+  module.service('FormMaskDelay', ['$q', '$timeout', function ($q, $timeout) {
+    return {
+      wrap: function (scope, promise) {
+        scope.formMaskActive = 'active';
+
+        var deferred = $q.defer();
+        promise.then(function () {
+          var args = arguments;
+          scope.formMaskActive = 'successful';
+
+          $timeout(function () {
+            delete scope.formMaskActive;
+            deferred.resolve.apply(deferred, args);
+          }, 800);
+        }, function () {
+          delete scope.formMaskActive;
+          deferred.reject.apply(deferred, arguments);
+        });
+
+        return deferred.promise;
+      }
+    };
+  }]);
 }());

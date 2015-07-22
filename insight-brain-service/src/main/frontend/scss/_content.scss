@@ -452,6 +452,7 @@ body {
 /*
  ##Sections
 ```
+  <div class='sub-section'>foo</div>
   <div class='section'>foo</div>
   <div>bar</div>
 ```
@@ -464,4 +465,33 @@ body {
     margin-top: -4px;
     margin-bottom: 19px;
   }
+}
+.sub-section {
+  margin-bottom: 12px;
+}
+
+/*
+ ##Owner Icons
+```
+<img src='' class='owner-icon-large'><img src='' class='owner-icon'><img src='' class='owner-icon-tiny'>
+```
+*/
+@mixin owner-icon-template($size) {
+  float: left;
+  height: $size;
+  margin-right: 12px;
+  width: $size;
+  vertical-align: top;
+}
+
+.owner-icon {
+  @include owner-icon-template(20px);
+}
+
+.owner-icon-large {
+  @include owner-icon-template(26px);
+}
+
+.owner-icon-tiny {
+  @include owner-icon-template(16px);
 }

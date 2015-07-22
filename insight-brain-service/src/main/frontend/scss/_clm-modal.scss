@@ -62,7 +62,7 @@
   .clm-modal-body {
     border-left: $external-border;
     border-right: $external-border;
-    padding: 24px 12px;
+    padding: 24px 12px 12px 12px;
   }
 
   .clm-modal-footer {
@@ -129,4 +129,8 @@
 }
 .modal form {
   margin: 0;
+}
+
+.owner-editor-modal {
+  width: 400px;
 }

@@ -6,28 +6,83 @@
       </i> {{:: dirtyOwner.id ? 'Edit' : 'New'}} {{:: getTypeName()}}
     </h2>
   </div>
-  <form name="ownerEditor" role="form" ng-submit="ownerEditor.$valid && save()" class="clm-form">
+  <form name="customIconForm" id="custom-icon-form" ng-upload action="{{::iconUploadUrl}}" class="hide">
+    <input id="icon-file" type="file" name="file" accept="image/*" file-model="icon.source" required>
+    <input name="{{::ownerType}}Id" value="{{dirtyOwner.id}}" type="text"/>
+    <input name="hasRobotSource" ng-model="icon.hasRobotSource" type="text"/>
+    <input name="robotHash" ng-model="icon.robotHash" type="text"/>
+    <input name="{{::csrfTokenName}}" value="{{::csrfTokenValue}}" type="text"/>
+    <div upload-submit="fileUploadComplete(content, completed)"></div>
+  </form>
+  <form name="ownerEditor" role="form" ng-submit="ownerEditor.$valid && save()" class="clm-form" form-mask>
     <div class="clm-modal-body">
-      <label for="editor-owner-name">{{::getTypeName()}} Name</label>
-      <input type="text" ng-model="dirtyOwner.name" name="name" id="editor-owner-name"
-             focus-input="true"
-             ng-maxlength='60'
-             ng-required="true"
-             has-whitespace="suggestedName"
-             valid-name-characters
-             is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="name" messages="{duplicate: 'Name is already in use'}"
-             clm-input>
-      <div ng-if="ownerType === 'application' && !(dirtyOwner.id)">
-        <label for="editor-owner-public-id">Application Id</label>
-        <input type="text" name="publicId" id="editor-owner-public-id"
-               ng-maxlength="60"
-               ng-model="dirtyOwner.publicId"
-               ng-required="true"
-               no-spaces="true"
-               has-whitespace="suggestedName"
-               valid-name-characters
-               is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="publicId" messages="{duplicate: 'ID is already in use'}"
-               clm-input>
+      <div class="section">
+        <div>
+          <label for="editor-owner-name">{{::getTypeName()}} Name</label>
+          <input type="text" ng-model="dirtyOwner.name" name="name" id="editor-owner-name"
+                 ng-maxlength="60"
+                 ng-required="true"
+                 focus-input="true"
+                 has-whitespace="suggestedName"
+                 valid-name-characters
+                 is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="name" messages="{duplicate: 'Name is already in use'}"
+                 clm-input>
+        </div>
+        <div ng-if="ownerType === 'application' && !(dirtyOwner.id)">
+          <label for="editor-owner-public-id">Application Id</label>
+          <input type="text" name="publicId" id="editor-owner-public-id"
+                 ng-maxlength="60"
+                 ng-model="dirtyOwner.publicId"
+                 ng-required="true"
+                 no-spaces="true"
+                 has-whitespace="suggestedName"
+                 valid-name-characters
+                 is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="publicId" messages="{duplicate: 'ID is already in use'}"
+                 clm-input>
+        </div>
+      </div>
+      <div class="pull-right">
+        <div ng-show="icon.type === 'custom'" id="custom-icon-selector">
+          <div class="sub-section">
+            <button class="btn" type="button" ng-click="selectIcon('#icon-file')">
+              <i class="fa fa-upload"></i> Upload Icon Image
+            </button>
+          </div>
+          <div ng-if="userIconPreview">
+            <img ng-src="{{userIconPreview}}" class="owner-icon-large">
+            <img ng-src="{{userIconPreview}}" class="owner-icon">
+            <img ng-src="{{userIconPreview}}" class="owner-icon-tiny">
+          </div>
+        </div>
+        <div ng-if="icon.type === 'robot'" id="robot-icon-selector">
+          <div class="sub-section">
+            <button class="btn" type="button" ng-click="robot(dirtyOwner.name)">
+              <i class="fa fa-refresh"></i> Get another robot
+            </button>
+          </div>
+          <div>
+            <img ng-src="{{robotUrl()}}" class="owner-icon-large">
+            <img ng-src="{{robotUrl()}}" class="owner-icon">
+            <img ng-src="{{robotUrl()}}" class="owner-icon-tiny">
+          </div>
+        </div>
+      </div>
+      <div>
+        <label>Icon</label>
+        <div>
+          <label class="radio">
+            <input type="radio" name="iconType" ng-model="icon.type" ng-value="null">
+            <span>Use a default icon</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="iconType" ng-model="icon.type" value="custom">
+            <span>Upload a custom icon</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="iconType" ng-model="icon.type" value="robot">
+            <span>Get a robot</span>
+          </label>
+        </div>
       </div>
     </div>
     <div class="clm-modal-footer" ng-class="{ error : error }">

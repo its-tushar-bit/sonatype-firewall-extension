@@ -1,23 +1,35 @@
 describe('OwnerControllers', function () {
-  beforeEach(module('OwnerModule'));
+  beforeEach(module('OwnerModule', function ($provide) {
+    $provide.value('$cookies', {});
+  }));
 
   function createTests(type, storeName, owner) {
-    var promise,
-        refreshPromise,
+    var deferred,
+        refreshDeferred,
         controllerScope;
 
+    function flushTimeouts() {
+      inject(function ($timeout) {
+        $timeout.flush();
+      });
+    }
+
     function callPromiseError() {
-      return promise.then.mostRecentCall.args[1].apply(null, arguments);
+      deferred.reject.apply(deferred, arguments);
+      flushTimeouts();
     }
 
     function callPromiseSuccess() {
-      return promise.then.mostRecentCall.args[0].apply(null, arguments);
+      deferred.resolve.apply(deferred, arguments);
+      flushTimeouts();
     }
 
-    beforeEach(function () {
-      promise = { then : jasmine.createSpy('promiseThen') };
-      refreshPromise = { then : jasmine.createSpy('refreshPromiseThen') };
-    });
+    beforeEach(inject(function ($q) {
+      deferred = $q.defer();
+      spyOn(deferred.promise, 'then').andCallThrough();
+      refreshDeferred = $q.defer();
+      spyOn(refreshDeferred.promise, 'then').andCallThrough();
+    }));
 
     afterEach(function () {
       controllerScope.$destroy();
@@ -57,8 +69,8 @@ describe('OwnerControllers', function () {
 
     describe('OwnerSummaryController', function () {
       beforeEach(inject(['$controller', '$rootScope', storeName, function ($controller, $rootScope, store) {
-        spyOn(store, 'get').andReturn(promise);
-        spyOn(store, 'refresh').andReturn(refreshPromise);
+        spyOn(store, 'get').andReturn(deferred.promise);
+        spyOn(store, 'refresh').andReturn(refreshDeferred.promise);
 
         controllerScope = $rootScope.$new();
         $controller('OwnerSummaryController', {
@@ -73,7 +85,7 @@ describe('OwnerControllers', function () {
       }]));
 
       it('Typical', inject(function () {
-        expect(promise.then).toHaveBeenCalled();
+        expect(deferred.promise.then).toHaveBeenCalled();
 
         callPromiseSuccess([owner]);
         expect(controllerScope.owner).toEqual(owner);
@@ -81,7 +93,7 @@ describe('OwnerControllers', function () {
       }));
 
       it('Missing', inject(function () {
-        expect(promise.then).toHaveBeenCalled();
+        expect(deferred.promise.then).toHaveBeenCalled();
 
         callPromiseSuccess([{},{}]);
         expect(controllerScope.error).toEqual('Unable to locate ' + type);
@@ -89,17 +101,17 @@ describe('OwnerControllers', function () {
       }));
 
       it('Error', inject(function () {
-        expect(promise.then).toHaveBeenCalled();
+        expect(deferred.promise.then).toHaveBeenCalled();
 
-        callPromiseError('error', 'error', 'error');
+        callPromiseError('error');
         expect(controllerScope.owner).toBeUndefined();
-        expect(controllerScope.error).toEqual(['error', 'error', 'error']);
+        expect(controllerScope.error).toEqual(['error']);
         expect(controllerScope.type).toEqual(type);
 
         // reload successfully
         controllerScope.doLoad();
-        expect(refreshPromise.then).toHaveBeenCalled();
-        refreshPromise.then.mostRecentCall.args[0]([owner]);
+        expect(refreshDeferred.promise.then).toHaveBeenCalled();
+        refreshDeferred.promise.then.mostRecentCall.args[0]([owner]);
         expect(controllerScope.owner).toEqual(owner);
         expect(controllerScope.type).toEqual(type);
         expect(controllerScope.error).toBeUndefined();
@@ -154,7 +166,7 @@ describe('OwnerControllers', function () {
 
         describe('Save', function () {
           beforeEach(function () {
-            spyOn(controllerScope.dirtyOwner, '$save').andReturn(promise);
+            spyOn(controllerScope.dirtyOwner, '$save').andReturn(deferred.promise);
 
             controllerScope.$apply(function () {
               controllerScope.dirtyOwner.name = 'My new ' + type;
@@ -167,18 +179,33 @@ describe('OwnerControllers', function () {
             controllerScope.save();
           });
 
-          it('Error', function () {
+          it('Error on Owner', function () {
             callPromiseError('foobar');
             expect(controllerScope.error).toEqual('foobar');
 
-            // retry successfully
+            // retry clears error
             controllerScope.save();
             expect(controllerScope.error).toBeFalsy();
           });
 
-          it('Success', inject(function ($state) {
-            spyOn($state, 'go');
+          it('Error on Icon', inject(function ($state, $httpBackend) {
+            $httpBackend.expectPOST('/rest/' + type + '/icon').respond(500, 'Server Error');
             callPromiseSuccess(angular.extend({ id : 'abcd' }, angular.copy(controllerScope.dirtyOwner)));
+            $httpBackend.flush();
+            expect(controllerScope.error).toEqual('Server Error');
+
+            // retry clears error
+            controllerScope.save();
+            expect(controllerScope.error).toBeFalsy();
+          }));
+
+          it('Success', inject(function ($state, $httpBackend) {
+            spyOn($state, 'go');
+
+            $httpBackend.expectPOST('/rest/' + type + '/icon').respond('');
+            callPromiseSuccess(angular.extend({ id : 'abcd' }, angular.copy(controllerScope.dirtyOwner)));
+            $httpBackend.flush();
+            flushTimeouts();
 
             expect($state.go).toHaveBeenCalledWith('management.' + type + '-view', type === 'application' ? {
               applicationPublicId: controllerScope.dirtyOwner.publicId

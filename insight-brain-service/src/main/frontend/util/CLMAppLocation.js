@@ -81,12 +81,14 @@
           return baseUrl.get() + '/rest/' + getServicePathWithId();
         },
 
-        addIcon: function() {
-          return baseUrl.get() + '/rest/' + getServicePath() + '/icon';
+        getAddIconUrl: function(ownerType) {
+          var servicePath = (ownerType) ? window.encodeURIComponent(ownerType) : getServicePath();
+          return baseUrl.get() + '/rest/' + servicePath +  '/icon';
         },
 
-        addIconSync: function() {
-          return baseUrl.get() + '/rest/' + getServicePath() + '/icon/sync';
+        getAddIconSyncUrl: function(ownerType) {
+          var servicePath = (ownerType) ? window.encodeURIComponent(ownerType) : getServicePath();
+          return baseUrl.get() + '/rest/' + servicePath + '/icon/sync';
         },
 
         getEntityId: getId,
@@ -100,6 +102,10 @@
 
         getApplicablePolicies: function() {
           return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
+        },
+
+        getRobotUrl: function (ownerType, robotHash) {
+          return baseUrl.get() + '/rest/' + ownerType + '/services/generateIcon/' + robotHash;
         },
 
         getRoleMappingUrl: function(roleId) {

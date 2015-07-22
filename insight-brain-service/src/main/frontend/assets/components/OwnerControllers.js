@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  var module = angular.module('OwnerModule', ['Stores', 'ui.bootstrap']);
+  var module = angular.module('OwnerModule', ['Stores', 'ui.bootstrap', 'FormsModule']);
 
   module.controller('OwnerSummaryController', ['$scope', '$state', 'OwnerEditor', 'ApplicationStore', 'OrganizationStore',
       function($scope, $state, OwnerEditor, ApplicationStore, OrganizationStore) {
@@ -44,17 +44,68 @@
         $scope.doLoad();
       }]);
 
-  module.controller('OwnerEditorController', ['$scope', '$state', 'owner', 'ownerType', 'siblings', 'Messages',
-      function($scope, $state, owner, ownerType, siblings, messages) {
+  module.controller('OwnerEditorController', ['$scope', '$state', '$window', '$cookies', '$http', '$q', 'owner',
+                                              'ownerType', 'siblings', 'Messages', 'CLMAppLocations',  'FormMaskDelay',
+      function($scope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings, messages, CLMAppLocations, formMaskDelay) {
         $scope.dirtyOwner = owner.$new ? owner : owner.$clone(); // only create a copy for an existing
+        $scope.icon = {};
+
+        $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
+        $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
         $scope.ownerType = ownerType;
         $scope.siblings = siblings;
+
+        $scope.iconUploadUrl = CLMAppLocations.getAddIconSyncUrl(ownerType);
+
+        var deferred;
+
+        $scope.fileUploadComplete = function (content, completed) {
+          if (completed) {
+            if (content) {
+              deferred.reject(content);
+            }
+            else {
+              deferred.resolve($scope.dirtyOwner);
+            }
+            deferred = null;
+          }
+        };
 
         $scope.save = function() {
           var isNew = owner.$new;
           delete $scope.error;
 
-          $scope.dirtyOwner.$save().then(function(updatedOwner) {
+          formMaskDelay.wrap($scope, $scope.dirtyOwner.$save().then(function (result) {
+            var form = $('#custom-icon-form');
+
+            form.find('input[name=' + ownerType + 'Id]').val(result.id);
+
+            if ($scope.icon.type === '') {
+              // default icon
+              return result;
+            }
+            else if ($window.FormData) {
+              var formData = new FormData(form[0]);
+              deferred = $q.defer();
+
+              $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData, {
+                headers : {
+                  'Content-Type' : undefined
+                },
+                transformRequest: angular.identity
+              }).then(function () {
+                deferred.resolve(result);
+              }, function (error) {
+                deferred.reject(error);
+              }).finally(function () {
+                deferred = null;
+              });
+            }
+            else {
+              form.find('*[upload-submit]').click();
+            }
+            return deferred.promise;
+          })).then(function(updatedOwner) {
             if (isNew) {
               $state.go('management.' + ownerType + '-view', ownerType === 'application' ? {
                 applicationPublicId: updatedOwner.publicId
@@ -75,6 +126,51 @@
         $scope.cancel = function() {
           $scope.$dismiss();
         };
+
+        $scope.selectIcon = function (selector) {
+          angular.element(selector).click();
+        };
+
+        $scope.robot = function (name) {
+          var hash = 0;
+          // Once the user has already generated a robot by hashing the name, continue to provide random robots
+          if (!name || $scope.icon.robotHash) {
+            hash = Math.floor(Math.random() * 10000);
+          }
+          else {
+            for (var i = 0; i < name.length; i++) {
+              var charAtI = name.charCodeAt(i);
+              /*jslint bitwise: true */
+              hash = ((hash << 5) - hash) + charAtI;
+              hash = hash & hash;
+            }
+          }
+          $scope.icon.robotHash = hash;
+        };
+
+        $scope.robotUrl = function () {
+          return CLMAppLocations.getRobotUrl(ownerType, $scope.icon.robotHash);
+        };
+
+        $scope.$watch('icon.type', function (iconType) {
+          if (iconType !== 'source') {
+            $('#icon-file').val(''); // reset
+          }
+
+          $scope.icon.hasRobotSource = (iconType === 'robot');
+          if (!$scope.icon.hasRobotSource) {
+            $scope.icon.robotHash = null;
+          }
+          else {
+            $scope.robot($scope.dirtyOwner && $scope.dirtyOwner.name);
+          }
+        });
+
+        $scope.$watch('icon.source', function () {
+          if ($window.URL && $scope.icon.source) {
+            $scope.userIconPreview = $window.URL.createObjectURL($('#icon-file')[0].files[0]);
+          }
+        });
 
         $scope.$on('pageChangeStarted', function(event) {
           if ($scope.dirtyOwner.isDirty()) {

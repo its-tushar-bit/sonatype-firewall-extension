@@ -14,10 +14,12 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "application")
 public class Application
-    implements HasStringId
+    implements HasStringId, Owner
 {
   @Id
   @Column(name = "application_id")
@@ -79,6 +81,7 @@ public class Application
     return publicIdLowercase;
   }
 
+  @Override
   public String getName() {
     return name;
   }
@@ -142,5 +145,23 @@ public class Application
    */
   public String getContactInternalName() {
     return contactInternalName;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getParentOrganizationId() {
+    return getOrganizationId();
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean canHaveChildren() {
+    return false;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getType() {
+    return "application";
   }
 }

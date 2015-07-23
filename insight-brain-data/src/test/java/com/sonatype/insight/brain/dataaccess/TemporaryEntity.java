@@ -167,6 +167,8 @@ public class TemporaryEntity
 
   private Collection<UserViewedProductNotification> userViewedNotificationMappings;
 
+  private Collection<Policy> policies;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -177,6 +179,7 @@ public class TemporaryEntity
     claimedComponents = new ArrayList<>();
     dashboardFilters = new ArrayList<>();
     userViewedNotificationMappings = new ArrayList<>();
+    policies = new ArrayList<>();
   }
 
   @Override
@@ -227,6 +230,11 @@ public class TemporaryEntity
         userViewedNotificationMappingDAO.delete(userViewedNotificationMapping);
       }
     }
+    for (Policy policy : policies) {
+      if ((policy = policyDAO.getById(policy.getId())) != null) {
+        policyDAO.delete(policy);
+      }
+    }
   }
 
   public String uuid() {
@@ -263,12 +271,23 @@ public class TemporaryEntity
     return newOrganization("Test Org " + uuid());
   }
 
+  public Organization newOrganization(Organization parentOrg) {
+    return newOrganization("Test Org " + uuid(), parentOrg, true /* createLicenseThreatGroups */);
+  }
+
   public Organization newOrganization(String name) {
     return newOrganization(name, true /* createLicenseThreatGroups */);
   }
 
   public Organization newOrganization(String name, boolean createLicenseThreatGroups) {
+    return newOrganization(name, null /* parentOrg */, createLicenseThreatGroups);
+  }
+
+  public Organization newOrganization(String name, Organization parentOrg, boolean createLicenseThreatGroups) {
     Organization org = new Organization(name);
+    if (parentOrg != null) {
+      org.setParentOrganizationId(parentOrg.getId());
+    }
     orgDAO.insert(org, createLicenseThreatGroups);
     orgs.add(org);
     return org;
@@ -618,6 +637,7 @@ public class TemporaryEntity
 
   public Policy newPolicy(Policy policy) {
     policyDAO.insert(policy);
+    policies.add(policy);
     return policy;
   }
 
@@ -628,8 +648,7 @@ public class TemporaryEntity
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    policyDAO.insert(policy);
-    return policy;
+    return newPolicy(policy);
   }
 
   public Policy newPolicy(String ownerId, String name) {
@@ -647,8 +666,7 @@ public class TemporaryEntity
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    policyDAO.insert(policy);
-    return policy;
+    return newPolicy(policy);
   }
 
   public HashComponentIdentifier newClaimedComponent(String hash, ComponentIdentifier componentIdentifier) {

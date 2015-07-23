@@ -12,10 +12,12 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "organization")
 public class Organization
-    implements HasStringId
+    implements HasStringId, Owner
 {
   public static final String ROOT_ORGANIZATION_ID = "ROOT_ORGANIZATION_ID";
 
@@ -49,6 +51,7 @@ public class Organization
     this.id = id;
   }
 
+  @Override
   public String getParentOrganizationId() {
     return parentOrganizationId;
   }
@@ -57,6 +60,7 @@ public class Organization
     this.parentOrganizationId = parentOrganizationId;
   }
 
+  @Override
   public String getName() {
     return name;
   }
@@ -80,5 +84,17 @@ public class Organization
   @Deprecated
   @SuppressWarnings("unused")
   private void setNameLowercaseNoWhitespace(String nameLowercaseNoWhitespace) {
+  }
+
+  @Override
+  @JsonIgnore
+  public boolean canHaveChildren() {
+    return true;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getType() {
+    return "organization";
   }
 }

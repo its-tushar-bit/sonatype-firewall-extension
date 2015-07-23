@@ -11,9 +11,13 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -28,6 +32,10 @@ import org.codehaus.plexus.util.StringUtils;
 public class PolicyDAO
 {
   private static PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
+
+  private static OrganizationDAO orgDAO = new OrganizationDAO();
+
+  private static OwnerDAO ownerDAO = new OwnerDAO();
 
   public Policy getById(String id) {
     return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
@@ -202,23 +210,40 @@ public class PolicyDAO
   private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final String name)
       throws InvalidPolicyException
   {
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application parentApplication = applicationDAO.getById(tx, ownerId);
-    if (parentApplication != null) {
-      // The owner is an application
-      if (policyInternalDAO.getByOwnerIdAndName(tx, parentApplication.getOrganizationId(), name) != null) {
-        throw new InvalidPolicyException("A policy with the same name already exists for the parent organization");
-      }
+    Owner owner = ownerDAO.getById(tx, ownerId);
+
+    validateNameWithinHierarchyUp(tx, owner.getParentOrganizationId(), name);
+    validateNameWithinHierarchyDown(tx, owner, name);
+  }
+
+  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, String name)
+      throws InvalidPolicyException
+  {
+    if (parentId == null) {
+      return; // no parent, we're done
     }
-    else {
-      // The owner is an organization
-      List<Application> applications = applicationDAO.getByOrganizationId(tx, ownerId);
-      for (Application application : applications) {
-        if (policyInternalDAO.getByOwnerIdAndName(tx, application.getId(), name) != null) {
-          throw new InvalidPolicyException("A policy with the same name already exists for application '"
-              + application.getName() + "'");
-        }
+    Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
+    if (policyInternalDAO.getByOwnerIdAndName(tx, parentOrganization.getId(), name) != null) {
+      throw new InvalidPolicyException("A policy with the same name already exists for organization '"
+          + parentOrganization.getName() + "'");
+    }
+    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
+  }
+
+  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, String name)
+      throws InvalidPolicyException
+  {
+    if (!owner.canHaveChildren()) {
+      return;
+    }
+    List<Owner> childOwners = ownerDAO.getChildOwners(tx, owner);
+    for (Owner childOwner : childOwners) {
+      if (policyInternalDAO.getByOwnerIdAndName(tx, childOwner.getId(), name) != null) {
+        throw new InvalidPolicyException("A policy with the same name already exists for " + childOwner.getType()
+            + " '" + childOwner.getName() + "'");
       }
+
+      validateNameWithinHierarchyDown(tx, childOwner, name);
     }
   }
 }

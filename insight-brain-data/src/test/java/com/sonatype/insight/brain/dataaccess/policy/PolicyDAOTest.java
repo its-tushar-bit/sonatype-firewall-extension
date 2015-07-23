@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -36,6 +39,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class PolicyDAOTest
     extends AbstractDbDAOTest
@@ -107,62 +111,66 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testInsertNameClashWithChildAppPolicy() throws Exception {
+  public void testInsertNameClashWithChildOwnerPolicy() throws Exception {
     // Add a policy at app level
-    String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(application.getId(), policyName);
-    policyDAO.insert(policy);
+    String policyName = "PolicyDAOTest new policy app";
+    tempEntity.newPolicy(application.getId(), policyName);
 
-    // Add another policy with the same name at org level
-    policy = newPolicy(organization.getId(), policyName);
-    try {
-      policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
-          expected.getMessage());
-    }
+    Owner parentOwner = new OwnerDAO().getParentOwner(organization);
 
-    // Add another policy with a case-/whitespace-equivalent name at org level
-    policy = newPolicy(organization.getId(), policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    try {
-      policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
-          expected.getMessage());
-    }
+    // Add another policy with a case-/whitespace-equivalent name at parent owner level
+    assertInsertPolicyWithDuplicateName(parentOwner.getId(), policyName, application);
+
+    // Add a policy at org level
+    policyName = "PolicyDAOTest new policy org";
+    tempEntity.newPolicy(organization.getId(), policyName);
+
+    // Add another policy with a case-/whitespace-equivalent name at parent owner level
+    assertInsertPolicyWithDuplicateName(parentOwner.getId(), policyName, organization);
   }
 
   @Test
   public void testInsertNameClashWithParentOrgPolicy() throws Exception {
-    // Add a policy at org level
+    // Add a policy at parent org level
     String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(organization.getId(), policyName);
-    policyDAO.insert(policy);
+    Policy policy = newPolicy(Organization.ROOT_ORGANIZATION_ID, policyName);
+    tempEntity.newPolicy(policy);
 
-    // Add another policy with the same name at app level
-    policy = newPolicy(application.getId(), policyName);
-    try {
-      policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for the parent organization",
-          expected.getMessage());
-    }
+    Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
 
     // Add another policy with a case-/whitespace-equivalent name at app level
-    policy = newPolicy(application.getId(), policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
+    assertInsertPolicyWithDuplicateName(application.getId(), policyName, expectedOwner);
+
+    // Add another policy with a case-/whitespace-equivalent name at child org level
+    assertInsertPolicyWithDuplicateName(organization.getId(), policyName, expectedOwner);
+  }
+
+  private void assertInsertPolicyWithDuplicateName(String ownerId, String policyName, Owner expectedOwner) {
+    // Add a policy with a case-/whitespace-equivalent name
+    Policy policy = newPolicy(ownerId, policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
     try {
       policyDAO.insert(policy);
-      Assert.fail("Expected InvalidPolicyException");
+      fail("Expected InvalidPolicyException");
     }
     catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for the parent organization",
-          expected.getMessage());
+      assertEquals(
+          "A policy with the same name already exists for " + expectedOwner.getType() + " '" + expectedOwner.getName()
+              + "'", expected.getMessage());
+    }
+  }
+
+  private void assertUpdatePolicyWithDuplicateName(String ownerId, String policyName, Owner expectedOwner) {
+    Policy policy = tempEntity.newPolicy(ownerId, tempEntity.uuid());
+    // Update the policy with a case-/whitespace-equivalent name
+    policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
+    try {
+      policyDAO.update(policy);
+      fail("Expected InvalidPolicyException");
+    }
+    catch (InvalidPolicyException expected) {
+      assertEquals(
+          "A policy with the same name already exists for " + expectedOwner.getType() + " '" + expectedOwner.getName()
+              + "'", expected.getMessage());
     }
   }
 
@@ -204,70 +212,37 @@ public class PolicyDAOTest
 
   @Test
   public void testUpdateNameClashWithParentOrgPolicy() throws Exception {
-    // Add a policy at org level
+    // Add a policy at parent org level
     String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(organization.getId(), policyName);
-    policyDAO.insert(policy);
+    Policy policy = newPolicy(Organization.ROOT_ORGANIZATION_ID, policyName);
+    tempEntity.newPolicy(policy);
 
-    // Add a policy at app level
-    policy = newPolicy(application.getId(), "unique-name");
-    policyDAO.insert(policy);
+    Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
 
-    // Rename policy at app level
-    policy.setName(policyName);
-    try {
-      policyDAO.update(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for the parent organization",
-          expected.getMessage());
-    }
+    // Update another policy with a case-/whitespace-equivalent name at app level
+    assertUpdatePolicyWithDuplicateName(application.getId(), policyName, expectedOwner);
 
-    // Rename policy at app level with a case-/whitespace-equivalent name
-    policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    try {
-      policyDAO.update(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for the parent organization",
-          expected.getMessage());
-    }
+    // Update another policy with a case-/whitespace-equivalent name at child org level
+    assertUpdatePolicyWithDuplicateName(organization.getId(), policyName, expectedOwner);
   }
 
   @Test
-  public void testUpdateNameClashWithChildAppPolicy() throws Exception {
+  public void testUpdateNameClashWithChildOwnerPolicy() throws Exception {
     // Add a policy at app level
-    String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(application.getId(), policyName);
-    policyDAO.insert(policy);
+    String policyName = "PolicyDAOTest new policy app";
+    tempEntity.newPolicy(application.getId(), policyName);
+
+    Owner parentOwner = new OwnerDAO().getParentOwner(organization);
+
+    // Add another policy with a case-/whitespace-equivalent name at parent owner level
+    assertUpdatePolicyWithDuplicateName(parentOwner.getId(), policyName, application);
 
     // Add a policy at org level
-    policy = newPolicy(organization.getId(), "unique-name");
-    policyDAO.insert(policy);
+    policyName = "PolicyDAOTest new policy org";
+    tempEntity.newPolicy(organization.getId(), policyName);
 
-    // Rename policy at org level
-    policy.setName(policyName);
-    try {
-      policyDAO.update(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
-          expected.getMessage());
-    }
-
-    // Rename policy at org level with a case-/whitespace-equivalent name
-    policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    try {
-      policyDAO.update(policy);
-      Assert.fail("Expected InvalidPolicyException");
-    }
-    catch (InvalidPolicyException expected) {
-      Assert.assertEquals("A policy with the same name already exists for application '" + application.getName() + "'",
-          expected.getMessage());
-    }
+    // Add another policy with a case-/whitespace-equivalent name at parent owner level
+    assertUpdatePolicyWithDuplicateName(parentOwner.getId(), policyName, organization);
   }
 
   @Test

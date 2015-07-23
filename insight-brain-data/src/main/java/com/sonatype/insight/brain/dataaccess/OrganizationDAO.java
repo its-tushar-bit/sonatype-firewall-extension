@@ -190,4 +190,10 @@ public class OrganizationDAO
 
     super.delete(tx, organization);
   }
+
+  public List<Organization> getByParentOrganizationId(TransactionContext tx, String parentOrganizationId) {
+    String sQuery = "SELECT entity FROM Organization entity" + //
+        " WHERE entity.parentOrganizationId=?1";
+    return getList(tx, sQuery, parentOrganizationId);
+  }
 }

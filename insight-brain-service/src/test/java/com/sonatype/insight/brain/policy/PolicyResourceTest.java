@@ -163,17 +163,17 @@ public class PolicyResourceTest
   @Test
   public void testUpdateInvalidPolicy_AppLevel() throws Exception {
     String applicationPublicId = "PolicyResourceTest_testUpdateInvalidPolicy";
-    tempEntity.newApplicationWithParent(applicationPublicId);
-    testUpdateInvalidPolicy(APP, applicationPublicId);
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    testUpdateInvalidPolicy(APP, app.getId(), app.getPublicId());
   }
 
   @Test
   public void testUpdateInvalidPolicy_OrgLevel() throws Exception {
     String orgId = tempEntity.newOrganization("test").getId();
-    testUpdateInvalidPolicy(ORG, orgId);
+    testUpdateInvalidPolicy(ORG, orgId, orgId);
   }
 
-  private void testUpdateInvalidPolicy(String ownerType, String ownerId) throws Exception {
+  private void testUpdateInvalidPolicy(String ownerType, String ownerId, String publicOwnerid) throws Exception {
     // Create a valid policy
     Policy policy = new Policy();
     policy.setOwnerId(ownerId);
@@ -186,7 +186,7 @@ public class PolicyResourceTest
 
     // Update invalid policy
     policy.setName(null);
-    HttpResponse response = restRequest(ownerType, ownerId).body(policy).put();
+    HttpResponse response = restRequest(ownerType, publicOwnerid).body(policy).put();
     assertResponseStatus(400, response);
     Assert.assertEquals("The policy name is required.", response.getBodyText());
   }

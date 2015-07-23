@@ -128,10 +128,6 @@
           $scope.$dismiss();
         };
 
-        $scope.selectIcon = function (selector) {
-          angular.element(selector).click();
-        };
-
         $scope.robot = function (name) {
           var hash = 0;
           // Once the user has already generated a robot by hashing the name, continue to provide random robots

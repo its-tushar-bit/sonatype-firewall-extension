@@ -44,9 +44,9 @@
       <div class="pull-right">
         <div ng-show="icon.type === 'custom'" id="custom-icon-selector">
           <div class="sub-section">
-            <button class="btn" type="button" ng-click="selectIcon('#icon-file')">
+            <label for="icon-file" class='btn' firefox-input-click>
               <i class="fa fa-upload"></i> Upload Icon Image
-            </button>
+            </label>
           </div>
           <div ng-if="userIconPreview">
             <img ng-src="{{userIconPreview}}" class="owner-icon-large">

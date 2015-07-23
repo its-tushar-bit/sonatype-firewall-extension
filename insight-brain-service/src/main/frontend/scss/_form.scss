@@ -36,7 +36,7 @@
   ```
 */
 .clm-form {
-  label {
+  label:not(.btn) {
     color: $off-black;
 
     &.disabled {

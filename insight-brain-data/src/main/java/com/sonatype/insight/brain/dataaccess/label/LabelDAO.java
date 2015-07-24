@@ -7,14 +7,20 @@ package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -27,6 +33,10 @@ public class LabelDAO
   public static final int MAX_NAME_SIZE = 50;
 
   public static final int MAX_DESC_SIZE = 255;
+
+  private static final OrganizationDAO orgDAO = new OrganizationDAO();
+
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
 
   public List<Label> getByOwnerId(String ownerId) {
     return getByOwnerId(ownerId, false);
@@ -51,14 +61,14 @@ public class LabelDAO
         " WHERE label.ownerId=?1" + //
         " ORDER BY label.labelLowercase";
     final List<Label> labels = new ArrayList<>();
-    if (inherit) {
-      final ApplicationDAO applicationDAO = new ApplicationDAO();
-      final Application application = applicationDAO.getById(ownerId);
-      if (application != null) {
-        labels.addAll(getList(tx, sQuery, application.getOrganizationId()));
+    while (ownerId != null) {
+      labels.addAll(getList(tx, sQuery, ownerId));
+      if (!inherit) {
+        break;
       }
+      Owner owner = ownerDAO.getById(tx, ownerId);
+      ownerId = owner.getParentOrganizationId();
     }
-    labels.addAll(getList(tx, sQuery, ownerId));
     return labels;
   }
 
@@ -78,25 +88,9 @@ public class LabelDAO
   }
 
   public Label getByOwnerIdAndLabelLowercase(TransactionContext tx, String ownerId, String labelLowercase) {
-    return getByOwnerIdAndLabelLowercase(tx, ownerId, labelLowercase, false);
-  }
-
-  private Label getByOwnerIdAndLabelLowercase(TransactionContext tx, String ownerId, String labelLowercase, boolean inherit)
-  {
     final String sQuery = "SELECT label FROM Label label" + //
         " WHERE  label.ownerId=?1 AND label.labelLowercase=?2";
-    Label label = null;
-    if (inherit) {
-      final ApplicationDAO applicationDAO = new ApplicationDAO();
-      final Application application = applicationDAO.getById(tx, ownerId);
-      if (application != null) {
-        label = get(tx, sQuery, application.getOrganizationId(), labelLowercase);
-      }
-    }
-    if (label == null) {
-      label = get(tx, sQuery, ownerId, labelLowercase);
-    }
-    return label;
+    return get(tx, sQuery, ownerId, labelLowercase);
   }
 
   @Override
@@ -160,11 +154,10 @@ public class LabelDAO
     // igorf: references to other entities ain't exactly pretty, but I this LabelDAO is the right place to enforce
     // label uniqueness constraints
     final ApplicationDAO appDAO = new ApplicationDAO();
-    final OrganizationDAO orgDAO = new OrganizationDAO();
 
     // first, check the same label does not exist in for the same owner
     // this is enforced by db unique key, but checking in java gives nicer error message
-    Label otherLabel = getByOwnerIdAndLabelLowercase(tx, label.getOwnerId(), label.getLabelLowercase(), false);
+    Label otherLabel = getByOwnerIdAndLabelLowercase(tx, label.getOwnerId(), label.getLabelLowercase());
     if (otherLabel != null && (!update || !otherLabel.getId().equals(label.getId()))) {
       final Application app = appDAO.getById(tx, label.getOwnerId());
       if (app != null) {
@@ -179,30 +172,70 @@ public class LabelDAO
       throw new InvalidLabelException(message);
     }
 
-    // owner can be an org, make sure none of org's apps have this label already
-    final List<Application> apps = appDAO.getByOrganizationIdAndLabelLowercase(tx, label.getOwnerId(),
-        label.getLabelLowercase());
-    if (!apps.isEmpty()) {
+    Owner owner = ownerDAO.getById(tx, label.getOwnerId());
+    validateNameWithinHierarchyDown(tx, owner, label);
+    validateNameWithinHierarchyUp(tx, owner.getParentOrganizationId(), label);
+  }
+
+  private void validateNameWithinHierarchyDown(final TransactionContext tx, final Owner owner, final Label label) {
+    Map<String, Set<String>> childrenWithDuplicatesByType = new TreeMap<>();
+    getDuplicateLabels(tx, childrenWithDuplicatesByType, owner, label);
+    if (!childrenWithDuplicatesByType.isEmpty()) {
       final StringBuilder message = new StringBuilder();
-      message.append("A label with name '").append(label.getLabel()).append("' already exists in application(s)");
-      for (Application app : apps) {
-        message.append(" '").append(app.getName()).append('\'');
+      message.append("A label with name '").append(label.getLabel()).append("' already exists in");
+
+      for (String ownerType : childrenWithDuplicatesByType.keySet()) {
+        Set<String> ownersWithDups = childrenWithDuplicatesByType.get(ownerType);
+        message.append(" ").append(ownerType).append("(s)");
+        for (String ownerWithDup : ownersWithDups) {
+          message.append(" '").append(ownerWithDup).append('\'');
+        }
       }
       message.append('.');
       throw new InvalidLabelException(message.toString());
     }
+  }
 
-    // owner can be an app, make sure organization does not have this label already
-    final Application app = appDAO.getById(tx, label.getOwnerId());
-    if (app != null) {
-      otherLabel = getByOwnerIdAndLabelLowercase(tx, app.getOrganizationId(), label.getLabelLowercase(), false);
-      if (otherLabel != null) {
-        final Organization org = orgDAO.getById(tx, app.getOrganizationId());
-        final String message = String.format("A label with name '%s' already exists in organization '%s'.",
-            otherLabel.getLabel(), org.getName());
-        throw new InvalidLabelException(message);
-      }
+  private void getDuplicateLabels(final TransactionContext tx,
+      final Map<String, Set<String>> childrenWithDuplicatesByType, final Owner owner, final Label label) {
+
+    if (!owner.canHaveChildren()) {
+      return;
     }
+
+    List<Owner> children = ownerDAO.getChildOwners(tx, owner);
+    for (Owner child : children) {
+      Label otherLabel = getByOwnerIdAndLabelLowercase(tx, child.getId(), label.getLabelLowercase());
+      if (otherLabel != null) {
+        getOwnersForType(childrenWithDuplicatesByType, child.getType()).add(child.getName());
+      }
+      getDuplicateLabels(tx, childrenWithDuplicatesByType, child, label);
+    }
+  }
+
+  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final Label label)
+  {
+    if (parentId == null) {
+      return;
+    }
+    Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
+    Label otherLabel = getByOwnerIdAndLabelLowercase(tx, parentOrganization.getId(), label.getLabelLowercase());
+    if (otherLabel != null) {
+      final String message = String.format("A label with name '%s' already exists in organization '%s'.",
+          otherLabel.getLabel(), parentOrganization.getName());
+      throw new InvalidLabelException(message);
+    }
+
+    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), label);
+  }
+
+  private Set<String> getOwnersForType(final Map<String, Set<String>> ownerNamesByTypeMap, final String type) {
+    Set<String> ownerNames = ownerNamesByTypeMap.get(type);
+    if (ownerNames == null) {
+      ownerNames = new TreeSet<>();
+      ownerNamesByTypeMap.put(type, ownerNames);
+    }
+    return ownerNames;
   }
 
   @Override

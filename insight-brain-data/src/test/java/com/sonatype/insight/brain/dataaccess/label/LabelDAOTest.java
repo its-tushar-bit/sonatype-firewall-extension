@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -24,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -506,24 +508,69 @@ public class LabelDAOTest
   }
 
   @Test
+  public void testDuplicateLabelInApplicationAndOrganizationDownHierarchy() throws Exception {
+    LabelDAO labelDAO = new LabelDAO();
+
+    Label label1 = tempEntity.newLabel(applicationId, "MyLabel");
+
+    Organization org1 = tempEntity.newOrganization("org1");
+    tempEntity.newLabel(org1.getId(), "MyLabel");
+
+    Organization org2 = tempEntity.newOrganization("org2");
+    tempEntity.newLabel(org2.getId(), "MyLabel");
+
+    Label label4 = new Label();
+    label4.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    label4.setLabel("MyLabel");
+    label4.setColor(Color.blue);
+    try {
+      labelDAO.insert(label4);
+      fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      final String expectedMessage = String
+          .format("A label with name '%s' already exists in application(s) '%s' organization(s) '%s' '%s'.",
+              label1.getLabel(), application.getName(), org1.getName(), org2.getName());
+      assertThat(e.getMessage(), is(expectedMessage));
+    }
+  }
+
+  @Test
+  public void testDuplicateLabelInOrganizationUpHierarchy() throws Exception {
+    LabelDAO labelDAO = new LabelDAO();
+
+    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "MyLabel");
+
+    Organization org1 = tempEntity.newOrganization("org1");
+
+    Label label2 = new Label();
+    label2.setOwnerId(org1.getId());
+    label2.setLabel("MyLabel");
+    label2.setColor(Color.blue);
+    try {
+      labelDAO.insert(label2);
+      fail("Expected InvalidLabelException");
+    }
+    catch (InvalidLabelException e) {
+      final String expectedMessage = String
+          .format("A label with name '%s' already exists in organization 'Root Organization'.", label2.getLabel());
+      assertThat(e.getMessage(), is(expectedMessage));
+    }
+  }
+
+  @Test
   public void testGetByOwnerId_inheritedLabels() {
     LabelDAO labelDAO = new LabelDAO();
 
-    Label label1 = new Label();
-    label1.setOwnerId(organization.getId());
-    label1.setLabel("org-label");
-    label1.setColor(Color.blue);
-    labelDAO.insert(label1);
+    Label label1 = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "root-org-label");
+    Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
+    Label label3 = tempEntity.newLabel(applicationId, "app-label");
 
-    Label label2 = new Label();
-    label2.setOwnerId(applicationId);
-    label2.setLabel("app-label");
-    label2.setColor(Color.blue);
-    labelDAO.insert(label2);
+    assertLabels(Arrays.asList(label3), labelDAO.getByOwnerId(applicationId, false));
+    assertLabels(Arrays.asList(label1, label2, label3), labelDAO.getByOwnerId(applicationId, true));
 
-    assertLabels(Arrays.asList(label2), labelDAO.getByOwnerId(applicationId, false));
-
-    assertLabels(Arrays.asList(label1, label2), labelDAO.getByOwnerId(applicationId, true));
+    assertLabels(Arrays.asList(label2), labelDAO.getByOwnerId(organization.getId(), false));
+    assertLabels(Arrays.asList(label1, label2), labelDAO.getByOwnerId(organization.getId(), true));
   }
 
   @Test

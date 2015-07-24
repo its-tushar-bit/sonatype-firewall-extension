@@ -117,15 +117,23 @@ public class LabelResource
       organizationId = internalOwnerId;
     }
 
+    getOrganizationLabels(result, organizationId);
+
+    return result;
+  }
+
+  private void getOrganizationLabels(final ApplicableLabels applicableLabels, final String organizationId) {
     Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
     LabelsByOwner labelsByOwner = new LabelsByOwner();
     labelsByOwner.ownerId = organization.getId();
     labelsByOwner.ownerName = organization.getName();
     labelsByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
     labelsByOwner.labels = labelDAO.getByOwnerId(organization.getId());
-    result.labelsByOwner.add(labelsByOwner);
+    applicableLabels.labelsByOwner.add(labelsByOwner);
 
-    return result;
+    if (organization.getParentOrganizationId() != null) {
+      getOrganizationLabels(applicableLabels, organization.getParentOrganizationId());
+    }
   }
 
   /**

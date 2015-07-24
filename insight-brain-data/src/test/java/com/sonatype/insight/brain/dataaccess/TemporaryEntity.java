@@ -171,6 +171,8 @@ public class TemporaryEntity
 
   private Collection<PolicyTag> policyTags;
 
+  private Collection<Label> labels;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -183,6 +185,7 @@ public class TemporaryEntity
     userViewedNotificationMappings = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
+    labels = new ArrayList<>();
   }
 
   @Override
@@ -241,6 +244,12 @@ public class TemporaryEntity
     for (Policy policy : policies) {
       if ((policy = policyDAO.getById(policy.getId())) != null) {
         policyDAO.delete(policy);
+      }
+    }
+
+    for (Label label : labels) {
+      if ((label = labelDAO.getById(label.getId())) != null) {
+        labelDAO.delete(label);
       }
     }
   }
@@ -475,6 +484,7 @@ public class TemporaryEntity
   public Label newLabel(String ownerId, String labelText, Color color){
     Label label = new Label(ownerId, labelText, color);
     labelDAO.insert(label);
+    labels.add(label);
     return label;
   }
 
@@ -490,6 +500,7 @@ public class TemporaryEntity
       tx.persist(label);
       tx.commit();
     }
+    labels.add(label);
     return label;
   }
 

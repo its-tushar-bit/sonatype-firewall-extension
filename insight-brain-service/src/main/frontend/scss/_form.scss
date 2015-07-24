@@ -566,8 +566,12 @@
   background-color: $errorBackground !important;
   color: $errorText;
   border: 1px solid $errorBorder;
-  z-index: $zindexModal + 1;
+  z-index: $zindexModalBackdrop - 1;
   @include border-radius($borderRadiusSmall);
+
+  .modal & {
+    z-index: $zindexModal + 1;
+  }
 }
 .input-popover .top{
   margin-top:-2px

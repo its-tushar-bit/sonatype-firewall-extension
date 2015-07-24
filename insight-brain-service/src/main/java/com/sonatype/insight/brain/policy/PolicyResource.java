@@ -30,10 +30,11 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -105,28 +106,33 @@ public class PolicyResource
   @Authorize(permission = Permission.READ)
   public ApplicablePolicies getApplicablePolicies(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     log.debug("Received request to get all applicable policies for {} id {}", ownerType, ownerId);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
+    // Get all applicable policies
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(ownerId);
+
+    // Init the result structure
+    OwnerDAO ownerDAO = new OwnerDAO();
+    PolicyTagDAO policyTagDAO = new PolicyTagDAO();
     Map<String, PoliciesByOwner> policiesByOwnerId = new LinkedHashMap<>();
-    String organizationId;
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
-      policiesByOwnerId.put(internalOwnerId, new PoliciesByOwner(application.getId(), application.getName(),
-          IdUtils.TYPE_APPLICATION));
-      organizationId = application.getOrganizationId();
-    }
-    else {
-      organizationId = internalOwnerId;
-    }
-    Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
-    policiesByOwnerId.put(organizationId, new PoliciesByOwner(organization.getId(), organization.getName(),
-        IdUtils.TYPE_ORGANIZATION, new PolicyTagDAO().getByOrganizationId(organization.getId())));
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
+      if (owner instanceof Application) {
+        policiesByOwnerId.put(ownerId, new PoliciesByOwner(ownerId, owner.getName(), owner.getType()));
+      }
+      else {
+        policiesByOwnerId.put(ownerId,
+            new PoliciesByOwner(ownerId, owner.getName(), owner.getType(), policyTagDAO.getByOrganizationId(ownerId)));
+      }
 
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(internalOwnerId);
+      ownerId = owner.getParentOrganizationId();
+    }
+
+    // Add the applicable policies by owner to the result structure
     for (Policy policy : policies) {
       policiesByOwnerId.get(policy.getOwnerId()).policies.add(policy);
     }

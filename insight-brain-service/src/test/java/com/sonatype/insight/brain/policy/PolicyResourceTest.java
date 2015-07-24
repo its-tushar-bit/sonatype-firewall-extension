@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class PolicyResourceTest
@@ -204,7 +205,11 @@ public class PolicyResourceTest
   public void testGetApplicablePolicies() throws Exception {
     // Create an organization and an application
     String orgName = "testGetApplicablePoliciesOrg";
-    String orgId = tempEntity.newOrganization(orgName).getId();
+    Organization org = tempEntity.newOrganization(orgName);
+    String orgId = org.getId();
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    String parentOrgId = parentOrg.getId();
+    String parentOrgName = parentOrg.getName();
     String appName = "testGetApplicablePoliciesApp";
     String appPublicId = appName;
     Application app = tempEntity.newApplication(appName, appPublicId, orgId);
@@ -215,17 +220,27 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(3, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(appId, appName, "application", 0, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(2));
 
     // Verify the applicable policies for the organization
     response = restRequest(ORG, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(1));
+
+    // Verify the applicable policies for the parent organization
+    response = restRequest(ORG, parentOrgId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the application
     Policy appPolicy = tempEntity.newPolicy(appId, "testGetApplicablePolicies App Policy");
@@ -235,9 +250,10 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(3, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(appId, appName, "application", 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(2));
     Assert.assertEquals(appPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
 
     // Verify the applicable policies for the organization
@@ -245,8 +261,17 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(1));
+
+    // Verify the applicable policies for the parent organization
+    response = restRequest(ORG, parentOrgId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
 
     // Create a policy for the organization
     Policy orgPolicy = tempEntity.newPolicy(orgId, "testGetApplicablePolicies Org Policy");
@@ -256,9 +281,10 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(3, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(appId, appName, "application", 1, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(2));
     Assert.assertEquals(appPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
     Assert.assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
 
@@ -267,26 +293,81 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(1, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(1));
     Assert.assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+
+    // Verify the applicable policies for the parent organization
+    response = restRequest(ORG, parentOrgId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 0, applicablePolicies.policiesByOwner.get(0));
+
+    // Create a policy for the parent organization
+    Policy parentOrgPolicy = tempEntity.newPolicy(parentOrgId, "testGetApplicablePolicies Parent Org Policy");
+
+    // Verify the applicable policies for the application
+    response = restRequest(APP, appPublicId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    assertEquals(3, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(appId, appName, "application", 1, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 1, applicablePolicies.policiesByOwner.get(2));
+    assertEquals(appPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+    assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
+    assertEquals(parentOrgPolicy.getId(), applicablePolicies.policiesByOwner.get(2).policies.get(0).getId());
+
+    // Verify the applicable policies for the organization
+    response = restRequest(ORG, orgId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    assertEquals(2, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(orgId, orgName, "organization", 1, applicablePolicies.policiesByOwner.get(0));
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 1, applicablePolicies.policiesByOwner.get(1));
+    assertEquals(orgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
+    assertEquals(parentOrgPolicy.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
+
+    // Verify the applicable policies for the parent organization
+    response = restRequest(ORG, parentOrgId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicablePolicies = response.getBody(ApplicablePolicies.class);
+    assertNotNull(applicablePolicies);
+    assertEquals(1, applicablePolicies.policiesByOwner.size());
+    assertPoliciesByOwner(parentOrgId, parentOrgName, "organization", 1, applicablePolicies.policiesByOwner.get(0));
+    assertEquals(parentOrgPolicy.getId(), applicablePolicies.policiesByOwner.get(0).policies.get(0).getId());
   }
 
   @Test
   public void testGetApplicablePolicies_FilteredByTag() throws Exception {
     // Create an organization and an application
     Organization org = tempEntity.newOrganization();
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
     Application app = tempEntity.newApplication(org.getId());
 
-    // Create a tagged policy that doesn't match an app tag. This policy should not appear in the result.
-    Policy orgPolicy1 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 1");
     Tag tag1 = tempEntity.newTag(org.getId());
-    tempEntity.newPolicyTag(orgPolicy1.getId(), tag1.getId());
-
-    // Create another tagged policy that matches an app tag. This policy should appear in the result.
-    Policy orgPolicy2 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 2");
     Tag tag2 = tempEntity.newTag(org.getId());
+
+    // Create a tagged policy for the org that doesn't match an app tag. This policy should not appear in the result.
+    Policy orgPolicy1 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 1");
+    tempEntity.newPolicyTag(orgPolicy1.getId(), tag1.getId());
+    // Create another tagged policy for the org that matches an app tag. This policy should appear in the result.
+    Policy orgPolicy2 = tempEntity.newPolicy(org.getId(), "testGetApplicablePolicies Org Policy 2");
     tempEntity.newPolicyTag(orgPolicy2.getId(), tag2.getId());
+
+    // Create a tagged policy for the parent org that doesn't match an app tag. This policy should not appear in the
+    // result.
+    Policy parentOrgPolicy1 = tempEntity.newPolicy(parentOrg.getId(), "testGetApplicablePolicies Parent Org Policy 1");
+    tempEntity.newPolicyTag(parentOrgPolicy1.getId(), tag1.getId());
+    // Create another tagged policy for the parentorg that matches an app tag. This policy should appear in the result.
+    Policy parentOrgPolicy2 = tempEntity.newPolicy(parentOrg.getId(), "testGetApplicablePolicies Parent Org Policy 2");
+    tempEntity.newPolicyTag(parentOrgPolicy2.getId(), tag2.getId());
+
     tempEntity.newApplicationTag(app.getId(), tag2.getId());
 
     // Verify the applicable policies for the application
@@ -294,10 +375,13 @@ public class PolicyResourceTest
     assertResponseStatus(200, response);
     ApplicablePolicies applicablePolicies = response.getBody(ApplicablePolicies.class);
     assertNotNull(applicablePolicies);
-    Assert.assertEquals(2, applicablePolicies.policiesByOwner.size());
+    Assert.assertEquals(3, applicablePolicies.policiesByOwner.size());
     assertPoliciesByOwner(app.getId(), app.getName(), "application", 0, applicablePolicies.policiesByOwner.get(0));
     assertPoliciesByOwner(org.getId(), org.getName(), "organization", 1, applicablePolicies.policiesByOwner.get(1));
+    assertPoliciesByOwner(parentOrg.getId(), parentOrg.getName(), "organization", 1,
+        applicablePolicies.policiesByOwner.get(2));
     Assert.assertEquals(orgPolicy2.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
+    Assert.assertEquals(parentOrgPolicy2.getId(), applicablePolicies.policiesByOwner.get(2).policies.get(0).getId());
   }
 
   /**

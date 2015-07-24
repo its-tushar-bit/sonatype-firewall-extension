@@ -110,7 +110,7 @@
                     content: errorMessage,
                     trigger: 'manual',
                     html: true,
-                    container: 'body',
+                    container: element.parent(),
                     template: '<div id="' + myCtrl.$name + '-popover" class="popover input-popover fade top in">' +
                         '<div class="arrow"></div>' +
                         '<div class="popover-content">' +

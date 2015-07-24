@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
@@ -36,6 +35,10 @@ public class PolicyDAO
   private static OrganizationDAO orgDAO = new OrganizationDAO();
 
   private static OwnerDAO ownerDAO = new OwnerDAO();
+
+  private static PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+
+  private static ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
 
   public Policy getById(String id) {
     return PolicyInternal.toPolicy(policyInternalDAO.getById(id));
@@ -171,23 +174,35 @@ public class PolicyDAO
     return UUID.randomUUID().toString().replace("-", "");
   }
 
-  public List<Policy> getApplicableByOwnerId(final String ownerId) {
+  public List<Policy> getApplicableByOwnerId(String ownerId) {
     List<Policy> result = new ArrayList<>();
 
-    result.addAll(getByOwnerId(ownerId));
-
-    Application application = new ApplicationDAO().getById(ownerId);
-    if (application != null) {
+    List<ApplicationTag> appTags = null;
+    Owner owner = ownerDAO.getById(ownerId);
+    boolean forApplication = owner instanceof Application;
+    if (forApplication) {
       // ownerId is an app id
-      List<ApplicationTag> appTags = new ApplicationTagDAO().getByApplicationId(ownerId);
-      PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-      List<Policy> orgPolicies = getByOwnerId(application.getOrganizationId());
-      for (Policy orgPolicy : orgPolicies) {
-        List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
-        if (policyTags.isEmpty() || intersects(policyTags, appTags)) {
-          result.add(orgPolicy);
+      appTags = appTagDAO.getByApplicationId(ownerId);
+      result.addAll(getByOwnerId(ownerId));
+      ownerId = owner.getParentOrganizationId();
+    }
+
+    while (ownerId != null) {
+      List<Policy> orgPolicies = getByOwnerId(ownerId);
+      if (forApplication) {
+        for (Policy orgPolicy : orgPolicies) {
+          List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
+          if (policyTags.isEmpty() || intersects(policyTags, appTags)) {
+            result.add(orgPolicy);
+          }
         }
       }
+      else {
+        result.addAll(orgPolicies);
+      }
+
+      owner = ownerDAO.getById(ownerId);
+      ownerId = owner.getParentOrganizationId();
     }
     return result;
   }

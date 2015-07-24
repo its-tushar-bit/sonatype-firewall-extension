@@ -169,6 +169,8 @@ public class TemporaryEntity
 
   private Collection<Policy> policies;
 
+  private Collection<PolicyTag> policyTags;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -180,6 +182,7 @@ public class TemporaryEntity
     dashboardFilters = new ArrayList<>();
     userViewedNotificationMappings = new ArrayList<>();
     policies = new ArrayList<>();
+    policyTags = new ArrayList<>();
   }
 
   @Override
@@ -191,6 +194,11 @@ public class TemporaryEntity
     for (DashboardFilter dashboardFilter : dashboardFilters) {
       if ((dashboardFilter = dashboardFilterDAO.getByUsername(dashboardFilter.getUsername())) != null) {
         dashboardFilterDAO.delete(dashboardFilter);
+      }
+    }
+    for (PolicyTag policyTag : policyTags) {
+      if ((policyTag = policyTagDAO.getById(policyTag.getId())) != null) {
+        policyTagDAO.delete(policyTag);
       }
     }
     for (Application app : apps) {
@@ -632,6 +640,7 @@ public class TemporaryEntity
   public PolicyTag newPolicyTag(String policyId, String tagId) {
     PolicyTag policyTag = new PolicyTag(policyId, tagId);
     policyTagDAO.insert(policyTag);
+    policyTags.add(policyTag);
     return policyTag;
   }
 

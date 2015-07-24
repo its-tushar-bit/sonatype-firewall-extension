@@ -29,7 +29,7 @@ public class OwnerDAO
     return new OrganizationDAO().getById(tx, id);
   }
 
-  private Owner getById(String id) {
+  public Owner getById(String id) {
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       return getById(tx, id);
     }

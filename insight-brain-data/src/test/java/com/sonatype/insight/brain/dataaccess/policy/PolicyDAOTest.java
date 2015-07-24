@@ -478,67 +478,61 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testGetApplicable_Organization() {
+  public void testGetApplicable() {
+    String policyNameParentOrg = "testGetApplicableParentOrganization";
+    tempEntity.newPolicy(organization.getParentOrganizationId(), policyNameParentOrg);
     String policyNameOrg = "testGetApplicableOrganization";
-    Policy policyOrg = newPolicy(organization.getId(), policyNameOrg);
-    policyDAO.insert(policyOrg);
+    tempEntity.newPolicy(organization.getId(), policyNameOrg);
     String policyNameApp = "testGetApplicableApplication";
-    Policy policyApp = newPolicy(application.getId(), policyNameApp);
-    policyDAO.insert(policyApp);
+    tempEntity.newPolicy(application.getId(), policyNameApp);
 
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(organization.getId());
-    Assert.assertEquals(1, policies.size());
-    Assert.assertEquals(policyNameOrg, policies.get(0).getName());
-  }
-
-  @Test
-  public void testGetApplicable_Organization_WithTags() {
-    // Must retrieve all org policies, regardless of the tags associated with them
-    Policy policyOrg1 = newPolicy(organization.getId(), "policy1");
-    policyDAO.insert(policyOrg1);
-    Policy policyOrg2 = newPolicy(organization.getId(), "policy2");
-    policyDAO.insert(policyOrg2);
-    
-    // One policy has a tag associated, the other doesn't
-    Tag tag = tempEntity.newTag(organization.getId());
-    tempEntity.newPolicyTag(policyOrg1.getId(), tag.getId());
-
-    List<Policy> policies = policyDAO.getApplicableByOwnerId(organization.getId());
-    Assert.assertEquals(2, policies.size());
-  }
-
-  @Test
-  public void testGetApplicable_Application() {
-    String policyNameOrg = "testGetApplicableOrganization";
-    Policy policyOrg = newPolicy(organization.getId(), policyNameOrg);
-    policyDAO.insert(policyOrg);
-    String policyNameApp = "testGetApplicableApplication";
-    Policy policyApp = newPolicy(application.getId(), policyNameApp);
-    policyDAO.insert(policyApp);
-
+    // Check app level
     List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
-    Assert.assertEquals(2, policies.size());
-    Assert.assertEquals(policyNameApp, policies.get(0).getName());
-    Assert.assertEquals(policyNameOrg, policies.get(1).getName());
+    assertThat(policies, hasSize(3));
+    assertEquals(policyNameApp, policies.get(0).getName());
+    assertEquals(policyNameOrg, policies.get(1).getName());
+    assertEquals(policyNameParentOrg, policies.get(2).getName());
+
+    // Check org level
+    policies = policyDAO.getApplicableByOwnerId(organization.getId());
+    assertThat(policies, hasSize(2));
+    assertEquals(policyNameOrg, policies.get(0).getName());
+    assertEquals(policyNameParentOrg, policies.get(1).getName());
+
+    // Check parent org level
+    policies = policyDAO.getApplicableByOwnerId(organization.getParentOrganizationId());
+    assertThat(policies, hasSize(1));
+    assertEquals(policyNameParentOrg, policies.get(0).getName());
   }
 
   @Test
-  public void testGetApplicable_Application_WithTags() {
-    // Must retrieve only the org policies that match the tags associated with the app
-    Policy policyOrg1 = newPolicy(organization.getId(), "policy1");
-    policyDAO.insert(policyOrg1);
-    Policy policyOrg2 = newPolicy(organization.getId(), "policy2");
-    policyDAO.insert(policyOrg2);
+  public void testGetApplicable_WithTags() {
+    Policy policyOrg1 = tempEntity.newPolicy(organization.getId(), "policyOrg1");
+    Policy policyOrg2 = tempEntity.newPolicy(organization.getId(), "policyOrg2");
+    Policy policyParentOrg1 = tempEntity.newPolicy(organization.getParentOrganizationId(), "policyParentOrg1");
+    Policy policyParentOrg2 = tempEntity.newPolicy(organization.getParentOrganizationId(), "policyParentOrg2");
 
     Tag tag1 = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policyOrg1.getId(), tag1.getId());
+    tempEntity.newPolicyTag(policyParentOrg1.getId(), tag1.getId());
     Tag tag2 = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policyOrg2.getId(), tag2.getId());
+    tempEntity.newPolicyTag(policyParentOrg2.getId(), tag2.getId());
     tempEntity.newApplicationTag(application.getId(), tag2.getId());
 
+    // For apps, must retrieve only the org policies that match the tags associated with the app
     List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
-    Assert.assertEquals(1, policies.size());
-    Assert.assertEquals("policy2", policies.get(0).getName());
+    assertThat(policies, hasSize(2));
+    assertEquals("policyOrg2", policies.get(0).getName());
+    assertEquals("policyParentOrg2", policies.get(1).getName());
+
+    // For orgs, must retrieve all org policies, regardless of the tags associated with them
+    policies = policyDAO.getApplicableByOwnerId(organization.getId());
+    assertThat(policies, hasSize(4));
+    assertEquals("policyOrg1", policies.get(0).getName());
+    assertEquals("policyOrg2", policies.get(1).getName());
+    assertEquals("policyParentOrg1", policies.get(2).getName());
+    assertEquals("policyParentOrg2", policies.get(3).getName());
   }
 
   @Test

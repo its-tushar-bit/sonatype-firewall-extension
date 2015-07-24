@@ -538,12 +538,22 @@ public class ComponentPolicyEvaluatorTest
     Organization org = tempEntity.newOrganization("testEvaluateOrgAndAppPolicies");
     Application app = tempEntity.newApplication("testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies",
         org.getId());
-    PolicyDAO policyDAO = new PolicyDAO();
 
     Stage stage = new Stage(BuildStageType.ID);
 
-    // Create org policy
+    // Create parent org policy
     List<Constraint> constraints = new ArrayList<>();
+    Constraint constraintParentOrg = new Constraint(null, "Constraint Name Parent Org", LogicalOperator.AND);
+    constraintParentOrg.addCondition(new Condition(LicenseConditionType.ID, "is", "GPL-2.0"));
+    constraints.add(constraintParentOrg);
+    Policy policyParentOrg = new Policy(null, "Policy Name Parent Org");
+    policyParentOrg.setOwnerId(org.getParentOrganizationId());
+    policyParentOrg.setConstraints(constraints);
+    policyParentOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
+    tempEntity.newPolicy(policyParentOrg);
+
+    // Create org policy
+    constraints = new ArrayList<>();
     Constraint constraintOrg = new Constraint(null, "Constraint Name Org", LogicalOperator.AND);
     constraintOrg.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     constraints.add(constraintOrg);
@@ -551,7 +561,7 @@ public class ComponentPolicyEvaluatorTest
     policyOrg.setOwnerId(org.getId());
     policyOrg.setConstraints(constraints);
     policyOrg.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
-    policyDAO.insert(policyOrg);
+    tempEntity.newPolicy(policyOrg);
 
     // Create app policy
     constraints = new ArrayList<>();
@@ -562,7 +572,7 @@ public class ComponentPolicyEvaluatorTest
     policyApp.setOwnerId(app.getId());
     policyApp.setConstraints(constraints);
     policyApp.addAction(stage.getStageTypeId(), new Action(FailActionType.ID));
-    policyDAO.insert(policyApp);
+    tempEntity.newPolicy(policyApp);
 
     List<Component> components = new ArrayList<>();
     // A component with one security vulnerability
@@ -573,11 +583,17 @@ public class ComponentPolicyEvaluatorTest
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.addDeclaredLicenseId("Apache-2.0");
     components.add(component2);
+    // A component with GPL-2.0 license
+    Component component3 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EXACT);
+    component3.addDeclaredLicenseId("GPL-2.0");
+    components.add(component3);
 
     // Evaluate the policies
     List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), stage, components);
     Assert.assertNotNull(policyAlerts);
-    Assert.assertEquals(2, policyAlerts.size());
+    Assert.assertEquals(3, policyAlerts.size());
+    assertContainsPolicyAlert(component3, policyParentOrg.getId(), "Policy Name Parent Org", FailActionType.ID,
+        constraintParentOrg.getId(), "Constraint Name Parent Org", LicenseConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component1, policyOrg.getId(), "Policy Name Org", FailActionType.ID,
         constraintOrg.getId(), "Constraint Name Org", SecurityVulnerabilityConditionType.ID, policyAlerts);
     assertContainsPolicyAlert(component2, policyApp.getId(), "Policy Name App", FailActionType.ID,

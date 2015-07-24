@@ -70,9 +70,9 @@
     }
   }
 
-  .clm-modal-body {
-    padding-top: 20px !important;
-    padding-bottom: 18px !important;
+  .clm-modal & .clm-modal-body {
+    padding-top: 20px;
+    padding-bottom: 18px;
   }
 
   label:not(.btn) {

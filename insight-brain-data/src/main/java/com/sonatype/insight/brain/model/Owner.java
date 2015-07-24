@@ -10,7 +10,7 @@ import com.sonatype.insight.model.HasStringId;
 /**
  * Interface for entities that can own other entities, like {@link Organization} and {@link Application}.
  * 
- * @since 1.16.0
+ * @since 1.17.0
  */
 public interface Owner
     extends HasStringId

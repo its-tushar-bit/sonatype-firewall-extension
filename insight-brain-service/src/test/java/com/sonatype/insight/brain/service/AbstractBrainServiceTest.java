@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +48,12 @@ import static org.mockito.Mockito.mock;
 
 public abstract class AbstractBrainServiceTest
 {
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.METHOD })
+  public @interface ManualServerInit
+  {
+  }
+
   static {
     System.setProperty("javax.net.ssl.trustStore", "src/test/resources/ssl/server-store");
   }
@@ -72,7 +82,9 @@ public abstract class AbstractBrainServiceTest
 
   @Before
   public void initTest() throws Exception {
-    initServer(null);
+    if (!getClass().getMethod(testName.getMethodName()).isAnnotationPresent(ManualServerInit.class)) {
+      initServer(null);
+    }
   }
 
   protected void initServer(Configurator configurator) throws Exception {

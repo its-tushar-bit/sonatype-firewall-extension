@@ -146,7 +146,10 @@ public class AntiCsrfFilter
    * Allows manual CSRF validation by the REST resource for no other reason than to support IE9. Once IE9 is no longer
    * supported, nuke this, along with {@link #FORM_POST_ALLOWED}.
    */
-  public static void validate(String csrfToken, HttpHeaders headers) {
+  public void validate(String csrfToken, HttpHeaders headers) {
+    if (!isEnabled()) {
+      return;
+    }
     String csrfHeader = headers.getRequestHeaders().getFirst(CSRF_HEADER_NAME);
     if (csrfHeader == null) {
       // if this was indeed a non-AJAX request, the token better be in the form data

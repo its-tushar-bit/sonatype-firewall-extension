@@ -49,11 +49,15 @@ abstract class AbstractResourceWithIcon
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
-  protected AbstractResourceWithIcon(HdsClient client, BaseUrl baseUrl, ErrorResponseGenerator errorResponseGenerator)
+  private final AntiCsrfFilter antiCsrfFilter;
+
+  protected AbstractResourceWithIcon(HdsClient client, BaseUrl baseUrl, ErrorResponseGenerator errorResponseGenerator,
+      AntiCsrfFilter antiCsrfFilter)
   {
     this.client = client;
     this.baseUrl = baseUrl;
     this.errorResponseGenerator = errorResponseGenerator;
+    this.antiCsrfFilter = antiCsrfFilter;
   }
 
   protected void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
@@ -118,7 +122,7 @@ abstract class AbstractResourceWithIcon
   {
     String errorMessage = "";
     try {
-      AntiCsrfFilter.validate(csrfToken, headers);
+      antiCsrfFilter.validate(csrfToken, headers);
       setIcon(ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail);
     }
     catch (Exception e) {

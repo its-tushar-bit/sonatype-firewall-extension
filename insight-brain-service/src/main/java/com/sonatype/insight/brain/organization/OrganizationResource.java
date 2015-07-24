@@ -56,9 +56,10 @@ public class OrganizationResource
 
   @Inject
   public OrganizationResource(final InsightWork work, final HdsClient client, final BaseUrl baseUrl,
-      final OrganizationService organizationService, ErrorResponseGenerator errorResponseGenerator)
+      final OrganizationService organizationService, ErrorResponseGenerator errorResponseGenerator,
+      AntiCsrfFilter antiCsrfFilter)
   {
-    super(client, baseUrl, errorResponseGenerator);
+    super(client, baseUrl, errorResponseGenerator, antiCsrfFilter);
     this.work = work;
     this.organizationService = organizationService;
   }

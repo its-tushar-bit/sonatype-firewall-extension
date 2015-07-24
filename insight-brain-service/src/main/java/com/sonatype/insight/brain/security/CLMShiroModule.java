@@ -73,9 +73,12 @@ public class CLMShiroModule
   }
 
   private void configureFilters(DefaultFilterChainManager manager) {
+    AntiCsrfFilter antiCsrfFilter = new AntiCsrfFilter(csrfProtection);
+    bind(AntiCsrfFilter.class).toInstance(antiCsrfFilter);
+    expose(AntiCsrfFilter.class);
     manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
     manager.addFilter("secureCookies", new SecureCookiesFilter());
-    manager.addFilter("antiCsrf", new AntiCsrfFilter(csrfProtection));
+    manager.addFilter("antiCsrf", antiCsrfFilter);
     manager.addFilter("reverseProxy", new ReverseProxyAuthenticationFilter(reverseProxyAuthentication));
     // change the auth type so browsers don't prompt for login details
     BasicHttpAuthenticationFilter.class.cast(manager.getFilter("authcBasic")).setAuthcScheme(AUTHC_SCHEME);

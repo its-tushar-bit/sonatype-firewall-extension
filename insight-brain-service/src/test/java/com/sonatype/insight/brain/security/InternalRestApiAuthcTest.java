@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
@@ -68,6 +70,41 @@ public class InternalRestApiAuthcTest
 
     response = request.delete();
     assertResponseStatus(401, response);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testSessionCookieSufficientWhenCsrfProtectionDisabled() throws Exception {
+    initServer(new Configurator()
+    {
+      @Override
+      public void configure(InsightConfig config) {
+        config.setCsrfProtection(false);
+      }
+    });
+
+    HttpResponse response = login();
+    assertResponseStatus(204, response);
+
+    HttpCookie sessionCookie = response.getSessionCookie();
+    assertThat(sessionCookie, is(notNullValue()));
+
+    HttpRequest request = restRequest().path("rest/any/thing").anon().noCsrfToken().cookie(sessionCookie);
+    response = request.get();
+    assertResponseStatus(404, response);
+
+    response = request.put();
+    assertResponseStatus(404, response);
+
+    response = request.post();
+    assertResponseStatus(404, response);
+
+    response = request.delete();
+    assertResponseStatus(404, response);
+
+    // form-data based requests manually call AntiCsrfFilter.validate() that we test here
+    response = uploadLicense(licenseRequest().anon().noCsrfToken().cookie(sessionCookie));
+    assertResponseStatus(200, response);
   }
 
   @Test

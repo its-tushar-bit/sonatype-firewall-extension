@@ -42,11 +42,14 @@ public class ProductLicenseResource
 
   private final CLMLicenseManager licenseManager;
 
+  private final AntiCsrfFilter antiCsrfFilter;
+
   private final Logger log = LoggerFactory.getLogger(ProductLicenseResource.class);
 
   @Inject
-  public ProductLicenseResource(CLMLicenseManager licenseManager) {
+  public ProductLicenseResource(CLMLicenseManager licenseManager, AntiCsrfFilter antiCsrfFilter) {
     this.licenseManager = licenseManager;
+    this.antiCsrfFilter = antiCsrfFilter;
   }
 
   @POST
@@ -59,7 +62,7 @@ public class ProductLicenseResource
       @AuthzErrorMsg @QueryParam("forceSuccess") boolean forceSuccess)
   {
     try {
-      AntiCsrfFilter.validate(csrfToken, headers);
+      antiCsrfFilter.validate(csrfToken, headers);
       try {
         licenseManager.installLicense(is);
         log.info("CLM License successfully installed");

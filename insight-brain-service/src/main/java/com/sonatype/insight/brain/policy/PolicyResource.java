@@ -71,10 +71,15 @@ public class PolicyResource
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
+  private final AntiCsrfFilter antiCsrfFilter;
+
   @Inject
-  public PolicyResource(PolicyImportExport policyImportExport, ErrorResponseGenerator errorResponseGenerator) {
+  public PolicyResource(PolicyImportExport policyImportExport, ErrorResponseGenerator errorResponseGenerator,
+      AntiCsrfFilter antiCsrfFilter)
+  {
     this.policyImportExport = policyImportExport;
     this.errorResponseGenerator = errorResponseGenerator;
+    this.antiCsrfFilter = antiCsrfFilter;
   }
 
   @GET
@@ -237,7 +242,7 @@ public class PolicyResource
   {
     String errorMessage = "";
     try {
-      AntiCsrfFilter.validate(csrfToken, headers);
+      antiCsrfFilter.validate(csrfToken, headers);
       importPolicies(ownerType, ownerId, uploadedInputStream);
     }
     catch (Exception e) {

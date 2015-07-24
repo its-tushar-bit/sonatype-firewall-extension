@@ -45,10 +45,15 @@ public class ScanResource
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
+  private final AntiCsrfFilter antiCsrfFilter;
+
   @Inject
-  public ScanResource(ScanService scanService, ErrorResponseGenerator errorResponseGenerator) {
+  public ScanResource(ScanService scanService, ErrorResponseGenerator errorResponseGenerator,
+      AntiCsrfFilter antiCsrfFilter)
+  {
     this.scanService = scanService;
     this.errorResponseGenerator = errorResponseGenerator;
+    this.antiCsrfFilter = antiCsrfFilter;
   }
 
   @POST
@@ -64,7 +69,7 @@ public class ScanResource
           throws Exception
   {
     try {
-      AntiCsrfFilter.validate(csrfToken, headers);
+      antiCsrfFilter.validate(csrfToken, headers);
       ScanTicket result = scanService.scanBinary(appPublicId, is, fileDetail.getFileName(), new Stage(stageId),
           sendNotifications);
       if (noFormData) {

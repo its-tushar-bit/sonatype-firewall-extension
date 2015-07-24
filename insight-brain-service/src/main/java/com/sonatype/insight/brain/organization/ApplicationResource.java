@@ -88,9 +88,10 @@ public class ApplicationResource
   @Inject
   public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final HdsClient client,
       final ScanPolicyEvaluator scanPolicyEvaluator, final ApplicationAdapter applicationAdapter,
-      final ApplicationService applicationService, ErrorResponseGenerator errorResponseGenerator)
+      final ApplicationService applicationService, ErrorResponseGenerator errorResponseGenerator,
+      AntiCsrfFilter antiCsrfFilter)
   {
-    super(client, baseUrl, errorResponseGenerator);
+    super(client, baseUrl, errorResponseGenerator, antiCsrfFilter);
     this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;

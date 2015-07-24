@@ -368,8 +368,8 @@
      */
     return function(members, queryString, type) {
       var filtered = [];
-      // remove any asterisks which will be converted on the backend, and then escape any other regex characters as a precaution
-      var safeQueryString = queryString.replace(/\*/g, '').replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+      // escape any regex characters as a precaution
+      var safeQueryString = queryString.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1').replace(/\\\*/g, '.*');
       var match = new RegExp(safeQueryString, 'i');
       for (var i = 0; i < members.length; i++) {
         var member = members[i];

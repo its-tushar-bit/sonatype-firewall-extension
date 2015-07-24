@@ -424,7 +424,8 @@ describe('AppSecurityControllerSpec', function() {
       {displayName: 'John Smith', type: 'USER'},
       {displayName: 'Jane Doe', type: 'USER'},
       {displayName: 'FooBars', type: 'GROUP'},
-      {displayName: '$mash ?ob', type: 'USER'}
+      {displayName: '$mash. ?ob', type: 'USER'},
+      {displayName: '$mash_ ?ob', type: 'USER'}
     ];
 
     beforeEach(inject(function ($filter) {
@@ -459,17 +460,13 @@ describe('AppSecurityControllerSpec', function() {
     });
 
     it('escapes other wildcard characters we do not directly support', function() {
-      var filtered = filter(items, '$m*', 'USER');
+      var filtered = filter(items, '$mash.*', 'USER');
       expect(filtered.length).toBe(1);
-      expect(filtered[0].displayName).toBe('$mash ?ob');
+      expect(filtered[0].displayName).toBe('$mash. ?ob');
     });
 
-    /**
-     * Documenting this case as on the backend we are only replacing leading and trailing "*" characters so this
-     * pattern should not actually match what is returned.
-     */
-    it('does not handle "*" characters in the middle', function(){
-      expect(filter(items, 'd*e', 'USER').length).toBe(0);
+    it('does handle "*" characters in the middle', function(){
+      expect(filter(items, 'd*e', 'USER').length).toBe(2);
     });
 
   });

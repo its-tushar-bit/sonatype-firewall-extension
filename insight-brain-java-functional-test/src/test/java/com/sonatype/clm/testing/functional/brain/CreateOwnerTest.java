@@ -117,8 +117,7 @@ public class CreateOwnerTest
     assertEquals(parentOrg.getId(), app.getOrganizationId());
     assertEquals(NAME, app.getName());
 
-    // TODO Depends on CLM-4921
-    // orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
+    orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
   }
 
   @Test
@@ -151,9 +150,8 @@ public class CreateOwnerTest
 
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
 
-    // TODO Depends on CLM-4921
-    // OwnerTreeView.organizationElements().shouldHaveSize(2);
-    // OwnerTreeView.organizationElements().findBy(text(NAME));
+    OwnerTreeView.organizationElements().shouldHaveSize(2);
+    OwnerTreeView.organizationElements().findBy(text(NAME));
   }
 
   private Organization getOrgByName(String name) {

@@ -8,36 +8,76 @@
 
   ```
     <form class='clm-form'>
-      <p>
-        <label for='normal'>An input that is not required and hasn't been updated</label>
-        <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
-      </p>
-      <p>
-        <label for='required'>An input that is required and hasn't been updated</label>
-        <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
-      </p>
-      <p>
-        <label for='valid'>An input that has been updated and is valid</label>
-        <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
-      </p>
-      <p>
-        <label for='invalid'>An input that has been updated and is invalid</label>
-        <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
-      </p>
-      <p>
-        <label for='disabled' class='disabled'>A disabled label requires the disabled class</label>
-        <input type='text' id='disabled' disabled class='ng-valid' value='Disabled'>
-      </p>
-      <p>
-        <label for='wide'>A wide input</label>
-        <input type='text' id='wide' class='ng-valid wide' placeholder='ex. A very long value can fit in here.'>
-      </p>
+      <div class="section">
+        <div class="field">
+          <label for='normal'>An input that is not required and hasn't been updated</label>
+          <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
+        </div>
+        <div class="field">
+          <label for='required'>An input that is required and hasn't been updated</label>
+          <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
+        </div>
+        <div class="field">
+          <label for='valid'>An input that has been updated and is valid</label>
+          <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
+        </div>
+      </div>
+      <div class="section">
+        <div class="field">
+          <label for='invalid'>An input that has been updated and is invalid</label>
+          <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
+        </div>
+        <div class="field">
+          <label for='disabled' class='disabled'>A disabled label requires the disabled class</label>
+          <input type='text' id='disabled' disabled class='ng-valid' value='Disabled'>
+        </div>
+        <div class="field">
+          <label for='wide'>A wide input</label>
+          <input type='text' id='wide' class='ng-valid wide' placeholder='ex. A very long value can fit in here.'>
+        </div>
+      </div>
+      <div class="section">
+        <div class="field">
+          <div class="field-left">
+            <label for='inlinefield'>Inline input</label>
+            <input type='text' id='inlinefield' class='ng-valid wide'>
+          </div>
+          <div class="field-right">
+            some inline stuff
+          </div>
+        </div>
+      </div>
     </form>
   ```
 */
 .clm-form {
+  .section {
+    .field {
+      &:nth-child(n + 2) {
+        margin-top: 20px;
+      }
+      .field-left {
+        display: inline-block;
+      }
+      .field-right {
+        float: right;
+        margin-top: 4px;
+      }
+    }
+
+    &:last-child {
+      margin-bottom: 0px;
+    }
+  }
+
+  .clm-modal-body {
+    padding-top: 20px !important;
+    padding-bottom: 18px !important;
+  }
+
   label:not(.btn) {
     color: $off-black;
+    margin-bottom: 7px;
 
     &.disabled {
       color: $grey-4;
@@ -48,6 +88,7 @@
     @extend .regular;
     font-size: 14px;
     line-height: 18px;
+    margin-bottom: 0px;
 
     @include box-shadow(none);
     @include border-radius(0);
@@ -124,9 +165,16 @@
     font-size: 14px;
     display: block;
     cursor: pointer;
-    margin-bottom: 7px;
     margin-top: -3px;
     padding-left: 24px;
+    margin-bottom: 4px;
+
+    &:first-child {
+      margin-top: -5px;
+    }
+    &:last-child {
+      margin-bottom: 0px;
+    }
 
     // Monochrome radio button to override native implementation. Native is hidden and pseudo selectors on the label's
     // text's span build a monochrome circle
@@ -236,7 +284,7 @@
     font-size: 14px;
     display: block;
     cursor: pointer;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
     padding-left: 24px;
 
     // Monochrome checkbox to override native implementation. Native is hidden and pseudo selectors on the label's

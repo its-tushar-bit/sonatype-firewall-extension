@@ -17,7 +17,7 @@
   <form name="ownerEditor" role="form" ng-submit="ownerEditor.$valid && save()" class="clm-form" form-mask>
     <div class="clm-modal-body">
       <div class="section">
-        <div>
+        <div class="field">
           <label for="editor-owner-name">{{::getTypeName()}} Name</label>
           <input type="text" ng-model="dirtyOwner.name" name="name" id="editor-owner-name"
                  ng-maxlength="60"
@@ -28,7 +28,7 @@
                  is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="id" messages="{duplicate: 'Name is already in use'}"
                  clm-input>
         </div>
-        <div ng-if="ownerType === 'application' && !(dirtyOwner.id)">
+        <div ng-if="ownerType === 'application' && !(dirtyOwner.id)" class="field">
           <label for="editor-owner-public-id">Application Id</label>
           <input type="text" name="publicId" id="editor-owner-public-id"
                  ng-maxlength="60"
@@ -41,47 +41,51 @@
                  clm-input>
         </div>
       </div>
-      <div class="pull-right">
-        <div ng-show="icon.type === 'custom'" id="custom-icon-selector">
-          <div class="sub-section">
-            <label for="icon-file" class='btn' firefox-input-click>
-              <i class="fa fa-upload"></i> Upload Icon Image
-            </label>
+      <div class="section">
+        <div class="field">
+          <div class="field-left">
+            <label>Icon</label>
+            <div>
+              <label class="radio">
+                <input type="radio" name="iconType" ng-model="icon.type" ng-value="null">
+                <span>Use a default icon</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="iconType" ng-model="icon.type" value="custom">
+                <span>Upload a custom icon</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="iconType" ng-model="icon.type" value="robot">
+                <span>Get a robot</span>
+              </label>
+            </div>
           </div>
-          <div ng-if="userIconPreview">
-            <img ng-src="{{userIconPreview}}" class="owner-icon-large">
-            <img ng-src="{{userIconPreview}}" class="owner-icon">
-            <img ng-src="{{userIconPreview}}" class="owner-icon-tiny">
+          <div class="field-right">
+            <div ng-show="icon.type === 'custom'" id="custom-icon-selector">
+              <div class="sub-section">
+                <label for="icon-file" class='btn' firefox-input-click>
+                  <i class="fa fa-upload"></i> Upload Icon Image
+                </label>
+              </div>
+              <div ng-if="userIconPreview">
+                <img ng-src="{{userIconPreview}}" class="owner-icon-large">
+                <img ng-src="{{userIconPreview}}" class="owner-icon">
+                <img ng-src="{{userIconPreview}}" class="owner-icon-tiny">
+              </div>
+            </div>
+            <div ng-if="icon.type === 'robot'" id="robot-icon-selector">
+              <div class="sub-section">
+                <button class="btn" type="button" ng-click="robot(dirtyOwner.name)">
+                  <i class="fa fa-refresh"></i> Get another robot
+                </button>
+              </div>
+              <div>
+                <img ng-src="{{robotUrl()}}" class="owner-icon-large">
+                <img ng-src="{{robotUrl()}}" class="owner-icon">
+                <img ng-src="{{robotUrl()}}" class="owner-icon-tiny">
+              </div>
+            </div>
           </div>
-        </div>
-        <div ng-if="icon.type === 'robot'" id="robot-icon-selector">
-          <div class="sub-section">
-            <button class="btn" type="button" ng-click="robot(dirtyOwner.name)">
-              <i class="fa fa-refresh"></i> Get another robot
-            </button>
-          </div>
-          <div>
-            <img ng-src="{{robotUrl()}}" class="owner-icon-large">
-            <img ng-src="{{robotUrl()}}" class="owner-icon">
-            <img ng-src="{{robotUrl()}}" class="owner-icon-tiny">
-          </div>
-        </div>
-      </div>
-      <div>
-        <label>Icon</label>
-        <div>
-          <label class="radio">
-            <input type="radio" name="iconType" ng-model="icon.type" ng-value="null">
-            <span>Use a default icon</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="iconType" ng-model="icon.type" value="custom">
-            <span>Upload a custom icon</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="iconType" ng-model="icon.type" value="robot">
-            <span>Get a robot</span>
-          </label>
         </div>
       </div>
     </div>

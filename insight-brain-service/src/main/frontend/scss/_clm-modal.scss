@@ -62,7 +62,7 @@
   .clm-modal-body {
     border-left: $external-border;
     border-right: $external-border;
-    padding: 24px 12px 12px 12px;
+    padding: 24px 12px;
   }
 
   .clm-modal-footer {
@@ -92,36 +92,64 @@
 
   ##CLM Modal Forms
 ```
-  <div class='clm-modal'>
-    <div class="clm-modal-header">
-      <h2>
-        Title
-      </h2>
+    <div class='clm-modal'>
+      <div class="clm-modal-header">
+        <h2>
+          Modal Header
+        </h2>
+      </div>
+      <form name="aForm" role="form" class="clm-form">
+        <div class="clm-modal-body">
+          <div class="section">
+            <div class="field">
+              <label for='normal'>An input that is not required and hasn't been updated</label>
+              <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
+            </div>
+            <div class="field">
+              <label for='required'>An input that is required and hasn't been updated</label>
+              <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
+            </div>
+            <div class="field">
+              <label>Check something</label>
+              <div>
+                <label class="checkbox">
+                  <input type="checkbox" value="one" checked>
+                  <span>Selected option</span>
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" value="two">
+                  <span>Unselected option</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="field">
+              <label>Radio something</label>
+              <div>
+                <label class="radio">
+                  <input type="radio" name="optionsRadios" id="optionOne" value="one" checked>
+                  <span>Selected option</span>
+                </label>
+                <label class="radio">
+                  <input type="radio" name="optionsRadios" id="optionTwo" value="two">
+                  <span>Unselected option</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="clm-modal-footer">
+          <button class="btn btn-primary" type="submit">
+            Primary
+          </button>
+          <button class="btn btn-error" type="submit">
+            <i class="fa fa-refresh"></i>Retry
+          </button>
+          <button class="btn" type="button">Cancel</button>
+        </div>
+      </form>
     </div>
-    <form name="ownerEditor" role="form" ng-submit="ownerEditor.$valid && save()" class="clm-form">
-      <div class="clm-modal-body">
-        <label for='normal'>An input that is not required and hasn't been updated</label>
-        <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
-
-        <label for='invalid'>An input that has been updated and is invalid</label>
-        <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
-
-        <label class="checkbox">
-          <input type="checkbox" value="one" checked>
-          <span>Selected option</span>
-        </label>
-      </div>
-      <div class="clm-modal-footer">
-        <button class="btn btn-primary" type="submit">
-          Submit
-        </button>
-        <button class="btn btn-error" type="submit">
-          <i class="fa fa-refresh"></i>Retry
-        </button>
-        <button class="btn" type="button">Cancel</button>
-      </div>
-    </form>
-  </div>
 ```
 */
 .modal-footer {

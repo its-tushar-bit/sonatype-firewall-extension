@@ -31,9 +31,9 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyWaiversMap;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -105,7 +105,7 @@ public class WaivedPolicyViolationMigrator
           policyEvaluationsByScanId.put(policyEvaluation.getScanId(), policyEvaluation);
         }
 
-        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(application.getId(), true /* inherit */);
+        List<PolicyWaiver> policyWaivers = policyWaiverDAO.getApplicableByOwnerId(application.getId());
         PolicyWaiversMap policyWaiversMap = new PolicyWaiversMap(policyWaivers);
 
         for (String scanId : policyEvaluationsByScanId.keySet()) {

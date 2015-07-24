@@ -28,7 +28,7 @@ class PolicyWaiverEvaluator
    * and those that are not.
    */
   public PolicyWaiverResults applyWaivers(String applicationId, List<MatchFact> facts) {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(applicationId, true /* inherit */);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getApplicableByOwnerId(applicationId);
     log.debug("Applying {} waivers to {} facts for application ID {}", policyWaivers.size(), facts.size(),
         applicationId);
     PolicyWaiversMap policyWaiversMap = new PolicyWaiversMap(policyWaivers);

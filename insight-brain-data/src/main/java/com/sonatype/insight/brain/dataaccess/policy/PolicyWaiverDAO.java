@@ -61,19 +61,16 @@ public class PolicyWaiverDAO
     }
   }
 
-  public List<PolicyWaiver> getByOwnerId(String ownerId, boolean inherit) {
-    try (TransactionContext tx = createTransactionContext()) {
-      List<PolicyWaiver> policyWaivers = new ArrayList<>();
-      if (inherit) {
-        ApplicationDAO applicationDAO = new ApplicationDAO();
-        Application application = applicationDAO.getById(ownerId);
-        if (application != null) {
-          policyWaivers.addAll(getByOwnerId(tx, application.getOrganizationId()));
-        }
-      }
-      policyWaivers.addAll(getByOwnerId(tx, ownerId));
-      return policyWaivers;
+  public List<PolicyWaiver> getApplicableByOwnerId(String ownerId) {
+    List<PolicyWaiver> policyWaivers = new ArrayList<>();
+
+    ApplicationDAO applicationDAO = new ApplicationDAO();
+    Application application = applicationDAO.getById(ownerId);
+    if (application != null) {
+      policyWaivers.addAll(getByOwnerId(application.getOrganizationId()));
     }
+    policyWaivers.addAll(getByOwnerId(ownerId));
+    return policyWaivers;
   }
 
   private List<PolicyWaiver> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {

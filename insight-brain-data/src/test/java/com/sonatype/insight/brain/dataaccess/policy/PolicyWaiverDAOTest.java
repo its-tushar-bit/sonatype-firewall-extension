@@ -153,7 +153,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetByOwnerId_Inherited() {
+  public void testGetApplicableByOwnerId() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy1 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest1");
     Policy policy2 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
@@ -165,21 +165,13 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiverApp);
 
     // Assert for application
-    List<PolicyWaiver> policyWaivers = dao.getByOwnerId(application.getId(), false /* inherit */);
-    assertEquals(1, policyWaivers.size());
-    assertPolicyWaiver(policyWaiverApp, policyWaivers.get(0));
-
-    policyWaivers = dao.getByOwnerId(application.getId(), true /* inherit */);
+    List<PolicyWaiver> policyWaivers = dao.getApplicableByOwnerId(application.getId());
     assertEquals(2, policyWaivers.size());
     assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(0));
     assertPolicyWaiver(policyWaiverApp, policyWaivers.get(1));
 
-    // Assert for organizationn
-    policyWaivers = dao.getByOwnerId(organization.getId(), false /* inherit */);
-    assertEquals(1, policyWaivers.size());
-    assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(0));
-
-    policyWaivers = dao.getByOwnerId(organization.getId(), true /* inherit */);
+    // Assert for organization
+    policyWaivers = dao.getApplicableByOwnerId(organization.getId());
     assertEquals(1, policyWaivers.size());
     assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(0));
   }

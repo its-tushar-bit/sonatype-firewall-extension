@@ -46,7 +46,7 @@ class TagService
     List<Tag> allTags = new ArrayList<>();
 
     for (Application application : applications) {
-      final List<Tag> applicationTags = new TagDAO().getUsedByApplicationId(application.getId());
+      final List<Tag> applicationTags = new TagDAO().getByApplicationId(application.getId());
 
       for (final Tag tag : applicationTags) {
         if (!Iterables.any(allTags, IdUtils.getIsEqualPredicate(tag))) {

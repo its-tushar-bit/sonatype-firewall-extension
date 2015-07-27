@@ -75,8 +75,6 @@ public class InsightBrainService
 
   public static final String DASHBOARD_ASSET_PATH = "/dashboard-assets/";
 
-  public static final String ABOUT_ASSET_PATH = "/about-assets/";
-
   private static final String INSTANCE_ID = UUID.randomUUID().toString();
 
   public static void main(final String[] args) {
@@ -210,7 +208,6 @@ public class InsightBrainService
     bootstrap.addBundle(new AssetsBundle("/assets/security/", SECURITY_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/report/", REPORT_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/dashboard/", DASHBOARD_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets/about/", ABOUT_ASSET_PATH, "index.html"));
 
     bootstrap.addBundle(new AssetsBundle("/assets-new/application/", "/new" + APPLICATION_ASSET_PATH, "index.html"));
     bootstrap.addBundle(new AssetsBundle("/assets-new/assets/", "/new" + BRAIN_ASSET_PATH, "index.html"));
@@ -221,7 +218,6 @@ public class InsightBrainService
     bootstrap.addBundle(new AssetsBundle("/assets-new/security/", "/new" + SECURITY_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets-new/report/", "/new" + REPORT_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets-new/dashboard/", "/new" + DASHBOARD_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/about/", "/new" + ABOUT_ASSET_PATH, "index.html"));
 
     // workaround to let us set different defaults in the core HTTP configuration
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());

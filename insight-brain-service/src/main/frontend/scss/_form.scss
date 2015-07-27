@@ -160,7 +160,7 @@
   ```
 */
 .clm-form {
-  .radio {
+  label.radio {
     @extend .regular;
     font-size: 14px;
     display: block;

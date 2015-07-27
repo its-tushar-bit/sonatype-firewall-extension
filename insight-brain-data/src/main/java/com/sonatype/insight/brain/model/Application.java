@@ -62,6 +62,7 @@ public class Application
     this.id = id;
   }
 
+  @Override
   public String getPublicId() {
     return publicId;
   }

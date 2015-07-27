@@ -35,6 +35,12 @@ public class OwnerDAO
     }
   }
 
+  public List<Owner> getChildOwners(final Owner owner) {
+    try (TransactionContext tx = appDAO.createTransactionContext()) {
+      return getChildOwners(tx, owner);
+    }
+  }
+
   public List<Owner> getChildOwners(TransactionContext tx, Owner owner) {
     if (!owner.canHaveChildren()) {
       return Collections.emptyList();

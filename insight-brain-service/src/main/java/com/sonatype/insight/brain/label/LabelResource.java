@@ -25,11 +25,13 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -55,9 +57,12 @@ public class LabelResource
 
   private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
 
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
+
   private LabelDAO labelDAO = new LabelDAO();
 
   private PermissionService permissionService;
+
 
   @Inject
   public LabelResource(PermissionService permissionService) {
@@ -146,12 +151,10 @@ public class LabelResource
   @Path("applicable/context/{labelId}")
   @Authorize(permission = Permission.WRITE)
   public ApplicableContext getApplicableContexts(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String ownerId,
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String ownerPublicId,
       @PathParam("labelId") String labelId)
   {
     Label label = labelDAO.getByIdNotNull(labelId);
-
-    ApplicableContext context;
 
     ApplicationDAO applicationDAO = new ApplicationDAO();
     Application application = applicationDAO.getById(label.getOwnerId());
@@ -159,18 +162,32 @@ public class LabelResource
       return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
     }
 
-    Organization organization = new OrganizationDAO().getByIdNotNull(label.getOwnerId());
-    if (permissionService.hasPermissions(SecurityUtils.getSubject(), IdUtils.TYPE_ORGANIZATION, organization.getId(),
-        Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
-      context = new ApplicableContext(organization.getId(), organization.getName(), IdUtils.TYPE_ORGANIZATION);
-      context.setChildren(new ArrayList<ApplicableContext>());
-      for (Application app : applicationDAO.getByOrganizationId(organization.getId())) {
-        context.getChildren().add(new ApplicableContext(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION));
+    application = applicationDAO.getByPublicIdNotNull(ownerPublicId);
+    String ownerId = application.getId();
+
+    ApplicableContext context = null;
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
+      if (!permissionService.hasPermissions(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
+          Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
+        break;
       }
-    }
-    else {
-      application = applicationDAO.getByPublicIdNotNull(ownerId);
-      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
+
+      ApplicableContext currentContext = new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
+      if (context == null) {
+        context = currentContext;
+      }
+      else {
+        currentContext.setChildren(new ArrayList<ApplicableContext>());
+        currentContext.getChildren().add(context);
+        context = currentContext;
+      }
+
+      if (ownerId.equals(label.getOwnerId())) {
+        // only go as high as the owner of the label
+        break;
+      }
+      ownerId = owner.getParentOrganizationId();
     }
 
     return context;

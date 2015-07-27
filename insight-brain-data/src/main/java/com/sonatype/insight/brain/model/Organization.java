@@ -51,6 +51,13 @@ public class Organization
     this.id = id;
   }
 
+  @JsonIgnore
+  @Override
+  public String getPublicId() {
+    // For organization the id is also the publicId
+    return id;
+  }
+
   @Override
   public String getParentOrganizationId() {
     return parentOrganizationId;

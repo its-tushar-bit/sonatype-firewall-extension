@@ -460,6 +460,7 @@ public class LabelResourceTest
   public void testGetApplicableContexts() throws Exception {
     Organization org = tempEntity.newOrganization("orgName");
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
+    Label parentOrgLabel = tempEntity.newLabel(org.getParentOrganizationId(), "rootOrgLabel");
     Label orgLabel = tempEntity.newLabel(org.getId(), "orgLabel");
     Label appLabel = tempEntity.newLabel(app.getId(), "appLabel");
     HttpRequest request = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId()).subpath(
@@ -477,6 +478,29 @@ public class LabelResourceTest
     response = request.parameter(orgLabel.getId()).get();
     assertResponseStatus(200, response);
     context = response.getBody(ApplicableContext.class);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(org.getId()));
+    Assert.assertThat(context.getName(), is(org.getName()));
+    Assert.assertThat(context.getType(), is(IdUtils.TYPE_ORGANIZATION));
+    Assert.assertThat(context.getChildren(), is(notNullValue()));
+    Assert.assertThat(context.getChildren(), hasSize(1));
+    context = context.getChildren().get(0);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(app.getPublicId()));
+    Assert.assertThat(context.getName(), is(app.getName()));
+    Assert.assertThat(context.getType(), is(IdUtils.TYPE_APPLICATION));
+    Assert.assertThat(context.getChildren(), is(nullValue()));
+
+    response = request.parameter(parentOrgLabel.getId()).get();
+    assertResponseStatus(200, response);
+    context = response.getBody(ApplicableContext.class);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(org.getParentOrganizationId()));
+    Assert.assertThat(context.getName(), is("Root Organization"));
+    Assert.assertThat(context.getType(), is(IdUtils.TYPE_ORGANIZATION));
+    Assert.assertThat(context.getChildren(), is(notNullValue()));
+    Assert.assertThat(context.getChildren(), hasSize(1));
+    context = context.getChildren().get(0);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(org.getId()));
     Assert.assertThat(context.getName(), is(org.getName()));

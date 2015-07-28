@@ -162,7 +162,7 @@ public class Application
 
   @Override
   @JsonIgnore
-  public String getType() {
-    return "application";
+  public OwnerType getType() {
+    return OwnerType.APPLICATION;
   }
 }

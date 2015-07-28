@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -218,7 +219,7 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = response.getBody(ApplicableContext.class);
-    assertApplicableContext(appPublicId, application.getName(), "application", result);
+    assertApplicableContext(appPublicId, application.getName(), OwnerType.APPLICATION, result);
   }
 
   @Test
@@ -233,15 +234,15 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = response.getBody(ApplicableContext.class);
-    assertApplicableContext(organization.getId(), organization.getName(), "organization", result);
+    assertApplicableContext(organization.getId(), organization.getName(), OwnerType.ORGANIZATION, result);
     assertNotNull(result.getChildren());
     assertEquals(1, result.getChildren().size());
     ApplicableContext childContext = result.getChildren().get(0);
-    assertApplicableContext(appPublicId, application.getName(), "application", childContext);
+    assertApplicableContext(appPublicId, application.getName(), OwnerType.APPLICATION, childContext);
     assertNull(childContext.getChildren());
   }
 
-  private void assertApplicableContext(String id, String name, String type, ApplicableContext actual) {
+  private void assertApplicableContext(String id, String name, OwnerType type, ApplicableContext actual) {
     assertNotNull(actual);
     assertEquals(id, actual.getId());
     assertEquals(name, actual.getName());

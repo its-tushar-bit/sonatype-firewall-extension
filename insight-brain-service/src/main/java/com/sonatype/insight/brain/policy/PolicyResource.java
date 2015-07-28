@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -313,11 +314,11 @@ public class PolicyResource
     public PoliciesByOwner() {
     }
 
-    public PoliciesByOwner(String ownerId, String ownerName, String ownerType) {
+    public PoliciesByOwner(String ownerId, String ownerName, OwnerType ownerType) {
       this(ownerId, ownerName, ownerType, new ArrayList<PolicyTag>());
     }
 
-    public PoliciesByOwner(String ownerId, String ownerName, String ownerType, List<PolicyTag> policyTags) {
+    public PoliciesByOwner(String ownerId, String ownerName, OwnerType ownerType, List<PolicyTag> policyTags) {
       this.ownerId = ownerId;
       this.ownerName = ownerName;
       this.ownerType = ownerType;
@@ -329,7 +330,7 @@ public class PolicyResource
 
     public String ownerName;
 
-    public String ownerType;
+    public OwnerType ownerType;
 
     public List<Policy> policies;
 

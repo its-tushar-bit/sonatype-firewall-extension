@@ -23,5 +23,5 @@ public interface Owner
 
   boolean canHaveChildren();
 
-  String getType();
+  OwnerType getType();
 }

@@ -101,7 +101,7 @@ public class Organization
 
   @Override
   @JsonIgnore
-  public String getType() {
-    return "organization";
+  public OwnerType getType() {
+    return OwnerType.ORGANIZATION;
   }
 }

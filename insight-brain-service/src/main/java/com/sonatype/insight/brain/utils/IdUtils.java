@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.utils;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.model.HasStringId;
 
@@ -14,11 +15,11 @@ import com.google.common.base.Predicate;
 
 public class IdUtils
 {
-  public static final String TYPE_GLOBAL = "global";
+  public static final String TYPE_GLOBAL = OwnerType.GLOBAL.toString();
 
-  public static final String TYPE_ORGANIZATION = "organization";
+  public static final String TYPE_ORGANIZATION = OwnerType.ORGANIZATION.toString();
 
-  public static final String TYPE_APPLICATION = "application";
+  public static final String TYPE_APPLICATION = OwnerType.APPLICATION.toString();
 
   public static String getInternalOwnerId(String ownerType, String ownerId) {
     if (TYPE_APPLICATION.equals(ownerType)) {

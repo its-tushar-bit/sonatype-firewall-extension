@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -147,7 +148,7 @@ public class PolicyWaiverResource
     Policy policy = policyDAO.getByIdNotNull(policyId);
     if (application.getId().equals(policy.getOwnerId())) {
       // The policy belongs to the application
-      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
+      return new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION);
     }
 
     if (!application.getOrganizationId().equals(policy.getOwnerId())) {
@@ -158,12 +159,12 @@ public class PolicyWaiverResource
     // The policy belongs to an organization
     Organization organization = new OrganizationDAO().getById(application.getOrganizationId());
     ApplicableContext result = new ApplicableContext(organization.getId(), organization.getName(),
-        IdUtils.TYPE_ORGANIZATION);
+        OwnerType.ORGANIZATION);
     result.setChildren(new ArrayList<ApplicableContext>());
     // Currently we need only the application specified by the applicationPublicId. In the future we might need to
     // return all the applications for this organization.
     result.getChildren().add(
-        new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION));
+        new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION));
     return result;
   }
 

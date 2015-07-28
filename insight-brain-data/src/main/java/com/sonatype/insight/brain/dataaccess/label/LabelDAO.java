@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -178,13 +179,13 @@ public class LabelDAO
   }
 
   private void validateNameWithinHierarchyDown(final TransactionContext tx, final Owner owner, final Label label) {
-    Map<String, Set<String>> childrenWithDuplicatesByType = new TreeMap<>();
+    Map<OwnerType, Set<String>> childrenWithDuplicatesByType = new EnumMap<>(OwnerType.class);
     getDuplicateLabels(tx, childrenWithDuplicatesByType, owner, label);
     if (!childrenWithDuplicatesByType.isEmpty()) {
       final StringBuilder message = new StringBuilder();
       message.append("A label with name '").append(label.getLabel()).append("' already exists in");
 
-      for (String ownerType : childrenWithDuplicatesByType.keySet()) {
+      for (OwnerType ownerType : childrenWithDuplicatesByType.keySet()) {
         Set<String> ownersWithDups = childrenWithDuplicatesByType.get(ownerType);
         message.append(" ").append(ownerType).append("(s)");
         for (String ownerWithDup : ownersWithDups) {
@@ -197,7 +198,8 @@ public class LabelDAO
   }
 
   private void getDuplicateLabels(final TransactionContext tx,
-      final Map<String, Set<String>> childrenWithDuplicatesByType, final Owner owner, final Label label) {
+      final Map<OwnerType, Set<String>> childrenWithDuplicatesByType, final Owner owner, final Label label)
+  {
 
     if (!owner.canHaveChildren()) {
       return;
@@ -229,7 +231,7 @@ public class LabelDAO
     validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), label);
   }
 
-  private Set<String> getOwnersForType(final Map<String, Set<String>> ownerNamesByTypeMap, final String type) {
+  private Set<String> getOwnersForType(final Map<OwnerType, Set<String>> ownerNamesByTypeMap, final OwnerType type) {
     Set<String> ownerNames = ownerNamesByTypeMap.get(type);
     if (ownerNames == null) {
       ownerNames = new TreeSet<>();

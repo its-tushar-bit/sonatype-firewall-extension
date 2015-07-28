@@ -110,19 +110,17 @@ public class MembershipMappingService
 
     String organizationId = null;
     // Add app members
-    switch (ownerType) {
-      case IdUtils.TYPE_APPLICATION:
-        Application app = appDAO.getByIdNotNull(internalOwnerId);
-        for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(),
-            IdUtils.TYPE_APPLICATION, memberAttributeResolver, roles).entrySet()) {
-          entry.getValue().ownerId = app.getPublicId();
-          membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
-        }
-        organizationId = app.getOrganizationId();
-        break;
-      default:
+    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
+      Application app = appDAO.getByIdNotNull(internalOwnerId);
+      for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(),
+          IdUtils.TYPE_APPLICATION, memberAttributeResolver, roles).entrySet()) {
+        entry.getValue().ownerId = app.getPublicId();
+        membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
+      }
+      organizationId = app.getOrganizationId();
+    }
+    else {
         organizationId = internalOwnerId;
-        break;
     }
     // Add org members
     if (organizationId != null) {

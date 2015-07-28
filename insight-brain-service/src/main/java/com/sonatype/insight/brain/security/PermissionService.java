@@ -12,28 +12,29 @@ import java.util.Set;
 
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.apache.shiro.subject.Subject;
 
 @Named
 public class PermissionService
 {
-  public Set<Permission> hasPermissions(Subject subject, String ownerType, String ownerId, Set<Permission> permissions)
+  public Set<Permission> hasPermissions(Subject subject, OwnerType ownerType, String ownerId,
+      Set<Permission> permissions)
   {
     EnumSet<Permission> result = EnumSet.noneOf(Permission.class);
 
     if (subject.isAuthenticated()) {
       Map<Key, ContextParameter> contextMap;
       switch (ownerType) {
-        case IdUtils.TYPE_APPLICATION:
+        case APPLICATION:
           contextMap = Collections.singletonMap(Key.APPLICATION_ID, new ContextParameter(Key.APPLICATION_ID, ownerId,
               false));
           break;
-        case IdUtils.TYPE_ORGANIZATION:
+        case ORGANIZATION:
           contextMap = Collections.singletonMap(Key.ORGANIZATION_ID, new ContextParameter(Key.ORGANIZATION_ID, ownerId,
               false));
           break;

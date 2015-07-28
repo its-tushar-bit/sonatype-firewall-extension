@@ -13,9 +13,9 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.google.common.collect.Iterables;
 
@@ -155,9 +155,9 @@ class ContextResolver
       }
     }
     else if (count == 2) {
-      String type = get(parameters, AuthzContext.Key.TYPE, String.class);
+      OwnerType type = OwnerType.fromString(get(parameters, AuthzContext.Key.TYPE, String.class));
       switch (type) {
-        case IdUtils.TYPE_APPLICATION:
+        case APPLICATION:
           if (parameters.get(Key.ID) != null) {
             String id = get(parameters, Key.ID, String.class);
             return APPLICATION_PUBLIC_ID.resolveContextIds(id);
@@ -166,7 +166,7 @@ class ContextResolver
             String id = get(parameters, Key.INTERNAL_ID, String.class);
             return APPLICATION_ID.resolveContextIds(id);
           }
-        case IdUtils.TYPE_ORGANIZATION:
+        case ORGANIZATION:
           String id;
           if (parameters.get(Key.ID) != null) {
             id = get(parameters, Key.ID, String.class);
@@ -175,7 +175,7 @@ class ContextResolver
             id = get(parameters, Key.INTERNAL_ID, String.class);
           }
           return ORGANIZATION_ID.resolveContextIds(id);
-        case IdUtils.TYPE_GLOBAL:
+        case GLOBAL:
           return GLOBAL_CONTEXT;
       }
     }

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.dto;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.model.OwnerType;
 
 /**
  * Some objects (policy waivers, license overrides, etc) can be applied in the context of an application or an
@@ -25,14 +25,14 @@ public class ApplicableContext
   /**
    * "application" or "organization"
    */
-  private String type;
+  private OwnerType type;
 
   private List<ApplicableContext> children;
 
   public ApplicableContext() {
   }
 
-  public ApplicableContext(String id, String name, String type) {
+  public ApplicableContext(String id, String name, OwnerType type) {
     this.id = id;
     this.name = name;
     setType(type);
@@ -54,12 +54,12 @@ public class ApplicableContext
     this.name = name;
   }
 
-  public String getType() {
+  public OwnerType getType() {
     return type;
   }
 
-  public void setType(String type) {
-    if (!IdUtils.TYPE_APPLICATION.equals(type) && !(IdUtils.TYPE_ORGANIZATION.equals(type))) {
+  public void setType(OwnerType type) {
+    if (!OwnerType.APPLICATION.equals(type) && !(OwnerType.ORGANIZATION.equals(type))) {
       throw new IllegalArgumentException("Unknown context type: " + type);
     }
     this.type = type;

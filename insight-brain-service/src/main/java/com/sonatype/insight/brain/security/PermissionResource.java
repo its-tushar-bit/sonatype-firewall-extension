@@ -16,6 +16,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -46,6 +47,7 @@ public class PermissionResource
       throw new BadRequestException("Must specify permissions to check.");
     }
 
-    return permissionService.hasPermissions(SecurityUtils.getSubject(), ownerType, ownerId, permissions);
+    return permissionService.hasPermissions(SecurityUtils.getSubject(), OwnerType.fromString(ownerType), ownerId,
+        permissions);
   }
 }

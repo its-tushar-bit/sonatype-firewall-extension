@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -159,7 +160,7 @@ public class LabelResource
     ApplicationDAO applicationDAO = new ApplicationDAO();
     Application application = applicationDAO.getById(label.getOwnerId());
     if (application != null) {
-      return new ApplicableContext(application.getPublicId(), application.getName(), IdUtils.TYPE_APPLICATION);
+      return new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION);
     }
 
     application = applicationDAO.getByPublicIdNotNull(ownerPublicId);

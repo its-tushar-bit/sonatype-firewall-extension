@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -472,7 +473,7 @@ public class LabelResourceTest
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_APPLICATION));
+    Assert.assertThat(context.getType(), is(OwnerType.APPLICATION));
     Assert.assertThat(context.getChildren(), is(nullValue()));
 
     response = request.parameter(orgLabel.getId()).get();
@@ -481,14 +482,14 @@ public class LabelResourceTest
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(org.getId()));
     Assert.assertThat(context.getName(), is(org.getName()));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_ORGANIZATION));
+    Assert.assertThat(context.getType(), is(OwnerType.ORGANIZATION));
     Assert.assertThat(context.getChildren(), is(notNullValue()));
     Assert.assertThat(context.getChildren(), hasSize(1));
     context = context.getChildren().get(0);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_APPLICATION));
+    Assert.assertThat(context.getType(), is(OwnerType.APPLICATION));
     Assert.assertThat(context.getChildren(), is(nullValue()));
 
     response = request.parameter(parentOrgLabel.getId()).get();
@@ -497,21 +498,21 @@ public class LabelResourceTest
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(org.getParentOrganizationId()));
     Assert.assertThat(context.getName(), is("Root Organization"));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_ORGANIZATION));
+    Assert.assertThat(context.getType(), is(OwnerType.ORGANIZATION));
     Assert.assertThat(context.getChildren(), is(notNullValue()));
     Assert.assertThat(context.getChildren(), hasSize(1));
     context = context.getChildren().get(0);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(org.getId()));
     Assert.assertThat(context.getName(), is(org.getName()));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_ORGANIZATION));
+    Assert.assertThat(context.getType(), is(OwnerType.ORGANIZATION));
     Assert.assertThat(context.getChildren(), is(notNullValue()));
     Assert.assertThat(context.getChildren(), hasSize(1));
     context = context.getChildren().get(0);
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_APPLICATION));
+    Assert.assertThat(context.getType(), is(OwnerType.APPLICATION));
     Assert.assertThat(context.getChildren(), is(nullValue()));
 
     // Test that a user with application WRITE permissions can only see contexts for which they have WRITE permissions
@@ -527,7 +528,7 @@ public class LabelResourceTest
     Assert.assertThat(context, is(notNullValue()));
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));
-    Assert.assertThat(context.getType(), is(IdUtils.TYPE_APPLICATION));
+    Assert.assertThat(context.getType(), is(OwnerType.APPLICATION));
     Assert.assertThat(context.getChildren(), is(nullValue()));
   }
 

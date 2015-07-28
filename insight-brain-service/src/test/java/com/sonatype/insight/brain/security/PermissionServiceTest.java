@@ -13,12 +13,12 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class PermissionServiceTest
     prepareMocks(User.ADMIN_USERNAME);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
+        service.hasPermissions(subject, OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
         true, Permission.CONFIGURE_SYSTEM);
   }
 
@@ -48,7 +48,7 @@ public class PermissionServiceTest
     prepareMocks("nonadmin");
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
+        service.hasPermissions(subject, OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
         false, Permission.CONFIGURE_SYSTEM);
   }
 
@@ -57,7 +57,7 @@ public class PermissionServiceTest
     prepareMocks(null);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
+        service.hasPermissions(subject, OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
         false, Permission.CONFIGURE_SYSTEM);
   }
 
@@ -69,11 +69,11 @@ public class PermissionServiceTest
     Application app = tempEntity.newApplication(org.getId());
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_APPLICATION, app.getId(),
+        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_ORGANIZATION, org.getId(),
+        service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
   }
 
@@ -86,7 +86,7 @@ public class PermissionServiceTest
     prepareMocks(user.getUsername());
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_APPLICATION, app.getId(),
+        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
 
     grantReadPermission(app.getId(), user.getUsername());
@@ -95,11 +95,11 @@ public class PermissionServiceTest
     grantWritePermission(org.getId(), user.getUsername());
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_APPLICATION, app.getId(),
+        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_ORGANIZATION, org.getId(),
+        service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
   }
 
@@ -111,11 +111,11 @@ public class PermissionServiceTest
     Application app = tempEntity.newApplication(org.getId());
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_APPLICATION, app.getId(),
+        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
 
     assertPermissions(
-        service.hasPermissions(subject, IdUtils.TYPE_ORGANIZATION, org.getId(),
+        service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
   }
 

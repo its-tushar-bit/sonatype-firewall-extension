@@ -203,15 +203,15 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTagsByApplicationPublicId_Unauthorized() throws Exception {
+  public void testGetApplicableTagsByApplicationPublicId_Unauthorized() throws Exception {
     login();
-    tagService.getTagsByApplicationPublicId(app.getPublicId());
+    tagService.getApplicableTagsByApplicationPublicId(app.getPublicId());
   }
 
   @Test
-  public void testGetTagsByApplicationPublicId_Authorized() throws Exception {
+  public void testGetApplicableTagsByApplicationPublicId_Authorized() throws Exception {
     grantReadPermission(app.getId());
-    tagService.getTagsByApplicationPublicId(app.getPublicId());
+    tagService.getApplicableTagsByApplicationPublicId(app.getPublicId());
   }
 
   @Test

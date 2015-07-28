@@ -59,8 +59,9 @@ public class TagResource
   @GET
   @Path(APPLICATION_PATH + "/applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationId) {
-    return service.getTagsByApplicationPublicId(applicationId);
+  public List<Tag> getApplicableTagsByApplicationPublicId(@PathParam("applicationPublicId") String applicationPublicId)
+  {
+    return service.getApplicableTagsByApplicationPublicId(applicationPublicId);
   }
 
   @GET

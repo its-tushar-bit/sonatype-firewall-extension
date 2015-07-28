@@ -156,8 +156,9 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getTagsByApplicationPublicId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId) {
+  public List<Tag> getApplicableTagsByApplicationPublicId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
+  {
     ApplicationDAO applicationDAO = new ApplicationDAO();
     String organizationId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getOrganizationId();
     return new TagDAO().getByOrganizationId(organizationId);

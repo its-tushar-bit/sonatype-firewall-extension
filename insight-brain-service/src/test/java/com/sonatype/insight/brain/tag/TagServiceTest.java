@@ -75,7 +75,7 @@ public class TagServiceTest extends InjectedTest
   }
 
   @Test
-  public void testGetAllTags() {
+  public void testGetTagsUsedByApplications() {
     Organization organization1 = tempEntity.newOrganization("testGetAllTagsOrg1");
     Application application1 = tempEntity.newApplication(organization1.getId());
     Tag tag1 = tempEntity.newTag(organization1.getId(), "name");

@@ -1,4 +1,4 @@
--- Since 1.16.0
+-- Since 1.17.0
 SET SCHEMA insight_brain_ods;
 
 ALTER TABLE organization ADD COLUMN parent_organization_id varchar(50) NULL;

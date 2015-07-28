@@ -11,7 +11,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -76,19 +75,34 @@ public class TagServiceTest extends InjectedTest
 
   @Test
   public void testGetTagsUsedByApplications() {
-    Organization organization1 = tempEntity.newOrganization("testGetAllTagsOrg1");
+    Organization organization1 = tempEntity.newOrganization("testGetTagsUsedByApplicationsOrg1");
     Application application1 = tempEntity.newApplication(organization1.getId());
-    Tag tag1 = tempEntity.newTag(organization1.getId(), "name");
+    // Tag used by application1
+    Tag tag1 = tempEntity.newTag(organization1.getId(), "name1");
     tempEntity.newApplicationTag(application1.getId(), tag1.getId());
 
-    Organization organization2 = tempEntity.newOrganization("testGetAllTagsOrg2");
+    Organization organization2 = tempEntity.newOrganization("testGetTagsUsedByApplicationsOrg2");
     Application application2 = tempEntity.newApplication(organization2.getId());
+    // Tag used by application2
     Tag tag2 = tempEntity.newTag(organization2.getId(), "name2");
     tempEntity.newApplicationTag(application2.getId(), tag2.getId());
 
+    // Tags not used by any application
+    tempEntity.newTag(organization1.getId(), "name3");
+    tempEntity.newTag(organization2.getId(), "name4");
+
     List<Tag> allTags = tagService.getTagsUsedByApplications();
     assertThat(allTags, hasSize(2));
-    assertThat(allTags.get(0).getColor(), is(Color.yellow));
-    assertThat(allTags.get(1).getColor(), is(Color.yellow));
+    assertTagInList(allTags, tag1);
+    assertTagInList(allTags, tag2);
+  }
+
+  private void assertTagInList(List<Tag> tags, Tag expectedTag) {
+    for (Tag tag : tags) {
+      if (tag.getId().equals(expectedTag.getId())) {
+        return;
+      }
+    }
+    fail("Expected a tag with name " + expectedTag.getName());
   }
 }

@@ -31,75 +31,73 @@
         </div>
       </div>
     </div>
-    <div ng-switch='state'>
-      <div ng-switch-when="loading">
-        <i class='icon icon-time'></i> Loading...
-      </div>
-      <div ng-switch-when="polling">
-        <div class="modal-body">
-          <p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the evaluation has been completed you can view the results by clicking on the button below.</p>
-          <div class="well well-small">
-            <table>
-              <tr>
-                <td style><b>File:</b></td>
-                <td style="padding-left:10px;word-break:break-all;">{{bundle.filename}}</td>
-              </tr>
-              <tr>
-                <td><b>Application:</b></td>
-                <td style="padding-left:10px;">{{bundle.applicationName}}</td>
-              </tr>
-              <tr>
-                <td><b>Stage:</b></td>
-                <td style="padding-left:10px;">{{bundle.stage}}</td>
-              </tr>
-            </table>
-          </div>
-          <div style="margin-bottom:3px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
-            <div class="bar" ng-style="{width: getProgressWidth() + '%'}"></div>
-          </div>
-          <div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
+    <div ng-show="state == 'loading'">
+      <i class='icon icon-time'></i> Loading...
+    </div>
+    <div ng-show="state == 'polling'">
+      <div class="modal-body">
+        <p>Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the evaluation has been completed you can view the results by clicking on the button below.</p>
+        <div class="well well-small">
+          <table>
+            <tr>
+              <td style><b>File:</b></td>
+              <td style="padding-left:10px;word-break:break-all;">{{bundle.filename}}</td>
+            </tr>
+            <tr>
+              <td><b>Application:</b></td>
+              <td style="padding-left:10px;">{{bundle.applicationName}}</td>
+            </tr>
+            <tr>
+              <td><b>Stage:</b></td>
+              <td style="padding-left:10px;">{{bundle.stage}}</td>
+            </tr>
+          </table>
         </div>
-        <div class='modal-footer'>
-          <div id='evaluate-alerts' clm-alerts="alerts"></div>
-          <button id='evaluate-bundle-close' class='btn btn-link btn-cancel pull-left' type='button' ng-disabled='!pollingUrl && !evaluationStatus.error' ng-click='$close()'>Close</button>
-          <a id='evaluate-bundle-view' class='btn btn-primary pull-right' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
+        <div style="margin-bottom:3px;" class="progress progress-striped" ng-class="{active: !evaluationStatus.scanId}">
+          <div class="bar" ng-style="{width: getProgressWidth() + '%'}"></div>
         </div>
+        <div style='padding-left:3px;font-weight:bold' id='evaluate-bundle-status'>{{evaluationStatus.currentStepName}}</div>
       </div>
-      <div ng-switch-default>
-        <form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload class="clm-form well clm-well">
-            <div clm-control-group for="bundleFile" label="Select the file you want evaluated">
-                <input type='file' file-model='bundle.file' id='bundleFile' name='file'>
-            </div>
-            <div clm-control-group for="bundleApplication" label="Which application is this file associated with?">
-                <select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
-                  <option value="">-- Select Application --</option>
-                </select>
-            </div>
-            <div clm-control-group for="bundleStage" label="Which CLM stage should this evaluation be associated with?">
-                <select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
-                  <option value="">-- Select CLM Stage --</option>
-                </select>
-            </div>
-            <div class='control-group'>
-              <label class="control-label">Should notifications be sent if this application violates any policies?</label>
-              <div class='controls'>
-                <label class="radio">
-                  <input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
-                  Yes
-                </label>
-                <label class="radio">
-                  <input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
-                  No
-                </label>
-              </div>
-            </div>
-          <button id='evaluate-bundle-cancel' class='btn btn-link btn-cancel' type='button' ng-click='$close()'>Cancel</button>
-          <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
-          <button id='evaluate-bundle-upload' class='btn btn-primary pull-right' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
-          <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
-          <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
-        </form>
+      <div class='modal-footer'>
+        <div id='evaluate-alerts' clm-alerts="alerts"></div>
+        <button id='evaluate-bundle-close' class='btn btn-link btn-cancel pull-left' type='button' ng-disabled='!pollingUrl && !evaluationStatus.error' ng-click='$close()'>Close</button>
+        <a id='evaluate-bundle-view' class='btn btn-primary pull-right' ng-disabled='!evaluationStatus.scanId' ng-href='{{getReportUrl()}}' target='_blank'>View Report</a>
       </div>
+    </div>
+    <div ng-show="state != 'loading' && state != 'polling'">
+      <form name='evaluateBundle' action='{{evaluateBundleAction}}' enctype='multipart/form-data' method='post' ng-upload class="clm-form well clm-well">
+          <div clm-control-group for="bundleFile" label="Select the file you want evaluated">
+              <input type='file' file-model='bundle.file' id='bundleFile' name='file'>
+          </div>
+          <div clm-control-group for="bundleApplication" label="Which application is this file associated with?" ng-if="true"><!-- bogus ng-if to fix IE9 combobox rendering -->
+              <select id='bundleApplication' ng-required="true" ng-model="bundle.applicationPublicId" ng-change="updateFormActionUrl()" ng-options="app.publicId as app.name for app in applications">
+                <option value="">-- Select Application --</option>
+              </select>
+          </div>
+          <div clm-control-group for="bundleStage" label="Which CLM stage should this evaluation be associated with?" ng-if="true"><!-- bogus ng-if to fix IE9 combobox rendering --> 
+              <select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
+                <option value="">-- Select CLM Stage --</option>
+              </select>
+          </div>
+          <div class='control-group'>
+            <label class="control-label">Should notifications be sent if this application violates any policies?</label>
+            <div class='controls'>
+              <label class="radio">
+                <input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="true"/>
+                Yes
+              </label>
+              <label class="radio">
+                <input type="radio" ng-model="bundle.notify" ng-change="updateFormActionUrl()" value="false"/>
+                No
+              </label>
+            </div>
+          </div>
+        <button id='evaluate-bundle-cancel' class='btn btn-link btn-cancel' type='button' ng-click='$close()'>Cancel</button>
+        <span style="margin:0px;padding: 4px 35px 4px 14px;float:left;max-width:330px" ng-class="{'alert alert-error': error }" ng-show="error">{{error}}</span>
+        <button id='evaluate-bundle-upload' class='btn btn-primary pull-right' type='button' ng-disabled='state != "ready" || !isFormValid()' ng-click='doSubmit()'>Upload</button>
+        <input type='submit' upload-submit='uploaded(content, completed)' class='hide' />
+        <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
+      </form>
     </div>
   </div>
   </script>

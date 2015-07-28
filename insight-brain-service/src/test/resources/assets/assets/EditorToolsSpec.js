@@ -216,6 +216,17 @@ describe('EditorToolsSpec', function() {
         expect(scope.alerts[0].msg).toEqual('something aint right');
       }));
 
+      it('reacts properly to upload progress for IE9', inject(function(){
+        scope.state = 'polling';
+        scope.error = null;
+        scope.uploaded('', true);
+        expect(scope.state).toEqual('polling');
+        expect(scope.error).toBeNull();
+        scope.uploaded('Please wait...', false);
+        expect(scope.state).toEqual('polling');
+        expect(scope.error).toBeNull();
+      }));
+
       it('uses proper URL for state polling by IE9', inject(function(CLMLocations, $httpBackend){
         scope.uploaded({ticketId: 'ticket'}, true);
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getEvaluationStatusUrl('bom1-12345678', 'ticket'))).respond({

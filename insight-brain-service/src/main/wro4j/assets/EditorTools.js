@@ -32,7 +32,6 @@
       $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
 
       function setError(message) {
-        $scope.requestActive = false;
         //there are certain cases where the browser will not give us an error
         //as we would expect, so we will add something default in this case
         if (message) {
@@ -153,8 +152,10 @@
       };
 
       // Handler for ng-upload progress
-      $scope.uploaded = function (content) {
-        $scope.requestActive = false;
+      $scope.uploaded = function (content, completed) {
+        if (!completed || content.length === 0) {
+          return;
+        }
         $scope.error = null;
         var response;
         try {
@@ -168,7 +169,6 @@
           $scope.state = 'ready';
           setError(response);
         } else {
-          $scope.state = 'polling';
           $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, response.ticketId);
           doPoll();
         }

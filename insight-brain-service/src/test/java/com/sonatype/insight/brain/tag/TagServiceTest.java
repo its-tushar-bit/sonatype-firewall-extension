@@ -97,6 +97,19 @@ public class TagServiceTest extends InjectedTest
     assertTagInList(allTags, tag2);
   }
 
+  @Test
+  public void testGetApplicableTagsByApplicationPublicId() {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    Tag orgTag = tempEntity.newTag(org.getId(), "orgTag");
+    Tag parentOrgTag = tempEntity.newTag(org.getParentOrganizationId(), "parentOrgTag");
+
+    List<Tag> tags = tagService.getApplicableTagsByApplicationPublicId(app.getPublicId());
+    assertThat(tags, hasSize(2));
+    assertTagInList(tags, orgTag);
+    assertTagInList(tags, parentOrgTag);
+  }
+
   private void assertTagInList(List<Tag> tags, Tag expectedTag) {
     for (Tag tag : tags) {
       if (tag.getId().equals(expectedTag.getId())) {

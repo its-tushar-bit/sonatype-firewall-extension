@@ -9,10 +9,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -26,6 +28,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class TagDAO
     extends AbstractOperationalSqlDAO<Tag>
 {
+  private static final OrganizationDAO orgDAO = new OrganizationDAO();
+
   @Override
   protected Tag getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Tag entity" + //
@@ -100,6 +104,7 @@ public class TagDAO
     if (getByOrganizationIdAndName(tx, entity.getOrganizationId(), entity.getName()) != null) {
       throw new InvalidNameException(entity.getName() + " is already used as a name.");
     }
+    validateNameWithinHierarchy(tx, entity.getOrganizationId(), entity.getName());
 
     super.insert(tx, entity);
   }
@@ -114,8 +119,43 @@ public class TagDAO
     if (existingEntity != null && !existingEntity.getId().equals(entity.getId())) {
       throw new InvalidNameException(entity.getName() + " is already used as a name.");
     }
+    validateNameWithinHierarchy(tx, entity.getOrganizationId(), entity.getName());
 
     super.update(tx, entity);
+  }
+
+  private void validateNameWithinHierarchy(TransactionContext tx, String orgId, String name)
+  {
+    Organization org = orgDAO.getById(tx, orgId);
+
+    validateNameWithinHierarchyUp(tx, org.getParentOrganizationId(), name);
+    validateNameWithinHierarchyDown(tx, org, name);
+  }
+
+  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, String name)
+  {
+    if (parentId == null) {
+      return; // no parent, we're done
+    }
+    Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
+    if (getByOrganizationIdAndName(tx, parentOrganization.getId(), name) != null) {
+      throw new InvalidNameException("A tag with the same name already exists for organization '"
+          + parentOrganization.getName() + "'");
+    }
+    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
+  }
+
+  private void validateNameWithinHierarchyDown(TransactionContext tx, Organization org, String name)
+  {
+    List<Organization> childOrgs = orgDAO.getByParentOrganizationId(tx, org.getId());
+    for (Organization childOrg : childOrgs) {
+      if (getByOrganizationIdAndName(tx, childOrg.getId(), name) != null) {
+        throw new InvalidNameException("A tag with the same name already exists for organization '"
+            + childOrg.getName() + "'");
+      }
+
+      validateNameWithinHierarchyDown(tx, childOrg, name);
+    }
   }
 
   private Tag getByIdNotNull(TransactionContext tx, String id) {

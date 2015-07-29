@@ -171,6 +171,8 @@ public class TemporaryEntity
 
   private Collection<PolicyTag> policyTags;
 
+  private Collection<Tag> tags;
+
   private Collection<Label> labels;
 
   @Override
@@ -185,6 +187,7 @@ public class TemporaryEntity
     userViewedNotificationMappings = new ArrayList<>();
     policies = new ArrayList<>();
     policyTags = new ArrayList<>();
+    tags = new ArrayList<>();
     labels = new ArrayList<>();
   }
 
@@ -250,6 +253,11 @@ public class TemporaryEntity
     for (Label label : labels) {
       if ((label = labelDAO.getById(label.getId())) != null) {
         labelDAO.delete(label);
+      }
+    }
+    for (Tag tag : tags) {
+      if ((tag = tagDAO.getById(tag.getId())) != null) {
+        tagDAO.delete(tag);
       }
     }
   }
@@ -639,6 +647,7 @@ public class TemporaryEntity
   public Tag newTag(String orgId, String name, Color color) {
     Tag tag = new Tag(orgId, name, "description", color);
     tagDAO.insert(tag);
+    tags.add(tag);
     return tag;
   }
 

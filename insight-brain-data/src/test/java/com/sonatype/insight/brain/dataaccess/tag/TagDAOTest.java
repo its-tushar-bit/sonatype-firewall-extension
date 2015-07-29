@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.dataaccess.tag;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.DescriptionHelper;
@@ -522,6 +524,73 @@ public class TagDAOTest
 
     for (Tag tag : actual) {
       assertThat(tagIds.contains(tag.getId()), is(true));
+    }
+  }
+
+  @Test
+  public void testNameClashWithChildOrgTag_Insert() throws Exception {
+    String tagName = "some name";
+    tempEntity.newTag(organization.getId(), tagName);
+
+    // Add another tag with a case-/whitespace-equivalent name at parent owner level
+    assertInsertTagWithDuplicateName(organization.getParentOrganizationId(), tagName, organization);
+  }
+
+  @Test
+  public void testNameClashWithParentOrgTag_Insert() throws Exception {
+    String tagName = "some name";
+    tempEntity.newTag(organization.getParentOrganizationId(), tagName);
+
+    Organization expectedOrg = new OrganizationDAO().getById(organization.getParentOrganizationId());
+
+    // Add another tag with a case-/whitespace-equivalent name at child org level
+    assertInsertTagWithDuplicateName(organization.getId(), tagName, expectedOrg);
+  }
+
+  @Test
+  public void testNameClashWithChildOrgTag_Update() throws Exception {
+    String tagName = "some name";
+    tempEntity.newTag(organization.getId(), tagName);
+
+    // Add another tag with a case-/whitespace-equivalent name at parent owner level
+    assertUpdateTagWithDuplicateName(organization.getParentOrganizationId(), tagName, organization);
+  }
+
+  @Test
+  public void testNameClashWithParentOrgTag_Update() throws Exception {
+    String tagName = "some name";
+    tempEntity.newTag(organization.getParentOrganizationId(), tagName);
+
+    Organization expectedOrg = new OrganizationDAO().getById(organization.getParentOrganizationId());
+
+    // Add another tag with a case-/whitespace-equivalent name at child org level
+    assertUpdateTagWithDuplicateName(organization.getId(), tagName, expectedOrg);
+  }
+
+  private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
+    // Add a tag with a case-/whitespace-equivalent name
+    Tag tag = new Tag(orgId, tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH), "description");
+    try {
+      new TagDAO().insert(tag);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("A tag with the same name already exists for organization '" + expectedOrg.getName() + "'",
+          expected.getMessage());
+    }
+  }
+
+  private void assertUpdateTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
+    // Add a tag with a case-/whitespace-equivalent name
+    Tag tag = tempEntity.newTag(orgId, "another name");
+    tag.setName(tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
+    try {
+      new TagDAO().update(tag);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertEquals("A tag with the same name already exists for organization '" + expectedOrg.getName() + "'",
+          expected.getMessage());
     }
   }
 }

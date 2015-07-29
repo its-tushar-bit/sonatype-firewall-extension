@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
@@ -159,8 +160,17 @@ class TagService
   public List<Tag> getApplicableTagsByApplicationPublicId(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
   {
+    List<Tag> result = new ArrayList<>();
+
     ApplicationDAO applicationDAO = new ApplicationDAO();
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    TagDAO tagDAO = new TagDAO();
+
     String organizationId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getOrganizationId();
-    return new TagDAO().getByOrganizationId(organizationId);
+    while (organizationId != null) {
+      result.addAll(tagDAO.getByOrganizationId(organizationId));
+      organizationId = organizationDAO.getById(organizationId).getParentOrganizationId();
+    }
+    return result;
   }
 }

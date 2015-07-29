@@ -55,18 +55,14 @@ public class AuthenticationLoggingFilter
   }
 
   private void setUsernameForRequestLogging(ServletRequest request, final String username) {
-    if (!(request instanceof ServletRequestWrapper)) {
-      throw new IllegalStateException("Expected request instanceof " + ServletRequestWrapper.class.getName()
-          + " but was " + request.getClass().getName());
+    while (request instanceof ServletRequestWrapper) {
+      request = ((ServletRequestWrapper) request).getRequest();
     }
-    ServletRequestWrapper servletRequestWrapper = (ServletRequestWrapper) request;
-
-    ServletRequest wrappedRequest = servletRequestWrapper.getRequest();
-    if (!(wrappedRequest instanceof Request)) {
-      throw new IllegalStateException("Expected wrappedRequest instanceof " + Request.class.getName() + " but was "
-          + wrappedRequest.getClass().getName());
+    if (!(request instanceof Request)) {
+      throw new IllegalStateException("Expected request instanceof " + Request.class.getName() + " but was "
+          + request.getClass().getName());
     }
-    Request jettyRequest = (Request) servletRequestWrapper.getRequest();
+    Request jettyRequest = (Request) request;
 
     // The request logging logs the username from the Authentication instance retrieved from the jetty request.
     Principal userPrincipal = new BasicUserPrincipal(username);

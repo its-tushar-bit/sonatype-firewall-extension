@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class AuthenticationLoggingFilterTest
 {
   private final Request jettyRequest = new Request();
-  private final ServletRequest request = new ServletRequestWrapper(jettyRequest);
+  private ServletRequest request = new ServletRequestWrapper(jettyRequest);
   private final HttpServletResponse response = mock(HttpServletResponse.class);
   private final CurrentUser currentUser = mock(CurrentUser.class);
 
@@ -88,6 +88,22 @@ public class AuthenticationLoggingFilterTest
 
     Map<String, String> contextMap = MDC.getCopyOfContextMap();
     assertThat(contextMap == null || contextMap.isEmpty(), is(true));
+  }
+
+  @Test
+  public void testMultipleLevelsOfRequestWrapping() throws IOException, ServletException {
+    final String username = "foo";
+
+    prepareMocks(username);
+    FilterChainStub chain = new FilterChainStub();
+
+    // e.g. com.yammer.dropwizard.jetty.BiDiGzipHandler.GzipServletRequest
+    request = new ServletRequestWrapper(new ServletRequestWrapper(request));
+
+    filter.doFilter(request, response, chain);
+
+    assertThat(chain.mdcUsername, is(username));
+    assertJettyRequestAuthentication(username);
   }
 
   private void assertJettyRequestAuthentication(String username) {

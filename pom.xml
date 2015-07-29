@@ -321,8 +321,9 @@
         <version>${drools.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml-schemas</artifactId>
+            <!-- in an ideal world, an API JAR wouldn't drag in optional dependencies ... -->
+            <groupId>org.drools</groupId>
+            <artifactId>drools-decisiontables</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

@@ -21,7 +21,6 @@ describe('Tests for the LdapConfigurationController', function() {
         };
       }
     });
-    $stateProvider.state('management.organization', {});
     SpecUtil.mockPermissionService($provide);
   }));
 

@@ -201,7 +201,7 @@
       $scope.deleteConfiguration = function () {
         $scope.ldap.$delete().then(function() {
           $scope.ldap = null;
-          $state.transitionTo('management.organization');
+          $state.transitionTo('management');
         }, function() {
           ErrorDialog.open(arguments[0]);
         });

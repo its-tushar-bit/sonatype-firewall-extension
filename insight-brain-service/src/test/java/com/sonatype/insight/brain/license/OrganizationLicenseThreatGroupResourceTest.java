@@ -9,7 +9,7 @@ import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableL
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import org.junit.Test;
 
@@ -60,13 +60,13 @@ public class OrganizationLicenseThreatGroupResourceTest
     assertNotNull(altgs);
     assertNotNull(altgs.licenseThreatGroupsByOwner);
     assertEquals(2, altgs.licenseThreatGroupsByOwner.size());
-    assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 2,
+    assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), OwnerType.ORGANIZATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(1));
     }
     // Expect 5 LTGs (4 default + 1 created above)
-    assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), IdUtils.TYPE_ORGANIZATION, 5,
+    assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), OwnerType.ORGANIZATION, 5,
         altgs.licenseThreatGroupsByOwner.get(1));
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(1));

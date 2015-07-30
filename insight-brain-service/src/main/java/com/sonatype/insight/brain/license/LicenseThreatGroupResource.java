@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDA
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -176,7 +177,7 @@ public class LicenseThreatGroupResource
   {
     public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner = new ArrayList<>();
 
-    public void add(String ownerId, String ownerName, String ownerType,
+    public void add(String ownerId, String ownerName, OwnerType ownerType,
         List<LicenseThreatGroupWithLicenses> licenseThreatGroups)
     {
       LicenseThreatGroupsByOwner ltgbo = new LicenseThreatGroupsByOwner();
@@ -194,7 +195,7 @@ public class LicenseThreatGroupResource
 
     public String ownerName;
 
-    public String ownerType;
+    public OwnerType ownerType;
 
     public List<LicenseThreatGroupWithLicenses> licenseThreatGroups;
   }

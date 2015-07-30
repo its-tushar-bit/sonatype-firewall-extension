@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.LicenseThreatGroupsByOwner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -153,7 +154,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     return response.getBody(ApplicableLicenseThreatGroups.class);
   }
 
-  protected void assertLicenseThreatGroupsByOwner(String ownerId, String ownerName, String ownerType,
+  protected void assertLicenseThreatGroupsByOwner(String ownerId, String ownerName, OwnerType ownerType,
       int licenseThreatGroupCount, LicenseThreatGroupsByOwner actual)
   {
     Assert.assertEquals(ownerId, actual.ownerId);

@@ -10,6 +10,7 @@ import java.io.IOException;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -46,6 +47,20 @@ public class AbstractComponentTest
   protected static final String USERNAME = "testuser";
 
   protected Subject subject;
+
+  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
+  @Before
+  public void setUpDefaultLicenseThreatGroups() {
+    // Make sure the default LTGs are created on the root organization
+    licenseThreatGroupDAO.createDefaultLicenseThreatGroups();
+  }
+
+  @After
+  public void tearDownDefaultLicenseThreatGroups() {
+    // Delete the default LTGs from the root organization
+    licenseThreatGroupDAO.deleteDefaultLicenseThreatGroups();
+  }
 
   @Before
   public void setUpSecurity() {

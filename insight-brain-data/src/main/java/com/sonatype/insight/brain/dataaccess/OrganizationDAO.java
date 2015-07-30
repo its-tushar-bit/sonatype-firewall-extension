@@ -77,10 +77,6 @@ public class OrganizationDAO
 
   @Override
   public void insert(TransactionContext tx, Organization organization) {
-    insert(tx, organization, true /* createLicenseThreatGroups */);
-  }
-
-  private void insert(TransactionContext tx, Organization organization, boolean createLicenseThreatGroups) {
     NameHelper.validate(organization.getName());
 
     if (getByName(tx, organization.getName()) != null) {
@@ -91,23 +87,6 @@ public class OrganizationDAO
     organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
 
     super.insert(tx, organization);
-
-    if (createLicenseThreatGroups) {
-      new LicenseThreatGroupDAO().createDefaultGroups(tx, organization.getId());
-    }
-  }
-
-  @Override
-  public void insert(Organization entity) {
-    insert(entity, true /* createLicenseThreatGroups */);
-  }
-
-  public void insert(Organization entity, boolean createLicenseThreatGroups) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      insert(tx, entity, createLicenseThreatGroups);
-      tx.commit();
-    }
   }
 
   @Override

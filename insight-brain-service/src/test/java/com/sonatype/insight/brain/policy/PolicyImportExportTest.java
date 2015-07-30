@@ -110,6 +110,7 @@ public class PolicyImportExportTest
     insightConfig.setSonatypeWork(temporaryFolder.getRoot().getAbsolutePath());
     policyImportExport = new PolicyImportExport(new BaseUrl(insightConfig, uriInfo));
     fromOrg = tempEntity.newOrganization();
+    licenseThreatGroupDAO.createDefaultGroups(fromOrg.getId());
     fromApp = tempEntity.newApplication(fromOrg.getId());
     when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
   }
@@ -570,7 +571,7 @@ public class PolicyImportExportTest
     policyExportResult = detachObjects(policyExportResult);
     deleteFromOrg();
     
-    Organization toOrg = tempEntity.newOrganization("To Org", false /* createLicenseThreatGroups */);
+    Organization toOrg = tempEntity.newOrganization("To Org");
     Policy toOrgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy");
     LicenseThreatGroup toOrgLtg = tempEntity.newLicenseThreatGroup(toOrg.getId());
     LicenseThreatGroupLicense toOrgLtgl = tempEntity.newLicenseThreatGroupLicense(toOrg.getId(), toOrgLtg.getId());

@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.NameHelper;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -29,6 +31,10 @@ public class LicenseThreatGroupDAO
   public static final int DEFAULT_LICENSE_THREAT_GROUP_COUNT = 4;
 
   private static final Logger log = LoggerFactory.getLogger(LicenseThreatGroupDAO.class);
+
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
+
+  private static final OrganizationDAO orgDAO = new OrganizationDAO();
 
   public List<LicenseThreatGroup> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
@@ -100,25 +106,39 @@ public class LicenseThreatGroupDAO
   private void validateName(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     NameHelper.validate(licenseThreatGroup.getName());
 
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application parentApplication = applicationDAO.getById(tx, licenseThreatGroup.getOwnerId());
-    if (parentApplication != null) {
-      // The owner is an application
-      if (getByOwnerIdAndName(tx, parentApplication.getOrganizationId(), licenseThreatGroup.getName()) != null) {
-        throw new InvalidLicenseThreatGroupException(
-            "A license threat group with the same name already exists for the parent organization.");
-      }
+    Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());
+    validateNameWithinHierarchyUp(tx, owner.getParentOrganizationId(), licenseThreatGroup.getName());
+    validateNameWithinHierarchyDown(tx, owner, licenseThreatGroup.getName());
+  }
+
+  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final String name)
+  {
+    if (parentId == null) {
+      return; // no parent, we're done
     }
-    else {
-      // The owner is an organization
-      List<Application> applications = applicationDAO.getByOrganizationId(tx, licenseThreatGroup.getOwnerId());
-      for (Application application : applications) {
-        if (getByOwnerIdAndName(tx, application.getId(), licenseThreatGroup.getName()) != null) {
-          throw new InvalidLicenseThreatGroupException(
-              "A license threat group with the same name already exists for application '" + application.getName()
-                  + "'.");
-        }
+
+    Organization parentOrganization = orgDAO.getByIdNotNull(tx, parentId);
+    if (getByOwnerIdAndName(tx, parentOrganization.getId(), name) != null) {
+      throw new InvalidLicenseThreatGroupException(
+          "A license threat group with the same name already exists for the organization '"
+              + parentOrganization.getName() + "'.");
+    }
+    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
+  }
+
+  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, String name)
+  {
+    if (!owner.canHaveChildren()) {
+      return;
+    }
+    List<Owner> children = ownerDAO.getChildOwners(tx, owner);
+    for (Owner child : children) {
+      if (getByOwnerIdAndName(tx, child.getId(), name) != null) {
+        throw new InvalidLicenseThreatGroupException(
+            "A license threat group with the same name already exists for the " + child.getType()
+                + " '" + child.getName() + "'.");
       }
+      validateNameWithinHierarchyDown(tx, child, name);
     }
   }
 
@@ -153,7 +173,37 @@ public class LicenseThreatGroupDAO
     super.delete(tx, licenseThreatGroup);
   }
 
-  public void createDefaultGroups(TransactionContext tx, String ownerId) {
+  public void createDefaultLicenseThreatGroups() {
+    List<Organization> organizations = orgDAO.getAll();
+    List<LicenseThreatGroup> ltgs = getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    // If the only org is root org and it has no LTGs then create default LTGs
+    if (organizations.size() == 1 && Organization.ROOT_ORGANIZATION_ID.equals(organizations.get(0).getId())
+        && ltgs.isEmpty()) {
+      // Add the LTGs
+      createDefaultGroups(Organization.ROOT_ORGANIZATION_ID);
+    }
+  }
+
+  public void deleteDefaultLicenseThreatGroups() {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      List<LicenseThreatGroup> licenseThreatGroups = getByOwnerId(tx, Organization.ROOT_ORGANIZATION_ID);
+      for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+        delete(tx, licenseThreatGroup);
+      }
+      tx.commit();
+    }
+  }
+
+  public void createDefaultGroups(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      createDefaultGroups(tx, ownerId);
+      tx.commit();
+    }
+  }
+
+  private void createDefaultGroups(TransactionContext tx, String ownerId) {
     long start = System.currentTimeMillis();
 
     LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();

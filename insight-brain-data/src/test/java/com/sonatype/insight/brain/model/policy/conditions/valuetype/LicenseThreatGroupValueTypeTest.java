@@ -35,6 +35,8 @@ public class LicenseThreatGroupValueTypeTest
     org = tempEntity.newOrganization("orgName");
     app = tempEntity.newApplication("appName", "appId", org.getId());
     tempEntity.newLicenseThreatGroup(app.getId());
+    tempEntity.newLicenseThreatGroup(org.getId());
+    tempEntity.newLicenseThreatGroup(org.getParentOrganizationId());
   }
 
   @Test
@@ -42,8 +44,8 @@ public class LicenseThreatGroupValueTypeTest
     LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(app.getId());
     List<LicenseThreatGroup> ltgs = type.getAvailableValues();
     assertNotNull(ltgs);
-    assertEquals(6, ltgs.size());
-    assertThat(ltgs.get(5), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP));
+    assertEquals(4, ltgs.size());
+    assertThat(ltgs.get(3), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP));
   }
 
   @Test
@@ -51,7 +53,7 @@ public class LicenseThreatGroupValueTypeTest
     LicenseThreatGroupValueType type = new LicenseThreatGroupValueType(org.getId());
     List<LicenseThreatGroup> ltgs = type.getAvailableValues();
     assertNotNull(ltgs);
-    assertEquals(5, ltgs.size());
-    assertThat(ltgs.get(4), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP));
+    assertEquals(3, ltgs.size());
+    assertThat(ltgs.get(2), is(LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP));
   }
 }

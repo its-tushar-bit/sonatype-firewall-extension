@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.license;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupResource.ApplicableLicenseThreatGroups;
@@ -25,6 +26,8 @@ import org.junit.Assert;
 abstract class AbstractLicenseThreatGroupResourceTest
     extends AbstractResourceTest
 {
+  protected OrganizationDAO orgDAO = new OrganizationDAO();
+
   private HttpRequest restRequest(String ownerId) {
     return restRequest().path(LicenseThreatGroupResource.SERVICE_PATH).parameter(getOwnerType(), ownerId);
   }

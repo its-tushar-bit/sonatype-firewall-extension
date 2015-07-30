@@ -15,7 +15,7 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -43,6 +43,8 @@ public class ComponentDAO
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
+  private OwnerDAO ownerDAO = new OwnerDAO();
 
   private void processJsonLicenseData(Component component, JsonNode jsonLicenseData) {
     List<String> declaredLicenseNames = JsonUtils.getStringListFromArray(jsonLicenseData.get("declaredLicenses"));
@@ -307,12 +309,12 @@ public class ComponentDAO
     }
 
     Set<String> unassignedLicenseIds = new LinkedHashSet<>(licenseIds);
-    // Gather all license threat groups from the application
-    loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, applicationId);
-
-    // Gather all license threat groups from the application's organization
-    String organizationId = new ApplicationDAO().getByIdNotNull(applicationId).getOrganizationId();
-    loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, organizationId);
+    // Gather all license threat groups from the application on up the organization hierarchy
+    String ownerId = applicationId;
+    while (ownerId != null) {
+      loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, ownerId);
+      ownerId = ownerDAO.getById(ownerId).getParentOrganizationId();
+    }
 
     component.setUnassignedLicenseIds(unassignedLicenseIds);
   }

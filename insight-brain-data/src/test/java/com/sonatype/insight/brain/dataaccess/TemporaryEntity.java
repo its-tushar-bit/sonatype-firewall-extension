@@ -175,6 +175,8 @@ public class TemporaryEntity
 
   private Collection<Label> labels;
 
+  private Collection<LicenseThreatGroup> licenseThreatGroups;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -189,6 +191,7 @@ public class TemporaryEntity
     policyTags = new ArrayList<>();
     tags = new ArrayList<>();
     labels = new ArrayList<>();
+    licenseThreatGroups = new ArrayList<>();
   }
 
   @Override
@@ -260,6 +263,12 @@ public class TemporaryEntity
         tagDAO.delete(tag);
       }
     }
+
+    for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
+      if ((licenseThreatGroup = licenseThreatGroupDAO.getById(licenseThreatGroup.getId())) != null) {
+        licenseThreatGroupDAO.delete(licenseThreatGroup);
+      }
+    }
   }
 
   public String uuid() {
@@ -297,23 +306,19 @@ public class TemporaryEntity
   }
 
   public Organization newOrganization(Organization parentOrg) {
-    return newOrganization("Test Org " + uuid(), parentOrg, true /* createLicenseThreatGroups */);
+    return newOrganization("Test Org " + uuid(), parentOrg);
   }
 
   public Organization newOrganization(String name) {
-    return newOrganization(name, true /* createLicenseThreatGroups */);
+    return newOrganization(name, null /* parentOrg */);
   }
 
-  public Organization newOrganization(String name, boolean createLicenseThreatGroups) {
-    return newOrganization(name, null /* parentOrg */, createLicenseThreatGroups);
-  }
-
-  public Organization newOrganization(String name, Organization parentOrg, boolean createLicenseThreatGroups) {
+  public Organization newOrganization(String name, Organization parentOrg) {
     Organization org = new Organization(name);
     if (parentOrg != null) {
       org.setParentOrganizationId(parentOrg.getId());
     }
-    orgDAO.insert(org, createLicenseThreatGroups);
+    orgDAO.insert(org);
     orgs.add(org);
     return org;
   }
@@ -321,7 +326,7 @@ public class TemporaryEntity
   public Organization newOrganizationWithSpecificId(String id) {
     Organization org = new Organization(uuid());
     org.setId(id);
-    orgDAO.insert(org, true);
+    orgDAO.insert(org);
     orgs.add(org);
     return org;
   }
@@ -533,6 +538,7 @@ public class TemporaryEntity
   public LicenseThreatGroup newLicenseThreatGroup(String ownerId, String name, int threatLevel, String... licenseIds) {
     LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, threatLevel);
     licenseThreatGroupDAO.insert(ltg);
+    licenseThreatGroups.add(ltg);
 
     for (String licenseId : licenseIds) {
       newLicenseThreatGroupLicense(ownerId, ltg.getId(), licenseId);

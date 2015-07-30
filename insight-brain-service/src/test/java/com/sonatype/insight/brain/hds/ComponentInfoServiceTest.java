@@ -31,8 +31,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.model.Application;
@@ -363,17 +361,16 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     // Create an application without LTGs
-    Organization organization = tempEntity
-        .newOrganization("testGetComponentDetailsList", false /* createLicenseThreatGroups */);
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
     String applicationPublicId = "testGetComponentDetailsList";
     Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
     String appId = application.getId();
     // Create license threat groups
     tempEntity.newLicenseThreatGroup(appId, "Group1", 9, "Apache-2.0");
     // Various LTG groups to test case insensitive ordering
-    tempEntity.newLicenseThreatGroup(appId, "groupA", 1, "GPL-2.0");
-    tempEntity.newLicenseThreatGroup(appId, "Groupb", 1, "GPL-2.0");
-    tempEntity.newLicenseThreatGroup(appId, "GroupC", 1, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(appId, "groupA", 10, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(appId, "Groupb", 10, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(appId, "GroupC", 10, "GPL-2.0");
 
     // Create the mocked hds response
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0");
@@ -386,13 +383,19 @@ public class ComponentInfoServiceTest
     Set<License> licenses2 = new LinkedHashSet<>();
     licenses2.add(new License("GPL-2.0", "GPL-2.0"));
     hdsComponentDetails2.setDeclaredLicenses(licenses2);
+    // This should match the default LTG Copyleft from the root organization
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "3.0.0");
+    ComponentDetails hdsComponentDetails3 = newNamedComponentDetails(componentIdentifier3);
+    Set<License> licenses3 = new LinkedHashSet<>();
+    licenses3.add(new License("OSL-1.0", "OSL-1.0"));
+    hdsComponentDetails3.setDeclaredLicenses(licenses3);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails1, hdsComponentDetails2));
+    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(application,
         componentIdentifier1, MatchState.EXACT.getId(), httpRequestMock);
     assertNotNull(componentDetailsList);
-    assertEquals(2, componentDetailsList.getList().size());
+    assertEquals(3, componentDetailsList.getList().size());
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertEquals(componentIdentifier1, componentDetails.getComponentIdentifier());
     assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
@@ -408,7 +411,7 @@ public class ComponentInfoServiceTest
     assertNull(componentDetails.getEffectiveLicenseStatus());
     componentDetails = componentDetailsList.getList().get(1);
     assertEquals(componentIdentifier2, componentDetails.getComponentIdentifier());
-    assertEquals(new Integer(1), componentDetails.getLicenseThreatLevel());
+    assertEquals(new Integer(10), componentDetails.getLicenseThreatLevel());
     assertEquals(3, componentDetails.getLicenseThreatGroupNames().size());
     assertThat(componentDetails.getLicenseThreatGroupNames(), contains("groupA", "Groupb", "GroupC"));
     assertEquals(1, componentDetails.getDeclaredLicenses().size());
@@ -418,6 +421,20 @@ public class ComponentInfoServiceTest
     assertEquals(1, componentDetails.getEffectiveLicenses().size());
     assertEquals("GPL-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
     assertEquals("GPL-2.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
+    assertNull(componentDetails.getEffectiveLicenseStatus());
+    // Test match against default LGT Copyleft from the root organization
+    componentDetails = componentDetailsList.getList().get(2);
+    assertEquals(componentIdentifier3, componentDetails.getComponentIdentifier());
+    assertEquals(new Integer(9), componentDetails.getLicenseThreatLevel());
+    assertEquals(1, componentDetails.getLicenseThreatGroupNames().size());
+    assertThat(componentDetails.getLicenseThreatGroupNames(), contains("Copyleft"));
+    assertEquals(1, componentDetails.getDeclaredLicenses().size());
+    assertEquals("OSL-1.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseName());
+    assertEquals("OSL-1.0", componentDetails.getDeclaredLicenses().iterator().next().getLicenseId());
+    assertEquals(0, componentDetails.getObservedLicenses().size());
+    assertEquals(1, componentDetails.getEffectiveLicenses().size());
+    assertEquals("OSL-1.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseName());
+    assertEquals("OSL-1.0", componentDetails.getEffectiveLicenses().iterator().next().getLicenseId());
     assertNull(componentDetails.getEffectiveLicenseStatus());
   }
 

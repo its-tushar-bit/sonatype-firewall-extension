@@ -46,7 +46,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
 
   @Before
   public void before() {
-    org = tempEntity.newOrganization("LicenseThreatGroupLevelConditionTypeTest", false /* createLicenseThreatGroups */);
+    org = tempEntity.newOrganization("LicenseThreatGroupLevelConditionTypeTest");
     app = tempEntity.newApplication("test", "LicenseThreatGroupLevelConditionTypeTest_AppId", org.getId());
 
     licenseThreatGroup2 = new LicenseThreatGroup(app.getId(), "Level 2", 2);

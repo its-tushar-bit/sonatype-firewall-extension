@@ -20,12 +20,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -44,6 +44,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class LicenseThreatGroupResource
 {
   public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
+
+  private final OwnerDAO ownerDAO = new OwnerDAO();
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
@@ -75,20 +77,11 @@ public class LicenseThreatGroupResource
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     ApplicableLicenseThreatGroups result = new ApplicableLicenseThreatGroups();
-
-    String organizationId;
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application app = new ApplicationDAO().getByIdNotNull(ownerId);
-      result.add(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, loadLicenseThreatGroups(app.getId()));
-      organizationId = app.getOrganizationId();
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
+      result.add(owner.getId(), owner.getName(), owner.getType(), loadLicenseThreatGroups(owner.getId()));
+      ownerId = owner.getParentOrganizationId();
     }
-    else {
-      organizationId = ownerId;
-    }
-
-    Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
-    result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, loadLicenseThreatGroups(org.getId()));
-
     return result;
   }
 

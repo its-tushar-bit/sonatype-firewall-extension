@@ -68,7 +68,7 @@ public class LicenseThreatGroupLicenseResourceTest
 
   @Test
   public void testSetGet_Organization() throws Exception {
-    Organization organization = tempEntity.newOrganization("testSetGet-Organization", false /* createLicenseThreatGroups */);
+    Organization organization = tempEntity.newOrganization("testSetGet-Organization");
     testSetGet("organization", organization.getId(), organization.getId());
   }
 

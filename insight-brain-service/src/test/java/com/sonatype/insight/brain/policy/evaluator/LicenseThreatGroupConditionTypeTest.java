@@ -53,7 +53,7 @@ public class LicenseThreatGroupConditionTypeTest
 
   @Before
   public void before() {
-    org = tempEntity.newOrganization("LicenseThreatGroupConditionTypeTest", false /* createLicenseThreatGroups */);
+    org = tempEntity.newOrganization("LicenseThreatGroupConditionTypeTest");
     app = tempEntity.newApplication("test", "LicenseThreatGroupConditionTypeTest_AppId", org.getId());
 
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId(), "Copyleft", 8);

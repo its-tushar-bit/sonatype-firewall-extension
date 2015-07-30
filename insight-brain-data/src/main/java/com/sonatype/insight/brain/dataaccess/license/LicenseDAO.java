@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -35,6 +36,8 @@ public class LicenseDAO
   private static volatile Map<String, License> licensesById = null;
 
   private static volatile Map<String, License> licensesByName = null;
+
+  private final OwnerDAO ownerDao = new OwnerDAO();
 
   @Override
   public License getById(TransactionContext tx, String id) {
@@ -139,12 +142,12 @@ public class LicenseDAO
   public Integer getLicenseThreatLevelByApplicationAndLicenseId(Application application, String licenseId) {
     final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     Integer threatLevel = null;
-    List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(application.getId(),
-        licenseId);
-    threatLevel = max(threatLevel, licenseThreatGroups);
-
-    licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(application.getOrganizationId(), licenseId);
-    threatLevel = max(threatLevel, licenseThreatGroups);
+    String ownerId = application.getId();
+    while (ownerId != null) {
+      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(ownerId, licenseId);
+      threatLevel = max(threatLevel, licenseThreatGroups);
+      ownerId = ownerDao.getById(ownerId).getParentOrganizationId();
+    }
 
     return threatLevel;
   }

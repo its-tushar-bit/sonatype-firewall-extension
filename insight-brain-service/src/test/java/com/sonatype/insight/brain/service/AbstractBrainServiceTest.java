@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -80,11 +81,15 @@ public abstract class AbstractBrainServiceTest
   // The mock service that would normally talk to HDS for product notifications
   protected static HdsProductNotificationService mockHdsProductNotificationService;
 
+  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+
   @Before
   public void initTest() throws Exception {
     if (!getClass().getMethod(testName.getMethodName()).isAnnotationPresent(ManualServerInit.class)) {
       initServer(null);
     }
+    // Make sure the default LTGs are created
+    licenseThreatGroupDAO.createDefaultLicenseThreatGroups();
   }
 
   protected void initServer(Configurator configurator) throws Exception {
@@ -101,6 +106,9 @@ public abstract class AbstractBrainServiceTest
 
   @After
   public void cleanupTest() throws Exception {
+    // Delete the default LTGs when stopping
+    licenseThreatGroupDAO.deleteDefaultLicenseThreatGroups();
+
     boolean installLicense = false;
     if (savedLicenseFingerprint != null) {
       licenseFingerprinter.setDummyLicenseFingerprint(savedLicenseFingerprint);

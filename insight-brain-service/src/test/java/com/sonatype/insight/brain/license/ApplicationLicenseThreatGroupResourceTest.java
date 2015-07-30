@@ -46,7 +46,7 @@ public class ApplicationLicenseThreatGroupResourceTest
 
   @Test
   public void testGetApplicable() throws Exception {
-    Organization org = tempEntity.newOrganization("orgName", false);
+    Organization org = tempEntity.newOrganization("orgName");
     tempEntity.newLicenseThreatGroup(org.getId(), "LTG-2", 5, "GPL-2.0", "GPL-3.0");
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
     app.setOrganizationId(org.getId());
@@ -54,10 +54,13 @@ public class ApplicationLicenseThreatGroupResourceTest
     tempEntity.newLicenseThreatGroup(app.getId(), "LTG-0", 5, "Apache-2.0");
     tempEntity.newLicenseThreatGroup(app.getId(), "LTG-1", 5, "EPL-1.0");
 
+    Organization parentOrg = orgDAO.getById(org.getParentOrganizationId());
+    tempEntity.newLicenseThreatGroup(parentOrg.getId(), "LTG-3", 5, "GPL-2.0", "GPL-3.0");
+
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(app.getPublicId());
     assertNotNull(altgs);
     assertNotNull(altgs.licenseThreatGroupsByOwner);
-    assertEquals(2, altgs.licenseThreatGroupsByOwner.size());
+    assertEquals(3, altgs.licenseThreatGroupsByOwner.size());
     assertLicenseThreatGroupsByOwner(app.getId(), app.getName(), IdUtils.TYPE_APPLICATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
@@ -65,6 +68,11 @@ public class ApplicationLicenseThreatGroupResourceTest
     }
     assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 1,
         altgs.licenseThreatGroupsByOwner.get(1));
+    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups) {
+      assertThat(ltgwl.licenses, hasSize(2));
+    }
+    assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), IdUtils.TYPE_ORGANIZATION, 5,
+        altgs.licenseThreatGroupsByOwner.get(2));
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(2));
     }

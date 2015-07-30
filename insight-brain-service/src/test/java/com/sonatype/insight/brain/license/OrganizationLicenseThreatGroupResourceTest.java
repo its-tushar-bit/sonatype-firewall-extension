@@ -29,15 +29,15 @@ public class OrganizationLicenseThreatGroupResourceTest
 
   @Test
   public void testDelete_OwnerIdMismatch() throws Exception {
-    Organization organization1 = tempEntity.newOrganization("testDeleteOwnerIdMismatch1", false /* createLicenseThreatGroups */);
-    Organization organization2 = tempEntity.newOrganization("testDeleteOwnerIdMismatch2", false /* createLicenseThreatGroups */);
+    Organization organization1 = tempEntity.newOrganization("testDeleteOwnerIdMismatch1");
+    Organization organization2 = tempEntity.newOrganization("testDeleteOwnerIdMismatch2");
     testDelete_OwnerIdMismatch(organization1.getId(), organization1.getId(), organization2.getId(),
         organization2.getId());
   }
 
   @Test
   public void testDelete_InUseByPolicy() throws Exception {
-    Organization org = tempEntity.newOrganization("test", false);
+    Organization org = tempEntity.newOrganization("test");
     testDelete_InUseByPolicy(org.getId(), org.getId(), org.getId());
   }
 
@@ -49,16 +49,25 @@ public class OrganizationLicenseThreatGroupResourceTest
 
   @Test
   public void testGetApplicable() throws Exception {
-    Organization org = tempEntity.newOrganization("orgName", false);
+    Organization org = tempEntity.newOrganization("orgName");
     tempEntity.newLicenseThreatGroup(org.getId(), "LTG-0", 5, "Apache-2.0");
     tempEntity.newLicenseThreatGroup(org.getId(), "LTG-1", 5, "EPL-1.0");
+
+    Organization parentOrg = orgDAO.getById(org.getParentOrganizationId());
+    tempEntity.newLicenseThreatGroup(parentOrg.getId(), "LTG-3", 5, "GPL-2.0", "GPL-3.0");
 
     ApplicableLicenseThreatGroups altgs = getApplicableLicenseThreatGroups(org.getId());
     assertNotNull(altgs);
     assertNotNull(altgs.licenseThreatGroupsByOwner);
-    assertEquals(1, altgs.licenseThreatGroupsByOwner.size());
+    assertEquals(2, altgs.licenseThreatGroupsByOwner.size());
     assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
+    for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
+      assertThat(ltgwl.licenses, hasSize(1));
+    }
+    // Expect 5 LTGs (4 default + 1 created above)
+    assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), IdUtils.TYPE_ORGANIZATION, 5,
+        altgs.licenseThreatGroupsByOwner.get(1));
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(1));
     }

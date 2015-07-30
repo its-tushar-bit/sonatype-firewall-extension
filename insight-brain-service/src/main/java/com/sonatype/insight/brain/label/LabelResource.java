@@ -24,13 +24,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
@@ -103,43 +101,25 @@ public class LabelResource
   {
     log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
 
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     ApplicableLabels result = new ApplicableLabels();
 
     result.labelsByOwner = new ArrayList<>();
-    String organizationId;
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
-      LabelsByOwner labelsByOwner = new LabelsByOwner();
-      labelsByOwner.ownerId = application.getId();
-      labelsByOwner.ownerName = application.getName();
-      labelsByOwner.ownerType = IdUtils.TYPE_APPLICATION;
-      labelsByOwner.labels = labelDAO.getByOwnerId(application.getId());
-      result.labelsByOwner.add(labelsByOwner);
-      organizationId = application.getOrganizationId();
-    }
-    else {
-      organizationId = internalOwnerId;
-    }
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
 
-    getOrganizationLabels(result, organizationId);
+      LabelsByOwner labelsByOwner = new LabelsByOwner();
+      labelsByOwner.ownerId = owner.getId();
+      labelsByOwner.ownerName = owner.getName();
+      labelsByOwner.ownerType = owner.getType();
+      labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId());
+      result.labelsByOwner.add(labelsByOwner);
+
+      ownerId = owner.getParentOrganizationId();
+    }
 
     return result;
-  }
-
-  private void getOrganizationLabels(final ApplicableLabels applicableLabels, final String organizationId) {
-    Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
-    LabelsByOwner labelsByOwner = new LabelsByOwner();
-    labelsByOwner.ownerId = organization.getId();
-    labelsByOwner.ownerName = organization.getName();
-    labelsByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-    labelsByOwner.labels = labelDAO.getByOwnerId(organization.getId());
-    applicableLabels.labelsByOwner.add(labelsByOwner);
-
-    if (organization.getParentOrganizationId() != null) {
-      getOrganizationLabels(applicableLabels, organization.getParentOrganizationId());
-    }
   }
 
   /**
@@ -286,7 +266,7 @@ public class LabelResource
 
     public String ownerName;
 
-    public String ownerType;
+    public OwnerType ownerType;
 
     public List<Label> labels;
   }

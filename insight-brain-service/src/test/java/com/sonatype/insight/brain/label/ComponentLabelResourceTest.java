@@ -9,9 +9,13 @@ import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.label.ComponentLabelResource.AppliedLabels;
+import com.sonatype.insight.brain.label.ComponentLabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -21,6 +25,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -32,6 +38,8 @@ public class ComponentLabelResourceTest
   private String componentHash = "bababababa";
 
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
+  private Organization org;
 
   private Application app;
 
@@ -45,70 +53,70 @@ public class ComponentLabelResourceTest
 
   @Before
   public void init() throws Exception {
-    app = tempEntity.newApplicationWithParent("test-app", "Test");
+    org = tempEntity.newOrganization();
+    app = tempEntity.newApplication("Test", "test-app", org.getId());
     appLabel = tempEntity.newLabel(app.getId(), "app");
-    orgLabel = tempEntity.newLabel(app.getOrganizationId(), "org");
+    orgLabel = tempEntity.newLabel(org.getId(), "org");
+  }
+
+  private void assertLabelsByOwner(LabelsByOwner labelsByOwner, Owner owner, String labelId) {
+    assertThat(labelsByOwner, is(notNullValue()));
+    assertThat(labelsByOwner.ownerId, is(owner.getPublicId()));
+    assertThat(labelsByOwner.ownerName, is(owner.getName()));
+    assertThat(labelsByOwner.ownerType, is(owner.getType()));
+    assertThat(labelsByOwner.labels, is(notNullValue()));
+    assertThat(labelsByOwner.labels, hasSize(1));
+    assertThat(labelsByOwner.labels.get(0).getId(), is(labelId));
   }
 
   @Test
-  public void testGetComponentLabels_AppLevel() throws Exception {
+  public void testGetComponentLabels() throws Exception {
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Label parentOrgLabel = tempEntity.newLabel(parentOrg.getId(), "parentOrg");
+
+    // No labels applied to componentHash
+    // Verify app level
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = response.getBody(AppliedLabels.class);
-    Assert.assertThat(componentLabels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.size(), is(0));
+    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    // Verify org level
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), componentHash).get();
+    assertResponseStatus(200, response);
+    componentLabels = response.getBody(AppliedLabels.class);
+    assertThat(componentLabels.labelsByOwner, hasSize(0));
+    // Verify parent org level
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), componentHash).get();
+    assertResponseStatus(200, response);
+    componentLabels = response.getBody(AppliedLabels.class);
+    assertThat(componentLabels.labelsByOwner, hasSize(0));
 
+    // Labels applied to componentHash at all levels
     tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
-    tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
+    tempEntity.newComponentLabel(org.getId(), orgLabel.getId(), componentHash);
+    tempEntity.newComponentLabel(parentOrg.getId(), parentOrgLabel.getId(), componentHash);
 
+    // Verify app level
     response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    Assert.assertThat(componentLabels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.size(), is(2));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0), is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).ownerId, is(app.getPublicId()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).ownerName, is("Test"));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).ownerType, is(IdUtils.TYPE_APPLICATION));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).labels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).labels.size(), is(1));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).labels.get(0).getId(), is(appLabel.getId()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1), is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1).ownerId, is(app.getOrganizationId()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1).ownerName, is("Test"));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1).ownerType, is(IdUtils.TYPE_ORGANIZATION));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1).labels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1).labels.size(), is(1));
-    Assert.assertThat(componentLabels.labelsByOwner.get(1).labels.get(0).getId(), is(orgLabel.getId()));
-  }
-
-  @Test
-  public void testGetComponentLabels_OrgLevel() throws Exception {
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).get();
-    assertResponseStatus(200, response);
-    AppliedLabels componentLabels = response.getBody(AppliedLabels.class);
-    Assert.assertThat(componentLabels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.size(), is(0));
-
-    tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
-    tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
-
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).get();
+    assertThat(componentLabels.labelsByOwner, hasSize(3));
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(0), app, appLabel.getId());
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(1), org, orgLabel.getId());
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(2), parentOrg, parentOrgLabel.getId());
+    // Verify org level
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
-    Assert.assertThat(componentLabels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.size(), is(1));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0), is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).ownerId, is(app.getOrganizationId()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).ownerName, is("Test"));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).ownerType, is(IdUtils.TYPE_ORGANIZATION));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).labels, is(notNullValue()));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).labels.size(), is(1));
-    Assert.assertThat(componentLabels.labelsByOwner.get(0).labels.get(0).getId(), is(orgLabel.getId()));
+    assertThat(componentLabels.labelsByOwner, hasSize(2));
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(0), org, orgLabel.getId());
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(1), parentOrg, parentOrgLabel.getId());
+    // Verify parent org level
+    response = restRequest(IdUtils.TYPE_ORGANIZATION, parentOrg.getId(), componentHash).get();
+    assertResponseStatus(200, response);
+    componentLabels = response.getBody(AppliedLabels.class);
+    assertThat(componentLabels.labelsByOwner, hasSize(1));
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(0), parentOrg, parentOrgLabel.getId());
   }
 
   @Test

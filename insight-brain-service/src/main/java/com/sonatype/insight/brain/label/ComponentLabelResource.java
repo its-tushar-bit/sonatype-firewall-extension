@@ -18,12 +18,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -39,6 +38,8 @@ public class ComponentLabelResource
   public static final String SERVICE_PATH = "rest/label/component/{ownerType: application|organization}/{ownerId}/{hash}";
 
   private LabelDAO labelDAO = new LabelDAO();
+
+  private OwnerDAO ownerDAO = new OwnerDAO();
 
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
@@ -59,18 +60,12 @@ public class ComponentLabelResource
 
     AppliedLabels result = new AppliedLabels();
 
-    String organizationId;
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application app = new ApplicationDAO().getByIdNotNull(ownerId);
-      result.add(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION, labelDAO.getByOwnerIdAndHash(app.getId(), hash));
-      organizationId = app.getOrganizationId();
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
+      result.add(owner.getPublicId(), owner.getName(), owner.getType(),
+          labelDAO.getByOwnerIdAndHash(owner.getId(), hash));
+      ownerId = owner.getParentOrganizationId();
     }
-    else {
-      organizationId = ownerId;
-    }
-
-    Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
-    result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, labelDAO.getByOwnerIdAndHash(org.getId(), hash));
 
     return result;
   }
@@ -114,7 +109,7 @@ public class ComponentLabelResource
   }
 
   /**
-   * Enumerates the labels applied to a given component in a way that allows to clients to identify at which point in
+   * Enumerates the labels applied to a given component in a way that allows the clients to identify at which point in
    * the organizational hierarchy the label has been applied.
    * 
    * @since 1.6
@@ -123,7 +118,7 @@ public class ComponentLabelResource
   {
     public List<LabelsByOwner> labelsByOwner = new ArrayList<>();
 
-    void add(String ownerId, String ownerName, String ownerType, List<Label> labels) {
+    void add(String ownerId, String ownerName, OwnerType ownerType, List<Label> labels) {
       if (labels == null || labels.isEmpty()) {
         return;
       }
@@ -151,7 +146,7 @@ public class ComponentLabelResource
 
     public String ownerName;
 
-    public String ownerType;
+    public OwnerType ownerType;
 
     public List<Label> labels;
   }

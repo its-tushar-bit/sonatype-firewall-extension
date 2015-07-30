@@ -150,7 +150,7 @@ public class CreateOwnerTest
 
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
 
-    OwnerTreeView.organizationElements().shouldHaveSize(2);
+    OwnerTreeView.organizationElements().shouldHaveSize(3); // 2 + 1 for root organization
     OwnerTreeView.organizationElements().findBy(text(NAME));
   }
 

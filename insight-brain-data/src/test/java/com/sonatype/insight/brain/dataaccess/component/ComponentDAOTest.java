@@ -26,7 +26,9 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 import org.hamcrest.core.IsCollectionContaining;
+import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -43,6 +45,13 @@ public class ComponentDAOTest
   private LabelDAO labelDAO = new LabelDAO();
 
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
+  @Before
+  public void createLTGs() {
+    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 1, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
+  }
 
   private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId, String source,
       Float severity, SecurityVulnerabilityStatus status)
@@ -117,7 +126,7 @@ public class ComponentDAOTest
     assertEquals(matchedComponent.getObservedLicenseIds(), component.getObservedLicenseIds());
 
     assertTrue(component.getLicenseOverrideIds().isEmpty());
-    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal");
+    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1");
     assertSecurityVulnerabilities(component.getSecurityVulnerabilities(),
         newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
 
@@ -162,12 +171,14 @@ public class ComponentDAOTest
     matchedComponent.setHash(COMP_HASH);
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
+    matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-3.0");
     Component component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
-    assertEquals(component.getDeclaredLicenseIds().toString(), 2, component.getDeclaredLicenseIds().size());
+    assertEquals(component.getDeclaredLicenseIds().toString(), 3, component.getDeclaredLicenseIds().size());
     assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
     assertTrue(component.getDeclaredLicenseIds().contains("GPL-2.0"));
-    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal", "Copyleft");
+    assertTrue(component.getDeclaredLicenseIds().contains("GPL-3.0"));
+    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
   }
 
   @Test
@@ -176,11 +187,13 @@ public class ComponentDAOTest
     matchedComponent.setHash(COMP_HASH);
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
+    matchedComponent.addObservedLicenseId("Apache-2.0-GPL-3.0");
     Component component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
-    assertEquals(component.getObservedLicenseIds().toString(), 2, component.getObservedLicenseIds().size());
+    assertEquals(component.getObservedLicenseIds().toString(), 3, component.getObservedLicenseIds().size());
     assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));
     assertTrue(component.getObservedLicenseIds().contains("GPL-2.0"));
-    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "Liberal", "Copyleft");
+    assertTrue(component.getObservedLicenseIds().contains("GPL-3.0"));
+    assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
   }
 }

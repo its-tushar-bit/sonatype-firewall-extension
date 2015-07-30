@@ -67,9 +67,15 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testCreateDefaultLicenseThreatGroups() throws Exception {
-    List<LicenseThreatGroup> licenseThreatGroups =
-        licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    Assert.assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
+    try {
+      licenseThreatGroupDAO.createDefaultGroups(Organization.ROOT_ORGANIZATION_ID);
+      List<LicenseThreatGroup> licenseThreatGroups =
+          licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
+    }
+    finally {
+      licenseThreatGroupDAO.deleteDefaultLicenseThreatGroups();
+    }
   }
 
   @Test
@@ -345,9 +351,9 @@ public class LicenseThreatGroupDAOTest
   }
 
   private void assertLicenseThreatGroup(String applicationId, String name, int threatLevel, LicenseThreatGroup actual) {
-    Assert.assertEquals(applicationId, actual.getOwnerId());
-    Assert.assertEquals(name, actual.getName());
-    Assert.assertEquals(threatLevel, actual.getThreatLevel());
+    assertEquals(applicationId, actual.getOwnerId());
+    assertEquals(name, actual.getName());
+    assertEquals(threatLevel, actual.getThreatLevel());
   }
 
   @Test

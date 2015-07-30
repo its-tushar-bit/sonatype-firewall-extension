@@ -61,6 +61,10 @@ public class LicenseDAOTest
 
   @Test
   public void testGetLicenseThreatLevelByApplicationAndLicenseId() {
+    tempEntity.newLicenseThreatGroup(applicationId, "My group 1", 0, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "My group 2", 5, "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
+
     LicenseDAO dao = new LicenseDAO();
     Collection<License> licenses = dao.getAll();
 
@@ -70,6 +74,7 @@ public class LicenseDAOTest
     }
 
     assertEquals(Integer.valueOf(0), dao.getLicenseThreatLevelByApplicationAndLicenseId(application, "Apache-2.0"));
-    assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndLicenseId(application, "GPL-2.0"));
+    assertEquals(Integer.valueOf(5), dao.getLicenseThreatLevelByApplicationAndLicenseId(application, "GPL-2.0"));
+    assertEquals(Integer.valueOf(9), dao.getLicenseThreatLevelByApplicationAndLicenseId(application, "GPL-3.0"));
   }
 }

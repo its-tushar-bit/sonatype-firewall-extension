@@ -21,12 +21,13 @@ public class OwnerDAO
   private static OrganizationDAO orgDAO = new OrganizationDAO();
 
   public Owner getById(TransactionContext tx, String id) {
-    Application app = appDAO.getById(tx, id);
-    if (app != null) {
-      return app;
+    // Since on any path in the hierarchy there are more orgs than apps, query for org first.
+    Organization org = orgDAO.getById(tx, id);
+    if (org != null) {
+      return org;
     }
 
-    return new OrganizationDAO().getById(tx, id);
+    return appDAO.getById(tx, id);
   }
 
   public Owner getById(String id) {

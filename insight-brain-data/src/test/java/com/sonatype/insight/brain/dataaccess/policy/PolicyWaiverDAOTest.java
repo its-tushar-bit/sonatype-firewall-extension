@@ -155,25 +155,32 @@ public class PolicyWaiverDAOTest
   @Test
   public void testGetApplicableByOwnerId() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
-    Policy policy1 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest1");
-    Policy policy2 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
+    Policy policyApp = tempEntity.newPolicy(application.getId(), "PolicyWaiverDAOTest1");
+    Policy policyOrg = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
+    Policy policyParentOrg = tempEntity.newPolicy(organization.getParentOrganizationId(), "PolicyWaiverDAOTest3");
 
-    PolicyWaiver policyWaiverOrg = new PolicyWaiver("1", policy1.getId(), organization.getId(), "My comment1");
-    dao.insert(policyWaiverOrg);
-
-    PolicyWaiver policyWaiverApp = new PolicyWaiver("2", policy2.getId(), application.getId(), "My comment2");
-    dao.insert(policyWaiverApp);
+    PolicyWaiver policyWaiverParentOrg = tempEntity.newWaiver("0", policyParentOrg.getId(),
+        organization.getParentOrganizationId());
+    PolicyWaiver policyWaiverOrg = tempEntity.newWaiver("1", policyOrg.getId(), organization.getId());
+    PolicyWaiver policyWaiverApp = tempEntity.newWaiver("2", policyApp.getId(), application.getId());
 
     // Assert for application
     List<PolicyWaiver> policyWaivers = dao.getApplicableByOwnerId(application.getId());
-    assertEquals(2, policyWaivers.size());
-    assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(0));
-    assertPolicyWaiver(policyWaiverApp, policyWaivers.get(1));
+    assertEquals(3, policyWaivers.size());
+    assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
+    assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(1));
+    assertPolicyWaiver(policyWaiverApp, policyWaivers.get(2));
 
     // Assert for organization
     policyWaivers = dao.getApplicableByOwnerId(organization.getId());
+    assertEquals(2, policyWaivers.size());
+    assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
+    assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(1));
+
+    // Assert for parent organization
+    policyWaivers = dao.getApplicableByOwnerId(organization.getParentOrganizationId());
     assertEquals(1, policyWaivers.size());
-    assertPolicyWaiver(policyWaiverOrg, policyWaivers.get(0));
+    assertPolicyWaiver(policyWaiverParentOrg, policyWaivers.get(0));
   }
 
   @Test

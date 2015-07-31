@@ -10,8 +10,8 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -20,6 +20,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class PolicyWaiverDAO
     extends AbstractOperationalSqlDAO<PolicyWaiver>
 {
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
+
   @Override
   protected PolicyWaiver getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
@@ -64,13 +66,19 @@ public class PolicyWaiverDAO
   public List<PolicyWaiver> getApplicableByOwnerId(String ownerId) {
     List<PolicyWaiver> policyWaivers = new ArrayList<>();
 
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getById(ownerId);
-    if (application != null) {
-      policyWaivers.addAll(getByOwnerId(application.getOrganizationId()));
-    }
-    policyWaivers.addAll(getByOwnerId(ownerId));
+    loadByOwnerId(policyWaivers, ownerId);
+
     return policyWaivers;
+  }
+
+  private void loadByOwnerId(List<PolicyWaiver> policyWaivers, String ownerId) {
+    if (ownerId == null) {
+      return;
+    }
+
+    Owner owner = ownerDAO.getById(ownerId);
+    loadByOwnerId(policyWaivers, owner.getParentOrganizationId());
+    policyWaivers.addAll(getByOwnerId(ownerId));
   }
 
   private List<PolicyWaiver> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {

@@ -20,13 +20,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -96,19 +94,12 @@ public class PolicyWaiverResource
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedWaivers result = new AppliedWaivers();
-
-    String organizationId;
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application app = new ApplicationDAO().getByIdNotNull(ownerId);
-      result.add(app.getPublicId(), app.getName(), IdUtils.TYPE_APPLICATION, getAppliedWaivers(app.getId(), hash));
-      organizationId = app.getOrganizationId();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
+      result.add(owner, getAppliedWaivers(owner.getId(), hash));
+      ownerId = owner.getParentOrganizationId();
     }
-    else {
-      organizationId = ownerId;
-    }
-
-    Organization org = new OrganizationDAO().getByIdNotNull(organizationId);
-    result.add(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION, getAppliedWaivers(org.getId(), hash));
 
     return result;
   }
@@ -143,29 +134,36 @@ public class PolicyWaiverResource
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String applicationPublicId,
       @PathParam("policyId") String policyId)
   {
-    PolicyDAO policyDAO = new PolicyDAO();
-    Application application = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId);
-    Policy policy = policyDAO.getByIdNotNull(policyId);
-    if (application.getId().equals(policy.getOwnerId())) {
-      // The policy belongs to the application
-      return new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION);
+    Policy policy = new PolicyDAO().getByIdNotNull(policyId);
+
+    String ownerId = IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId);
+    OwnerDAO ownerDAO = new OwnerDAO();
+    ApplicableContext context = null;
+    boolean foundPolicyInHierarchy = false;
+    while (ownerId != null) {
+      Owner owner = ownerDAO.getById(ownerId);
+
+      ApplicableContext currentContext = new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
+      if (context != null) {
+        currentContext.setChildren(new ArrayList<ApplicableContext>());
+        currentContext.getChildren().add(context);
+      }
+      context = currentContext;
+
+      if (ownerId.equals(policy.getOwnerId())) {
+        // only go as high as the owner of the policy
+        foundPolicyInHierarchy = true;
+        break;
+      }
+      ownerId = owner.getParentOrganizationId();
     }
 
-    if (!application.getOrganizationId().equals(policy.getOwnerId())) {
+    if (!foundPolicyInHierarchy) {
       throw new NotFoundException("Cannot find a policy with ID " + policyId + " for application public ID "
           + applicationPublicId);
     }
 
-    // The policy belongs to an organization
-    Organization organization = new OrganizationDAO().getById(application.getOrganizationId());
-    ApplicableContext result = new ApplicableContext(organization.getId(), organization.getName(),
-        OwnerType.ORGANIZATION);
-    result.setChildren(new ArrayList<ApplicableContext>());
-    // Currently we need only the application specified by the applicationPublicId. In the future we might need to
-    // return all the applications for this organization.
-    result.getChildren().add(
-        new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION));
-    return result;
+    return context;
   }
 
   /**
@@ -176,17 +174,17 @@ public class PolicyWaiverResource
   {
     public List<WaiversByOwner> waiversByOwner = new ArrayList<>();
 
-    void add(String ownerId, String ownerName, String ownerType, List<PolicyWaiverDTO> waivers) {
+    void add(Owner owner, List<PolicyWaiverDTO> waivers) {
       if (waivers == null || waivers.isEmpty()) {
         return;
       }
       for (PolicyWaiver waiver : waivers) {
-        waiver.setOwnerId(ownerId);
+        waiver.setOwnerId(owner.getPublicId());
       }
       WaiversByOwner wbo = new WaiversByOwner();
-      wbo.ownerId = ownerId;
-      wbo.ownerName = ownerName;
-      wbo.ownerType = ownerType;
+      wbo.ownerId = owner.getPublicId();
+      wbo.ownerName = owner.getName();
+      wbo.ownerType = owner.getType();
       wbo.waivers = waivers;
       waiversByOwner.add(wbo);
     }
@@ -204,7 +202,7 @@ public class PolicyWaiverResource
 
     public String ownerName;
 
-    public String ownerType;
+    public OwnerType ownerType;
 
     public List<PolicyWaiverDTO> waivers;
   }

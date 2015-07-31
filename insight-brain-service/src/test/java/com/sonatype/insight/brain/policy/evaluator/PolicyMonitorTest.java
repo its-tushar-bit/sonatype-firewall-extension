@@ -21,11 +21,12 @@ import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -87,11 +88,9 @@ public class PolicyMonitorTest
   public void testApplicationNotMonitoredWhenUnlicensed() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
-
     Stage stage = new Stage(ReleaseStageType.ID);
 
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring(app.getId(), stage.getStageTypeId());
-    new PolicyMonitoringDAO().insert(policyMonitoring);
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
     String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -134,8 +133,7 @@ public class PolicyMonitorTest
     Organization org = tempEntity.newOrganization();
     // Create a monitored app only because the policy monitoring exits fast if nothing is monitored.
     Application monitoredApp = tempEntity.newApplication("MonitoredApp", org.getId());
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring(monitoredApp.getId(), ReleaseStageType.ID);
-    new PolicyMonitoringDAO().insert(policyMonitoring);
+    tempEntity.newPolicyMonitoring(monitoredApp.getId(), ReleaseStageType.ID);
 
     Application notMonitoredApp = tempEntity.newApplication("NotMonitoredApp", org.getId());
     // Seed policy evaluations for all stages. These should be the last evaluations after we run the policy monitoring,
@@ -161,8 +159,7 @@ public class PolicyMonitorTest
   public void testApplicationMonitored_NoScan() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring(app.getId(), ReleaseStageType.ID);
-    new PolicyMonitoringDAO().insert(policyMonitoring);
+    tempEntity.newPolicyMonitoring(app.getId(), ReleaseStageType.ID);
 
     policyMonitor.run();
 
@@ -183,9 +180,15 @@ public class PolicyMonitorTest
     testMonitored(IdUtils.TYPE_ORGANIZATION);
   }
 
+  @Test
+  public void testRootOrganizationMonitored() throws Exception {
+    testMonitored(null);
+  }
+
   private void testMonitored(String monitorOwnerType) throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Owner parentOrg = new OwnerDAO().getParentOwner(org);
 
     Stage stage = new Stage(ReleaseStageType.ID);
 
@@ -193,10 +196,13 @@ public class PolicyMonitorTest
     if (IdUtils.TYPE_APPLICATION.equals(monitorOwnerType)) {
       policyMonitoring = new PolicyMonitoring(app.getId(), stage.getStageTypeId());
     }
-    else {
+    else if (IdUtils.TYPE_ORGANIZATION.equals(monitorOwnerType)) {
       policyMonitoring = new PolicyMonitoring(org.getId(), stage.getStageTypeId());
     }
-    new PolicyMonitoringDAO().insert(policyMonitoring);
+    else {
+      policyMonitoring = new PolicyMonitoring(parentOrg.getId(), stage.getStageTypeId());
+    }
+    tempEntity.newPolicyMonitoring(policyMonitoring);
 
     String licenseFingerprint = "PolicyMonitorTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
@@ -207,11 +213,11 @@ public class PolicyMonitorTest
     String notifyEmail = "developer@sonatype.com";
     String monitorNotifyEmail1 = "monitor1@sonatype.com";
     String monitorNotifyEmail2 = "monitor2@sonatype.com";
-    Policy policy1 = createPolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), "Policy1", stage, notifyEmail,
-        monitorNotifyEmail1);
-    Policy policy2 = createPolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), "Policy2", stage, notifyEmail,
-        monitorNotifyEmail2);
-    Policy policy3 = createPolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), "Policy3", stage, notifyEmail, null /* monitorNotifyEmail */);
+    String monitorNotifyEmail3 = "monitor3@sonatype.com";
+    Policy policy1 = createPolicy(app.getId(), "Policy1", stage, notifyEmail, monitorNotifyEmail1);
+    Policy policy2 = createPolicy(org.getId(), "Policy2", stage, notifyEmail, monitorNotifyEmail2);
+    Policy policy3 = createPolicy(app.getId(), "Policy3", stage, notifyEmail, null /* monitorNotifyEmail */);
+    Policy policy4 = createPolicy(parentOrg.getId(), "Policy4", stage, notifyEmail, monitorNotifyEmail3);
 
     // Create the scan file
     URL testScanFileUrl = getClass().getResource("/PolicyMonitorTest/scan.xml.gz");
@@ -224,9 +230,11 @@ public class PolicyMonitorTest
     List<Message> notificationsDeveloper = Mailbox.get(notifyEmail);
     List<Message> notificationsMonitor1 = Mailbox.get(monitorNotifyEmail1);
     List<Message> notificationsMonitor2 = Mailbox.get(monitorNotifyEmail2);
+    List<Message> notificationsMonitor3 = Mailbox.get(monitorNotifyEmail3);
     notificationsDeveloper.clear();
     notificationsMonitor1.clear();
     notificationsMonitor2.clear();
+    notificationsMonitor3.clear();
 
     // Evaluate the policy. Only the developer should receive a notification.
     evaluatePolicy(app.getPublicId(), scanId, stage);
@@ -234,6 +242,7 @@ public class PolicyMonitorTest
     notificationsDeveloper.clear();
     assertNotifications(notificationsMonitor1, 0, 5000);
     assertNotifications(notificationsMonitor2, 0, 1);
+    assertNotifications(notificationsMonitor3, 0, 1);
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -256,6 +265,7 @@ public class PolicyMonitorTest
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 1);
     assertNotifications(notificationsMonitor2, 0, 1);
+    assertNotifications(notificationsMonitor3, 0, 1);
 
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
@@ -273,6 +283,7 @@ public class PolicyMonitorTest
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 1);
     assertNotifications(notificationsMonitor2, 0, 1);
+    assertNotifications(notificationsMonitor3, 0, 1);
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
     policy1.setName(policy1.getName() + "Updated");
@@ -295,6 +306,7 @@ public class PolicyMonitorTest
     assertNotifications(notificationsMonitor1, 1, 5000);
     notificationsMonitor1.clear();
     assertNotifications(notificationsMonitor2, 0, 5000);
+    assertNotifications(notificationsMonitor3, 0, 5000);
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setName(policy2.getName() + "Updated");
@@ -316,13 +328,38 @@ public class PolicyMonitorTest
     assertNotifications(notificationsDeveloper, 0, 5000);
     assertNotifications(notificationsMonitor1, 0, 5000);
     assertNotifications(notificationsMonitor2, 1, 5000);
+    assertNotifications(notificationsMonitor3, 0, 5000);
     notificationsMonitor2.clear();
+
+    // Modify policy4 and run the monitor again. Only the forth monitor email should receive a notification
+    policy4.setName(policy4.getName() + "Updated");
+    updatePolicy(IdUtils.TYPE_ORGANIZATION, parentOrg.getId(), policy4);
+    policyMonitor.run();
+    PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
+        stage.getStageTypeId());
+    assertThat(policyEvaluation6.getId(), not(is(policyEvaluation5.getId())));
+    assertThat(policyEvaluation6.getTime(), is(greaterThan(policyEvaluation5.getTime())));
+    for (PolicyViolation policyViolation : policyViolationDAO.getActiveByEvaluationId(policyEvaluation6.getId())) {
+      assertThat(policyViolation.getActionTypeId(), is(nullValue()));
+      if (policyViolation.getPolicyId().equals(policy4.getId())) {
+        assertThat(policyViolation.getNotificationsString(), is(monitorNotifyEmail3));
+      }
+      else {
+        assertThat(policyViolation.getNotificationsString(), is(nullValue()));
+      }
+    }
+    assertNotifications(notificationsDeveloper, 0, 5000);
+    assertNotifications(notificationsMonitor1, 0, 5000);
+    assertNotifications(notificationsMonitor2, 0, 5000);
+    assertNotifications(notificationsMonitor3, 1, 5000);
+    notificationsMonitor3.clear();
   }
 
-  private Policy createPolicy(String ownerType, String ownerId, String policyName, Stage stage, String notifyEmail,
+  private Policy createPolicy(String ownerId, String policyName, Stage stage, String notifyEmail,
       String monitorNotifyEmail) throws Exception
   {
     Policy policy = new Policy(null /* id */, policyName);
+    policy.setOwnerId(ownerId);
     policy.setThreatLevel(8);
     Constraint constraint = new Constraint(null /* id */, "Constraint", LogicalOperator.AND);
     Condition condition = new Condition(SecurityVulnerabilityConditionType.ID, "present");
@@ -337,7 +374,9 @@ public class PolicyMonitorTest
       monitorNotifyAction.setTarget(monitorNotifyEmail);
       policy.addMonitorNotifyAction(monitorNotifyAction);
     }
-    return addPolicy(ownerType, ownerId, policy);
+
+
+    return tempEntity.newPolicy(policy);
   }
 
   private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage)
@@ -349,13 +388,6 @@ public class PolicyMonitorTest
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));
     return policyEval;
-  }
-
-  private Policy addPolicy(String ownerType, String ownerId, Policy policy) throws Exception {
-    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
-        .post();
-    assertResponseStatus(200, response);
-    return response.getBody(Policy.class);
   }
 
   private Policy updatePolicy(String ownerType, String ownerId, Policy policy) throws Exception {

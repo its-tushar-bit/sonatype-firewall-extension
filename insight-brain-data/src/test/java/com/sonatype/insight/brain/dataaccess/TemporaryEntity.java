@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.dataaccess.policy.FirstOccurrencePolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
@@ -67,6 +68,7 @@ import com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -151,6 +153,8 @@ public class TemporaryEntity
   private final UserViewedProductNotificationDAO userViewedNotificationMappingDAO =
       new UserViewedProductNotificationDAO();
 
+  private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -177,6 +181,8 @@ public class TemporaryEntity
 
   private Collection<LicenseThreatGroup> licenseThreatGroups;
 
+  private Collection<PolicyMonitoring> policyMonitorings;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -192,6 +198,7 @@ public class TemporaryEntity
     tags = new ArrayList<>();
     labels = new ArrayList<>();
     licenseThreatGroups = new ArrayList<>();
+    policyMonitorings = new ArrayList<>();
   }
 
   @Override
@@ -267,6 +274,12 @@ public class TemporaryEntity
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroups) {
       if ((licenseThreatGroup = licenseThreatGroupDAO.getById(licenseThreatGroup.getId())) != null) {
         licenseThreatGroupDAO.delete(licenseThreatGroup);
+      }
+    }
+
+    for (PolicyMonitoring policyMonitoring : policyMonitorings) {
+      if ((policyMonitoring = policyMonitoringDAO.getById(policyMonitoring.getId())) != null) {
+        policyMonitoringDAO.delete(policyMonitoring);
       }
     }
   }
@@ -899,5 +912,16 @@ public class TemporaryEntity
     userViewedNotificationMappingDAO.insert(userViewedNotificationMapping);
     userViewedNotificationMappings.add(userViewedNotificationMapping);
     return userViewedNotificationMapping;
+  }
+
+  public PolicyMonitoring newPolicyMonitoring(String ownerId, String stageTypeId) {
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerId, stageTypeId);
+    return newPolicyMonitoring(policyMonitoring);
+  }
+
+  public PolicyMonitoring newPolicyMonitoring(PolicyMonitoring policyMonitoring) {
+    policyMonitoringDAO.insert(policyMonitoring);
+    policyMonitorings.add(policyMonitoring);
+    return policyMonitoring;
   }
 }

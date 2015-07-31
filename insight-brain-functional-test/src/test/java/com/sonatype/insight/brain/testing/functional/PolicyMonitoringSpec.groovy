@@ -59,7 +59,7 @@ class PolicyMonitoringSpec
 
     then:
       waitFor { policyMonitoring.form.displayed }
-      waitFor { policyMonitoring.selectedOptionText == 'Build (inherited from parent)' }
+      waitFor { policyMonitoring.selectedOptionText == 'Build (inherited from PolicyMonitoring)' }
   }
 
   def "We can then override the monitoring stage on the app"() {

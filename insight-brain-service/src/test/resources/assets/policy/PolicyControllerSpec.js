@@ -157,7 +157,7 @@ describe('PolicyController tests', function() {
   describe('Policy Monitoring', function() {
 
     it('Handles inherited Org policy monitoring properly', function(){
-      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from parent)");
+      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from Dummy Org)");
     });
 
     it('Can save policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {

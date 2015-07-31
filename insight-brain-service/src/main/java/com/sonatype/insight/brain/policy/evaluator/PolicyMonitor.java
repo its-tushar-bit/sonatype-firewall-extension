@@ -17,10 +17,12 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
@@ -80,14 +82,22 @@ public class PolicyMonitor
       policyMonitoringsByOwnerId.put(policyMonitoring.getOwnerId(), policyMonitoring);
     }
 
+    OwnerDAO ownerDAO = new OwnerDAO();
     List<Application> apps = new ApplicationDAO().getAll();
     for (Application app : apps) {
-      PolicyMonitoring policyMonitoring = policyMonitoringsByOwnerId.get(app.getId());
-      if (policyMonitoring == null) {
-        policyMonitoring = policyMonitoringsByOwnerId.get(app.getOrganizationId());
-        if (policyMonitoring == null) {
-          continue;
+      PolicyMonitoring policyMonitoring = null;
+      Owner owner = app;
+      while (owner != null) {
+        policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
+        if (policyMonitoring != null) {
+          break;
         }
+
+        owner = ownerDAO.getParentOwner(owner);
+      }
+
+      if (policyMonitoring == null) {
+        continue;
       }
 
       try {

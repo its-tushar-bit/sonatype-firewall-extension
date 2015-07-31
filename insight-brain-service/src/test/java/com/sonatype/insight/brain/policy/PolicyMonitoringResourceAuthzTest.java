@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -70,6 +69,6 @@ public class PolicyMonitoringResourceAuthzTest
 
   private void createPolicyMonitoring(String ownerid) {
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerid, Stage.ID_RELEASE);
-    new PolicyMonitoringDAO().insert(policyMonitoring);
+    tempEntity.newPolicyMonitoring(policyMonitoring);
   }
 }

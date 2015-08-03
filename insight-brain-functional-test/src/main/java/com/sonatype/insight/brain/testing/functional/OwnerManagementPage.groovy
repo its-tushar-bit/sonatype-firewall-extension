@@ -57,15 +57,17 @@ class OwnerTreeViewModule
 {
   static content = {
     ownerFilter { $('.tree-view-filter input') }
+    rootOrganization(required: false) { module RootOrganizationNode, $('.tree-view-root-organization-group') }
     organizations(required: false) { moduleList OrganizationNode, $('.tree-view-organization-group') }
-    newOrganizationButton { $('.tree-view-new-organization button') }
     organization(required: false, to: OrganizationPage) {
       name -> organizations.find { it.getName() == name }
     }
   }
 
   def createOrganization(name = OwnerManagementPage.defaultOrganizationName) {
-    newOrganizationButton.click()
+    rootOrganization.treeViewElement.click()
+    waitFor{ rootOrganization.newOrganizationButton.displayed }
+    rootOrganization.newOrganizationButton.click()
     browser.with {
       OrganizationPage organizationPage = at(OrganizationPage)
       organizationPage.editOrg(name)
@@ -73,13 +75,28 @@ class OwnerTreeViewModule
   }
 
   def createOrgWithDefaultPolicy(name = OwnerManagementPage.defaultOrganizationName, File file = ImportPolicyModule.samplePolicyFile) {
-    newOrganizationButton.click()
+    rootOrganization.treeViewElement.click()
+    waitFor{ rootOrganization.newOrganizationButton.displayed }
+    rootOrganization.newOrganizationButton.click()
     browser.with {
       OrganizationPage organizationPage = at(OrganizationPage)
       organizationPage.editOrg(name)
       waitFor { organizationPage.policies.displayed }
       organizationPage.policyImport.importPolicy(file)
     }
+  }
+}
+
+class RootOrganizationNode
+    extends Module
+{
+  static content = {
+    treeViewElement { $('.tree-view-item') }
+    newOrganizationButton { $('.tree-view-new-organization button') }
+  }
+
+  def getName() {
+    return treeViewElement.text().replace('\nNew Organization', '')
   }
 }
 

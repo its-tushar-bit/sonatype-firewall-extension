@@ -78,7 +78,8 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
         ("sonatype-icons","policy",'\e60d'),
         ("sonatype-icons","policy-threat-level",'\e611'),
         ("sonatype-icons","tag", '\e60c'),
-        ("sonatype-glyphicons","stage-type", '\e083');
+        ("sonatype-glyphicons","stage-type", '\e083'),
+        ("sonatype-glyphicons","root-org", '\e341');;
 
 @each $icon in $icon-map {
   .#{nth($icon,1)}.#{nth($icon,2)}:before {

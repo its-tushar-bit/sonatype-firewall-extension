@@ -6,12 +6,6 @@
         Organizations and Applications
       </div>
       <div load-wrapper="error" loading="!organizations" reload="doLoad()">
-        <div class="tree-view-new-organization">
-          <button class="btn" ui-sref="management.organization({organizationId: '_new_'})">
-            <i class="icon-plus"></i>
-            New Organization
-          </button>
-        </div>
         <div class="tree-view-filter search input-prepend">
             <span class="add-on">
               <i role="button" class="fa fa-filter"
@@ -23,6 +17,23 @@
         <h4 ng-if="filter.value && filter.value.length >= 3">
           Filter Results
         </h4>
+        <div ng-if="rootOrganization" class="tree-view-root-organization-group">
+          <a class="tree-view-item"
+             ng-class="{ selected : $state.includes('management.organization', {organizationId: rootOrganization.id}) }"
+             ui-sref="management.organization.policies({organizationId: rootOrganization.id})">
+            <i class="sonatype-glyphicons root-org tree-view-icon"></i>
+            {{rootOrganization.name}}
+            <div class="tree-view-new-organization"
+                 ng-class="{ hide : !$state.includes('management.organization', {organizationId: rootOrganization.id}) }">
+              <button class="btn" ng-click="$event.preventDefault();
+                                  $event.stopPropagation();
+                                  $state.go('management.organization', {organizationId: '_new_'});">
+                <i class="icon-plus"></i>
+                New Organization
+              </button>
+            </div>
+          </a>
+        </div>
         <div class="tree-view-organization-group"
              ng-repeat="organization in organizations | orderBy:'name'"
              ng-if="organization.isVisible">

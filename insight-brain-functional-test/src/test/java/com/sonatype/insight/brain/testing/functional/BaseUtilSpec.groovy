@@ -36,10 +36,10 @@ class BaseUtilSpec
   def "We can highlight an element on the page"() {
     when:
       addHtmlToPage(functionalTestingSupport, testName.methodName)
-    highlightElement(ownerTreeView.newOrganizationButton)
+    highlightElement(ownerTreeView.rootOrganization.newOrganizationButton)
 
     then:
-    ownerTreeView.newOrganizationButton.firstElement().getCssValue('border').matches('2px solid (red|rgb.*)')
+    ownerTreeView.rootOrganization.newOrganizationButton.firstElement().getCssValue('border').matches('2px solid (red|rgb.*)')
       report 'text on page2'
   }
 

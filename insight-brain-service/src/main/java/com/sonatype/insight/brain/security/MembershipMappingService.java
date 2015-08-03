@@ -16,10 +16,11 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -47,16 +48,19 @@ public class MembershipMappingService
 
   private final MembershipMappingDAO memberMapDAO;
 
+  private final OwnerDAO ownerDAO;
+
   private final UserDirectory userDirectory;
 
   @Inject
   public MembershipMappingService(final ApplicationDAO appDAO, OrganizationDAO orgDAO, final RoleDAO roleDAO,
-      final MembershipMappingDAO memberMapDAO, UserDirectory userDirectory)
+      final MembershipMappingDAO memberMapDAO, final OwnerDAO ownerDAO, UserDirectory userDirectory)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.roleDAO = roleDAO;
     this.memberMapDAO = memberMapDAO;
+    this.ownerDAO = ownerDAO;
     this.userDirectory = userDirectory;
   }
 
@@ -108,27 +112,14 @@ public class MembershipMappingService
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
     }
 
-    String organizationId = null;
-    // Add app members
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application app = appDAO.getByIdNotNull(internalOwnerId);
-      for (Map.Entry<String, MembersByOwner> entry : loadMembers(app.getId(), app.getName(),
-          IdUtils.TYPE_APPLICATION, memberAttributeResolver, roles).entrySet()) {
-        entry.getValue().ownerId = app.getPublicId();
-        membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
-      }
-      organizationId = app.getOrganizationId();
-    }
-    else {
-        organizationId = internalOwnerId;
-    }
-    // Add org members
-    if (organizationId != null) {
-      final Organization org = orgDAO.getByIdNotNull(organizationId);
-      for (Map.Entry<String, MembersByOwner> entry : loadMembers(org.getId(), org.getName(), IdUtils.TYPE_ORGANIZATION,
+    while (internalOwnerId != null) {
+      Owner owner = ownerDAO.getById(internalOwnerId);
+      for (Map.Entry<String, MembersByOwner> entry : loadMembers(owner.getId(), owner.getName(), owner.getType(),
           memberAttributeResolver, roles).entrySet()) {
+        entry.getValue().ownerId = owner.getPublicId();
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
+      internalOwnerId = owner.getParentOrganizationId();
     }
   }
 
@@ -137,7 +128,7 @@ public class MembershipMappingService
       Map<String, MembersByRole> membersByRoleByRoleId)
   {
     for (Map.Entry<String, MembersByOwner> entry : loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
-        MembershipMapping.GLOBAL_CONTEXT_NAME, IdUtils.TYPE_GLOBAL, memberAttributeResolver, roles).entrySet()) {
+        MembershipMapping.GLOBAL_CONTEXT_NAME, OwnerType.GLOBAL, memberAttributeResolver, roles).entrySet()) {
       membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
     }
   }
@@ -244,8 +235,8 @@ public class MembershipMappingService
     }
   }
 
-  private Map<String, MembersByOwner> loadMembers(final String ownerId, final String ownerName, final String ownerType,
-      final MemberAttributeResolver memberAttributeResolver, final List<Role> roles)
+  private Map<String, MembersByOwner> loadMembers(final String ownerId, final String ownerName,
+      final OwnerType ownerType, final MemberAttributeResolver memberAttributeResolver, final List<Role> roles)
   {
     final Map<String, MembersByOwner> byRole = new LinkedHashMap<>();
     for (final MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {

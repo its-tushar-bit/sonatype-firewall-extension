@@ -8,20 +8,22 @@ package com.sonatype.insight.brain.security;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.model.OwnerType;
+
 public class MembersByOwner
 {
   public String ownerId;
 
   public String ownerName;
 
-  public String ownerType;
+  public OwnerType ownerType;
 
   public List<Member> members = new ArrayList<>();
 
   public MembersByOwner() {
   }
 
-  public MembersByOwner(String ownerId, String ownerName, String ownerType) {
+  public MembersByOwner(String ownerId, String ownerName, OwnerType ownerType) {
     this.ownerId = ownerId;
     this.ownerName = ownerName;
     this.ownerType = ownerType;

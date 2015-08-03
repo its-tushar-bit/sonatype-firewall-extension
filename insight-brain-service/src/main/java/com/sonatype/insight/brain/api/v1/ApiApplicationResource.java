@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.api.v1.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.api.v1.service.ApiApplicationService;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
@@ -135,7 +136,7 @@ public class ApiApplicationResource
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         IdUtils.TYPE_APPLICATION, applicationId);
-    return apiMemberMappingAdapter.convert(mappings, IdUtils.TYPE_APPLICATION);
+    return apiMemberMappingAdapter.convert(mappings, OwnerType.APPLICATION);
   }
 
   @PUT

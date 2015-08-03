@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -12,10 +13,14 @@ import java.util.List;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -45,7 +50,15 @@ public class MembershipMappingResourceTest
 
   private User userB;
 
+  private User userC;
+
   private RoleDAO roleDAO = new RoleDAO();
+
+  private OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private UserDAO userDAO = new UserDAO();
+
+  private User adminUser;
 
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
@@ -74,6 +87,8 @@ public class MembershipMappingResourceTest
     app = tempEntity.newApplication("test-app", "test-app", org.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
     userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");
+    userC = tempEntity.newUser("user-c", "John", "Smith", "void@void.com");
+    adminUser = userDAO.getByUsername(User.ADMIN_USERNAME);
   }
 
   @Test
@@ -94,15 +109,19 @@ public class MembershipMappingResourceTest
       assertThat(membersByRole.roleName, is(role.getName()));
       assertThat(membersByRole.roleDescription, is(role.getDescription()));
       assertThat(membersByRole.membersByOwner, is(notNullValue()));
-      assertThat(membersByRole.membersByOwner.size(), is(2));
+      assertThat(membersByRole.membersByOwner.size(), is(3));
       assertThat(membersByRole.membersByOwner.get(0).ownerId, is(app.getPublicId()));
       assertThat(membersByRole.membersByOwner.get(0).members, is(notNullValue()));
       assertThat(membersByRole.membersByOwner.get(1).ownerId, is(org.getId()));
+      assertThat(membersByRole.membersByOwner.get(2).ownerId, is(org.getParentOrganizationId()));
     }
 
     // Create
     response = put(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), appRoles.get(0).getId(),
         newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), appRoles.get(0).getId(),
+        newMember(MemberType.USER, userC.getUsername()));
     assertResponseStatus(204, response);
 
     // Read for created data
@@ -117,15 +136,14 @@ public class MembershipMappingResourceTest
     MembersByRole membersByRole = applicable.membersByRole.get(0);
     assertThat(membersByRole.roleId, is(appRoles.get(0).getId()));
     assertThat(membersByRole.membersByOwner, is(notNullValue()));
-    assertThat(membersByRole.membersByOwner, hasSize(1));
+    assertThat(membersByRole.membersByOwner, hasSize(2));
     MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
-    assertThat(membersByOwner.ownerId, is(org.getId()));
-    assertThat(membersByOwner.ownerName, is(org.getName()));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
-        userB.getEmail(), "CLM");
+    assertMembersByOwner(membersByOwner, org, getMembersForUsers(userB));
+
+    // Check the parent org
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
+    membersByOwner = membersByRole.membersByOwner.get(1);
+    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
 
     // Update
     response = put(IdUtils.TYPE_APPLICATION, app.getPublicId(), appRoles.get(0).getId(),
@@ -146,44 +164,29 @@ public class MembershipMappingResourceTest
     membersByRole = applicable.membersByRole.get(0);
     assertThat(membersByRole.roleId, is(appRoles.get(0).getId()));
     assertThat(membersByRole.membersByOwner, is(notNullValue()));
-    assertThat(membersByRole.membersByOwner, hasSize(2));
+    assertThat(membersByRole.membersByOwner, hasSize(3));
+
     membersByOwner = membersByRole.membersByOwner.get(0);
-    assertThat(membersByOwner.ownerId, is(app.getPublicId()));
-    assertThat(membersByOwner.ownerName, is(app.getName()));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_APPLICATION));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userA.getUsername(), userA.calculateDisplayName(),
-        userA.getEmail(), "CLM");
+    assertMembersByOwner(membersByOwner, app, getMembersForUsers(userA));
 
     membersByOwner = membersByRole.membersByOwner.get(1);
-    assertThat(membersByOwner.ownerId, is(org.getId()));
-    assertThat(membersByOwner.ownerName, is(org.getName()));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
-        userB.getEmail(), "CLM");
+    assertMembersByOwner(membersByOwner, org, getMembersForUsers(userB));
+
+    membersByOwner = membersByRole.membersByOwner.get(2);
+    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
 
     membersByRole = applicable.membersByRole.get(1);
     assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
     assertThat(membersByRole.membersByOwner, is(notNullValue()));
-    assertThat(membersByRole.membersByOwner, hasSize(2));
+    assertThat(membersByRole.membersByOwner, hasSize(3));
     membersByOwner = membersByRole.membersByOwner.get(0);
-    assertThat(membersByOwner.ownerId, is(app.getPublicId()));
-    assertThat(membersByOwner.ownerName, is(app.getName()));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_APPLICATION));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
-        userB.getEmail(), "CLM");
+    assertMembersByOwner(membersByOwner, app, getMembersForUsers(userB));
 
     membersByOwner = membersByRole.membersByOwner.get(1);
-    assertThat(membersByOwner.ownerId, is(org.getId()));
-    assertThat(membersByOwner.ownerName, is(org.getName()));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_ORGANIZATION));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(0));
+    assertMembersByOwner(membersByOwner, org, getMembersForUsers());
+
+    membersByOwner = membersByRole.membersByOwner.get(2);
+    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers());
   }
 
   @Test
@@ -221,7 +224,7 @@ public class MembershipMappingResourceTest
     MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
     assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
     assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
+    assertThat(membersByOwner.ownerType, is(OwnerType.GLOBAL));
     assertThat(membersByOwner.members, is(notNullValue()));
     assertThat(membersByOwner.members, hasSize(3));
 
@@ -265,15 +268,8 @@ public class MembershipMappingResourceTest
     MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
     assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
     assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(2));
-
-    Collections.sort(membersByOwner.members, new MemberComparator());
-    assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
-        "admin@localhost", "CLM");
-    assertMember(membersByOwner.members.get(1), MemberType.USER, userB.getUsername(), userB.calculateDisplayName(),
-        userB.getEmail(), "CLM");
+    assertThat(membersByOwner.ownerType, is(OwnerType.GLOBAL));
+    assertMembers(membersByOwner.members, getMembersForUsers(adminUser, userB));
 
     // Update
     response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId(),
@@ -295,11 +291,8 @@ public class MembershipMappingResourceTest
     membersByOwner = membersByRole.membersByOwner.get(0);
     assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
     assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
-    assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
-    assertThat(membersByOwner.members, is(notNullValue()));
-    assertThat(membersByOwner.members, hasSize(1));
-    assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
-        "admin@localhost", "CLM");
+    assertThat(membersByOwner.ownerType, is(OwnerType.GLOBAL));
+    assertMembers(membersByOwner.members, getMembersForUsers(adminUser));
 
     // Reset Initial State
     response = put(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roles.get(0).getId(),
@@ -326,11 +319,8 @@ public class MembershipMappingResourceTest
       MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
       assertThat(membersByOwner.ownerId, is(MembershipMapping.GLOBAL_CONTEXT_ID));
       assertThat(membersByOwner.ownerName, is(MembershipMapping.GLOBAL_CONTEXT_NAME));
-      assertThat(membersByOwner.ownerType, is(IdUtils.TYPE_GLOBAL));
-      assertThat(membersByOwner.members, is(notNullValue()));
-      assertThat(membersByOwner.members, hasSize(1));
-      assertMember(membersByOwner.members.get(0), MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn",
-          "admin@localhost", "CLM");
+      assertThat(membersByOwner.ownerType, is(OwnerType.GLOBAL));
+      assertMembers(membersByOwner.members, getMembersForUsers(adminUser));
     }
 
     return roles;
@@ -345,6 +335,38 @@ public class MembershipMappingResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("There must be at least one user in the System Administrator role."));
   }
+
+  private List<Member> getMembersForUsers(final User... users) {
+    List<Member> members = new ArrayList<>();
+    for (User user : users) {
+      members.add(new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(), "CLM"));
+    }
+    return members;
+  }
+
+  private void assertMembersByOwner(final MembersByOwner membersByOwner, final Owner expectedOwner,
+      final List<Member> expectedMembers) {
+    assertThat(membersByOwner.ownerId, is(expectedOwner.getPublicId()));
+    assertThat(membersByOwner.ownerName, is(expectedOwner.getName()));
+    assertThat(membersByOwner.ownerType, is(expectedOwner.getType()));
+
+    assertMembers(membersByOwner.members, expectedMembers);
+  }
+
+  private void assertMembers(final List<Member> members, final List<Member> expectedMembers) {
+    assertThat(members, hasSize(expectedMembers.size()));
+
+    Collections.sort(members, new MemberComparator());
+    Collections.sort(expectedMembers, new MemberComparator());
+
+    for (int i = 0; i < expectedMembers.size(); i++) {
+      Member expectedMember = expectedMembers.get(i);
+      Member member = members.get(i);
+      assertMember(member, expectedMember.getType(), expectedMember.getInternalName(), expectedMember.getDisplayName(),
+          expectedMember.getEmail(), expectedMember.getRealm());
+    }
+  }
+
 
   private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,
       String realm)

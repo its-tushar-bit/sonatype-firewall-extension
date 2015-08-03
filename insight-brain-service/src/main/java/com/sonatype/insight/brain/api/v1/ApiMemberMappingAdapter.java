@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.api.v1.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembersByOwner;
@@ -26,7 +27,7 @@ import com.sonatype.insight.brain.security.MembersByRole;
 @Named
 public class ApiMemberMappingAdapter
 {
-  public ApiRoleMemberMappingListDTO convert(final ApplicableMembershipMappings mappings, final String ownerType) {
+  public ApiRoleMemberMappingListDTO convert(final ApplicableMembershipMappings mappings, final OwnerType ownerType) {
     final List<ApiRoleMemberMappingDTO> roleMemberMappingDTOs = new ArrayList<>();
     for (final MembersByRole membersByRole : mappings.membersByRole) {
       final ApiRoleMemberMappingDTO roleMemberMappingDTO = new ApiRoleMemberMappingDTO();

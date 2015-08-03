@@ -9,16 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.api.v1.ApiMemberMappingAdapter;
 import com.sonatype.insight.brain.api.v1.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiRoleMemberMappingListDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembersByOwner;
 import com.sonatype.insight.brain.security.MembersByRole;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Test;
 
@@ -44,7 +43,7 @@ public class ApiMemberMappingAdapterTest
 
   @Test
   public void testConvertToDTOForApplication() {
-    final String ownerType = IdUtils.TYPE_APPLICATION;
+    final OwnerType ownerType = OwnerType.APPLICATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
     final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter.convert(mappings,
@@ -55,7 +54,7 @@ public class ApiMemberMappingAdapterTest
 
   @Test
   public void testConvertToDTOForOrganization() {
-    final String ownerType = IdUtils.TYPE_ORGANIZATION;
+    final OwnerType ownerType = OwnerType.ORGANIZATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
     final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter.convert(mappings,
@@ -106,7 +105,7 @@ public class ApiMemberMappingAdapterTest
     assertThat(memberDTO.userOrGroupName, is(testUserName));
   }
 
-  private ApplicableMembershipMappings createApplicableMembershipMappings(final String ownerType) {
+  private ApplicableMembershipMappings createApplicableMembershipMappings(final OwnerType ownerType) {
     final ApplicableMembershipMappings mappings = new ApplicableMembershipMappings();
     mappings.membersByRole = new ArrayList<>();
     final MembersByRole membersByRole = new MembersByRole();

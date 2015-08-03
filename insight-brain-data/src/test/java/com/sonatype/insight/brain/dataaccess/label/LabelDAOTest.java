@@ -520,7 +520,7 @@ public class LabelDAOTest
     tempEntity.newLabel(org2.getId(), "MyLabel");
 
     Label label4 = new Label();
-    label4.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    label4.setOwnerId(org1.getParentOrganizationId());
     label4.setLabel("MyLabel");
     label4.setColor(Color.blue);
     try {
@@ -539,12 +539,10 @@ public class LabelDAOTest
   public void testDuplicateLabelInOrganizationUpHierarchy() throws Exception {
     LabelDAO labelDAO = new LabelDAO();
 
-    tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "MyLabel");
-
-    Organization org1 = tempEntity.newOrganization("org1");
+    tempEntity.newLabel(organization.getParentOrganizationId(), "MyLabel");
 
     Label label2 = new Label();
-    label2.setOwnerId(org1.getId());
+    label2.setOwnerId(organization.getId());
     label2.setLabel("MyLabel");
     label2.setColor(Color.blue);
     try {
@@ -562,7 +560,7 @@ public class LabelDAOTest
   public void testGetByOwnerId_inheritedLabels() {
     LabelDAO labelDAO = new LabelDAO();
 
-    Label label1 = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "root-org-label");
+    Label label1 = tempEntity.newLabel(organization.getParentOrganizationId(), "parent-org-label");
     Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
     Label label3 = tempEntity.newLabel(applicationId, "app-label");
 

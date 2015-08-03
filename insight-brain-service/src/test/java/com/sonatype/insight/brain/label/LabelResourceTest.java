@@ -12,12 +12,14 @@ import java.util.Locale;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -339,13 +341,11 @@ public class LabelResourceTest
   @Test
   public void testGetApplicableLabels() throws Exception {
     // Create an organization and an application
-    String orgName = "testGetApplicableLabelsOrg";
-    Organization organization = tempEntity.newOrganization(orgName);
-    String orgId = organization.getId();
-    String appName = "testGetApplicableLabelsApp";
+    Organization org = tempEntity.newOrganization("testGetApplicableLabelsOrg");
+    String orgId = org.getId();
     String appPublicId = "testGetApplicableLabelsApp";
-    Application app = super.tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
-    String appId = app.getId();
+    Application app = tempEntity.newApplication(appPublicId, appPublicId, org.getId());
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
 
     // Verify the applicable labels for the application
     HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
@@ -354,10 +354,9 @@ public class LabelResourceTest
     Assert.assertNotNull(applicableLabels);
     // One for the application, one for it's org and one for the root org
     Assert.assertEquals(3, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(appId, appName, OwnerType.APPLICATION, 0, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicableLabels.labelsByOwner.get(1));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 0,
-        applicableLabels.labelsByOwner.get(2));
+    assertLabelsByOwner(app, 0, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(org, 0, applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
 
     // Verify the applicable labels for the organization
     response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
@@ -366,9 +365,8 @@ public class LabelResourceTest
     Assert.assertNotNull(applicableLabels);
     // One the org and one for the root org
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 0,
-        applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(org, 0, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
 
     // Create a label for the application
     Label appLabel = tempEntity.newLabel(app.getId(), "testGetApplicableLabels_App_label");
@@ -380,10 +378,9 @@ public class LabelResourceTest
     Assert.assertNotNull(applicableLabels);
     // One for the application, one for it's org and one for the root org
     Assert.assertEquals(3, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(appId, appName, OwnerType.APPLICATION, 1, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicableLabels.labelsByOwner.get(1));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 0,
-        applicableLabels.labelsByOwner.get(2));
+    assertLabelsByOwner(app, 1, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(org, 0, applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
     Assert.assertEquals(appLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
 
     // Verify the applicable labels for the organization
@@ -393,9 +390,8 @@ public class LabelResourceTest
     Assert.assertNotNull(applicableLabels);
     // One the org and one for the root org
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 0, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 0,
-        applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(org, 0, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
 
     // Create a label for the organization
     Label orgLabel = tempEntity.newLabel(orgId, "testGetApplicableLabels_Org_label");
@@ -406,10 +402,9 @@ public class LabelResourceTest
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(3, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(appId, appName, OwnerType.APPLICATION, 1, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicableLabels.labelsByOwner.get(1));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 0,
-        applicableLabels.labelsByOwner.get(2));
+    assertLabelsByOwner(app, 1, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
     Assert.assertEquals(appLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(1).labels.get(0).getId());
 
@@ -420,14 +415,12 @@ public class LabelResourceTest
     Assert.assertNotNull(applicableLabels);
     // One the org and one for the root org
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 0,
-        applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
 
-    // Create a label for the root organization
-    Label rootOrgLabel = tempEntity
-        .newLabel(Organization.ROOT_ORGANIZATION_ID, "testGetApplicableLabels_RootOrg_label");
+    // Create a label for the parent organization
+    Label rootOrgLabel = tempEntity.newLabel(parentOrg.getId(), "testGetApplicableLabels_ParentOrg_label");
 
     // Verify the applicable labels for the application
     response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
@@ -435,10 +428,9 @@ public class LabelResourceTest
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
     Assert.assertEquals(3, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(appId, appName, OwnerType.APPLICATION, 1, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicableLabels.labelsByOwner.get(1));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 1,
-        applicableLabels.labelsByOwner.get(2));
+    assertLabelsByOwner(app, 1, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(parentOrg, 1, applicableLabels.labelsByOwner.get(2));
     Assert.assertEquals(appLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(1).labels.get(0).getId());
     Assert.assertEquals(rootOrgLabel.getId(), applicableLabels.labelsByOwner.get(2).labels.get(0).getId());
@@ -450,9 +442,8 @@ public class LabelResourceTest
     Assert.assertNotNull(applicableLabels);
     // One the org and one for the root org
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
-    assertLabelsByOwner(orgId, orgName, OwnerType.ORGANIZATION, 1, applicableLabels.labelsByOwner.get(0));
-    assertLabelsByOwner(Organization.ROOT_ORGANIZATION_ID, "Root Organization", OwnerType.ORGANIZATION, 1,
-        applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(parentOrg, 1, applicableLabels.labelsByOwner.get(1));
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
     Assert.assertEquals(rootOrgLabel.getId(), applicableLabels.labelsByOwner.get(1).labels.get(0).getId());
   }
@@ -539,12 +530,10 @@ public class LabelResourceTest
     Assert.assertEquals(color, actual.getColor());
   }
 
-  private void assertLabelsByOwner(String ownerId, String ownerName, OwnerType ownerType, int labelsCount,
-      LabelsByOwner actual)
-  {
-    Assert.assertEquals(ownerId, actual.ownerId);
-    Assert.assertEquals(ownerName, actual.ownerName);
-    Assert.assertEquals(ownerType, actual.ownerType);
+  private void assertLabelsByOwner(Owner owner, int labelsCount, LabelsByOwner actual) {
+    Assert.assertEquals(owner.getId(), actual.ownerId);
+    Assert.assertEquals(owner.getName(), actual.ownerName);
+    Assert.assertEquals(owner.getType(), actual.ownerType);
     Assert.assertEquals(labelsCount, actual.labels.size());
   }
 }

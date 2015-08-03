@@ -13,7 +13,6 @@ import java.util.Locale;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -133,7 +132,7 @@ public class PolicyDAOTest
   public void testInsertNameClashWithParentOrgPolicy() throws Exception {
     // Add a policy at parent org level
     String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(Organization.ROOT_ORGANIZATION_ID, policyName);
+    Policy policy = newPolicy(organization.getParentOrganizationId(), policyName);
     tempEntity.newPolicy(policy);
 
     Owner expectedOwner = new OwnerDAO().getParentOwner(organization);
@@ -214,7 +213,7 @@ public class PolicyDAOTest
   public void testUpdateNameClashWithParentOrgPolicy() throws Exception {
     // Add a policy at parent org level
     String policyName = "PolicyDAOTest new policy";
-    Policy policy = newPolicy(Organization.ROOT_ORGANIZATION_ID, policyName);
+    Policy policy = newPolicy(organization.getParentOrganizationId(), policyName);
     tempEntity.newPolicy(policy);
 
     Owner expectedOwner = new OwnerDAO().getParentOwner(organization);

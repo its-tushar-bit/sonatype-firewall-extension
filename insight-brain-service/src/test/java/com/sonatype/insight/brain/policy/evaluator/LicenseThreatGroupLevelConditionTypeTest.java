@@ -180,7 +180,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
   public void testEvaluate_LicenseThreatGroupFromOrganization() {
     LicenseThreatGroup orgLicenseThreatGroup = new LicenseThreatGroup(org.getId(),
         "testEvaluate-LicenseThreatGroupFromOrganization", 7);
-    new LicenseThreatGroupDAO().insert(orgLicenseThreatGroup);
+    licenseThreatGroupDAO.insert(orgLicenseThreatGroup);
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(org.getId(),
         orgLicenseThreatGroup.getId(), "Apache-2.0");
     new LicenseThreatGroupLicenseDAO().insert(licenseThreatGroupLicense);

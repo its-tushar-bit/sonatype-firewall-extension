@@ -453,17 +453,17 @@ public class PolicyImportExport
   PolicyExportResult exportOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
     String orgId = organization.getId();
     PolicyExportResult policyExportResult = export(orgId);
-    policyExportResult.policyTags = new PolicyTagDAO().getByOrganizationId(orgId);
-    policyExportResult.tags = new TagDAO().getAppliedToPolicyByOrganizationId(orgId);
+    policyExportResult.policyTags = policyTagDAO.getByOrganizationId(orgId);
+    policyExportResult.tags = tagDAO.getAppliedToPolicyByOrganizationId(orgId);
     return policyExportResult;
   }
 
   private PolicyExportResult export(String ownerId) {
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = new PolicyDAO().getByOwnerId(ownerId);
-    policyExportResult.labels = new LabelDAO().getByOwnerId(ownerId);
-    policyExportResult.licenseThreatGroups = new LicenseThreatGroupDAO().getByOwnerId(ownerId);
-    policyExportResult.licenseThreatGroupLicenses = new LicenseThreatGroupLicenseDAO().getByOwnerId(ownerId);
+    policyExportResult.policies = policyDAO.getByOwnerId(ownerId);
+    policyExportResult.labels = labelDAO.getByOwnerId(ownerId);
+    policyExportResult.licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(ownerId);
+    policyExportResult.licenseThreatGroupLicenses = licenseThreatGroupLicenseDAO.getByOwnerId(ownerId);
 
     return policyExportResult;
   }

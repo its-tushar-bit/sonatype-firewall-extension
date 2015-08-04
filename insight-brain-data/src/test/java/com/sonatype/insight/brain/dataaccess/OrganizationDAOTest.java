@@ -134,7 +134,8 @@ public class OrganizationDAOTest
       dao.insert(organization);
       organization = dao.getById("testId");
       assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
-    } finally {
+    }
+    finally {
       dao.delete(organization);
     }
   }
@@ -149,7 +150,8 @@ public class OrganizationDAOTest
       dao.insert(organization);
       organization = dao.getById("testId");
       assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
-    } finally {
+    }
+    finally {
       dao.delete(organization);
     }
   }
@@ -194,7 +196,8 @@ public class OrganizationDAOTest
 
       organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
       assertThat(organization.getName(), is("Test Root"));
-    } finally {
+    }
+    finally {
       organization.setName(originalName);
       dao.update(organization);
     }
@@ -456,7 +459,7 @@ public class OrganizationDAOTest
     String organizationId = organization.getId();
 
     LicenseOverride licenseOverride = new LicenseOverride(organizationId, ComponentIdentifier.createMavenCoordinates(
-      "groupId", "artifactId", "version"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
+        "groupId", "artifactId", "version"), LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverrideDAO.insert(licenseOverride);
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(organizationId);

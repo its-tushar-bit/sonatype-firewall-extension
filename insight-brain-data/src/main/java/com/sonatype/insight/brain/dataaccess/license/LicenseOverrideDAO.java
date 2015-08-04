@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal;
@@ -31,6 +32,8 @@ public class LicenseOverrideDAO
 
   private LicenseOverrideLicenseInternalDAO licenseOverrideLicenseInternalDAO = new LicenseOverrideLicenseInternalDAO();
 
+  private final OwnerDAO ownerDAO = new OwnerDAO();
+
   public LicenseOverride getById(String id) {
     LicenseOverrideInternal licenseOverride = licenseOverrideInternalDAO.getById(id);
 
@@ -49,14 +52,11 @@ public class LicenseOverrideDAO
   public LicenseOverride getAppliedByOwnerIdAndComponentIdentifier(String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    OwnerDAO ownerDAO = new OwnerDAO();
-
-    while (ownerId != null) {
-      LicenseOverride override = getByOwnerIdAndComponentIdentifier(ownerId, componentIdentifier);
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      LicenseOverride override = getByOwnerIdAndComponentIdentifier(owner.getId(), componentIdentifier);
       if (override != null) {
         return override;
       }
-      ownerId = ownerDAO.getById(ownerId).getParentOrganizationId();
     }
 
     return null;

@@ -75,6 +75,8 @@ public class PolicyResource
 
   private final AntiCsrfFilter antiCsrfFilter;
 
+  private final OwnerDAO ownerDAO = new OwnerDAO();
+
   @Inject
   public PolicyResource(PolicyImportExport policyImportExport, ErrorResponseGenerator errorResponseGenerator,
       AntiCsrfFilter antiCsrfFilter)
@@ -117,20 +119,19 @@ public class PolicyResource
     List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(ownerId);
 
     // Init the result structure
-    OwnerDAO ownerDAO = new OwnerDAO();
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();
     Map<String, PoliciesByOwner> policiesByOwnerId = new LinkedHashMap<>();
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
-      if (owner instanceof Application) {
-        policiesByOwnerId.put(ownerId, new PoliciesByOwner(ownerId, owner.getName(), owner.getType()));
+    for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
+      String currentOwnerId = currentOwner.getId();
+      if (currentOwner instanceof Application) {
+        policiesByOwnerId.put(currentOwnerId, new PoliciesByOwner(currentOwnerId, currentOwner.getName(),
+            currentOwner.getType()));
       }
       else {
-        policiesByOwnerId.put(ownerId,
-            new PoliciesByOwner(ownerId, owner.getName(), owner.getType(), policyTagDAO.getByOrganizationId(ownerId)));
+        policiesByOwnerId.put(currentOwnerId,
+            new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType(),
+                policyTagDAO.getByOrganizationId(currentOwnerId)));
       }
-
-      ownerId = owner.getParentOrganizationId();
     }
 
     // Add the applicable policies by owner to the result structure

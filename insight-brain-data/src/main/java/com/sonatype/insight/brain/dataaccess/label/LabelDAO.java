@@ -37,7 +37,7 @@ public class LabelDAO
 
   private static final OrganizationDAO orgDAO = new OrganizationDAO();
 
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
+  private final OwnerDAO ownerDAO = new OwnerDAO();
 
   public List<Label> getByOwnerId(String ownerId) {
     return getByOwnerId(ownerId, false);
@@ -62,13 +62,11 @@ public class LabelDAO
         " WHERE label.ownerId=?1" + //
         " ORDER BY label.labelLowercase";
     final List<Label> labels = new ArrayList<>();
-    while (ownerId != null) {
-      labels.addAll(getList(tx, sQuery, ownerId));
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      labels.addAll(getList(tx, sQuery, owner.getId()));
       if (!inherit) {
         break;
       }
-      Owner owner = ownerDAO.getById(tx, ownerId);
-      ownerId = owner.getParentOrganizationId();
     }
     return labels;
   }

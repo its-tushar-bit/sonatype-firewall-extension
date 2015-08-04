@@ -39,9 +39,9 @@ public class ComponentLabelResource
 
   private LabelDAO labelDAO = new LabelDAO();
 
-  private OwnerDAO ownerDAO = new OwnerDAO();
-
   private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
+  private final OwnerDAO ownerDAO = new OwnerDAO();
 
   /**
    * Enables visualization of applied component labels. Most notably, the returned DTO holds the names of relevant
@@ -60,11 +60,9 @@ public class ComponentLabelResource
 
     AppliedLabels result = new AppliedLabels();
 
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       result.add(owner.getPublicId(), owner.getName(), owner.getType(),
           labelDAO.getByOwnerIdAndHash(owner.getId(), hash));
-      ownerId = owner.getParentOrganizationId();
     }
 
     return result;

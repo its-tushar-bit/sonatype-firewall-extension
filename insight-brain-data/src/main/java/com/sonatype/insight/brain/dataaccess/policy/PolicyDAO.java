@@ -187,8 +187,8 @@ public class PolicyDAO
       ownerId = owner.getParentOrganizationId();
     }
 
-    while (ownerId != null) {
-      List<Policy> orgPolicies = getByOwnerId(ownerId);
+    for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
+      List<Policy> orgPolicies = getByOwnerId(currentOwner.getId());
       if (forApplication) {
         for (Policy orgPolicy : orgPolicies) {
           List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
@@ -200,9 +200,6 @@ public class PolicyDAO
       else {
         result.addAll(orgPolicies);
       }
-
-      owner = ownerDAO.getById(ownerId);
-      ownerId = owner.getParentOrganizationId();
     }
     return result;
   }

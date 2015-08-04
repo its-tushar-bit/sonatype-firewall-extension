@@ -45,6 +45,8 @@ public class PolicyWaiverResource
 
   public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
 
+  private final OwnerDAO ownerDAO = new OwnerDAO();
+
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -94,11 +96,8 @@ public class PolicyWaiverResource
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedWaivers result = new AppliedWaivers();
-    OwnerDAO ownerDAO = new OwnerDAO();
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       result.add(owner, getAppliedWaivers(owner.getId(), hash));
-      ownerId = owner.getParentOrganizationId();
     }
 
     return result;
@@ -137,12 +136,9 @@ public class PolicyWaiverResource
     Policy policy = new PolicyDAO().getByIdNotNull(policyId);
 
     String ownerId = IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId);
-    OwnerDAO ownerDAO = new OwnerDAO();
     ApplicableContext context = null;
     boolean foundPolicyInHierarchy = false;
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
-
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       ApplicableContext currentContext = new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
       if (context != null) {
         currentContext.setChildren(new ArrayList<ApplicableContext>());
@@ -150,12 +146,11 @@ public class PolicyWaiverResource
       }
       context = currentContext;
 
-      if (ownerId.equals(policy.getOwnerId())) {
+      if (owner.getId().equals(policy.getOwnerId())) {
         // only go as high as the owner of the policy
         foundPolicyInHierarchy = true;
         break;
       }
-      ownerId = owner.getParentOrganizationId();
     }
 
     if (!foundPolicyInHierarchy) {

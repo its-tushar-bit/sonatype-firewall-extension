@@ -56,9 +56,9 @@ public class LabelResource
 
   private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
 
-  private static final OwnerDAO ownerDAO = new OwnerDAO();
-
   private LabelDAO labelDAO = new LabelDAO();
+
+  private final OwnerDAO ownerDAO = new OwnerDAO();
 
   private PermissionService permissionService;
 
@@ -106,17 +106,13 @@ public class LabelResource
     ApplicableLabels result = new ApplicableLabels();
 
     result.labelsByOwner = new ArrayList<>();
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
-
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       LabelsByOwner labelsByOwner = new LabelsByOwner();
       labelsByOwner.ownerId = owner.getId();
       labelsByOwner.ownerName = owner.getName();
       labelsByOwner.ownerType = owner.getType();
       labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId());
       result.labelsByOwner.add(labelsByOwner);
-
-      ownerId = owner.getParentOrganizationId();
     }
 
     return result;
@@ -147,8 +143,7 @@ public class LabelResource
     String ownerId = application.getId();
 
     ApplicableContext context = null;
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       if (!permissionService.hasPermissions(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
           Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
         break;
@@ -164,11 +159,10 @@ public class LabelResource
         context = currentContext;
       }
 
-      if (ownerId.equals(label.getOwnerId())) {
+      if (owner.getId().equals(label.getOwnerId())) {
         // only go as high as the owner of the label
         break;
       }
-      ownerId = owner.getParentOrganizationId();
     }
 
     return context;

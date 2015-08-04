@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -58,5 +60,53 @@ public class OwnerDAO
 
   public Owner getParentOwner(Owner owner) {
     return getById(owner.getParentOrganizationId());
+  }
+
+  public Iterable<Owner> walkHierarchy(final String ownerId) {
+    return new OwnerIterator(ownerId);
+  }
+
+  private class OwnerIterator
+      implements Iterator<Owner>, Iterable<Owner>
+  {
+    private String nextOwnerId;
+
+    private Owner nextOwner;
+
+    public OwnerIterator(final String startOwnerId) {
+      nextOwnerId = startOwnerId;
+    }
+
+    @Override
+    public Iterator<Owner> iterator() {
+      return new OwnerIterator(nextOwnerId);
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (nextOwner == null) {
+        if (nextOwnerId != null) {
+          nextOwner = getById(nextOwnerId);
+          nextOwnerId = null;
+        }
+      }
+      return nextOwner != null;
+    }
+
+    @Override
+    public Owner next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      Owner current = nextOwner;
+      nextOwnerId = nextOwner.getParentOrganizationId();
+      nextOwner = null;
+      return current;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
   }
 }

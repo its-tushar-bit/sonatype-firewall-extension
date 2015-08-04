@@ -46,11 +46,11 @@ public class LicenseThreatGroupResource
 {
   public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
 
-  private final OwnerDAO ownerDAO = new OwnerDAO();
-
   private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+
+  private final OwnerDAO ownerDAO = new OwnerDAO();
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -78,10 +78,8 @@ public class LicenseThreatGroupResource
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     ApplicableLicenseThreatGroups result = new ApplicableLicenseThreatGroups();
-    while (ownerId != null) {
-      Owner owner = ownerDAO.getById(ownerId);
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       result.add(owner.getId(), owner.getName(), owner.getType(), loadLicenseThreatGroups(owner.getId()));
-      ownerId = owner.getParentOrganizationId();
     }
     return result;
   }

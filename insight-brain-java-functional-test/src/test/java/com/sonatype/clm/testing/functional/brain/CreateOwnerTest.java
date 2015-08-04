@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -79,8 +80,8 @@ public class CreateOwnerTest
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
 
     // open application
-    OwnerEditorDialog.name().shouldBe(visible, empty);
-    OwnerEditorDialog.publicId().shouldBe(visible, empty);
+    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     OwnerEditorDialog.saveButton().shouldBe(disabled);
 
     // check invalid name
@@ -106,6 +107,9 @@ public class CreateOwnerTest
     popoverViolations(OwnerEditorDialog.publicId()).shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
+    OwnerEditorDialog.name().shouldNotHave(cssClass("initial-value"));
+    OwnerEditorDialog.publicId().shouldNotHave(cssClass("initial-value"));
+
     OwnerEditorDialog.saveButton().click();
     OwnerEditorDialog.root().should(disappear);
 
@@ -127,7 +131,7 @@ public class CreateOwnerTest
     RootOrganizationNode.treeViewElement().shouldBe(visible, enabled).click();
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
-    OwnerEditorDialog.name().shouldBe(visible, empty);
+    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     OwnerEditorDialog.publicId().shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
 

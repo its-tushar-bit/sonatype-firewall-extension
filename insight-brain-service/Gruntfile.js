@@ -15,6 +15,7 @@
       return node.firstChild.nodeValue;
     }
 
+    var angularVersion = extractFromPom('angularjs.version');
     var path = require('path');
     var styleguideAssets = require('./Gruntfile.styleguide.js');
     require('load-grunt-tasks')(grunt);
@@ -23,12 +24,13 @@
     grunt.initConfig({
       config: {
         pom: {
-          angularJsVersion: extractFromPom('angularjs.version'),
+          angularJsVersion: angularVersion,
           clmVersion: extractFromPom('version')
         },
         angularDebug: false,
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
+        styleguideSrc: 'src/main/styleguide',
         generated: 'target/classes/assets-new',
         styleguide: 'target/styleguide',
         temp: '.tmp'
@@ -249,7 +251,14 @@
                 '<%= config.temp %>/scss/bootstrap.css',
                 '<%= config.frontend %>/assets/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
                 '<%= config.frontend %>/assets/lib/components-font-awesome/css/font-awesome.css',
-                '<%= config.temp %>/styleguide.css'
+                '<%= config.temp %>/styleguide.css',
+                '<%= config.frontend %>/assets/lib/jquery/jquery-1.8.3.min.js',
+                '<%= config.frontend %>/assets/lib/angular-' + angularVersion + '/angular.js',
+                '<%= config.frontend %>/assets/lib/angular-' + angularVersion + '/angular-sanitize.js',
+                '<%= config.frontend %>/assets/lib/ui-bootstrap-tpls-0.8.0.min.js',
+                '<%= config.frontend %>/util/AngularCommon.js',
+                '<%= config.frontend %>/assets/FormsModule.js',
+                '<%= config.styleguideSrc %>/styleguide.js'
               ]
             }
           },

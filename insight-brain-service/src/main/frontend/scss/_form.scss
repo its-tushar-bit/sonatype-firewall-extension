@@ -7,47 +7,71 @@
   See clmControlGroup and clmInput directives.
 
   ```
-    <form class='clm-form'>
+  <form class='clm-form'>
+    <div class="section">
+      <div class="field">
+        <label for='normal'>An input with its initial value</label>
+        <input type='text' id='normal' class='initial-value' placeholder='ex. Antiquated Value'>
+      </div>
+      <div class="field">
+        <label for='valid'>An input that has been updated and is valid</label>
+        <input type='text' id='valid' class='ng-valid' value='Valid'>
+      </div>
+      <div class="field">
+        <label for='invalid'>An input that has been updated and is invalid</label>
+        <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
+      </div>
+      <div class="field">
+        <label for='disabled' class='disabled'>A disabled label requires the disabled class</label>
+        <input type='text' id='disabled' disabled class='ng-valid' value='Disabled'>
+      </div>
+    </div>
+    <div class="section">
+     <div class="field">
+        <label for='wide'>A wide input</label>
+        <input type='text' id='wide' class='ng-valid wide' placeholder='ex. A very long value can fit in here.'>
+      </div>
+    </div>
+    <div class="section">
+      <div class="field">
+        <div class="field-left">
+          <label for='inlinefield'>Inline input</label>
+          <input type='text' id='inlinefield' class='ng-valid wide'>
+        </div>
+        <div class="field-right">
+          some inline stuff
+        </div>
+      </div>
+    </div>
+  </form>
+  ```
+
+  ##Interactive Examples
+  ```
+  <div ng-app="formsStyle">
+    <form class='clm-form' name='someForm'>
       <div class="section">
         <div class="field">
-          <label for='normal'>An input that is not required and hasn't been updated</label>
-          <input type='text' id='normal' class='ng-valid ng-untouched' placeholder='ex. Antiquated Value'>
+          <label for='normal'>An optional email</label>
+          <input type='email' ng-model='emailOne'>
         </div>
         <div class="field">
-          <label for='required'>An input that is required and hasn't been updated</label>
-          <input type='text' id='required' class='ng-invalid' required placeholder='Integer between 1 and 100' min='1' max='100'>
-        </div>
-        <div class="field">
-          <label for='valid'>An input that has been updated and is valid</label>
-          <input type='text' id='valid' class='ng-valid ng-dirty' value='Valid'>
+          <label for='normal'>An optional email with an initial value</label>
+          <input type='email' ng-model='emailTwo'>
         </div>
       </div>
       <div class="section">
         <div class="field">
-          <label for='invalid'>An input that has been updated and is invalid</label>
-          <input type='text' id='invalid' class='ng-invalid ng-dirty' value='Invalid'>
+          <label for='normal'>A required email</label>
+          <input type='email' ng-model='emailThree'>
         </div>
         <div class="field">
-          <label for='disabled' class='disabled'>A disabled label requires the disabled class</label>
-          <input type='text' id='disabled' disabled class='ng-valid' value='Disabled'>
-        </div>
-        <div class="field">
-          <label for='wide'>A wide input</label>
-          <input type='text' id='wide' class='ng-valid wide' placeholder='ex. A very long value can fit in here.'>
-        </div>
-      </div>
-      <div class="section">
-        <div class="field">
-          <div class="field-left">
-            <label for='inlinefield'>Inline input</label>
-            <input type='text' id='inlinefield' class='ng-valid wide'>
-          </div>
-          <div class="field-right">
-            some inline stuff
-          </div>
+          <label for='normal'>A required email with an initial value</label>
+          <input type='email' ng-model='emailFour' class='wide'>
         </div>
       </div>
     </form>
+  </div>
   ```
 */
 .clm-form {
@@ -96,32 +120,32 @@
 
     padding: 4px 8px;
     border: 1px solid $grey-4;
-    border-left: 4px solid $valid-green;
+    border-left-width: 4px;
 
     &.wide {
       width: 395px;
     }
 
-    &[required] {
-      &.ng-invalid:not(.ng-untouched) {
-        border-left-color: $invalid-red;
-      }
-      &.ng-valid {
-        border-left-color: $valid-green;
-      }
-      &.ng-untouched:focus {
-        border-color: $valid-green;
-        box-shadow: 0 0 6px $valid-green;
-      }
+    &.initial-value {
+      border-left-color: $valid-green;
+      border-left-style: double;
     }
-    &.ng-valid.ng-dirty {
-      border-color: $valid-green;
+
+    &.ng-valid {
+      border-left-color: $valid-green;
     }
+
     &.ng-invalid.ng-dirty {
       border-color: $invalid-red;
+      border-left-style: solid;
     }
-    &.ng-untouched {
-      border-left: 4px double $valid-green;
+
+    &.ng-invalid:not(.ng-dirty):focus {
+      /* override bootstrap */
+      border-color: $grey-4;
+      border-left-color: $valid-green;
+      box-shadow: initial;
+      color: $slate;
     }
 
     &:disabled {

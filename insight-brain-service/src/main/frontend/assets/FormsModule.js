@@ -275,4 +275,32 @@
       }
     };
   }]);
+
+  // Add class when input value changes to help avoid double lines
+  module.directive('input', [function () {
+    return {
+      restrict: 'E',
+      link: function (scope, element, attrs) {
+        if (element.parents('.clm-form').length > 0) {
+          var initialValue;
+
+          scope.$watch(attrs.ngModel, function (newVal) {
+            if (initialValue === undefined) {
+              initialValue = newVal || '';
+            }
+          });
+
+          element.addClass('initial-value');
+          element.on('input', function () {
+            if ($(this).val() === initialValue) {
+              element.addClass('initial-value');
+            }
+            else {
+              element.removeClass('initial-value');
+            }
+          });
+        }
+      }
+    };
+  }]);
 }());

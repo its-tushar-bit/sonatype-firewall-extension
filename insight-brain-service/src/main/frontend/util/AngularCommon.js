@@ -345,7 +345,7 @@ var AngularStateUtils = {
       replace : true,
       template : '<div>' +
                    '<div ng-if="!error && isLoading()"><i class="fa fa-spin fa-circle-o-notch"></i> Loading....</div>' +
-                   '<div ng-show="!error && !isLoading()" ng-transclude></div>' +
+                   '<div ng-if="!error && !isLoading()"><div ng-transclude></div></div>' + // ng-if is important for intial-value
                    '<div load-error="error" reload="reload()" message="errorMessage" />' +
                  '</div>',
       scope : {

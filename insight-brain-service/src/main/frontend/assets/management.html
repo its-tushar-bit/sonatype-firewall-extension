@@ -22,7 +22,7 @@
             <a class="tree-view-item"
                ng-class="{ selected : $state.includes('management.organization-view', {organizationId: rootOrganization.id}) }"
                ui-sref="management.organization-view({organizationId: rootOrganization.id})">
-              <i class="fa fa-globe tree-view-icon"></i>
+              <i class="fa fa-globe fa-lg tree-view-icon"></i>
               {{rootOrganization.name}}
               <div class="tree-view-new-organization"
                    ng-class="{ hide : !$state.includes('management.organization-view', {organizationId: rootOrganization.id}) }">

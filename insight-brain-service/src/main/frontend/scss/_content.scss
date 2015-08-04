@@ -284,7 +284,7 @@ body {
         </div>
         <div class="tree-view-root-organization-group">
           <a class="tree-view-item selected">
-            <i class="fa fa-globe tree-view-icon"></i>
+            <i class="fa fa-lg fa-globe tree-view-icon"></i>
             Root Organization
             <div class="tree-view-new-organization">
               <button class="btn">
@@ -363,6 +363,10 @@ body {
 
       &.fa-terminal {
         margin-left: 48px;
+      }
+
+      &.fa-globe {
+        margin-left: 0px;
       }
 
       &.icon-12px {

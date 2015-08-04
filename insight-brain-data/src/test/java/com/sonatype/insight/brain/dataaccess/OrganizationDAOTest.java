@@ -141,15 +141,22 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testInsert_ParentOrganizationIdIsForcedToRootWhenNotNull() {
+  public void testInsert_ParentOrganizationIdIsRejectedWhenNotRoot() {
     organization = new Organization();
-    organization.setId("testId");
     organization.setName("testName");
-    organization.setParentOrganizationId("dummy org");
+    organization.setParentOrganizationId(tempEntity.newOrganization().getId());
     try {
       dao.insert(organization);
-      organization = dao.getById("testId");
-      assertThat(organization.getParentOrganizationId(), is(Organization.ROOT_ORGANIZATION_ID));
+      fail("Expected exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Invalid parent organization"));
+    }
+
+    organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+    try {
+      dao.insert(organization);
+      assertThat(dao.getById(organization.getId()), is(notNullValue()));
     }
     finally {
       dao.delete(organization);

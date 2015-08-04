@@ -42,7 +42,7 @@ public class ContextResolverTest
     parameters.put(AuthzContext.Key.ID, app.getPublicId());
     parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_APPLICATION);
     assertThat(resolver.resolveContextIds(parameters),
-        contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+        contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -53,7 +53,7 @@ public class ContextResolverTest
     parameters.put(Key.INTERNAL_ID, app.getId());
     parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_APPLICATION);
     assertThat(resolver.resolveContextIds(parameters),
-        contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+        contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -62,15 +62,19 @@ public class ContextResolverTest
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.ID, org.getId());
     parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_ORGANIZATION);
-    assertThat(resolver.resolveContextIds(parameters), contains(org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
   public void testResolveContextIds_OrganizationEntity() {
     Organization org = tempEntity.newOrganization();
+    String realParentOrgId = org.getParentOrganizationId();
+    org.setParentOrganizationId("not-to-be-considered");
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.ORGANIZATION, org);
-    assertThat(resolver.resolveContextIds(parameters), contains(org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(org.getId(), realParentOrgId, MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -79,7 +83,8 @@ public class ContextResolverTest
     org.setId("not-to-be-considered-as-context");
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.ORGANIZATION_OWNER, org);
-    assertThat(resolver.resolveContextIds(parameters), contains(MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(Organization.ROOT_ORGANIZATION_ID, MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -87,7 +92,8 @@ public class ContextResolverTest
     Organization org = tempEntity.newOrganization();
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.ORGANIZATION_ID, org.getId());
-    assertThat(resolver.resolveContextIds(parameters), contains(org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -98,7 +104,7 @@ public class ContextResolverTest
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.APPLICATION, app);
     assertThat(resolver.resolveContextIds(parameters),
-        contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+        contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -108,9 +114,8 @@ public class ContextResolverTest
     app.setId("not-to-be-considered-as-context");
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.APPLICATION_OWNER, app);
-    assertThat(resolver.resolveContextIds(parameters), contains(org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
-    app.setOrganizationId(null);
-    assertThat(resolver.resolveContextIds(parameters), contains(MembershipMapping.GLOBAL_CONTEXT_ID));
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -120,7 +125,7 @@ public class ContextResolverTest
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.APPLICATION_ID, app.getId());
     assertThat(resolver.resolveContextIds(parameters),
-        contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+        contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 
   @Test
@@ -130,6 +135,6 @@ public class ContextResolverTest
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.APPLICATION_PUBLIC_ID, app.getPublicId());
     assertThat(resolver.resolveContextIds(parameters),
-        contains(app.getId(), org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+        contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 }

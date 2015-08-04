@@ -331,9 +331,8 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.organizationId = orgId;
 
     HttpResponse response = restRequest().body(applicationDTO).post();
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText(),
-        equalTo("Application references an organization (ID=" + orgId + ") that does not exist."));
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(), equalTo("Cannot find organization with ID " + orgId + "."));
   }
 
   @Test

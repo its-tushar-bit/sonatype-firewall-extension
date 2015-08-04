@@ -5,9 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -31,6 +32,49 @@ class ContextResolver
   private final ApplicationDAO appDAO = new ApplicationDAO();
 
   private final OrganizationDAO orgDAO = new OrganizationDAO();
+
+  private class OrganizationIterator
+      implements Iterator<String>, Iterable<String>
+  {
+    private String prevOrgId;
+
+    private String nextOrgId;
+
+    public OrganizationIterator(String firstOrgId) {
+      nextOrgId = firstOrgId;
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+      return new OrganizationIterator(nextOrgId);
+    }
+
+    @Override
+    public String next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      prevOrgId = nextOrgId;
+      nextOrgId = null;
+      return prevOrgId;
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (nextOrgId == null) {
+        if (prevOrgId != null) {
+          nextOrgId = orgDAO.getByIdNotNull(prevOrgId).getParentOrganizationId();
+          prevOrgId = null;
+        }
+      }
+      return nextOrgId != null;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+  }
 
   private final ContextIdResolver<Application> INBOUND_APPLICATION = new ContextIdResolver<Application>()
   {
@@ -90,7 +134,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
-      return Arrays.asList(org.getId(), MembershipMapping.GLOBAL_CONTEXT_ID);
+      return resolveContextIdsForOrg(org.getId());
     }
   };
 
@@ -103,19 +147,20 @@ class ContextResolver
     }
   };
 
-  private static final ContextIdResolver<Organization> ORGANIZATION_OWNER = new ContextIdResolver<Organization>()
+  private final ContextIdResolver<Organization> ORGANIZATION_OWNER = new ContextIdResolver<Organization>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
-      return GLOBAL_CONTEXT;
+      String parentId = org.getParentOrganizationId();
+      if (parentId == null) {
+        parentId = Organization.ROOT_ORGANIZATION_ID;
+      }
+      return resolveContextIdsForOrg(parentId);
     }
   };
 
-  static Iterable<String> resolveContextIdsForOrg(String orgId) {
-    if (orgId == null) {
-      return GLOBAL_CONTEXT;
-    }
-    return Arrays.asList(orgId, MembershipMapping.GLOBAL_CONTEXT_ID);
+  Iterable<String> resolveContextIdsForOrg(final String orgId) {
+    return Iterables.concat(new OrganizationIterator(orgId), GLOBAL_CONTEXT);
   }
 
   /**

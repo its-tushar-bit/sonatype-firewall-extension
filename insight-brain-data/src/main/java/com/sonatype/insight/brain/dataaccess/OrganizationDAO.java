@@ -83,6 +83,15 @@ public class OrganizationDAO
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
 
+    /*
+     * Authorization checks follow the hierarchy indicated by the parent IDs. For these checks to be effective, the
+     * protected code needs to follow the same path and not silently change the path by using another parent.
+     */
+    if (organization.getParentOrganizationId() != null
+        && !organization.getParentOrganizationId().equals(Organization.ROOT_ORGANIZATION_ID)) {
+      throw new BadRequestException("Invalid parent organization");
+    }
+
     // Make sure the parent org is set to the root on creation
     organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
 

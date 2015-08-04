@@ -54,12 +54,9 @@ public class ComponentDAO
   }
 
   private void loadLicenseOverride(Application application, Component component) {
-    LicenseOverride licenseOverride = licenseOverrideDAO
-      .getByOwnerIdAndComponentIdentifier(application.getId(), component.getComponentIdentifier());
-    if (licenseOverride == null) {
-      licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getOrganizationId(),
-          component.getComponentIdentifier());
-    }
+    LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+        component.getComponentIdentifier());
+
     if (licenseOverride != null) {
       component.setLicenseOverrideStatus(licenseOverride.getStatus());
       component.setLicenseOverrideIds(licenseOverride.getLicenseIds());

@@ -410,4 +410,42 @@ public class LicenseOverrideDAOTest
     assertNotNull(licenseOverride);
     assertLicenseOverride(applicationId, componentIdentifier, status, licenseIds, comment, licenseOverride);
   }
+
+  @Test
+  public void testGetAppliedByOwnerIdAndComponentIdentifier() {
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    // No Override Set
+    LicenseOverride override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+        componentIdentifier);
+    assertNull(override);
+
+    // Set @ Root
+    tempEntity.newLicenseOverride(organization.getParentOrganizationId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD");
+    override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
+    assertNotNull(override);
+    assertLicenseOverride(organization.getParentOrganizationId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        "ANTLR-PD", "testing", override);
+
+    // Set @ Organization
+    tempEntity.newLicenseOverride(organization.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        "BSD-2-Clause");
+    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+        componentIdentifier);
+    assertNotNull(override);
+    assertLicenseOverride(organization.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-2-Clause",
+        "testing", override);
+
+    // Set @ Application
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        "BSD-3-Clause");
+
+    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+        componentIdentifier);
+    assertNotNull(override);
+    assertLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-3-Clause",
+        "testing", override);
+  }
 }

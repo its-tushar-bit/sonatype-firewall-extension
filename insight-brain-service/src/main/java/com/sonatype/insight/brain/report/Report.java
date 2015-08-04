@@ -409,7 +409,8 @@ public final class Report
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
-      LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO, componentIdentifier);
+      LicenseOverride licenseOverride = licenseOverrideDAO
+          .getAppliedByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
       if (licenseOverride != null) {
         licenseOverrideCount++;
         licenseJsonNode.put("status", licenseOverride.getStatus().getName());
@@ -437,8 +438,8 @@ public final class Report
 
     int licenseOverrideCount = 0;
     for (HashComponentIdentifier hashComponentIdentifier : hashComponentIdentifiers) {
-      LicenseOverride licenseOverride = getLicenseOverride(application, licenseOverrideDAO,
-          hashComponentIdentifier.getComponentIdentifier());
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(
+          application.getId(), hashComponentIdentifier.getComponentIdentifier());
       if (licenseOverride != null) {
         licenseOverrideCount++;
         ObjectNode licenseJsonNode = licensesAaData.addObject();
@@ -556,18 +557,6 @@ public final class Report
     cache(getCacheFile(reportFile, entryFileName), JsonUtils.generate(jsonData));
 
     log.debug("saveReportEntry: {} in {} ms.", entryFileName, System.currentTimeMillis() - start);
-  }
-
-  private static LicenseOverride getLicenseOverride(final Application application,
-      LicenseOverrideDAO licenseOverrideDAO, ComponentIdentifier componentIdentifier)
-  {
-    LicenseOverride licenseOverride = licenseOverrideDAO
-      .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
-    if (licenseOverride == null) {
-      licenseOverride = licenseOverrideDAO
-        .getByOwnerIdAndComponentIdentifier(application.getOrganizationId(), componentIdentifier);
-    }
-    return licenseOverride;
   }
 
   private static void writeLicenseThreatsToReportFile(final Application application, final File reportFile)

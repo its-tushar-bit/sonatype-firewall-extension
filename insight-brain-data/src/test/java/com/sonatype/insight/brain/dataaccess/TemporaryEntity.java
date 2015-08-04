@@ -159,6 +159,8 @@ public class TemporaryEntity
 
   private Collection<Organization> orgs;
 
+  private Collection<LicenseOverride> licenseOverrides;
+
   private Collection<User> users;
 
   private Collection<Role> roles;
@@ -187,6 +189,7 @@ public class TemporaryEntity
   protected void before() {
     apps = new ArrayList<>();
     orgs = new ArrayList<>();
+    licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
     roles = new ArrayList<>();
     ldapServers = new ArrayList<>();
@@ -225,6 +228,11 @@ public class TemporaryEntity
     for (Organization org : orgs) {
       if ((org = orgDAO.getById(org.getId())) != null) {
         orgDAO.delete(org);
+      }
+    }
+    for (LicenseOverride override : licenseOverrides) {
+      if ((override = licenseOverrideDAO.getById(override.getId())) != null) {
+        licenseOverrideDAO.delete(override);
       }
     }
     for (User user : users) {
@@ -594,6 +602,7 @@ public class TemporaryEntity
   {
     LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseIds, comment);
     licenseOverrideDAO.insert(override);
+    licenseOverrides.add(override);
     return override;
   }
 

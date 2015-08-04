@@ -24,13 +24,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -151,33 +150,23 @@ public class LicenseOverrideResource
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
     AppliedLicenseOverrides result = new AppliedLicenseOverrides();
-
     result.licenseOverridesByOwner = new ArrayList<>();
-    String organizationId;
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
-      Application application = new ApplicationDAO().getByIdNotNull(internalOwnerId);
-      LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
-      licenseOverrideByOwner.ownerId = application.getPublicId();
-      licenseOverrideByOwner.ownerName = application.getName();
-      licenseOverrideByOwner.ownerType = IdUtils.TYPE_APPLICATION;
-      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(
-        application.getId(), componentIdentifier);
-      result.licenseOverridesByOwner.add(licenseOverrideByOwner);
-      organizationId = application.getOrganizationId();
-    }
-    else {
-      organizationId = internalOwnerId;
-    }
 
-    Organization organization = new OrganizationDAO().getByIdNotNull(organizationId);
-    LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
-    licenseOverrideByOwner.ownerId = organization.getId();
-    licenseOverrideByOwner.ownerName = organization.getName();
-    licenseOverrideByOwner.ownerType = IdUtils.TYPE_ORGANIZATION;
-    licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(organization.getId(),
-        componentIdentifier);
-    result.licenseOverridesByOwner.add(licenseOverrideByOwner);
+    OwnerDAO ownerDAO = new OwnerDAO();
+    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
+    while (internalOwnerId != null) {
+      Owner owner = ownerDAO.getById(internalOwnerId);
+      LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
+      licenseOverrideByOwner.ownerId = owner.getPublicId();
+      licenseOverrideByOwner.ownerName = owner.getName();
+      licenseOverrideByOwner.ownerType = owner.getType();
+      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(owner.getId(),
+          componentIdentifier);
+      result.licenseOverridesByOwner.add(licenseOverrideByOwner);
+
+      internalOwnerId = owner.getParentOrganizationId();
+    }
 
     return result;
   }
@@ -193,7 +182,7 @@ public class LicenseOverrideResource
 
     public String ownerName;
 
-    public String ownerType;
+    public OwnerType ownerType;
 
     public LicenseOverride licenseOverride;
   }

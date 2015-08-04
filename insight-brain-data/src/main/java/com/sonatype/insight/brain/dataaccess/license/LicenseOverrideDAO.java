@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideInternal;
 import com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal;
@@ -38,6 +39,27 @@ public class LicenseOverrideDAO
     }
 
     return new LicenseOverride(licenseOverrideInternalDAO.getById(id), getLicenseIds(id));
+  }
+
+  /**
+   * Walks the owner hierarchy to find the applied license override if applicable
+   *
+   * @since 1.17
+   */
+  public LicenseOverride getAppliedByOwnerIdAndComponentIdentifier(String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    OwnerDAO ownerDAO = new OwnerDAO();
+
+    while (ownerId != null) {
+      LicenseOverride override = getByOwnerIdAndComponentIdentifier(ownerId, componentIdentifier);
+      if (override != null) {
+        return override;
+      }
+      ownerId = ownerDAO.getById(ownerId).getParentOrganizationId();
+    }
+
+    return null;
   }
 
   public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {

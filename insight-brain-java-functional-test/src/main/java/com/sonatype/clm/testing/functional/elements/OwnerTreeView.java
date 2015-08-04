@@ -41,8 +41,15 @@ public class OwnerTreeView
     );
   }
 
-  public static SelenideElement newOrganizationButton() {
-    return $(".tree-view-new-organization button");
+  public static class RootOrganizationNode
+  {
+    public static SelenideElement treeViewElement() {
+      return $(".tree-view-root-organization-group .tree-view-item");
+    }
+
+    public static SelenideElement newOrganizationButton() {
+      return $(".tree-view-new-organization button");
+    }
   }
 
   public static class OrganizationNode

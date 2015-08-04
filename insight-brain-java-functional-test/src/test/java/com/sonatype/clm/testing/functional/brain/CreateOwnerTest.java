@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizationNode;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -123,7 +124,8 @@ public class CreateOwnerTest
   @Test
   public void testCreateOrganization() throws Exception
   {
-    OwnerTreeView.newOrganizationButton().shouldBe(visible, enabled).click();
+    RootOrganizationNode.treeViewElement().shouldBe(visible, enabled).click();
+    RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
     OwnerEditorDialog.name().shouldBe(visible, empty);
     OwnerEditorDialog.publicId().shouldNot(exist);
@@ -150,7 +152,7 @@ public class CreateOwnerTest
 
     OwnerSummaryPage.SummaryTile.name().should(appear).shouldHave(text(NAME));
 
-    OwnerTreeView.organizationElements().shouldHaveSize(3); // 2 + 1 for root organization
+    OwnerTreeView.organizationElements().shouldHaveSize(2);
     OwnerTreeView.organizationElements().findBy(text(NAME));
   }
 

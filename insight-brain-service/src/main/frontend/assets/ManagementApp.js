@@ -61,6 +61,7 @@
         var organization = {
           id: organizationResource.id,
           name: organizationResource.name,
+          parentOrganizationId: organizationResource.parentOrganizationId,
           applications: [],
           isVisible: true,
           isExpanded: $state.includes('management.organization-view', { organizationId: organizationResource.id} )
@@ -162,6 +163,15 @@
         }
 
         lastOrganizations = angular.copy(organizations);
+
+        //set root org then dump it from the list
+        $scope.organizations.some(function(organization, index) {
+          if (!organization.parentOrganizationId && !organization.synthetic) {
+            $scope.rootOrganization = organization;
+            $scope.organizations.splice(index,1);
+            return true;
+          }
+        });
       }
 
       function applicationsCollectionChanged() {
@@ -204,6 +214,7 @@
                 id: addedApplication.organizationId,
                 name: addedApplication.organizationName
               });
+              syntheticOrganization.synthetic = true;
               syntheticOrganization.applications.push(newApplication(addedApplication));
               $scope.organizations.push(syntheticOrganization);
               touchedOrganizations[syntheticOrganization.id] = syntheticOrganization;
@@ -264,6 +275,7 @@
 
       $scope.doLoad = function() {
         delete $scope.error;
+        delete $scope.rootOrganization;
         clearCollectionWatchers();
 
         var loadPromises = [

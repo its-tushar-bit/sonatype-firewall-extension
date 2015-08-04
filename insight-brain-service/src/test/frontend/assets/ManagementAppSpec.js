@@ -49,7 +49,7 @@ describe('ManagementModule', function() {
 
     it('loads organizations and applications', function() {
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toBe(organizations.length + 1);
+      expect(scope.organizations.length).toBe(organizations.length);
 
       expect(scope.organizations[0].id).toBe(organizations[0].id);
       expect(scope.organizations[0].name).toBe(organizations[0].name);
@@ -77,16 +77,23 @@ describe('ManagementModule', function() {
       expect(scope.organizations[2].name).toBe(applications[2].organizationName);
       expect(scope.organizations[2].isVisible).toBe(true);
       expect(scope.organizations[2].isExpanded).toBe(false);
+      expect(scope.organizations[2].synthetic).toBe(true);
       expect(scope.organizations[2].applications).toBeDefined();
       expect(scope.organizations[2].applications.length).toBe(1);
       expect(scope.organizations[2].applications[0].id).toBe(applications[2].id);
       expect(scope.organizations[2].applications[0].publicId).toBe(applications[2].publicId);
       expect(scope.organizations[2].applications[0].name).toBe(applications[2].name);
       expect(scope.organizations[2].applications[0].isVisible).toBe(true);
+
+      expect(scope.rootOrganization.id).toBe('rootOrg');
+      expect(scope.rootOrganization.name).toBe('Root org');
     });
 
     it('checks if an organization or application is selected', function() {
-      expect($state.includes.calls.length).toBe(7);
+      expect($state.includes.calls.length).toBe(8);
+      expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
+        organizationId: 'rootOrg'
+      });
       expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
         organizationId: organizations[0].id
       });

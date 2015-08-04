@@ -276,17 +276,23 @@ body {
         <div class="tree-view-header">
           Organizations and Applications
         </div>
-        <div class="tree-view-new-organization">
-          <button class="btn">
-            <i class="fa fa-plus"></i>
-            New Organization
-          </button>
-        </div>
         <div class="tree-view-filter search input-prepend">
           <span class="add-on">
             <i role="button" class="fa fa-filter"></i>
           </span>
           <input type="text" placeholder="App or Org Name / ID">
+        </div>
+        <div class="tree-view-root-organization-group">
+          <a class="tree-view-item selected">
+            <i class="fa fa-globe tree-view-icon"></i>
+            Root Organization
+            <div class="tree-view-new-organization">
+              <button class="btn">
+                <i class="fa fa-plus"></i>
+                New Organization
+              </button>
+            </div>
+          </a>
         </div>
         <div class="tree-view-organization-group">
           <a class="tree-view-item">
@@ -341,18 +347,16 @@ body {
     }
   }
 
-  .tree-view-new-organization {
+  .tree-view-new-organization, .tree-view-new-application {
     text-align: center;
-    margin-bottom: 12px;
+    margin-top: 12px;
   }
 
   .tree-view-new-application {
-    text-align: center;
-    margin-top: 12px;
     margin-right: 8px;
   }
 
-  .tree-view-organization-group {
+  .tree-view-organization-group, .tree-view-root-organization-group {
     .tree-view-icon {
       margin-right: 8px;
       margin-left: 8px;

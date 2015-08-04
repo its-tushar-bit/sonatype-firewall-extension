@@ -4,12 +4,19 @@ StoreMockData = {
       {
         "id": "org_1",
         "name": "org_ONE",
-        "nameLowercaseNoWhitespace": "org_one"
+        "nameLowercaseNoWhitespace": "org_one",
+        "parentOrganizationId": "rootOrg"
       },
       {
         "id": "org_2",
         "name": "org_TWO",
-        "nameLowercaseNoWhitespace": "org_two"
+        "nameLowercaseNoWhitespace": "org_two",
+        "parentOrganizationId": "rootOrg"
+      },
+      {
+        "id": "rootOrg",
+        "name": "Root org",
+        "nameLowercaseNoWhitespace": "root_org"
       }
     ];
   },
@@ -17,7 +24,8 @@ StoreMockData = {
     return {
       "id": "org_3",
       "name": "org_THREE",
-      "nameLowercaseNoWhitespace": "org_three"
+      "nameLowercaseNoWhitespace": "org_three",
+      "parentOrganizationId": "rootOrg"
     };
   },
   getApplications: function() {

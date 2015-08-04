@@ -60,8 +60,7 @@ public class OwnerTreeViewTest
     }
 
     refreshOrOpen(OrganizationManagementPage.URL);
-    // Add one for the root org
-    OwnerTreeView.organizationElements().shouldHaveSize(organizations.size() + 1);
+    OwnerTreeView.organizationElements().shouldHaveSize(organizations.size());
   }
 
   @Test

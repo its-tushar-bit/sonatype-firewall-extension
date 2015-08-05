@@ -48,6 +48,21 @@ public class OrganizationLicenseThreatGroupResourceTest
   }
 
   @Test
+  public void testDelete_InUseByPolicyInGrandChildApp() throws Exception {
+    Organization org = tempEntity.newOrganization("orgName");
+    Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
+    testDelete_InUseByPolicy(org.getParentOrganizationId(), org.getParentOrganizationId(), app.getId(),
+        "in application 'appName'");
+  }
+
+  @Test
+  public void testDelete_InUseByPolicyInChildOrg() throws Exception {
+    Organization org = tempEntity.newOrganization("orgName");
+    testDelete_InUseByPolicy(org.getParentOrganizationId(), org.getParentOrganizationId(), org.getId(),
+        "in organization 'orgName'");
+  }
+
+  @Test
   public void testGetApplicable() throws Exception {
     Organization org = tempEntity.newOrganization("orgName");
     tempEntity.newLicenseThreatGroup(org.getId(), "LTG-0", 5, "Apache-2.0");

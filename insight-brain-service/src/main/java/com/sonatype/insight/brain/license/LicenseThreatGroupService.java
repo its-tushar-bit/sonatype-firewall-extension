@@ -11,12 +11,10 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -44,19 +42,16 @@ public class LicenseThreatGroupService
 
   private final PolicyDAO policyDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   private final OwnerDAO ownerDAO;
 
   @Inject
   public LicenseThreatGroupService(final LicenseThreatGroupDAO licenseThreatGroupDAO,
       final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO, final PolicyDAO policyDAO,
-      final ApplicationDAO applicationDAO, final OwnerDAO ownerDAO)
+      final OwnerDAO ownerDAO)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
     this.policyDAO = policyDAO;
-    this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
   }
 
@@ -133,25 +128,7 @@ public class LicenseThreatGroupService
     }
 
     // Verify that the license threat group is not used in a policy condition
-    String inUseError = "Cannot delete the license threat group because it is used in a condition for the '%s' policy";
-
-    for (Policy policy : policyDAO.getByOwnerId(internalOwnerId)) {
-      if (isLicenseThreatGroupUsedInPolicy(licenseThreatGroupId, policy)) {
-        throw new BadRequestException(String.format(inUseError, policy.getName()));
-      }
-    }
-
-    if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
-      inUseError = inUseError + " in application '%s'";
-
-      for (Application app : applicationDAO.getByOrganizationId(internalOwnerId)) {
-        for (Policy policy : policyDAO.getByOwnerId(app.getId())) {
-          if (isLicenseThreatGroupUsedInPolicy(licenseThreatGroupId, policy)) {
-            throw new BadRequestException(String.format(inUseError, policy.getName(), app.getName()));
-          }
-        }
-      }
-    }
+    validateLicenseThreatGroupNotUsedInAnyPolicy(ownerDAO.getById(internalOwnerId), licenseThreatGroup);
 
     licenseThreatGroupDAO.delete(licenseThreatGroup);
   }
@@ -192,6 +169,22 @@ public class LicenseThreatGroupService
     public int threatLevel;
 
     public List<LicenseThreatGroupLicense> licenses;
+  }
+
+  private void validateLicenseThreatGroupNotUsedInAnyPolicy(Owner owner, LicenseThreatGroup licenseThreatGroup) {
+    for (Policy policy : policyDAO.getByOwnerId(owner.getId())) {
+      if (isLicenseThreatGroupUsedInPolicy(licenseThreatGroup.getId(), policy)) {
+        String error = "Cannot delete the license threat group because it is used in a condition for the '"
+            + policy.getName() + "' policy";
+        if (!licenseThreatGroup.getOwnerId().equals(owner.getId())) {
+          error += " in " + owner.getType() + " '" + owner.getName() + "'";
+        }
+        throw new BadRequestException(error);
+      }
+    }
+    for (Owner childOwner : ownerDAO.getChildOwners(owner)) {
+      validateLicenseThreatGroupNotUsedInAnyPolicy(childOwner, licenseThreatGroup);
+    }
   }
 
   /**

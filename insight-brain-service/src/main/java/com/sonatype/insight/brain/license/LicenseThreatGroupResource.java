@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.license;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -19,26 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
-import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 @Named
 @Path(LicenseThreatGroupResource.SERVICE_PATH)
@@ -46,22 +28,19 @@ public class LicenseThreatGroupResource
 {
   public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
 
-  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final LicenseThreatGroupService licenseThreatGroupService;
 
-  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
-
-  private final OwnerDAO ownerDAO = new OwnerDAO();
+  @Inject
+  public LicenseThreatGroupResource(final LicenseThreatGroupService licenseThreatGroupService) {
+    this.licenseThreatGroupService = licenseThreatGroupService;
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public List<LicenseThreatGroup> getLicenseThreatGroups(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public List<LicenseThreatGroup> getLicenseThreatGroups(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    return licenseThreatGroupDAO.getByOwnerId(ownerId);
+    return licenseThreatGroupService.getLicenseThreatGroups(ownerType, ownerId);
   }
 
   /**
@@ -70,159 +49,35 @@ public class LicenseThreatGroupResource
   @GET
   @Path("applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    ApplicableLicenseThreatGroups result = new ApplicableLicenseThreatGroups();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.add(owner.getId(), owner.getName(), owner.getType(), loadLicenseThreatGroups(owner.getId()));
-    }
-    return result;
-  }
-
-  private List<LicenseThreatGroupWithLicenses> loadLicenseThreatGroups(String ownerId) {
-    List<LicenseThreatGroupWithLicenses> results = new ArrayList<>();
-    for (LicenseThreatGroup ltg : licenseThreatGroupDAO.getByOwnerId(ownerId)) {
-      LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
-      ltgwl.id = ltg.getId();
-      ltgwl.name = ltg.getName();
-      ltgwl.threatLevel = ltg.getThreatLevel();
-      ltgwl.licenses = licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
-      results.add(ltgwl);
-    }
-    return results;
+    return licenseThreatGroupService.getApplicableLicenseThreatGroups(ownerType, ownerId);
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public LicenseThreatGroup addLicenseThreatGroup(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup addLicenseThreatGroup(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    licenseThreatGroup.setId(null);
-    licenseThreatGroup.setOwnerId(ownerId);
-    licenseThreatGroupDAO.insert(licenseThreatGroup);
-
-    return licenseThreatGroup;
+    return licenseThreatGroupService.addLicenseThreatGroup(ownerType, ownerId, licenseThreatGroup);
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public LicenseThreatGroup updateLicenseThreatGroup(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup updateLicenseThreatGroup(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    licenseThreatGroup.setOwnerId(ownerId);
-    licenseThreatGroupDAO.update(licenseThreatGroup);
-
-    return licenseThreatGroup;
+    return licenseThreatGroupService.updateLicenseThreatGroup(ownerType, ownerId, licenseThreatGroup);
   }
 
   @DELETE
   @Path("{licenseThreatGroupId}")
-  @Authorize(permission = Permission.WRITE)
-  public void deleteLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+  public void deleteLicenseThreatGroup(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
       @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroupId);
-    if (!internalOwnerId.equals(licenseThreatGroup.getOwnerId())) {
-      throw new NotFoundException("Cannot find a license threat group with ID " + licenseThreatGroupId + " for "
-          + ownerType + " ID " + ownerId);
-    }
-
-    // Verify that the license threat group is not used in a policy condition
-    PolicyDAO policyDAO = new PolicyDAO();
-
-    String inUseError = "Cannot delete the license threat group because it is used in a condition for the '%s' policy";
-
-    for (Policy policy : policyDAO.getByOwnerId(internalOwnerId)) {
-      if (isLicenseThreatGroupUsedInPolicy(licenseThreatGroupId, policy)) {
-        throw new BadRequestException(String.format(inUseError, policy.getName()));
-      }
-    }
-
-    if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
-      inUseError = inUseError + " in application '%s'";
-
-      for (Application app : new ApplicationDAO().getByOrganizationId(internalOwnerId)) {
-        for (Policy policy : policyDAO.getByOwnerId(app.getId())) {
-          if (isLicenseThreatGroupUsedInPolicy(licenseThreatGroupId, policy)) {
-            throw new BadRequestException(String.format(inUseError, policy.getName(), app.getName()));
-          }
-        }
-      }
-    }
-
-    licenseThreatGroupDAO.delete(licenseThreatGroup);
-  }
-
-  public static class ApplicableLicenseThreatGroups
-  {
-    public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner = new ArrayList<>();
-
-    public void add(String ownerId, String ownerName, OwnerType ownerType,
-        List<LicenseThreatGroupWithLicenses> licenseThreatGroups)
-    {
-      LicenseThreatGroupsByOwner ltgbo = new LicenseThreatGroupsByOwner();
-      ltgbo.ownerId = ownerId;
-      ltgbo.ownerName = ownerName;
-      ltgbo.ownerType = ownerType;
-      ltgbo.licenseThreatGroups = licenseThreatGroups;
-      licenseThreatGroupsByOwner.add(ltgbo);
-    }
-  }
-
-  public static class LicenseThreatGroupsByOwner
-  {
-    public String ownerId;
-
-    public String ownerName;
-
-    public OwnerType ownerType;
-
-    public List<LicenseThreatGroupWithLicenses> licenseThreatGroups;
-  }
-
-  public static class LicenseThreatGroupWithLicenses
-  {
-    public String id;
-
-    public String name;
-
-    public int threatLevel;
-
-    public List<LicenseThreatGroupLicense> licenses;
-  }
-
-  /**
-   * Returns {@code true} if the given licenseThreatGroupId is used in the given policy; otherwise {@code false}.
-   * 
-   * @since 1.6
-   */
-  private static boolean isLicenseThreatGroupUsedInPolicy(String licenseThreatGroupId, Policy policy) {
-    for (Constraint constraint : policy.getConstraints()) {
-      for (Condition condition : constraint.getConditions()) {
-        if (LicenseThreatGroupConditionType.ID.equals(condition.getConditionTypeId())
-            && licenseThreatGroupId.equals(condition.getValue())) {
-          return true;
-        }
-      }
-    }
-    return false;
+    licenseThreatGroupService.deleteLicenseThreatGroup(ownerType, ownerId, licenseThreatGroupId);
   }
 }

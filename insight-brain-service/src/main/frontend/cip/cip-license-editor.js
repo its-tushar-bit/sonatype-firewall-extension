@@ -312,7 +312,7 @@
       };
 
       // Remove licenses when changing status
-      $scope.$watch('override.status', function(val) {
+      $scope.$watch('override.status', function() {
         if ($scope.override) {
           $scope.override.licenseIds = [];
         }

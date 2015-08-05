@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.license;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,25 +21,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.component.ComponentIdentifierValidator;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
-import com.sonatype.insight.brain.dto.audit.BomAudit;
-import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
-import com.sonatype.insight.json.store.JsonStore;
-import com.sonatype.insight.json.store.JsonUtils;
 
 /**
  * @since 1.6
@@ -52,138 +34,40 @@ public class LicenseOverrideResource
 {
   public static final String SERVICE_PATH = "rest/licenseOverride/{ownerType: application|organization}/{ownerId}";
 
-  private final InsightWork work;
-
-  private final CurrentUser currentUser;
+  private final LicenseOverrideService licenseOverrideService;
 
   @Inject
-  public LicenseOverrideResource(InsightWork work, CurrentUser currentUser) {
-    this.work = work;
-    this.currentUser = currentUser;
+  public LicenseOverrideResource(final LicenseOverrideService licenseOverrideService)
+  {
+    this.licenseOverrideService = licenseOverrideService;
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public LicenseOverride addLicenseOverride(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride,
-      @QueryParam("where") String where, @Context final HttpServletRequest request)
+  public LicenseOverride addLicenseOverride(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride, @QueryParam("where") String where,
+      @Context final HttpServletRequest request)
       throws IOException
   {
-    ComponentIdentifierValidator.validate(licenseOverride.getComponentIdentifier());
-
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    licenseOverride.setOwnerId(internalOwnerId);
-
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride existingLicenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(internalOwnerId,
-      licenseOverride.getComponentIdentifier());
-    if (existingLicenseOverride != null) {
-      licenseOverride.setId(existingLicenseOverride.getId());
-      licenseOverrideDAO.update(licenseOverride);
-    }
-    else {
-      licenseOverride.setId(null);
-      licenseOverrideDAO.insert(licenseOverride);
-    }
-
-    String user = currentUser.getUsername();
-    String ipAddress = currentUser.getIP(request);
-    auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, false /* isDelete */);
-
-    return licenseOverride;
-  }
-
-  private void auditLicenseOverride(String ownerId, LicenseOverride licenseOverride, String user, String where,
-      String ipAddress, boolean isDelete) throws IOException
-  {
-    JsonStore store = JsonUtils.fileStore(work.getAuditDir(ownerId));
-
-    LicenseOverrideAudit licenseOverrideAudit = new LicenseOverrideAudit(licenseOverride);
-    if (isDelete) {
-      licenseOverrideAudit.setStatus("Deleted");
-      licenseOverrideAudit.setComment(null);
-    }
-    store.commit("licenses.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(licenseOverrideAudit)));
-    BomAudit bomAudit = new BomAudit(licenseOverride.getComponentIdentifier(), !isDelete /* modified */);
-    store.commit("bom.json", JsonUtils.stamp(user, ipAddress, where, JsonUtils.asTree(bomAudit)));
+    return licenseOverrideService.addLicenseOverride(ownerType, ownerId, licenseOverride, where, request);
   }
 
   @DELETE
   @Path("{licenseOverrideId}")
-  @Authorize(permission = Permission.WRITE)
-  public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+  public void deleteLicenseOverride(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
       @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("where") String where,
       @Context final HttpServletRequest request) throws IOException
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride licenseOverride = licenseOverrideDAO.getByIdNotNull(licenseOverrideId);
-    if (!internalOwnerId.equals(licenseOverride.getOwnerId())) {
-      throw new NotFoundException("Cannot find a license override with ID " + licenseOverrideId + " for " + ownerType
-          + " ID " + ownerId);
-    }
-
-    String user = currentUser.getUsername();
-    String ipAddress = currentUser.getIP(request);
-    auditLicenseOverride(internalOwnerId, licenseOverride, user, where, ipAddress, true /* isDelete */);
-
-    licenseOverrideDAO.delete(licenseOverride);
+    licenseOverrideService.deleteLicenseOverride(ownerType, ownerId, licenseOverrideId, where, request);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public AppliedLicenseOverrides getAppliedLicenseOverrides(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+  public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
-    if (componentIdentifier == null) {
-      throw new BadRequestException("componentIdentifier is required");
-    }
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    AppliedLicenseOverrides result = new AppliedLicenseOverrides();
-    result.licenseOverridesByOwner = new ArrayList<>();
-
-    OwnerDAO ownerDAO = new OwnerDAO();
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-
-    while (internalOwnerId != null) {
-      Owner owner = ownerDAO.getById(internalOwnerId);
-      LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
-      licenseOverrideByOwner.ownerId = owner.getPublicId();
-      licenseOverrideByOwner.ownerName = owner.getName();
-      licenseOverrideByOwner.ownerType = owner.getType();
-      licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(owner.getId(),
-          componentIdentifier);
-      result.licenseOverridesByOwner.add(licenseOverrideByOwner);
-
-      internalOwnerId = owner.getParentOrganizationId();
-    }
-
-    return result;
-  }
-
-  public static class AppliedLicenseOverrides
-  {
-    public List<LicenseOverrideByOwner> licenseOverridesByOwner;
-  }
-
-  public static class LicenseOverrideByOwner
-  {
-    public String ownerId;
-
-    public String ownerName;
-
-    public OwnerType ownerType;
-
-    public LicenseOverride licenseOverride;
+    return licenseOverrideService.getAppliedLicenseOverrides(ownerType, ownerId, componentIdentifier);
   }
 }

@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
-import com.sonatype.insight.brain.license.LicenseOverrideResource.AppliedLicenseOverrides;
-import com.sonatype.insight.brain.license.LicenseOverrideResource.LicenseOverrideByOwner;
+import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
+import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverrideByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -348,7 +348,7 @@ public class LicenseOverrideResourceTest
     String appPublicId2 = "LicenseOverrideResourceTest2";
     tempEntity.newApplicationWithParent(appPublicId2);
 
-    testDelete_OwnerIdMismatch(IdUtils.TYPE_APPLICATION, appPublicId1, application1.getId(), appPublicId2);
+    testDelete_OwnerIdMismatch(IdUtils.TYPE_APPLICATION, appPublicId1, appPublicId2);
   }
 
   @Test
@@ -356,11 +356,10 @@ public class LicenseOverrideResourceTest
     Organization organization1 = tempEntity.newOrganization("LicenseOverrideResourceTest1");
     Organization organization2 = tempEntity.newOrganization("LicenseOverrideResourceTest2");
 
-    testDelete_OwnerIdMismatch(IdUtils.TYPE_ORGANIZATION, organization1.getId(), organization1.getId(),
-        organization2.getId());
+    testDelete_OwnerIdMismatch(IdUtils.TYPE_ORGANIZATION, organization1.getId(), organization2.getId());
   }
 
-  private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1, String ownerId1,
+  private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1,
       String ownerPublicId2) throws Exception
   {
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,

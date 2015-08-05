@@ -66,23 +66,10 @@
         }
       }
 
-      function updateStatuses() {
-        $scope.statuses = angular.copy(statuses);
-        if ($scope.override && $scope.override.ownerId) {
-          var overrideScope = getHierarchyById($scope.override.ownerId);
-          if (overrideScope && overrideScope.licenseOverride && overrideScope.ownerType === 'application' &&
-              $scope.hierarchy.length > 1) {
-            for (var i = 0; i < $scope.hierarchy.length; i++) {
-              if ($scope.hierarchy[i].ownerType !== 'application') {
-                $scope.statuses.push({
-                  value: 'DELETE',
-                  label: 'Inherit Status (' +
-                      ($scope.hierarchy[i].licenseOverride ? getStatusName($scope.hierarchy[i].licenseOverride.status) : 'Open') +
-                      ')'
-                });
-                break;
-              }
-            }
+      function getHierarchyIndexById(id) {
+        for (var i = 0; i < $scope.hierarchy.length; i++) {
+          if ($scope.hierarchy[i].ownerId === id) {
+            return i;
           }
         }
       }
@@ -156,22 +143,41 @@
       }
 
       function getStatusName(id) {
-        for (var i = 0; i < statuses.length; i++) {
-          if (statuses[i].value === id) {
-            return statuses[i].label;
-          }
+        if (id === 'OPEN') {
+          return 'Open';
         }
-        //you send me junk, i send you junk back ;)
-        return id;
+        else if (id === 'SELECTED') {
+          return 'Selected';
+        }
+        else if (id === 'OVERRIDDEN') {
+          return 'Overridden';
+        }
+        else if (id === 'ACKNOWLEDGED') {
+          return 'Acknowledged';
+        }
+        else if (id === 'CONFIRMED') {
+          return 'Confirmed';
+        }
+        else {
+          //you send me junk, i send you junk back ;)
+          return id;
+        }
       }
 
-      var statuses = [
-        { value: 'OPEN', label: 'Open' },
-        { value: 'ACKNOWLEDGED', label: 'Acknowledged' },
-        { value: 'OVERRIDDEN', label: 'Overridden' },
-        { value: 'SELECTED', label: 'Selected' },
-        { value: 'CONFIRMED', label: 'Confirmed' }
-      ];
+      $scope.canInherit = function() {
+        return $scope.override && getHierarchyIndexById($scope.override.ownerId) < $scope.hierarchy.length - 1;
+      };
+
+      $scope.getInheritableStatus = function() {
+        var index = getHierarchyIndexById($scope.override.ownerId) + 1;
+
+        for (var i=index; i<$scope.hierarchy.length; i++) {
+          if ($scope.hierarchy[i].licenseOverride) {
+            return getStatusName($scope.hierarchy[i].licenseOverride.status);
+          }
+        }
+        return 'Open';
+      };
 
       $scope.doLoad = function() {
         $scope.error = null;
@@ -209,17 +215,6 @@
           angular.forEach($scope.component.selectableLicenses, function (license) {
             $scope.selectableLicenses[license.licenseId] = $scope.licenses[license.licenseId];
           });
-
-          // Hide SELECTED status if there are no licenses to choose from
-          if ($scope.component.selectableLicenses.length === 0 ) {
-            for (var i=0; i<$scope.statuses.length; i++) {
-              if ($scope.statuses[i].value === 'SELECTED') {
-                $scope.statuses.splice(i, 1);
-                statuses.splice(i, 1);
-                break;
-              }
-            }
-          }
         }, function() {
           $scope.error = arguments[0];
         });
@@ -253,7 +248,6 @@
             $scope.saving = false;
             owner.licenseOverride = null;
             $scope.reset();
-            updateStatuses();
             updateTable();
           }).error(function() {
                 $scope.alert = Messages.getHttpErrorMessage(arguments);
@@ -266,7 +260,6 @@
             $scope.saving = false;
             owner.licenseOverride = data;
             $scope.reset();
-            updateStatuses();
             updateTable();
           }).error(function() {
             $scope.alert = Messages.getHttpErrorMessage(arguments);
@@ -319,7 +312,7 @@
       };
 
       // Remove licenses when changing status
-      $scope.$watch('override.status', function() {
+      $scope.$watch('override.status', function(val) {
         if ($scope.override) {
           $scope.override.licenseIds = [];
         }
@@ -330,7 +323,6 @@
         if (newValue) {
           setOverrideScope(getHierarchyById(newValue));
         }
-        updateStatuses();
       });
 
       $scope.doLoad();

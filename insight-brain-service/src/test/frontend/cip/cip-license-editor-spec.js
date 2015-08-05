@@ -48,6 +48,12 @@
             licenseIds: [orgLicense],
             comment: ''
           }
+        },
+        {
+          ownerId: 'root-organization',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          licenseOverride: null
         }
       ]
     };
@@ -157,11 +163,8 @@
           licenseIds: []
         });
 
-        expect(scope.statuses.length).toEqual(6);
-        expect(scope.statuses[5]).toEqual({
-          value: 'DELETE',
-          label: 'Inherit Status (Overridden)'
-        });
+        expect(scope.canInherit()).toBeTruthy();
+        expect(scope.getInheritableStatus()).toEqual('Overridden');
       });
 
       it('Delete', inject(function($httpBackend) {
@@ -177,7 +180,8 @@
           status: 'OVERRIDDEN',
           licenseIds: ['AFL-1.2']
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
+        expect(scope.getInheritableStatus()).toEqual('Open');
       }));
 
       describe('getLicenseThreatClass', function () {
@@ -230,7 +234,7 @@
           status: 'OPEN',
           licenseIds: []
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
       });
 
       it('Add Org', inject(function($httpBackend, SelectedComponent) {
@@ -425,6 +429,34 @@
       }));
     });
 
+    describe('Root Overrides', function () {
+      beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
+
+        var applied = getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', "AFL"),
+            licenseOverridesByOwner = applied.licenseOverridesByOwner;
+        licenseOverridesByOwner[2].licenseOverride = licenseOverridesByOwner[1].licenseOverride;
+        licenseOverridesByOwner[1].licenseOverride = licenseOverridesByOwner[0].licenseOverride = null;
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
+            respond(applied);
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/app1?componentIdentifier=' +
+            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $controller('LicenseEditorController', {
+          $scope: scope
+        });
+        $httpBackend.flush();
+      }));
+
+      it('Cannot Inherit', function () {
+        expect(scope.override.ownerId).toEqual('root-organization');
+        expect(scope.canInherit()).toBeFalsy();
+      });
+    });
+
     describe("Org Overridden", function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
@@ -448,7 +480,7 @@
           status: 'OVERRIDDEN',
           licenseIds: ['AFL']
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
       });
 
       it('Add Application', inject(function($httpBackend, SelectedComponent) {
@@ -461,7 +493,7 @@
           status: 'OPEN',
           licenseIds: []
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
 
         scope.$apply(function() {
           scope.override.status = 'ACKNOWLEDGED';
@@ -490,7 +522,7 @@
           status: 'ACKNOWLEDGED',
           licenseIds: []
         });
-        expect(scope.statuses.length).toEqual(6);
+        expect(scope.canInherit()).toBeTruthy();
       }));
     });
 
@@ -517,8 +549,8 @@
           status: 'OVERRIDDEN',
           licenseIds: ['AFL-1.2']
         });
-        expect(scope.statuses.length).toEqual(6);
-        expect(scope.statuses[5]).toEqual({ value: 'DELETE', label: 'Inherit Status (Open)' });
+        expect(scope.canInherit()).toBeTruthy();
+        expect(scope.getInheritableStatus()).toEqual('Open');
       });
 
       it('Add Organization Override', inject(function($httpBackend, SelectedComponent) {
@@ -531,7 +563,7 @@
           status: 'OPEN',
           licenseIds: []
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
 
         scope.$apply(function() {
           scope.override.status = 'ACKNOWLEDGED';
@@ -564,7 +596,7 @@
         scope.$apply(function() {
           scope.override.ownerId = 'app1';
         });
-        expect(scope.statuses.length).toEqual(6);
+        expect(scope.canInherit()).toBeTruthy();
       }));
     });
 
@@ -591,11 +623,11 @@
           status: 'OVERRIDDEN',
           licenseIds: ['AFL']
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
       });
 
       it('Add Application', inject(function($httpBackend, SelectedComponent) {
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
 
         scope.$apply(function() {
           scope.override.status = 'ACKNOWLEDGED';
@@ -625,7 +657,7 @@
           status: 'ACKNOWLEDGED',
           licenseIds: []
         });
-        expect(scope.statuses.length).toEqual(5);
+        expect(scope.canInherit()).toBeTruthy();
       }));
     });
 
@@ -653,10 +685,6 @@
           setup({ licenseId : 'AFL-1.2' }, { licenseId : 'No-Sources' }, [{ licenseId : 'AFL-1.2' }]);
           expect(scope.selectableLicenses['AFL-1.2']).toBeTruthy();
           expect(scope.selectableLicenses['No-Sources']).toBeFalsy();
-        }));
-        it('Status removed when empty', inject(function ($httpBackend, SelectedComponent) {
-          setup({ licenseId : 'UNSPECIFIED' }, { licenseId : 'No-Sources' }, []);
-          expect(scope.statuses.length).toBe(4);
         }));
       });
     });

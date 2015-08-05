@@ -49,8 +49,13 @@
             <label class="control-label">Status</label>
             <div class="controls" style="text-align:left;">
               <select ng-model='override.status' name="status"
-                  ng-options='status.value as status.label for status in statuses'
                   required>
+                <option value="OPEN">Open</option>
+                <option value="ACKNOWLEDGED">Acknowledged</option>
+                <option value="OVERRIDDEN">Overridden</option>
+                <option ng-if="component.selectableLicenses.length" value="SELECTED">Selected</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option ng-if="canInherit()" value="DELETE">Inherit Status ({{ getInheritableStatus() }})</option>
               </select>
             </div>
           </div>

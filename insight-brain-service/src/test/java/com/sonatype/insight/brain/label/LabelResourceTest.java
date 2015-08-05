@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.label;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelResource.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelResource.LabelsByOwner;
@@ -26,13 +24,10 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 
@@ -110,36 +105,8 @@ public class LabelResourceTest
 
   @Test
   public void testDeleteAppLabel_UsedInPolicyCondition() throws Exception {
-    // Create an application with one label
-    String appPublicId = "LabelResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(appPublicId);
-    Label label = tempEntity.newLabel(application.getId(), "MyLabel", Color.blue);
-    
-    // Create a policy that uses the label
-    Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
-    Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
-    constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<>();
-    constraints.add(constraint);
-    Policy policy = new Policy("PolicyId1", "Policy Name 1");
-    policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH)
-        .parameter(IdUtils.TYPE_APPLICATION, appPublicId).body(policy).post();
-    assertResponseStatus(200, response);
-
-    // Try to delete the label
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path(label.getId()).delete();
-    assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy",
-        response.getBodyText());
-    // Verify that the label was not deleted
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).get();
-    assertResponseStatus(200, response);
-    Label[] labels = response.getBody(Label[].class);
-    Assert.assertNotNull(labels);
-    Assert.assertEquals(1, labels.length);
-    assertLabel(application.getId(), "MyLabel", Color.blue, labels[0]);
+    Application app = tempEntity.newApplicationWithParent("appPublicId");
+    testDelete_InUseByPolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), app.getId(), app.getId(), null);
   }
 
   @Test
@@ -232,74 +199,54 @@ public class LabelResourceTest
 
   @Test
   public void testDeleteOrgLabel_UsedInPolicyCondition() throws Exception {
-    // Create an organization with one label
-    String orgName = "LabelResourceTestOrgName";
-    Organization organization = tempEntity.newOrganization(orgName);
-    Label label = tempEntity.newLabel(organization.getId(), "MyLabel", Color.blue);
-    
-    // Create a policy that uses the label
-    Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
-    Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
-    constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<>();
-    constraints.add(constraint);
-    Policy policy = new Policy("PolicyId1", "Policy Name 1");
-    policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH)
-        .parameter(IdUtils.TYPE_ORGANIZATION, organization.getId()).body(policy).post();
-    assertResponseStatus(200, response);
-
-    // Try to delete the label
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path(label.getId()).delete();
-    assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy",
-        response.getBodyText());
-    // Verify that the label was not deleted
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).get();
-    assertResponseStatus(200, response);
-    Label[] labels = response.getBody(Label[].class);
-    Assert.assertNotNull(labels);
-    Assert.assertEquals(1, labels.length);
-    assertLabel(organization.getId(), "MyLabel", Color.blue, labels[0]);
+    Organization org = tempEntity.newOrganization();
+    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), org.getId(), org.getId(), null);
   }
 
   @Test
   public void testDeleteOrgLabel_UsedInAppPolicyCondition() throws Exception {
-    // Create an application
-    String appPublicId = "LabelResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(appPublicId, "Application Name 1");
-    String organizationId = application.getOrganizationId();
+    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
+    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), app.getOrganizationId(), app.getId(),
+        "in application 'appName'");
+  }
 
-    // Create an organization label
-    Label label = tempEntity.newLabel(organizationId, "MyLabel", Color.blue);
-    
-    // Create an app policy that uses the label
-    Condition condition = new Condition(LabelConditionType.ID, "is", label.getId());
-    Constraint constraint = new Constraint("ConstraintId1", "Constraint name 1", LogicalOperator.AND);
-    constraint.addCondition(condition);
-    List<Constraint> constraints = new ArrayList<>();
-    constraints.add(constraint);
-    Policy policy = new Policy("PolicyId1", "Policy Name 1");
-    policy.setConstraints(constraints);
-    policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
-    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH)
-        .parameter(IdUtils.TYPE_APPLICATION, appPublicId).body(policy).post();
-    assertResponseStatus(200, response);
+  @Test
+  public void testDeleteOrgLabel_UsedInGrandChildAppPolicyCondition() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
+    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
+        app.getId(), "in application 'appName'");
+  }
 
-    // Try to delete the label
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationId).path(label.getId()).delete();
+  @Test
+  public void testDeleteOrgLabel_UsedInChildOrgPolicyCondition() throws Exception {
+    Organization org = tempEntity.newOrganization("orgName");
+    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
+        org.getId(), "in organization 'orgName'");
+  }
+
+  private void testDelete_InUseByPolicy(String ownerType, String ownerPublicId, String ownerId, String policyOwnerId,
+      String policyLocation) throws Exception
+  {
+    Label label = tempEntity.newLabel(ownerId);
+
+    Policy policy = new Policy(null, "policyName");
+    policy.setOwnerId(policyOwnerId);
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
+    constraint.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    HttpResponse response = restRequest(ownerType, ownerPublicId).path(label.getId()).delete();
     assertResponseStatus(400, response);
-    Assert.assertEquals("Cannot delete the label because it is used in a condition for the 'Policy Name 1' policy"
-        + " in application 'Application Name 1'", response.getBodyText());
 
-    // Verify that the label was not deleted
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationId).get();
-    assertResponseStatus(200, response);
-    Label[] labels = response.getBody(Label[].class);
-    Assert.assertNotNull(labels);
-    Assert.assertEquals(1, labels.length);
-    assertLabel(organizationId, "MyLabel", Color.blue, labels[0]);
+    String error = "Cannot delete the label because it is used in a condition for the 'policyName' policy";
+    if (null != policyLocation) {
+      error = error + " " + policyLocation;
+    }
+    Assert.assertThat(response.getBodyText(), is(error));
+
+    Assert.assertThat(new LabelDAO().getById(label.getId()), is(notNullValue()));
   }
 
   @Test

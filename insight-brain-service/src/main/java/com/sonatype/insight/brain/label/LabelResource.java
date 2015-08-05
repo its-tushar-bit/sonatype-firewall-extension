@@ -60,6 +60,8 @@ public class LabelResource
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
+  private final PolicyDAO policyDAO = new PolicyDAO();
+
   private PermissionService permissionService;
 
 
@@ -223,28 +225,7 @@ public class LabelResource
       throw new NotFoundException("Cannot find a label with ID " + labelId + " for " + ownerType + " ID " + ownerId);
     }
 
-    // Verify that the label is not used in a policy condition
-    PolicyDAO policyDAO = new PolicyDAO();
-
-    String inUseError = "Cannot delete the label because it is used in a condition for the '%s' policy";
-
-    for (Policy policy : policyDAO.getByOwnerId(internalOwnerId)) {
-      if (isLabelUsedInPolicy(labelId, policy)) {
-        throw new BadRequestException(String.format(inUseError, policy.getName()));
-      }
-    }
-
-    if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
-      inUseError = inUseError + " in application '%s'";
-
-      for (Application app : new ApplicationDAO().getByOrganizationId(internalOwnerId)) {
-        for (Policy policy : policyDAO.getByOwnerId(app.getId())) {
-          if (isLabelUsedInPolicy(labelId, policy)) {
-            throw new BadRequestException(String.format(inUseError, policy.getName(), app.getName()));
-          }
-        }
-      }
-    }
+    validateLabelNotUsedInAnyPolicy(ownerDAO.getById(internalOwnerId), label);
 
     labelDAO.delete(label);
   }
@@ -263,6 +244,22 @@ public class LabelResource
     public OwnerType ownerType;
 
     public List<Label> labels;
+  }
+
+  private void validateLabelNotUsedInAnyPolicy(Owner owner, Label label) {
+    for (Policy policy : policyDAO.getByOwnerId(owner.getId())) {
+      if (isLabelUsedInPolicy(label.getId(), policy)) {
+        String error = "Cannot delete the label because it is used in a condition for the '" + policy.getName()
+            + "' policy";
+        if (!label.getOwnerId().equals(owner.getId())) {
+          error += " in " + owner.getType() + " '" + owner.getName() + "'";
+        }
+        throw new BadRequestException(error);
+      }
+    }
+    for (Owner childOwner : ownerDAO.getChildOwners(owner)) {
+      validateLabelNotUsedInAnyPolicy(childOwner, label);
+    }
   }
 
   /**

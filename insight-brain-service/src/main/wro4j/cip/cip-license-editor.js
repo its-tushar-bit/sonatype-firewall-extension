@@ -243,7 +243,7 @@
         licenseOverride.ownerId = owner.ownerId;
 
         if (licenseOverride.status === 'DELETE') {
-          $http['delete'](CLM.path + 'rest/licenseOverride/application/' + licenseOverride.ownerId + '/' +
+          $http['delete'](CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + licenseOverride.ownerId + '/' +
                   owner.licenseOverride.id).success(function() {
             $scope.saving = false;
             owner.licenseOverride = null;

@@ -10,13 +10,13 @@ import java.util.Collections;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Test;
 
@@ -43,11 +43,11 @@ public class PolicyResourceAuthzTest
   public void testGetPolicies() throws Exception {
     grantReadPermission(app.getId());
 
-    testAuthzGet(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzGet(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
 
-    testAuthzGet(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzGet(restRequest().parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -56,22 +56,22 @@ public class PolicyResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    testAuthzGet(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzGet(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
 
-    testAuthzGet(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testAddPolicy() throws Exception {
     grantWritePermission(app.getId());
 
-    testAuthzPost(restRequest().body(newPolicy()).parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
 
-    testAuthzPost(restRequest().body(newPolicy()).parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -79,12 +79,12 @@ public class PolicyResourceAuthzTest
     grantWritePermission(app.getId());
 
     Policy policy = tempEntity.newPolicy(app.getId(), "testUpdatePolicy app");
-    testAuthzPut(restRequest().body(policy).parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
 
     policy = tempEntity.newPolicy(org.getId(), "testUpdatePolicy org");
-    testAuthzPut(restRequest().body(policy).parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -94,12 +94,12 @@ public class PolicyResourceAuthzTest
     grantWritePermission(app.getId());
 
     Policy policy = tempEntity.newPolicy(app.getId(), "testDeletePolicy");
-    testAuthzDelete(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), policy.getId()));
+    testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), policy.getId()));
 
     grantWritePermission(org.getId());
 
     policy = tempEntity.newPolicy(org.getId(), "testDeletePolicy");
-    testAuthzDelete(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), policy.getId()));
+    testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
   }
 
   @Test
@@ -110,7 +110,7 @@ public class PolicyResourceAuthzTest
     export.policies = Collections.singletonList(tempEntity.newPolicy(org.getId(), "name"));
     new ApplicationDAO().delete(app);
 
-    HttpRequest request = restRequest().path("import/ie").parameter(IdUtils.TYPE_ORGANIZATION, org.getId());
+    HttpRequest request = restRequest().path("import/ie").parameter(OwnerType.ORGANIZATION, org.getId());
     request.part("file", "filename", export);
 
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();

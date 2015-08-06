@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,7 +41,7 @@ import static org.hamcrest.Matchers.nullValue;
 public class LabelResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(String ownerType, String ownerId) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(LabelResource.SERVICE_PATH).parameter(ownerType, ownerId);
   }
 
@@ -51,7 +50,7 @@ public class LabelResourceTest
     // Create an application
     String appPublicId = "LabelResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    HttpRequest request = restRequest(IdUtils.TYPE_APPLICATION, appPublicId);
+    HttpRequest request = restRequest(OwnerType.APPLICATION, appPublicId);
 
     // Get all labels
     HttpResponse response = request.get();
@@ -106,7 +105,7 @@ public class LabelResourceTest
   @Test
   public void testDeleteAppLabel_UsedInPolicyCondition() throws Exception {
     Application app = tempEntity.newApplicationWithParent("appPublicId");
-    testDelete_InUseByPolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), app.getId(), app.getId(), null);
+    testDelete_InUseByPolicy(OwnerType.APPLICATION, app.getPublicId(), app.getId(), app.getId(), null);
   }
 
   @Test
@@ -114,7 +113,7 @@ public class LabelResourceTest
     String appPublicId = "LabelResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID YettiId.", response.getBodyText());
   }
@@ -127,12 +126,12 @@ public class LabelResourceTest
     tempEntity.newApplicationWithParent(appPublicId2);
     Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.blue);
     
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId2).path(label.getId()).delete();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId2).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID " + label.getId() + " for application ID " + appPublicId2,
         response.getBodyText());
     // Verify that the label was not deleted
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId1).get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId1).get();
     assertResponseStatus(200, response);
     Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
@@ -145,7 +144,7 @@ public class LabelResourceTest
     // Create an organization
     String orgName = "LabelResourceTestOrgName";
     Organization organization = tempEntity.newOrganization(orgName);
-    HttpRequest request = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId());
+    HttpRequest request = restRequest(OwnerType.ORGANIZATION, organization.getId());
 
     // Get all labels
     HttpResponse response = request.get();
@@ -200,13 +199,13 @@ public class LabelResourceTest
   @Test
   public void testDeleteOrgLabel_UsedInPolicyCondition() throws Exception {
     Organization org = tempEntity.newOrganization();
-    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), org.getId(), org.getId(), null);
+    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, org.getId(), org.getId(), org.getId(), null);
   }
 
   @Test
   public void testDeleteOrgLabel_UsedInAppPolicyCondition() throws Exception {
     Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
-    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), app.getOrganizationId(), app.getId(),
+    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, app.getOrganizationId(), app.getOrganizationId(), app.getId(),
         "in application 'appName'");
   }
 
@@ -214,19 +213,19 @@ public class LabelResourceTest
   public void testDeleteOrgLabel_UsedInGrandChildAppPolicyCondition() throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("appName", "appPublicId", org.getId());
-    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
+    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
         app.getId(), "in application 'appName'");
   }
 
   @Test
   public void testDeleteOrgLabel_UsedInChildOrgPolicyCondition() throws Exception {
     Organization org = tempEntity.newOrganization("orgName");
-    testDelete_InUseByPolicy(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
+    testDelete_InUseByPolicy(OwnerType.ORGANIZATION, org.getParentOrganizationId(), org.getParentOrganizationId(),
         org.getId(), "in organization 'orgName'");
   }
 
-  private void testDelete_InUseByPolicy(String ownerType, String ownerPublicId, String ownerId, String policyOwnerId,
-      String policyLocation) throws Exception
+  private void testDelete_InUseByPolicy(OwnerType ownerType, String ownerPublicId, String ownerId,
+      String policyOwnerId, String policyLocation) throws Exception
   {
     Label label = tempEntity.newLabel(ownerId);
 
@@ -254,7 +253,7 @@ public class LabelResourceTest
     String orgName = "LabelResourceTestOrgName";
     Organization organization = tempEntity.newOrganization(orgName);
 
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID YettiId.", response.getBodyText());
   }
@@ -268,13 +267,13 @@ public class LabelResourceTest
 
     Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.blue);
     
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization2.getId()).path(label.getId()).delete();
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization2.getId()).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals(
         "Cannot find a label with ID " + label.getId() + " for organization ID " + organization2.getId(),
         response.getBodyText());
     // Verify that the label was not deleted
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization1.getId()).get();
+    response = restRequest(OwnerType.ORGANIZATION, organization1.getId()).get();
     assertResponseStatus(200, response);
     Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
@@ -295,7 +294,7 @@ public class LabelResourceTest
     Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
 
     // Verify the applicable labels for the application
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     ApplicableLabels applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -306,7 +305,7 @@ public class LabelResourceTest
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
 
     // Verify the applicable labels for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -319,7 +318,7 @@ public class LabelResourceTest
     Label appLabel = tempEntity.newLabel(app.getId(), "testGetApplicableLabels_App_label");
 
     // Verify the applicable labels for the application
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -331,7 +330,7 @@ public class LabelResourceTest
     Assert.assertEquals(appLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
 
     // Verify the applicable labels for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -344,7 +343,7 @@ public class LabelResourceTest
     Label orgLabel = tempEntity.newLabel(orgId, "testGetApplicableLabels_Org_label");
 
     // Verify the applicable labels for the application
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -356,7 +355,7 @@ public class LabelResourceTest
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(1).labels.get(0).getId());
 
     // Verify the applicable labels for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -370,7 +369,7 @@ public class LabelResourceTest
     Label rootOrgLabel = tempEntity.newLabel(parentOrg.getId(), "testGetApplicableLabels_ParentOrg_label");
 
     // Verify the applicable labels for the application
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("applicable").get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -383,7 +382,7 @@ public class LabelResourceTest
     Assert.assertEquals(rootOrgLabel.getId(), applicableLabels.labelsByOwner.get(2).labels.get(0).getId());
 
     // Verify the applicable labels for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
@@ -402,7 +401,7 @@ public class LabelResourceTest
     Label parentOrgLabel = tempEntity.newLabel(org.getParentOrganizationId(), "rootOrgLabel");
     Label orgLabel = tempEntity.newLabel(org.getId(), "orgLabel");
     Label appLabel = tempEntity.newLabel(app.getId(), "appLabel");
-    HttpRequest request = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId()).subpath(
+    HttpRequest request = restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(
         "applicable/context/{labelId}");
 
     HttpResponse response = request.parameter(appLabel.getId()).get();

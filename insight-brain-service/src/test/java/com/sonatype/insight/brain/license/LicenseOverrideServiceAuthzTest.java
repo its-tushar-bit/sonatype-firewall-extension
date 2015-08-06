@@ -9,10 +9,10 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -37,8 +37,7 @@ public class LicenseOverrideServiceAuthzTest
     grantWritePermission(app.getId());
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    licenseOverrideService
-        .addLicenseOverride(IdUtils.TYPE_APPLICATION, app.getPublicId(), override, null, mockRequest);
+    licenseOverrideService.addLicenseOverride(OwnerType.APPLICATION, app.getPublicId(), override, null, mockRequest);
   }
 
   @Test
@@ -46,8 +45,7 @@ public class LicenseOverrideServiceAuthzTest
     grantWritePermission(org.getId());
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    licenseOverrideService
-        .addLicenseOverride(IdUtils.TYPE_ORGANIZATION, org.getId(), override, null, mockRequest);
+    licenseOverrideService.addLicenseOverride(OwnerType.ORGANIZATION, org.getId(), override, null, mockRequest);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -56,7 +54,7 @@ public class LicenseOverrideServiceAuthzTest
 
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    licenseOverrideService.addLicenseOverride(IdUtils.TYPE_APPLICATION, app.getPublicId(), override, null,
+    licenseOverrideService.addLicenseOverride(OwnerType.APPLICATION, app.getPublicId(), override, null,
         mockRequest);
   }
 
@@ -66,7 +64,7 @@ public class LicenseOverrideServiceAuthzTest
 
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    licenseOverrideService.addLicenseOverride(IdUtils.TYPE_ORGANIZATION, org.getId(), override, null,
+    licenseOverrideService.addLicenseOverride(OwnerType.ORGANIZATION, org.getId(), override, null,
         mockRequest);
   }
 
@@ -74,7 +72,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testAddLicenseOverrideForApplication_Unauthenticated() throws Exception {
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    licenseOverrideService.addLicenseOverride(IdUtils.TYPE_APPLICATION, app.getPublicId(), override, null,
+    licenseOverrideService.addLicenseOverride(OwnerType.APPLICATION, app.getPublicId(), override, null,
         mockRequest);
   }
 
@@ -82,7 +80,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testAddLicenseOverrideForOrganization_Unauthenticated() throws Exception {
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
-    licenseOverrideService.addLicenseOverride(IdUtils.TYPE_ORGANIZATION, org.getId(), override, null,
+    licenseOverrideService.addLicenseOverride(OwnerType.ORGANIZATION, org.getId(), override, null,
         mockRequest);
   }
 
@@ -92,7 +90,7 @@ public class LicenseOverrideServiceAuthzTest
 
     LicenseOverride override = tempEntity
         .newLicenseOverride(app.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+    licenseOverrideService.deleteLicenseOverride(OwnerType.APPLICATION, app.getPublicId(),
         override.getId(), null, mockRequest);
   }
 
@@ -102,7 +100,7 @@ public class LicenseOverrideServiceAuthzTest
 
     LicenseOverride override = tempEntity
         .newLicenseOverride(org.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(IdUtils.TYPE_ORGANIZATION, org.getId(), override.getId(),
+    licenseOverrideService.deleteLicenseOverride(OwnerType.ORGANIZATION, org.getId(), override.getId(),
         null, mockRequest);
   }
 
@@ -112,7 +110,7 @@ public class LicenseOverrideServiceAuthzTest
 
     LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), COMPONENT_IDENTIFIER,
         LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+    licenseOverrideService.deleteLicenseOverride(OwnerType.APPLICATION, app.getPublicId(),
         override.getId(), null, mockRequest);
   }
 
@@ -122,7 +120,7 @@ public class LicenseOverrideServiceAuthzTest
 
     LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), COMPONENT_IDENTIFIER,
         LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(IdUtils.TYPE_ORGANIZATION, org.getId(), override.getId(),
+    licenseOverrideService.deleteLicenseOverride(OwnerType.ORGANIZATION, org.getId(), override.getId(),
         null, mockRequest);
   }
 
@@ -130,7 +128,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testDeleteLicenseOverrideForApplication_Unauthenticated() throws Exception {
     LicenseOverride override = tempEntity.newLicenseOverride(app.getId(), COMPONENT_IDENTIFIER,
         LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+    licenseOverrideService.deleteLicenseOverride(OwnerType.APPLICATION, app.getPublicId(),
         override.getId(), null, mockRequest);
   }
 
@@ -138,7 +136,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testDeleteLicenseOverrideForOrganization_Unauthenticated() throws Exception {
     LicenseOverride override = tempEntity
         .newLicenseOverride(app.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(IdUtils.TYPE_ORGANIZATION, org.getId(), override.getId(),
+    licenseOverrideService.deleteLicenseOverride(OwnerType.ORGANIZATION, org.getId(), override.getId(),
         null, mockRequest);
   }
 
@@ -146,7 +144,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testGetAppliedLicenseOverridesForApplication_Authorized() throws Exception {
     grantReadPermission(app.getId());
 
-    licenseOverrideService.getAppliedLicenseOverrides(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.APPLICATION, app.getPublicId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
@@ -154,7 +152,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testGetAppliedLicenseOverridesForOrganization_Authorized() throws Exception {
     grantReadPermission(org.getId());
 
-    licenseOverrideService.getAppliedLicenseOverrides(IdUtils.TYPE_ORGANIZATION, org.getId(),
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.ORGANIZATION, org.getId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
@@ -162,7 +160,7 @@ public class LicenseOverrideServiceAuthzTest
   public void testGetAppliedLicenseOverridesForApplication_Unauthorized() throws Exception {
     login();
 
-    licenseOverrideService.getAppliedLicenseOverrides(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.APPLICATION, app.getPublicId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
@@ -170,19 +168,19 @@ public class LicenseOverrideServiceAuthzTest
   public void testGetAppliedLicenseOverridesForOrganization_Unauthorized() throws Exception {
     login();
 
-    licenseOverrideService.getAppliedLicenseOverrides(IdUtils.TYPE_ORGANIZATION, org.getId(),
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.ORGANIZATION, org.getId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAppliedLicenseOverridesForApplication_Unauthenticated() throws Exception {
-    licenseOverrideService.getAppliedLicenseOverrides(IdUtils.TYPE_APPLICATION, app.getPublicId(),
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.APPLICATION, app.getPublicId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAppliedLicenseOverridesForOrganization_Unauthenticated() throws Exception {
-    licenseOverrideService.getAppliedLicenseOverrides(IdUtils.TYPE_ORGANIZATION, org.getId(),
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.ORGANIZATION, org.getId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 }

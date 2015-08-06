@@ -14,6 +14,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -32,7 +33,7 @@ public class ConditionValueTypeResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public Collection<ConditionValueType> getConditionValueTypes(@PathParam("ownerType") String ownerType,
+  public Collection<ConditionValueType> getConditionValueTypes(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
     log.debug("Received request to get all {} condition value types for policyOwnerId ID {}", ownerType, ownerId);

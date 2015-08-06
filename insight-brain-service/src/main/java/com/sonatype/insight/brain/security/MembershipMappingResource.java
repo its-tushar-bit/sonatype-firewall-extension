@@ -19,6 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 /**
@@ -47,8 +48,8 @@ public class MembershipMappingResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final String ownerType,
-      @PathParam("ownerId") final String ownerId)
+  public ApplicableMembershipMappings getApplicableMembershipMappings(
+      @PathParam("ownerType") final OwnerType ownerType, @PathParam("ownerId") final String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     return membershipMappingService.getApplicableMembershipMappings(ownerType, internalOwnerId);
@@ -60,7 +61,7 @@ public class MembershipMappingResource
   @PUT
   @Path(ROLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setMembershipMappingForRole(@PathParam("ownerType") final String ownerType,
+  public void setMembershipMappingForRole(@PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId, @PathParam("roleId") final String roleId, final List<Member> members)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

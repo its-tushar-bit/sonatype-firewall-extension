@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 
 /**
@@ -69,7 +68,7 @@ public class ApiOrganizationResource
       @PathParam("organizationId") final String organizationId)
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
-        IdUtils.TYPE_ORGANIZATION, organizationId);
+        OwnerType.ORGANIZATION, organizationId);
     return apiMemberMappingAdapter.convert(mappings, OwnerType.ORGANIZATION);
   }
 
@@ -81,6 +80,6 @@ public class ApiOrganizationResource
       final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
     Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
-    membershipMappingService.setMembershipMappings(IdUtils.TYPE_ORGANIZATION, organizationId, roleToMembers);
+    membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, organizationId, roleToMembers);
   }
 }

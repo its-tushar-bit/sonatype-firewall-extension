@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -43,7 +44,6 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
@@ -172,20 +172,20 @@ public class PolicyMonitorTest
 
   @Test
   public void testApplicationMonitored() throws Exception {
-    testMonitored(IdUtils.TYPE_APPLICATION);
+    testMonitored(OwnerType.APPLICATION);
   }
 
   @Test
   public void testOrganizationMonitored() throws Exception {
-    testMonitored(IdUtils.TYPE_ORGANIZATION);
+    testMonitored(OwnerType.ORGANIZATION);
   }
 
   @Test
   public void testRootOrganizationMonitored() throws Exception {
-    testMonitored(null);
+    testMonitored(OwnerType.GLOBAL);
   }
 
-  private void testMonitored(String monitorOwnerType) throws Exception {
+  private void testMonitored(OwnerType monitorOwnerType) throws Exception {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
     Owner parentOrg = new OwnerDAO().getParentOwner(org);
@@ -193,14 +193,18 @@ public class PolicyMonitorTest
     Stage stage = new Stage(ReleaseStageType.ID);
 
     PolicyMonitoring policyMonitoring;
-    if (IdUtils.TYPE_APPLICATION.equals(monitorOwnerType)) {
-      policyMonitoring = new PolicyMonitoring(app.getId(), stage.getStageTypeId());
-    }
-    else if (IdUtils.TYPE_ORGANIZATION.equals(monitorOwnerType)) {
-      policyMonitoring = new PolicyMonitoring(org.getId(), stage.getStageTypeId());
-    }
-    else {
-      policyMonitoring = new PolicyMonitoring(parentOrg.getId(), stage.getStageTypeId());
+    switch (monitorOwnerType) {
+      case APPLICATION:
+        policyMonitoring = new PolicyMonitoring(app.getId(), stage.getStageTypeId());
+        break;
+      case ORGANIZATION:
+        policyMonitoring = new PolicyMonitoring(org.getId(), stage.getStageTypeId());
+        break;
+      case GLOBAL:
+        policyMonitoring = new PolicyMonitoring(parentOrg.getId(), stage.getStageTypeId());
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown OwnerType " + monitorOwnerType);
     }
     tempEntity.newPolicyMonitoring(policyMonitoring);
 
@@ -270,7 +274,7 @@ public class PolicyMonitorTest
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
     policy3.setName(policy3.getName() + "Updated");
-    updatePolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), policy3);
+    updatePolicy(OwnerType.APPLICATION, app.getPublicId(), policy3);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation3 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -287,7 +291,7 @@ public class PolicyMonitorTest
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
     policy1.setName(policy1.getName() + "Updated");
-    updatePolicy(IdUtils.TYPE_APPLICATION, app.getPublicId(), policy1);
+    updatePolicy(OwnerType.APPLICATION, app.getPublicId(), policy1);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation4 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -310,7 +314,7 @@ public class PolicyMonitorTest
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setName(policy2.getName() + "Updated");
-    updatePolicy(IdUtils.TYPE_ORGANIZATION, org.getId(), policy2);
+    updatePolicy(OwnerType.ORGANIZATION, org.getId(), policy2);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation5 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -333,7 +337,7 @@ public class PolicyMonitorTest
 
     // Modify policy4 and run the monitor again. Only the forth monitor email should receive a notification
     policy4.setName(policy4.getName() + "Updated");
-    updatePolicy(IdUtils.TYPE_ORGANIZATION, parentOrg.getId(), policy4);
+    updatePolicy(OwnerType.ORGANIZATION, parentOrg.getId(), policy4);
     policyMonitor.run();
     PolicyEvaluation policyEvaluation6 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -390,7 +394,7 @@ public class PolicyMonitorTest
     return policyEval;
   }
 
-  private Policy updatePolicy(String ownerType, String ownerId, Policy policy) throws Exception {
+  private Policy updatePolicy(OwnerType ownerType, String ownerId, Policy policy) throws Exception {
     HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
         .put();
     assertResponseStatus(200, response);

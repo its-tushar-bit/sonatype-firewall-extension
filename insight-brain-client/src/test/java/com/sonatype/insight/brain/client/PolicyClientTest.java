@@ -11,10 +11,10 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -35,7 +35,7 @@ public class PolicyClientTest
     PolicyClient policyClient = new PolicyClient(getCLMServer().getClientConfiguration(), appId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH).path(UserInterfaceLinksResource.MANAGEMENT_PATH);
-    Assert.assertEquals(policyClient.linkToManagement(), uriBuilder.build(IdUtils.TYPE_APPLICATION, appId).toString());
+    Assert.assertEquals(policyClient.linkToManagement(), uriBuilder.build(OwnerType.APPLICATION, appId).toString());
   }
 
   @Test

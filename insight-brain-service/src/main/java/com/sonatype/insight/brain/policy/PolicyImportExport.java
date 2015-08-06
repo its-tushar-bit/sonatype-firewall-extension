@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -47,9 +48,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.utils.IdUtils.TYPE_APPLICATION;
-import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
 
 /**
  * @since 1.7
@@ -129,7 +127,7 @@ public class PolicyImportExport
       tx.commit();
     }
 
-    return createResult(application.getName(), application.getPublicId(), TYPE_APPLICATION);
+    return createResult(application.getName(), application.getPublicId(), OwnerType.APPLICATION);
   }
 
   /**
@@ -187,7 +185,7 @@ public class PolicyImportExport
       tx.commit();
     }
 
-    return createResult(organization.getName(), orgId, TYPE_ORGANIZATION);
+    return createResult(organization.getName(), orgId, OwnerType.ORGANIZATION);
   }
 
   /**
@@ -399,7 +397,7 @@ public class PolicyImportExport
     return null;
   }
 
-  private PolicyImportResult createResult(String name, String id, String type) {
+  private PolicyImportResult createResult(String name, String id, OwnerType type) {
     PolicyImportResult result = new PolicyImportResult();
     result.ownerName = name;
     UriBuilder uriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")

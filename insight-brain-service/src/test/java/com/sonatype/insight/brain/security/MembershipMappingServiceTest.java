@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Inject;
@@ -25,7 +25,7 @@ public class MembershipMappingServiceTest
   @Test
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
     try {
-      membershipMappingService.loadMembersByRoleForNonGlobalContext(IdUtils.TYPE_GLOBAL, "ownerId",
+      membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
           null /* memberAttributeResolver */, null /* roles */, null/* membersByRoleByRoleId */);
       fail("Expected BadRequestException");
     }
@@ -38,7 +38,7 @@ public class MembershipMappingServiceTest
   public void testSetMembershipMappingsForNonGlobalContext_GlobalContext() {
     try {
       membershipMappingService
-          .setMembershipMappingsForNonGlobalContext(IdUtils.TYPE_GLOBAL, "ownerId", null /* roleToMembers */);
+          .setMembershipMappingsForNonGlobalContext(OwnerType.GLOBAL, "ownerId", null /* roleToMembers */);
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {

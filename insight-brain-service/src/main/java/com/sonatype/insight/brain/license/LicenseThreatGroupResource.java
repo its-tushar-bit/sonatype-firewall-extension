@@ -20,6 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 @Named
@@ -37,7 +38,7 @@ public class LicenseThreatGroupResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<LicenseThreatGroup> getLicenseThreatGroups(@PathParam("ownerType") String ownerType,
+  public List<LicenseThreatGroup> getLicenseThreatGroups(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
     return licenseThreatGroupService.getLicenseThreatGroups(ownerType, ownerId);
@@ -49,7 +50,7 @@ public class LicenseThreatGroupResource
   @GET
   @Path("applicable")
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@PathParam("ownerType") String ownerType,
+  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
     return licenseThreatGroupService.getApplicableLicenseThreatGroups(ownerType, ownerId);
@@ -58,7 +59,7 @@ public class LicenseThreatGroupResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseThreatGroup addLicenseThreatGroup(@PathParam("ownerType") String ownerType,
+  public LicenseThreatGroup addLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
   {
     return licenseThreatGroupService.addLicenseThreatGroup(ownerType, ownerId, licenseThreatGroup);
@@ -67,7 +68,7 @@ public class LicenseThreatGroupResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseThreatGroup updateLicenseThreatGroup(@PathParam("ownerType") String ownerType,
+  public LicenseThreatGroup updateLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId, LicenseThreatGroup licenseThreatGroup)
   {
     return licenseThreatGroupService.updateLicenseThreatGroup(ownerType, ownerId, licenseThreatGroup);
@@ -75,8 +76,8 @@ public class LicenseThreatGroupResource
 
   @DELETE
   @Path("{licenseThreatGroupId}")
-  public void deleteLicenseThreatGroup(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
+  public void deleteLicenseThreatGroup(@PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId, @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
     licenseThreatGroupService.deleteLicenseThreatGroup(ownerType, ownerId, licenseThreatGroupId);
   }

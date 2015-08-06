@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -23,12 +24,12 @@ import org.junit.Test;
 public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(String ownerType, String ownerId, String licenseThreatGroupId) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId, String licenseThreatGroupId) {
     return super.restRequest().path(LicenseThreatGroupLicenseResource.SERVICE_PATH)
         .parameter(ownerType, ownerId, licenseThreatGroupId);
   }
 
-  private void testSetGet(String ownerType, String ownerPublicId, String ownerId) throws Exception {
+  private void testSetGet(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
     // Create an application and a group
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup();
@@ -63,13 +64,13 @@ public class LicenseThreatGroupLicenseResourceTest
   public void testSetGet_Application() throws Exception {
     String appPublicId = "LicenseThreatGroupLicenseResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    testSetGet("application", appPublicId, application.getId());
+    testSetGet(OwnerType.APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testSetGet_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("testSetGet-Organization");
-    testSetGet("organization", organization.getId(), organization.getId());
+    testSetGet(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
   private void assertLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId,

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Assert;
@@ -15,7 +16,7 @@ import org.junit.Test;
 public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(String ownerType, String ownerId) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(ConditionValueTypeResource.SERVICE_PATH).parameter(ownerType, ownerId);
   }
 
@@ -24,7 +25,7 @@ public class ConditionValueTypeResourceTest
     String appPublicId = "ConditionValueTypeResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    final HttpResponse response = restRequest("application", appPublicId).get();
+    final HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = response.getBody(Object[].class);
     Assert.assertNotNull(conditionValueTypes);
@@ -35,7 +36,7 @@ public class ConditionValueTypeResourceTest
   public void testGetConditionValueTypes_Organization() throws Exception {
     String orgId = tempEntity.newOrganization("test").getId();
 
-    final HttpResponse response = restRequest("organization", orgId).get();
+    final HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = response.getBody(Object[].class);
     Assert.assertNotNull(conditionValueTypes);

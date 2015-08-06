@@ -21,11 +21,11 @@ import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverride
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,11 +43,11 @@ import static org.junit.Assert.assertTrue;
 public class LicenseOverrideResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(String ownerType, String ownerId) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(LicenseOverrideResource.SERVICE_PATH).parameter(ownerType, ownerId);
   }
 
-  private HttpRequest restRequest(String ownerType, String ownerId, ComponentIdentifier componentIdentifier) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId, ComponentIdentifier componentIdentifier) {
     return restRequest().path(LicenseOverrideResource.SERVICE_PATH).query("componentIdentifier", "{compId}")
         .parameter(ownerType, ownerId, ComponentIdentifierAdapter.toJson(componentIdentifier));
   }
@@ -57,14 +57,14 @@ public class LicenseOverrideResourceTest
     String appPublicId = "LicenseOverrideResourceTest";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
 
-    testCRUD(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
+    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
-    testCRUD(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
+    testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
   @Test
@@ -72,17 +72,17 @@ public class LicenseOverrideResourceTest
     String appPublicId = "LicenseOverrideResourceTest";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
 
-    testCRUD_Nuget(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
+    testCRUD_Nuget(OwnerType.APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Nuget_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
-    testCRUD_Nuget(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
+    testCRUD_Nuget(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
-  private void testCRUD_Nuget(String ownerType, String ownerPublicId, String ownerId) throws Exception {
+  private void testCRUD_Nuget(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
     String user = "admin";
     String where = "EdgeOfSpace";
     HttpRequest request = restRequest(ownerType, ownerPublicId).query("where", where);
@@ -129,7 +129,7 @@ public class LicenseOverrideResourceTest
     assertNull(licenseOverride);
   }
 
-  private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
+  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
     String user = "admin";
     String where = "EdgeOfSpace";
     HttpRequest request = restRequest(ownerType, ownerPublicId).query("where", where);
@@ -226,7 +226,7 @@ public class LicenseOverrideResourceTest
     String appPublicId = "LicenseOverrideResourceTest";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with ID YettiId.", response.getBodyText());
   }
@@ -235,7 +235,7 @@ public class LicenseOverrideResourceTest
   public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with ID YettiId.", response.getBodyText());
   }
@@ -247,7 +247,7 @@ public class LicenseOverrideResourceTest
     Organization organization = tempEntity.newOrganization(orgName);
     String appPublicId = "testGetAppliedLicenseOverrides";
     tempEntity.newApplication(appPublicId, appPublicId, organization.getId());
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).get();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("componentIdentifier is required"));
   }
@@ -264,7 +264,7 @@ public class LicenseOverrideResourceTest
 
     // Verify the applied license overrides for the application
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId, componentIdentifier).get();
     assertResponseStatus(200, response);
     AppliedLicenseOverrides appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -274,7 +274,7 @@ public class LicenseOverrideResourceTest
     assertLicenseOverrideByOwner(rootOrganization, false, appliedLicenseOverrides.licenseOverridesByOwner.get(2));
 
     // Verify the applied license overrides for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier).get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -285,11 +285,11 @@ public class LicenseOverrideResourceTest
     // Create a license override for the application
     LicenseOverride appLicenseOverride = new LicenseOverride(null /* ownerId */, componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).body(appLicenseOverride).post();
+    response = restRequest(OwnerType.APPLICATION, appPublicId).body(appLicenseOverride).post();
     appLicenseOverride = response.getBody(LicenseOverride.class);
 
     // Verify the applied license overrides for the application
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier).get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -301,7 +301,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(0).licenseOverride.getId());
 
     // Verify the applied license overrides for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier).get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -312,11 +312,11 @@ public class LicenseOverrideResourceTest
     // Create a license override for the organization
     LicenseOverride orgLicenseOverride = new LicenseOverride(null /* ownerId */, componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId).body(orgLicenseOverride).post();
+    response = restRequest(OwnerType.ORGANIZATION, orgId).body(orgLicenseOverride).post();
     orgLicenseOverride = response.getBody(LicenseOverride.class);
 
     // Verify the applied license overrides for the application
-    response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId, componentIdentifier).get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -330,7 +330,7 @@ public class LicenseOverrideResourceTest
         appliedLicenseOverrides.licenseOverridesByOwner.get(1).licenseOverride.getId());
 
     // Verify the applied license overrides for the organization
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, orgId, componentIdentifier).get();
+    response = restRequest(OwnerType.ORGANIZATION, orgId, componentIdentifier).get();
     assertResponseStatus(200, response);
     appliedLicenseOverrides = response.getBody(AppliedLicenseOverrides.class);
     assertNotNull(appliedLicenseOverrides);
@@ -348,7 +348,7 @@ public class LicenseOverrideResourceTest
     String appPublicId2 = "LicenseOverrideResourceTest2";
     tempEntity.newApplicationWithParent(appPublicId2);
 
-    testDelete_OwnerIdMismatch(IdUtils.TYPE_APPLICATION, appPublicId1, appPublicId2);
+    testDelete_OwnerIdMismatch(OwnerType.APPLICATION, appPublicId1, appPublicId2);
   }
 
   @Test
@@ -356,10 +356,10 @@ public class LicenseOverrideResourceTest
     Organization organization1 = tempEntity.newOrganization("LicenseOverrideResourceTest1");
     Organization organization2 = tempEntity.newOrganization("LicenseOverrideResourceTest2");
 
-    testDelete_OwnerIdMismatch(IdUtils.TYPE_ORGANIZATION, organization1.getId(), organization2.getId());
+    testDelete_OwnerIdMismatch(OwnerType.ORGANIZATION, organization1.getId(), organization2.getId());
   }
 
-  private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1,
+  private void testDelete_OwnerIdMismatch(OwnerType ownerType, String ownerPublicId1,
       String ownerPublicId2) throws Exception
   {
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */,
@@ -406,7 +406,7 @@ public class LicenseOverrideResourceTest
 
     LicenseOverride licenseOverride = new LicenseOverride(null /* ownerId */, null /* componentIdentifier */,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
-    HttpResponse response = restRequest("application", appPublicId).body(licenseOverride).post();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).body(licenseOverride).post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("The component identifier cannot be null."));
   }

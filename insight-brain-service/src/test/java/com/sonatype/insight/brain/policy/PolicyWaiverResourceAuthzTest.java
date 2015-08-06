@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.policy;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,13 +36,13 @@ public class PolicyWaiverResourceAuthzTest
     grantWritePermission(app.getId());
 
     HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
-    HttpResponse response = testAuthzPost(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    HttpResponse response = testAuthzPost(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
     new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
 
     grantWritePermission(org.getId());
 
     request.body(new PolicyWaiver("hash", policy.getId(), null, "comment"));
-    response = testAuthzPost(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    response = testAuthzPost(request.parameter(OwnerType.ORGANIZATION, org.getId()));
     new PolicyWaiverDAO().delete(response.getBody(PolicyWaiver.class));
   }
 
@@ -52,11 +52,11 @@ public class PolicyWaiverResourceAuthzTest
 
     grantWritePermission(app.getId());
     PolicyWaiver waiver = tempEntity.newWaiver("hash", policy.getId(), app.getId());
-    testAuthzDelete(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId(), waiver.getId()));
+    testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), waiver.getId()));
 
     grantWritePermission(org.getId());
     waiver = tempEntity.newWaiver("hash", policy.getId(), org.getId());
-    testAuthzDelete(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId(), waiver.getId()));
+    testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), waiver.getId()));
   }
 
   @Test
@@ -65,18 +65,18 @@ public class PolicyWaiverResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    testAuthzGet(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzGet(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
 
-    testAuthzGet(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testGetApplicableContexts() throws Exception {
     grantReadPermission(app.getId());
 
-    testAuthzGet(restRequest().path("applicable/context/{policyId}").parameter(IdUtils.TYPE_APPLICATION,
+    testAuthzGet(restRequest().path("applicable/context/{policyId}").parameter(OwnerType.APPLICATION,
         app.getPublicId(), policy.getId()));
   }
 }

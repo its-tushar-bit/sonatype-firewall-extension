@@ -57,7 +57,7 @@ public class LicenseThreatGroupService
 
   @Authorize(permission = Permission.READ)
   public List<LicenseThreatGroup> getLicenseThreatGroups(
-      @AuthzContext(AuthzContext.Key.TYPE) final String ownerType, @AuthzContext(AuthzContext.Key.ID) String ownerId)
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType, @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -66,7 +66,7 @@ public class LicenseThreatGroupService
 
   @Authorize(permission = Permission.READ)
   public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
-      @AuthzContext(AuthzContext.Key.TYPE) final String ownerType, @AuthzContext(AuthzContext.Key.ID) String ownerId)
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType, @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -91,7 +91,7 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public LicenseThreatGroup addLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public LicenseThreatGroup addLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, final LicenseThreatGroup licenseThreatGroup)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -104,7 +104,7 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public LicenseThreatGroup updateLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public LicenseThreatGroup updateLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, final LicenseThreatGroup licenseThreatGroup)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -116,7 +116,7 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public void deleteLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String licenseThreatGroupId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

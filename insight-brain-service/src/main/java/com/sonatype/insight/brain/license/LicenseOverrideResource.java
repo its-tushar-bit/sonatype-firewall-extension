@@ -22,6 +22,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
@@ -45,7 +46,7 @@ public class LicenseOverrideResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseOverride addLicenseOverride(@PathParam("ownerType") String ownerType,
+  public LicenseOverride addLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride, @QueryParam("where") String where,
       @Context final HttpServletRequest request)
       throws IOException
@@ -55,7 +56,7 @@ public class LicenseOverrideResource
 
   @DELETE
   @Path("{licenseOverrideId}")
-  public void deleteLicenseOverride(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+  public void deleteLicenseOverride(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId,
       @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("where") String where,
       @Context final HttpServletRequest request) throws IOException
   {
@@ -64,7 +65,7 @@ public class LicenseOverrideResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") String ownerType,
+  public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {

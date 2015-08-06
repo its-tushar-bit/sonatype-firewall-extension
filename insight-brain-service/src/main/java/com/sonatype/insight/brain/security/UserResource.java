@@ -21,6 +21,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
@@ -51,7 +52,7 @@ public class UserResource
   @GET
   @Path("{ownerType: application|organization}/{ownerId}/query")
   @Produces(MediaType.APPLICATION_JSON)
-  public FindMembersDTO findMembersForNonGlobalRoles(@PathParam("ownerType") String ownerType,
+  public FindMembersDTO findMembersForNonGlobalRoles(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId, @QueryParam("q") String query,
       @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
   {

@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.hds.TestNamedComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -60,7 +61,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -757,7 +757,7 @@ public class ReportResourceTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
-        .parameter(IdUtils.TYPE_ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
+        .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
     assertResponseStatus(200, response);
     orgLicenseOverride = response.getBody(LicenseOverride.class);
 
@@ -791,7 +791,7 @@ public class ReportResourceTest
       COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
     response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
-        .parameter(IdUtils.TYPE_APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
+        .parameter(OwnerType.APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
     assertResponseStatus(200, response);
     appLicenseOverride = response.getBody(LicenseOverride.class);
 

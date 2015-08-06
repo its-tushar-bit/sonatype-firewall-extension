@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.LabelService.ApplicableLabels;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 
 @Named
@@ -46,7 +47,7 @@ public class LabelResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Label> getLabels(@PathParam("ownerType") String ownerType,
+  public List<Label> getLabels(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
@@ -62,7 +63,7 @@ public class LabelResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
-  public ApplicableLabels getApplicableLabels(@PathParam("ownerType") String ownerType,
+  public ApplicableLabels getApplicableLabels(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
     return labelService.getApplicableLabels(ownerType, ownerId);
@@ -88,7 +89,7 @@ public class LabelResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Label addLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId, Label label)
+  public Label addLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId, Label label)
   {
     return labelService.addLabel(ownerType, ownerId, label);
   }
@@ -99,7 +100,8 @@ public class LabelResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Label updateLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId, Label label)
+  public Label updateLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId,
+      Label label)
   {
     return labelService.updateLabel(ownerType, ownerId, label);
   }
@@ -109,7 +111,7 @@ public class LabelResource
    */
   @DELETE
   @Path("{labelId}")
-  public void deleteLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+  public void deleteLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId,
       @PathParam("labelId") String labelId)
   {
     labelService.deleteLabel(ownerType, ownerId, labelId);

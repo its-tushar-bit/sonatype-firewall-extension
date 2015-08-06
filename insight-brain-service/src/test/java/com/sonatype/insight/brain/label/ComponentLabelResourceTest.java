@@ -16,10 +16,10 @@ import com.sonatype.insight.brain.label.ComponentLabelService.LabelsByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class ComponentLabelResourceTest
 
   private Label orgLabel;
 
-  private HttpRequest restRequest(String ownerType, String ownerId, String hash) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId, String hash) {
     return restRequest().path(ComponentLabelResource.SERVICE_PATH).parameter(ownerType, ownerId, hash);
   }
 
@@ -76,17 +76,17 @@ public class ComponentLabelResourceTest
 
     // No labels applied to componentHash
     // Verify app level
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     AppliedLabels componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(0));
     // Verify org level
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), componentHash).get();
+    response = restRequest(OwnerType.ORGANIZATION, org.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(0));
     // Verify parent org level
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getParentOrganizationId(), componentHash).get();
+    response = restRequest(OwnerType.ORGANIZATION, org.getParentOrganizationId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(0));
@@ -97,7 +97,7 @@ public class ComponentLabelResourceTest
     tempEntity.newComponentLabel(parentOrg.getId(), parentOrgLabel.getId(), componentHash);
 
     // Verify app level
-    response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).get();
+    response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(3));
@@ -105,14 +105,14 @@ public class ComponentLabelResourceTest
     assertLabelsByOwner(componentLabels.labelsByOwner.get(1), org, orgLabel.getId());
     assertLabelsByOwner(componentLabels.labelsByOwner.get(2), parentOrg, parentOrgLabel.getId());
     // Verify org level
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), componentHash).get();
+    response = restRequest(OwnerType.ORGANIZATION, org.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(2));
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), org, orgLabel.getId());
     assertLabelsByOwner(componentLabels.labelsByOwner.get(1), parentOrg, parentOrgLabel.getId());
     // Verify parent org level
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, parentOrg.getId(), componentHash).get();
+    response = restRequest(OwnerType.ORGANIZATION, parentOrg.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(1));
@@ -121,7 +121,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_AppLevel() throws Exception {
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).body(appLabel).post();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).body(appLabel).post();
     assertResponseStatus(204, response);
 
     List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(app.getId(), componentHash);
@@ -135,7 +135,7 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_OrgLevel() throws Exception {
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).body(orgLabel)
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, app.getOrganizationId(), componentHash).body(orgLabel)
         .post();
     assertResponseStatus(204, response);
 
@@ -151,13 +151,13 @@ public class ComponentLabelResourceTest
     ComponentLabel appComponentLabel = tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
     tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
     
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).path(appLabel.getId())
+    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).path(appLabel.getId())
         .delete();
     assertResponseStatus(204, response);
 
     Assert.assertThat(componentLabelDAO.getById(appComponentLabel.getId()), is(nullValue()));
 
-    response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId(), componentHash).path(orgLabel.getId()).delete();
+    response = restRequest(OwnerType.APPLICATION, app.getPublicId(), componentHash).path(orgLabel.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertThat(response.getBodyText(), is("Cannot find the label with ID " + orgLabel.getId()
         + " for application ID test-app on the component " + componentHash + "."));
@@ -168,13 +168,13 @@ public class ComponentLabelResourceTest
     tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
     ComponentLabel orgComponentLabel = tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
 
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).path(
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, app.getOrganizationId(), componentHash).path(
         orgLabel.getId()).delete();
     assertResponseStatus(204, response);
 
     Assert.assertThat(componentLabelDAO.getById(orgComponentLabel.getId()), is(nullValue()));
 
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, app.getOrganizationId(), componentHash).path(appLabel.getId())
+    response = restRequest(OwnerType.ORGANIZATION, app.getOrganizationId(), componentHash).path(appLabel.getId())
         .delete();
     assertResponseStatus(404, response);
     Assert.assertThat(response.getBodyText(), is("Cannot find the label with ID " + appLabel.getId()

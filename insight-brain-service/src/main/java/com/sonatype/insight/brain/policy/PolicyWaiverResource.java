@@ -51,7 +51,7 @@ public class PolicyWaiverResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, PolicyWaiver policyWaiver)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -65,7 +65,7 @@ public class PolicyWaiverResource
   @DELETE
   @Path("{policyWaiverId}")
   @Authorize(permission = Permission.WRITE)
-  public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @PathParam("policyWaiverId") String policyWaiverId)
   {
@@ -90,7 +90,7 @@ public class PolicyWaiverResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public AppliedWaivers getPolicyWaiversByHash(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -135,7 +135,7 @@ public class PolicyWaiverResource
   {
     Policy policy = new PolicyDAO().getByIdNotNull(policyId);
 
-    String ownerId = IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId);
+    String ownerId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
     ApplicableContext context = null;
     boolean foundPolicyInHierarchy = false;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {

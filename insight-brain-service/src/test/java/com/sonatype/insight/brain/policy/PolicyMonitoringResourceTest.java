@@ -12,11 +12,11 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.ApplicablePolicyMonitors;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.PolicyMonitoringByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Test;
 
@@ -30,7 +30,7 @@ import static org.junit.Assert.assertThat;
 public class PolicyMonitoringResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(String ownerType, String ownerId) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PolicyMonitoringResource.SERVICE_PATH).parameter(ownerType, ownerId);
   }
 
@@ -39,17 +39,17 @@ public class PolicyMonitoringResourceTest
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
 
-    testCRUD(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
+    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
 
-    testCRUD(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
+    testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
-  private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
+  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
     // Create
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
     HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
@@ -88,7 +88,7 @@ public class PolicyMonitoringResourceTest
   @Test
   public void testDelete_NotSet_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).delete();
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Policy monitoring was not set for owner ID " + organization.getId() + "."));
   }
@@ -97,7 +97,7 @@ public class PolicyMonitoringResourceTest
   public void testDelete_NotSet_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).delete();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Policy monitoring was not set for owner ID " + application.getId() + "."));
   }
@@ -110,7 +110,7 @@ public class PolicyMonitoringResourceTest
         "testGetApplicablePolicyMonitoringAppId", organization.getId());
 
     //no Policy Monitoring set
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, application.getPublicId()).path("applicable").get();
     assertResponseStatus(200, response);
     ApplicablePolicyMonitors applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -119,7 +119,7 @@ public class PolicyMonitoringResourceTest
     assertEmptyPolicyMonitoringByOwner(organization, applicablePolicyMonitors.policyMonitoringByOwner.get(1));
     assertEmptyPolicyMonitoringByOwner(organizationParent, applicablePolicyMonitors.policyMonitoringByOwner.get(2));
 
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -127,7 +127,7 @@ public class PolicyMonitoringResourceTest
     assertEmptyPolicyMonitoringByOwner(organization, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
     assertEmptyPolicyMonitoringByOwner(organizationParent, applicablePolicyMonitors.policyMonitoringByOwner.get(1));
 
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationParent.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -136,7 +136,7 @@ public class PolicyMonitoringResourceTest
 
     //Root Org only Policy Monitoring set
     tempEntity.newPolicyMonitoring(organizationParent.getId(), Stage.ID_RELEASE);
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationParent.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -144,7 +144,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -153,7 +153,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
 
-    response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
+    response = restRequest(OwnerType.APPLICATION, application.getPublicId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -165,7 +165,7 @@ public class PolicyMonitoringResourceTest
 
     //Root and Org Policy Monitoring set
     tempEntity.newPolicyMonitoring(organization.getId(), Stage.ID_STAGE_RELEASE);
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationParent.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -173,7 +173,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -183,7 +183,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
 
-    response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
+    response = restRequest(OwnerType.APPLICATION, application.getPublicId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -196,7 +196,7 @@ public class PolicyMonitoringResourceTest
 
     //App, Org and Root Org all have Policy Monitoring set
     tempEntity.newPolicyMonitoring(application.getId(), Stage.ID_BUILD);
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organizationParent.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -204,7 +204,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("applicable").get();
+    response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 
@@ -214,7 +214,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(1));
 
-    response = restRequest(IdUtils.TYPE_APPLICATION, application.getPublicId()).path("applicable").get();
+    response = restRequest(OwnerType.APPLICATION, application.getPublicId()).path("applicable").get();
     assertResponseStatus(200, response);
     applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
 

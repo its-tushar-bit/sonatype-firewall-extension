@@ -14,6 +14,7 @@ import javax.naming.NamingException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -58,7 +59,7 @@ public class UserService
    * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
    */
   @Authorize(permission = Permission.WRITE)
-  FindMembersDTO findMembersForNonGlobalRoles(@AuthzContext(AuthzContext.Key.TYPE) String ownerType,
+  FindMembersDTO findMembersForNonGlobalRoles(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, String query, boolean groupsEnabled)
   {
     return findMembers(query, groupsEnabled);

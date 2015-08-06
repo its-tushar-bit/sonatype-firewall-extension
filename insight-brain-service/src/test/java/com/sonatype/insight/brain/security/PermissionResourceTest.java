@@ -11,9 +11,9 @@ import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,8 +28,8 @@ public class PermissionResourceTest
 
   @Test
   public void testAdminUserWithAdminPerm() throws Exception {
-    HttpResponse response = restRequest().parameter(IdUtils.TYPE_GLOBAL, "*").body(EnumSet.of(Permission.CONFIGURE_SYSTEM))
-        .put();
+    HttpResponse response = restRequest().parameter(OwnerType.GLOBAL, "*")
+        .body(EnumSet.of(Permission.CONFIGURE_SYSTEM)).put();
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
     Assert.assertTrue(permissions.contains(Permission.CONFIGURE_SYSTEM));
@@ -38,8 +38,8 @@ public class PermissionResourceTest
   @Test
   public void testNonAdminUserWithAdminPerm() throws Exception {
     tempEntity.newUser("testNonAdminUser");
-    HttpResponse response = restRequest().parameter(IdUtils.TYPE_GLOBAL, "*").body(EnumSet.of(Permission.CONFIGURE_SYSTEM))
-        .auth("testNonAdminUser", "secret").put();
+    HttpResponse response = restRequest().parameter(OwnerType.GLOBAL, "*")
+        .body(EnumSet.of(Permission.CONFIGURE_SYSTEM)).auth("testNonAdminUser", "secret").put();
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
     Assert.assertFalse(permissions.contains(Permission.CONFIGURE_SYSTEM));

@@ -12,12 +12,12 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
@@ -174,7 +174,7 @@ public class UserServiceTest
     Organization org = tempEntity.newOrganization();
     try {
       userService
-          .findMembersForNonGlobalRoles(IdUtils.TYPE_ORGANIZATION, org.getId(), "" /* query */, false /* groupsEnabled */);
+          .findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */, false /* groupsEnabled */);
     }
     catch (BadRequestException expected) {
       assertThat(expected.getMessage(), is("No search term specified."));

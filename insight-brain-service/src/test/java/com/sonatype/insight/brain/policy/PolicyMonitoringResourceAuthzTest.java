@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Test;
 
@@ -26,32 +26,32 @@ public class PolicyMonitoringResourceAuthzTest
     HttpRequest request = restRequest().body(new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE));
 
     grantWritePermission(app.getId());
-    testAuthzPut(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzPut(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
-    testAuthzPut(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzPut(request.parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testDelete() throws Exception {
     grantWritePermission(app.getId());
     createPolicyMonitoring(app.getId());
-    testAuthzDelete(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzDelete(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantWritePermission(org.getId());
     createPolicyMonitoring(org.getId());
-    testAuthzDelete(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzDelete(restRequest().parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
   public void testGet() throws Exception {
     grantReadPermission(app.getId());
     createPolicyMonitoring(app.getId());
-    testAuthzGet(restRequest().parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzGet(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
     createPolicyMonitoring(org.getId());
-    testAuthzGet(restRequest().parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzGet(restRequest().parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -60,11 +60,11 @@ public class PolicyMonitoringResourceAuthzTest
 
     grantReadPermission(app.getId());
     createPolicyMonitoring(app.getId());
-    testAuthzGet(request.parameter(IdUtils.TYPE_APPLICATION, app.getPublicId()));
+    testAuthzGet(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
 
     grantReadPermission(org.getId());
     createPolicyMonitoring(org.getId());
-    testAuthzGet(request.parameter(IdUtils.TYPE_ORGANIZATION, org.getId()));
+    testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
   private void createPolicyMonitoring(String ownerid) {

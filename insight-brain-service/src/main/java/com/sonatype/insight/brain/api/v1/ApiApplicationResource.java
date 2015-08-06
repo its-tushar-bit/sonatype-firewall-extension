@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.codehaus.plexus.util.StringUtils;
 
@@ -135,7 +134,7 @@ public class ApiApplicationResource
       @PathParam("applicationId") final String applicationId)
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
-        IdUtils.TYPE_APPLICATION, applicationId);
+        OwnerType.APPLICATION, applicationId);
     return apiMemberMappingAdapter.convert(mappings, OwnerType.APPLICATION);
   }
 
@@ -147,7 +146,7 @@ public class ApiApplicationResource
       final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
     Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
-    membershipMappingService.setMembershipMappings(IdUtils.TYPE_APPLICATION, applicationId, roleToMembers);
+    membershipMappingService.setMembershipMappings(OwnerType.APPLICATION, applicationId, roleToMembers);
   }
 
   @DELETE

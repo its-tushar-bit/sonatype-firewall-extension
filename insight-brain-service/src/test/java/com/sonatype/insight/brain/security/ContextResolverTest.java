@@ -11,9 +11,9 @@ import java.util.Map;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class ContextResolverTest
     Application app = tempEntity.newApplication(org.getId());
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.ID, app.getPublicId());
-    parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_APPLICATION);
+    parameters.put(AuthzContext.Key.TYPE, OwnerType.APPLICATION);
     assertThat(resolver.resolveContextIds(parameters),
         contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
@@ -51,7 +51,7 @@ public class ContextResolverTest
     Application app = tempEntity.newApplication(org.getId());
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(Key.INTERNAL_ID, app.getId());
-    parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_APPLICATION);
+    parameters.put(AuthzContext.Key.TYPE, OwnerType.APPLICATION);
     assertThat(resolver.resolveContextIds(parameters),
         contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }
@@ -61,7 +61,7 @@ public class ContextResolverTest
     Organization org = tempEntity.newOrganization();
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
     parameters.put(AuthzContext.Key.ID, org.getId());
-    parameters.put(AuthzContext.Key.TYPE, IdUtils.TYPE_ORGANIZATION);
+    parameters.put(AuthzContext.Key.TYPE, OwnerType.ORGANIZATION);
     assertThat(resolver.resolveContextIds(parameters),
         contains(org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
   }

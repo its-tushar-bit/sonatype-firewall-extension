@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -65,7 +64,7 @@ public class MembershipMappingService
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
-  public ApplicableMembershipMappings getApplicableMembershipMappings(final String ownerType,
+  public ApplicableMembershipMappings getApplicableMembershipMappings(final OwnerType ownerType,
       final String internalOwnerId)
   {
     log.debug("Getting all applicable membership mappings for {} id {}", ownerType, internalOwnerId);
@@ -74,7 +73,7 @@ public class MembershipMappingService
 
     // Initialize membersByRoleByRoleId with container for all roles to associate members to (MembersByRole)
     final List<Role> roles;
-    if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+    if (OwnerType.GLOBAL.equals(ownerType)) {
       roles = roleDAO.getGlobalRoles();
     }
     else {
@@ -88,7 +87,7 @@ public class MembershipMappingService
       membersByRoleByRoleId.put(byRole.roleId, byRole);
     }
     final MemberAttributeResolver memberAttributeResolver = new MemberAttributeResolver(userDirectory);
-    if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+    if (OwnerType.GLOBAL.equals(ownerType)) {
       loadMembersByRoleForGlobalContext(memberAttributeResolver, roles, membersByRoleByRoleId);
     }
     else {
@@ -104,11 +103,11 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.READ)
-  protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) String ownerType,
+  protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId, MemberAttributeResolver memberAttributeResolver,
       List<Role> roles, Map<String, MembersByRole> membersByRoleByRoleId)
   {
-    if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+    if (OwnerType.GLOBAL.equals(ownerType)) {
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
     }
 
@@ -132,10 +131,10 @@ public class MembershipMappingService
   }
 
   // Authorization is checked in setMembershipMappingsForGlobalContext and setMembershipMappingsForNonGlobalContext
-  public void setMembershipMappings(final String ownerType, final String internalOwnerId,
+  public void setMembershipMappings(final OwnerType ownerType, final String internalOwnerId,
       final Map<String, List<Member>> roleToMembers)
   {
-    if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+    if (OwnerType.GLOBAL.equals(ownerType)) {
       setMembershipMappingsForGlobalContext(roleToMembers);
     }
     else {
@@ -144,10 +143,10 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.WRITE)
-  protected void setMembershipMappingsForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) String ownerType,
+  protected void setMembershipMappingsForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId, Map<String, List<Member>> roleToMembers)
   {
-    if (IdUtils.TYPE_GLOBAL.equals(ownerType)) {
+    if (OwnerType.GLOBAL.equals(ownerType)) {
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
     }
 
@@ -156,10 +155,10 @@ public class MembershipMappingService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   protected void setMembershipMappingsForGlobalContext(Map<String, List<Member>> roleToMembers) {
-    setMembershipMappingsForRoles(IdUtils.TYPE_GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
+    setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
   }
 
-  private void setMembershipMappingsForRoles(String ownerType, String internalOwnerId,
+  private void setMembershipMappingsForRoles(OwnerType ownerType, String internalOwnerId,
       Map<String, List<Member>> roleToMembers)
   {
     try (TransactionContext tx = memberMapDAO.createTransactionContext()) {
@@ -175,7 +174,7 @@ public class MembershipMappingService
     }
   }
 
-  private void setMembershipMappingsForRole(final TransactionContext tx, final String ownerType,
+  private void setMembershipMappingsForRole(final TransactionContext tx, final OwnerType ownerType,
       final String internalOwnerId, final String roleId, final List<Member> members)
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, internalOwnerId, roleId);
@@ -197,12 +196,12 @@ public class MembershipMappingService
     memberMapDAO.setMembershipMappingsForContextAndRole(tx, internalOwnerId, roleId, memberMaps);
   }
 
-  private Role validateRole(final String ownerType, final String roleId) {
+  private Role validateRole(final OwnerType ownerType, final String roleId) {
     final Role role = roleDAO.getByIdNotNull(roleId);
-    if (!IdUtils.TYPE_GLOBAL.equals(ownerType) && role.isGlobal()) {
+    if (!OwnerType.GLOBAL.equals(ownerType) && role.isGlobal()) {
       throw new BadRequestException("Cannot map members to global role in context of " + ownerType + ".");
     }
-    if (IdUtils.TYPE_GLOBAL.equals(ownerType) && !role.isGlobal()) {
+    if (OwnerType.GLOBAL.equals(ownerType) && !role.isGlobal()) {
       throw new BadRequestException("Cannot map members to application role in global context.");
     }
     return role;
@@ -215,11 +214,11 @@ public class MembershipMappingService
   /**
    * The membership mapping table can't have foreign key constraints so validate the context id is valid.
    */
-  private void validateContextId(final String ownerType, final String internalOwnerId) {
-    if (IdUtils.TYPE_APPLICATION.equals(ownerType)) {
+  private void validateContextId(final OwnerType ownerType, final String internalOwnerId) {
+    if (OwnerType.APPLICATION.equals(ownerType)) {
       appDAO.getByIdNotNull(internalOwnerId);
     }
-    else if (IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
+    else if (OwnerType.ORGANIZATION.equals(ownerType)) {
       orgDAO.getByIdNotNull(internalOwnerId);
     }
   }

@@ -58,7 +58,7 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public LicenseOverride addLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public LicenseOverride addLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId, final LicenseOverride licenseOverride,
       final String where, final HttpServletRequest request)
       throws IOException
@@ -103,7 +103,7 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String licenseOverrideId, final String where,
       final HttpServletRequest request) throws IOException
   {
@@ -123,7 +123,8 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.READ)
-  public AppliedLicenseOverrides getAppliedLicenseOverrides(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public AppliedLicenseOverrides getAppliedLicenseOverrides(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId, final JsonEncodedComponentIdentifier componentIdentifier)
   {
     if (componentIdentifier == null) {

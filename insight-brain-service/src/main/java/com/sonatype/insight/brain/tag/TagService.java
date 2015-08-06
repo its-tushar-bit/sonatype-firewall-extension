@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -93,7 +94,7 @@ class TagService
 
   @Authorize(permission = Permission.READ)
   public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
-    return new TagDAO().getByApplicationId(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId));
+    return new TagDAO().getByApplicationId(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId));
   }
 
   @Authorize(permission = Permission.READ)
@@ -105,7 +106,8 @@ class TagService
   public ApplicationTag addApplicationTag(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Tag tag)
   {
-    ApplicationTag appTag = new ApplicationTag(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId), tag.getId());
+    ApplicationTag appTag = new ApplicationTag(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId),
+        tag.getId());
     new ApplicationTagDAO().insert(appTag);
     return appTag;
   }
@@ -115,7 +117,8 @@ class TagService
       String tagId)
   {
     ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
-    ApplicationTag appTag = appTagDAO.getByApplicationIdAndTagId(IdUtils.getInternalOwnerId(IdUtils.TYPE_APPLICATION, applicationPublicId), tagId);
+    ApplicationTag appTag = appTagDAO.getByApplicationIdAndTagId(
+        IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId), tagId);
     if(appTag == null) {
       throw new NotFoundException("Tag with id " + tagId + " is not applied to application with id " + applicationPublicId);
     }

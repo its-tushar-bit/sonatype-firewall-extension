@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.label.ComponentLabelService.AppliedLabels;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 
 @Named
@@ -40,7 +41,7 @@ public class ComponentLabelResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public AppliedLabels getComponentLabels(@PathParam("ownerType") final String ownerType,
+  public AppliedLabels getComponentLabels(@PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId, @PathParam("hash") final String hash)
   {
     return componentLabelService.getComponentLabels(ownerType, ownerId, hash);
@@ -53,7 +54,7 @@ public class ComponentLabelResource
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setComponentLabel(@PathParam("ownerType") final String ownerType,
+  public void setComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId, @PathParam("hash") final String hash, final Label label)
   {
     componentLabelService.setComponentLabel(ownerType, ownerId, hash, label);
@@ -66,7 +67,7 @@ public class ComponentLabelResource
    */
   @DELETE
   @Path("{labelId}")
-  public void deleteComponentLabel(@PathParam("ownerType") final String ownerType,
+  public void deleteComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId, @PathParam("hash") final String hash,
       @PathParam("labelId") final String labelId)
   {

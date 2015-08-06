@@ -200,7 +200,7 @@ class ContextResolver
       }
     }
     else if (count == 2) {
-      OwnerType type = OwnerType.fromString(get(parameters, AuthzContext.Key.TYPE, String.class));
+      OwnerType type = get(parameters, AuthzContext.Key.TYPE, OwnerType.class);
       switch (type) {
         case APPLICATION:
           if (parameters.get(Key.ID) != null) {

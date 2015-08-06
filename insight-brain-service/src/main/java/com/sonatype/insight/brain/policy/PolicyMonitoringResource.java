@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -41,7 +42,7 @@ public class PolicyMonitoringResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -57,7 +58,7 @@ public class PolicyMonitoringResource
   @Path("applicable")
   @Authorize(permission = Permission.READ)
   public ApplicablePolicyMonitors getApplicable(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -79,7 +80,7 @@ public class PolicyMonitoringResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public PolicyMonitoring set(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public PolicyMonitoring set(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, PolicyMonitoring policyMonitoring)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -96,7 +97,7 @@ public class PolicyMonitoringResource
 
   @DELETE
   @Authorize(permission = Permission.WRITE)
-  public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
+  public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

@@ -15,12 +15,12 @@ import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.WaiversByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertThat;
 public class PolicyWaiverResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest restRequest(String ownerType, String ownerId) {
+  private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PolicyWaiverResource.SERVICE_PATH).parameter(ownerType, ownerId);
   }
 
@@ -44,17 +44,17 @@ public class PolicyWaiverResourceTest
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
 
-    testCRUD(IdUtils.TYPE_APPLICATION, appPublicId, application.getId());
+    testCRUD(OwnerType.APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
 
-    testCRUD(IdUtils.TYPE_ORGANIZATION, organization.getId(), organization.getId());
+    testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
-  private void testCRUD(String ownerType, String ownerPublicId, String ownerId) throws Exception {
+  private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
     Policy policy = tempEntity.newPolicy(ownerId, "PolicyWaiverResourceTest");
     String policyId = policy.getId();
 
@@ -95,7 +95,7 @@ public class PolicyWaiverResourceTest
     String appPublicId2 = "PolicyWaiverResourceTest_AppId2";
     tempEntity.newApplicationWithParent(appPublicId2);
 
-    testDelete_OwnerIdMismatch(IdUtils.TYPE_APPLICATION, appPublicId1, application1.getId(), appPublicId2);
+    testDelete_OwnerIdMismatch(OwnerType.APPLICATION, appPublicId1, application1.getId(), appPublicId2);
   }
 
   @Test
@@ -103,7 +103,7 @@ public class PolicyWaiverResourceTest
     Organization organization1 = tempEntity.newOrganization("PolicyWaiverResourceTest1");
     Organization organization2 = tempEntity.newOrganization("PolicyWaiverResourceTest2");
 
-    testDelete_OwnerIdMismatch(IdUtils.TYPE_ORGANIZATION, organization1.getId(), organization1.getId(),
+    testDelete_OwnerIdMismatch(OwnerType.ORGANIZATION, organization1.getId(), organization1.getId(),
         organization2.getId());
   }
 
@@ -126,61 +126,61 @@ public class PolicyWaiverResourceTest
 
     // Verify application level
     tempEntity.newWaiver(hash, policy.getId(), app.getId(), "My comment");
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId()).path("component", hash).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
     AppliedWaivers waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(1));
     assertWaiversByOwner(app, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId()).path("component", hash).get();
+    response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(0));
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, parentOrg.getId()).path("component", hash).get();
+    response = restRequest(OwnerType.ORGANIZATION, parentOrg.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(0));
 
     // Verify organization level
     tempEntity.newWaiver(hash, policy.getId(), org.getId(), "My comment");
-    response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId()).path("component", hash).get();
+    response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(2));
     assertWaiversByOwner(app, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     assertWaiversByOwner(org, policy.getId(), "My comment", waivers.waiversByOwner.get(1));
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId()).path("component", hash).get();
+    response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(1));
     assertWaiversByOwner(org, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, parentOrg.getId()).path("component", hash).get();
+    response = restRequest(OwnerType.ORGANIZATION, parentOrg.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(0));
 
     // Verify parent organization level
     tempEntity.newWaiver(hash, policy.getId(), org.getParentOrganizationId(), "My comment");
-    response = restRequest(IdUtils.TYPE_APPLICATION, app.getPublicId()).path("component", hash).get();
+    response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(3));
     assertWaiversByOwner(app, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     assertWaiversByOwner(org, policy.getId(), "My comment", waivers.waiversByOwner.get(1));
     assertWaiversByOwner(parentOrg, policy.getId(), "My comment", waivers.waiversByOwner.get(2));
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, org.getId()).path("component", hash).get();
+    response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(2));
     assertWaiversByOwner(org, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
     assertWaiversByOwner(parentOrg, policy.getId(), "My comment", waivers.waiversByOwner.get(1));
-    response = restRequest(IdUtils.TYPE_ORGANIZATION, parentOrg.getId()).path("component", hash).get();
+    response = restRequest(OwnerType.ORGANIZATION, parentOrg.getId()).path("component", hash).get();
     assertResponseStatus(200, response);
     waivers = response.getBody(AppliedWaivers.class);
     assertThat(waivers.waiversByOwner, hasSize(1));
     assertWaiversByOwner(parentOrg, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
   }
 
-  private void testDelete_OwnerIdMismatch(String ownerType, String ownerPublicId1, String ownerId1,
+  private void testDelete_OwnerIdMismatch(OwnerType ownerType, String ownerPublicId1, String ownerId1,
       String ownerPublicId2) throws Exception
   {
     Policy policy = tempEntity.newPolicy(ownerId1, "PolicyWaiverResourceTest");
@@ -206,7 +206,7 @@ public class PolicyWaiverResourceTest
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     tempEntity.newApplicationWithParent(appPublicId);
 
-    HttpResponse response = restRequest(IdUtils.TYPE_APPLICATION, appPublicId).path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
@@ -215,7 +215,7 @@ public class PolicyWaiverResourceTest
   public void testDelete_Nonexistent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
 
-    HttpResponse response = restRequest(IdUtils.TYPE_ORGANIZATION, organization.getId()).path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
@@ -235,7 +235,8 @@ public class PolicyWaiverResourceTest
 
     // Verify application level
     Policy policy = tempEntity.newPolicy(app.getId(), "App Policy");
-    HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId())
+        .get();
     assertResponseStatus(200, response);
     ApplicableContext result = response.getBody(ApplicableContext.class);
     assertApplicableContext(app, result);
@@ -243,7 +244,7 @@ public class PolicyWaiverResourceTest
 
     // Verify organization level
     policy = tempEntity.newPolicy(org.getId(), "Org Policy");
-    response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     result = response.getBody(ApplicableContext.class);
     assertApplicableContext(org, result);
@@ -254,7 +255,7 @@ public class PolicyWaiverResourceTest
 
     // Verify parent organization level
     policy = tempEntity.newPolicy(parentOrg.getId(), "Parent Org Policy");
-    response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
+    response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId()).get();
     assertResponseStatus(200, response);
     result = response.getBody(ApplicableContext.class);
     assertApplicableContext(parentOrg, result);
@@ -274,7 +275,8 @@ public class PolicyWaiverResourceTest
     Application otherApp = tempEntity.newApplicationWithParent("otherApp");
 
     Policy policy = tempEntity.newPolicy(otherApp.getId(), "Policy");
-    HttpResponse response = restRequest("application", appPublicId).path("applicable/context", policy.getId()).get();
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable/context", policy.getId())
+        .get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(), is("Cannot find a policy with ID " + policy.getId()
         + " for application public ID " + appPublicId));

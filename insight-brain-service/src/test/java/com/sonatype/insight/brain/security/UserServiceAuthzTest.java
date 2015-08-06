@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.google.inject.Binder;
 import com.google.inject.Inject;
@@ -81,7 +81,7 @@ public class UserServiceAuthzTest
   @Test
   public void testFindMembersForNonGlobalRoles_Application_Authorized() {
     grantWritePermission(app.getId());
-    FindMembersDTO findMembersDTO = userService.findMembersForNonGlobalRoles(IdUtils.TYPE_APPLICATION,
+    FindMembersDTO findMembersDTO = userService.findMembersForNonGlobalRoles(OwnerType.APPLICATION,
         app.getPublicId(), "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
@@ -90,20 +90,18 @@ public class UserServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testFindMembersForNonGlobalRoles_Application_Unauthorized() {
     login();
-    userService
-        .findMembersForNonGlobalRoles(IdUtils.TYPE_APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
+    userService.findMembersForNonGlobalRoles(OwnerType.APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testFindMembersForNonGlobalRoles_Application_Unauthenticated() {
-    userService
-        .findMembersForNonGlobalRoles(IdUtils.TYPE_APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
+    userService.findMembersForNonGlobalRoles(OwnerType.APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles_Organization_Authorized() {
     grantWritePermission(org.getId());
-    FindMembersDTO findMembersDTO = userService.findMembersForNonGlobalRoles(IdUtils.TYPE_ORGANIZATION, org.getId(),
+    FindMembersDTO findMembersDTO = userService.findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(),
         "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
@@ -112,12 +110,12 @@ public class UserServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testFindMembersForNonGlobalRoles_Organization_Unauthorized() {
     login();
-    userService.findMembersForNonGlobalRoles(IdUtils.TYPE_ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
+    userService.findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testFindMembersForNonGlobalRoles_Organization_Unauthenticated() {
-    userService.findMembersForNonGlobalRoles(IdUtils.TYPE_ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
+    userService.findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
   }
 
   @Test

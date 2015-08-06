@@ -56,8 +56,6 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.IdUtils.TYPE_ORGANIZATION;
-
 @Named
 @Path(PolicyResource.SERVICE_PATH)
 public class PolicyResource
@@ -90,7 +88,7 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public List<Policy> getPolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
   {
     log.debug("Received request to get all policies for {} id {}", ownerType, ownerId);
@@ -108,7 +106,7 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public ApplicablePolicies getApplicablePolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     log.debug("Received request to get all applicable policies for {} id {}", ownerType, ownerId);
@@ -149,12 +147,9 @@ public class PolicyResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public Policy addPolicy(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      final Policy policy,
-      @QueryParam("user") final String user,
-      @QueryParam("where") final String where,
+  public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
+      @QueryParam("user") final String user, @QueryParam("where") final String where,
       @Context final HttpServletRequest request)
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
@@ -170,12 +165,9 @@ public class PolicyResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public Policy updatePolicy(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      final Policy policy,
-      @QueryParam("user") final String user,
-      @QueryParam("where") final String where,
+  public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
+      @QueryParam("user") final String user, @QueryParam("where") final String where,
       @Context final HttpServletRequest request)
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
@@ -190,13 +182,10 @@ public class PolicyResource
   @DELETE
   @Path("{policyId}")
   @Authorize(permission = Permission.WRITE)
-  public void deletePolicy(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+  public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      @PathParam("policyId") final String policyId,
-      @QueryParam("user") final String user,
-      @QueryParam("where") final String where,
-      @Context final HttpServletRequest request)
+      @PathParam("policyId") final String policyId, @QueryParam("user") final String user,
+      @QueryParam("where") final String where, @Context final HttpServletRequest request)
   {
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
@@ -214,12 +203,12 @@ public class PolicyResource
   @GET
   @Path("export")
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyExportResult exportPolicies(@PathParam("ownerType") final String ownerType,
+  public PolicyExportResult exportPolicies(@PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    if(IdUtils.TYPE_ORGANIZATION.equals(ownerType)) {
+    if (OwnerType.ORGANIZATION.equals(ownerType)) {
       return policyImportExport.exportOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId));
     }
     else {
@@ -230,7 +219,7 @@ public class PolicyResource
   @PUT
   @Path("import")
   @Produces(MediaType.APPLICATION_JSON)
-  public PolicyImportResult importPolicies(@PathParam("ownerType") final String ownerType,
+  public PolicyImportResult importPolicies(@PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") String ownerId, @Context HttpServletRequest servletRequest) throws IOException
   {
     return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
@@ -241,8 +230,7 @@ public class PolicyResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Authorize(permission = Permission.WRITE)
   @AuthzErrorMsg
-  public String importPolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final String ownerType,
+  public String importPolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
       @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
       @FormDataParam("file") InputStream uploadedInputStream,
@@ -261,12 +249,12 @@ public class PolicyResource
     return errorMessage;
   }
 
-  private PolicyImportResult importPolicies(String ownerType, String ownerId, InputStream in) throws IOException {
+  private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {
     PolicyExportResult exportDTO = readPolicyExportResult(in);
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    if (TYPE_ORGANIZATION.equals(ownerType)) {
+    if (OwnerType.ORGANIZATION.equals(ownerType)) {
       return policyImportExport.importOrganization(new OrganizationDAO().getByIdNotNull(internalOwnerId), exportDTO);
     }
     return policyImportExport.importApplication(new ApplicationDAO().getByIdNotNull(internalOwnerId), exportDTO);

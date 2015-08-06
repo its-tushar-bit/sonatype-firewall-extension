@@ -15,21 +15,14 @@ import com.google.common.base.Predicate;
 
 public class IdUtils
 {
-  public static final String TYPE_GLOBAL = OwnerType.GLOBAL.toString();
-
-  public static final String TYPE_ORGANIZATION = OwnerType.ORGANIZATION.toString();
-
-  public static final String TYPE_APPLICATION = OwnerType.APPLICATION.toString();
-
-  public static String getInternalOwnerId(String ownerType, String ownerId) {
-    if (TYPE_APPLICATION.equals(ownerType)) {
-      return new ApplicationDAO().getByPublicIdNotNull(ownerId).getId();
-    }
-    else if (TYPE_ORGANIZATION.equals(ownerType)) {
-      return new OrganizationDAO().getByIdNotNull(ownerId).getId();
-    }
-    else if (TYPE_GLOBAL.equals(ownerType)) {
-      return MembershipMapping.GLOBAL_CONTEXT_ID;
+  public static String getInternalOwnerId(OwnerType ownerType, String ownerId) {
+    switch (ownerType) {
+      case APPLICATION:
+        return new ApplicationDAO().getByPublicIdNotNull(ownerId).getId();
+      case ORGANIZATION:
+        return new OrganizationDAO().getByIdNotNull(ownerId).getId();
+      case GLOBAL:
+        return MembershipMapping.GLOBAL_CONTEXT_ID;
     }
 
     throw new IllegalStateException("Unknown owner type: " + ownerType);

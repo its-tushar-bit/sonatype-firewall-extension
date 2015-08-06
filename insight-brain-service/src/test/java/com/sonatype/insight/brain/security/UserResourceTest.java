@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -22,7 +23,6 @@ import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionResource;
 
 import org.apache.commons.lang.StringUtils;
@@ -48,7 +48,7 @@ public class UserResourceTest
     return super.restRequest().path(UserSessionResource.SERVICE_PATH).anon();
   }
 
-  private HttpRequest findRequest(String ownerType, String ownerId, String query) {
+  private HttpRequest findRequest(OwnerType ownerType, String ownerId, String query) {
     return restRequest().path("{ownerType}/{ownerId}/query").query("q", "{pattern}")
         .parameter(ownerType, ownerId, query);
   }
@@ -311,14 +311,14 @@ public class UserResourceTest
 
   @Test
   public void testFindMembersForGlobalRoles() throws Exception {
-    HttpResponse response = findRequest("global", "global", User.ADMIN_USERNAME + "*").get();
+    HttpResponse response = findRequest(OwnerType.GLOBAL, "global", User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles() throws Exception {
     Organization org = tempEntity.newOrganization();
-    HttpResponse response = findRequest(IdUtils.TYPE_ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
+    HttpResponse response = findRequest(OwnerType.ORGANIZATION, org.getId(), User.ADMIN_USERNAME + "*").get();
     assertMember(response, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
   }
 

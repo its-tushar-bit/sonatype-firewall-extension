@@ -71,7 +71,7 @@ public class LabelService
    *                hierarchy, default is {@code false}
    */
   @Authorize(permission = Permission.READ)
-  public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, final boolean inherit)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -84,7 +84,7 @@ public class LabelService
    * are returned.
    */
   @Authorize(permission = Permission.READ)
-  public ApplicableLabels getApplicableLabels(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public ApplicableLabels getApplicableLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
@@ -150,7 +150,7 @@ public class LabelService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public Label addLabel(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public Label addLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, final Label label)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -164,7 +164,7 @@ public class LabelService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public Label updateLabel(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public Label updateLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, final Label label)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
@@ -177,7 +177,7 @@ public class LabelService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteLabel(@AuthzContext(AuthzContext.Key.TYPE) final String ownerType,
+  public void deleteLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);

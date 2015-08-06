@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 
 import org.junit.Test;
@@ -16,7 +17,7 @@ public class IdUtilsTest
 {
   @Test
   public void testGetInternalOwnerId_Global() {
-    String id = IdUtils.getInternalOwnerId(IdUtils.TYPE_GLOBAL, null /* ownerId */);
+    String id = IdUtils.getInternalOwnerId(OwnerType.GLOBAL, null /* ownerId */);
     assertThat(id, is(MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 }

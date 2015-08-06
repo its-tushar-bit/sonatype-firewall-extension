@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -57,7 +58,7 @@ public class UserInterfaceLinksResource
 
   @GET
   @Path(MANAGEMENT_PATH)
-  public Response linkToManagement(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId) {
+  public Response linkToManagement(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId) {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(
         "/management/{ownerType}/{ownerId}/policies");

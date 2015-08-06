@@ -344,7 +344,7 @@ public class LicenseOverrideResourceTest
   @Test
   public void testDelete_OwnerIdMismatch_Application() throws Exception {
     String appPublicId1 = "LicenseOverrideResourceTest1";
-    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
+    tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "LicenseOverrideResourceTest2";
     tempEntity.newApplicationWithParent(appPublicId2);
 

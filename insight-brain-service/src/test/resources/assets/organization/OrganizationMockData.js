@@ -3,15 +3,22 @@ OrganizationMockData = {
     return [
       {
         "id": "1",
-        "name": "org1"
+        "name": "org1",
+        "parentOrganizationId": "rootOrg"
       },
       {
         "id": "2",
-        "name": "org2"
+        "name": "org2",
+        "parentOrganizationId": "rootOrg"
       },
       {
         "id": "3",
-        "name": "org3"
+        "name": "org3",
+        "parentOrganizationId": "rootOrg"
+      },
+      {
+        "id": "rootOrg",
+        "name": "rootOrg"
       }
     ];
   },

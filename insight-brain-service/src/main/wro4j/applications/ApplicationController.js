@@ -171,6 +171,16 @@
           });
         }
 
+        function removeRootOrg(orgs) {
+          orgs.some(function(org, index) {
+            if (!org.parentOrganizationId) {
+              orgs.splice(index, 1);
+              return true;
+            }
+          });
+          return orgs;
+        }
+
         $scope.$state = $state;
         $scope.submitActive = false;
         
@@ -227,11 +237,11 @@
             if (selectedApplication.publicId) {
               assignAppSummary(results[1].data);
               if (ao.isNew()) {
-                $scope.organizations = results[2];
+                $scope.organizations = removeRootOrg(angular.copy(results[2]));
               }
             }
             else if (ao.isNew()) {
-              $scope.organizations = results[1];
+              $scope.organizations = removeRootOrg(angular.copy(results[1]));
             }
           }, function (error) {
             $scope.error = error;

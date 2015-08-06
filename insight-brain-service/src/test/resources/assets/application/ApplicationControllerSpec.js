@@ -116,6 +116,13 @@ describe('ApplicationEditorController', function() {
       scope.setOrganization(mockOrganization);
       expect(scope.getOrganizationName()).toEqual(mockOrganization.name);
     });
+
+    it('Removes root organization from org list', function(){
+      expect(scope.organizations.length).toEqual(3);
+      expect(scope.organizations[0].id).toEqual('1');
+      expect(scope.organizations[1].id).toEqual('2');
+      expect(scope.organizations[2].id).toEqual('3');
+    });
   });
 
   describe('Existing Application No Org', function () {
@@ -148,7 +155,8 @@ describe('ApplicationEditorController', function() {
       mockApplication = applicationsData[0];
 
       expect(scope.organizations).toBeDefined();
-      expect(scope.organizations.length).toEqual(OrganizationMockData.getGETResponse().length);
+      //-1 for the root org, as that gets spliced out
+      expect(scope.organizations.length).toEqual(OrganizationMockData.getGETResponse().length - 1);
     }));
   });
 

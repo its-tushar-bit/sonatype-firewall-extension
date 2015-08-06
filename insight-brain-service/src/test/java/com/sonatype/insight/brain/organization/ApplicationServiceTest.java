@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 
 public class ApplicationServiceTest
     extends AbstractComponentTest
@@ -78,5 +80,17 @@ public class ApplicationServiceTest
     List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()),
         Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(0));
+  }
+
+  @Test
+  public void testAddApplication_RootOrgIsNoValidParent() {
+    Application app = new Application("appPublicId", "appName", Organization.ROOT_ORGANIZATION_ID);
+    try {
+      applicationService.addApplication(app);
+      fail("Expected exception");
+    }
+    catch (InvalidApplicationException e) {
+      assertThat(e.getMessage(), is("Applications cannot have the root organization as parent."));
+    }
   }
 }

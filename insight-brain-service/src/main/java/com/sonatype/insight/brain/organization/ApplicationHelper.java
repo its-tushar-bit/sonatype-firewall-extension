@@ -98,6 +98,9 @@ public class ApplicationHelper
       throw new InvalidApplicationException(
           "Application references an organization (ID=" + organizationId + ") that does not exist.");
     }
+    if (org.getParentOrganizationId() == null) {
+      throw new InvalidApplicationException("Applications cannot have the root organization as parent.");
+    }
 
     final String contact = application.getContactInternalName();
     if (contact != null) {

@@ -26,7 +26,7 @@ public class ApplicationServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private ApplicationService dashboardService;
+  private ApplicationService applicationService;
 
   private Organization org;
   private Application app1;
@@ -41,21 +41,21 @@ public class ApplicationServiceTest
 
   @Test
   public void testGetApplicationsByIdsAndTagIds_NullParams() {
-    List<Application> apps = dashboardService
+    List<Application> apps = applicationService
         .getApplicationsByIdsAndTagIds(null /* applicationIds */, null /* tagIds */);
     assertThat(apps, hasSize(2));
   }
 
   @Test
   public void testGetApplicationsByIdsAndTagIds_EmptyParams() {
-    List<Application> apps = dashboardService.getApplicationsByIdsAndTagIds(
+    List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(
         Collections.<String> emptySet() /* applicationIds */, Collections.<String> emptySet() /* tagIds */);
     assertThat(apps, hasSize(2));
   }
 
   @Test
   public void testGetApplicationsByIdsAndTagIds_AppId() {
-    List<Application> apps = dashboardService
+    List<Application> apps = applicationService
         .getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()), null /* tagIds */);
     assertThat(apps, hasSize(1));
     assertThat(apps.get(0).getId(), is(app1.getId()));
@@ -65,7 +65,7 @@ public class ApplicationServiceTest
   public void testGetApplicationsByIdsAndTagIds_TagId() {
     Tag tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), tag.getId());
-    List<Application> apps = dashboardService.getApplicationsByIdsAndTagIds(null /* applicationIds */,
+    List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(null /* applicationIds */,
         Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(1));
     assertThat(apps.get(0).getId(), is(app2.getId()));
@@ -75,7 +75,7 @@ public class ApplicationServiceTest
   public void testGetApplicationsByIdsAndTagIds_AppIdAndTagId() {
     Tag tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), tag.getId());
-    List<Application> apps = dashboardService.getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()),
+    List<Application> apps = applicationService.getApplicationsByIdsAndTagIds(Collections.singleton(app1.getId()),
         Collections.singleton(tag.getId()));
     assertThat(apps, hasSize(0));
   }

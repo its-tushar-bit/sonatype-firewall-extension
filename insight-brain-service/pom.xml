@@ -17,6 +17,8 @@
   <name>Insight Brain Service</name>
 
   <properties>
+    <node.version>v0.12.4</node.version>
+    <npm.version>2.13.2</npm.version>
     <freemarker.version>2.3.19</freemarker.version>
     <wro4j.version>1.7.7</wro4j.version>
     <licensing.version>1.4</licensing.version>
@@ -1011,8 +1013,8 @@
               <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
-              <nodeVersion>v0.12.4</nodeVersion>
-              <npmVersion>2.13.2</npmVersion>
+              <nodeVersion>${node.version}</nodeVersion>
+              <npmVersion>${npm.version}</npmVersion>
             </configuration>
           </execution>
           <execution>

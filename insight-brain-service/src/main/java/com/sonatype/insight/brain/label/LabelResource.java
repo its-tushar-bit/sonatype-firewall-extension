@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.label;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -23,30 +21,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.label.LabelService.ApplicableLabels;
 import com.sonatype.insight.brain.model.label.Label;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.PermissionService;
-import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-
-import org.apache.shiro.SecurityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 @Path(LabelResource.SERVICE_PATH)
@@ -54,120 +31,55 @@ public class LabelResource
 {
   public static final String SERVICE_PATH = "rest/label/{ownerType: application|organization}/{ownerId}";
 
-  private static final Logger log = LoggerFactory.getLogger(LabelResource.class);
-
-  private LabelDAO labelDAO = new LabelDAO();
-
-  private final OwnerDAO ownerDAO = new OwnerDAO();
-
-  private final PolicyDAO policyDAO = new PolicyDAO();
-
-  private PermissionService permissionService;
+  private final LabelService labelService;
 
 
   @Inject
-  public LabelResource(PermissionService permissionService) {
-    this.permissionService = permissionService;
+  public LabelResource(final LabelService labelService) {
+    this.labelService = labelService;
   }
 
   /**
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
-   *          hierarchy, default is {@code false}
+   *                hierarchy, default is {@code false}
    * @since 1.6
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
-  public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+  public List<Label> getLabels(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId,
       @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    return labelDAO.getByOwnerId(ownerId, inherit);
+    return labelService.getLabels(ownerType, ownerId, inherit);
   }
 
   /**
    * Returns all the labels associated with an ownerId. The labels are grouped by ownerId and the owner name and type
    * are returned.
-   * 
+   *
    * @since 1.6
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
-  @Authorize(permission = Permission.READ)
-  public ApplicableLabels getApplicableLabels(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public ApplicableLabels getApplicableLabels(@PathParam("ownerType") String ownerType,
+      @PathParam("ownerId") String ownerId)
   {
-    log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
-
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    ApplicableLabels result = new ApplicableLabels();
-
-    result.labelsByOwner = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      LabelsByOwner labelsByOwner = new LabelsByOwner();
-      labelsByOwner.ownerId = owner.getId();
-      labelsByOwner.ownerName = owner.getName();
-      labelsByOwner.ownerType = owner.getType();
-      labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId());
-      result.labelsByOwner.add(labelsByOwner);
-    }
-
-    return result;
+    return labelService.getApplicableLabels(ownerType, ownerId);
   }
 
   /**
    * Enumerates the contexts (org/app) in which the given label could be applied.
-   * 
+   *
    * @since 1.6
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable/context/{labelId}")
-  @Authorize(permission = Permission.WRITE)
-  public ApplicableContext getApplicableContexts(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String ownerPublicId,
+  public ApplicableContext getApplicableContexts(@PathParam("ownerId") String ownerPublicId,
       @PathParam("labelId") String labelId)
   {
-    Label label = labelDAO.getByIdNotNull(labelId);
-
-    ApplicationDAO applicationDAO = new ApplicationDAO();
-    Application application = applicationDAO.getById(label.getOwnerId());
-    if (application != null) {
-      return new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION);
-    }
-
-    application = applicationDAO.getByPublicIdNotNull(ownerPublicId);
-    String ownerId = application.getId();
-
-    ApplicableContext context = null;
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      if (!permissionService.hasPermissions(SecurityUtils.getSubject(), owner.getType(), owner.getId(),
-          Collections.singleton(Permission.WRITE)).contains(Permission.WRITE)) {
-        break;
-      }
-
-      ApplicableContext currentContext = new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
-      if (context == null) {
-        context = currentContext;
-      }
-      else {
-        currentContext.setChildren(new ArrayList<ApplicableContext>());
-        currentContext.getChildren().add(context);
-        context = currentContext;
-      }
-
-      if (owner.getId().equals(label.getOwnerId())) {
-        // only go as high as the owner of the label
-        break;
-      }
-    }
-
-    return context;
+    return labelService.getApplicableContexts(ownerPublicId, labelId);
   }
 
   /**
@@ -176,18 +88,9 @@ public class LabelResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public Label addLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, Label label)
+  public Label addLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId, Label label)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    label.setId(null);
-    label.setOwnerId(ownerId);
-    label.fixLabelLowercase();
-    labelDAO.insert(label);
-
-    return label;
+    return labelService.addLabel(ownerType, ownerId, label);
   }
 
   /**
@@ -196,17 +99,9 @@ public class LabelResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WRITE)
-  public Label updateLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, Label label)
+  public Label updateLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId, Label label)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    label.setOwnerId(ownerId);
-    label.fixLabelLowercase();
-    labelDAO.update(label);
-
-    return label;
+    return labelService.updateLabel(ownerType, ownerId, label);
   }
 
   /**
@@ -214,67 +109,9 @@ public class LabelResource
    */
   @DELETE
   @Path("{labelId}")
-  @Authorize(permission = Permission.WRITE)
-  public void deleteLabel(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") String ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("labelId") String labelId)
+  public void deleteLabel(@PathParam("ownerType") String ownerType, @PathParam("ownerId") String ownerId,
+      @PathParam("labelId") String labelId)
   {
-    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
-    Label label = labelDAO.getByIdNotNull(labelId);
-    if (!internalOwnerId.equals(label.getOwnerId())) {
-      throw new NotFoundException("Cannot find a label with ID " + labelId + " for " + ownerType + " ID " + ownerId);
-    }
-
-    validateLabelNotUsedInAnyPolicy(ownerDAO.getById(internalOwnerId), label);
-
-    labelDAO.delete(label);
-  }
-
-  public static class ApplicableLabels
-  {
-    public List<LabelsByOwner> labelsByOwner;
-  }
-
-  public static class LabelsByOwner
-  {
-    public String ownerId;
-
-    public String ownerName;
-
-    public OwnerType ownerType;
-
-    public List<Label> labels;
-  }
-
-  private void validateLabelNotUsedInAnyPolicy(Owner owner, Label label) {
-    for (Policy policy : policyDAO.getByOwnerId(owner.getId())) {
-      if (isLabelUsedInPolicy(label.getId(), policy)) {
-        String error = "Cannot delete the label because it is used in a condition for the '" + policy.getName()
-            + "' policy";
-        if (!label.getOwnerId().equals(owner.getId())) {
-          error += " in " + owner.getType() + " '" + owner.getName() + "'";
-        }
-        throw new BadRequestException(error);
-      }
-    }
-    for (Owner childOwner : ownerDAO.getChildOwners(owner)) {
-      validateLabelNotUsedInAnyPolicy(childOwner, label);
-    }
-  }
-
-  /**
-   * Returns {@code true} if the given labelId is used in the given policy; otherwise {@code false}.
-   * 
-   * @since 1.6
-   */
-  private static boolean isLabelUsedInPolicy(String labelId, Policy policy) {
-    for (Constraint constraint : policy.getConstraints()) {
-      for (Condition condition : constraint.getConditions()) {
-        if (LabelConditionType.ID.equals(condition.getConditionTypeId()) && labelId.equals(condition.getValue())) {
-          return true;
-        }
-      }
-    }
-    return false;
+    labelService.deleteLabel(ownerType, ownerId, labelId);
   }
 }

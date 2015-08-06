@@ -65,15 +65,11 @@ public class PolicyMonitoringResource
     results.policyMonitoringByOwner = new ArrayList<>();
 
     OwnerDAO ownerDAO = new OwnerDAO();
-    Owner owner = ownerDAO.getById(internalOwnerId);
-
-    while (owner != null) {
+    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       PolicyMonitoringByOwner policyMonitoringByOwner = new PolicyMonitoringByOwner();
       policyMonitoringByOwner.ownerName = owner.getName();
       policyMonitoringByOwner.policyMonitoring = loadPolicyMonitoring(owner.getId());
       results.policyMonitoringByOwner.add(policyMonitoringByOwner);
-
-      owner = ownerDAO.getParentOwner(owner);
     }
 
     return results;

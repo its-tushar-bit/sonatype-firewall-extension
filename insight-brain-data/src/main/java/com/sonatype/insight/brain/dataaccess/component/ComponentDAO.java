@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -307,10 +308,8 @@ public class ComponentDAO
 
     Set<String> unassignedLicenseIds = new LinkedHashSet<>(licenseIds);
     // Gather all license threat groups from the application on up the organization hierarchy
-    String ownerId = applicationId;
-    while (ownerId != null) {
-      loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, ownerId);
-      ownerId = ownerDAO.getById(ownerId).getParentOrganizationId();
+    for (Owner owner : ownerDAO.walkHierarchy(applicationId)) {
+      loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, owner.getId());
     }
 
     component.setUnassignedLicenseIds(unassignedLicenseIds);

@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
 
@@ -54,10 +55,8 @@ public class LicenseThreatGroupValueType
   public List<LicenseThreatGroup> getAvailableValues() {
     List<LicenseThreatGroup> result = new ArrayList<>();
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    String currentOwnerId = ownerId;
-    while (currentOwnerId != null) {
-      result.addAll(licenseThreatGroupDAO.getByOwnerId(currentOwnerId));
-      currentOwnerId = ownerDAO.getById(currentOwnerId).getParentOrganizationId();
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      result.addAll(licenseThreatGroupDAO.getByOwnerId(owner.getId()));
     }
     result.add(UNASSIGNED_LICENSE_THREAT_GROUP);
     return result;

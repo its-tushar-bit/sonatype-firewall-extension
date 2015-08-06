@@ -112,14 +112,12 @@ public class MembershipMappingService
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
     }
 
-    while (internalOwnerId != null) {
-      Owner owner = ownerDAO.getById(internalOwnerId);
+    for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       for (Map.Entry<String, MembersByOwner> entry : loadMembers(owner.getId(), owner.getName(), owner.getType(),
           memberAttributeResolver, roles).entrySet()) {
         entry.getValue().ownerId = owner.getPublicId();
         membersByRoleByRoleId.get(entry.getKey()).membersByOwner.add(entry.getValue());
       }
-      internalOwnerId = owner.getParentOrganizationId();
     }
   }
 

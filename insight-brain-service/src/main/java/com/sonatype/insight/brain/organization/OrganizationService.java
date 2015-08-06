@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,10 @@ public class OrganizationService
 
   private void deleteOrganization(final TransactionContext tx, final String organizationId) throws IOException {
     Organization organization = organizationDAO.getByIdNotNull(tx, organizationId);
+
+    if (organization.getParentOrganizationId() == null) {
+      throw new BadRequestException("The root organization cannot be deleted");
+    }
 
     // cascade to applications first
     for (Application application : new ApplicationDAO().getByOrganizationId(tx, organizationId)) {

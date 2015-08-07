@@ -53,7 +53,7 @@ public class OrganizationServiceTest
       assertThat(new OrganizationDAO().getById(childOrg.getId()), is(notNullValue()));
       assertThat(iconFile.isFile(), is(true));
       assertThat(iconDir.isDirectory(), is(true));
-      assertThat(e.getMessage(), is("The root organization cannot be deleted"));
+      assertThat(e.getMessage(), is("The root organization cannot be deleted."));
     }
   }
 }

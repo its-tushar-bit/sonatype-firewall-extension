@@ -95,7 +95,7 @@ public class OrganizationService
     Organization organization = organizationDAO.getByIdNotNull(tx, organizationId);
 
     if (organization.getParentOrganizationId() == null) {
-      throw new BadRequestException("The root organization cannot be deleted");
+      throw new BadRequestException("The root organization cannot be deleted.");
     }
 
     // cascade to applications first

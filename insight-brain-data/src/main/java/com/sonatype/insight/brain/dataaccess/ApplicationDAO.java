@@ -273,6 +273,8 @@ public class ApplicationDAO
 
   @Override
   public void delete(TransactionContext tx, Application application) {
+    long start = System.currentTimeMillis();
+
     // Cascade to license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
@@ -338,6 +340,11 @@ public class ApplicationDAO
     }
 
     super.delete(tx, application);
+
+    long duration = System.currentTimeMillis() - start;
+    if (duration > 500) {
+      log.debug("Deleted application '{}' with id {} in {} ms.", application.getName(), application.getId(), duration);
+    }
   }
 
   private void validate(Application application) {

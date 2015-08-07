@@ -29,9 +29,14 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class OrganizationDAO
     extends AbstractOperationalSqlDAO<Organization>
 {
+  private static final Logger log = LoggerFactory.getLogger(OrganizationDAO.class);
+
   @Override
   public Organization getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Organization entity" + //
@@ -121,6 +126,8 @@ public class OrganizationDAO
 
   @Override
   public void delete(TransactionContext tx, Organization organization) {
+    long start = System.currentTimeMillis();
+
     if (Organization.ROOT_ORGANIZATION_ID.equals(organization.getId())) {
       // Do not allow the deletion of the root organization
       throw new BadRequestException("Cannot delete root organization: " + organization.getName());
@@ -177,6 +184,12 @@ public class OrganizationDAO
     }
 
     super.delete(tx, organization);
+
+    long duration = System.currentTimeMillis() - start;
+    if (duration > 500) {
+      log.debug("Deleted organization '{}' with id {} in {} ms.", organization.getName(), organization.getId(),
+          duration);
+    }
   }
 
   public List<Organization> getByParentOrganizationId(TransactionContext tx, String parentOrganizationId) {

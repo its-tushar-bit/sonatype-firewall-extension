@@ -11,6 +11,8 @@ import java.io.IOException;
 import javax.inject.Named;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Removes directories and files. 
@@ -22,6 +24,8 @@ import org.codehaus.plexus.util.FileUtils;
 @Named
 public class FileCleaner
 {
+  private static final Logger log = LoggerFactory.getLogger(FileCleaner.class);
+
   /**
    * Delete a file. If file is directory delete it with all sub-directories and containing files.
    */
@@ -29,11 +33,18 @@ public class FileCleaner
     // FileUtils.forceDelete(file) will try to delete the file even if it doesn't exist and that will also cause a call
     // to System.gc() and a 10 millisec sleep, which can cause performance problems.
     if (file != null && file.exists()) {
+      long start = System.currentTimeMillis();
+      
       try {
         FileUtils.forceDelete(file);
       }
       catch (IOException e) {
         throw new FileDeletionException(file, e);
+      }
+      
+      long duration = System.currentTimeMillis() - start;
+      if (duration > 500) {
+        log.debug("Deleted file/dir '{}' in {} ms.", file.getAbsolutePath(), duration);
       }
     }
   }

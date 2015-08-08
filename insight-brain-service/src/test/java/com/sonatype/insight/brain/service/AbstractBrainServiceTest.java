@@ -85,11 +85,20 @@ public abstract class AbstractBrainServiceTest
 
   @Before
   public void initTest() throws Exception {
-    if (!getClass().getMethod(testName.getMethodName()).isAnnotationPresent(ManualServerInit.class)) {
+    if (!isTestUsingManualServerInit()) {
       initServer(null);
     }
     // Make sure the default LTGs are created
     licenseThreatGroupDAO.createDefaultLicenseThreatGroups();
+  }
+
+  private boolean isTestUsingManualServerInit() throws Exception {
+    String testMethod = testName.getMethodName();
+    int paramStart = testMethod.indexOf('[');
+    if (paramStart >= 0) {
+      testMethod = testMethod.substring(0, paramStart);
+    }
+    return getClass().getMethod(testMethod).isAnnotationPresent(ManualServerInit.class);
   }
 
   protected void initServer(Configurator configurator) throws Exception {

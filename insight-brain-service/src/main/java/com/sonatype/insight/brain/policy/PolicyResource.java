@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -228,10 +227,7 @@ public class PolicyResource
   @POST
   @Path("import/ie")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Authorize(permission = Permission.WRITE)
-  @AuthzErrorMsg
-  public String importPolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+  public String importPolicies(@PathParam("ownerType") final OwnerType ownerType, @PathParam("ownerId") String ownerId,
       @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
       @FormDataParam("file") InputStream uploadedInputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail)

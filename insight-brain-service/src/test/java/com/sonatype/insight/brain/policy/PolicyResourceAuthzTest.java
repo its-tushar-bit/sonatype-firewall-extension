@@ -5,11 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.util.Collections;
-
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -19,9 +15,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class PolicyResourceAuthzTest
     extends AbstractResourceAuthzTest
@@ -100,25 +93,5 @@ public class PolicyResourceAuthzTest
 
     policy = tempEntity.newPolicy(org.getId(), "testDeletePolicy");
     testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
-  }
-
-  @Test
-  public void testImportPolicies_IE9() throws Exception {
-    grantWritePermission(org.getId());
-
-    PolicyExportResult export = new PolicyExportResult();
-    export.policies = Collections.singletonList(tempEntity.newPolicy(org.getId(), "name"));
-    new ApplicationDAO().delete(app);
-
-    HttpRequest request = restRequest().path("import/ie").parameter(OwnerType.ORGANIZATION, org.getId());
-    request.part("file", "filename", export);
-
-    HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Insufficient permissions"));
-
-    response = request.auth(authorized.getUsername(), authorized.getPassword()).post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is(""));
   }
 }

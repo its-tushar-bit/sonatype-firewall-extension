@@ -157,7 +157,7 @@ public class UserDirectory
     List<User> clmUsers = userDao.getByUsernames(sortedUserNames);
     for (User user : clmUsers) {
       Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
-          CLMRealm.DISPLAY_NAME);
+          InternalRealm.DISPLAY_NAME);
       members.add(member);
       sortedUserNames.remove(user.getUsername());
     }
@@ -201,7 +201,7 @@ public class UserDirectory
     String clmRealmQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
     for (User user : userDao.findUsersByName(clmRealmQuery)) {
       Member member = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(), user.getEmail(),
-          CLMRealm.DISPLAY_NAME);
+          InternalRealm.DISPLAY_NAME);
       users.put(member.getInternalNameLowerCase(), member);
     }
 

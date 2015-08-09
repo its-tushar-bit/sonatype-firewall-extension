@@ -25,9 +25,9 @@ import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
-import com.sonatype.insight.brain.security.CLMShiroAopModule;
-import com.sonatype.insight.brain.security.CLMShiroModule;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.security.SecurityAopModule;
+import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.TraceMethodBlockFilter;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -310,8 +310,8 @@ public class InsightBrainService
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
       }
     };
-    Module authc = new CLMShiroModule(config);
-    Module authz = new CLMShiroAopModule(config.isAnonymousClientAccessAllowed());
+    Module authc = new SecurityModule(config);
+    Module authz = new SecurityAopModule(config.isAnonymousClientAccessAllowed());
 
     return Arrays.asList(bindings, authc, authz);
   }

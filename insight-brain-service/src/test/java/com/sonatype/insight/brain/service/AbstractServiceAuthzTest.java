@@ -13,8 +13,8 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.CLMRealm;
-import com.sonatype.insight.brain.security.CLMShiroAopModule;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SecurityAopModule;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -46,10 +46,10 @@ public class AbstractServiceAuthzTest
     {
       @Override
       protected void configureShiro() {
-        bindRealm().to(CLMRealm.class);
+        bindRealm().to(InternalRealm.class);
       }
     });
-    binder.install(new CLMShiroAopModule(true));
+    binder.install(new SecurityAopModule(true));
   }
 
   @Override

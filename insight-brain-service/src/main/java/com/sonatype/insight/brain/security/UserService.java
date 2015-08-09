@@ -42,14 +42,14 @@ public class UserService
 
   static final String FAKE_PASSWORD = "#~FAKE~CLM~PASSWORD~#";
 
-  private final CLMRealm clmRealm;
+  private final InternalRealm clmRealm;
 
   private final SessionDAO sessionDAO;
 
   private final UserDirectory userDirectory;
 
   @Inject
-  public UserService(CLMRealm clmRealm, SessionDAO sessionDAO, UserDirectory userDirectory) {
+  public UserService(InternalRealm clmRealm, SessionDAO sessionDAO, UserDirectory userDirectory) {
     this.clmRealm = clmRealm;
     this.sessionDAO = sessionDAO;
     this.userDirectory = userDirectory;

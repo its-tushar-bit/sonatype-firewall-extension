@@ -33,10 +33,10 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class CLMRealm
+public class InternalRealm
     extends AuthenticatingRealm
 {
-  private static final Logger log = LoggerFactory.getLogger(CLMRealm.class);
+  private static final Logger log = LoggerFactory.getLogger(InternalRealm.class);
 
   private final DefaultPasswordService passwordService;
 
@@ -51,7 +51,7 @@ public class CLMRealm
     hashIterations = 10;
   }
 
-  public CLMRealm() {
+  public InternalRealm() {
     setName("CLMRealm");
 
     passwordService = new DefaultPasswordService();

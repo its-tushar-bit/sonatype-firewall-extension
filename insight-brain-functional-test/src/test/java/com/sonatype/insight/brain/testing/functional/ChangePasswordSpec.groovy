@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
-import com.sonatype.insight.brain.security.CLMRealm
+import com.sonatype.insight.brain.security.InternalRealm
 
 
 class ChangePasswordSpec
 extends BaseSpec {
   //simple setup, login as this new user and go to the management page
   def setupSpec() {
-    temporaryEntity.newUser("testchangepass", new CLMRealm().encryptPassword("secret"), "John", "Doe", "john@doe.net")
+    temporaryEntity.newUser("testchangepass", new InternalRealm().encryptPassword("secret"), "John", "Doe", "john@doe.net")
     via ReportViolationsPage
     login.login("testchangepass", "secret")
     verifyAt()

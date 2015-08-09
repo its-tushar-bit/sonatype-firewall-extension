@@ -12,7 +12,7 @@ import java.util.Iterator;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
-import com.sonatype.insight.brain.security.CLMRealm;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -154,7 +154,7 @@ public class TestInsightBrainService
     savedLicenseDataUpdater = LicenseDataUpdater.getUpdater();
 
     // This reduces the test execution time for this module by ~30%.
-    CLMRealm.useWeakHashIterationForTestsOnly();
+    InternalRealm.useWeakHashIterationForTestsOnly();
 
     String[] args;
     File dropWizardConfigFile = new File("target/test-classes/config-test.yml");

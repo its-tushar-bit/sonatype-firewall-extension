@@ -13,12 +13,12 @@ import org.apache.shiro.guice.aop.ShiroAopModule;
  * 
  * @since 1.7
  */
-public class CLMShiroAopModule
+public class SecurityAopModule
     extends ShiroAopModule
 {
   private final boolean anonymousClientAccessAllowed;
 
-  public CLMShiroAopModule(final boolean anonymousClientAccessAllowed) {
+  public SecurityAopModule(final boolean anonymousClientAccessAllowed) {
     this.anonymousClientAccessAllowed = anonymousClientAccessAllowed;
   }
 

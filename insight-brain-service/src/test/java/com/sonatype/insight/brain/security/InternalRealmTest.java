@@ -35,11 +35,11 @@ import static org.junit.Assert.fail;
 /**
  * @since 1.7
  */
-public class CLMRealmTest
+public class InternalRealmTest
     extends InjectedTest
 {
   @Inject
-  private CLMRealm realm;
+  private InternalRealm realm;
 
   /**
    * testing internals; that we've implemented the abstract doGetAuthenticationInfo correctly

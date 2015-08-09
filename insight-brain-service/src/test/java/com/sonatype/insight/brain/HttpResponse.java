@@ -7,7 +7,7 @@ package com.sonatype.insight.brain;
 
 import java.net.HttpCookie;
 
-import com.sonatype.insight.brain.security.CLMShiroModule;
+import com.sonatype.insight.brain.security.SecurityModule;
 
 public class HttpResponse
     extends com.sonatype.insight.jaxrs.testing.HttpResponse
@@ -17,6 +17,6 @@ public class HttpResponse
   }
 
   public HttpCookie getSessionCookie() {
-    return getCookie(CLMShiroModule.SESSION_COOKIE_NAME);
+    return getCookie(SecurityModule.SESSION_COOKIE_NAME);
   }
 }

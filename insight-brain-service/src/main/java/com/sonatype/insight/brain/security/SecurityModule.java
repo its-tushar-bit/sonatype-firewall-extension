@@ -34,7 +34,7 @@ import org.apache.shiro.web.session.mgt.WebSessionManager;
  * 
  * @since 1.7
  */
-public class CLMShiroModule
+public class SecurityModule
     extends ShiroModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
@@ -47,7 +47,7 @@ public class CLMShiroModule
 
   private final ReverseProxyAuthenticationConfig reverseProxyAuthentication;
 
-  public CLMShiroModule(InsightConfig config) {
+  public SecurityModule(InsightConfig config) {
     this.anonymousClientAccessAllowed = config.isAnonymousClientAccessAllowed();
     this.csrfProtection = config.isCsrfProtection();
     this.reverseProxyAuthentication = config.getReverseProxyAuthentication();
@@ -66,7 +66,7 @@ public class CLMShiroModule
     configureFilterChains(manager);
     bind(DefaultFilterChainManager.class).toInstance(manager);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
-    bindRealm().to(CLMRealm.class);
+    bindRealm().to(InternalRealm.class);
     bindRealm().to(LdapRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
     binder().requestInjection(new SessionCookieCustomizer());

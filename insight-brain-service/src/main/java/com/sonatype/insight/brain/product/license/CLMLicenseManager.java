@@ -61,7 +61,7 @@ public class CLMLicenseManager
       this.expirationTimestamp = expirationTimestamp;
       setVersion(version);
       super.setApplicationLimit(applicationLimit);
-      super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[0]));
+      super.setEnforcementPoints(enforcementPoints.toArray(new CLMEnforcementPoint[enforcementPoints.size()]));
       super.setFeatures(features);
       setProducts(products);
     }

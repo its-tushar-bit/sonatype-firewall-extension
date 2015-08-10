@@ -16,12 +16,12 @@
     <version>1.17.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>sonatype-clm-server</artifactId>
+  <artifactId>nexus-iq-server</artifactId>
   <packaging>pom</packaging>
-  <name>Sonatype CLM Server distribution bundle</name>
+  <name>Sonatype Nexus IQ Server distribution bundle</name>
 
   <properties>
-    <clm.server.jar>sonatype-clm-server-${project.version}.jar</clm.server.jar>
+    <clm.server.jar>${project.artifactId}-${project.version}.jar</clm.server.jar>
     <clm.server.demo.command>java -XX:MaxPermSize=128m -jar ${clm.server.jar} server config.yml</clm.server.demo.command>
   </properties>
 

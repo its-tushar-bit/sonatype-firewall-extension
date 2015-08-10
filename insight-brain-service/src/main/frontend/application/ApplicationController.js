@@ -10,12 +10,7 @@
   var applicationModule = angular.module('ApplicationModule',
       ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'Stores', 'OwnerModule'],
       ['$stateProvider', function($stateProvider) {
-        $stateProvider.state('management.application', {
-          parent: 'management',
-          url: '/application',
-          controller: 'applicationController',
-          templateUrl: '../application-assets/components/application-navigator.html?' + clmBuildTimestamp
-        }).state('management.application-view', {
+        $stateProvider.state('management.application-view', {
           parent: 'management',
           url: '/application/{applicationPublicId}',
           templateUrl: 'components/owner-summary-view.html?' + clmBuildTimestamp
@@ -78,37 +73,6 @@
           templateUrl: '../policy-assets/components/tag-editor/tags-application.html?' + clmBuildTimestamp
         });
       }]);
-
-  applicationModule.controller('applicationController', [
-    '$scope', '$state', '$location', 'ApplicationStore', function($scope, $state, $location, ApplicationStore) {
-      $scope.location = $location;
-
-      // Store icon cache timestamps at higher scope so it is not reinstantiated with editor controller
-      $scope.applicationIconTimestamp = {};
-
-      $scope.$state = $state;
-      $scope.isCurrentTab = function(tabName) {
-        return $state.current.name.lastIndexOf(tabName) === $state.current.name.length - tabName.length;
-      };
-      $scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-        if (toState.data && toState.data.passThroughAlerts && fromState.data && fromState.data.passThroughAlerts) {
-          angular.forEach(fromState.data.passThroughAlerts, function(alert) {
-            toState.data.passThroughAlerts.push(alert);
-          });
-        }
-      });
-
-      $scope.doLoad = function() {
-        $scope.error = null;
-        ApplicationStore.get().then(function(applications) {
-          $scope.applications = applications;
-        }, function(error) {
-          $scope.error = error;
-        });
-      };
-      $scope.doLoad();
-    }
-  ]);
 
   applicationModule.service('policyEvaluator', ['$q', '$http', 'CLMLocations', function($q, $http, CLMLocations) {
     return {

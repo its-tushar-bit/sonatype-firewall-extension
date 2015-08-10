@@ -11,12 +11,7 @@
   var module = angular.module('Configuration',
     ['ui.router', 'ManagementModule', 'ProductLicense', 'PermissionServiceModule', 'AngularCommon', 'Validators'],
     ['$stateProvider', function($stateProvider) {
-      $stateProvider.state('management.configuration', {
-        parent: 'management',
-        url: '/configuration',
-        controller: 'ConfigurationController',
-        templateUrl: '../configuration-assets/components/configuration-navigator.html?' + clmBuildTimestamp
-      }).state('productlicense', {
+      $stateProvider.state('productlicense', {
         url: '/productlicense',
         controller: 'ProductLicenseController',
         templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp,

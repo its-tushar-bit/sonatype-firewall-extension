@@ -101,6 +101,7 @@
         $rootScope.licensed = true;
         $rootScope.username = data[1].username;
         $rootScope.initialized = true;
+        $rootScope.productEdition = data[0].productEdition;
 
         stateChangePrevention(); // Remove block
         if (savedState) {

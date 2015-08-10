@@ -289,4 +289,39 @@ public class CLMLicenseManagerTest
     assertThat(summary, is(notNullValue()));
     assertThat(summary.fingerprint, is(fingerprint));
   }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionNone() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.productEdition, is(""));
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionAuditor() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_AUDITOR));
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionNexusPro() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_PRO_PLUS));
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionLifecycle() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_LIFECYCLE));
+  }
 }

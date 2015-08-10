@@ -39,6 +39,13 @@ public class CLMLicenseManager
 
   private static final String FEATURE_QUALITY = "QUALITY";
 
+  public static final String PRODUCT_PRO_PLUS = "Pro+";
+
+  public static final String PRODUCT_LIFECYCLE = "Lifecycle";
+
+  public static final String PRODUCT_AUDITOR = "Auditor";
+
+
   private final class CachedLicenseData
       extends ProductLicenseDetails
   {
@@ -72,10 +79,13 @@ public class CLMLicenseManager
 
     public final String[] features;
 
-    public LicenseSummary(String fingerprint, long timestamp, String[] features) {
+    public final String productEdition;
+
+    public LicenseSummary(String fingerprint, long timestamp, String[] features, String productEdition) {
       this.fingerprint = fingerprint;
       this.expiryTimestamp = timestamp;
       this.features = features;
+      this.productEdition = productEdition;
     }
   }
 
@@ -242,7 +252,21 @@ public class CLMLicenseManager
 
   public LicenseSummary getLicenseSummary() {
     return new LicenseSummary(licenseCache.getFingerprint(), licenseCache.expirationTimestamp,
-        licenseCache.getFeatures());
+        licenseCache.getFeatures(), getProductEdition());
+  }
+
+  private String getProductEdition() {
+    if (hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+      return(PRODUCT_LIFECYCLE);
+    }
+    else if (hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
+      return(PRODUCT_PRO_PLUS);
+    }
+    else if (hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
+      return(PRODUCT_AUDITOR);
+    }
+
+    return "";
   }
 
   private void populateLicenseCache() throws LicensingException {

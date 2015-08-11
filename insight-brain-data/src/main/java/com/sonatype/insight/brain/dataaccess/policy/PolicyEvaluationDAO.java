@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -113,18 +114,31 @@ public class PolicyEvaluationDAO
   @Override
   public void insert(TransactionContext tx, PolicyEvaluation policyEvaluation) {
     validate(policyEvaluation);
-    final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 
     if (policyEvaluation.getTime() == null) {
       policyEvaluation.setTime(new Date());
     }
     super.insert(tx, policyEvaluation);
 
-    //make sure the last policy eval is right
-    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(tx, policyEvaluation.getApplicationId(),
-        policyEvaluation.getStageTypeId());
-    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, policyEvaluation.getApplicationId(),
-        policyEvaluation.getStageTypeId());
+    if (policyEvaluation.isForObsoleteScan()) {
+      return;
+    }
+
+    // Update the last policy evaluation record
+    String appId = policyEvaluation.getApplicationId();
+    String stageTypeId = policyEvaluation.getStageTypeId();
+    PolicyEvaluation lastPolicyEvaluation = getLastByApplicationIdAndStageId(tx, appId, stageTypeId);
+    if (lastPolicyEvaluation == null || lastPolicyEvaluation.getTime().getTime() < policyEvaluation.getTime().getTime()) {
+      LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
+      
+      // Delete the current last policy evaluation record for this app and stage type
+      if (lastPolicyEvaluation != null) {
+        lastPolicyEvaluationDAO.delete(tx, lastPolicyEvaluationDAO.getByEvaluationId(tx, lastPolicyEvaluation.getId()));
+      }
+      
+      // Insert a new last policy evaluation record for this application and stage type
+      lastPolicyEvaluationDAO.insert(tx, new LastPolicyEvaluation(policyEvaluation.getId(), appId, stageTypeId));
+    }
   }
 
 
@@ -148,26 +162,37 @@ public class PolicyEvaluationDAO
   }
 
   @Override
-  public void delete(final TransactionContext tx, PolicyEvaluation entity) {
+  public void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation) {
+    delete(tx, policyEvaluation, true /* updateLastPolicyEvaluation */);
+  }
+
+  public void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation)
+  {
     final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
 
     // Cascade to policy violations
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(tx, entity.getId());
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByEvaluationId(tx, policyEvaluation.getId());
     for (PolicyViolation policyViolation : policyViolations) {
       policyViolationDAO.delete(tx, policyViolation);
     }
 
-    //cascade to LastPolicyEvaluation
-    lastPolicyEvaluationDAO.deleteForApplicationIdAndStageTypeId(tx, entity.getApplicationId(),
-        entity.getStageTypeId());
+    // Cascade to last policy evaluation if this is the last policy evaluation
+    LastPolicyEvaluation lastPolicyEvaluation = lastPolicyEvaluationDAO.getByEvaluationId(tx, policyEvaluation.getId());
+    if (lastPolicyEvaluation != null) {
+      lastPolicyEvaluationDAO.delete(tx, lastPolicyEvaluation);
+    }
 
-    //delete the eval itself
-    super.delete(tx, entity);
+    // Delete the policy evaluation itself
+    super.delete(tx, policyEvaluation);
 
-    //insert if possible to LastPolicyEvaluation
-    lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, entity.getApplicationId(),
-        entity.getStageTypeId());
+    if (updateLastPolicyEvaluation) {
+      // Insert a new last policy evaluation if we just deleted the current last
+      if (lastPolicyEvaluation != null) {
+        lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, policyEvaluation.getApplicationId(),
+            policyEvaluation.getStageTypeId());
+      }
+    }
   }
 
   private void validate(PolicyEvaluation policyEvaluation) {

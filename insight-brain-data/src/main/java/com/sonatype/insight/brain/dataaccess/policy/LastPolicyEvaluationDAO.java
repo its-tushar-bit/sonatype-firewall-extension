@@ -49,15 +49,6 @@ public class LastPolicyEvaluationDAO
     }
   }
 
-  public void deleteForApplicationIdAndStageTypeId(final TransactionContext tx, final String applicationId,
-      final String stageTypeId)
-  {
-    LastPolicyEvaluation lpe = getByApplicationIdAndStageTypeId(tx, applicationId, stageTypeId);
-    if (lpe != null) {
-      delete(tx, lpe);
-    }
-  }
-
   public LastPolicyEvaluation getByEvaluationId(final TransactionContext tx, final String evaluationId) {
     String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
         " WHERE entity.policyEvaluationId=?1";

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -430,5 +431,60 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
     assertThat(policyEvaluation.getTime(), is(time2));
     assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+  }
+
+  @Test
+  public void testDelete_UpdateLastPolicyEvaluation() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    String stageTypeId = ReleaseStageType.ID;
+    String scanId = "PolicyEvaluationDAOTest";
+
+    Date time1 = new Date();
+    PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time2);
+
+    // Assert we have a last policy evaluation and that it is the second one
+    PolicyEvaluation lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
+    assertThat(lastPolicyEvaluation.getId(), is(pe2.getId()));
+
+    // Delete the second evaluation. The last policy eval will be updated to the first policy eval.
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.delete(tx, pe2, true /* updateLastPolicyEvaluation */);
+      tx.commit();
+    }
+
+    lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
+    assertThat(lastPolicyEvaluation.getId(), is(pe1.getId()));
+  }
+
+  @Test
+  public void testDelete_DoNotUpdateLastPolicyEvaluation() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    String stageTypeId = ReleaseStageType.ID;
+    String scanId = "PolicyEvaluationDAOTest";
+
+    Date time1 = new Date();
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, time2);
+
+    // Assert we have a last policy evaluation and that it is the second one
+    PolicyEvaluation lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
+    assertThat(lastPolicyEvaluation.getId(), is(pe2.getId()));
+    
+    // Delete the second evaluation. The last policy eval will be deleted and there will not be a new last policy eval
+    // because we tell the delete to not update the last policy eval.
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.delete(tx, pe2, false /*updateLastPolicyEvaluation*/);
+      tx.commit();
+    }
+    
+    lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
+    assertThat(lastPolicyEvaluation, is(nullValue()));
   }
 }

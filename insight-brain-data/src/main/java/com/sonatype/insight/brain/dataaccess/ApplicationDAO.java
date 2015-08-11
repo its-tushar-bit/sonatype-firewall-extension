@@ -292,7 +292,9 @@ public class ApplicationDAO
     // Cascade to policy evaluations
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
-      policyEvaluationDAO.delete(tx, policyEvaluation);
+      // The update of the last policy evaluation is time consuming. Since the application is deleted and all policy
+      // evaluations are deleted as well, there is no point in updating the last policy evaluation.
+      policyEvaluationDAO.delete(tx, policyEvaluation, false /* updateLastPolicyEvaluation */);
     }
 
     // Cascade to policies

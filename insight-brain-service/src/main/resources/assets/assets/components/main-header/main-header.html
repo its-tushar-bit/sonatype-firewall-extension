@@ -121,47 +121,6 @@
           </li>
         </ul>
         <div class="pull-right">
-          <div id="global-create-menu" class="header-dropdown-menu">
-            <div class="dropdown">
-              <a id="global-create-dropdown-toggle" class='dropdown-toggle' data-toggle="dropdown" href="#">
-                <i class='glyphicons-halflings-sonatype medium plus'></i>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-arrow">
-                <li class="disabled">CREATE</li>
-                <li>
-                  <ul class="dropdown-contents">
-                    <li>
-                      <a id='global-create-org' class='sonatype-icons sonatype-icon-menu add-organization' ui-sref='management.organization({organizationId: "_new_"})'>New Organization</a>
-                    </li>
-                    <li>
-                      <a id='global-create-app' class='sonatype-icons sonatype-icon-menu add-application' ui-sref='management.application({applicationPublicId: "_new_"})'>New Application</a>
-                    </li>
-                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                      <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.organization.policies.new({organizationId: $state.params.organizationId})'>New Policy</a>
-                    </li>
-                    <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
-                      <a id='global-create-policy' class='sonatype-icons sonatype-icon-menu add-policy' ui-sref='management.application.policies.new({applicationPublicId: $state.params.applicationPublicId})'>New Policy</a>
-                    </li>
-                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                      <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.organization.labels.new({organizationId: $state.params.organizationId})'>New Label</a>
-                    </li>
-                    <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
-                      <a id='global-create-label' class='sonatype-icons sonatype-icon-menu add-label' ui-sref='management.application.labels.new({applicationPublicId: $state.params.applicationPublicId})'>New Label</a>
-                    </li>
-                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                      <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.organization.licenses.new({organizationId: $state.params.organizationId})'>New License Threat Group</a>
-                    </li>
-                    <li ng-if='$state.params.applicationPublicId && $state.params.applicationPublicId != "_new_"'>
-                      <a id='global-create-ltg' class='sonatype-icons sonatype-icon-menu add-license-threat-group' ui-sref='management.application.licenses.new({applicationPublicId: $state.params.applicationPublicId})'>New License Threat Group</a>
-                    </li>
-                    <li ng-if='$state.params.organizationId && $state.params.organizationId != "_new_"'>
-                      <a id='global-create-tag' class='sonatype-icons sonatype-icon-menu add-tag' ui-sref='management.organization.tags.new({organizationId: $state.params.organizationId})'>New Tag</a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </div>
           <div id="user-menu" class="header-dropdown-menu">
             <div class="dropdown">
               <a id="user-menu-dropdown-toggle" class="dropdown-toggle" data-toggle="dropdown">

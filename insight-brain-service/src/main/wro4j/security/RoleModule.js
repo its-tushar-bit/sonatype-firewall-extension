@@ -125,6 +125,7 @@
 
         $http[$scope.role.id ? 'put' : 'post'](CLMLocations.getRoleListUrl(), $scope.dirtyRole).success(function () {
           RoleStore.refresh();
+          delete $scope.dirtyRole;
           $state.go('roles');
         }).error($scope.errorFn);
       };

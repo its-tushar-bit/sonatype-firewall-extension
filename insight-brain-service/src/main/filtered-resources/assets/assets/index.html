@@ -35,13 +35,13 @@
     <p>An unrecoverable error has occurred while loading the page.</p>
     <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
   </div>
-  <div id="unsavedModal" class="master-modal modal hide fade" ng-controller="UnsavedController" data-backdrop="static" data-keyboard="false">
+  <script type="text/ng-template" id="unsaved-modal">
     <div class="modal-header"><h3>Unsaved Changes</h3></div>
     <div class="modal-body">The page may contain unsaved changes, continuing will discard them.</div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-link btn-cancel" ng-click="close(false)">Cancel</button>
-      <button type="button" class="btn btn-danger pull-right" ng-click="close(true)">Continue</button>
+      <button type="button" class="btn btn-link btn-cancel" ng-click="$dismiss()">Cancel</button>
+      <button type="button" class="btn btn-danger pull-right" ng-click="$close()">Continue</button>
     </div>
-  </div>
+  </script>
 </body>
 </html>

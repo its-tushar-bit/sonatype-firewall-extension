@@ -566,12 +566,8 @@ ul.tri-pane.left {
   margin: 0 15px;
 }
 
-.master-modal-backdrop {
-  z-index: 2040;
-}
-
 .master-modal {
-  z-index: 2050;
+  z-index: 2200 !important;
 }
 
 .licenseSelectListItem, .large-select-list-item {

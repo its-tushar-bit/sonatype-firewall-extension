@@ -6,21 +6,6 @@
 /* global angular, $, angularDebug */
 (function() {
   'use strict';
-  var masterModalShown = false;
-
-  var showMasterModal = function() {
-    if (!masterModalShown) {
-      masterModalShown = true;
-      $('#unsavedModal').modal('show');
-      $('.modal-backdrop').addClass('master-modal-backdrop');
-    }
-  };
-
-  var hideMasterModal = function() {
-    $('#unsavedModal').modal('hide');
-    $('.modal-backdrop').removeClass('master-modal-backdrop');
-    masterModalShown = false;
-  };
 
   // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
   $.fn.modal.Constructor.prototype.enforceFocus = function() {
@@ -80,8 +65,8 @@
       };
     }
   ]).service('initService', [
-    'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser', '$q', '$urlRouter',
-    function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $urlRouter) {
+    'licenseChecker', '$rootScope', 'ProductFeatures', '$state', '$window', '$location', 'Messages', 'CurrentUser', '$q', '$urlRouter', '$modal', '$timeout',
+    function(licenseChecker, $rootScope, ProductFeatures, $state, $window, $location, messages, currentUser, $q, $urlRouter, $modal, $timeout) {
       var savedState = null,
           stateChangePrevention = $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
             //as we init the system, we mix the preventing of $stateChangeStart events and $locationChangeStart events
@@ -158,35 +143,37 @@
           }
         });
 
-        // The page contains unsaved changes, continuing will discard them.
-        $rootScope.tempState = null;
+        var isShowingModal = false;
+        function resetIsShowing() {
+          // Allow $stateChangeStart to process before resetting modal
+          $timeout(function() {
+            isShowingModal = false;
+          });
+        }
 
-        $rootScope.$on('$locationChangeStart', function(event, newUrl, oldUrl) {
-          var e;
-          $rootScope.tempNewUrl = null;
-          $rootScope.tempDestination = $location.url();
-
-          if (newUrl !== oldUrl && newUrl !== $rootScope.tempState) {
-            // special case where back button is hit, locationUrl will be the same as the oldUrl!!
-            if (oldUrl.indexOf($rootScope.tempDestination) > -1) {
-              $rootScope.tempDestination = newUrl.substring(newUrl.indexOf('#') + 1);
-            }
-            // give components a chance to negate the page change
-            e = $rootScope.$broadcast('pageChangeStarted', $rootScope.tempDestination);
+        $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState) {
+          if (toState.name !== fromState.name && !isShowingModal) {
+            var e = $rootScope.$broadcast('pageChangeStarted');
             if (e.defaultPrevented) {
               event.preventDefault();
-              $rootScope.tempNewUrl = newUrl;
-              showMasterModal();
-              return;
+              isShowingModal = true;
+              $modal.open({
+                backdrop: 'static',
+                keyboard: false,
+                templateUrl: 'unsaved-modal',
+                windowClass: 'master-modal'
+              }).result.then(function() {
+                    resetIsShowing();
+                    $state.go(toState, toParams);
+                  }, resetIsShowing);
             }
 
-            $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+            $rootScope.$broadcast('pageChangeAccepted');
           }
-          $rootScope.tempState = null;
         });
 
         var fn = function() {
-          if (!masterModalShown) {
+          if (!isShowingModal) {
             var e = $rootScope.$broadcast('pageChangeStarted');
             return e.defaultPrevented ? e.message ||
                 'The page may contain unsaved changes, continuing will discard them.' : undefined;
@@ -195,7 +182,7 @@
 
         // make sure to cleanup event listeners
         $rootScope.$on('$destroy', function() {
-          $rootScope.$broadcast('pageChangeAccepted', $rootScope.tempDestination);
+          $rootScope.$broadcast('pageChangeAccepted');
           $(window).unbind('beforeunload', fn);
         });
 
@@ -215,18 +202,6 @@
     'initService',
     function(initService) {
       initService.start();
-    }
-  ]).controller('UnsavedController', [
-    '$rootScope', '$scope', '$location',
-    function($rootScope, $scope, $location) {
-      $scope.close = function(shouldContinue) {
-        hideMasterModal();
-        if (shouldContinue) {
-          $rootScope.$broadcast('pageChangeAccepted', $scope.tempDestination);
-          $rootScope.tempState = $rootScope.tempNewUrl;
-          $location.url($scope.tempDestination);
-        }
-      };
     }
   ]);
 }());

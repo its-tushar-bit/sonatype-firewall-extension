@@ -60,7 +60,7 @@ class OwnerTreeViewModule
     rootOrganization(required: false) { module RootOrganizationNode, $('.tree-view-root-organization-group') }
     organizations(required: false) { moduleList OrganizationNode, $('.tree-view-organization-group') }
     organization(required: false, to: OrganizationPage) {
-      name -> organizations.find { it.getName() == name }
+      name -> organizations.find { it.organizationName.text() == name }
     }
   }
 
@@ -105,14 +105,11 @@ class OrganizationNode
 {
   static content = {
     treeViewElement { $('.tree-view-item:first-child') }
+    organizationName { $('.tree-view-item:first-child > span') }
     twisty { $('.twisty') }
     newApplicationButton { $('.tree-view-new-application button') }
     applications(required: false) { $('.tree-view-item:not(:first-child)') }
     application(required: false, to: ApplicationPage) { name -> applications.find { it.text() == name } }
-  }
-
-  def getName() {
-    return treeViewElement.text().replace('\nNew Application', '')
   }
 
   def createApplication(name = OwnerManagementPage.defaultApplicationName,

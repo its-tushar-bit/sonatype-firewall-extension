@@ -305,6 +305,12 @@
         });
       };
 
+      $scope.goToOrganizationIfNotSynthetic = function(organization) {
+        if (!organization.synthetic) {
+          $state.go('management.organization-view', { organizationId: organization.id});
+        }
+      };
+
       $scope.createApplication = function (parent) {
         var application = applicationStore.create();
         application.organizationId = parent.id;

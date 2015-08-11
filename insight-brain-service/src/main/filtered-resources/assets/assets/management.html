@@ -38,9 +38,10 @@
              ng-repeat="organization in organizations | orderBy:'name'"
              ng-if="organization.isVisible">
           <a class="tree-view-item"
-             ng-class="{ selected : $state.includes('management.organization', {organizationId: organization.id}) }"
-             ui-sref="management.organization.policies({organizationId: organization.id})"
-             ng-click="organization.isExpanded = true">
+             ng-class="{ selected : $state.includes('management.organization-view', {organizationId: organization.id}),
+                           disabled : organization.synthetic }"
+             ng-click="organization.isExpanded = true;
+                         goToOrganizationIfNotSynthetic(organization);">
             <div class="twisty-container"
                  ng-click="$event.preventDefault();
                                 $event.stopPropagation();
@@ -52,7 +53,10 @@
                                 collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
             </div><!--
            --><img class="tree-view-icon" src="img/sonatypeicons-organizational-design.png"><!--
-           -->{{organization.name}}
+           --><span data-tooltip="{{organization.synthetic ? 'You do not have permission to view this organization.' : ''}}"
+                    data-tooltip-placement="right" data-tooltip-append-to-body="true">
+                {{organization.name}}
+              </span>
             <div class="tree-view-new-application"
                  ng-class="{ hide : !$state.includes('management.organization', {organizationId: organization.id}) }">
               <button class="btn"

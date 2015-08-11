@@ -80,8 +80,10 @@ public class OwnerTreeViewTest
 
     twisty.shouldHave(OrganizationNode.EXPAND_CLASS);
     organizationElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    organizationElement.shouldNotHave(OrganizationNode.DISABLED_CLASS);
+    organizationElement.shouldNotHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
     organizationElement.isDisplayed();
-    organizationElement.shouldHave(text(organizationName));
+    organizationNode.organizationName().shouldHave(text(organizationName));
 
     twisty.click();
     twisty.shouldHave(OrganizationNode.COLLAPSE_CLASS);
@@ -159,7 +161,12 @@ public class OwnerTreeViewTest
     refreshOrOpen(OrganizationManagementPage.URL);
     OwnerTreeView.organizationElements().shouldHaveSize(1);
     OrganizationNode parentNode = OwnerTreeView.organizations().get(0);
-    parentNode.treeViewElement().shouldHave(text("Parent Organization No Permission"));
+    parentNode.treeViewElement().shouldHave(OrganizationNode.DISABLED_CLASS);
+    parentNode.organizationName().shouldHave(text("Parent Organization No Permission"));
+    parentNode.organizationName().shouldHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
+    parentNode.organizationName().hover();
+    parentNode.popup().isDisplayed();
+    parentNode.popup().shouldHave(text(OrganizationNode.DISABLED_TOOLTIP_CONTENT));
     parentNode.twisty().click();
     parentNode.twisty().shouldHave(OrganizationNode.COLLAPSE_CLASS);
 
@@ -177,7 +184,8 @@ public class OwnerTreeViewTest
     SelenideElement treeViewElement = organizationNode.treeViewElement();
 
     treeViewElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
-    treeViewElement.shouldHave(text(organizationName));
+    treeViewElement.shouldNotHave(OrganizationNode.DISABLED_TOOLTIP_ATTRIBUTE);
+    organizationNode.organizationName().shouldHave(text(organizationName));
     organizationNode.applicationElements().shouldHaveSize(applicationCount);
   }
 

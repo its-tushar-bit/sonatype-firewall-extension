@@ -14,6 +14,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.hasAttribute;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
@@ -58,6 +59,9 @@ public class OwnerTreeView
 
     public static final Condition COLLAPSE_CLASS = cssClass("collapse");
     public static final Condition EXPAND_CLASS = cssClass("expand");
+    public static final Condition DISABLED_CLASS = cssClass("disabled");
+    public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
+    public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = hasAttribute("data-tooltip", DISABLED_TOOLTIP_CONTENT);
 
     public OrganizationNode(SelenideElement element) {
       this.element = element;
@@ -65,6 +69,10 @@ public class OwnerTreeView
 
     public SelenideElement treeViewElement() {
       return element.$(".tree-view-item:first-child");
+    }
+
+    public SelenideElement organizationName() {
+      return element.$(".tree-view-item:first-child > span");
     }
 
     public SelenideElement twisty() {
@@ -77,6 +85,10 @@ public class OwnerTreeView
 
     public ElementsCollection applicationElements() {
       return element.findAll(".tree-view-item:not(:first-child)");
+    }
+
+    public SelenideElement popup() {
+      return $(".tooltip-inner");
     }
 
     public List<ApplicationNode> applications() {

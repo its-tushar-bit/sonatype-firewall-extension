@@ -306,6 +306,12 @@
         });
       };
 
+      $scope.goToOrganizationIfNotSynthetic = function(organization) {
+        if (!organization.synthetic) {
+          $state.go('management.organization.policies', { organizationId: organization.id});
+        }
+      };
+
       $scope.$watch('filter.value', function() {
         filter();
       }, function(error) {

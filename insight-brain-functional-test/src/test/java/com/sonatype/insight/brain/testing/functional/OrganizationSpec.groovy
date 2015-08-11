@@ -94,7 +94,7 @@ class OrganizationSpec
     createOrganization('A')
 
     then: 'they are listed alphabetically'
-    ownerTreeView.organizations.collect { it.getName() } == ['A', 'Z']
+    ownerTreeView.organizations.collect { it.organizationName.text() } == ['A', 'Z']
   }
 
   def "Can add a new Policy"() {

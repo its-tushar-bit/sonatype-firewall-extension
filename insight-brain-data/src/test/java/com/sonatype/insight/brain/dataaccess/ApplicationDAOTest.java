@@ -295,8 +295,8 @@ public class ApplicationDAOTest
     applicationDAO.insert(app);
     String applicationId = app.getId();
 
-   assertThat(app.getPublicId(), is(appPublicId));
-   assertThat(app.getPublicIdLowercase(), is(appPublicId.toLowerCase(Locale.ENGLISH)));
+    assertThat(app.getPublicId(), is(appPublicId));
+    assertThat(app.getPublicIdLowercase(), is(appPublicId.toLowerCase(Locale.ENGLISH)));
 
     app = applicationDAO.getById(applicationId);
     assertThat(app, notNullValue());
@@ -675,7 +675,8 @@ public class ApplicationDAOTest
       assertThat(actualApplication.getPublicId(), is(expectedApplication.getPublicId()));
       assertThat(actualApplication.getPublicIdLowercase(), is(expectedApplication.getPublicIdLowercase()));
       assertThat(actualApplication.getContactInternalName(), is(expectedApplication.getContactInternalName()));
-      assertThat(actualApplication.getNameLowercaseNoWhitespace(), is(expectedApplication.getNameLowercaseNoWhitespace()));
+      assertThat(actualApplication.getNameLowercaseNoWhitespace(),
+          is(expectedApplication.getNameLowercaseNoWhitespace()));
     }
   }
 

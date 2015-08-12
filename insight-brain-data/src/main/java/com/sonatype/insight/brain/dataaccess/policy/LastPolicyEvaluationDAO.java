@@ -6,29 +6,17 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 
-import javax.persistence.EntityManagerFactory;
-
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.12
  */
 public class LastPolicyEvaluationDAO
-    extends AbstractDAO<LastPolicyEvaluation>
+    extends AbstractOperationalSqlDAO<LastPolicyEvaluation>
 {
-
-
-  private EntityManagerFactory entityManagerFactory = OperationalDataStoreProvider.getJPAEntityManagerFactory();
-
-  @Override
-  public TransactionContext createTransactionContext() {
-    return new TransactionContext(entityManagerFactory.createEntityManager());
-  }
-
   public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx, final String applicationId,
       final String stageTypeId)
   {
@@ -61,21 +49,11 @@ public class LastPolicyEvaluationDAO
     }
   }
 
-  public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final TransactionContext tx, final String applicationId,
-      final String stageTypeId)
-  {
+  public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final String applicationId, final String stageTypeId) {
     String sQuery = "SELECT entity FROM LastPolicyEvaluation entity" + //
         " WHERE entity.applicationId = ?1" + //
         " AND entity.stageTypeId = ?2";
-    return get(tx, sQuery, applicationId, stageTypeId);
-  }
-
-  public LastPolicyEvaluation getByApplicationIdAndStageTypeId(final String applicationId,
-      final String stageTypeId)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByApplicationIdAndStageTypeId(tx, applicationId, stageTypeId);
-    }
+    return get(sQuery, applicationId, stageTypeId);
   }
 
 

@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.model.HasStringId;
+
 
 /**
  * @since 1.12
@@ -18,6 +20,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "last_policy_evaluation")
 public class LastPolicyEvaluation
+    implements HasStringId
 {
 
   @Id
@@ -41,6 +44,16 @@ public class LastPolicyEvaluation
     this.stageTypeId = stageTypeId;
   }
 
+  @Override
+  public String getId() {
+    return policyEvaluationId;
+  }
+
+  @Override
+  public void setId(String id) {
+    policyEvaluationId = id;
+  }
+
   public String getApplicationId() {
     return applicationId;
   }
@@ -55,14 +68,6 @@ public class LastPolicyEvaluation
 
   public void setStageTypeId(String stageTypeId) {
     this.stageTypeId = stageTypeId;
-  }
-
-  public String getPolicyEvaluationId() {
-    return policyEvaluationId;
-  }
-
-  public void setPolicyEvaluationId(final String policyEvaluationId) {
-    this.policyEvaluationId = policyEvaluationId;
   }
 
   @Override

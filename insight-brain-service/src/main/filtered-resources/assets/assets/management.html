@@ -38,7 +38,7 @@
              ng-repeat="organization in organizations | orderBy:'name'"
              ng-if="organization.isVisible">
           <a class="tree-view-item"
-             ng-class="{ selected : $state.includes('management.organization-view', {organizationId: organization.id}),
+             ng-class="{ selected : $state.includes('management.organization', {organizationId: organization.id}),
                            disabled : organization.synthetic }"
              ng-click="organization.isExpanded = true;
                          goToOrganizationIfNotSynthetic(organization);">

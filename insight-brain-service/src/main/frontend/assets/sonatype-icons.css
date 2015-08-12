@@ -17,30 +17,6 @@
   vertical-align: middle;
 }
 
-.sonatype-icons.add-organization:before {
-  content: '\e60e';
-}
-
-.sonatype-icons.add-application:before {
-  content: '\e008';
-}
-
-.sonatype-icons.add-policy:before {
-  content: '\e60d';
-}
-
-.sonatype-icons.add-label:before {
-  content: '\e60a';
-}
-
-.sonatype-icons.add-license-threat-group:before {
-  content: '\e60b';
-}
-
-.sonatype-icons.add-tag:before {
-  content: '\e60c';
-}
-
 .sonatype-icons.up:before {
   content: '\e0d4';
 }

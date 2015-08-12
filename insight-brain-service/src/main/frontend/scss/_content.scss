@@ -420,6 +420,7 @@ body {
 
       &.disabled {
         color: $grey-4;
+        cursor: default;
 
         .inverse {
           background-color: $grey-4;

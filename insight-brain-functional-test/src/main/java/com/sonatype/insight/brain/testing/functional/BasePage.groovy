@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ChangePasswordModule
-import com.sonatype.insight.brain.testing.functional.modules.GlobalCreateModule
 import com.sonatype.insight.brain.testing.functional.modules.HelpModule
 import com.sonatype.insight.brain.testing.functional.modules.LoginModule
 import com.sonatype.insight.brain.testing.functional.modules.NotificationModule
@@ -27,7 +26,6 @@ abstract class BasePage
     notificationMenu { module NotificationModule }
     userOptions { module UserOptionsModule }
     helpLinks { module HelpModule }
-    globalCreate { module GlobalCreateModule }
     systemConfig(required: false) { module SystemConfigModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
     unsavedModal { $('.modal-header', text: "Unsaved Changes") }

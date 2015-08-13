@@ -287,6 +287,30 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testValidatePublicIdIsMaxLength_Insert() {
+    String publicId = StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH);
+    Application app = new Application(publicId, "name", organization.getId());
+    applicationDAO.insert(app);
+    tempEntity.register(app);
+    // No need to assert anything as this method throws an exception if not found
+    applicationDAO.getByPublicIdNotNull(publicId);
+  }
+
+  @Test
+  public void testValidatePublicIdTooLong_Insert() {
+    Application app = new Application(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1),
+        "name", organization.getId());
+    try {
+      applicationDAO.insert(app);
+      fail("Expected InvalidNameException");
+    }
+    catch (InvalidNameException expected) {
+      assertThat(expected.getMessage(), is("Public ID must be " + ApplicationDAO.MAX_PUBLIC_ID_LENGTH +
+          " characters or less."));
+    }
+  }
+
+  @Test
   public void testPublicIdIsCaseInsensitive() {
     String appPublicId = "testPublicIdIsCaseInsensitive";
 

@@ -27,8 +27,8 @@ INSERT INTO organization (organization_id, parent_organization_id, name, name_lo
 -- The public_id column is what we expose as AppID to the user
 CREATE TABLE application (
   application_id varchar(50) NOT NULL,
-  public_id varchar(60) NOT NULL,
-  public_id_lowercase varchar(60) NOT NULL,
+  public_id varchar(200) NOT NULL,
+  public_id_lowercase varchar(200) NOT NULL,
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   organization_id varchar(50) NOT NULL,

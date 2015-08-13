@@ -49,6 +49,8 @@ public class ApplicationDAO
 
   private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
 
+  public static final int MAX_PUBLIC_ID_LENGTH = 200;
+
   @Override
   public Application getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Application entity" + //
@@ -354,7 +356,7 @@ public class ApplicationDAO
   }
 
   private void validatePublicId(String publicId) {
-    NameHelper.validate("Public ID", publicId);
+    NameHelper.validate("Public ID", publicId, MAX_PUBLIC_ID_LENGTH);
     if (WHITESPACE_PATTERN.matcher(publicId).find()) {
       throw new InvalidApplicationException("Public ID cannot contain whitespaces.");
     }

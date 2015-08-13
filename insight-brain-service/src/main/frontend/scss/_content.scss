@@ -538,12 +538,15 @@ body {
   }
 }
 
+.tooltip.in {
+  opacity: 1;
+}
+
 .tooltip-inner {
   color: $off-white;
   border: 1px solid $off-black;
   background-color: $slate;
   border-radius: 0;
-  opacity: 1;
 }
 
 /*

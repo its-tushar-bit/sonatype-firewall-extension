@@ -166,7 +166,7 @@ public class PolicyEvaluationDAO
     delete(tx, policyEvaluation, true /* updateLastPolicyEvaluation */);
   }
 
-  public void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation)
+  private void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation)
   {
     final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     final LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
@@ -192,6 +192,14 @@ public class PolicyEvaluationDAO
         lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, policyEvaluation.getApplicationId(),
             policyEvaluation.getStageTypeId());
       }
+    }
+  }
+
+  public void delete(PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      delete(tx, policyEvaluation, updateLastPolicyEvaluation);
+      tx.commit();
     }
   }
 

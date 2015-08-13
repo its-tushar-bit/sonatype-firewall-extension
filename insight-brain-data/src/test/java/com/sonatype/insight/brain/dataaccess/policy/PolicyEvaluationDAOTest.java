@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -450,11 +449,7 @@ public class PolicyEvaluationDAOTest
     assertThat(lastPolicyEvaluation.getId(), is(pe2.getId()));
 
     // Delete the second evaluation. The last policy eval will be updated to the first policy eval.
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.delete(tx, pe2, true /* updateLastPolicyEvaluation */);
-      tx.commit();
-    }
+    dao.delete(pe2, true /* updateLastPolicyEvaluation */);
 
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(lastPolicyEvaluation.getId(), is(pe1.getId()));
@@ -478,11 +473,7 @@ public class PolicyEvaluationDAOTest
     
     // Delete the second evaluation. The last policy eval will be deleted and there will not be a new last policy eval
     // because we tell the delete to not update the last policy eval.
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      tx.begin();
-      dao.delete(tx, pe2, false /*updateLastPolicyEvaluation*/);
-      tx.commit();
-    }
+    dao.delete(pe2, false /* updateLastPolicyEvaluation */);
     
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(lastPolicyEvaluation, is(nullValue()));

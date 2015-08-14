@@ -62,7 +62,7 @@ public class LabelDAO
         " WHERE label.ownerId=?1" + //
         " ORDER BY label.labelLowercase";
     final List<Label> labels = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+    for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
       labels.addAll(getList(tx, sQuery, owner.getId()));
       if (!inherit) {
         break;

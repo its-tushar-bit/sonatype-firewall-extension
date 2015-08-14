@@ -1231,5 +1231,25 @@
         <build.number>build-number</build.number>
       </properties>
     </profile>
+    <profile>
+      <id>clean-node</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>node</directory>
+                </fileset>
+                <fileset>
+                  <directory>node_modules</directory>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>

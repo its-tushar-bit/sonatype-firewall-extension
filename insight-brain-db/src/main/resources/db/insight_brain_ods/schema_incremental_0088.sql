@@ -12,6 +12,7 @@ CREATE TABLE repository_manager (
 CREATE TABLE repository (
   repository_id varchar(50) NOT NULL,
   repository_manager_id varchar(50) NOT NULL,
+  name varchar(500) NOT NULL,
   public_id varchar(500) NOT NULL,
   enabled bool DEFAULT true NOT NULL,
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),

@@ -12,12 +12,14 @@
   var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores']);
 
   tagModule.service('TagStore', [
-    'CachedStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedStore, CLMAppLocations, CLMLocations, $http) {
+    'CachedHierarchyStore', 'CLMAppLocations', 'CLMLocations', '$http', function(CachedHierarchyStore, CLMAppLocations, CLMLocations, $http) {
       var tagStoreTemplate = {
         getUrl: CLMAppLocations.getTagsUrl,
-        template: tagTemplate
+        template: tagTemplate,
+        field: 'tagsByOwner',
+        storeField: 'tags'
       };
-      var tagStores = CachedStore.get(tagStoreTemplate);
+      var tagStores = CachedHierarchyStore.get(tagStoreTemplate);
 
       return angular.extend(tagStores, {
         getApplied: function(){
@@ -52,8 +54,8 @@
   }
 
   tagModule.controller('TagController', [
-    '$scope', '$http', '$q', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore', 'PolicyStore', 'PolicyTagStore',
-    function($scope, $http, $q, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog, ApplicationStore, PolicyStore, PolicyTagStore) {
+    '$scope', '$http', '$q', '$timeout', 'CLMAppLocations', 'Messages', 'CLMResource', 'TagStore', 'ownerChange', 'Dialog', 'ApplicationStore', 'PolicyStore', 'PolicyTagStore',
+    function($scope, $http, $q, $timeout, clmAppLocations, messages, clmResource, TagStore, ownerChange, Dialog, ApplicationStore, PolicyStore, PolicyTagStore) {
       $scope.alerts = [];
       $scope.colors = ['white', 'grey', 'black', 'green', 'yellow', 'orange', 'red', 'blue'];
 
@@ -88,33 +90,41 @@
 
       $scope.doLoad = function() {
         $scope.error = null;
-        $scope.tags = null;
+
         $q.all([TagStore.refresh(), TagStore.getApplied(), ApplicationStore.get(), PolicyTagStore.getApplied(), PolicyStore.get().then(function(store) {return store.get();})]).then(function(results) {
-          $scope.tags = results[0];
-          $scope.appliedTags = results[1].data;
-          $scope.applications = results[2];
-          var mappedApplications = {};
-          angular.forEach($scope.applications, function(application){
+          $scope.tagHierarchy = results[0];
+          $scope.tagHierarchy[0].editable = true;
+          $scope.appliedTagHierarchy = results[1].data.applicationTagsByOwner;
+
+          var applications = results[2],
+              policyTags = results[3].data,
+              policies = results[4];
+
+          var mappedApplications = {},
+              mappedPolicies = {},
+              mappedTags = {};
+          angular.forEach(applications, function(application) {
             mappedApplications[application.id] = application.name;
           });
-          var mappedPolicies = {};
-          var policyTags = results[3].data;
-          var policies = results[4];
           angular.forEach(policies, function(policy) {
             mappedPolicies[policy.id] = policy.name;
           });
-          var mappedTags = {};
-          angular.forEach($scope.tags, function(tag){
-            tag.appliedTags = [];
-            tag.policies = [];
-            mappedTags[tag.id] = tag;
+          angular.forEach($scope.tagHierarchy, function (tags) {
+            angular.forEach(tags.tags, function(tag){
+              tag.appliedTags = [];
+              tag.policies = [];
+              mappedTags[tag.id] = tag;
+            });
           });
-          angular.forEach($scope.appliedTags, function(ApplicationTag){
-            var appliedTags = mappedTags[ApplicationTag.tagId].appliedTags;
-            ApplicationTag.applicationName = mappedApplications[ApplicationTag.applicationId];
-            appliedTags.push(ApplicationTag);
+
+          angular.forEach($scope.appliedTagHierarchy, function (appliedTags) {
+            angular.forEach(appliedTags.applicationTags, function(ApplicationTag) {
+              var appliedTags = mappedTags[ApplicationTag.tagId].appliedTags;
+              ApplicationTag.applicationName = mappedApplications[ApplicationTag.applicationId];
+              appliedTags.push(ApplicationTag);
+            });
           });
-          angular.forEach(policyTags, function(policyTag) {
+          angular.forEach(policyTags, function (policyTag) {
             var policies = mappedTags[policyTag.tagId].policies;
             policyTag.policyName = mappedPolicies[policyTag.policyId];
             policies.push(policyTag);
@@ -143,16 +153,30 @@
         $scope.selectedTag.color = color;
       };
 
-      $scope.createNew = function() {
+      function createNew() {
         var e = $scope.$broadcast('tagChangeStarted');
         if (!e.defaultPrevented) {
-          $scope.selectedTag = TagStore.create();
+          $scope.selectedTag = $scope.tagHierarchy[0].store.create();
           AngularStateUtils.toNewItemState($scope);
         } else {
           showEditingAlert().then(function() {
-            $scope.selectedTag = TagStore.create();
+            $scope.selectedTag = $scope.tagHierarchy[0].store.create();
             AngularStateUtils.toNewItemState($scope);
           });
+        }
+      }
+
+      var createNewTimeout;
+      $scope.createNew = function() {
+        if ($scope.tagHierarchy) {
+          createNew();
+        }
+        else if (!createNewTimeout) {
+          // wait for load
+          createNewTimeout = $timeout(function () {
+            createNewTimeout = null;
+            $scope.createNew();
+          }, 10);
         }
       };
 

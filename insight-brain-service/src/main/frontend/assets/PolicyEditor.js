@@ -404,8 +404,11 @@
           $scope.roles = results[1].data.membersByRole;
 
           if (results.length === 3) {
-            originalTags = results[2];
-            $scope.appliedTagIds = jQuery.map(results[2], function(appliedTag) { return appliedTag.id; });
+            $scope.appliedTagIds = [];
+            angular.forEach(results[2], function (appliedTag) {
+              originalTags.push(appliedTag);
+              $scope.appliedTagIds.push(appliedTag.id);
+            });
           }
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;

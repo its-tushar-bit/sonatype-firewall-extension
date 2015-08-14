@@ -39,13 +39,13 @@ public class TagServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testGetTags_Unauthorized() throws Exception {
     login();
-    tagService.getTags(org.getId());
+    tagService.getApplicableTags(org.getId());
   }
 
   @Test
   public void testGetTags_Authorized() throws Exception {
     grantReadPermission(org.getId());
-    tagService.getTags(org.getId());
+    tagService.getApplicableTags(org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -175,31 +175,31 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicationTagsByOrgId_Unauthorized() throws Exception {
+  public void testGetAppliedTags_Unauthorized() throws Exception {
     login();
-    tagService.getApplicationTagsByOrgId(org.getId());
+    tagService.getAppliedTags(org.getId());
   }
 
   @Test
-  public void testGetApplicationTagsByOrgId_Authorized() throws Exception {
+  public void testGetAppliedTags_Authorized() throws Exception {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newApplicationTag(app.getId(), tag.getId());
-    tagService.getApplicationTagsByOrgId(org.getId());
+    tagService.getAppliedTags(org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetPolicyTagsByOrgId_Unauthorized() throws Exception {
+  public void testGetAppliedPolicyTags_Unauthorized() throws Exception {
     login();
-    tagService.getPolicyTagsByOrgId(org.getId());
+    tagService.getAppliedPolicyTags(org.getId());
   }
 
   @Test
-  public void testGetPolicyTagsByOrgId_Authorize() throws Exception {
+  public void testGetAppliedPolicyTags_Authorize() throws Exception {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newPolicyTag(policyId, tag.getId());
-    tagService.getPolicyTagsByOrgId(org.getId());
+    tagService.getAppliedPolicyTags(org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)

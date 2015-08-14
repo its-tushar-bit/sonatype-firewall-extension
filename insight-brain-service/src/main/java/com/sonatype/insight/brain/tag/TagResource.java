@@ -19,6 +19,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -52,8 +54,8 @@ public class TagResource
   @GET
   @Path(ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> getTags(@PathParam("organizationId") String organizationId) {
-    return service.getTags(organizationId);
+  public ApplicableTags getApplicableTags(@PathParam("organizationId") String organizationId) {
+    return service.getApplicableTags(organizationId);
   }
 
   @GET
@@ -67,15 +69,15 @@ public class TagResource
   @GET
   @Path(ORGANIZATION_PATH + "/applied")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApplicationTag> getApplicationTagsByOrgId(@PathParam("organizationId") String organizationId) {
-    return service.getApplicationTagsByOrgId(organizationId);
+  public AppliedTags getAppliedTags(@PathParam("organizationId") String organizationId) {
+    return service.getAppliedTags(organizationId);
   }
 
   @GET
   @Path(ORGANIZATION_PATH + "/policy")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<PolicyTag> getPolicyTagsByOrgId(@PathParam("organizationId") String organizationId) {
-    return service.getPolicyTagsByOrgId(organizationId);
+  public List<PolicyTag> getAppliedPolicyTags(@PathParam("organizationId") String organizationId) {
+    return service.getAppliedPolicyTags(organizationId);
   }
 
   @POST
@@ -98,5 +100,57 @@ public class TagResource
   @Path(ORGANIZATION_PATH + "/{tagId}")
   public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("tagId") String tagId) {
     service.deleteTag(organizationId, tagId);
+  }
+
+  public static class TagsByOwner
+  {
+    public TagsByOwner() {
+    }
+
+    public TagsByOwner(Owner owner, List<Tag> tags) {
+      this.ownerId = owner.getPublicId();
+      this.ownerName = owner.getName();
+      this.ownerType = owner.getType();
+      this.tags = tags;
+    }
+
+    public String ownerId;
+
+    public String ownerName;
+
+    public OwnerType ownerType;
+
+    public List<Tag> tags;
+  }
+
+  public static class ApplicableTags
+  {
+    public List<TagsByOwner> tagsByOwner;
+  }
+
+  public static class ApplicationTagsByOwner
+  {
+    public ApplicationTagsByOwner() {
+    }
+
+    public ApplicationTagsByOwner(Owner owner, List<ApplicationTag> applicationTags) {
+      this.ownerId = owner.getPublicId();
+      this.ownerName = owner.getName();
+      this.ownerType = owner.getType();
+      this.applicationTags = applicationTags;
+    }
+
+    public String ownerId;
+
+    public String ownerName;
+
+    public OwnerType ownerType;
+
+    public List<ApplicationTag> applicationTags;
+  }
+
+  public static class AppliedTags
+  {
+    public List<ApplicationTagsByOwner> applicationTagsByOwner;
   }
 }

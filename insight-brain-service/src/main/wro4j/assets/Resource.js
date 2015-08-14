@@ -55,7 +55,8 @@
             if (config.dataProperty) {
               data = data[config.dataProperty];
             }
-            
+
+            // NOTE: if data is not an array this will be NaN and the promise will never be resolved
             var relationsToLoad = data.length * Object.keys(config.relationalConfigs).length;
             var loadChildResource = function(parentResource, childResource, property) {
               $http.get(childResource.config.url,
@@ -92,8 +93,8 @@
             checkDeferredResolve(storeDeferred, store, relationsToLoad);
           }
         }).error(function() {
-              error = true;
-            }).error(getErrorFn(storeDeferred));
+          error = true;
+        }).error(getErrorFn(storeDeferred));
       }
 
       resourceStore.get = function() {
@@ -104,6 +105,19 @@
         }
         return storeDeferred.promise;
       };
+
+      resourceStore.set = function (elements) {
+        storeDeferred = $q.defer();
+
+        angular.forEach(elements, function(obj) {
+          store.push(new Resource(obj, false));
+        });
+
+        storeDeferred.resolve(store);
+
+        return store;
+      };
+
       resourceStore.create = function(relationalConfigName) {
         var relationalConfig = config.relationalConfigs[relationalConfigName];
         if (relationalConfig) {
@@ -407,4 +421,76 @@
       }
     };
   }]);
+
+
+  module.service('HierarchyStore', ['$http', '$q', 'CLMResource', function ($http, $q, CLMResource) {
+    function getErrorFn(deferred) {
+      return function(data, status, headers, config) {
+        deferred.reject({
+          data: data,
+          status: status,
+          headers: headers,
+          config: config
+        });
+      };
+    }
+
+    function HierarchyStore(config) {
+      var storeDeferred,
+          error,
+          storeConfig = angular.copy(config),
+          store = [];
+
+      config.field = config.field || 'entitiesByOwner';
+      config.storeField = config.storeField || 'entities';
+
+      function doLoad() {
+        var myDeferred = null;
+
+        myDeferred = storeDeferred = $q.defer();
+
+        $http.get(config.url, { params: config.params }).success(function (data) {
+          if (storeDeferred === myDeferred) {
+            angular.forEach(data[config.field], function (owner) {
+              var ownerStore = CLMResource.getStore(storeConfig);
+              owner[config.storeField] = ownerStore.set(owner[config.storeField]);
+              // note a consumer attempting to get/refresh on the store will not have good results 
+              owner.store = ownerStore;
+            });
+
+            store.splice(0, store.length);
+            store.push.apply(store, data[config.field]);
+
+            myDeferred.resolve(store);
+          }
+        }).error(getErrorFn(myDeferred)).error(function () {
+          error = true;
+        });
+
+        return myDeferred.promise;
+      }
+
+      this.get = function () {
+        if (error || !storeDeferred) {
+          // An error occurred previously, or the store hasn't been loaded
+          error = false;
+          doLoad();
+        }
+        return storeDeferred.promise;
+      };
+
+      this.refresh = function() {
+        error = false;
+        doLoad();
+        return storeDeferred.promise;
+      };
+    }
+
+    return {
+      'getStore': function (config) {
+        return new HierarchyStore(config);
+      }
+    };
+  }]);
+
 }());

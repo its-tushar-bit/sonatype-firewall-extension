@@ -177,10 +177,33 @@ describe('PolicyController tests', function() {
 });
 
 describe('PolicyController organization tests', function() {
-  var scope, bomId = 'bom1-12345678', tags = [
-      {id: '1', ownerId: bomId, name: 'tag one name', description: 'foo'},
-      {id: '2', ownerId: bomId, name: 'tag two name', description: 'bar'}
-    ], orgPolicyId, policyTagId;
+  var scope,
+      orgPolicyId,
+      policyTagId,
+      bomId = 'bom1-12345678',
+      tags = {
+        tagsByOwner: [{
+          ownerId: bomId,
+          ownerName: 'Ye Ole Org',
+          ownerType: 'organization',
+          tags: [{
+            id: '1',
+            ownerId: bomId,
+            name: 'tag one name',
+            description: 'foo'
+          }]
+        }, {
+          ownerId: 'root-org',
+          ownerName: 'Root Org',
+          ownerType: 'organization',
+          tags: [{
+            id: '2',
+            ownerId: 'root-org',
+            name: 'tag two name',
+            description: 'bar'
+          }]
+        }]
+      };
 
   beforeEach(module('Policy', function($provide) {
     $provide.value('ApplicationId', {
@@ -223,11 +246,11 @@ describe('PolicyController organization tests', function() {
   }));
 
   it('loads tags', function() {
-    expect(scope.tags.length).toBe(tags.length);
-    expect(scope.tags[0].id).toBe(tags[0].id);
-    expect(scope.tags[0].name).toBe(tags[0].name);
-    expect(scope.tags[0].ownerId).toBe(tags[0].ownerId);
-    expect(scope.tags[0].description).toBe(tags[0].description);
+    expect(scope.tags.length).toBe(2);
+    expect(scope.tags[0].id).toBe(tags.tagsByOwner[0].tags[0].id);
+    expect(scope.tags[0].name).toBe(tags.tagsByOwner[0].tags[0].name);
+    expect(scope.tags[0].ownerId).toBe(tags.tagsByOwner[0].tags[0].ownerId);
+    expect(scope.tags[0].description).toBe(tags.tagsByOwner[0].tags[0].description);
   });
 
   it('creates a map from policy to tags', function() {

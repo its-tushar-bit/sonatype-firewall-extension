@@ -9,10 +9,16 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tag.TagResource.ApplicableTags;
+import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
@@ -46,8 +52,8 @@ public class TagServiceTest
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a tag with id " + tag.getId() + " for organization id "
-          + organization2.getId()));
+      assertThat(e.getMessage(),
+          is("Cannot find a tag with id " + tag.getId() + " for organization id " + organization2.getId()));
     }
   }
 
@@ -64,8 +70,8 @@ public class TagServiceTest
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Tag with id " + tag.getId() + " is not applied to application with id "
-          + application2.getPublicId()));
+      assertThat(e.getMessage(),
+          is("Tag with id " + tag.getId() + " is not applied to application with id " + application2.getPublicId()));
     }
   }
 
@@ -106,6 +112,67 @@ public class TagServiceTest
     assertTagInList(tags, parentOrgTag);
   }
 
+  @Test
+  public void testGetApplicableTags() {
+    Organization org = tempEntity.newOrganization();
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Tag orgTag = tempEntity.newTag(org.getId(), "Org Tag");
+    Tag parentTag = tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
+
+    ApplicableTags tags = tagService.getApplicableTags(org.getId());
+    assertThat(tags.tagsByOwner, hasSize(2));
+
+    assertThat(tags.tagsByOwner.get(0).tags, hasSize(1));
+    assertThat(tags.tagsByOwner.get(0).ownerName, is(org.getName()));
+    assertThat(tags.tagsByOwner.get(0).ownerId, is(org.getId()));
+    assertTagInList(tags.tagsByOwner.get(0).tags, orgTag);
+
+    assertThat(tags.tagsByOwner.get(1).tags, hasSize(1));
+    assertThat(tags.tagsByOwner.get(1).ownerName, is(parentOrg.getName()));
+    assertThat(tags.tagsByOwner.get(1).ownerId, is(parentOrg.getId()));
+    assertTagInList(tags.tagsByOwner.get(1).tags, parentTag);
+  }
+
+  @Test
+  public void testGetAppliedTags() {
+    Organization org = tempEntity.newOrganization();
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Application application = tempEntity.newApplication(org.getId());
+    ApplicationTag orgTag = tempEntity.newApplicationTag(application.getId(),
+        tempEntity.newTag(org.getId(), "Org Tag").getId());
+    ApplicationTag parentTag = tempEntity.newApplicationTag(application.getId(),
+        tempEntity.newTag(org.getParentOrganizationId(), "Root Tag").getId());
+
+    AppliedTags tags = tagService.getAppliedTags(org.getId());
+    assertThat(tags.applicationTagsByOwner, hasSize(2));
+
+    assertThat(tags.applicationTagsByOwner.get(0).applicationTags, hasSize(1));
+    assertThat(tags.applicationTagsByOwner.get(0).ownerName, is(org.getName()));
+    assertThat(tags.applicationTagsByOwner.get(0).ownerId, is(org.getId()));
+    assertTagInList(tags.applicationTagsByOwner.get(0).applicationTags, orgTag);
+
+    assertThat(tags.applicationTagsByOwner.get(1).applicationTags, hasSize(1));
+
+    assertThat(tags.applicationTagsByOwner.get(1).ownerName, is(parentOrg.getName()));
+    assertThat(tags.applicationTagsByOwner.get(1).ownerId, is(parentOrg.getId()));
+    assertTagInList(tags.applicationTagsByOwner.get(1).applicationTags, parentTag);
+  }
+
+  @Test
+  public void testGetAppliedPolicyTags() {
+    Organization org = tempEntity.newOrganization();
+    Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+    Policy policy = tempEntity.newPolicy(org.getId(), "policy");
+
+    PolicyTag orgTag = tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(org.getId(), "Org Tag").getId());
+    PolicyTag parentTag = tempEntity.newPolicyTag(policy.getId(),
+        tempEntity.newTag(parentOrg.getId(), "Root Tag").getId());
+
+    List<PolicyTag> tags = tagService.getAppliedPolicyTags(org.getId());
+    assertTagInList(tags, orgTag);
+    assertTagInList(tags, parentTag);
+  }
+
   private void assertTagInList(List<Tag> tags, Tag expectedTag) {
     for (Tag tag : tags) {
       if (tag.getId().equals(expectedTag.getId())) {
@@ -113,5 +180,23 @@ public class TagServiceTest
       }
     }
     fail("Expected a tag with name " + expectedTag.getName());
+  }
+
+  private static void assertTagInList(List<ApplicationTag> tags, ApplicationTag expectedTag) {
+    for (ApplicationTag tag : tags) {
+      if (tag.getId().equals(expectedTag.getId())) {
+        return;
+      }
+    }
+    fail("Unable to find matching application tag");
+  }
+
+  private static void assertTagInList(List<PolicyTag> tags, PolicyTag expectedTag) {
+    for (PolicyTag tag : tags) {
+      if (tag.getId().equals(expectedTag.getId())) {
+        return;
+      }
+    }
+    fail("Unable to find matching policy tag");
   }
 }

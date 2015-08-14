@@ -163,40 +163,42 @@
    *   getUrl a function that returns the store URL at the point the store is requested
    *   getKey (optional) a function that returns the key at the point the store is requested
    */
-  storesModule.service('CachedStore', [
-    'CLMResource', 'CLMAppLocations', function(CLMResource, CLMAppLocations) {
-      function CachedStore(config) {
-        var store, stores = {};
+  function CachedStoreFactory(CLMResource, CLMAppLocations) {
+    function CachedStore(config) {
+      var store, stores = {};
 
-        function refreshStore() {
-          var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
-          store = stores[key];
-          if (!store) {
-            store = stores[key] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
-          }
+      function refreshStore() {
+        var key = config.getKey ? config.getKey() : CLMAppLocations.getEntityId();
+        store = stores[key];
+        if (!store) {
+          store = stores[key] = CLMResource.getStore(angular.extend({ url: config.getUrl() }, config));
         }
-
-        return {
-          get: function() {
-            refreshStore();
-            return store.get();
-          },
-          refresh: function() {
-            refreshStore();
-            return store.refresh();
-          },
-          create: function() {
-            refreshStore();
-            return store.create();
-          }
-        };
       }
 
       return {
-        get: function(config) {
-          return new CachedStore(config);
+        get: function() {
+          refreshStore();
+          return store.get();
+        },
+        refresh: function() {
+          refreshStore();
+          return store.refresh();
+        },
+        create: function() {
+          refreshStore();
+          return store.create();
         }
       };
     }
-  ]);
+
+    return {
+      get: function(config) {
+        return new CachedStore(config);
+      }
+    };
+  }
+
+  storesModule.service('CachedStore', ['CLMResource', 'CLMAppLocations', CachedStoreFactory]);
+
+  storesModule.service('CachedHierarchyStore', ['HierarchyStore', 'CLMAppLocations', CachedStoreFactory]);
 }());

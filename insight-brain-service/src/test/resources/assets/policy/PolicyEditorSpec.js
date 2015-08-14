@@ -1,11 +1,22 @@
 describe('PolicyEditor.js', function() {
   var testScope = null,
     bomId = 'bom1-12345678',
-    tags = [
-      {id: 'tagId1', ownerId: bomId, name: 'foo', description: 'foo'},
-      {id: 'tagId2', ownerId: bomId, name: 'bar', description: 'bar'},
-      {id: 'tagId3', ownerId: bomId, name: 'baz', description: 'baz'}
-    ],
+    tags = [{
+      id: 'tagId1',
+      ownerId: bomId,
+      name: 'foo',
+      description: 'foo'
+    }, {
+      id: 'tagId2',
+      ownerId: bomId,
+      name: 'bar',
+      description: 'bar'
+    }, {
+      id: 'tagId3',
+      ownerId: bomId,
+      name: 'baz',
+      description: 'baz'
+    }],
     roles = {
       membersByRole: [
         { roleId: 'foo', roleName: 'bar' },
@@ -419,19 +430,21 @@ describe('PolicyEditor.js', function() {
 
   describe('Policy Tags', function() {
     // OrgId null due to $provider set to return org id null in test set up
-    var scope, orgId = null, appliedTags = [{
-        'id':'tagId1',
-        'organizationId':orgId,
-        'name':'Tag One Name',
-        'description':'Tag One Description',
-        'color':'orange'
-      },{
-        'id':'tagId2',
-        'organizationId':orgId,
-        'name':'Tag Two Name',
-        'description':'Tag Two Description',
-        'color':'red'
-    }];
+    var scope,
+        orgId = null,
+        appliedTags = [{
+          'id':'tagId1',
+          'organizationId':orgId,
+          'name':'Tag One Name',
+          'description':'Tag One Description',
+          'color':'orange'
+        },{
+          'id':'tagId2',
+          'organizationId':orgId,
+          'name':'Tag Two Name',
+          'description':'Tag Two Description',
+          'color':'red'
+        }];
 
     beforeEach(inject(function($state, $httpBackend, CLMAppLocations) {
       $state.current.name = 'management.organization';

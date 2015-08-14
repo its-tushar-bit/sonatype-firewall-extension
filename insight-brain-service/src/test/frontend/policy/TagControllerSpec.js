@@ -1,31 +1,59 @@
 describe('TagController.js', function() {
 
-  var testScope, dialogScope, bomId = 'bom1-12345678', tags = [
-    {id: 1, ownerId: bomId, name: bomId, description: 'foo'},
-    {id: 2, ownerId: bomId, name: bomId, description: 'bar'}],
-    organizationTags = [
-     {
-       id: "tagid1",
-       organizationId: bomId,
-       name: "TagOne",
-       nameLowercaseNoWhitespace: "tagone",
-       description: "Tag One Description"
-     }, {
-        id: "tagid2",
-        organizationId: bomId,
-        name: "TagTwo",
-        nameLowercaseNoWhitespace: "tagtwo",
-        description: "Tag Two Description"
-      }
-    ], applicationTags = [
-      {
-        id: "tagid1",
-        organizationId: bomId,
-        name: "TagOne",
-        nameLowercaseNoWhitespace: "tagone",
-        description: "Tag One Description"
-      }
-    ];
+  var testScope,
+      dialogScope,
+      bomId = 'bom1-12345678',
+      tags = {
+        tagsByOwner: [{
+          ownerId: bomId,
+          ownerName: bomId,
+          ownerType: 'organization',
+          tags: [{
+            id: 1,
+            ownerId: bomId,
+            name: bomId,
+            description: 'foo'
+          }, {
+            id: 2,
+            ownerId: bomId,
+            name: bomId,
+            description: 'bar'
+          }]
+        }, {
+          ownerId: 'root-org',
+          ownerName: 'Root',
+          ownerType: 'organization',
+          tags: [{
+            id: 3,
+            ownerId: 'root-org',
+            name: 'Root Tag',
+            description: 'root tag desc'
+          }]
+        }]
+      },
+      organizationTags = [
+       {
+         id: "tagid1",
+         organizationId: bomId,
+         name: "TagOne",
+         nameLowercaseNoWhitespace: "tagone",
+         description: "Tag One Description"
+       }, {
+          id: "tagid2",
+          organizationId: bomId,
+          name: "TagTwo",
+          nameLowercaseNoWhitespace: "tagtwo",
+          description: "Tag Two Description"
+        }
+      ], applicationTags = [
+        {
+          id: "tagid1",
+          organizationId: bomId,
+          name: "TagOne",
+          nameLowercaseNoWhitespace: "tagone",
+          description: "Tag One Description"
+        }
+      ];
 
   beforeEach(module('Tags', 'HttpInterceptors', function($provide) {
     $provide.value('$modal', {
@@ -138,18 +166,19 @@ describe('TagController.js', function() {
       tagEditorController,
       tagController,
       secondAppId = bomId + '-2',
-      appliedTags = [
-        {
-          applicationId: bomId,
-          id: 'appliedTag1',
-          tagId: 1
-        },
-        {
-          applicationId: secondAppId,
-          id: 'appliedTag2',
-          tagId: 1
-        }
-      ],
+      appliedTags = {
+        applicationTagsByOwner: [{
+          applicationTags: [{
+            applicationId: bomId,
+            id: 'appliedTag1',
+            tagId: 1
+          }, {
+            applicationId: secondAppId,
+            id: 'appliedTag2',
+            tagId: 1
+          }]
+        }]
+      },
       applications = [
         {
           "id": bomId,
@@ -164,13 +193,11 @@ describe('TagController.js', function() {
           "organizationId": bomId
         }
       ],
-      appliedPolicyTags = [
-        {
-          id: 'appliedPolicyTagId',
-          tagId: tags[1].id,
-          policyId: PolicyMockData.getPolicyData()[0].id
-        }
-      ];
+      appliedPolicyTags = [{
+        id: 'appliedPolicyTagId',
+        tagId: tags.tagsByOwner[0].tags[1].id,
+        policyId: PolicyMockData.getPolicyData()[0].id
+      }];
 
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMAppLocations, CLMLocations, $state) {
       scope = testScope.$new();
@@ -207,22 +234,26 @@ describe('TagController.js', function() {
     });
 
     it('Cannot delete a tag associated with policy', function() {
-      expect(testScope.tags.length).toEqual(2);
-      scope.deleteTag(testScope.tags[1], { stopPropagation : angular.noop });
+      expect(testScope.tagHierarchy.length).toEqual(2);
+      expect(testScope.tagHierarchy[0].tags.length).toEqual(2);
+      expect(testScope.tagHierarchy[1].tags.length).toEqual(1);
+      scope.deleteTag(testScope.tagHierarchy[0].tags[1], { stopPropagation : angular.noop });
       expect(dialogScope.body).toContain('You cannot delete this tag because it is associated with the following policies: asdffffrfff.');
       dialogScope.buttons[0].click();
-      expect(testScope.tags.length).toEqual(2);
+      expect(testScope.tagHierarchy[0].tags.length).toEqual(2);
     });
 
     it('Can delete a tag', inject(function($httpBackend, CLMAppLocations) {
-      expect(testScope.tags.length).toEqual(2);
+      expect(testScope.tagHierarchy.length).toEqual(2);
+      expect(testScope.tagHierarchy[0].tags.length).toEqual(2);
+      expect(testScope.tagHierarchy[1].tags.length).toEqual(1);
       $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getTagsUrl() + '/' +
-        testScope.tags[0].id)).respond(204);
-      scope.deleteTag(testScope.tags[0], { stopPropagation : angular.noop });
+        testScope.tagHierarchy[0].tags[0].id)).respond(204);
+      scope.deleteTag(testScope.tagHierarchy[0].tags[0], { stopPropagation : angular.noop });
       expect(dialogScope.body).toContain('It is in use by the following applications: applicationName, applicationName2.');
       dialogScope.buttons[0].click();
       $httpBackend.flush();
-      expect(testScope.tags.length).toEqual(1);
+      expect(testScope.tagHierarchy[0].tags.length).toEqual(1);
     }));
 
     it('Can save a new Tag', inject(function($httpBackend, CLMAppLocations) {
@@ -244,7 +275,7 @@ describe('TagController.js', function() {
       });
 
       it('Existing Tag', inject(function($httpBackend, CLMAppLocations) {
-        scope.editTag(testScope.tags[0]);
+        scope.editTag(testScope.tagHierarchy[0].tags[0]);
 
         scope.alerts.push({type: 'mock', 'msg': 'mock alert'});
         expect(scope.selectedTag.id).not.toBeUndefined();
@@ -274,7 +305,7 @@ describe('TagController.js', function() {
         });
 
         it('Edit Existing Attempted', function() {
-          scope.editTag(testScope.tags[0]);
+          scope.editTag(testScope.tagHierarchy[0].tags[0]);
           expect(dialogScope).not.toBeUndefined();
           expect(dialogScope.body).toBe('This tag may contain unsaved changes, continuing will discard them.');
           expect(scope.selectedTag.name).toEqual('foo');
@@ -283,7 +314,7 @@ describe('TagController.js', function() {
 
       describe('Dirty Existing Tag', function() {
         beforeEach(inject(function($httpBackend, CLMAppLocations) {
-          scope.editTag(testScope.tags[0]);
+          scope.editTag(testScope.tagHierarchy[0].tags[0]);
 
           scope.selectedTag.name = 'foo';
           expect(scope.selectedTag.isDirty()).toEqual(true);
@@ -293,7 +324,7 @@ describe('TagController.js', function() {
         }));
 
         it('Edit Existing Attempted', function() {
-          scope.editTag(testScope.tags[1]);
+          scope.editTag(testScope.tagHierarchy[0].tags[1]);
           expect(dialogScope).not.toBeUndefined();
           expect(dialogScope.body).toBe('This tag may contain unsaved changes, continuing will discard them.');
           expect(scope.selectedTag.name).toEqual('foo');
@@ -309,7 +340,7 @@ describe('TagController.js', function() {
 
       describe('Unmodified Existing Tag', function() {
         beforeEach(inject(function($httpBackend, CLMAppLocations) {
-          scope.editTag(testScope.tags[0]);
+          scope.editTag(testScope.tagHierarchy[0].tags[0]);
 
           expect(scope.selectedTag.isDirty()).toEqual(false);
 
@@ -318,10 +349,10 @@ describe('TagController.js', function() {
         }));
 
         it('Edit Existing Attempted', inject(function($httpBackend, CLMAppLocations) {
-          scope.editTag(testScope.tags[1]);
+          scope.editTag(testScope.tagHierarchy[0].tags[1]);
 
           expect(scope.alerts.length).toEqual(0);
-          expect(scope.selectedTag.id).toEqual(testScope.tags[1].id);
+          expect(scope.selectedTag.id).toEqual(testScope.tagHierarchy[0].tags[1].id);
         }));
 
         it('Create New Attempted', function() {
@@ -338,10 +369,10 @@ describe('TagController.js', function() {
         var e = scope.$broadcast('pageChangeStarted', null);
         expect(e.defaultPrevented).toEqual(false);
 
-        scope.editTag(testScope.tags[0]);
+        scope.editTag(testScope.tagHierarchy[0].tags[0]);
 
         expect(scope.alerts.length).toEqual(0);
-        expect(scope.selectedTag.id).toEqual(testScope.tags[0].id);
+        expect(scope.selectedTag.id).toEqual(testScope.tagHierarchy[0].tags[0].id);
       }));
     });
   });

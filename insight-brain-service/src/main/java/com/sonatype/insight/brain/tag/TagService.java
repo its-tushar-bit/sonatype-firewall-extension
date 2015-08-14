@@ -13,10 +13,12 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
@@ -25,6 +27,10 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.tag.TagResource.ApplicableTags;
+import com.sonatype.insight.brain.tag.TagResource.ApplicationTagsByOwner;
+import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
+import com.sonatype.insight.brain.tag.TagResource.TagsByOwner;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -61,8 +67,17 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
-    return new TagDAO().getByOrganizationId(organizationId);
+  public ApplicableTags getApplicableTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
+    TagDAO tagDAO = new TagDAO();
+    OwnerDAO ownerDAO = new OwnerDAO();
+
+    ApplicableTags tags = new ApplicableTags();
+    tags.tagsByOwner = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
+      tags.tagsByOwner.add(new TagsByOwner(owner, tagDAO.getByOrganizationId(owner.getId())));
+    }
+
+    return tags;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -98,8 +113,21 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ApplicationTag> getApplicationTagsByOrgId(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
-    return new ApplicationTagDAO().getByOrganizationId(organizationId);
+  public AppliedTags getAppliedTags(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  {
+    ApplicationTagDAO applicationTagDAO = new ApplicationTagDAO();
+    OwnerDAO ownerDAO = new OwnerDAO();
+
+    AppliedTags entities = new AppliedTags();
+    entities.applicationTagsByOwner = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
+      ApplicationTagsByOwner appTags = new ApplicationTagsByOwner(owner,
+          applicationTagDAO.getByOrganizationId(owner.getId()));
+      entities.applicationTagsByOwner.add(appTags);
+    }
+
+    return entities;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -154,9 +182,18 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<PolicyTag> getPolicyTagsByOrgId(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String organizationId) {
+  public List<PolicyTag> getAppliedPolicyTags(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
+  {
     PolicyTagDAO policyTagDAO = new PolicyTagDAO();
-    return policyTagDAO.getByOrganizationId(organizationId);
+    OwnerDAO ownerDAO = new OwnerDAO();
+
+    List<PolicyTag> policyTags = new ArrayList<>();
+    for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
+      policyTags.addAll(policyTagDAO.getByOrganizationId(owner.getId()));
+    }
+
+    return policyTags;
   }
 
   @Authorize(permission = Permission.READ)

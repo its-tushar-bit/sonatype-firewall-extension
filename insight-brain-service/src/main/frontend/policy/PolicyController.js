@@ -112,7 +112,10 @@
           });
 
           if (results.length > 3) {
-            $scope.tags = results[4];
+            $scope.tags = [];
+            angular.forEach(results[4], function (owner) {
+              $scope.tags.push.apply($scope.tags, owner.tags);
+            });
           }
         }, function(errors) {
           $scope.error = angular.isArray(errors) ? errors[0] : errors;

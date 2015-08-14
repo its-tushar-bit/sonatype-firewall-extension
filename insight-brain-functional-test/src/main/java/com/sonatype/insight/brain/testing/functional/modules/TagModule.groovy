@@ -16,7 +16,7 @@ class TagModule
   static content = {
     newTagButton { $('#tags .tag-list button') }
 
-    tagList(required: false) { moduleList Tag, $('span[ng-click="editTag(tag)"]') }
+    tagHierarchy(required:false) { moduleList OwnerTagGroup, $('.tag-hierarchy') }
 
     //form controls(only visible while editing)
     tagEditor(required: false) { $('form[name="tagEditor"]') }
@@ -38,6 +38,15 @@ class TagModule
     this.name = name
     this.description = description
     this.color(color).click()
+  }
+}
+
+class OwnerTagGroup
+extends Module
+{
+  static content = {
+    header { $('.content-header h4') }
+    tagList(required: false) { moduleList Tag, $('.tag-container') }
   }
 }
 

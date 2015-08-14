@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.Tag
 
@@ -20,6 +21,7 @@ class TagSpec
   static Map samplePolicy
 
   def setupSpec() {
+    temporaryEntity.newTag(Organization.ROOT_ORGANIZATION_ID, "Root Tag");
     def ownerManagementPage = loginAsAdminVia(OwnerManagementPage)
     ownerManagementPage.ownerTreeView.createOrgWithDefaultPolicy('TagSpec', ImportPolicyModule.sampleOrgPolicyFile)
     samplePolicy = ImportPolicyModule.parsePolicyFile(ImportPolicyModule.sampleOrgPolicyFile)
@@ -31,144 +33,147 @@ class TagSpec
 
   def "Can navigate to the TAGS tab"() {
     when: 'Clicking on the tag tab'
-      tabs.tagTabButton.click()
+    tabs.tagTabButton.click()
 
     then: 'the url changes and we are presented with an empty list of Tags'
-      waitFor { tags.newTagButton.displayed }
-      driver.currentUrl.endsWith('tags')
-      tags.tagList.size() == samplePolicy.tags.size()
+    waitFor { tags.newTagButton.displayed }
+    driver.currentUrl.endsWith('tags')
+    tags.tagHierarchy.size() == 2
+    tags.tagHierarchy[0].tagList.size() == samplePolicy.tags.size()
+    tags.tagHierarchy[1].tagList.size() == 1
+    tags.tagHierarchy[1].header.text().contains("ROOT")
   }
 
   def "Can add a new Tag"() {
     when: 'We create a new Tag'
-      tags.createNewTag()
-      tags.buttons.save.click()
+    tags.createNewTag()
+    tags.buttons.save.click()
 
     then: 'The tag editor is disposed'
-      waitFor { !tags.tagEditor.displayed }
+    waitFor { !tags.tagEditor.displayed }
 
     and: 'The tag is added to the list of available tags'
-      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
-      Tag tag = tags.tagList[0]
-      tag.text == 'New Tag'
-      tag.isColor('black')
-      tags.serverAlerts.children().size() == 0
+    waitFor { tags.tagHierarchy[0].tagList.size() == samplePolicy.tags.size() + 1 }
+    Tag tag = tags.tagHierarchy[0].tagList[0]
+    tag.text == 'New Tag'
+    tag.isColor('black')
+    tags.serverAlerts.children().size() == 0
   }
 
   def "Can edit an existing tag"() {
     when: 'We click on an existing Tag'
-      tags.tagList[0].click()
+    tags.tagHierarchy[0].tagList[0].click()
 
     then: 'The form is populated with the name and description of the chosen Tag'
-      tags.name == 'New Tag'
-      tags.description == 'Tag description'
-      tags.color('black').classes().contains('active')
+    tags.name == 'New Tag'
+    tags.description == 'Tag description'
+    tags.color('black').classes().contains('active')
 
     when: 'We update the tag name and description'
-      tags.name = 'New Tag Updated'
-      tags.description = 'Updated Tag Description'
-      tags.color('green').click()
-      tags.buttons.save.click()
+    tags.name = 'New Tag Updated'
+    tags.description = 'Updated Tag Description'
+    tags.color('green').click()
+    tags.buttons.save.click()
 
     then: 'The tag editor is disposed'
-      waitFor { !tags.tagEditor.displayed }
+    waitFor { !tags.tagEditor.displayed }
 
     and: 'The listed tag is updated'
-      waitFor { tags.tagList[0].text == 'New Tag Updated' }
-      tags.tagList[0].isColor('green')
+    waitFor { tags.tagHierarchy[0].tagList[0].text == 'New Tag Updated' }
+    tags.tagHierarchy[0].tagList[0].isColor('green')
 
     when:
-      tags.tagList[0].click()
+    tags.tagHierarchy[0].tagList[0].click()
 
     then: 'The form is populated with the updated name, description and policy of the chosen Tag'
-      tags.name == 'New Tag Updated'
-      tags.description == 'Updated Tag Description'
-      tags.color('green').classes().contains('active')
-      tags.buttons.cancel.click()
+    tags.name == 'New Tag Updated'
+    tags.description == 'Updated Tag Description'
+    tags.color('green').classes().contains('active')
+    tags.buttons.cancel.click()
   }
 
   def "Can delete the newly added Tag"() {
     when:
-      tags.tagList[0].delete.click()
-      waitFor { deleteModal.modal.displayed }
-      report 'modal dialog shown'
-      deleteModal.confirm.click()
+    tags.tagHierarchy[0].tagList[0].delete.click()
+    waitFor { deleteModal.modal.displayed }
+    report 'modal dialog shown'
+    deleteModal.confirm.click()
 
     then:
-      waitFor { tags.tagList.size() == samplePolicy.tags.size() }
+    waitFor { tags.tagHierarchy[0].tagList.size() == samplePolicy.tags.size() }
   }
 
   def "Are warned when attempting to change tags while editing"() {
     when: 'We click on an existing tag'
-      tags.tagList[0].click()
+    tags.tagHierarchy[0].tagList[0].click()
 
     then: 'The form is populated with the name and description of the chosen tag'
-      tags.name == samplePolicy.tags[0].name
+    tags.name == samplePolicy.tags[0].name
 
     when: 'We make a change then attempt to edit another tag'
-      tags.name = 'Policy Tag Updated'
-      tags.tagList[1].click()
+    tags.name = 'Policy Tag Updated'
+    tags.tagHierarchy[0].tagList[1].click()
 
     then: 'We are presented with a modal warning that we have existing edits'
-      waitFor { isEditingModal.modal.displayed }
-      isEditingModal.text == 'This tag may contain unsaved changes, continuing will discard them.'
-      isEditingModal.cancel.click()
-      tags.name == 'Policy Tag Updated'
+    waitFor { isEditingModal.modal.displayed }
+    isEditingModal.text == 'This tag may contain unsaved changes, continuing will discard them.'
+    isEditingModal.cancel.click()
+    tags.name == 'Policy Tag Updated'
 
     when: 'We once again attempt to edit another tag'
-      tags.tagList[1].click()
+    tags.tagHierarchy[0].tagList[1].click()
 
     then: 'We can discard changes and edit another tag'
-      waitFor { isEditingModal.modal.displayed }
-      isEditingModal.text == 'This tag may contain unsaved changes, continuing will discard them.'
-      isEditingModal.buttons.button('Continue').click()
-      tags.name == samplePolicy.tags[1].name
-      tags.buttons.cancel.click()
+    waitFor { isEditingModal.modal.displayed }
+    isEditingModal.text == 'This tag may contain unsaved changes, continuing will discard them.'
+    isEditingModal.buttons.button('Continue').click()
+    tags.name == samplePolicy.tags[1].name
+    tags.buttons.cancel.click()
   }
 
   def "We are prevented from saving if the form won't validate"() {
     when: 'We try to add a second tag with an existing name'
-      tags.createNewTag()
-      tags.buttons.save.click()
-      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
-      tags.createNewTag()
+    tags.createNewTag()
+    tags.buttons.save.click()
+    waitFor { tags.tagHierarchy[0].tagList.size() == samplePolicy.tags.size() + 1 }
+    tags.createNewTag()
 
     then: 'We are presented with an error message'
-      popoverText(tags.name) == 'Duplicate Tag name'
-      report 'duplicate tag error'
+    popoverText(tags.name) == 'Duplicate Tag name'
+    report 'duplicate tag error'
 
     when: 'We append some non-alphanumeric characters'
-      tags.name << '$'
+    tags.name << '$'
 
     then: 'The error message changes to reflect this'
-      waitFor { popoverText(tags.name) == 'Use valid characters: alphanumeric, "_", ".", "-", or spaces' }
-      tags.buttons.save.@disabled
-      report 'alphanumeric validation error'
+    waitFor { popoverText(tags.name) == 'Use valid characters: alphanumeric, "_", ".", "-", or spaces' }
+    tags.buttons.save.@disabled
+    report 'alphanumeric validation error'
 
     when: 'We correct the invalid data'
-      tags.name = 'Another new Tag'
+    tags.name = 'Another new Tag'
 
     then: 'The save button finally enables'
-      !tags.buttons.save.@disabled
+    !tags.buttons.save.@disabled
   }
 
   def "We cancel the form"() {
     when: 'We click the cancel button'
-      tags.buttons.cancel.click()
+    tags.buttons.cancel.click()
 
     then: 'form inputs are no longer displayed'
-      !tags.name.displayed
-      !tags.description.displayed
+    !tags.name.displayed
+    !tags.description.displayed
   }
 
   def "Long names are truncated"() {
     when: 'We use a name that does not fit the UI element'
-      tags.createNewTag('A' * 30)
-      tags.buttons.save.click()
+    tags.createNewTag('A' * 30)
+    tags.buttons.save.click()
 
     then: 'the value displayed will be truncated'
-      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 2 }
-      tags.tagList[0].text == (('A' * 22) + '...')
+    waitFor { tags.tagHierarchy[0].tagList.size() == samplePolicy.tags.size() + 2 }
+    tags.tagHierarchy[0].tagList[0].text == (('A' * 22) + '...')
   }
 
   def "Policy tags adjust the effective polices and cannot be deleted"() {
@@ -177,27 +182,27 @@ class TagSpec
     ownerManagementPage.createApplication('TagSpec', 'TagSpec', 'TagSpec')
 
     when: 'Viewing the inherited organization policies before tag application'
-      waitFor { tabs.tagTabButton.displayed }
+    waitFor { tabs.tagTabButton.displayed }
 
     then: 'The non effective policy is not shown'
-      !policies.findPolicyEditor('Security-High')
+    !policies.findPolicyEditor('Security-High')
 
     when: 'Applying a Tag to an Application'
-      tabs.tagTabButton.click()
-      waitFor { tags.availableTagList.size() > 0 }
-      tags.availableTag('Policy Tag 1').click()
+    tabs.tagTabButton.click()
+    waitFor { tags.availableTagList.size() > 0 }
+    tags.availableTag('Policy Tag 1').click()
 
     then: 'It appears in the list of applied tags'
-      waitFor { tags.appliedTagList.size() == 1 }
+    waitFor { tags.appliedTagList.size() == 1 }
 
     when: 'Viewing the inherited organization policies after tag application'
-      tabs.policiesTabButton.click()
-      waitFor { policies.findPolicyEditor('Security-High').displayed }
+    tabs.policiesTabButton.click()
+    waitFor { policies.findPolicyEditor('Security-High').displayed }
 
     then:
-      'The effective inherited policy is marked to show it will be  applied only if we have one of the ' +
-          'corresponding tags'
-      policies.findPolicyEditor('Security-High').showsTagIcon()
+    'The effective inherited policy is marked to show it will be  applied only if we have one of the ' +
+        'corresponding tags'
+    policies.findPolicyEditor('Security-High').showsTagIcon()
 
     when: 'We view the Tags in the Organization view'
     ownerManagementPage = to OwnerManagementPage
@@ -206,34 +211,34 @@ class TagSpec
     organizationPage.tabs.tagTabButton.click()
 
     then: 'The newly applied Tag is visually shown to be applied'
-      waitFor { tags.tagList.size() > 0 }
-      report 'applied count is shown'
-      def marker = tags.tagList[2].appliedMarker
-      marker.displayed
-      marker.text() == '1'
+    waitFor { tags.tagHierarchy[0].tagList.size() > 0 }
+    report 'applied count is shown'
+    def marker = tags.tagHierarchy[0].tagList[2].appliedMarker
+    marker.displayed
+    marker.text() == '1'
 
     when: 'We try to delete the tag'
-      tags.tagList[2].delete.click()
+    tags.tagHierarchy[0].tagList[2].delete.click()
 
     then: 'We are warned that it is in use'
-      waitFor { deleteModal.modal.displayed }
-      deleteModal.text.
-          contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
-      deleteModal.cancel.click()
+    waitFor { deleteModal.modal.displayed }
+    deleteModal.text.
+        contains('You cannot delete this tag because it is associated with the following policies: Security-High.')
+    deleteModal.cancel.click()
   }
 
   def "Applied tags warn on deletion"() {
     given: 'An Application to apply tags to'
-      to ApplicationPage, 'TagSpec'
-      waitFor { tabs.tagTabButton.displayed }
+    to ApplicationPage, 'TagSpec'
+    waitFor { tabs.tagTabButton.displayed }
 
     when: 'Applying a Tag to an Application'
-      tabs.tagTabButton.click()
-      waitFor { tags.availableTagList.size() > 0 }
-      tags.availableTag('New Tag').click()
+    tabs.tagTabButton.click()
+    waitFor { tags.availableTagList.size() > 0 }
+    tags.availableTag('New Tag').click()
 
     then: 'It appears in the list of applied tags'
-      waitFor { tags.appliedTagList.size() == 2 }
+    waitFor { tags.appliedTagList.size() == 2 }
 
     when: 'We view the Tags in the Organization view'
     def ownerManagementPage = to OwnerManagementPage
@@ -242,23 +247,23 @@ class TagSpec
     organizationPage.tabs.tagTabButton.click()
 
     then: 'The newly applied Tag is visually shown to be applied'
-      waitFor { tags.tagList.size() > 0 }
-      report 'applied count is shown'
-      def marker = tags.tagList[1].appliedMarker
-      marker.displayed
-      marker.text() == '1'
+    waitFor { tags.tagHierarchy[0].tagList.size() > 0 }
+    report 'applied count is shown'
+    def marker = tags.tagHierarchy[0].tagList[1].appliedMarker
+    marker.displayed
+    marker.text() == '1'
 
     when: 'We try to delete the tag'
-      tags.tagList[1].delete.click()
+    tags.tagHierarchy[0].tagList[1].delete.click()
 
     then: 'We are warned that it is in use'
-      waitFor { deleteModal.modal.displayed }
-      deleteModal.text.contains('It is in use by the following applications: TagSpec.')
+    waitFor { deleteModal.modal.displayed }
+    deleteModal.text.contains('It is in use by the following applications: TagSpec.')
 
     when: 'We confirm the delete'
-      deleteModal.confirm.click()
+    deleteModal.confirm.click()
 
     then: 'The tag has been deleted'
-      waitFor { tags.tagList.size() == samplePolicy.tags.size() + 1 }
+    waitFor { tags.tagHierarchy[0].tagList.size() == samplePolicy.tags.size() + 1 }
   }
 }

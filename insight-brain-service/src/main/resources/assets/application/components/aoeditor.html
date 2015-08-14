@@ -133,6 +133,7 @@
       <div class='modal-body'>
         <p>Are you sure you want to delete the application <strong>{{selected.name}}</strong>? This will delete all
           policies and license groups associated with this application.</p>
+        <p>The deletion will happen in the background and closing this dialog will not stop the deletion.</p>
       </div>
       <div class='modal-footer'>
         <button class='btn-link btn-cancel' ng-click='$dismiss()'>Cancel</button>
@@ -149,6 +150,7 @@
       <div class='modal-body'>
         <p>Are you sure you want to delete the organization <strong>{{selected.name}}</strong>? This will delete all
           policies, license groups and applications associated with this organization.</p>
+        <p>The deletion will happen in the background and closing this dialog will not stop the deletion.</p>
       </div>
       <div class='modal-footer'>
         <button class='btn-link btn-cancel' ng-click='$dismiss()'>Cancel</button>

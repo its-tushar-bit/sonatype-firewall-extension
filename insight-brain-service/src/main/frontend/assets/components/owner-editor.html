@@ -31,7 +31,7 @@
         <div ng-if="ownerType === 'application' && !(dirtyOwner.id)" class="field">
           <label for="editor-owner-public-id">Application Id</label>
           <input type="text" name="publicId" id="editor-owner-public-id"
-                 ng-maxlength="60"
+                 ng-maxlength="200"
                  ng-model="dirtyOwner.publicId"
                  ng-required="true"
                  no-spaces="true"

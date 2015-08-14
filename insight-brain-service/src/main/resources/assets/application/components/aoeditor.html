@@ -261,32 +261,34 @@
           duplicate-id-field='id'>
         </div>
         <div ng-if='ao.type == "application"' class='inline-editor' style='margin-bottom:10px'>
-          <div style='vertical-align:top'>
-            Application
+          <div>
+            <span>Application:</span>
             <div class="setappid" ng-switch on='selectedApplication.id' style='display: inline-block;vertical-align:top'>
               <div ng-switch-when='null'>
                 <div class='inline-editor'
-                  id='applicationPublicId'
-                  clm-editable
-                  e-form='$parent.$parent.appPublicIdForm'
-                  model='selectedApplication'
-                  model-field='publicId'
-                  empty-text='Enter ID'
-                  whitespace-check='false'
-                  no-spaces='true'
-                  invalid='$parent.$parent.aoIdEditor.$invalid'
-                  duplicate-array='ao.siblings'
-                  duplicate-id-field='id'>
+                     id='applicationPublicId'
+                     clm-editable
+                     e-form='$parent.$parent.appPublicIdForm'
+                     model='selectedApplication'
+                     model-field='publicId'
+                     empty-text='Enter ID'
+                     whitespace-check='false'
+                     no-spaces='true'
+                     invalid='$parent.$parent.aoIdEditor.$invalid'
+                     duplicate-array='ao.siblings'
+                     duplicate-id-field='id'>
                 </div>
               </div>
               <span class="appid" ng-switch-default>{{selectedApplication.publicId}}</span>
             </div>
-            in
+          </div>
+          <div>
+            <span>Organization:</span>
             <div id="app-parent" ng-switch on='selectedApplication.id && selectedApplication.organizationId' style='display: inline-block;'>
               <div ng-switch-when='null' class='btn-group'>
                 <a class="dropdown-toggle editable editable-empty" data-toggle="dropdown" href="#"
                    ng-class='{ selected: selectedApplication.organizationId }' style="line-height: 20px;">
-                  {{getOrganizationName()}}
+                  <span>{{getOrganizationName()}}</span>
                   <span class="caret" style='vertical-align:middle'></span>
                 </a>
                 <ul class="dropdown-menu">

@@ -273,6 +273,14 @@ a:focus {
   line-height: 20px;
 }
 
+#applicationPublicId.inline-editor {
+  vertical-align: top;
+  max-width: 545px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
 .inline-editor.head .editable, .inline-editor.head input {
   font-size: 40px;
 }
@@ -404,8 +412,12 @@ a:focus {
 /**
  * Details in app/org overview
  */
-.appid, .orgname {
+.appid, .orgname, .aoe-detail {
   font-family: Proxima Nova Bold, sans-serif;
+  vertical-align: top;
+  max-width: 600px;
+  word-wrap: break-word;
+  display: inline-block;
 }
 
 /**

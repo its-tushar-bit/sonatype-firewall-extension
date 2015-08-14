@@ -9,14 +9,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.eclipse.sisu.launch.InjectedTest;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,11 +25,9 @@ import static org.junit.Assert.fail;
 /**
  * @since 1.9
  */
-public class TagServiceTest extends InjectedTest
+public class TagServiceTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
-
   @Inject
   private TagService tagService;
 

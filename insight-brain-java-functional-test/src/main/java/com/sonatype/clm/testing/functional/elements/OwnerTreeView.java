@@ -57,6 +57,7 @@ public class OwnerTreeView
   {
     private final SelenideElement element;
 
+    public static final Condition CHILD_SELECTED_CLASS = cssClass("childSelected");
     public static final Condition COLLAPSE_CLASS = cssClass("collapse");
     public static final Condition EXPAND_CLASS = cssClass("expand");
     public static final Condition DISABLED_CLASS = cssClass("disabled");

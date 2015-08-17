@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -176,6 +177,28 @@ public class OwnerTreeViewTest
 
     logout();
     loginAsAdmin();
+  }
+
+  @Test
+  public void testOrgCantBeCollapsedWIthSelectedChild() {
+    OrganizationNode organizationNode = OwnerTreeView.organizations().get(0);
+    organizationNode.twisty().shouldHave(OrganizationNode.EXPAND_CLASS);
+    SelenideElement organizationTreeViewElement = organizationNode.treeViewElement();
+    organizationTreeViewElement.click();
+    organizationTreeViewElement.shouldHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    organizationTreeViewElement.shouldNotHave(OrganizationNode.CHILD_SELECTED_CLASS);
+    organizationNode.twisty().shouldHave(OrganizationNode.COLLAPSE_CLASS);
+
+    ApplicationNode applicationNode = organizationNode.applications().get(0);
+    SelenideElement applicationTreeViewElement = applicationNode.treeViewElement();
+    applicationTreeViewElement.click();
+    applicationTreeViewElement.shouldHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    organizationTreeViewElement.shouldNotHave(OwnerTreeView.NODE_SELECTED_CLASS);
+    organizationTreeViewElement.shouldHave(OrganizationNode.CHILD_SELECTED_CLASS);
+
+    organizationNode.twisty().click();
+    organizationNode.twisty().shouldHave(OrganizationNode.COLLAPSE_CLASS);
+    applicationTreeViewElement.shouldBe(Condition.visible);
   }
 
   private void assertSingleOrganizationVisible(String organizationName, int applicationCount) {

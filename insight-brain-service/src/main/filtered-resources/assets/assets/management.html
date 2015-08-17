@@ -39,14 +39,16 @@
              ng-if="organization.isVisible">
           <a class="tree-view-item"
              ng-class="{ selected : $state.includes('management.organization', {organizationId: organization.id}),
-                           disabled : organization.synthetic }"
+                           disabled : organization.synthetic,
+                           childSelected : selectedParentOrganization.id === organization.id }"
              ng-click="organization.isExpanded = true;
                          goToOrganizationIfNotSynthetic(organization);">
             <div class="twisty-container"
                  ng-click="$event.preventDefault();
                                 $event.stopPropagation();
                                 organization.isExpanded =
-                                  $state.includes('management.organization', {organizationId: organization.id}) || !organization.isExpanded;">
+                                  $state.includes('management.organization', {organizationId: organization.id}) ||
+                                  selectedParentOrganization.id === organization.id || !organization.isExpanded;">
                 <span class="twisty"
                       ng-class="{ empty: organization.applications.length == 0,
                                 expand: organization.applications.length > 0 && !organization.isExpanded,

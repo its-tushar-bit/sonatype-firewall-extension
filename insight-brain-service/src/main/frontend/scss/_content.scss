@@ -412,7 +412,9 @@ body {
         border-bottom: 1px solid $grey-4;
         padding-top: 7px;
         padding-bottom: 7px;
+      }
 
+      &.selected, &.childSelected {
         .twisty.collapse {
           border-top-color: $grey-4;
         }

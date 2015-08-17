@@ -90,7 +90,7 @@ describe('ManagementModule', function() {
     });
 
     it('checks if an organization or application is selected', function() {
-      expect($state.includes.calls.length).toBe(8);
+      expect($state.includes.calls.length).toBe(11);
       expect($state.includes).toHaveBeenCalledWith('management.organization-view', {
         organizationId: 'rootOrg'
       });

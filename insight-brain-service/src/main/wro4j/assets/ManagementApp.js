@@ -269,6 +269,15 @@
         }
       }
 
+      function assignSelectedParentOrganization() {
+        $scope.organizations.some(function(organization){
+          if (isOrganizationChildSelected(organization)) {
+            $scope.selectedParentOrganization = organization;
+            return true;
+          }
+        });
+      }
+
       $scope.$state = $state;
       $scope.filter = {
         value: ''
@@ -291,6 +300,12 @@
 
           organizationsCollectionChanged();
           applicationsCollectionChanged();
+          assignSelectedParentOrganization();
+
+          $scope.$on('$stateChangeSuccess', function () {
+            $scope.selectedParentOrganization = null;
+            assignSelectedParentOrganization();
+          });
 
           // Apply this after first digest to prevent collection changed event on first load
           $timeout(function() {

@@ -135,7 +135,7 @@
           return this.getApplicationTagUrl(applicationPublicId) + '/' + tagId;
         },
         getProductFeaturesUrl : function() {
-          return baseUrl.get() + '/rest/features';
+          return baseUrl.get() + '/rest/product/features';
         },
 
         /**

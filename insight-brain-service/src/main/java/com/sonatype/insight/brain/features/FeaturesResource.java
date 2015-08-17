@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 @UnlicensedPath
 public class FeaturesResource
 {
-  public static final String SERVICE_PATH = "rest/features";
+  public static final String SERVICE_PATH = "rest/product/features";
 
   private final FeaturesService featuresService;
 

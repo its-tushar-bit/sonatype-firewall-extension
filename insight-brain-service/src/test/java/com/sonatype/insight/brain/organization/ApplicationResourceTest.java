@@ -130,7 +130,9 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getBodyText());
+    Assert.assertEquals(
+        "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
+        response.getBodyText());
 
     // Test Get Icon (default icon)
     HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
@@ -201,7 +203,9 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
-    Assert.assertEquals("defaulticon_application.png is not a valid image.", response.getBodyText());
+    Assert.assertEquals(
+        "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
+        response.getBodyText());
   }
 
   @Test

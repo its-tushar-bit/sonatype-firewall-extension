@@ -101,14 +101,9 @@ abstract class AbstractResourceWithIcon
         try {
           new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
         }
-        catch (IllegalArgumentException e) {
-          throw new BadRequestException(fileDetail.getFileName() + " is not a valid image.", e);
-        }
-        catch (IOException e) {
-          throw new BadRequestException(fileDetail.getFileName() + " is not a valid image.", e);
-        }
-        catch (BadRequestException e) {
-          throw new BadRequestException(fileDetail.getFileName() + " is not a valid image.", e);
+        catch (IllegalArgumentException | IOException | BadRequestException e) {
+          throw new BadRequestException(fileDetail.getFileName() +
+              " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
         }
         finally {
           sizeCheckedInputStream.close();

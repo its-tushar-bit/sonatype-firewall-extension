@@ -184,7 +184,7 @@ public class PolicyDAO
       // ownerId is an app id
       appTags = appTagDAO.getByApplicationId(ownerId);
       result.addAll(getByOwnerId(ownerId));
-      ownerId = owner.getParentOrganizationId();
+      ownerId = owner.getParentOwnerId();
     }
 
     for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
@@ -224,7 +224,7 @@ public class PolicyDAO
   {
     Owner owner = ownerDAO.getById(tx, ownerId);
 
-    validateNameWithinHierarchyUp(tx, owner.getParentOrganizationId(), name);
+    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), name);
     validateNameWithinHierarchyDown(tx, owner, name);
   }
 

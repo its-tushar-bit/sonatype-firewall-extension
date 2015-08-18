@@ -19,7 +19,7 @@ public interface Owner
 
   String getPublicId();
 
-  String getParentOrganizationId();
+  String getParentOwnerId();
 
   boolean canHaveChildren();
 

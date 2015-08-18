@@ -6,14 +6,16 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class OwnerDAO
@@ -22,14 +24,25 @@ public class OwnerDAO
 
   private static OrganizationDAO orgDAO = new OrganizationDAO();
 
+  private static RepositoryDAO repoDAO = new RepositoryDAO();
+
   public Owner getById(TransactionContext tx, String id) {
-    // Since on any path in the hierarchy there are more orgs than apps, query for org first.
+    if (RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(id)) {
+      return RepositoryContainer.SINGLETON;
+    }
+
+    // Since on any path in the hierarchy there are more orgs than apps or repos, query for org first.
     Organization org = orgDAO.getById(tx, id);
     if (org != null) {
       return org;
     }
 
-    return appDAO.getById(tx, id);
+    Application app = appDAO.getById(tx, id);
+    if (app != null) {
+      return app;
+    }
+    
+    return repoDAO.getById(id);
   }
 
   public Owner getById(String id) {
@@ -45,21 +58,25 @@ public class OwnerDAO
   }
 
   public List<Owner> getChildOwners(TransactionContext tx, Owner owner) {
-    if (!owner.canHaveChildren()) {
-      return Collections.emptyList();
-    }
-
     List<Owner> result = new ArrayList<>();
-    List<Application> apps = appDAO.getByOrganizationId(tx, owner.getId());
-    result.addAll(apps);
-    List<Organization> orgs = orgDAO.getByParentOrganizationId(tx, owner.getId());
-    result.addAll(orgs);
+    if (OwnerType.ORGANIZATION.equals(owner.getType())) {
+      List<Application> apps = appDAO.getByOrganizationId(tx, owner.getId());
+      result.addAll(apps);
+      List<Organization> orgs = orgDAO.getByParentOrganizationId(tx, owner.getId());
+      result.addAll(orgs);
+      if (Organization.ROOT_ORGANIZATION_ID.equals(owner.getId())) {
+        result.add(RepositoryContainer.SINGLETON);
+      }
+    }
+    else if (OwnerType.REPOSITORY_CONTAINER.equals(owner.getType())) {
+      result.addAll(repoDAO.getAll(tx));
+    }
 
     return result;
   }
 
   public Owner getParentOwner(Owner owner) {
-    return getById(owner.getParentOrganizationId());
+    return getById(owner.getParentOwnerId());
   }
 
   public Iterable<Owner> walkHierarchy(final String ownerId) {
@@ -109,7 +126,7 @@ public class OwnerDAO
         throw new NoSuchElementException();
       }
       Owner current = nextOwner;
-      nextOwnerId = nextOwner.getParentOrganizationId();
+      nextOwnerId = nextOwner.getParentOwnerId();
       nextOwner = null;
       return current;
     }

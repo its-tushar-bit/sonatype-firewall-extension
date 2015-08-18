@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum OwnerType
 {
-  APPLICATION, ORGANIZATION, GLOBAL;
+  APPLICATION, ORGANIZATION, REPOSITORY_CONTAINER, REPOSITORY, GLOBAL;
 
   @Override
   @JsonValue

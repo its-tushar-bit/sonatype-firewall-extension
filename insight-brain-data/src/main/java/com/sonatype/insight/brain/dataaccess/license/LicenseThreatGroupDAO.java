@@ -107,7 +107,7 @@ public class LicenseThreatGroupDAO
     NameHelper.validate(licenseThreatGroup.getName());
 
     Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());
-    validateNameWithinHierarchyUp(tx, owner.getParentOrganizationId(), licenseThreatGroup.getName());
+    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), licenseThreatGroup.getName());
     validateNameWithinHierarchyDown(tx, owner, licenseThreatGroup.getName());
   }
 

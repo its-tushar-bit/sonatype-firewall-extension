@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.repository;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.sonatype.insight.model.HasStringId;
+
+@Entity
+@Table(name = "repository_manager")
+public class RepositoryManager
+    implements HasStringId
+{
+  @Id
+  @Column(name = "repository_manager_id")
+  private String id;
+
+  @Column(name = "instance_id")
+  private String instanceId;
+
+  @Override
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getInstanceId() {
+    return instanceId;
+  }
+
+  public void setInstanceId(String instanceId) {
+    this.instanceId = instanceId;
+  }
+}

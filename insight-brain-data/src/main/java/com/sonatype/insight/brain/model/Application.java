@@ -150,7 +150,7 @@ public class Application
 
   @Override
   @JsonIgnore
-  public String getParentOrganizationId() {
+  public String getParentOwnerId() {
     return getOrganizationId();
   }
 

@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -74,6 +76,8 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -155,6 +159,10 @@ public class TemporaryEntity
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
+  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -185,6 +193,8 @@ public class TemporaryEntity
 
   private Collection<PolicyMonitoring> policyMonitorings;
 
+  private Collection<RepositoryManager> repositoryManagers;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -202,6 +212,7 @@ public class TemporaryEntity
     labels = new ArrayList<>();
     licenseThreatGroups = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
+    repositoryManagers = new ArrayList<>();
   }
 
   @Override
@@ -288,6 +299,12 @@ public class TemporaryEntity
     for (PolicyMonitoring policyMonitoring : policyMonitorings) {
       if ((policyMonitoring = policyMonitoringDAO.getById(policyMonitoring.getId())) != null) {
         policyMonitoringDAO.delete(policyMonitoring);
+      }
+    }
+
+    for (RepositoryManager repositoryManager : repositoryManagers) {
+      if ((repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId())) != null) {
+        repositoryManagerDAO.delete(repositoryManager);
       }
     }
   }
@@ -932,5 +949,32 @@ public class TemporaryEntity
     policyMonitoringDAO.insert(policyMonitoring);
     policyMonitorings.add(policyMonitoring);
     return policyMonitoring;
+  }
+
+  public RepositoryManager newRepositoryManager() {
+    return newRepositoryManager(uuid());
+  }
+
+  public RepositoryManager newRepositoryManager(String instanceId) {
+    RepositoryManager repositoryManager = new RepositoryManager();
+    repositoryManager.setInstanceId(instanceId);
+    repositoryManagerDAO.insert(repositoryManager);
+    repositoryManagers.add(repositoryManager);
+    return repositoryManager;
+  }
+
+  public Repository newRepository() {
+    return newRepository(uuid(), uuid());
+  }
+
+  public Repository newRepository(String name, String publicId) {
+    RepositoryManager repositoryManager = newRepositoryManager();
+    return newRepository(repositoryManager, name, publicId);
+  }
+
+  public Repository newRepository(RepositoryManager repositoryManager, String name, String publicId) {
+    Repository repository = new Repository(repositoryManager.getId(), name, publicId);
+    repositoryDAO.insert(repository);
+    return repository;
   }
 }

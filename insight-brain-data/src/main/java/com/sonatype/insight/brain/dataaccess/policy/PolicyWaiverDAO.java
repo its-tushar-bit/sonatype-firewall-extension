@@ -77,7 +77,7 @@ public class PolicyWaiverDAO
     }
 
     Owner owner = ownerDAO.getById(ownerId);
-    loadByOwnerId(policyWaivers, owner.getParentOrganizationId());
+    loadByOwnerId(policyWaivers, owner.getParentOwnerId());
     policyWaivers.addAll(getByOwnerId(ownerId));
   }
 

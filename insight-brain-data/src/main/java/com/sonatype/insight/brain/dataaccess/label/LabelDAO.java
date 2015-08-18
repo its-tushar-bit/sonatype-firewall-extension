@@ -173,7 +173,7 @@ public class LabelDAO
 
     Owner owner = ownerDAO.getById(tx, label.getOwnerId());
     validateNameWithinHierarchyDown(tx, owner, label);
-    validateNameWithinHierarchyUp(tx, owner.getParentOrganizationId(), label);
+    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), label);
   }
 
   private void validateNameWithinHierarchyDown(final TransactionContext tx, final Owner owner, final Label label) {

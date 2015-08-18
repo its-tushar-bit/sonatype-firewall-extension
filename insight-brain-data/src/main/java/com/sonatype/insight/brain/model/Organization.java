@@ -58,7 +58,6 @@ public class Organization
     return id;
   }
 
-  @Override
   public String getParentOrganizationId() {
     return parentOrganizationId;
   }
@@ -103,5 +102,11 @@ public class Organization
   @JsonIgnore
   public OwnerType getType() {
     return OwnerType.ORGANIZATION;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getParentOwnerId() {
+    return parentOrganizationId;
   }
 }

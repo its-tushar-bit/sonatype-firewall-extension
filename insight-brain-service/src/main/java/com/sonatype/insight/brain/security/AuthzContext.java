@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.model.OwnerType;
 
 /**
  * Marks method parameters which denote the context for the authorization check. If no parameters are annotated, the
@@ -34,14 +34,14 @@ public @interface AuthzContext
     ID,
 
     /**
-     * Internal ID of an existing org/app, goes together with {@link #TYPE} to denote the context. Note use this or ID
-     * with TYPE.
+     * Internal ID of an existing org/app/repository, goes together with {@link #TYPE} to denote the context. Note use
+     * this or ID with TYPE.
      */
     INTERNAL_ID,
 
     /**
-     * One of {@link IdUtils#TYPE_APPLICATION} or {@link IdUtils#TYPE_ORGANIZATION}, goes together with {@link #ID} to
-     * denote the context.
+     * One of {@link OwnerType#APPLICATION}, {@link OwnerType#ORGANIZATION} or {@link OwnerType#REPOSITORY}, goes
+     * together with {@link #ID} to denote the context.
      */
     TYPE,
 
@@ -78,7 +78,17 @@ public @interface AuthzContext
     /**
      * The ID of an existing organization.
      */
-    ORGANIZATION_ID;
+    ORGANIZATION_ID,
+
+    /**
+     * The ID of the repository container.
+     */
+    REPOSITORY_CONTAINER_ID,
+
+    /**
+     * The ID of an existing repository.
+     */
+    REPOSITORY_ID;
   }
 
   /**

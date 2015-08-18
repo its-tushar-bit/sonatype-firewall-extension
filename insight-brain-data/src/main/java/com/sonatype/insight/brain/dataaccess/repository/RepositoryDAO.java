@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -97,5 +98,13 @@ public class RepositoryDAO
   public List<Repository> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Repository entity";
     return getList(tx, sQuery);
+  }
+
+  public Repository getByIdNotNull(String id) {
+    Repository repository = getById(id);
+    if (repository == null) {
+      throw new NotFoundException("Cannot find a repository with ID " + id + ".");
+    }
+    return repository;
   }
 }

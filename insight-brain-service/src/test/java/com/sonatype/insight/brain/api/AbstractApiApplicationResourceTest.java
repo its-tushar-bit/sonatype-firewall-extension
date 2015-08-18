@@ -312,6 +312,7 @@ public abstract class AbstractApiApplicationResourceTest
     final ApiApplicationDTO applicationDTO = new ApiApplicationDTO();
     applicationDTO.name = "testAddApplication_exceedsLicense_id_new_name";
     applicationDTO.publicId = "testAddApplication_exceedsLicense_id_new_id";
+    applicationDTO.organizationId = organization.getId();
 
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(402, response);
@@ -331,8 +332,9 @@ public abstract class AbstractApiApplicationResourceTest
     applicationDTO.organizationId = orgId;
 
     HttpResponse response = restRequest().body(applicationDTO).post();
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), equalTo("Cannot find organization with ID " + orgId + "."));
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), equalTo("Application references an organization (ID=" + orgId
+        + ") that does not exist."));
   }
 
   @Test

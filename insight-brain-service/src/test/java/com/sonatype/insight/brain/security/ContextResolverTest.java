@@ -12,6 +12,8 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 
@@ -136,5 +138,36 @@ public class ContextResolverTest
     parameters.put(AuthzContext.Key.APPLICATION_PUBLIC_ID, app.getPublicId());
     assertThat(resolver.resolveContextIds(parameters),
         contains(app.getId(), org.getId(), org.getParentOrganizationId(), MembershipMapping.GLOBAL_CONTEXT_ID));
+  }
+
+  @Test
+  public void testResolveContextIds_TypedContext_Repository() {
+    Repository repository = tempEntity.newRepository();
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    parameters.put(AuthzContext.Key.INTERNAL_ID, repository.getId());
+    parameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY);
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(repository.getId(), repository.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID,
+            MembershipMapping.GLOBAL_CONTEXT_ID));
+  }
+
+  @Test
+  public void testResolveContextIds_RepositoryId() {
+    Repository repository = tempEntity.newRepository();
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    parameters.put(AuthzContext.Key.REPOSITORY_ID, repository.getId());
+    assertThat(resolver.resolveContextIds(parameters),
+        contains(repository.getId(), repository.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID,
+            MembershipMapping.GLOBAL_CONTEXT_ID));
+  }
+
+  @Test
+  public void testResolveContextIds_RepositoryContainerId() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    parameters.put(AuthzContext.Key.REPOSITORY_CONTAINER_ID, "bla");
+    assertThat(
+        resolver.resolveContextIds(parameters),
+        contains(RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID,
+            MembershipMapping.GLOBAL_CONTEXT_ID));
   }
 }

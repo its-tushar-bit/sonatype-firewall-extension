@@ -6,18 +6,22 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 
 /**
@@ -29,52 +33,13 @@ class ContextResolver
 {
   private static final Iterable<String> GLOBAL_CONTEXT = Collections.singleton(MembershipMapping.GLOBAL_CONTEXT_ID);
 
-  private final ApplicationDAO appDAO = new ApplicationDAO();
+  private static final ApplicationDAO appDAO = new ApplicationDAO();
 
-  private final OrganizationDAO orgDAO = new OrganizationDAO();
+  private static final OrganizationDAO orgDAO = new OrganizationDAO();
 
-  private class OrganizationIterator
-      implements Iterator<String>, Iterable<String>
-  {
-    private String prevOrgId;
+  private static final RepositoryDAO repoDAO = new RepositoryDAO();
 
-    private String nextOrgId;
-
-    public OrganizationIterator(String firstOrgId) {
-      nextOrgId = firstOrgId;
-    }
-
-    @Override
-    public Iterator<String> iterator() {
-      return new OrganizationIterator(nextOrgId);
-    }
-
-    @Override
-    public String next() {
-      if (!hasNext()) {
-        throw new NoSuchElementException();
-      }
-      prevOrgId = nextOrgId;
-      nextOrgId = null;
-      return prevOrgId;
-    }
-
-    @Override
-    public boolean hasNext() {
-      if (nextOrgId == null) {
-        if (prevOrgId != null) {
-          nextOrgId = orgDAO.getByIdNotNull(prevOrgId).getParentOrganizationId();
-          prevOrgId = null;
-        }
-      }
-      return nextOrgId != null;
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-  }
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
 
   private final ContextIdResolver<Application> INBOUND_APPLICATION = new ContextIdResolver<Application>()
   {
@@ -90,7 +55,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
-      return Iterables.concat(Collections.singleton(app.getId()), resolveContextIdsForOrg(app.getOrganizationId()));
+      return resolveContextIdsForOwner(app.getId());
     }
   };
 
@@ -116,7 +81,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
-      return resolveContextIdsForOrg(app.getOrganizationId());
+      return resolveContextIdsForOwner(app.getOrganizationId());
     }
   };
 
@@ -134,7 +99,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
-      return resolveContextIdsForOrg(org.getId());
+      return resolveContextIdsForOwner(org.getId());
     }
   };
 
@@ -155,12 +120,38 @@ class ContextResolver
       if (parentId == null) {
         parentId = Organization.ROOT_ORGANIZATION_ID;
       }
-      return resolveContextIdsForOrg(parentId);
+      return resolveContextIdsForOwner(parentId);
     }
   };
 
-  Iterable<String> resolveContextIdsForOrg(final String orgId) {
-    return Iterables.concat(new OrganizationIterator(orgId), GLOBAL_CONTEXT);
+  final ContextIdResolver<Repository> REPOSITORY = new ContextIdResolver<Repository>()
+  {
+    @Override
+    public Iterable<String> resolveContextIds(Repository repository) {
+      return resolveContextIdsForOwner(repository.getId());
+    }
+  };
+
+  private final ContextIdResolver<String> REPOSITORY_ID = new ContextIdResolver<String>()
+  {
+    @Override
+    public Iterable<String> resolveContextIds(String repositoryId) {
+      Repository repository = repoDAO.getByIdNotNull(repositoryId);
+      return REPOSITORY.resolveContextIds(repository);
+    }
+  };
+
+  private Iterable<String> resolveContextIdsForOwner(final String ownerId) {
+    // Get an Iterable<Owner> and transform it to Iterable<owner Id>
+    Iterable<String> ownerIdIterable = Iterables.transform(ownerDAO.walkHierarchy(ownerId),
+        new Function<Owner, String>()
+        {
+          @Override
+          public String apply(Owner owner) {
+            return owner.getId();
+          }
+        });
+    return Iterables.concat(ownerIdIterable, GLOBAL_CONTEXT);
   }
 
   /**
@@ -195,6 +186,11 @@ class ContextResolver
         case ORGANIZATION_ID:
           String orgId = get(parameters, AuthzContext.Key.ORGANIZATION_ID, String.class);
           return ORGANIZATION_ID.resolveContextIds(orgId);
+        case REPOSITORY_ID:
+          String repositoryId = get(parameters, AuthzContext.Key.REPOSITORY_ID, String.class);
+          return REPOSITORY_ID.resolveContextIds(repositoryId);
+        case REPOSITORY_CONTAINER_ID:
+          return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
         default:
           throw new IllegalArgumentException("Cannot resolve context from " + parameters);
       }
@@ -220,8 +216,13 @@ class ContextResolver
             id = get(parameters, Key.INTERNAL_ID, String.class);
           }
           return ORGANIZATION_ID.resolveContextIds(id);
+        case REPOSITORY:
+          return REPOSITORY_ID.resolveContextIds(get(parameters, Key.INTERNAL_ID, String.class));
         case GLOBAL:
           return GLOBAL_CONTEXT;
+        case REPOSITORY_CONTAINER:
+          // We don't need support for Repository Container here
+          break;
       }
     }
     throw new IllegalArgumentException("Cannot resolve context from " + parameters);

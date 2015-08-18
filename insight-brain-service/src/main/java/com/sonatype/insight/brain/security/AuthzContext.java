@@ -81,9 +81,9 @@ public @interface AuthzContext
     ORGANIZATION_ID,
 
     /**
-     * The ID of the repository container.
+     * A {@link Repository} entity. The entity does not have to already exist.
      */
-    REPOSITORY_CONTAINER_ID,
+    REPOSITORY,
 
     /**
      * The ID of an existing repository.

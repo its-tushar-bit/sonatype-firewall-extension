@@ -128,7 +128,14 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Repository repository) {
-      return resolveContextIdsForOwner(repository.getId());
+      if (repository.getId() != null) {
+        // Existing repository
+        return resolveContextIdsForOwner(repository.getId());
+      }
+      else {
+        // New repository
+        return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      }
     }
   };
 
@@ -189,8 +196,9 @@ class ContextResolver
         case REPOSITORY_ID:
           String repositoryId = get(parameters, AuthzContext.Key.REPOSITORY_ID, String.class);
           return REPOSITORY_ID.resolveContextIds(repositoryId);
-        case REPOSITORY_CONTAINER_ID:
-          return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+        case REPOSITORY:
+          Repository repository = get(parameters, AuthzContext.Key.REPOSITORY, Repository.class);
+          return REPOSITORY.resolveContextIds(repository);
         default:
           throw new IllegalArgumentException("Cannot resolve context from " + parameters);
       }

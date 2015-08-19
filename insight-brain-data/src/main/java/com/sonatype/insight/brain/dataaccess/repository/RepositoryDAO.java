@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -41,6 +40,13 @@ public class RepositoryDAO
     return getList(tx, sQuery, repositoryManagerId);
   }
 
+  public Repository getByRepositoryManagerInstanceIdAndPublicId(String repositoryManagerInstanceId, String publicId) {
+    String sQuery = "SELECT repository FROM Repository repository, RepositoryManager repositoryManager" + //
+        " WHERE repository.repositoryManagerId=repositoryManager.id" + //
+        " AND repositoryManager.instanceId=?1 AND repository.publicId=?2";
+    return get(sQuery, repositoryManagerInstanceId, publicId);
+  }
+
   private Repository getByRepositoryManagerIdAndPublicId(TransactionContext tx, String repositoryManagerId,
       String publicId)
   {
@@ -51,7 +57,7 @@ public class RepositoryDAO
 
   private void validateNotEmptyField(String fieldName, String value) {
     if (StringUtils.isBlank(value)) {
-      throw new DataAccessException("The repository " + fieldName + " cannot be null or empty.");
+      throw new InvalidRepositoryException("The repository " + fieldName + " cannot be null or empty.");
     }
   }
 
@@ -61,7 +67,7 @@ public class RepositoryDAO
     validateNotEmptyField("public ID", repository.getPublicId());
 
     if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(), repository.getPublicId()) != null) {
-      throw new DataAccessException("There is already a repository with public ID '" + repository.getPublicId()
+      throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
     }
 
@@ -76,7 +82,7 @@ public class RepositoryDAO
     Repository existingRepository = getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
         repository.getPublicId());
     if (existingRepository != null && !existingRepository.getId().equals(repository.getId())) {
-      throw new DataAccessException("There is already a repository with public ID '" + repository.getPublicId()
+      throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
     }
 

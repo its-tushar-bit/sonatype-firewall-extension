@@ -977,4 +977,11 @@ public class TemporaryEntity
     repositoryDAO.insert(repository);
     return repository;
   }
+
+  public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean enabled) {
+    Repository repository = new Repository(repositoryManager.getId(), publicId, publicId);
+    repository.setEnabled(enabled);
+    repositoryDAO.insert(repository);
+    return repository;
+  }
 }

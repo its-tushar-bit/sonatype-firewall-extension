@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
@@ -49,9 +48,9 @@ public class RepositoryManagerDAOTest
   public void testValidateNullInstanceId_Insert() {
     try {
       tempEntity.newRepositoryManager(null);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryManagerException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryManagerException expected) {
       assertThat(expected.getMessage(), is("The repository manager instance ID cannot be null or empty."));
     }
   }
@@ -62,9 +61,9 @@ public class RepositoryManagerDAOTest
     repoManager.setInstanceId(null);
     try {
       dao.update(repoManager);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryManagerException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryManagerException expected) {
       assertThat(expected.getMessage(), is("The repository manager instance ID cannot be null or empty."));
     }
   }
@@ -73,9 +72,9 @@ public class RepositoryManagerDAOTest
   public void testValidateEmptyInstanceId_Insert() {
     try {
       tempEntity.newRepositoryManager(" ");
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryManagerException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryManagerException expected) {
       assertThat(expected.getMessage(), is("The repository manager instance ID cannot be null or empty."));
     }
   }
@@ -86,9 +85,9 @@ public class RepositoryManagerDAOTest
     repoManager.setInstanceId(" ");
     try {
       dao.update(repoManager);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryManagerException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryManagerException expected) {
       assertThat(expected.getMessage(), is("The repository manager instance ID cannot be null or empty."));
     }
   }
@@ -99,9 +98,9 @@ public class RepositoryManagerDAOTest
 
     try {
       tempEntity.newRepositoryManager("MyInstanceId");
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryManagerException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryManagerException expected) {
       assertEquals("There is already a repository manager with instance ID MyInstanceId.", expected.getMessage());
     }
   }
@@ -114,9 +113,9 @@ public class RepositoryManagerDAOTest
 
     try {
       dao.update(repoManager);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryManagerException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryManagerException expected) {
       assertEquals("There is already a repository manager with instance ID MyInstanceId1.", expected.getMessage());
     }
   }

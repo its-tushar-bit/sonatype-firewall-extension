@@ -24,6 +24,13 @@ public class RepositoryManager
   @Column(name = "instance_id")
   private String instanceId;
 
+  public RepositoryManager() {
+  }
+
+  public RepositoryManager(String instanceId) {
+    this.instanceId = instanceId;
+  }
+
   @Override
   public String getId() {
     return id;

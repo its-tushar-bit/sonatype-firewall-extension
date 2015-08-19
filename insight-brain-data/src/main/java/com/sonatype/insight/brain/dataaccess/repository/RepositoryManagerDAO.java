@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -29,6 +28,12 @@ public class RepositoryManagerDAO
     return get(tx, sQuery, id);
   }
 
+  public RepositoryManager getByInstanceId(String instanceId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByInstanceId(tx, instanceId);
+    }
+  }
+
   private RepositoryManager getByInstanceId(TransactionContext tx, String instanceId) {
     String sQuery = "SELECT entity FROM RepositoryManager entity" + //
         " WHERE entity.instanceId=?1";
@@ -37,7 +42,7 @@ public class RepositoryManagerDAO
 
   private void validateInstanceId(String instanceId) {
     if (StringUtils.isBlank(instanceId)) {
-      throw new DataAccessException("The repository manager instance ID cannot be null or empty.");
+      throw new InvalidRepositoryManagerException("The repository manager instance ID cannot be null or empty.");
     }
   }
 
@@ -46,7 +51,7 @@ public class RepositoryManagerDAO
     validateInstanceId(repositoryManager.getInstanceId());
 
     if (getByInstanceId(tx, repositoryManager.getInstanceId()) != null) {
-      throw new DataAccessException("There is already a repository manager with instance ID "
+      throw new InvalidRepositoryManagerException("There is already a repository manager with instance ID "
           + repositoryManager.getInstanceId() + ".");
     }
 
@@ -59,7 +64,7 @@ public class RepositoryManagerDAO
 
     RepositoryManager existingRepositoryManager = getByInstanceId(tx, repositoryManager.getInstanceId());
     if (existingRepositoryManager != null && !existingRepositoryManager.getId().equals(repositoryManager.getId())) {
-      throw new DataAccessException("There is already a repository manager with instance ID "
+      throw new InvalidRepositoryManagerException("There is already a repository manager with instance ID "
           + repositoryManager.getInstanceId() + ".");
     }
 

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-import com.sonatype.insight.brain.dataaccess.DataAccessException;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -54,9 +53,9 @@ public class RepositoryDAOTest
   public void testValidateNullPublicId_Insert() {
     try {
       tempEntity.newRepository("Some Name", null);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
     }
   }
@@ -67,9 +66,9 @@ public class RepositoryDAOTest
     repository.setPublicId(null);
     try {
       dao.update(repository);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
     }
   }
@@ -78,9 +77,9 @@ public class RepositoryDAOTest
   public void testValidateEmptyPublicId_Insert() {
     try {
       tempEntity.newRepository("Some Name", " ");
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
     }
   }
@@ -91,9 +90,9 @@ public class RepositoryDAOTest
     repository.setPublicId(" ");
     try {
       dao.update(repository);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository public ID cannot be null or empty."));
     }
   }
@@ -105,9 +104,9 @@ public class RepositoryDAOTest
 
     try {
       tempEntity.newRepository(repoManager, "Some Other Name", "SomePublicID");
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertEquals("There is already a repository with public ID 'SomePublicID' for the same repository manager.",
           expected.getMessage());
     }
@@ -122,9 +121,9 @@ public class RepositoryDAOTest
     try {
       repository.setPublicId("SomePublicID1");
       dao.update(repository);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertEquals("There is already a repository with public ID 'SomePublicID1' for the same repository manager.",
           expected.getMessage());
     }
@@ -134,9 +133,9 @@ public class RepositoryDAOTest
   public void testValidateNullName_Insert() {
     try {
       tempEntity.newRepository(null, "SomePublicId");
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
     }
   }
@@ -147,9 +146,9 @@ public class RepositoryDAOTest
     repository.setName(null);
     try {
       dao.update(repository);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
     }
   }
@@ -158,9 +157,9 @@ public class RepositoryDAOTest
   public void testValidateEmptyName_Insert() {
     try {
       tempEntity.newRepository(" ", "SomePublicID");
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
     }
   }
@@ -171,9 +170,9 @@ public class RepositoryDAOTest
     repository.setName(" ");
     try {
       dao.update(repository);
-      fail("Expected DataAccessException");
+      fail("Expected InvalidRepositoryException");
     }
-    catch (DataAccessException expected) {
+    catch (InvalidRepositoryException expected) {
       assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
     }
   }

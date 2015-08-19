@@ -27,10 +27,10 @@ public class RepositoryDAOTest
   @Test
   public void testCRUD() throws Exception {
     // Create
-    Repository repository = tempEntity.newRepository("My Repo Name", "My Repo Public Id");
+    Repository repository = tempEntity.newRepository("My Repo Public Id");
     String id = repository.getId();
     repository = dao.getById(id);
-    assertThat(repository.getName(), is("My Repo Name"));
+    assertThat(repository.getName(), is(repository.getPublicId()));
     assertThat(repository.getPublicId(), is("My Repo Public Id"));
     assertThat(repository.isEnabled(), is(true));
     assertThat(repository.getParentOwnerId(), is(RepositoryContainer.REPOSITORY_CONTAINER_ID));
@@ -38,10 +38,10 @@ public class RepositoryDAOTest
     assertThat(repository.getType(), is(OwnerType.REPOSITORY));
 
     // Update
-    repository.setName("My Repo Name Updated");
+    repository.setEnabled(false);
     dao.update(repository);
     repository = dao.getById(id);
-    assertThat(repository.getName(), is("My Repo Name Updated"));
+    assertThat(repository.isEnabled(), is(false));
 
     // Delete
     dao.delete(repository);
@@ -52,7 +52,7 @@ public class RepositoryDAOTest
   @Test
   public void testValidateNullPublicId_Insert() {
     try {
-      tempEntity.newRepository("Some Name", null);
+      tempEntity.newRepository(null /* publicId */);
       fail("Expected InvalidRepositoryException");
     }
     catch (InvalidRepositoryException expected) {
@@ -62,7 +62,7 @@ public class RepositoryDAOTest
 
   @Test
   public void testValidateNullPublicId_Update() {
-    Repository repository = tempEntity.newRepository("Some Name", "Some Public ID");
+    Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(null);
     try {
       dao.update(repository);
@@ -76,7 +76,7 @@ public class RepositoryDAOTest
   @Test
   public void testValidateEmptyPublicId_Insert() {
     try {
-      tempEntity.newRepository("Some Name", " ");
+      tempEntity.newRepository(" " /* publicId */);
       fail("Expected InvalidRepositoryException");
     }
     catch (InvalidRepositoryException expected) {
@@ -86,7 +86,7 @@ public class RepositoryDAOTest
 
   @Test
   public void testValidateEmptyPublicId_Update() {
-    Repository repository = tempEntity.newRepository("Some Name", "Some Public ID");
+    Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(" ");
     try {
       dao.update(repository);
@@ -100,10 +100,10 @@ public class RepositoryDAOTest
   @Test
   public void testDuplicatePublicId_Insert() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    tempEntity.newRepository(repoManager, "Some Name", "SomePublicID");
+    tempEntity.newRepository(repoManager, "SomePublicID");
 
     try {
-      tempEntity.newRepository(repoManager, "Some Other Name", "SomePublicID");
+      tempEntity.newRepository(repoManager, "SomePublicID");
       fail("Expected InvalidRepositoryException");
     }
     catch (InvalidRepositoryException expected) {
@@ -115,8 +115,8 @@ public class RepositoryDAOTest
   @Test
   public void testDuplicatePublicId_Update() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    tempEntity.newRepository(repoManager, "Some Name", "SomePublicID1");
-    Repository repository = tempEntity.newRepository(repoManager, "Some Other Name", "SomePublicID2");
+    tempEntity.newRepository(repoManager, "SomePublicID1");
+    Repository repository = tempEntity.newRepository(repoManager, "SomePublicID2");
 
     try {
       repository.setPublicId("SomePublicID1");
@@ -126,54 +126,6 @@ public class RepositoryDAOTest
     catch (InvalidRepositoryException expected) {
       assertEquals("There is already a repository with public ID 'SomePublicID1' for the same repository manager.",
           expected.getMessage());
-    }
-  }
-
-  @Test
-  public void testValidateNullName_Insert() {
-    try {
-      tempEntity.newRepository(null, "SomePublicId");
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
-    }
-  }
-
-  @Test
-  public void testValidateNullName_Update() {
-    Repository repository = tempEntity.newRepository("Some Name", "SomePublicID");
-    repository.setName(null);
-    try {
-      dao.update(repository);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
-    }
-  }
-
-  @Test
-  public void testValidateEmptyName_Insert() {
-    try {
-      tempEntity.newRepository(" ", "SomePublicID");
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
-    }
-  }
-
-  @Test
-  public void testValidateEmptyName_Update() {
-    Repository repository = tempEntity.newRepository("Some Name", "SomePublicID");
-    repository.setName(" ");
-    try {
-      dao.update(repository);
-      fail("Expected InvalidRepositoryException");
-    }
-    catch (InvalidRepositoryException expected) {
-      assertThat(expected.getMessage(), is("The repository name cannot be null or empty."));
     }
   }
 }

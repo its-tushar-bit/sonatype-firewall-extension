@@ -964,22 +964,22 @@ public class TemporaryEntity
   }
 
   public Repository newRepository() {
-    return newRepository(uuid(), uuid());
+    return newRepository(uuid());
   }
 
-  public Repository newRepository(String name, String publicId) {
+  public Repository newRepository(String publicId) {
     RepositoryManager repositoryManager = newRepositoryManager();
-    return newRepository(repositoryManager, name, publicId);
+    return newRepository(repositoryManager, publicId);
   }
 
-  public Repository newRepository(RepositoryManager repositoryManager, String name, String publicId) {
-    Repository repository = new Repository(repositoryManager.getId(), name, publicId);
+  public Repository newRepository(RepositoryManager repositoryManager, String publicId) {
+    Repository repository = new Repository(repositoryManager.getId(), publicId);
     repositoryDAO.insert(repository);
     return repository;
   }
 
   public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean enabled) {
-    Repository repository = new Repository(repositoryManager.getId(), publicId, publicId);
+    Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setEnabled(enabled);
     repositoryDAO.insert(repository);
     return repository;

@@ -28,9 +28,6 @@ public class Repository
   @Column(name = "repository_manager_id")
   private String repositoryManagerId;
 
-  @Column(name = "name")
-  private String name;
-
   @Column(name = "public_id")
   private String publicId;
 
@@ -40,9 +37,8 @@ public class Repository
   public Repository() {
   }
 
-  public Repository(String repositoryManagerId, String name, String publicId) {
+  public Repository(String repositoryManagerId, String publicId) {
     this.repositoryManagerId = repositoryManagerId;
-    this.name = name;
     this.publicId = publicId;
   }
 
@@ -82,12 +78,9 @@ public class Repository
   }
 
   @Override
+  @JsonIgnore
   public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
+    return getPublicId();
   }
 
   @Override

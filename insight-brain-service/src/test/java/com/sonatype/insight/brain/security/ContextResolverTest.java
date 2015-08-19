@@ -175,7 +175,7 @@ public class ContextResolverTest
   @Test
   public void testResolveContextIds_RepositoryEntity_New() {
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
-    Repository newRepository = new Repository("repositoryManagerId", "name", "publicId");
+    Repository newRepository = new Repository("repositoryManagerId", "publicId");
     parameters.put(AuthzContext.Key.REPOSITORY, newRepository);
     assertThat(
         resolver.resolveContextIds(parameters),

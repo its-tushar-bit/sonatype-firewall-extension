@@ -55,16 +55,15 @@ public class RepositoryDAO
     return get(tx, sQuery, repositoryManagerId, publicId);
   }
 
-  private void validateNotEmptyField(String fieldName, String value) {
-    if (StringUtils.isBlank(value)) {
-      throw new InvalidRepositoryException("The repository " + fieldName + " cannot be null or empty.");
+  private void validateNotEmptyPublicId(String publicId) {
+    if (StringUtils.isBlank(publicId)) {
+      throw new InvalidRepositoryException("The repository public ID cannot be null or empty.");
     }
   }
 
   @Override
   public void insert(TransactionContext tx, Repository repository) {
-    validateNotEmptyField("name", repository.getName());
-    validateNotEmptyField("public ID", repository.getPublicId());
+    validateNotEmptyPublicId(repository.getPublicId());
 
     if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(), repository.getPublicId()) != null) {
       throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
@@ -76,8 +75,7 @@ public class RepositoryDAO
 
   @Override
   public void update(TransactionContext tx, Repository repository) {
-    validateNotEmptyField("name", repository.getName());
-    validateNotEmptyField("public ID", repository.getPublicId());
+    validateNotEmptyPublicId(repository.getPublicId());
 
     Repository existingRepository = getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
         repository.getPublicId());

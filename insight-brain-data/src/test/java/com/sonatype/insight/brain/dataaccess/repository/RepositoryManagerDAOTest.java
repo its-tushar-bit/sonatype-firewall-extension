@@ -123,7 +123,7 @@ public class RepositoryManagerDAOTest
   @Test
   public void testCascadeDeleteToRepositories() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repoManager, "name", "publicId");
+    Repository repository = tempEntity.newRepository(repoManager, "publicId");
 
     RepositoryDAO repositoryDAO = new RepositoryDAO();
     // sanity check

@@ -38,7 +38,7 @@ public class RepositoryService
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
         repositoryManagerInstanceId, repositoryPublicId);
     if (repository == null) {
-      repository = new Repository(null, repositoryPublicId, repositoryPublicId);
+      repository = new Repository(null, repositoryPublicId);
     }
     enableRepository(repositoryManagerInstanceId, repository);
   }

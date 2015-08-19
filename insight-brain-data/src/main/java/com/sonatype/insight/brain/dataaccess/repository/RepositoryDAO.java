@@ -41,7 +41,7 @@ public class RepositoryDAO
     return getList(tx, sQuery, repositoryManagerId);
   }
 
-  private Repository getByRepositoryManagerAndPublicId(TransactionContext tx, String repositoryManagerId,
+  private Repository getByRepositoryManagerIdAndPublicId(TransactionContext tx, String repositoryManagerId,
       String publicId)
   {
     String sQuery = "SELECT entity FROM Repository entity" + //
@@ -60,7 +60,7 @@ public class RepositoryDAO
     validateNotEmptyField("name", repository.getName());
     validateNotEmptyField("public ID", repository.getPublicId());
 
-    if (getByRepositoryManagerAndPublicId(tx, repository.getRepositoryManagerId(), repository.getPublicId()) != null) {
+    if (getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(), repository.getPublicId()) != null) {
       throw new DataAccessException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
     }
@@ -73,7 +73,7 @@ public class RepositoryDAO
     validateNotEmptyField("name", repository.getName());
     validateNotEmptyField("public ID", repository.getPublicId());
 
-    Repository existingRepository = getByRepositoryManagerAndPublicId(tx, repository.getRepositoryManagerId(),
+    Repository existingRepository = getByRepositoryManagerIdAndPublicId(tx, repository.getRepositoryManagerId(),
         repository.getPublicId());
     if (existingRepository != null && !existingRepository.getId().equals(repository.getId())) {
       throw new DataAccessException("There is already a repository with public ID '" + repository.getPublicId()

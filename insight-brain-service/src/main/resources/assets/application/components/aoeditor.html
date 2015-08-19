@@ -204,7 +204,7 @@
   </div>
   <div ng-if='ao && ao.selected == null' class='alert alert-error fade in' style='margin:36px;width:50%;max-width:450px'>
     <h4>{{ao.typeName}} Missing</h4>
-    <p>The {{ao.type}} with id <strong>{{ao.getPublicId()}}</strong> has been moved, deleted or the current user does not have permission to view it.</p>
+    <p>The {{ao.type}} with id <strong>{{ao.getPublicId()}}</strong> has been deleted or the current user does not have permission to view it.</p>
   </div>
   <div load-error='error' reload='doLoad()'></div>
   <div class='fade' ng-class='{ in : ao.selected != null }'>

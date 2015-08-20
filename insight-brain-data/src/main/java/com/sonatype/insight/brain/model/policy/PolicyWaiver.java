@@ -33,9 +33,6 @@ public class PolicyWaiver
   @Column(name = "policy_id")
   private String policyId;
 
-  @Column(name = "constraint_id")
-  private String constraintId;
-
   @Column(name = "owner_id")
   private String ownerId;
 
@@ -83,14 +80,6 @@ public class PolicyWaiver
 
   public void setPolicyId(String policyId) {
     this.policyId = policyId;
-  }
-
-  public String getConstraintId() {
-    return constraintId;
-  }
-
-  public void setConstraintId(String constraintId) {
-    this.constraintId = constraintId;
   }
 
   public String getOwnerId() {

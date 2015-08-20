@@ -113,7 +113,6 @@ public class PolicyWaiverResource
     for (PolicyWaiver waiver : waivers) {
       PolicyWaiverDTO dto = new PolicyWaiverDTO();
       dto.setComment(waiver.getComment());
-      dto.setConstraintId(waiver.getConstraintId());
       dto.setCreateTime(waiver.getCreateTime());
       dto.setHash(waiver.getHash());
       dto.setId(waiver.getId());

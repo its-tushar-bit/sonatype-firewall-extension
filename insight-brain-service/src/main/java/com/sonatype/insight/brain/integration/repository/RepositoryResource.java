@@ -31,9 +31,8 @@ public class RepositoryResource
   }
 
   /**
-   * Enable a repository in the server
-   *
-   * @since 1.17
+   * Enable a repository. Both the repository manager and the repository may be known or unknown to the IQ server. If
+   * unknown, new entities are created in the IQ server database.
    */
   @POST
   @Path("{repositoryManagerInstanceId}/{repositoryPublicId}")

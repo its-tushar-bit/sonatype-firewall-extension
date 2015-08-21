@@ -17,7 +17,7 @@ public class PortAllocator
 {
   /**
    * Given we close the socket to get the ephemeral port, it's possible for another call to {@link #findFreePort(int)}
-   * to yield the same port if the previously found free port has not been used just yet. To avoid such unintented port
+   * to yield the same port if the previously found free port has not been used just yet. To avoid such unintended port
    * reuse, we keep a little history of ports that have been delivered and manually exclude them.
    */
   @SuppressWarnings("serial")

@@ -201,7 +201,7 @@
   applyHttpOverride();
 
   if (!window.angular) {
-    loadScript(null, 'assets/lib/angular-<%= config.pom.angularJsVersion %>/angular.min.js', function() {
+    loadScript(null, 'assets/lib/angular/angular.min.js?<%= config.pom.angularJsVersion %>', function() {
       createApplicationIdProvider();
       $.each(scripts, loadScript);
     });

@@ -35,6 +35,13 @@
         styleguide: 'target/styleguide',
         temp: '.tmp'
       },
+      bower: {
+        install: {
+          options: {
+            copy: false
+          }
+        }
+      },
       configure_override: {
         build: {
           config: {
@@ -349,6 +356,7 @@
       'configure_override:develop',
 
       'jshint',
+      'bower:install',
       'clean',
       'copy:build',
       'copy:build_cip',
@@ -368,6 +376,7 @@
 
     grunt.registerTask('livingstyle', [
       'clean:styleguide',
+      'bower:install',
       'sass:build',
       'file-creator:styleguide',
       'styleguide:build',

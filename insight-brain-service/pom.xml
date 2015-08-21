@@ -531,9 +531,9 @@
                 <source>frontend/cip/cip-test-util.js</source>
               </preloadSources>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
+                <include>frontend/assets/lib/jquery/jquery.js</include>
                 <include>frontend/assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular.js</include>
+                <include>frontend/assets/lib/angular/angular.js</include>
                 <include>frontend/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/cip/*.js</include>
                 <include>frontend/assets/lib/ui-bootstrap-tpls-*.min.js</include>
@@ -596,9 +596,9 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
+                <include>frontend/assets/lib/jquery/jquery.js</include>
                 <include>frontend/assets/lib/bootstrap/bootstrap-*.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular.js</include>
+                <include>frontend/assets/lib/angular/angular.js</include>
                 <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>frontend/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/assets/lib/ui-bootstrap-tpls-*.min.js</include>
@@ -607,6 +607,11 @@
                 <include>frontend/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>
+                <exclude>frontend/assets/lib/jquery/grunt.js</exclude>
+                <exclude>frontend/assets/lib/jquery/*.min.js</exclude>
+                <exclude>frontend/assets/lib/jquery/*/**/*.js</exclude>
+                <exclude>frontend/assets/lib/angular/index.js</exclude>
+                <exclude>frontend/assets/lib/angular/*.min.js</exclude>
                 <exclude>frontend/assets/lib/angular-${angularjs.version}/*.min.js</exclude>
                 <exclude>frontend/assets/lib/protovis/protovis-msie.min.js</exclude>
                 <exclude>frontend/assets/brain-client/*.js</exclude>
@@ -679,8 +684,8 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular.min.js</include>
+                <include>frontend/assets/lib/jquery/jquery.js</include>
+                <include>frontend/assets/lib/angular/angular.min.js</include>
                 <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
                 <include>frontend/brain-client/*.js</include>
                 <include>frontend/assets/lib/protovis/protovis.min.js</include>
@@ -728,8 +733,8 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery-*.min.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular.min.js</include>
+                <include>frontend/assets/lib/jquery/jquery.js</include>
+                <include>frontend/assets/lib/angular/angular.min.js</include>
                 <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
                 <include>frontend/brain-client/*.js</include>
                 <include>frontend/assets/version-graph/viewdetails.js</include>
@@ -1021,6 +1026,12 @@
             <id>npm-install</id>
             <goals>
               <goal>npm</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>bower-install</id>
+            <goals>
+              <goal>bower</goal>
             </goals>
           </execution>
           <execution>

@@ -2,3 +2,11 @@
 .tmp/
 node/
 node_modules/
+
+#Bower Managed Assets
+src/main/frontend/assets/lib/angular
+src/main/frontend/assets/lib/bootstrap-sass-official
+src/main/frontend/assets/lib/components-font-awesome
+src/main/frontend/assets/lib/fuse.js
+src/main/frontend/assets/lib/jQuery
+src/main/frontend/assets/lib/ngUpload

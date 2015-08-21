@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -36,19 +37,41 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
-  public void testEnableRepository_Authorized() {
+  public void testEnableRepository_NewRepository_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, "publicId");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testEnableRepository_Unauthenticated() {
+  public void testEnableRepository_NewRepository_Unauthenticated() {
     repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, "publicId");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testEnableRepository_Unauthorized() {
+  public void testEnableRepository_NewRepository_Unauthorized() {
     grantWritePermission();
     repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, "publicId");
+  }
+
+  @Test
+  public void testEnableRepository_ExistingRepository_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testEnableRepository_ExistingRepository_Unauthenticated() {
+    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEnableRepository_ExistingRepository_Unauthorized() {
+    grantWritePermission();
+    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId());
+  }
+
+  private Repository createRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
+    return tempEntity.newRepository(repositoryManager, "publicId");
   }
 }

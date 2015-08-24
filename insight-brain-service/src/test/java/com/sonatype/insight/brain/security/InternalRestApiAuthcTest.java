@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.ide.IdeResource;
 import com.sonatype.insight.brain.integration.ApplicationSummaryResource;
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
+import com.sonatype.insight.brain.integration.repository.RepositoryResource;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.policy.LicensedStagesResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
@@ -189,6 +190,10 @@ public class InternalRestApiAuthcTest
 
     response = request.subpath(ApplicationSummaryResource.SERVICE_PATH).get();
     assertResponseStatus(200, response);
+    assertThat(response.getSessionCookie(), is(nullValue()));
+
+    response = request.subpath(RepositoryResource.SERVICE_PATH, "manager", "repo").post();
+    assertResponseStatus(204, response);
     assertThat(response.getSessionCookie(), is(nullValue()));
 
     response = request.subpath(ApplicationResource.SERVICE_PATH, ApplicationResource.GET_APPLICATION_NAMES).get();

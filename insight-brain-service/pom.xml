@@ -381,8 +381,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.scan</groupId>
-      <artifactId>insight-mock-server</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>hds-mock-server</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

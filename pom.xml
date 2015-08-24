@@ -61,6 +61,7 @@
   </scm>
 
   <modules>
+    <module>hds-mock-server</module>
     <module>insight-json-store</module>
     <module>insight-brain-common</module>
     <module>insight-brain-db</module>
@@ -81,6 +82,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>hds-mock-server</artifactId>
+        <version>1.17.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-client</artifactId>
@@ -342,12 +349,6 @@
         <groupId>com.sonatype.insight.scan</groupId>
         <artifactId>insight-scanner-core</artifactId>
         <version>${insight-scanner.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.scan</groupId>
-        <artifactId>insight-mock-server</artifactId>
-        <version>${insight-scanner.version}</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.scan</groupId>

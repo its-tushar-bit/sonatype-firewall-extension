@@ -13,8 +13,10 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.client.ConfigurationClient;
+import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.rm.rest.RestClient.Repository;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
@@ -27,6 +29,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class RestClientFactoryTest
@@ -101,4 +105,21 @@ public class RestClientFactoryTest
     assertSame(applicationSummaryList, client.getApplicationsForApplicationEvaluation());
   }
 
+  @Test
+  public void testRestClientRepository() throws Exception {
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId), eq(repositoryPublicId));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    repository.enableRepository();
+
+    verify(firewallClient).enableRepository();
+    verifyNoMoreInteractions(firewallClient);
+  }
 }

@@ -30,6 +30,8 @@ public interface RestClient
 
     App forApplication(String appId);
 
+    Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId);
+
     Resource getResource(String path) throws IOException, URISyntaxException;
 
     Resource getResource(String path, Map<String, String[]> params) throws IOException,
@@ -51,5 +53,10 @@ public interface RestClient
 
     PolicyEvaluationResult evaluatePolicies(Stage stage) throws IOException;
 
+  }
+
+  interface Repository
+  {
+    void enableRepository() throws IOException;
   }
 }

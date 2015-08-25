@@ -19,11 +19,13 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient;
+import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
 import com.sonatype.insight.brain.client.ScanClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.App;
+import com.sonatype.insight.rm.rest.RestClient.Repository;
 import com.sonatype.insight.rm.rest.RestClient.Scan;
 
 import org.apache.http.client.HttpResponseException;
@@ -41,6 +43,12 @@ public class RestClientFactory
 
   ConfigurationClient newConfigurationClient(final Configuration config) {
     return new ConfigurationClient(config);
+  }
+
+  FirewallClient newFirewallClient(final Configuration config,
+      final String repositoryManagerInstanceId, final String repositoryPublicId)
+  {
+    return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId);
   }
 
   ScanClient newScanClient(final Configuration config, final String appId) {
@@ -102,7 +110,7 @@ public class RestClientFactory
 
     @Override
     public Resource getResource(String path) throws IOException, URISyntaxException {
-      return getResource(path, Collections.<String, String[]> emptyMap());
+      return getResource(path, Collections.<String, String[]>emptyMap());
     }
 
     @Override
@@ -117,6 +125,33 @@ public class RestClientFactory
       }
 
       return new ResourceClient(config).getResource(builder.build().toString());
+    }
+
+    @Override
+    public Repository forRepository(final String repositoryManagerInstanceId, final String repositoryPublicId) {
+      return new RepositorySpecificClient(config, repositoryManagerInstanceId, repositoryPublicId);
+    }
+  }
+
+  private class RepositorySpecificClient
+      extends BaseClient
+      implements Repository
+  {
+    private final String repositoryManagerInstanceId;
+
+    private final String repositoryPublicId;
+
+    public RepositorySpecificClient(final Configuration config, final String repositoryManagerInstanceId,
+        final String repositoryPublicId)
+    {
+      super(config);
+      this.repositoryManagerInstanceId = repositoryManagerInstanceId;
+      this.repositoryPublicId = repositoryPublicId;
+    }
+
+    @Override
+    public void enableRepository() throws IOException {
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).enableRepository();
     }
   }
 

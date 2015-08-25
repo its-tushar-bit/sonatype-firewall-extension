@@ -132,6 +132,7 @@ public class SecurityModule
     manager.createChain("/rest/integration/repositories/*/*", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
     manager.createChain("/rest/report/*/*/downloadBundle", filters);
+    manager.createChain("/rest/integration/repositories/**", filters);
 
     // for backward-compat, these can still support anonymous access
     filters += (anonymousClientAccessAllowed ? "[permissive]" : "");

@@ -52,7 +52,6 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation.getId(), is(nullValue()));
     dao.insert(policyViolation);
     assertThat(policyViolation.getId(), is(notNullValue()));
-    assertThat(policyViolation.getTime(), is(policyEvaluation.getTime()));
 
     // Read
     policyViolation = dao.getById(policyViolation.getId());

@@ -3,6 +3,373 @@
 */
 
 /*
+  ##Breadcrumb
+
+  ```
+  <div breadcrumb>
+    <p class="nav-crumb">
+      <span>
+        <a href="/dashboard/newest-risk">
+          <i class="sonatype-icons dashboard">&nbsp;</i>Dashboard
+        </a>
+      </span>
+      <span>
+        <span class="last-crumb">/</span>
+        <span class="last-crumb">
+          &nbsp;Newest Risk
+        </span>
+      </span>
+    </p>
+  </div>
+  ```
+*/
+.nav-crumb {
+  vertical-align: middle;
+  margin-top: 0px;
+  padding-top: 16px;
+}
+
+.nav-crumb i:before {
+  font-size: 14px;
+  margin-right: 10px;
+  line-height: 16px;
+  color: $deep-blue;
+}
+
+.nav-crumb i:before:hover {
+  color: $link-blue;
+}
+
+.nav-crumb a {
+  margin-right: 5px;
+  color: $deep-blue;
+}
+
+.nav-crumb a:hover {
+  color: $link-blue;
+}
+
+.nav-crumb .last-crumb {
+  color: #909090;
+}
+
+/*
+  ## Load error
+
+  ```
+  <div class="alert alert-error clm-error">
+    <div>
+      <i class="fa fa-warning"></i>
+      <span>An error occurred loading data. (Unable to reach CLM server)</span>
+    </div>
+    <div>
+      <button type="button" class="btn btn-danger"><i class="fa fa-refresh"></i>Retry</button>
+    </div>
+  </div>
+  ```
+*/
+.alert-error.clm-error {
+  margin: 5px;
+  padding: 12px 8px;
+  border-color: $fail-fg;
+  background-color: $fail-bg;
+  color: $fail-fg;
+  border-radius: 0px;
+
+  .btn {
+    margin-top: 24px;
+  }
+
+  i.fa::before {
+    margin-right: 8px;
+  }
+}
+
+/*
+  ##Organization Tree View
+
+  ```
+    <div class="navigation-container">
+      <div class="tree-view">
+        <div class="tree-view-header">
+          Organizations and Applications
+        </div>
+        <div class="tree-view-filter search input-prepend">
+          <span class="add-on">
+            <i role="button" class="fa fa-filter"></i>
+          </span>
+          <input type="text" placeholder="App or Org Name / ID">
+        </div>
+        <div class="tree-view-root-organization-group">
+          <a class="tree-view-item selected">
+            <i class="fa fa-lg fa-globe tree-view-icon"></i>
+            Root Organization
+            <div class="tree-view-new-organization">
+              <button class="btn">
+                <i class="fa fa-plus"></i>
+                New Organization
+              </button>
+            </div>
+          </a>
+        </div>
+        <div class="tree-view-organization-group">
+          <a class="tree-view-item">
+            <div class="twisty-container">
+              <span class="twisty expand"></span>
+            </div><!--
+           --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
+           -->Sonatype
+          </a>
+        </div>
+        <div class="tree-view-organization-group">
+          <a class="tree-view-item selected">
+            <div class="twisty-container">
+              <span class="twisty collapse"></span>
+            </div><!--
+           --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
+           -->Sonatype
+          </a>
+          <div class="tree-view-new-application">
+            <button class="btn">
+              <i class="fa fa-plus"></i>
+              New Application
+            </button>
+          </div>
+          <a class="tree-view-item">
+            <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
+         -->CLM
+          </a>
+        </div>
+      </div>
+    </div>
+  ```
+*/
+.tree-view {
+  margin-top: 16px;
+  margin-left: 8px;
+  margin-right: 8px;
+
+  .tree-view-header {
+    @extend h3;
+    @extend .semi-bold;
+    color: $slate;
+    margin-bottom: 16px;
+  }
+
+  .tree-view-filter {
+    margin-bottom: 12px;
+    display: block;
+
+    input {
+      width: calc(100% - 44px);
+    }
+  }
+
+  .tree-view-new-organization, .tree-view-new-application {
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .tree-view-new-application {
+    margin-right: 8px;
+  }
+
+  .tree-view-organization-group, .tree-view-root-organization-group {
+    .tree-view-icon {
+      margin-right: 8px;
+      margin-left: 8px;
+
+      &.fa-terminal {
+        margin-left: 48px;
+      }
+
+      &.fa-globe {
+        margin-left: 0px;
+      }
+
+      &.icon-12px {
+        line-height: 12px;
+        font-size: 12px;
+        width: 16px;
+        height: 16px;
+        text-align: center;
+
+        &:before {
+          vertical-align: -2px;
+        }
+      }
+    }
+
+    a.tree-view-item {
+      @extend h4;
+      color: $slate;
+      text-transform: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      display: block;
+      margin-bottom: 0px;
+      margin-left: -8px;
+      margin-right: -8px;
+      padding-top: 7px;
+      padding-bottom: 7px;
+      padding-left: 7px;
+
+      border-top: 1px solid $grey-2;
+      border-bottom: 1px solid $grey-2;
+
+      &:hover {
+        text-decoration: none;
+      }
+
+      &.selected {
+        color: $off-black;
+        background: $off-white;
+        border-top: 1px solid $grey-4;
+        border-bottom: 1px solid $grey-4;
+        padding-top: 7px;
+        padding-bottom: 7px;
+      }
+
+      &.selected, &.childSelected {
+        .twisty.collapse {
+          border-top-color: $grey-4;
+        }
+      }
+
+      &.disabled {
+        color: $grey-4;
+        cursor: default;
+
+        .inverse {
+          background-color: $grey-4;
+        }
+      }
+
+      &:last-of-type:not(:first-of-type) {
+        margin-bottom: 8px;
+      }
+    }
+
+    .twisty-container {
+      display: inline-block;
+
+      .twisty {
+        content: "";
+        -webkit-font-smoothing: antialiased;
+        display: inline-block;
+        width: 0;
+        cursor: pointer;
+        vertical-align: text-top;
+
+        &.empty {
+          width: 16px;
+          height: 16px;
+        }
+
+        &.collapse {
+          border-top: 5px solid $slate;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          margin: 6px 3px;
+        }
+
+        &.expand {
+          border-left: 5px solid $slate;
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          margin: 3px 8px 3px 3px;
+        }
+      }
+    }
+  }
+}
+
+/*
+  ##Tooltips
+  ```
+    <div class="tooltip top fade in" style="display: block;">
+      <div class="tooltip-arrow"></div>
+      <div class="tooltip-inner">Tooltip Content</div>
+    </div>
+  ```
+*/
+.tooltip-arrow {
+  .tooltip.top & {
+    border-top-color: $off-black;
+  }
+
+  .tooltip.bottom & {
+    border-bottom-color: $off-black;
+  }
+
+  .tooltip.right & {
+    border-right-color: $off-black;
+  }
+
+  .tooltip.left & {
+    border-left-color: $off-black;
+  }
+
+  &:after {
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    top: 0;
+    bottom: 0;
+    content: "";
+    border: 5px solid transparent;
+
+    .tooltip.top &, .tooltip.bottom & {
+      left: 50%;
+      margin-left: -5px;
+    }
+
+    .tooltip.top & {
+      border-top-color: $slate;
+      border-bottom-width: 0;
+      margin-top: -6px;
+    }
+
+    .tooltip.bottom & {
+      border-bottom-color: $slate;
+      border-top-width: 0;
+      margin-top: 1px;
+    }
+
+    .tooltip.right &, .tooltip.left & {
+      top: 50%;
+      margin-top: -5px;
+    }
+
+    .tooltip.right & {
+      border-right-color: $slate;
+      border-left-width: 0;
+      margin-left: 1px;
+    }
+
+    .tooltip.left & {
+      border-left-color: $slate;
+      border-right-width: 0;
+      right: 1px;
+    }
+  }
+}
+
+.tooltip.in {
+  opacity: 1;
+}
+
+.tooltip-inner {
+  color: $off-white;
+  border: 1px solid $off-black;
+  background-color: $slate;
+  border-radius: 0;
+}
+
+/*
   ## Flexbox Implementation
 
   This is used in place of flexbox in order to support older browsers. Used to align content to the right when it fits,
@@ -85,4 +452,30 @@
       font-size: 11px;
     }
   }
+}
+
+/*
+  ##Owner Icons
+  ```
+    <img src='' class='owner-icon-large'><img src='' class='owner-icon'><img src='' class='owner-icon-tiny'>
+  ```
+*/
+@mixin owner-icon-template($size) {
+  float: left;
+  height: $size;
+  margin-right: 12px;
+  width: $size;
+  vertical-align: top;
+}
+
+.owner-icon {
+  @include owner-icon-template(20px);
+}
+
+.owner-icon-large {
+  @include owner-icon-template(26px);
+}
+
+.owner-icon-tiny {
+  @include owner-icon-template(16px);
 }

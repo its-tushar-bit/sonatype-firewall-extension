@@ -59,7 +59,7 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation, is(notNullValue()));
     assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
         "acacacacacac", componentIdentifier, Lists.newArrayList("pathnames string"), policyEvaluation.getTime(),
-        policyViolation);
+        null /* actionTypeId */, policyViolation);
 
     policyViolation.setActionTypeId(Action.ID_FAIL);
     dao.update(policyViolation);
@@ -69,8 +69,7 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation, is(notNullValue()));
     assertPolicyViolation(policyEvaluation.getId(), policy.getId(), policy.getName(), 5, PolicyThreatCategory.LICENSE,
         "acacacacacac", componentIdentifier, Lists.newArrayList("pathnames string"), policyEvaluation.getTime(),
-        policyViolation);
-    assertThat(policyViolation.getActionTypeId(), is(Action.ID_FAIL));
+        Action.ID_FAIL, policyViolation);
 
     // Delete
     dao.delete(policyViolation);
@@ -81,7 +80,7 @@ public class PolicyViolationDAOTest
 
   private void assertPolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
       PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      List<String> pathnames, Date time, PolicyViolation actual)
+      List<String> pathnames, Date time, String actionTypeId, PolicyViolation actual)
   {
     assertThat(actual.getPolicyEvaluationId(), is(policyEvaluationId));
     assertThat(actual.getPolicyId(), is(policyId));
@@ -92,6 +91,7 @@ public class PolicyViolationDAOTest
     assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getPathnames(), is(pathnames));
     assertThat(actual.getTime(), is(time));
+    assertThat(actual.getActionTypeId(), is(actionTypeId));
   }
 
   @Test

@@ -968,6 +968,17 @@
               <destinationFolder>${wro4j.brain.resources}assets/version-graph/</destinationFolder>
             </configuration>
           </execution>
+          <execution>
+            <id>audit-report</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>audit-report</targetGroups>
+              <destinationFolder>${wro4j.brain.resources}audit-report/</destinationFolder>
+            </configuration>
+          </execution>
         </executions>
         <configuration>
           <minimize>${wro4j.minimize}</minimize>

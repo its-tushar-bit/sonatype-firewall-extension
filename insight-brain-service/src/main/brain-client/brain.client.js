@@ -7,7 +7,7 @@ var clmBuildTimestamp = '${build.timestamp}';
 /*global window, $ */
 /*jslint plusplus:true */
 (function() {
-  "use strict";
+  'use strict';
 
   function toParams(componentType, hash, matchState, proprietary, coordinates) {
     var params = {};
@@ -47,8 +47,8 @@ var clmBuildTimestamp = '${build.timestamp}';
     };
   }
 
-  var features = ["policy", "labels", "release-graph", "policy-violations", "notification", "reevaluate-policy",
-                  "component-identifier"],// Lowercase
+  var features = ['policy', 'labels', 'release-graph', 'policy-violations', 'notification', 'reevaluate-policy',
+                  'component-identifier'],// Lowercase
       param = window.$ ? $.param : function(obj) {
         var string = '',
             field;
@@ -66,11 +66,11 @@ var clmBuildTimestamp = '${build.timestamp}';
           for (var i = 0; i < scripts.length; i++) {
             if (scripts[i].src) {
               index = scripts[i].src.indexOf('policy-assets/js/brain.client.js');
-              if (index == -1) {
+              if (index === -1) {
                 index = scripts[i].src.indexOf('assets/js/brain.client.js');
               }
 
-              if (index != -1) {
+              if (index !== -1) {
                 return scripts[i].src.substring(0, index);
               }
             }
@@ -86,14 +86,14 @@ var clmBuildTimestamp = '${build.timestamp}';
      * @since version 1.12
      * @param newBasePath - the new BasePath
      */
-    "setBasePath": function(newBasePath){
+    'setBasePath': function(newBasePath){
       basePath = newBasePath;
     },
     /**
      * Check if the Brain instance supports a feature
      * @since version 1.1
      */
-    "hasFeature": function(feature) {
+    'hasFeature': function(feature) {
       var i;
       feature = feature.toLowerCase();
       for (i = 0; i < features.length; i++) {
@@ -114,8 +114,8 @@ var clmBuildTimestamp = '${build.timestamp}';
      * Get the Brain's version.
      * @since version 1.1
      */
-    "getVersion": function() {
-      return "${project.version}";
+    'getVersion': function() {
+      return '${project.version}';
     },
 
     /**

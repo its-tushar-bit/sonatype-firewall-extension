@@ -60,6 +60,8 @@ public class InsightBrainService
 
   public static final String APPLICATION_ASSET_PATH = "/application-assets/";
 
+  public static final String AUDIT_REPORT_ASSET_PATH = "/audit-report/";
+
   public static final String BRAIN_ASSET_PATH = "/assets/";
 
   public static final String POLICY_ASSET_PATH = "/policy-assets/";
@@ -201,6 +203,7 @@ public class InsightBrainService
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
     bootstrap.addBundle(new AssetsBundle("/assets/application/", APPLICATION_ASSET_PATH, "index.html"));
+    bootstrap.addBundle(new AssetsBundle("/assets/audit-report/", AUDIT_REPORT_ASSET_PATH, "index.html"));
     bootstrap.addBundle(new AssetsBundle("/assets/assets/", BRAIN_ASSET_PATH, "index.html"));
     bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html"));
     bootstrap.addBundle(new AssetsBundle("/assets/organization/", ORGANIZATION_ASSET_PATH));

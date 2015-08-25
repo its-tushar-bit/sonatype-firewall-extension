@@ -9,6 +9,9 @@
 
   function getBaseUrl() {
     var idx = window.location.href.indexOf('/rest/report/');
+    if (idx === -1) {
+      idx = window.location.href.indexOf('/audit-report/');
+    }
     return window.location.href.substring(0, idx + 1);
   }
 

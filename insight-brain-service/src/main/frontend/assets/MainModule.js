@@ -31,14 +31,25 @@
         controller: angular.noop
       });
 
-      var fn = function($rootScope) {
+      var unknownErrorFunction = function($rootScope) {
         if ($rootScope.initialized) {
           $rootScope.error = 'Unknown Address';
         }
       };
-      fn.$inject = ['$rootScope'];
+      var removeErrorFunction = function($rootScope) {
+        if ($rootScope.error) {
+          delete $rootScope.error;
+        }
+      };
+      unknownErrorFunction.$inject = removeErrorFunction.$inject = ['$rootScope'];
+
+      // First remove any existing routing errors
+      $urlRouterProvider.rule(function ($injector) {
+        $injector.invoke(removeErrorFunction);
+      });
+      // Show unknown routing error if route is unknown
       $urlRouterProvider.otherwise(function($injector) {
-        $injector.invoke(fn);
+        $injector.invoke(unknownErrorFunction);
       });
     }
   ]).config([
@@ -132,6 +143,12 @@
         $rootScope.$on('logout', function() {
           $rootScope.username = null;
           $window.location.assign('../../../../');
+        });
+
+        $rootScope.$on('$stateChangeSuccess', function() {
+          if ($rootScope.error) {
+            delete $rootScope.error;
+          }
         });
 
         $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {

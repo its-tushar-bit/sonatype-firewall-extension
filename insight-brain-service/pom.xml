@@ -659,7 +659,9 @@
               </sourceIncludes>
               <sourceExcludes>
                 <exclude>wro4j/cip/*.js</exclude>
+                <exclude>wro4j/audit-report/**/*.js</exclude>
                 <exclude>wro4j/lib/angular-${angularjs.version}/*.min.js</exclude>
+                <exclude>wro4j/lib/hogan.js</exclude>
                 <exclude>resources/assets/assets/version-graph/protovis-msie.min.js</exclude>
                 <exclude>wro4j/version-graph/*.js</exclude>
               </sourceExcludes>

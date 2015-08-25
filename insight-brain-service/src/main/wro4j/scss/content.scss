@@ -337,3 +337,87 @@
   border-radius: 0;
   opacity: 1;
 }
+/*
+  ## Flexbox Implementation
+
+  This shim allows flexbox like functionality for older browsers. Used to align content to the right when it fits,
+  while aligning left when it falls to the next line.
+
+  Source: http://jsfiddle.net/rasmusfl0e/ao989zs7/ via https://css-tricks.com/useful-flexbox-technique-alignment-shifting-wrapping/#comment-1595296
+
+  ```
+    <div class="flexbox-container">
+      <span>Left aligned content</span>
+      <span>Conditionally right aligned content.</span>
+    </div>
+  ```
+*/
+.flexbox-container {
+  text-align: justify;
+  line-height: 0;
+
+  span {
+    white-space: nowrap;
+    text-align: left;
+    display: inline-block;
+    line-height: normal;
+  }
+
+  &:after {
+    display: inline-block;
+    width: 100%;
+    content: "";
+    vertical-align: top;
+  }
+}
+/*
+  ## Select List Item
+
+  ```
+    <div class="large-select-list-item">
+      <div class="large-select-list-item-icon">
+        <i class="icon-minus-sign"></i>
+      </div>
+      <div class="large-select-list-item-content">
+        <div class="flexbox-container">
+          <span ng-bind-html="user.displayName">Admin BuiltIn</span>
+          <span class="large-select-list-item-detail">admin</span>
+        </div>
+        <div class="flexbox-container">
+          <span class="large-select-list-item-detail">admin@localhost</span>
+          <span class="large-select-list-item-detail">CLM</span>
+        </div>
+      </div>
+    </div>
+  ```
+*/
+.large-select-list-item {
+  cursor: pointer;
+  font-size: 13px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 2px;
+  border-bottom: 1px solid $grey-2;
+
+  .large-select-list-item-icon {
+    float: left;
+
+    i {
+      margin-top: 2px;
+      margin-left: 3px;
+      margin-right: 3px;
+    }
+  }
+
+  &:hover {
+    background-color: $grey-4;
+  }
+
+  .large-select-list-item-content {
+    margin-left: 24px;
+
+    .large-select-list-item-detail {
+      font-size: 11px;
+    }
+  }
+}

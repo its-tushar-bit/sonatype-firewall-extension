@@ -24,30 +24,44 @@ class RoleModule
     appliedMembersList(required: false) { $('div[app-security-editor] .selectList-large:first-child') }
     appliedMembers(required: false) { appliedMembersList.find('.large-select-list-item') }
     appliedMemberNames(required: false) {
-      appliedMembers.
-          find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)')
+      appliedMembers.find('span:not(.large-select-list-item-detail):not(.ui-match)')
     }
     appliedMember(required: false) { displayName ->
-      appliedMembers.
-          has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)',
-              text: displayName)
+      appliedMembers.has('span:not(.large-select-list-item-detail):not(.ui-match)', text: displayName)
     }
-    appliedMemberEmail(required: false) { appliedMembers.find('.large-select-list-item-detail') }
-    appliedMemberRealm(required: false) { appliedMembers.find('.large-select-list-item-right-detail') }
+    appliedMemberUsername(required: false) {
+      appliedMembers.
+          find('.large-select-list-item-content > .flexbox-container:first-child > .large-select-list-item-detail')
+    }
+    appliedMemberEmail(required: false) {
+      appliedMembers.find(
+          '.large-select-list-item-content > .flexbox-container:last-child > .large-select-list-item-detail:first-child')
+    }
+    appliedMemberRealm(required: false) {
+      appliedMembers.find(
+          '.large-select-list-item-content > .flexbox-container:last-child > .large-select-list-item-detail:last-child')
+    }
 
     availableMembersList(required: false) { $('div[app-security-editor] .selectList-large:last-child') }
     availableMembers(required: false) { availableMembersList.find('.large-select-list-item') }
     availableMemberNames(required: false) {
-      availableMembers.
-          find('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)')
+      availableMembers.find('span:not(.large-select-list-item-detail):not(.ui-match)')
     }
     availableMember(required: false) { displayName ->
-      availableMembers.
-          has('span:not(.large-select-list-item-detail):not(.large-select-list-item-right-detail):not(.ui-match)',
-              text: displayName)
+      availableMembers.has('span:not(.large-select-list-item-detail):not(.ui-match)', text: displayName)
     }
-    availableMemberEmail(required: false) { availableMembers.find('.large-select-list-item-detail') }
-    availableMemberRealm(required: false) { availableMembers.find('.large-select-list-item-right-detail') }
+    availableMemberUsername(required: false) {
+      availableMembers.
+          find('.large-select-list-item-content > .flexbox-container:first-child > .large-select-list-item-detail')
+    }
+    availableMemberEmail(required: false) {
+      availableMembers.find(
+        '.large-select-list-item-content > .flexbox-container:last-child > .large-select-list-item-detail:first-child')
+    }
+    availableMemberRealm(required: false) {
+      availableMembers.find(
+          '.large-select-list-item-content > .flexbox-container:last-child > .large-select-list-item-detail:last-child')
+    }
 
     confirmButton(required: false) { $('button.btn-primary') }
 

@@ -251,17 +251,19 @@
       },
       template :
         '<div class="large-select-list-item" ng-class="{ active : selected() }">' +
-          '<div class="floatLeft">' +
+          '<div class="large-select-list-item-icon">' +
             '<i class="{{iconClass}}"></i>' +
           '</div>' +
           '<div class="large-select-list-item-content">' +
-            '<span ng-bind-html="user.displayName"></span>' +
-            '<div>' +
-              '<span class="large-select-list-item-detail">{{user.email}}</span>' +
-              '<span class="large-select-list-item-right-detail">{{user.realm}}</span>' +
+            '<div class="flexbox-container">\n' +
+              '<span ng-bind-html="user.displayName"></span>\n' +
+              '<span class="large-select-list-item-detail">{{user.internalName}}</span>\n' +
+            '</div>\n' +
+            '<div class="flexbox-container">\n' +
+              '<span class="large-select-list-item-detail">{{user.email}}</span>\n' +
+              '<span class="large-select-list-item-detail">{{user.realm}}</span>\n' +
             '</div>' +
           '</div>' +
-          '<div style="clear:both"></div>' +
         '</div>'
     };
   });

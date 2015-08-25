@@ -130,6 +130,7 @@ class AppSecurityManagementSpec
     then: 'the entered group is added to the applied list'
       roleRow.appliedMembers.size() == 1
       roleRow.appliedMemberNames*.text() == ['admin']
+      roleRow.appliedMemberUsername*.text() == ['admin']
       roleRow.appliedMemberEmail*.text() == ['']
       roleRow.appliedMemberRealm*.text() == ['LDAP']
 

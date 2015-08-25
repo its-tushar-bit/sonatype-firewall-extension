@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -100,6 +101,7 @@ public class PolicyViolationTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
     }
   }
 
@@ -112,6 +114,7 @@ public class PolicyViolationTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
     }
   }
 
@@ -124,6 +127,7 @@ public class PolicyViolationTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
     }
   }
 
@@ -136,6 +140,7 @@ public class PolicyViolationTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("ConstraintFactsJson cannot be null or empty."));
     }
   }
 
@@ -149,6 +154,7 @@ public class PolicyViolationTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("ConstraintFacts cannot be null or empty."));
     }
   }
 
@@ -162,6 +168,7 @@ public class PolicyViolationTest
       fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException expected) {
+      assertThat(expected.getMessage(), is("ConstraintFacts cannot be null or empty."));
     }
   }
 

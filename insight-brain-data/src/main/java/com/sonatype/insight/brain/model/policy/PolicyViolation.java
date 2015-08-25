@@ -228,7 +228,7 @@ public class PolicyViolation
 
   public void setConstraintFactsJson(String constraintFactsJson) {
     if (StringUtils.isEmpty(constraintFactsJson)) {
-      throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty");
+      throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
     }
     this.constraintFactsJson = constraintFactsJson;
     constraintFacts = null;
@@ -236,7 +236,7 @@ public class PolicyViolation
 
   public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
     if (constraintFacts == null || constraintFacts.isEmpty()) {
-      throw new IllegalArgumentException("ConstraintFacts cannot be null or empty");
+      throw new IllegalArgumentException("ConstraintFacts cannot be null or empty.");
     }
 
     this.constraintFacts = constraintFacts;

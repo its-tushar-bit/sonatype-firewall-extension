@@ -129,10 +129,9 @@ public class SecurityModule
     // client integrations don't have CSRF tokens and need access via explicit auth
     String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic";
     manager.createChain("/rest/ide/scan/**", filters);
-    manager.createChain("/rest/integration/repositories/*/*", filters);
+    manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);
     manager.createChain("/rest/report/*/*/downloadBundle", filters);
-    manager.createChain("/rest/integration/repositories/**", filters);
 
     // for backward-compat, these can still support anonymous access
     filters += (anonymousClientAccessAllowed ? "[permissive]" : "");

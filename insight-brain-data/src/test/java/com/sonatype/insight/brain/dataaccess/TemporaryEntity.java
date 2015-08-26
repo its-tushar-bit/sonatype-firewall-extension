@@ -39,7 +39,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.WaivedPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -74,9 +76,11 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -162,6 +166,10 @@ public class TemporaryEntity
   private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
   private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   private Collection<Application> apps;
 
@@ -978,10 +986,34 @@ public class TemporaryEntity
     return repository;
   }
 
+  public Repository newRepository(String repositoryManagerInstanceId, String publicId) {
+    RepositoryManager repositoryManager = newRepositoryManager(repositoryManagerInstanceId);
+    Repository repository = new Repository(repositoryManager.getId(), publicId);
+    repositoryDAO.insert(repository);
+    return repository;
+  }
+
   public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean enabled) {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setEnabled(enabled);
     repositoryDAO.insert(repository);
     return repository;
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId)
+  {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, "path", new Date(), "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
+        "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
+    repositoryPolicyViolationDAO.insert(policyViolation);
+    return policyViolation;
   }
 }

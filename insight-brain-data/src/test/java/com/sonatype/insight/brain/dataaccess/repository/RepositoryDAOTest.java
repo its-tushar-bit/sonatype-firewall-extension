@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
@@ -127,5 +130,25 @@ public class RepositoryDAOTest
       assertEquals("There is already a repository with public ID 'SomePublicID1' for the same repository manager.",
           expected.getMessage());
     }
+  }
+
+  @Test
+  public void testCascadeDeleteToRepositoryComponents() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+
+    dao.delete(repository);
+
+    assertThat(new RepositoryComponentDAO().getById(repositoryComponent.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testCascadeDeleteToRepositoryPolicyViolations() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+
+    dao.delete(repository);
+
+    assertThat(new RepositoryPolicyViolationDAO().getById(policyViolation.getId()), is(nullValue()));
   }
 }

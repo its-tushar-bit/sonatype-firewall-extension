@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -90,6 +93,21 @@ public class RepositoryDAO
   @Override
   public void delete(TransactionContext tx, Repository repository) {
     long start = System.currentTimeMillis();
+
+    // Cascade to repository components
+    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(tx, repository.getId());
+    for (RepositoryComponent repositoryComponent : repositoryComponents) {
+      repositoryComponentDAO.delete(tx, repositoryComponent);
+    }
+
+    // Cascade to repository policy violations
+    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(tx,
+        repository.getId());
+    for (RepositoryPolicyViolation policyViolation : policyViolations) {
+      repositoryPolicyViolationDAO.delete(tx, policyViolation);
+    }
 
     super.delete(tx, repository);
 

@@ -27,10 +27,9 @@ class PolicyWaiverEvaluator
    * Splits the facts from the input list into those that are subject to a policy waiver for the specified application
    * and those that are not.
    */
-  public PolicyWaiverResults applyWaivers(String applicationId, List<MatchFact> facts) {
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getApplicableByOwnerId(applicationId);
-    log.debug("Applying {} waivers to {} facts for application ID {}", policyWaivers.size(), facts.size(),
-        applicationId);
+  public PolicyWaiverResults applyWaivers(String ownerId, List<MatchFact> facts) {
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getApplicableByOwnerId(ownerId);
+    log.debug("Applying {} waivers to {} facts for owner ID {}", policyWaivers.size(), facts.size(), ownerId);
     PolicyWaiversMap policyWaiversMap = new PolicyWaiversMap(policyWaivers);
 
     PolicyWaiverResults results = new PolicyWaiverResults();

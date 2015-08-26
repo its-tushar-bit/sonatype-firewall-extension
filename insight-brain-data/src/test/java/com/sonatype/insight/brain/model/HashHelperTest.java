@@ -22,7 +22,7 @@ public class HashHelperTest
 
   @Before
   public void preconditions() {
-    assertTrue(longHash.length() > 20);
+    assertTrue(longHash.length() > HashHelper.MAX_LENGTH);
   }
 
   @Test

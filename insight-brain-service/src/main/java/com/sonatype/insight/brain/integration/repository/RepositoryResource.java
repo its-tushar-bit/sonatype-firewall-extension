@@ -13,6 +13,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+
 /**
  * @since 1.17.0
  */
@@ -20,7 +22,9 @@ import javax.ws.rs.core.MediaType;
 @Path(RepositoryResource.SERVICE_PATH)
 public class RepositoryResource
 {
-  public static final String SERVICE_PATH = "rest/integration/repositories";
+  public static final String SERVICE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
+
+  public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
 
   private final RepositoryService repositoryService;
 
@@ -35,11 +39,22 @@ public class RepositoryResource
    * unknown, new entities are created in the IQ server database.
    */
   @POST
-  @Path("{repositoryManagerInstanceId}/{repositoryPublicId}")
   @Consumes(MediaType.APPLICATION_JSON)
   public void enableRepository(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId)
   {
     repositoryService.enableRepository(repositoryManagerInstanceId, repositoryPublicId);
+  }
+
+  @POST
+  @Path(EVALUATE_COMPONENTS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void evaluateComponents(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  {
+    repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequestList);
   }
 }

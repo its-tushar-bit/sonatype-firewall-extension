@@ -23,7 +23,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -122,14 +122,14 @@ public class ComponentDetailsLoader
    * Augments the supplied component details with vulnerability and license overrides. The returned object is a
    * transcript of the final component details suitable for policy evaluation.
    */
-  public Component augmentComponentDetails(Application application, ComponentDetails componentDetails)
+  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails)
       throws IOException
   {
     // Load the augmented data for licenses and security vulnerabilities
-    ArrayNode svData = AugmentUtil.getSVData(work, application.getId(), componentDetails.getComponentIdentifier(),
+    ArrayNode svData = AugmentUtil.getSVData(work, owner.getId(), componentDetails.getComponentIdentifier(),
         componentDetails.getSecurityVulnerabilities());
     ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(application, componentDetails, svData);
+    Component component = componentDAO.getComponent(owner, componentDetails, svData);
 
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {

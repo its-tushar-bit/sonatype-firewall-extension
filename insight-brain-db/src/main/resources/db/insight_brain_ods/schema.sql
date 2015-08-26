@@ -435,6 +435,7 @@ CREATE TABLE repository (
 CREATE TABLE repository_component (
   repository_component_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
+  pathname varchar(1000) NOT NULL, 
   time datetime NOT NULL,
   hash varchar(20) NOT NULL,
   component_id_format varchar(10),
@@ -447,13 +448,14 @@ CREATE TABLE repository_component (
   unquarantine_time datetime,
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
   CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
-  CONSTRAINT repository_component_uk UNIQUE KEY (repository_id, hash, component_id_coordinates_json)
+  CONSTRAINT repository_component_uk UNIQUE KEY (repository_id, pathname)
 );
 CREATE INDEX repository_component_hash_idx ON repository_component(hash);
 
 CREATE TABLE repository_policy_violation (
   repository_policy_violation_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
+  pathname varchar(1000) NOT NULL, 
   time datetime NOT NULL,
   policy_id varchar(50) NOT NULL,
   policy_name varchar(60) NOT NULL, -- the policy name as it was when the policy violation was generated

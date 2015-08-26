@@ -54,8 +54,8 @@ public class ComponentDAO
     component.setObservedLicenseIds(multiLicenseNamesToLicenseIds(observedLicenseNames));
   }
 
-  private void loadLicenseOverride(Application application, Component component) {
-    LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(),
+  private void loadLicenseOverride(Owner owner, Component component) {
+    LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(owner.getId(),
         component.getComponentIdentifier());
 
     if (licenseOverride != null) {
@@ -210,7 +210,7 @@ public class ComponentDAO
     return result;
   }
 
-  public Component getComponent(Application application, ComponentInfo componentInfo, ArrayNode jsonSVNode)
+  public Component getComponent(Owner owner, ComponentInfo componentInfo, ArrayNode jsonSVNode)
   {
     Component component = new Component();
 
@@ -228,15 +228,15 @@ public class ComponentDAO
     }
 
     if (component.getComponentIdentifier() != null) {
-      loadLicenseOverride(application, component);
+      loadLicenseOverride(owner, component);
       component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getDeclaredLicenseIds()));
       component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(componentInfo.getObservedLicenseIds()));
-      loadLicenseThreatGroups(application.getId(), component);
+      loadLicenseThreatGroups(owner.getId(), component);
     }
 
     addSecurityVulnerabilities(component, componentInfo.getSecurityVulnerabilities(), jsonSVNode);
 
-    loadComponentLabels(application.getId(), component, new ComponentLabelDAO());
+    loadComponentLabels(owner.getId(), component, new ComponentLabelDAO());
 
     return component;
   }
@@ -288,14 +288,14 @@ public class ComponentDAO
     }
   }
 
-  private void loadComponentLabels(String applicationId, Component component, ComponentLabelDAO componentLabelDAO) {
-    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(applicationId, component.getHash());
+  private void loadComponentLabels(String ownerId, Component component, ComponentLabelDAO componentLabelDAO) {
+    List<ComponentLabel> componentLabels = componentLabelDAO.getByOwnerIdAndHash(ownerId, component.getHash());
     for (ComponentLabel componentLabel : componentLabels) {
       component.addLabelId(componentLabel.getLabelId());
     }
   }
 
-  public void loadLicenseThreatGroups(String applicationId, Component component) {
+  public void loadLicenseThreatGroups(String ownerId, Component component) {
     // Gather all license ids
     Set<String> licenseIds = new LinkedHashSet<>();
     if (!component.getLicenseOverrideIds().isEmpty()) {
@@ -308,7 +308,7 @@ public class ComponentDAO
 
     Set<String> unassignedLicenseIds = new LinkedHashSet<>(licenseIds);
     // Gather all license threat groups from the application on up the organization hierarchy
-    for (Owner owner : ownerDAO.walkHierarchy(applicationId)) {
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       loadLicenseThreatGroups(component, unassignedLicenseIds, licenseIds, owner.getId());
     }
 

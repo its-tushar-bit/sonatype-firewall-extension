@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.policy;
+
+import java.util.List;
+
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.dataaccess.TransactionContext;
+
+/**
+ * @since 1.17
+ */
+public class RepositoryPolicyViolationDAO
+    extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
+{
+  @Override
+  protected RepositoryPolicyViolation getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.id=?1";
+    return get(tx, sQuery, id);
+  }
+
+  public List<RepositoryPolicyViolation> getLastByRepositoryIdAndPathname(String repositoryId, String pathname)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastByRepositoryIdAndPathname(tx, repositoryId, pathname);
+    }
+  }
+
+  public List<RepositoryPolicyViolation> getLastByRepositoryIdAndPathname(TransactionContext tx, String repositoryId,
+      String pathname)
+  {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.pathname=?2" + //
+        " AND entity.latestEvaluation=true";
+    return getList(tx, sQuery, repositoryId, pathname);
+  }
+
+  public List<RepositoryPolicyViolation> getByRepositoryId(String repositoryId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRepositoryId(tx, repositoryId);
+    }
+  }
+
+  public List<RepositoryPolicyViolation> getByRepositoryId(TransactionContext tx, String repositoryId) {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1";
+    return getList(tx, sQuery, repositoryId);
+  }
+}

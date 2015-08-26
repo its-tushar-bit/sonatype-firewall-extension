@@ -67,16 +67,16 @@ public class ComponentPolicyEvaluator
 
   private final PolicyWaiverEvaluator waiverEvaluator = new PolicyWaiverEvaluator();
 
-  public List<PolicyAlert> evaluate(String applicationId, Stage stage, List<Component> components)
+  public List<PolicyAlert> evaluate(String ownerId, Stage stage, List<Component> components)
   {
-    return evaluate(applicationId, stage, components, false /* forMonitoring */).getActiveAlerts();
+    return evaluate(ownerId, stage, components, false /* forMonitoring */).getActiveAlerts();
   }
 
-  public PolicyResults evaluate(String applicationId, Stage stage, List<Component> components,
+  public PolicyResults evaluate(String ownerId, Stage stage, List<Component> components,
       boolean forMonitoring)
   {
-    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(applicationId);
-    return evaluate(applicationId, stage, policies, components, forMonitoring);
+    List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(ownerId);
+    return evaluate(ownerId, stage, policies, components, forMonitoring);
   }
 
   // Package visibility for tests only
@@ -86,13 +86,13 @@ public class ComponentPolicyEvaluator
     return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
   }
 
-  private PolicyResults evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
+  private PolicyResults evaluate(final String ownerId, final Stage stage, final List<Policy> policies,
       final List<Component> components, boolean forMonitoring)
   {
     final long start = System.currentTimeMillis();
 
     List<MatchFact> facts = evaluateFacts(policies, components);
-    PolicyWaiverResults policyWaiverResults = waiverEvaluator.applyWaivers(applicationId, facts);
+    PolicyWaiverResults policyWaiverResults = waiverEvaluator.applyWaivers(ownerId, facts);
     PolicyResults policyResults = new PolicyResults();
     toPolicyResults(policies, policyWaiverResults.getActiveFacts(), stage, forMonitoring, policyResults);
     toPolicyResults(policies, policyWaiverResults.getWaivedFacts(), stage, forMonitoring, policyResults);

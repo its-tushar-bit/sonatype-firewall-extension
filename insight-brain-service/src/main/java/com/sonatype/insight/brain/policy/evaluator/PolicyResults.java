@@ -56,7 +56,7 @@ public class PolicyResults
   /**
    * Gets the policy waiver for a waived component fact.
    */
-  PolicyWaiver getPolicyWaiver(ComponentFact componentFact) {
+  public PolicyWaiver getPolicyWaiver(ComponentFact componentFact) {
     return policyWaiversByComponentFacts.get(componentFact);
   }
 }

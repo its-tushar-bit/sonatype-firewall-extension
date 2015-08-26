@@ -18,6 +18,8 @@ import org.hamcrest.core.IsNull;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class ComponentLabelDAOTest
     extends AbstractDbDAOTest
 {
@@ -169,10 +171,12 @@ public class ComponentLabelDAOTest
     Assert.assertNotNull(componentLabels);
     Assert.assertEquals(2, componentLabels.size());
 
-    Assert.assertEquals(orgLabel.getId(), componentLabels.get(0).getLabelId());
-    Assert.assertEquals(orgLabel.getOwnerId(), componentLabels.get(0).getOwnerId());
+    assertComponentLabel(appLabel, componentLabels.get(0));
+    assertComponentLabel(orgLabel, componentLabels.get(1));
+  }
 
-    Assert.assertEquals(appLabel.getId(), componentLabels.get(1).getLabelId());
-    Assert.assertEquals(appLabel.getOwnerId(), componentLabels.get(1).getOwnerId());
+  private void assertComponentLabel(Label expected, ComponentLabel actual) {
+    assertEquals(expected.getId(), actual.getLabelId());
+    assertEquals(expected.getOwnerId(), actual.getOwnerId());
   }
 }

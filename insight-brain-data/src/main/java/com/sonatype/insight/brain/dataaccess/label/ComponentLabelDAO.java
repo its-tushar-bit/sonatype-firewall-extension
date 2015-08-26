@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -44,16 +44,15 @@ public class ComponentLabelDAO
     return getList(sQuery, ownerId);
   }
 
-  public List<ComponentLabel> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
+  private List<ComponentLabel> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
     final String sQuery = "SELECT label FROM ComponentLabel label" + //
         " WHERE label.ownerId=?1 AND label.hash=?2";
-    final ApplicationDAO applicationDAO = new ApplicationDAO();
-    final Application application = applicationDAO.getById(tx, ownerId);
-    final List<ComponentLabel> labels = new ArrayList<>();
-    if (application != null) {
-      labels.addAll(getList(tx, sQuery, application.getOrganizationId(), hash));
+
+    List<ComponentLabel> labels = new ArrayList<>();
+    OwnerDAO ownerDAO = new OwnerDAO();
+    for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
+      labels.addAll(getList(tx, sQuery, owner.getId(), hash));
     }
-    labels.addAll(getList(tx, sQuery, ownerId, hash));
     return labels;
   }
 

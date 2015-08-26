@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
+import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
@@ -192,7 +192,7 @@ public class ApiComponentEvaluationServiceV2
         List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
             .getComponentDetailsListFromHds(evaluationRequestDTO, PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
-          NamedComponentDetails componentDetails = convert(componentEvaluationData);
+          NamedComponentDetails componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           // use the claimed component data if found
           NamedComponentDetails localComponentDetails = componentDetailsLoader
               .getComponentDetailsLocally(componentDetails.getComponentIdentifier(), componentDetails.getHash());
@@ -260,30 +260,6 @@ public class ApiComponentEvaluationServiceV2
           }
         }
       }
-    }
-
-    private NamedComponentDetails convert(final ComponentEvaluationData componentEvaluationData) {
-      NamedComponentDetails componentDetails = new NamedComponentDetails();
-      componentDetails.setCatalogDate(componentEvaluationData.catalogDate);
-      componentDetails.setHash(componentEvaluationData.hash);
-      componentDetails.setComponentIdentifier(componentEvaluationData.componentIdentifier);
-      componentDetails.setMatchState(componentEvaluationData.matchState);
-      componentDetails.setDeclaredLicenses(componentEvaluationData.declaredLicenses);
-      componentDetails.setObservedLicenses(componentEvaluationData.observedLicenses);
-      componentDetails
-          .setSecurityVulnerabilities(convertToSecurityVulnerability(componentEvaluationData.securityVulnerabilities));
-      componentDetails.setRelativePopularity(componentEvaluationData.relativePopularity);
-      return componentDetails;
-    }
-
-    private List<SecurityVulnerability> convertToSecurityVulnerability(
-        List<SecurityVulnerability> vulnerabilities)
-    {
-      if (vulnerabilities == null) {
-        return null;
-      }
-
-      return new ArrayList<>(vulnerabilities);
     }
   }
 

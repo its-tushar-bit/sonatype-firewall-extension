@@ -163,6 +163,19 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEnableRepository_MissingLicenseFeature() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    clmLicenseManager.installLicense(null);
+    try {
+      repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+      fail("Expected exception");
+    }
+    catch (InvalidLicenseException expected) {
+      assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
+    }
+  }
+
+  @Test
   public void testGetPolicyEvaluationSummary() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",
@@ -220,11 +233,11 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEnableRepository_MissingLicenseFeature() throws Exception {
+  public void testGetPolicyEvaluationSummary_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
     try {
-      repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+      repositoryService.getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
       fail("Expected exception");
     }
     catch (InvalidLicenseException expected) {

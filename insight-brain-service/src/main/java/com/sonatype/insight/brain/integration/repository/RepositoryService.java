@@ -116,6 +116,8 @@ public class RepositoryService
   public PolicyEvaluationSummary getPolicyEvaluationSummary(final String repositoryManagerInstanceId,
       final String repositoryPublicId)
   {
+    checkLicenseFeature();
+
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
         repositoryPublicId);
     if (repository == null) {

@@ -141,27 +141,11 @@ public class CLMLicenseManager
   }
 
   public boolean hasPolicyMonitoring() {
-    String[] features = licenseCache.getFeatures();
-    if (features != null) {
-      for (String feature : features) {
-        if (FEATURE_POLICY_MONITORING.equals(feature)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return hasFeature(FEATURE_POLICY_MONITORING);
   }
 
   public boolean hasDashboard() {
-    String[] features = licenseCache.getFeatures();
-    if (features != null) {
-      for (String feature : features) {
-        if (FEATURE_DASHBOARD.equals(feature)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return hasFeature(FEATURE_DASHBOARD);
   }
 
   /**
@@ -170,10 +154,14 @@ public class CLMLicenseManager
    * @since 1.11.0
    */
   public boolean hasQuality() {
-    String[] features = licenseCache.getFeatures();
-    if (features != null) {
-      for (String feature : features) {
-        if (FEATURE_QUALITY.equals(feature)) {
+    return hasFeature(FEATURE_QUALITY);
+  }
+
+  private boolean hasFeature(String feature) {
+    String[] licensedFeatures = licenseCache.getFeatures();
+    if (licensedFeatures != null) {
+      for (String licensedFeature : licensedFeatures) {
+        if (licensedFeature.equals(feature)) {
           return true;
         }
       }

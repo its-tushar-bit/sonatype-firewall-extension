@@ -23,6 +23,8 @@ public class RepositoryServiceAuthzTest
 {
   private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
 
+  private static final String REPOSITORY_PUBLIC_ID = "publicId";
+
   @Inject
   private RepositoryService repositoryService;
 
@@ -39,18 +41,18 @@ public class RepositoryServiceAuthzTest
   @Test
   public void testEnableRepository_NewRepository_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, "publicId");
+    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEnableRepository_NewRepository_Unauthenticated() {
-    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, "publicId");
+    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEnableRepository_NewRepository_Unauthorized() {
     grantWritePermission();
-    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, "publicId");
+    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
   }
 
   @Test
@@ -72,7 +74,47 @@ public class RepositoryServiceAuthzTest
 
   private Repository createRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
-    return tempEntity.newRepository(repositoryManager, "publicId");
+    return tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+  }
+
+  @Test
+  public void testEvaluateComponents_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService
+        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testEvaluateComponents_Unauthenticated() {
+    repositoryService
+        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateComponents_Unauthorized() {
+    grantWritePermission();
+    repositoryService
+        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary_Authorized() {
+    createRepository();
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyEvaluationSummary_Unauthenticated() {
+    createRepository();
+    repositoryService.getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyEvaluationSummary_Unauthorized() {
+    createRepository();
+    grantWritePermission();
+    repositoryService.getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
   }
 
   @Test

@@ -619,7 +619,8 @@ public class TemporaryEntity
   public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
       LicenseOverrideStatus status, String licenseId, String comment)
   {
-    return newLicenseOverride(ownerId, componentIdentifier, status, licenseId != null ? Collections.singleton(licenseId) : null, comment);
+    return newLicenseOverride(ownerId, componentIdentifier, status,
+        licenseId != null ? Collections.singleton(licenseId) : null, comment);
   }
 
   public LicenseOverride newLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
@@ -998,6 +999,40 @@ public class TemporaryEntity
     repository.setEnabled(enabled);
     repositoryDAO.insert(repository);
     return repository;
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId)
+  {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, "path", new Date(), "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
+    return newRepositoryPolicyViolation(repositoryId, 5, "path",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, int threatLevel, String pathname,
+      ComponentIdentifier componentIdentifier)
+  {
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, false, true, "policyId", "policyName",
+        componentIdentifier);
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, int threatLevel, String pathname,
+      boolean isWaived, boolean isLatestEval, String policyId, String policyName,
+      ComponentIdentifier componentIdentifier)
+  {
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, new Date(),
+        policyId, policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash",
+        componentIdentifier, "[]" /* constraintFacts */);
+    policyViolation.setWaived(isWaived);
+    policyViolation.setLatestEvaluation(isLatestEval);
+    repositoryPolicyViolationDAO.insert(policyViolation);
+    return policyViolation;
   }
 
   public RepositoryComponent newRepositoryComponent(String repositoryId)

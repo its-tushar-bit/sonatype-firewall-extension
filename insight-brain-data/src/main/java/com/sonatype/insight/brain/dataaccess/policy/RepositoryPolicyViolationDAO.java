@@ -52,4 +52,12 @@ public class RepositoryPolicyViolationDAO
         " WHERE entity.repositoryId=?1";
     return getList(tx, sQuery, repositoryId);
   }
+
+  public List<RepositoryPolicyViolation> getLastByRepositoryIdAndNotWaived(final String repositoryId) {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.latestEvaluation=true" + //
+        " AND entity.isWaived=false";
+    return getList(sQuery, repositoryId);
+  }
 }

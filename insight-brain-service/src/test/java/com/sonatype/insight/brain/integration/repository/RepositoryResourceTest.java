@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -15,6 +17,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -26,6 +30,10 @@ public class RepositoryResourceTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(RepositoryResource.SERVICE_PATH);
+  }
+
+  private HttpRequest summaryRequest() {
+    return restRequest().path(RepositoryResource.SUMMARY_PATH);
   }
 
   @Test
@@ -40,6 +48,68 @@ public class RepositoryResourceTest
 
     assertNotNull(repository);
     assertTrue(repository.isEnabled());
+  }
+
+  @Test
+  public void testEvaluateComponents() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", false);
+
+    ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(componentEvaluationDataRequestList).post();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", true);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 4, "path2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, "path3",
+        ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4",
+        ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+
+    HttpResponse response = summaryRequest().
+        parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
+
+    assertResponseStatus(200, response);
+    PolicyEvaluationSummary policyEvaluationSummary = response.getBody(PolicyEvaluationSummary.class);
+    assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getModerateComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(3));
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary_NoRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String repositoryId = "NonExistentRepositoryId";
+
+    HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(),
+        is("Cannot find a repository with repositoryManagerInstanceId=" + repositoryManager.getInstanceId() +
+            " and publicId=" + repositoryId + "."));
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary_RepositoryDisabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", false);
+    String repositoryId = repository.getPublicId();
+
+    HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText(), is("Repository " + repositoryId + " is disabled."));
   }
 
   @Test

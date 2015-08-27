@@ -8,12 +8,15 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
 /**
  * @since 1.17.0
@@ -23,6 +26,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 public class RepositoryResource
 {
   public static final String SERVICE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
+
+  public static final String SUMMARY_PATH = "summary";
 
   public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
 
@@ -44,6 +49,28 @@ public class RepositoryResource
       @PathParam("repositoryPublicId") String repositoryPublicId)
   {
     repositoryService.enableRepository(repositoryManagerInstanceId, repositoryPublicId);
+  }
+
+  @POST
+  @Path(EVALUATE_COMPONENTS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void evaluateComponents(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  {
+    repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequestList);
+  }
+
+  @GET
+  @Path(SUMMARY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public PolicyEvaluationSummary getPolicyEvaluationSummary(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId)
+  {
+    return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId);
   }
 
   @POST

@@ -78,26 +78,6 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
-  public void testEvaluateComponents_Authorized() {
-    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testEvaluateComponents_Unauthenticated() {
-    repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testEvaluateComponents_Unauthorized() {
-    grantWritePermission();
-    repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
-  }
-
-  @Test
   public void testGetPolicyEvaluationSummary_Authorized() {
     createRepository();
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);

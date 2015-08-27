@@ -51,19 +51,6 @@ public class RepositoryResourceTest
   }
 
   @Test
-  public void testEvaluateComponents() throws Exception {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", false);
-
-    ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
-
-    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENTS_PATH)
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
-        .body(componentEvaluationDataRequestList).post();
-    assertResponseStatus(204, response);
-  }
-
-  @Test
   public void testGetPolicyEvaluationSummary() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, "publicId", true);

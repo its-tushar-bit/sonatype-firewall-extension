@@ -51,18 +51,6 @@ public class RepositoryResource
     repositoryService.enableRepository(repositoryManagerInstanceId, repositoryPublicId);
   }
 
-  @POST
-  @Path(EVALUATE_COMPONENTS_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  public void evaluateComponents(
-      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId,
-      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
-  {
-    repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList);
-  }
-
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)

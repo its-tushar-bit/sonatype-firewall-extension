@@ -1001,20 +1001,6 @@ public class TemporaryEntity
     return repository;
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId)
-  {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, "path", new Date(), "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
-    repositoryComponentDAO.insert(repositoryComponent);
-    return repositoryComponent;
-  }
-
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
-    return newRepositoryPolicyViolation(repositoryId, 5, "path",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
-  }
-
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, int threatLevel, String pathname,
       ComponentIdentifier componentIdentifier)
   {

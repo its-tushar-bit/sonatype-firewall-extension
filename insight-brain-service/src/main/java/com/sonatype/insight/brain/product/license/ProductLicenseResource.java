@@ -20,10 +20,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
-import com.sonatype.insight.brain.security.Authorize;
 
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -68,7 +66,6 @@ public class ProductLicenseResource
   }
 
   @DELETE
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void uninstallLicense() throws Exception {
     productLicenseService.uninstallLicense();
   }

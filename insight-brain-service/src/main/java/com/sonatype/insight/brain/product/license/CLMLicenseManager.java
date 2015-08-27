@@ -39,6 +39,8 @@ public class CLMLicenseManager
 
   private static final String FEATURE_QUALITY = "QUALITY";
 
+  private static final String FEATURE_REPOSITORY_FIREWALL = "REPOSITORY_FIREWALL";
+
   public static final String PRODUCT_PRO_PLUS = "Pro+";
 
   public static final String PRODUCT_LIFECYCLE = "Lifecycle";
@@ -155,6 +157,13 @@ public class CLMLicenseManager
    */
   public boolean hasQuality() {
     return hasFeature(FEATURE_QUALITY);
+  }
+
+  /**
+   * @since 1.17
+   */
+  public boolean hasRepositoryFirewall() {
+    return hasFeature(FEATURE_REPOSITORY_FIREWALL);
   }
 
   private boolean hasFeature(String feature) {
@@ -307,6 +316,10 @@ public class CLMLicenseManager
           || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
         features.add(FEATURE_POLICY_MONITORING);
         features.add(FEATURE_DASHBOARD);
+      }
+      if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)
+          || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+        features.add(FEATURE_REPOSITORY_FIREWALL);
       }
     }
 

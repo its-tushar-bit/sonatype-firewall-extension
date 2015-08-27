@@ -228,6 +228,27 @@ public class CLMLicenseManagerTest
     assertThat(clmLicenseManager.hasPolicyMonitoring(), is(true));
   }
 
+  @Test
+  public void testHasRepositoryFirewall_NexusLifecycle() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
+  }
+
+  @Test
+  public void testHasRepositoryFirewall_NexusProPlus() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    installLicense();
+    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
+  }
+
+  @Test
+  public void testHasRepositoryFirewall_NexusAuditor() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    installLicense();
+    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
+  }
+
   @Test(expected = LicensingException.class)
   public void testInstallLicense_BadVersion() throws Exception {
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_VERSION, "Invalid");

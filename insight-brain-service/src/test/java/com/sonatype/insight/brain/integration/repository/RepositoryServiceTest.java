@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.C
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -44,9 +45,12 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -83,6 +87,12 @@ public class RepositoryServiceTest
 
   @Inject
   private RepositoryService repositoryService;
+
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
+
+  @Inject
+  private TestProductLicenseManager productLicenseManager;
 
   private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -149,6 +159,19 @@ public class RepositoryServiceTest
     assertEquals(1, repositories.size());
     assertEquals(REPO_PUBLIC_ID, repositories.get(0).getPublicId());
     assertTrue(repositories.get(0).isEnabled());
+  }
+
+  @Test
+  public void testEnableRepository_MissingLicenseFeature() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    clmLicenseManager.installLicense(null);
+    try {
+      repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+      fail("Expected exception");
+    }
+    catch (InvalidLicenseException expected) {
+      assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
+    }
   }
 
   @Test
@@ -634,6 +657,19 @@ public class RepositoryServiceTest
     }
     catch (BadRequestException expected) {
       assertThat(expected.getMessage(), is("The hash cannot be null or empty."));
+    }
+  }
+
+  @Test
+  public void testEvaluateComponents_MissingLicenseFeature() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    clmLicenseManager.installLicense(null);
+    try {
+      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
+      fail("Expected exception");
+    }
+    catch (InvalidLicenseException expected) {
+      assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
     }
   }
 

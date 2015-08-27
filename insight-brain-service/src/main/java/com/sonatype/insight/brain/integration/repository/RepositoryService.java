@@ -53,6 +53,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -90,16 +92,27 @@ public class RepositoryService
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
+  private final CLMLicenseManager licenseManager;
+
   @Inject
   public RepositoryService(HdsClient hdsClient, ComponentPolicyEvaluator componentPolicyEvaluator,
-      ComponentDetailsLoader componentDetailsLoader)
+      ComponentDetailsLoader componentDetailsLoader, CLMLicenseManager licenseManager)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsLoader = componentDetailsLoader;
+    this.licenseManager = licenseManager;
+  }
+
+  private void checkLicenseFeature() {
+    if (!licenseManager.hasRepositoryFirewall()) {
+      throw new InvalidLicenseException("Your product license does not support the repository firewall feature.");
+    }
   }
 
   public void enableRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
+    checkLicenseFeature();
+
     log.debug("Enabling repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
         repositoryManagerInstanceId);
 
@@ -133,6 +146,8 @@ public class RepositoryService
   public void evaluateComponents(String repositoryManagerInstanceId, String repositoryPublicId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
+    checkLicenseFeature();
+
     log.debug("Evaluating components for repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
         repositoryManagerInstanceId);
 

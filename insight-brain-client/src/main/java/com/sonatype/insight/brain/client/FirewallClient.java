@@ -13,14 +13,10 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.http.client.HttpResponseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FirewallClient
     extends AbstractRequestClient
 {
-  private static final Logger log = LoggerFactory.getLogger(FirewallClient.class);
-
   private static final String SERVICE_PATH = "rest/integration/repositories";
 
   private static final String SUMMARY_PATH = "summary";

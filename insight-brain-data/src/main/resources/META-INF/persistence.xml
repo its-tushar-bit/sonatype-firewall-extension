@@ -22,6 +22,7 @@
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense</class>
     <class>com.sonatype.insight.brain.dataaccess.policy.PolicyInternal</class>
+    <class>com.sonatype.insight.brain.model.policy.AbstractPolicyViolation</class>
     <class>com.sonatype.insight.brain.model.policy.FirstOccurrencePolicyViolation</class>
     <class>com.sonatype.insight.brain.model.policy.PolicyEvaluation</class>
     <class>com.sonatype.insight.brain.model.policy.LastPolicyEvaluation</class>

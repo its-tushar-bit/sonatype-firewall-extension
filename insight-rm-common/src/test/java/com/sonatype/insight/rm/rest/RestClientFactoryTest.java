@@ -114,13 +114,33 @@ public class RestClientFactoryTest
     final String repositoryPublicId = "repositoryPublicId";
 
     final RestClientFactory factory = spy(new RestClientFactory());
-    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId), eq(repositoryPublicId));
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
     repository.enableRepository();
 
     verify(firewallClient).enableRepository();
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
+  public void testRestClientRepository_EvaluateComponents() throws Exception {
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory)
+        .newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId), eq(repositoryPublicId));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    repository.evaluateComponents(null);
+
+    verify(firewallClient).evaluateComponents(null);
     verifyNoMoreInteractions(firewallClient);
   }
 

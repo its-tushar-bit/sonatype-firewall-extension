@@ -8,16 +8,21 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 
 public class FirewallClient
     extends AbstractRequestClient
 {
   private static final String SERVICE_PATH = "rest/integration/repositories";
+
+  private static final String EVALUATE_PATH = "evaluate";
 
   private static final String SUMMARY_PATH = "summary";
 
@@ -39,6 +44,21 @@ public class FirewallClient
     Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId),
         null);
     int status = result.status();
+    if (status >= 300) {
+      String msg = result.message();
+      throw new HttpResponseException(status, msg);
+    }
+  }
+
+  public void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+      throws IOException
+  {
+    final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(componentEvaluationDataRequestList),
+        ContentType.APPLICATION_JSON);
+
+    final Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
+        entity);
+    final int status = result.status();
     if (status >= 300) {
       String msg = result.message();
       throw new HttpResponseException(status, msg);

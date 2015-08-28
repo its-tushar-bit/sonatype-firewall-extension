@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -153,6 +154,14 @@ public class RestClientFactory
     @Override
     public void enableRepository() throws IOException {
       newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).enableRepository();
+    }
+
+    @Override
+    public void evaluateComponents(
+        final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException
+    {
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).evaluateComponents(
+          componentEvaluationDataRequestList);
     }
 
     @Override

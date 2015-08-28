@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.client;
 
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -108,4 +109,33 @@ public class FirewallClientTest
     config.setServerAuth(auth);
     return config;
   }
+
+  @Test
+  public void testEvaluateComponents_Empty() throws Exception {
+    final FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    client.enableRepository();
+
+    final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    client.evaluateComponents(componentEvaluationDataRequestList);
+  }
+
+  @Test
+  public void testEvaluateComponents_Error() throws Exception {
+    final FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    // do not enable repository
+
+    final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+
+    try {
+      client.evaluateComponents(componentEvaluationDataRequestList);
+      fail("Expected exception");
+    }
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertEquals(
+          "Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId " + rmInstanceId + ".",
+          e.getMessage());
+    }
+  }
+
 }

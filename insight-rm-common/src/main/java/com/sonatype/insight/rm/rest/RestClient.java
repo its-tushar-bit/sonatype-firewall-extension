@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
 public interface RestClient
 {
@@ -58,5 +59,7 @@ public interface RestClient
   interface Repository
   {
     void enableRepository() throws IOException;
+
+    PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
   }
 }

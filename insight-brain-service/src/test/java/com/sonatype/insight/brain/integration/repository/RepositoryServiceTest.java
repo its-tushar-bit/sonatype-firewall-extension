@@ -23,10 +23,10 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.C
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -729,6 +730,32 @@ public class RepositoryServiceTest
     catch (BadRequestException expected) {
       assertThat(expected.getMessage(), is("The hash cannot be null or empty."));
     }
+  }
+
+  @Test
+  public void testGetReportSummary() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repo = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(), "1");
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(), "2");
+    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repo.getId(), "3");
+    RepositoryComponent component4 = tempEntity.newRepositoryComponent(repo.getId(), "4");
+    tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
+
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, component1.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 5, component2.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, component3.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
+
+    RepositoryReportSummary summary = repositoryService.getReportSummary(repositoryManager.getInstanceId(),
+        repo.getPublicId());
+
+    assertThat(summary.knownComponentCount, is(4));
+    assertThat(summary.totalComponentCount, is(5));
+    assertThat(summary.criticalComponentCount, is(1));
+    assertThat(summary.severeComponentCount, is(2));
+    assertThat(summary.moderateComponentCount, is(0));
+    assertThat(summary.affectedComponentCount, is(3));
   }
 
   @Test

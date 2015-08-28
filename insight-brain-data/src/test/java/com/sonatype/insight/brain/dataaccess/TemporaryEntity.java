@@ -1023,9 +1023,23 @@ public class TemporaryEntity
 
   public RepositoryComponent newRepositoryComponent(String repositoryId)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, "path", new Date(), "hash",
+    return newRepositoryComponent(repositoryId, "path");
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname) {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(), "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId, MatchState matchState,
+      ComponentIdentifier identifier)
+  {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, UUID.randomUUID().toString(),
+        new Date(), "hash", identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date(),
+        true /* canBeQuarantined */);
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;
   }
@@ -1033,6 +1047,16 @@ public class TemporaryEntity
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
+    repositoryPolicyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String policyId,
+      int threatLevel)
+  {
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
+        policyId, "policyName", threatLevel, PolicyThreatCategory.LICENSE, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;

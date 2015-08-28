@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -49,5 +50,19 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1" + //
         " AND entity.pathname=?2";
     return get(tx, sQuery, repositoryId, pathname);
+  }
+
+  public int getComponentCountByRepositoryId(String repositoryId) {
+    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" + //
+        " WHERE component.repositoryId=?1";
+
+    return getSingle(Number.class, sQuery, repositoryId).intValue();
+  }
+
+  public int getKnownComponentCountByRepositoryId(String repositoryId) {
+    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" + //
+        " WHERE component.repositoryId=?1 AND component.matchStateId <> ?2";
+
+    return getSingle(Number.class, sQuery, repositoryId, MatchState.UNKNOWN.getId()).intValue();
   }
 }

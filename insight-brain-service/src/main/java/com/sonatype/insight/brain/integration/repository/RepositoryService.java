@@ -12,8 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -135,39 +136,7 @@ public class RepositoryService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   PolicyEvaluationSummary getPolicyEvaluationSummary(@AuthzContext(Key.REPOSITORY) final Repository repository)
   {
-    List<RepositoryPolicyViolation> repositoryPolicyViolations =
-        repositoryPolicyViolationDAO.getLastByRepositoryIdAndNotWaived(repository.getId());
-
-    final Map<String, Integer> componentThreatLevels = new HashMap<>();
-    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      String pathname = repositoryPolicyViolation.getPathname();
-      Integer threatLevel = componentThreatLevels.get(pathname);
-      if (threatLevel == null || threatLevel < repositoryPolicyViolation.getThreatLevel()) {
-        componentThreatLevels.put(pathname, repositoryPolicyViolation.getThreatLevel());
-      }
-    }
-    int criticalCount = 0;
-    int severeCount = 0;
-    int moderateCount = 0;
-    for (final int level : componentThreatLevels.values()) {
-      if (level >= 8) {
-        criticalCount++;
-      }
-      else if (level >= 4) {
-        severeCount++;
-      }
-      else if (level >= 2) {
-        moderateCount++;
-      }
-    }
-
-    PolicyEvaluationSummary policyEvaluationSummary = new PolicyEvaluationSummary();
-    policyEvaluationSummary.setCriticalComponentCount(criticalCount);
-    policyEvaluationSummary.setSevereComponentCount(severeCount);
-    policyEvaluationSummary.setModerateComponentCount(moderateCount);
-    policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
-
-    return policyEvaluationSummary;
+    return getPolicyEvaluationSummaryInternal(repository);
   }
 
   public void enableRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
@@ -426,5 +395,72 @@ public class RepositoryService
     catch (IOException e) {
       throw new RuntimeException("Failed to get component details from HDS: " + e.getMessage(), e);
     }
+  }
+
+  public RepositoryReportSummary getReportSummary(String repositoryManagerInstanceId, String repositoryPublicId) {
+    checkLicenseFeature();
+
+    log.debug("Get report summary for repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
+        repositoryManagerInstanceId);
+
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
+        repositoryPublicId);
+    if (repository == null) {
+      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
+          + repositoryManagerInstanceId + ".");
+    }
+
+    return getReportSummary(repository);
+  }
+
+  @Authorize(permission = Permission.READ)
+  RepositoryReportSummary getReportSummary(@AuthzContext(Key.REPOSITORY) Repository repository) {
+    RepositoryReportSummary summary = new RepositoryReportSummary();
+    summary.knownComponentCount = repositoryComponentDAO.getKnownComponentCountByRepositoryId(repository.getId());
+    summary.totalComponentCount = repositoryComponentDAO.getComponentCountByRepositoryId(repository.getId());
+
+    PolicyEvaluationSummary policyEvalSummary = this.getPolicyEvaluationSummaryInternal(repository);
+    summary.criticalComponentCount = policyEvalSummary.getCriticalComponentCount();
+    summary.severeComponentCount = policyEvalSummary.getSevereComponentCount();
+    summary.moderateComponentCount = policyEvalSummary.getModerateComponentCount();
+    summary.affectedComponentCount = policyEvalSummary.getAffectedComponentCount();
+
+    return summary;
+  }
+
+  private PolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getLastByRepositoryIdAndNotWaived(repository.getId());
+
+    final Map<String, Integer> componentThreatLevels = new HashMap<>();
+    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
+      String pathname = repositoryPolicyViolation.getPathname();
+      Integer threatLevel = componentThreatLevels.get(pathname);
+      if (threatLevel == null || threatLevel < repositoryPolicyViolation.getThreatLevel()) {
+        componentThreatLevels.put(pathname, repositoryPolicyViolation.getThreatLevel());
+      }
+    }
+    int criticalCount = 0;
+    int severeCount = 0;
+    int moderateCount = 0;
+    for (final int level : componentThreatLevels.values()) {
+      if (level >= 8) {
+        criticalCount++;
+      }
+      else if (level >= 4) {
+        severeCount++;
+      }
+      else if (level >= 2) {
+        moderateCount++;
+      }
+    }
+
+    PolicyEvaluationSummary policyEvaluationSummary = new PolicyEvaluationSummary();
+    policyEvaluationSummary.setCriticalComponentCount(criticalCount);
+    policyEvaluationSummary.setSevereComponentCount(severeCount);
+    policyEvaluationSummary.setModerateComponentCount(moderateCount);
+    policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
+
+    return policyEvaluationSummary;
   }
 }

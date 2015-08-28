@@ -29,9 +29,12 @@ public class RepositoryComponentDAOTest
 
   private Repository repository;
 
+  private Repository repositoryTwo;
+
   @Before
   public void before() {
     repository = tempEntity.newRepository();
+    repositoryTwo = tempEntity.newRepository();
   }
 
   @Test
@@ -69,6 +72,37 @@ public class RepositoryComponentDAOTest
     // Get
     repositoryComponent = dao.getById(repositoryComponent.getId());
     assertThat(repositoryComponent, nullValue());
+  }
+
+  @Test
+  public void testGetComponentCountByRepositoryId() {
+    assertThat(dao.getComponentCountByRepositoryId(repository.getId()), is(0));
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+
+    // Component in another repository
+    tempEntity.newRepositoryComponent(repositoryTwo.getId());
+
+    assertThat(dao.getComponentCountByRepositoryId(repository.getId()), is(2));
+  }
+
+  @Test
+  public void testGetKnownComponentCountByRepositoryId() {
+    // Component in another repository
+    tempEntity.newRepositoryComponent(repositoryTwo.getId());
+
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(0));
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+        ComponentIdentifier.createMavenCoordinates("unknown", "component", "1"));
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(0));
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(1));
   }
 
   private void assertRepositoryComponent(String repositoryId, String pathname, Date time, String hash,

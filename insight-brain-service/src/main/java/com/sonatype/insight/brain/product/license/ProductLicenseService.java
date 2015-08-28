@@ -67,6 +67,14 @@ public class ProductLicenseService
 
   public LicenseSummary validateLicense() {
     licenseManager.validate();
+    LicenseSummary licenseSummary = licenseManager.getLicenseSummary();
+    // Don't return the license fingerprint from a method that is not authorized. See CLM-5200.
+    licenseSummary.fingerprint = null;
+    return licenseSummary;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public LicenseSummary getLicenseSummary() {
     return licenseManager.getLicenseSummary();
   }
 }

@@ -73,15 +73,18 @@ public class CLMLicenseManager
     }
   }
 
-  public final class LicenseSummary
+  public static final class LicenseSummary
   {
-    public final String fingerprint;
+    public String fingerprint;
 
-    public final long expiryTimestamp;
+    public long expiryTimestamp;
 
-    public final String[] features;
+    public String[] features;
 
-    public final String productEdition;
+    public String productEdition;
+
+    public LicenseSummary() {
+    }
 
     public LicenseSummary(String fingerprint, long timestamp, String[] features, String productEdition) {
       this.fingerprint = fingerprint;

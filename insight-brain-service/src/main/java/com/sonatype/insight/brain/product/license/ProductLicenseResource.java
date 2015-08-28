@@ -31,6 +31,8 @@ public class ProductLicenseResource
 {
   public static final String SERVICE_PATH = "rest/product/license";
 
+  static final String VALIDATE_PATH = "validate";
+
   private final ProductLicenseService productLicenseService;
 
   private final AntiCsrfFilter antiCsrfFilter;
@@ -71,9 +73,16 @@ public class ProductLicenseResource
   }
 
   @GET
-  @UnlicensedPath
+  @Path(VALIDATE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public LicenseSummary validate() {
+  @UnlicensedPath
+  public LicenseSummary validateLicense() {
     return productLicenseService.validateLicense();
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public LicenseSummary getLicenseSummary() {
+    return productLicenseService.getLicenseSummary();
   }
 }

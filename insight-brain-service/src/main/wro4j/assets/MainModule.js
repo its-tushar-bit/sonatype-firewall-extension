@@ -66,7 +66,7 @@
       return {
         check: function() {
           var deferred = $q.defer();
-          $http.get(CLMLocations.getLicenseSummaryUrl()).success(function(data) {
+          $http.get(CLMLocations.getValidateLicenseUrl()).success(function(data) {
             deferred.resolve(data);
           }).error(function(data, status) {
             deferred.reject(status);

@@ -64,4 +64,21 @@ public class ProductLicenseServiceAuthzTest
   public void testUninstallLicense_Unauthenticated() throws Exception {
     productLicenseService.uninstallLicense();
   }
+
+  @Test
+  public void testGetLicenseSummary_Authorized() {
+    grantConfigureSystemPermission();
+    productLicenseService.getLicenseSummary();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLicenseSummary_Unauthorized() {
+    login();
+    productLicenseService.getLicenseSummary();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetLicenseSummary_Unauthenticated() {
+    productLicenseService.getLicenseSummary();
+  }
 }

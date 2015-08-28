@@ -42,6 +42,10 @@
           return baseUrl.get() + '/rest/organization';
         },
 
+        getValidateLicenseUrl: function() {
+          return baseUrl.get() + '/rest/product/license/validate';
+        },
+
         getLicenseSummaryUrl: function() {
           return baseUrl.get() + '/rest/product/license';
         },

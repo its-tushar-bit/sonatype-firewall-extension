@@ -6,11 +6,16 @@
 package com.sonatype.insight.brain.product.license;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 
 public class ProductLicenseResourceTest
@@ -65,5 +70,24 @@ public class ProductLicenseResourceTest
         "forceSuccess", true));
     assertResponseStatus(200, response);
     assertEquals("Invalid cross-site request forgery token", response.getBodyText());
+  }
+
+  @Test
+  public void testValidateLicense() throws Exception {
+    installLicense();
+    HttpResponse response = restRequest().path(ProductLicenseResource.SERVICE_PATH,
+        ProductLicenseResource.VALIDATE_PATH).get();
+    assertResponseStatus(200, response);
+    LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
+    assertThat(licenseSummary.fingerprint, is(nullValue()));
+  }
+
+  @Test
+  public void testGetLicenseSummary() throws Exception {
+    installLicense();
+    HttpResponse response = restRequest().path(ProductLicenseResource.SERVICE_PATH).get();
+    assertResponseStatus(200, response);
+    LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
+    assertThat(licenseSummary.fingerprint, is(notNullValue()));
   }
 }

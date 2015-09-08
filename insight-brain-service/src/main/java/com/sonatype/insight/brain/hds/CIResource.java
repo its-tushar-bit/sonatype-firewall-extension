@@ -49,6 +49,6 @@ public class CIResource
       final String applicationPublicId,
       @Context HttpServletRequest req) throws IOException
   {
-    return uploader.upload(req, applicationPublicId, "rest/ci/scan");
+    return uploader.upload(req, applicationPublicId);
   }
 }

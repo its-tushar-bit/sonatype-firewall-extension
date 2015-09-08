@@ -218,11 +218,7 @@ public class InsightMockServer
   class RestHandler
       extends AbstractHandler
   {
-    private static final String BOM_CHECK_SCAN_SERVICE_PREFIX = "/rest/ci/scan";
-
     private static final String BOM_CHECK_REPORT_SERVICE_PREFIX = "/rest/ci/report";
-
-    private static final String REPO_MAN_SCAN_SERVICE_PREFIX = "/rest/rm/scan";
 
     private static final String SCAN_ID = "SCAN-ID";
 
@@ -279,8 +275,7 @@ public class InsightMockServer
           doResponse(response, responseProvider.getBody(), responseProvider.getStatus());
           baseRequest.setHandled(true);
         }
-        else if ((uri.startsWith(BOM_CHECK_SCAN_SERVICE_PREFIX) || uri.startsWith(REPO_MAN_SCAN_SERVICE_PREFIX))
-            && "PUT".equals(request.getMethod())) {
+        else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
           handleScanUpload(baseRequest, request, response);
         }
         else if (uri.startsWith(BOM_CHECK_REPORT_SERVICE_PREFIX) && "GET".equals(request.getMethod())) {

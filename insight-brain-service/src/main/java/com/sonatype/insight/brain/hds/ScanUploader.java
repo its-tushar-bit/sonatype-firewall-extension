@@ -34,6 +34,8 @@ public class ScanUploader
 {
   private static final Logger log = LoggerFactory.getLogger(ScanUploader.class);
 
+  private static final String HDS_PATH = "rest/application/analysis";
+
   private final HdsClient client;
 
   private final InsightWork work;
@@ -46,7 +48,7 @@ public class ScanUploader
     this.work = work;
   }
 
-  protected ScanReceipt upload(HttpServletRequest request, String applicationPublicId, String path, String... params)
+  protected ScanReceipt upload(HttpServletRequest request, String applicationPublicId, String... params)
       throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -63,7 +65,7 @@ public class ScanUploader
 
     request.setAttribute(HdsClient.UPLOAD_FILE_ATTRIBUTE, scanFile);
 
-    final ScanReceipt receipt = client.get(request, ScanReceipt.class, path, params);
+    final ScanReceipt receipt = client.get(request, ScanReceipt.class, HDS_PATH, params);
 
     if (StringUtils.isNotBlank(receipt.getScanId())) {
       FileUtils.rename(scanFile, work.getScanFile(appId, receipt.getScanId()));
@@ -77,13 +79,12 @@ public class ScanUploader
   /**
    * Uploads an existing scan file to the HDS server.
    *
-   * @param path the destination REST path on the HDS server, e.g. rest/ci/scan
    * @since 1.8
    */
-  public ScanReceipt upload(File scanFile, String applicationPublicId, String path)
+  public ScanReceipt upload(File scanFile, String applicationPublicId)
       throws IOException
   {
-    ScanReceipt receipt = client.put(ScanReceipt.class, path, scanFile);
+    ScanReceipt receipt = client.put(ScanReceipt.class, HDS_PATH, scanFile);
 
     augmentScanReceipt(applicationPublicId, receipt);
 

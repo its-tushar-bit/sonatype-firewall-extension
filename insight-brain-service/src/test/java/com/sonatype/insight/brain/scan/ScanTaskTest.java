@@ -26,14 +26,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
@@ -76,7 +74,7 @@ public class ScanTaskTest
     tmpScanFile.createNewFile();
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
-    when(uploader.upload(eq(tmpScanFile), eq(app.getPublicId()), anyString())).thenReturn(scanReceipt);
+    when(uploader.upload(eq(tmpScanFile), eq(app.getPublicId()))).thenReturn(scanReceipt);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir))).thenReturn(tmpScanFile);
   }
 

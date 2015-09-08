@@ -28,7 +28,7 @@ extends BaseSpec {
       temporaryEntity.newApplication(name, name, org.getId())
     }
 
-    hdsRule.setResponseForURI('rest/ci/scan', '{"scanId": "blah", "timeToReport": 0}', 200);
+    hdsRule.setResponseForURI('rest/application/analysis', '{"scanId": "blah", "timeToReport": 0}', 200);
     hdsRule.setResponseForURI('rest/ci/report?scanId=blah',
         IOUtils.toByteArray(getClass().getResourceAsStream('/report.zip')), 200);
   }

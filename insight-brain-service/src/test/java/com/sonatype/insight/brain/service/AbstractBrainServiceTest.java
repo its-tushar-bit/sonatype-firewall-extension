@@ -184,8 +184,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void mockScanReceipt(ScanReceipt scanReceipt) {
-    setHdsResponseForURI("rest/ci/scan", toJson(scanReceipt), 200);
-    setHdsResponseForURI("rest/rm/scan", toJson(scanReceipt), 200);
+    setHdsResponseForURI("rest/application/analysis", toJson(scanReceipt), 200);
   }
 
   protected void mockReport(String scanId, String resourceName) {

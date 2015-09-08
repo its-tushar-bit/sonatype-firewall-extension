@@ -72,7 +72,7 @@ public class ScanTaskStateTest
 
   @Test
   public void uploading() throws IOException {
-    when(uploader.upload((File) any(), anyString(), anyString())).then(captureState);
+    when(uploader.upload((File) any(), anyString())).then(captureState);
 
     task.run();
 
@@ -82,7 +82,7 @@ public class ScanTaskStateTest
   @Test
   public void waitingForReport() throws IOException, InterruptedException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
-    when(uploader.upload((File) any(), anyString(), anyString())).thenReturn(scanReciept);
+    when(uploader.upload((File) any(), anyString())).thenReturn(scanReciept);
 
     doAnswer(captureState).when(scanReciept).waitForReport();
 
@@ -94,7 +94,7 @@ public class ScanTaskStateTest
   @Test
   public void evaluating() throws IOException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
-    when(uploader.upload((File) any(), anyString(), anyString())).thenReturn(scanReciept);
+    when(uploader.upload((File) any(), anyString())).thenReturn(scanReciept);
 
     when(scanPolicyEvaluator.evaluate(anyString(), anyString(), (Stage) any())).then(captureState);
 

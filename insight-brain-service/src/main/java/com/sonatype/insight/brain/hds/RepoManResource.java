@@ -49,6 +49,6 @@ public class RepoManResource
       final String applicationPublicId,
       @Context HttpServletRequest req) throws IOException
   {
-    return uploader.upload(req, applicationPublicId, "rest/rm/scan");
+    return uploader.upload(req, applicationPublicId);
   }
 }

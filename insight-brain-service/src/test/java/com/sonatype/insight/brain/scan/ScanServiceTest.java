@@ -72,7 +72,7 @@ public class ScanServiceTest
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
-    when(scanUploader.upload((File) any(), eq(app.getPublicId()), (String) any())).thenReturn(receipt);
+    when(scanUploader.upload((File) any(), eq(app.getPublicId()))).thenReturn(receipt);
     when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
         new Answer<Boolean>()
         {

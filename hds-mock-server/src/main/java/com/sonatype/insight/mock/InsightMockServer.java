@@ -218,7 +218,7 @@ public class InsightMockServer
   class RestHandler
       extends AbstractHandler
   {
-    private static final String BOM_CHECK_REPORT_SERVICE_PREFIX = "/rest/ci/report";
+    private static final String REPORT_PATH_PREFIX = "/rest/application/analysis/";
 
     private static final String SCAN_ID = "SCAN-ID";
 
@@ -249,8 +249,8 @@ public class InsightMockServer
     {
       handleMatchedRequest(request);
 
-      String scanId = request.getParameter("scanId");
-      if (scanId == null || scanId.length() <= 0) {
+      String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());
+      if (scanId.length() <= 0) {
         throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "scan id missing");
       }
 
@@ -278,7 +278,7 @@ public class InsightMockServer
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
           handleScanUpload(baseRequest, request, response);
         }
-        else if (uri.startsWith(BOM_CHECK_REPORT_SERVICE_PREFIX) && "GET".equals(request.getMethod())) {
+        else if (uri.startsWith(REPORT_PATH_PREFIX) && "GET".equals(request.getMethod())) {
           handleReportDownload(baseRequest, request, response);
         }
       }

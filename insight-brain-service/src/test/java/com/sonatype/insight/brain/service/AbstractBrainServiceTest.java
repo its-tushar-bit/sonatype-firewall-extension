@@ -188,7 +188,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void mockReport(String scanId, String resourceName) {
-    setHdsResponseForURI("rest/ci/report?scanId=" + scanId, 200, resourceName);
+    setHdsResponseForURI("rest/application/analysis/" + scanId, 200, resourceName);
   }
 
   protected void mockComponentSummary(ComponentIdentifier componentIdentifier, ComponentSummary componentSummary)

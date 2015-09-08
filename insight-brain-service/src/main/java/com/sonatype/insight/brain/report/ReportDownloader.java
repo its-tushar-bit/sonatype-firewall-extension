@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +30,8 @@ public class ReportDownloader
 {
   private static final Logger log = LoggerFactory.getLogger(ReportDownloader.class);
 
+  static final String HDS_PATH = "rest/application/analysis/{scanId}";
+
   private final HdsClient client;
   
   private final FileCleaner fileCleaner;
@@ -51,9 +51,7 @@ public class ReportDownloader
         OutputStream os = null;
 
         try {
-          Map<String, String> queryParams = new HashMap<>();
-          queryParams.put("scanId", scanId);
-          is = client.get(InputStream.class, "rest/ci/report", queryParams);
+          is = client.get(InputStream.class, HDS_PATH, null, scanId);
           // Create the parent dir after the client returns with success
           // to ensure dir is not created for unknown scanId (or other errors)
           reportFile.getAbsoluteFile().getParentFile().mkdirs();

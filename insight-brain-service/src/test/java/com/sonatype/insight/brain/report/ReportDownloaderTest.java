@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -53,11 +51,9 @@ public class ReportDownloaderTest
   public void testDownloadReportNonExistentScanId_DoesNotCreateParentDir() throws Exception {
     Application app = tempEntity.newApplicationWithParent("dummyApp");
     String scanId = "NonExistentScanId";
-    Map<String, String> queryParams = new HashMap<>();
-    queryParams.put("scanId", scanId);
 
     NotFoundException expectedException = new NotFoundException("test");
-    when(mockHdsClient.get(InputStream.class, "rest/ci/report", queryParams)).
+    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId)).
         thenThrow(expectedException);
 
     File reportFile = work.getReportFile(app.getId(), scanId);

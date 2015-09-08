@@ -29,7 +29,7 @@ extends BaseSpec {
     }
 
     hdsRule.setResponseForURI('rest/application/analysis', '{"scanId": "blah", "timeToReport": 0}', 200);
-    hdsRule.setResponseForURI('rest/ci/report?scanId=blah',
+    hdsRule.setResponseForURI('rest/application/analysis/blah',
         IOUtils.toByteArray(getClass().getResourceAsStream('/report.zip')), 200);
   }
 

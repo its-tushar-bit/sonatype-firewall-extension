@@ -14,7 +14,7 @@
       $stateProvider.state('productlicense', {
         url: '/productlicense',
         controller: 'ProductLicenseController',
-        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp,
+        templateUrl: 'configuration/components/license.html?' + clmBuildTimestamp,
         data : {
           title : 'Product License'
         },
@@ -26,7 +26,7 @@
       }).state('proprietarycomponents', {
         url: '/proprietarycomponents',
         controller: 'ProprietaryConfigurationController',
-        templateUrl: '../configuration-assets/components/proprietary.html?' + clmBuildTimestamp,
+        templateUrl: 'configuration/components/proprietary.html?' + clmBuildTimestamp,
         data : {
           title : 'Proprietary Configuration'
         },

@@ -40,9 +40,9 @@ describe('Tests for the LdapConfigurationController', function() {
 
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([]);
 
-      httpBackend.whenGET('../assets/management.html?').respond('<div></div>');
-      httpBackend.whenGET('../configuration-assets/components/ldap.html?').respond('<div></div>');
-      httpBackend.whenGET('../configuration-assets/components/ldap-connection.html?').respond('<div></div>');
+      httpBackend.whenGET('management.html?').respond('<div></div>');
+      httpBackend.whenGET('configuration/components/ldap.html?').respond('<div></div>');
+      httpBackend.whenGET('configuration/components/ldap-connection.html?').respond('<div></div>');
 
       $controller('LdapConfigurationController', {
         $scope: scope,

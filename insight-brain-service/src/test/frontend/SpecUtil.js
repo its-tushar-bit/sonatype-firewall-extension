@@ -28,15 +28,6 @@ var SpecUtil = {
     if (url[0] === '..') {
       url.splice(0, 1);
     }
-    if (url[0] === 'policy-assets') {
-      url[0] = 'policy';
-    }
-    else if (url[0] === 'organization-assets') {
-      url[0] = 'organization';
-    }
-    else if (url[0] === 'application-assets') {
-      url[0] = 'application';
-    }
 
     if (location.hostname) {
       url = 'src/main/resources/assets/' + url.join('/');

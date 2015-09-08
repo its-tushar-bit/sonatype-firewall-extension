@@ -12,7 +12,7 @@
       $urlRouterProvider.when('/reports', '/reports/violations');
       $stateProvider.state('violations', {
         url: '/reports/violations',
-        templateUrl: '../report-assets/violations/report-list.html?' + clmBuildTimestamp,
+        templateUrl: 'report/violations/report-list.html?' + clmBuildTimestamp,
         controller: 'ReportViolationsController',
         data : {
           title : 'Report Violations'

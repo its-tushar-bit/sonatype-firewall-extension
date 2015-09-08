@@ -13,7 +13,7 @@
       $stateProvider.state('roles', {
         url: '/roles',
         controller: 'RoleListController',
-        templateUrl: '../security-assets/role-list.html?' + clmBuildTimestamp,
+        templateUrl: 'security/role-list.html?' + clmBuildTimestamp,
         data: {
           title: 'Roles',
           crumb: 'Roles'
@@ -34,7 +34,7 @@
         url: '/{roleId}',
         parent: 'roles',
         controller: 'RoleEditorController',
-        templateUrl: '../security-assets/role-editor.html?' + clmBuildTimestamp,
+        templateUrl: 'security/role-editor.html?' + clmBuildTimestamp,
         data: {
           title: 'Role Editor',
           crumb: 'Editor'

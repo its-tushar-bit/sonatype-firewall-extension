@@ -190,18 +190,18 @@
   }
 
   var head = $('head'),
-       scripts = ['assets/lib/datepicker/bootstrap-datepicker.js', 'assets/lib/angular-<%= config.pom.angularJsVersion %>/angular-route.min.js',
-        'assets/lib/ui-bootstrap-tpls-0.8.0.min.js', 'assets/lib/Base64.js', 'cip/cip-component-util.js',
+       scripts = ['lib/datepicker/bootstrap-datepicker.js', 'lib/angular-<%= config.pom.angularJsVersion %>/angular-route.min.js',
+        'lib/ui-bootstrap-tpls-0.8.0.min.js', 'lib/Base64.js', 'cip/cip-component-util.js',
         'cip/cip-label-editor.js', 'cip/cip-policy-violations.js', 'cip/cip-claim-component.js',
-        'cip/cip-license-editor.js', 'cip/cip-version-graph.js', 'assets/version-graph/version-graph.js',
-        'assets/lib/angular-<%= config.pom.angularJsVersion %>/angular-sanitize.min.js'],
-      styles = ['assets/lib/datepicker/datepicker.css', 'cip/cip.css'],
+        'cip/cip-license-editor.js', 'cip/cip-version-graph.js', 'version-graph/version-graph.js',
+        'lib/angular-<%= config.pom.angularJsVersion %>/angular-sanitize.min.js'],
+      styles = ['lib/datepicker/datepicker.css', 'cip/cip.css'],
       clmBuildTimestamp = '<%= config.buildTimestamp %>';
   
   applyHttpOverride();
 
   if (!window.angular) {
-    loadScript(null, 'assets/lib/angular/angular.min.js?<%= config.pom.angularJsVersion %>', function() {
+    loadScript(null, 'lib/angular/angular.min.js?<%= config.pom.angularJsVersion %>', function() {
       createApplicationIdProvider();
       $.each(scripts, loadScript);
     });

@@ -529,14 +529,14 @@
                 <source>frontend/cip/cip-test-util.js</source>
               </preloadSources>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery.js</include>
-                <include>frontend/assets/lib/bootstrap/bootstrap-*.min.js</include>
-                <include>frontend/assets/lib/angular/angular.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/bootstrap/bootstrap-*.min.js</include>
+                <include>frontend/lib/angular/angular.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/brain-client/*.js</include>
                 <include>frontend/cip/*.js</include>
-                <include>frontend/assets/lib/ui-bootstrap-tpls-*.min.js</include>
-                <include>frontend/assets/lib/datepicker/bootstrap-datepicker.js</include>
+                <include>frontend/lib/ui-bootstrap-tpls-*.min.js</include>
+                <include>frontend/lib/datepicker/bootstrap-datepicker.js</include>
                 <include>frontend/util/*.js</include>
               </sourceIncludes>
               <specIncludes>
@@ -598,26 +598,25 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery.js</include>
-                <include>frontend/assets/lib/bootstrap/bootstrap-*.js</include>
-                <include>frontend/assets/lib/angular/angular.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular-sanitize.js</include>
-                <include>frontend/assets/lib/ui-bootstrap-tpls-*.min.js</include>
-                <include>frontend/assets/lib/X-editable/bootstrap-editable.min.js</include>
-                <include>frontend/assets/**/*.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/bootstrap/bootstrap-*.js</include>
+                <include>frontend/lib/angular/angular.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/lib/ui-bootstrap-tpls-*.min.js</include>
+                <include>frontend/lib/X-editable/bootstrap-editable.min.js</include>
                 <include>frontend/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>
-                <exclude>frontend/assets/lib/jquery/grunt.js</exclude>
-                <exclude>frontend/assets/lib/jquery/*.min.js</exclude>
-                <exclude>frontend/assets/lib/jquery/*/**/*.js</exclude>
-                <exclude>frontend/assets/lib/angular/index.js</exclude>
-                <exclude>frontend/assets/lib/angular/*.min.js</exclude>
-                <exclude>frontend/assets/lib/angular-${angularjs.version}/*.min.js</exclude>
-                <exclude>frontend/assets/lib/protovis/protovis-msie.min.js</exclude>
-                <exclude>frontend/assets/brain-client/*.js</exclude>
-                <exclude>frontend/assets/version-graph/*.js</exclude>
+                <exclude>frontend/lib/jquery/grunt.js</exclude>
+                <exclude>frontend/lib/jquery/*.min.js</exclude>
+                <exclude>frontend/lib/jquery/*/**/*.js</exclude>
+                <exclude>frontend/lib/angular/index.js</exclude>
+                <exclude>frontend/lib/angular/*.min.js</exclude>
+                <exclude>frontend/lib/angular-${angularjs.version}/*.min.js</exclude>
+                <exclude>frontend/lib/protovis/protovis-msie.min.js</exclude>
+                <exclude>frontend/brain-client/*.js</exclude>
+                <exclude>frontend/version-graph/*.js</exclude>
                 <exclude>frontend/cip/*.js</exclude>
                 <exclude>frontend/policy/js/*.js</exclude>
                 <exclude>frontend/**/lib/**/test/*.js</exclude>
@@ -689,14 +688,14 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery.js</include>
-                <include>frontend/assets/lib/angular/angular.min.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/angular/angular.min.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.min.js</include>
                 <include>frontend/brain-client/*.js</include>
-                <include>frontend/assets/lib/protovis/protovis.min.js</include>
-                <include>frontend/assets/version-graph/appcheck.js</include>
-                <include>frontend/assets/version-graph/cip.js</include>
-                <include>frontend/assets/ComponentDisplayModule.js</include>
+                <include>frontend/lib/protovis/protovis.min.js</include>
+                <include>frontend/version-graph/appcheck.js</include>
+                <include>frontend/version-graph/cip.js</include>
+                <include>frontend/ComponentDisplayModule.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>frontend/**/lib/*.js</include>
@@ -738,11 +737,11 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>frontend/assets/lib/jquery/jquery.js</include>
-                <include>frontend/assets/lib/angular/angular.min.js</include>
-                <include>frontend/assets/lib/angular-${angularjs.version}/angular-route.min.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/angular/angular.min.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.min.js</include>
                 <include>frontend/brain-client/*.js</include>
-                <include>frontend/assets/version-graph/viewdetails.js</include>
+                <include>frontend/version-graph/viewdetails.js</include>
               </sourceIncludes>
               <specIncludes>
                 <include>frontend/**/lib/*.js</include>

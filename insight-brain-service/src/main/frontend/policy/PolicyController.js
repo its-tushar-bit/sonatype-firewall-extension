@@ -193,7 +193,7 @@
       });
       return {
         restrict: 'A',
-        templateUrl: '../policy-assets/components/policy/policy-items.html?' + clmBuildTimestamp,
+        templateUrl: 'components/policy/policy-items.html?' + clmBuildTimestamp,
         scope: {
           ownerName: '=',
           policies: '=policyItems',

@@ -35,8 +35,8 @@
             <tr ng-repeat='application in applications | filter: isVisible | orderBy:getSortField()'>
               <td>
                 <a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
-                  <img ng-src='../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
-                    onerror="this.src='../assets/img/defaulticon_application.png';"
+                  <img ng-src='../../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
+                    onerror="this.src='img/defaulticon_application.png';"
                     class='image-thumbnail'/>{{application.name}}
                 </a>
               </td>

@@ -22,7 +22,7 @@
     };
     VersionGraphTab.prototype.create = function() {
       var timestamp = new Date().getTime(),
-          container = $('<div clm-include="\'' + CLM.path + 'assets/version-graph/version-graph.html\'"></div>'),
+          container = $('<div clm-include="\'' + CLM.path + 'version-graph/version-graph.html\'"></div>'),
           me = this;
       me.node.empty();
       container.appendTo(this.node);
@@ -59,7 +59,7 @@
     selectApplication : false,
     openView : angular.noop,
     linkTarget : '_blank',
-    path : CLM.path + 'assets/version-graph/'
+    path : CLM.path + 'version-graph/'
   };
 
   CLM.loadPlugin(createPlugin, 'Component Info');

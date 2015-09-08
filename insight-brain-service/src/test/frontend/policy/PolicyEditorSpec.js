@@ -98,9 +98,9 @@ describe('PolicyEditor.js', function() {
       return getController('ConstraintEditorController');
     }
 
-    var conditionTemplate = SpecUtil.getTemplate("../../../frontend/assets/components/policy-editor/condition-editor.html"),
-        template = SpecUtil.getTemplate("../../../frontend/assets/components/policy-editor/policy-inline-editor.html"),
-        constraintEditorTemplate = SpecUtil.getTemplate("../../../frontend/assets/components/policy-editor/constraint-editor.html"),
+    var conditionTemplate = SpecUtil.getTemplate("../../../frontend/components/policy-editor/condition-editor.html"),
+        template = SpecUtil.getTemplate("../../../frontend/components/policy-editor/policy-inline-editor.html"),
+        constraintEditorTemplate = SpecUtil.getTemplate("../../../frontend/components/policy-editor/constraint-editor.html"),
         scope = null;
 
     beforeEach(inject(function($compile, $httpBackend) {
@@ -111,8 +111,8 @@ describe('PolicyEditor.js', function() {
       node.appendTo('body');
       scope = testScope.$new(); // testScope's destruction cascades
       $httpBackend.whenGET("policy-quick-add").respond('<div ng-if="policy">' + template + '</div>');
-      $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
-      $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
+      $httpBackend.whenGET("components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+      $httpBackend.whenGET("components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
       $compile(node)(scope);
       $httpBackend.flush();
     }));
@@ -215,8 +215,8 @@ describe('PolicyEditor.js', function() {
         scope.$digest();
 
         var policyEditorScope = getPolicyEditorScope();
-        $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
-        $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
+        $httpBackend.whenGET("components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+        $httpBackend.whenGET('components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
         $httpBackend.flush();
         policyEditorScope.policy.name = 'foo';
         expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
@@ -227,8 +227,8 @@ describe('PolicyEditor.js', function() {
         scope.$digest();
 
         var policyEditorScope = getPolicyEditorScope();
-        $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionTemplate);
-        $httpBackend.whenGET('../assets/components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
+        $httpBackend.whenGET("components/policy-editor/condition-editor.html?").respond(conditionTemplate);
+        $httpBackend.whenGET('components/policy-editor/constraint-editor.html?').respond(constraintEditorTemplate);
         $httpBackend.flush();
         policyEditorScope.policy.constraints[0].name = 'foo';
         expect(testScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
@@ -237,9 +237,9 @@ describe('PolicyEditor.js', function() {
   });
 
   describe('InlinePolicyEditor', function() {
-    var template = SpecUtil.getTemplate("../../../frontend/assets/components/policy-editor/policy-inline-editor.html"),
-        constraintEditorTemplate = SpecUtil.getTemplate("../../../frontend/assets/components/policy-editor/constraint-editor.html"),
-        conditionEditorTemplate = SpecUtil.getTemplate("../../../frontend/assets/components/policy-editor/condition-editor.html"),
+    var template = SpecUtil.getTemplate("../../../frontend/components/policy-editor/policy-inline-editor.html"),
+        constraintEditorTemplate = SpecUtil.getTemplate("../../../frontend/components/policy-editor/constraint-editor.html"),
+        conditionEditorTemplate = SpecUtil.getTemplate("../../../frontend/components/policy-editor/condition-editor.html"),
         parentScope = null,
         policyScope = null,
         scope = null;
@@ -252,9 +252,9 @@ describe('PolicyEditor.js', function() {
       expectActionRequests();
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
-      $httpBackend.whenGET("../assets/components/policy-editor/policy-inline-editor.html?").respond(template);
-      $httpBackend.whenGET("../assets/components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
-      $httpBackend.whenGET("../assets/components/policy-editor/condition-editor.html?").respond(conditionEditorTemplate);
+      $httpBackend.whenGET("components/policy-editor/policy-inline-editor.html?").respond(template);
+      $httpBackend.whenGET("components/policy-editor/constraint-editor.html?").respond(constraintEditorTemplate);
+      $httpBackend.whenGET("components/policy-editor/condition-editor.html?").respond(conditionEditorTemplate);
 
       parentScope = testScope.$new();
       parentScope.policyEditMap = {};

@@ -20,7 +20,7 @@
         data: {
           passThroughAlerts: []
         },
-        templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+        templateUrl: '../policy/components/policy/policy.html?' + clmBuildTimestamp
       }).state('management.organization.view.policies.new', {
         parent: 'management.organization.view.policies',
         url: '/new',
@@ -28,12 +28,12 @@
         data: {
           passThroughAlerts: []
         },
-        templateUrl: '../policy-assets/components/policy/policy.html?' + clmBuildTimestamp
+        templateUrl: '../policy/components/policy/policy.html?' + clmBuildTimestamp
       }).state('management.organization.view.labels', {
         parent: 'management.organization.view',
         url: '/labels',
         controller: 'LabelController',
-        templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+        templateUrl: '../policy/components/label-editor/labels.html?' + clmBuildTimestamp
       }).state('management.organization.view.labels.new', {
         parent: 'management.organization.view.labels',
         url: '/new',
@@ -41,12 +41,12 @@
         data: {
           passThroughAlerts: []
         },
-        templateUrl: '../policy-assets/components/label-editor/labels.html?' + clmBuildTimestamp
+        templateUrl: '../policy/components/label-editor/labels.html?' + clmBuildTimestamp
       }).state('management.organization.view.licenses', {
         parent: 'management.organization.view',
         url: '/licenses',
         controller: 'LicenseThreatGroupController',
-        templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
+        templateUrl: '../policy/components/license-threat-group/license-threat-group.html?' +
             clmBuildTimestamp
       }).state('management.organization.view.licenses.new', {
         parent: 'management.organization.view.licenses',
@@ -55,13 +55,13 @@
         data: {
           passThroughAlerts: []
         },
-        templateUrl: '../policy-assets/components/license-threat-group/license-threat-group.html?' +
+        templateUrl: '../policy/components/license-threat-group/license-threat-group.html?' +
         clmBuildTimestamp
       }).state('management.organization.view.security', {
         parent: 'management.organization.view',
         url: '/security',
         controller: 'AppSecurityController',
-        templateUrl: '../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp,
+        templateUrl: '../policy/components/app-security/app-security.html?' + clmBuildTimestamp,
         resolve : {
           isAuthorized : function () {
             return true;
@@ -71,12 +71,12 @@
         parent: 'management.organization.view',
         url: '/tags',
         controller: 'TagController',
-        templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
+        templateUrl: '../policy/components/tag-editor/tags.html?' + clmBuildTimestamp
       }).state('management.organization.view.tags.new', {
         parent: 'management.organization.view.tags',
         url: '/new',
         controller: 'TagController',
-        templateUrl: '../policy-assets/components/tag-editor/tags.html?' + clmBuildTimestamp
+        templateUrl: '../policy/components/tag-editor/tags.html?' + clmBuildTimestamp
       });
     }
   ]);

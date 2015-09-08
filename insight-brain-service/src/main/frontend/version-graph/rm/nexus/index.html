@@ -1,0 +1,59 @@
+<!doctype html>
+<html ng-app='CIP' ng-strict-di>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Insight 3566b5df-329e-49a0-9b9c-57f047aade27  -->
+    <title>Component Information Panel</title>
+
+    <!-- build:css(.tmp) ../../version-graph-lib.css -->
+    <link href="scss/bootstrap.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:css ../../version-graph.css -->
+    <link href="../../content.css" rel="stylesheet">
+    <!-- endbuild -->
+
+    <!-- build:js ../../version-graph-lib.js -->
+    <script src="../../../lib/jquery/jquery.js"></script>
+    <script src="../../../lib/angular/angular.js"></script>
+    <script src="../../../lib/protovis/protovis.min.js"></script>
+    <!-- endbuild -->
+
+    <script src='../../../policy/js/brain.client.js?<%= config.buildTimestamp %>'></script>
+
+    <!-- build:js ../../version-graph.js -->
+    <script src="../../../util/AngularCommon.js"></script>
+    <script src="../../../util/CLMAppLocation.js"></script>
+    <script src="../../../util/CLMLocation.js"></script>
+    <script src="../../../util/HttpInterceptors.js"></script>
+    <script src="../../../util/ProductFeatures.js"></script>
+    <script src="../../../util/Stores.js"></script>
+    <script src="../../../util/PermissionService.js"></script>
+    <script src="../../../util/BootstrapAddonsModule.js"></script>
+    <script src="../../../util/Validators.js"></script>
+    <script src="../../appcheck.js"></script>
+    <script src="../../cip.js"></script>
+    <!-- endbuild -->
+    <script>
+      var clmEndpoint = {
+        type : 'rm',
+        migrate : false,
+        viewDetails : true,
+        selectApplication : true,
+        openView : function (args) {
+          Eclipse_openView(args);
+        },
+        linkTarget : '_blank',
+        path : '../../'
+      };
+    </script>
+    <!--[if lt IE 9]>
+      <!-- build:js ../../protovis-msie.min.js -->
+        <script src="../../../lib/protovis/protovis-msie.min.js"></script>
+      <!-- endbuild -->
+    <![endif]-->
+  </head>
+  <body ng-include='"../../version-graph.html?<%= config.buildTimestamp %>"'>
+  </body>
+</html>

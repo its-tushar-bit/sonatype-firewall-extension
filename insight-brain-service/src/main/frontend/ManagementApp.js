@@ -16,7 +16,7 @@
   var managementModule = angular.module('ManagementModule', ['ui.router', 'Stores'], ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management', {
       url: '/management',
-      templateUrl: '../assets/management.html?' + clmBuildTimestamp,
+      templateUrl: 'management.html?' + clmBuildTimestamp,
       controller: 'ManagementController',
       data : {
         title : 'Management'

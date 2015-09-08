@@ -15,7 +15,7 @@
                         '<h1 class="page-title">' +
                           '<div class="container administrators">Administrators</div>' +
                         '</h1>' +
-                        '<div class="container administrators" ng-include="\'../policy-assets/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
+                        '<div class="container administrators" ng-include="\'../policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
                       '</div>' +
                      '</div>',
           data : {
@@ -39,7 +39,7 @@
             $stateProvider.state('users', {
               url: '/users',
               controller: 'UserListController',
-              templateUrl: '../security-assets/user-list.html?' + clmBuildTimestamp,
+              templateUrl: 'security/user-list.html?' + clmBuildTimestamp,
               data : {
                 title : 'Users'
               },
@@ -254,7 +254,7 @@
   
   module.directive('zeroClipboard', function() {
     ZeroClipboard.config({
-      moviePath: '../assets/lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
+      moviePath: '../lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
     });
     return {
       restrict: 'A',

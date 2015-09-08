@@ -257,7 +257,7 @@
       return {
         restrict: 'A',
         replace: true,
-        templateUrl: '../dashboard-assets/filter.html?' + clmBuildTimestamp,
+        templateUrl: 'dashboard/filter.html?' + clmBuildTimestamp,
         controller: 'FilterController',
         scope: {
           filters: '=',

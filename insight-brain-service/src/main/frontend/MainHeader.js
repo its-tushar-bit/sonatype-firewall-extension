@@ -151,7 +151,7 @@
     return {
       restrict: 'A',
       controller: 'mainHeaderController',
-      templateUrl : '../assets/components/main-header/main-header.html?' + clmBuildTimestamp
+      templateUrl : 'components/main-header/main-header.html?' + clmBuildTimestamp
     };
   });
 

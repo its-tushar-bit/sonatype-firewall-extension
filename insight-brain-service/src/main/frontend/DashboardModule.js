@@ -35,7 +35,7 @@
     ['$stateProvider', function($stateProvider) {
     $stateProvider.state('dashboard', {
       url: '/dashboard',
-      templateUrl: '../dashboard-assets/dashboard.html?' + clmBuildTimestamp,
+      templateUrl: 'dashboard/dashboard.html?' + clmBuildTimestamp,
       abstract: true,
       data : {
         title : 'Dashboard',
@@ -46,25 +46,25 @@
       url: '',
       abstract: true,
       controller: 'DashboardController',
-      templateUrl: '../dashboard-assets/overview.html?' + clmBuildTimestamp
+      templateUrl: 'dashboard/overview.html?' + clmBuildTimestamp
     }).state('dashboard.overview.newest-risk', {
       parent: 'dashboard.overview',
       url: '/newest-risk',
-      templateUrl: '../dashboard-assets/newest-risk.html?' + clmBuildTimestamp,
+      templateUrl: 'dashboard/newest-risk.html?' + clmBuildTimestamp,
       data: {
         crumb: 'Newest Risk'
       }
     }).state('dashboard.overview.components', {
       parent: 'dashboard.overview',
       url: '/components',
-      templateUrl: '../dashboard-assets/components.html?' + clmBuildTimestamp,
+      templateUrl: 'dashboard/components.html?' + clmBuildTimestamp,
       data: {
         crumb: 'By Component'
       }
     }).state('dashboard.overview.applications', {
       parent: 'dashboard.overview',
       url: '/applications',
-      templateUrl: '../dashboard-assets/applications.html?' + clmBuildTimestamp,
+      templateUrl: 'dashboard/applications.html?' + clmBuildTimestamp,
       data: {
         crumb: 'By Application'
       }
@@ -72,7 +72,7 @@
       parent: 'dashboard',
       url: '/component/{hash}',
       controller: 'componentController',
-      templateUrl: '../dashboard-assets/component.html?' + clmBuildTimestamp,
+      templateUrl: 'dashboard/component.html?' + clmBuildTimestamp,
       data: {
         crumb: 'Component Details'
       }

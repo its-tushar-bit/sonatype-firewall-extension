@@ -213,15 +213,7 @@ public class InsightBrainService
     bootstrap.addBundle(new AssetsBundle("/assets/report/", REPORT_ASSET_PATH));
     bootstrap.addBundle(new AssetsBundle("/assets/dashboard/", DASHBOARD_ASSET_PATH));
 
-    bootstrap.addBundle(new AssetsBundle("/assets-new/application/", "/new" + APPLICATION_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/assets/", "/new" + BRAIN_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/policy/", "/new" + POLICY_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/organization/", "/new" + ORGANIZATION_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/configuration/", "/new" + CONFIGURATION_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/cip/", "/new" + CIP_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/security/", "/new" + SECURITY_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/report/", "/new" + REPORT_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets-new/dashboard/", "/new" + DASHBOARD_ASSET_PATH));
+    bootstrap.addBundle(new AssetsBundle("/assets-new/", "/new" + BRAIN_ASSET_PATH, "index.html"));
 
     // workaround to let us set different defaults in the core HTTP configuration
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());

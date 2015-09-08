@@ -78,7 +78,7 @@
         build_brain_client: {
           files: {
             '<%= config.generated %>/policy/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js',
-            '<%= config.generated %>/assets/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js'
+            '<%= config.generated %>/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js'
           }
         },
         build: {
@@ -86,9 +86,9 @@
           cwd: '<%= config.frontend %>',
           src: [
             '**/*.{html,ttf,woff,woff2,png,gif,jpg}',
-            '!assets/lib/*',
-            'assets/lib/**/*.{js,css,ttf,woff,woff2}',
-            '!assets/lib/**/test/*'
+            '!lib/*',
+            'lib/**/*.{js,css,ttf,woff,woff2}',
+            '!lib/**/test/*'
           ],
           dest: '<%= config.generated %>'
         },
@@ -96,13 +96,13 @@
           expand: true,
           cwd: '<%= config.temp %>/concat',
           src: ['**/*'],
-          dest: '<%= config.generated %>/assets'
+          dest: '<%= config.generated %>'
         }
       },
       csslint: {
         build: [
           '<%= config.frontend %>/**/*.css',
-          '!<%= config.frontend %>/assets/lib/**/*'
+          '!<%= config.frontend %>/lib/**/*'
         ]
       },
       cssmin: {
@@ -110,9 +110,9 @@
           files: {
             '<%= config.generated %>/cip/cip.css': [
               '<%= config.frontend %>/cip/*.css',
-              '<%= config.frontend %>/assets/version-graph/content.css',
+              '<%= config.frontend %>/version-graph/content.css',
               '<%= config.temp %>/scss/cip.css',
-              '<%= config.frontend %>/assets/multi-select.css'
+              '<%= config.frontend %>/multi-select.css'
             ]
           }
         }
@@ -134,7 +134,7 @@
         build: {
           src: [
             '<%= config.generated %>/**/*.{js,css}',
-            '!<%= config.generated %>/assets/lib/**/*',
+            '!<%= config.generated %>/lib/**/*',
             '!<%= config.generated %>/**/brain.client.js',
             '!<%= config.generated %>/policy/js/cip-loader.js'
           ]
@@ -154,7 +154,7 @@
         },
         build: [
           '<%= config.frontend %>/**/*.js',
-          '!<%= config.frontend %>/assets/lib/**/*',
+          '!<%= config.frontend %>/lib/**/*',
           '!<%= config.frontend %>/policy/js/cip-loader.js'
         ]
       },
@@ -168,13 +168,17 @@
           files: {
             '<%= config.generated %>/policy/js/cip-loader.js': '<%= config.generated %>/policy/js/cip-loader.js',
             '<%= config.generated %>/policy/js/brain.client.js': '<%= config.generated %>/policy/js/brain.client.js',
-            '<%= config.generated %>/assets/js/brain.client.js': '<%= config.generated %>/assets/js/brain.client.js'
+            '<%= config.generated %>/js/brain.client.js': '<%= config.generated %>/js/brain.client.js',
+
+            // Included for CLM Application Reports
+            '<%= config.generated %>/policy-assets/js/cip-loader.js': '<%= config.generated %>/policy/js/cip-loader.js',
+            '<%= config.generated %>/policy-assets/js/brain.client.js': '<%= config.generated %>/js/brain.client.js'
           }
         },
         build: {
           expand: true,
           cwd: '<%= config.generated %>',
-          src: ['**/index.html', 'assets/css/style-scss.*.css'],
+          src: ['**/index.html', 'css/style-scss.*.css'],
           dest: '<%= config.generated %>'
         }
       },
@@ -187,11 +191,11 @@
         build: {
           files: {
             src: [
-              '<%= config.frontend %>/assets/index.html'
+              '<%= config.frontend %>/index.html'
             ]
           },
           options: {
-            dest: '<%= config.generated %>/assets/',
+            dest: '<%= config.generated %>/',
             staging: '<%= config.temp %>',
             type: 'html'
           }
@@ -201,31 +205,31 @@
         build_version_graph: {
           files: {
             src: [
-              '<%= config.frontend %>/assets/version-graph/*/*/index.html',
-              '<%= config.frontend %>/assets/version-graph/*/*/viewdetails.html'
+              '<%= config.frontend %>/version-graph/*/*/index.html',
+              '<%= config.frontend %>/version-graph/*/*/viewdetails.html'
             ]
           },
           options: {
             // useminPrepare has a bug with relative paths https://github.com/yeoman/grunt-usemin/issues/297
-            dest: '<%= config.generated %>/assets/version-graph/ide/eclipse',
-            staging: '<%= config.temp %>/concat/assets/version-graph/ide',
+            dest: '<%= config.generated %>/version-graph/ide/eclipse',
+            staging: '<%= config.temp %>/concat/version-graph/ide',
             type: 'html'
           }
         }
       },
       usemin: {
         html: [
-          '<%= config.generated %>/assets/index.html',
-          '<%= config.generated %>/assets/version-graph/ide/eclipse/index.html',
-          '<%= config.generated %>/assets/version-graph/ide/eclipse/viewdetails.html',
-          '<%= config.generated %>/assets/version-graph/rm/nexus/index.html',
-          '<%= config.generated %>/assets/version-graph/rm/nexus/viewdetails.html'
+          '<%= config.generated %>/index.html',
+          '<%= config.generated %>/version-graph/ide/eclipse/index.html',
+          '<%= config.generated %>/version-graph/ide/eclipse/viewdetails.html',
+          '<%= config.generated %>/version-graph/rm/nexus/index.html',
+          '<%= config.generated %>/version-graph/rm/nexus/viewdetails.html'
         ],
         options: {
           assetsDirs: [
-            '<%= config.generated %>/assets',
-            '<%= config.generated %>/assets/version-graph/ide/eclipse',
-            '<%= config.generated %>/assets/version-graph/rm/nexus'
+            '<%= config.generated %>/',
+            '<%= config.generated %>/version-graph/ide/eclipse',
+            '<%= config.generated %>/version-graph/rm/nexus'
           ]
         }
       },
@@ -238,7 +242,7 @@
         },
         build: {
           files: {
-            '<%= config.temp %>/scss/bootstrap.css': '<%= config.frontend %>/assets/lib/bootstrap/bootstrap.scss',
+            '<%= config.temp %>/scss/bootstrap.css': '<%= config.frontend %>/lib/bootstrap/bootstrap.scss',
             '<%= config.temp %>/scss/scss.css': '<%= config.frontend %>/scss/scss.scss'
           }
         }
@@ -256,15 +260,15 @@
       //      template: {
       //        include: [
       //          '<%= config.temp %>/scss/bootstrap.css',
-      //          '<%= config.frontend %>/assets/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
-      //          '<%= config.frontend %>/assets/lib/components-font-awesome/css/font-awesome.css',
+      //          '<%= config.frontend %>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
+      //          '<%= config.frontend %>/lib/components-font-awesome/css/font-awesome.css',
       //          '<%= config.temp %>/styleguide.css',
-      //          '<%= config.frontend %>/assets/lib/jquery/jquery-1.8.3.min.js',
-      //          '<%= config.frontend %>/assets/lib/angular-' + angularVersion + '/angular.js',
-      //          '<%= config.frontend %>/assets/lib/angular-' + angularVersion + '/angular-sanitize.js',
-      //          '<%= config.frontend %>/assets/lib/ui-bootstrap-tpls-0.8.0.min.js',
+      //          '<%= config.frontend %>/lib/jquery/jquery-1.8.3.min.js',
+      //          '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular.js',
+      //          '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular-sanitize.js',
+      //          '<%= config.frontend %>/lib/ui-bootstrap-tpls-0.8.0.min.js',
       //          '<%= config.frontend %>/util/AngularCommon.js',
-      //          '<%= config.frontend %>/assets/FormsModule.js',
+      //          '<%= config.frontend %>/FormsModule.js',
       //          '<%= config.styleguideSrc %>/styleguide.js'
       //        ]
       //      }

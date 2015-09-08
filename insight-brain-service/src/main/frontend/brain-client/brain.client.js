@@ -66,9 +66,9 @@ var clmBuildTimestamp = '<%= config.buildTimestamp %>';
         if (scripts.length) {
           for (var i = 0; i < scripts.length; i++) {
             if (scripts[i].src) {
-              index = scripts[i].src.indexOf('policy-assets/js/brain.client.js');
+              index = scripts[i].src.indexOf('policy/js/brain.client.js');
               if (index === -1) {
-                index = scripts[i].src.indexOf('assets/js/brain.client.js');
+                index = scripts[i].src.indexOf('js/brain.client.js');
               }
 
               if (index !== -1) {

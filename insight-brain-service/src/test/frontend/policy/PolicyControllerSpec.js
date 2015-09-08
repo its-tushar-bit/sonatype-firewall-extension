@@ -67,7 +67,7 @@ describe('PolicyController tests', function() {
   }));
 
   it('Test Summary', inject(function($compile, $httpBackend) {
-    $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');
+    $httpBackend.expectGET('components/policy/policy-items.html?').respond('');
     var sc = $compile('<div policy-items></div>')(scope).scope();
     $httpBackend.flush();
     expect(sc.$$childTail.getActionCount(scope.applicablePolicies[0].policies[0])).toEqual(2);
@@ -80,7 +80,7 @@ describe('PolicyController tests', function() {
   describe('Should be able to match notification actions with appropriate css classes', function() {
     var sc;
     beforeEach(inject(function($httpBackend, $compile) {
-      $httpBackend.expectGET('../policy-assets/components/policy/policy-items.html?').respond('');
+      $httpBackend.expectGET('components/policy/policy-items.html?').respond('');
       sc = $compile('<div policy-items></div>')(scope).scope();
       $httpBackend.flush();
     }));

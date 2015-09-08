@@ -1348,7 +1348,7 @@ var AngularStateUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/new/policy-assets/', '/new/application-assets/', '/new/assets/', '/new/security-assets/', '/new/report-assets/', '/new/rest/report/'],
+          var baseSegments = ['/new/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {

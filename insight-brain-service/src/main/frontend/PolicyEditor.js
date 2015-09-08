@@ -741,7 +741,7 @@
     function() {
       return {
         restrict: 'A',
-        templateUrl: '../assets/components/policy-editor/policy-inline-editor.html?' + clmBuildTimestamp,
+        templateUrl: 'components/policy-editor/policy-inline-editor.html?' + clmBuildTimestamp,
         link: function(scope) {
           scope.hide = function() {
             scope.policyEditMap[scope.policy.id] = null;

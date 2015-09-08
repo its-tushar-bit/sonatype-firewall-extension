@@ -18,7 +18,7 @@
     $stateProvider.state('ldap', {
       url: '/ldap',
       controller: 'LdapConfigurationController',
-      templateUrl: '../configuration-assets/components/ldap.html?' + clmBuildTimestamp,
+      templateUrl: 'configuration/components/ldap.html?' + clmBuildTimestamp,
       data : {
         title : 'LDAP Configuration'
       },
@@ -30,11 +30,11 @@
     }).state('ldap.connection', {
       parent: 'ldap',
       controller: 'LdapConnectionController',
-      templateUrl: '../configuration-assets/components/ldap-connection.html?' + clmBuildTimestamp
+      templateUrl: 'configuration/components/ldap-connection.html?' + clmBuildTimestamp
     }).state('ldap.usermapping', {
       parent: 'ldap',
       controller: 'LdapUsermappingController',
-      templateUrl: '../configuration-assets/components/ldap-usermapping.html?' + clmBuildTimestamp
+      templateUrl: 'configuration/components/ldap-usermapping.html?' + clmBuildTimestamp
     });
   }]);
 
@@ -339,7 +339,7 @@
         $modal.open({
           backdrop: 'static',
           scope: $scope,
-          templateUrl: '../configuration-assets/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
+          templateUrl: 'configuration/components/ldap-checkusermapping.html?' + clmBuildTimestamp,
           controller: 'LdapCheckUserMappingController',
           windowClass: 'modal modal-ldap',
           resolve: {
@@ -367,7 +367,7 @@
         $modal.open({
           backdrop: 'static',
           scope: $scope,
-          templateUrl: '../configuration-assets/components/ldap-checklogin.html?' + clmBuildTimestamp,
+          templateUrl: 'configuration/components/ldap-checklogin.html?' + clmBuildTimestamp,
           controller: 'LdapCheckLoginController'
         }).result.then(function() {
           $scope.testInProgress = false;

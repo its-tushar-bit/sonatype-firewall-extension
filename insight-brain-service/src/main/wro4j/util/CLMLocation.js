@@ -191,6 +191,14 @@
         },
         getNotificationViewedUrl: function() {
           return baseUrl.get() + '/rest/productNotifications/viewed';
+        },
+
+        /**
+         * @Since 1.17
+         */
+        getAuditReportSummary: function(repositoryManagerInstanceId, repositoryPublicId) {
+          return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryManagerInstanceId) +
+                  '/' + encodeURIComponent(repositoryPublicId) + '/report/summary';
         }
       };
     }

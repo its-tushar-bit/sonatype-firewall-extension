@@ -230,6 +230,7 @@
 
   <group name='audit-report'>
     <js>/lib/hogan.js</js>
+    <js>/lib/protovis/protovis-tipsy.js</js>
     <js>/lib/date.format.js</js>
     <js>/lib/jquery/jquery.tipsy.js</js>
     <js>/lib/slickgrid/jquery.event.drag-2.0.min.js</js>
@@ -260,5 +261,6 @@
     <js>/audit-report/slickgrid/slick.grid.tipsy.js</js>
 
     <group-ref>cip-loader-core</group-ref>
+    <js>/audit-report/audit.js</js>
   </group>
 </groups>

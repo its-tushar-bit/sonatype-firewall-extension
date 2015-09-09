@@ -5,26 +5,64 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Audit Report</title>
     <script src="../assets/js/external.js?{build.timestamp}"></script>
+    <script src="../assets/version-graph/protovis.min.js?${build.timestamp}"></script>
     <script type="text/javascript" src="../assets/js/brain.client.js"></script>
     <script src="audit-report.js?{build.timestamp}"></script>
     <link href="../assets/css/style.css?${build.timestamp}" rel="stylesheet"/>
-    <link type="text/css" href="audit-report.js?{build.timestamp}" rel="stylesheet" />
+    <link type="text/css" href="audit-report.css?{build.timestamp}" rel="stylesheet" />
   </head>
-  <body>
+  <body ng-app="Audit" id="audit-report">
     <div class="container">
-      <div style="width:100%">
-        <div class="btn-group" data-toggle="buttons-radio" style="width:91.25%;display:inline-block" id="views">
-          <button class="btn active" style="width:25%" id="summaryBtn" data-containerid="summary">Summary</button>
-          <button class="btn" style="width:25%" id="componentcontainerBtn" data-containerid="componentcontainer">Policy</button>
-        </div>
-
-        <div class="btn-group" style="width:7.75%;display:inline-block;text-align:right" id="actions">
-          <a href="#" class="btn btn-primary" data-action="reevaluatePolicy" data-tooltip="Reevaluate Policy" data-gravity="n" data-gravity-offset="5" original-title=""><i class="icon-white icon-refresh"></i> </a>
+      <div ng-controller="AuditSummaryController">
+        <div id="summary" load-wrapper2="error" reload="doLoad()" error-message="Unable to load summary data." loading="loadActive">
+          <div ng-controller="ReevaluatorController">
+            <div class="alert alert-error" style="margin:5px 0" ng-show="error">
+              <button class="close" ng-click="error = null">&times;</button>Reevaluating policy failed. ({{error[0]}})
+            </div>
+            <button class="btn btn-primary pull-right"
+                 ng-click="reevaluate()"
+                 ng-disabled="submitActive"
+                 tooltip-placement="bottom"
+                 tooltip="Reevaluate Policy"
+                 type="button">
+              <i class="icon-white icon-refresh"></i>
+            </button>
+          </div>
+          <div class="row">
+            <div class="span5">
+              <span coverage-donut="percentKnownComponents" alt="{{percentKnownComponents}}% of Components Recognized as Open Source"></span>
+              <span class="header-container">
+                <div class="value_lrg">{{knownComponentCount}}</div>
+                <div class="label_med">COMPONENT{{knownComponentCount > 1 ? 'S' : ''}} IDENTIFIED</div>
+                <div class="label_sml"><span class="value_sml">{{percentKnownComponents}}%</span> OF ALL COMPONENTS ARE OPEN SOURCE</div>
+              </span>
+            </div>
+            <div class="span21" tooltip="A policy alert advises you of components that violate one or more policies within the application." tooltip-placement="bottom">
+              <div ng-if="policyViolationCount > 0">
+                <div class="value_lrg pval">
+                  <span class="pv-red" ng-if="criticalComponentCount">
+                    <span class="bdg">{{criticalComponentCount}}</span>
+                  </span>
+                  <span class="pv-orange" ng-if="severeComponentCount">
+                    <span class="bdg">{{severeComponentCount}}</span>
+                  </span>
+                  <span class="pv-yellow" ng-if="moderateComponentCount">
+                    <span class="bdg">{{moderateComponentCount}}</span>
+                  </span>
+                </div>
+                <div class="label_med">POLICY ALERT{{policyViolationCount > 0 ? 'S' : ''}}</div>
+                <div class="label_sml">AFFECTING <span class="value_sml">{{affectedComponentCount}}</span> COMPONENT{{affectedComponentCount > 0 ? 'S' : ''}}</div>
+              </div>
+              <div ng-if="policyViolationCount === 0">
+                <div class="value_lrg pval">0</div>
+                <div class="label_med">POLICY ALERTS</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div id="summary" style="padding-top:5px" data-container="true">Loading...</div>
 
-      <div id="componentcontainer" style="display:none;width:100%;padding-top:5px" data-container="true">
+      <div id="componentcontainer" style="width:100%;padding-top:5px">
         <div class="sectionBorder">
           <div class="pull-right hide" id="policy-violation-filter">
             <h4>Violations:</h4>
@@ -84,111 +122,6 @@
             <button type='none' class='btn btn-primary' data-type='update'>Update</button>
             {{#cancel}}<button type='none' class='btn' data-type='cancel'>Cancel</button>{{/cancel}}
         </div>
-    </div>
-</script>
-<script type='text/x-mustache-template' id='summaryPageTemplate'>
-    <h5>This report provides security and license assessments for open source components found within an application.</h5>
-    <div style='padding:5px' class='topBorder'>
-        <div class='page-header'>
-            <h4>Scope of Analysis</h4>
-        </div>
-        <div class='row'>
-            <div class='span5' data-tooltip='Matches: {{exactlyMatchedComponentCount}} exact, {{partiallyMatchedComponentCount}} similar' data-gravity='n'>
-                <span id="coverage_donut" alt="{{percentKnownComponents}}% of Components Recognized as Open Source"></span>
-                <span class='header-container'>
-                    <div class="value_lrg">{{knownComponentCount}}</div>
-                    <div class="label_med">COMPONENT{{#multipleKnown}}S{{/multipleKnown}} IDENTIFIED</div>
-                    <div class="label_sml"><span class="value_sml">{{percentKnownComponents}}%</span> OF ALL COMPONENTS ARE OPEN SOURCE</div>
-                </span>
-            </div>
-    {{#policy}}
-            <div class="span21" data-tooltip='A policy alert advises you of components that violate one or more policies within the application.' data-gravity='n'>
-    {{#hasPolicyAlerts}}
-                <div class="value_lrg pval">
-                    {{#criticalCount}}<span class="pv-red"><span class="bdg">{{criticalCount}}</span></span>{{/criticalCount}}
-                    {{#severeCount}}<span class="pv-orange"><span class="bdg">{{severeCount}}</span></span>{{/severeCount}}
-                    {{#moderateCount}}<span class="pv-yellow"><span class="bdg">{{moderateCount}}</span></span>{{/moderateCount}}
-                    <span><span></span></span>
-                </div>
-                <div class="label_med">POLICY ALERT{{#multipleAlerts}}S{{/multipleAlerts}}</div>
-                <div class="label_sml">AFFECTING <span class="value_sml">{{policyComponentCount}}</span> COMPONENT{{#multipleComponents}}S{{/multipleComponents}}</div>
-    {{/hasPolicyAlerts}}
-    {{^hasPolicyAlerts}}
-                <div class="value_lrg pval">0</div>
-                <div class="label_med">POLICY ALERTS</div>
-    {{/hasPolicyAlerts}}
-            </div>
-    {{/policy}}
-    {{#sv}}
-            <div class="span2" data-tooltip='A security alert advises you of components with a known security defect as defined by public and private data sources.' data-gravity='n'>
-                <div class="value_lrg">{{count}}</div>
-                <div class="label_med">SECURITY ALERT{{#multiple}}S{{/multiple}}</div>
-                <div class="label_sml">AFFECTING <span class="value_sml">{{insecureArtifactCount}}</span> COMPONENT{{#multipleComponents}}S{{/multipleComponents}}</div>
-            </div>
-    {{/sv}}
-    {{#license}}
-            <div class="span2" data-tooltip='A license alert advises you of components with obligations that may not be suitable for certain commercial usage.' data-gravity='n'>
-                <div class="value_lrg">{{licenseAlerts}}</div>
-                <div class="label_med">LICENSE ALERT{{#multipleLicenseAlerts}}S{{/multipleLicenseAlerts}}</div>
-            </div>
-    {{/license}}
-        </div>
-    </div>
-    <div style='padding:5px' class='topBorder'>
-        <div class='page-header'>
-            <h4 class='i-sec'><span data-tooltip='Sonatype utilizes the base score from the Common Vulnerability Scoring System, version 2.' data-gravity='w'>Security Issues</span></h4>
-        </div>
-        <div class='sectionsummary'>How bad are the vulnerabilities and how many are there?</div>
-        <div class="sums iblock">
-            <div class="sval sv-red">
-                <span class="cat">Critical (7-10)</span><span class="cnt">{{sv.criticalCount}}</span>
-            </div>
-            <div class="sval sv-orange">
-                <span class="cat">Severe (4-6)</span><span class="cnt">{{sv.severeCount}}</span>
-            </div>
-            <div class="sval sv-yellow">
-                <span class="cat">Moderate (1-3)</span><span class="cnt">{{sv.moderateCount}}</span>
-            </div>
-        </div>
-        <div id="security-chart" class='iblock' style='width:267px'>
-        </div>
-        <div class='iblock security-description label_med'>
-            <span>The summary of security issues demonstrates the breakdown of vulnerabilities based on severity and the threat level it poses to your application.<br>The dependency depth highlights quantity and severity and distribution within the application's dependencies.</span>
-        </div>
-        <div id='security-punchcard' class='iblock punchcard'>
-        </div>
-    </div>
-    <div style='padding:5px' class='topBorder bottomBorder'>
-        <div class='page-header'>
-            <h4 class='i-lic'><span data-tooltip='License Analysis Summary: License data is calculated based the information provided by the publishing project, and the results of multiple public and proprietary source and binary scans.' data-gravity='w'>License Analysis</span></h4>
-        </div>
-        <div class='sectionsummary'>What type of licenses and how many of each?</div>
-        <div class="sums iblock">
-            <div class="sval sv-red">
-                <span class="cat">Critical (8-10)</span><span class="cnt" id='criticalLicenseCount'>{{license.criticalCount}}</span>
-            </div>
-            <div class="sval sv-orange">
-                <span class="cat">Severe (4-7)</span><span class="cnt" id='severeLicenseCount'>{{license.severeCount}}</span>
-            </div>
-            <div class="sval sv-yellow">
-                <span class="cat">Moderate (1-3)</span><span class="cnt" id='moderateLicenseCount'>{{license.moderateCount}}</span>
-            </div>
-            <div class="sval sv-blue">
-                <span class="cat">No Threat (0)</span><span class="cnt" id='noThreatLicenseCount'>{{license.noThreatCount}}</span>
-            </div>
-        </div>
-        <div id="license-chart" class='iblock' style='width:235px'>
-        </div>
-        <div class='iblock license-description label_med'>
-            <span>The summary of license analysis demonstrates the number of licenses detected in each category.<br>The dependency depth compares quantity by category and the distribution within your application's dependencies.</span>
-        </div>
-        <div id='license-punchcard' class='iblock punchcard'>
-        </div>
-    </div>
-    <div style='margin-bottom:10px;padding:5px;display:none' id='update' class='bottomBorder'>
-        <div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Potential updates to resolve security issues:<div id='security' style='text-align:center;width:100%'></div></div>
-        <div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Potential updates to resolve license issues:<div id='license' style='text-align:center;width:100%'></div></div>
-        <div style='width:33%;display:inline-block' class='sectionsummary'>&nbsp;Distance from most popular versions:<div id='popularity' style='text-align:center;width:100%'></div></div>
     </div>
 </script>
     <div id="sv-info-modal" class="modal hide fade">

@@ -118,6 +118,38 @@ describe('OwnerControllers', function () {
       }));
     });
 
+    describe('LabelTileController', function () {
+      var vm;
+      
+      beforeEach(inject(['$controller', storeName, function ($controller, store) {
+        spyOn(store, 'get').andReturn(deferred.promise);
+        spyOn(store, 'refresh').andReturn(refreshDeferred.promise);
+
+        vm = $controller('LabelTileController', {
+          $state : {
+            current : {
+              name : 'management.' + type +  '-view'
+            },
+            params : type === 'application' ? { applicationPublicId : owner.publicId } : { organizationId : owner.id }
+          }
+        });
+      }]));
+
+      it('Typical', inject(function () {
+        expect(deferred.promise.then).toHaveBeenCalled();
+
+        callPromiseSuccess([owner]);
+        expect(vm.owner).toEqual(owner);
+      }));
+
+      it('Missing', inject(function () {
+        expect(deferred.promise.then).toHaveBeenCalled();
+
+        callPromiseSuccess([{},{}]);
+        expect(vm.error).toEqual('Unable to locate ' + type);
+      }));
+    });
+
     describe('OwnerEditorController', function () {
       describe('New Owner', function () {
         var ownerResource;

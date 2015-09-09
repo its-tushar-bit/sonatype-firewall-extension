@@ -180,6 +180,37 @@
         });
       }]);
 
+  module.controller('LabelTileController', ['$state', 'ApplicationStore', 'OrganizationStore',
+    function ($state, ApplicationStore, OrganizationStore) {
+      var vm = this;
+
+      getOwner();
+
+      function getOwner() {
+        var isApp = $state.current.name.indexOf('application') !== -1,
+          stateIdField = isApp ? 'applicationPublicId' : 'organizationId',
+          idField = isApp ? 'publicId' : 'id';
+
+        var type = isApp ? 'application' : 'organization';
+
+        (isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get']().then(function (candidates) {
+          angular.forEach(candidates, function (candidate) {
+            if (candidate[idField] === $state.params[stateIdField]) {
+              vm.owner = candidate;
+            }
+          });
+
+          if (!vm.owner) {
+            vm.error = 'Unable to locate ' + type;
+          }
+        }, function () {
+          vm.error = arguments;
+        });
+
+        delete vm.error;
+      }
+  }]);
+
   module.service('OwnerEditor', ['$modal', function($modal) {
     return {
       open: function(owner, ownerType, siblings) {

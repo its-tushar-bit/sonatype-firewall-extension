@@ -22,6 +22,10 @@
         <div class="sub-header">Another day</div>
       </div>
     </div>
+    <div class="tile">
+      <i class="fa fa-tags fa-lg"></i><h2 class="with-icon">Icon Header</h2>
+      <div class="sub-header">another sub-header</div>
+    </div>
   </div>
 </div>
 ```
@@ -60,7 +64,12 @@
     height : 26px;
     vertical-align: bottom;
   }
-  
+
+  h2.with-icon{
+    display: inline-block;
+    padding-left: 8px;
+    vertical-align: middle;
+  }
   .sub-header {
     margin-bottom : 12px;
   }

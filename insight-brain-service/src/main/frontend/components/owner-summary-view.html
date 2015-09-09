@@ -22,9 +22,9 @@
       <h2>Policy</h2>
       <div class="sub-header">a description</div>
     </div>
-    <div class="tile" id="owner-pill-comp-labels">
-      <h2>Component Labels</h2>
-      <div class="sub-header">a description</div>
+    <div class="tile" id="owner-pill-comp-labels" ng-controller="LabelTileController as label">
+      <i class="fa fa-tag size-20px outline"></i><h2 class="with-icon">Component Labels</h2>
+      <div class="sub-header">available to {{label.owner.name}} policies</div>
     </div>
     <div class="tile" id="owner-pill-ltgs">
       <h2>License Threat Groups</h2>

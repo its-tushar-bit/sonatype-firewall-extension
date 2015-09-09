@@ -90,10 +90,17 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
 
   &.size-20px {
     font-size: 20px;
+    line-height: 20px;
 
     &.inverse {
       font-size: 90%;
       padding: 2px;
     }
+  }
+
+  &.outline{
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    color: white;
   }
 }

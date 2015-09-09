@@ -13,14 +13,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -72,23 +70,6 @@ public class IdeResource
     this.work = work;
     this.baseUrl = baseUrl;
     this.client = client;
-  }
-
-  /**
-   * Requests an asset from the HDS
-   * 
-   * @return the response from the HDS
-   * @since 1.2
-   * @deprecated supporting ide plugins up to version 2.5.0, newer plugins will directly access the
-   *             brains assets
-   */
-  @GET
-  @Path("asset/{path:.*}")
-  @Deprecated
-  public Response getAsset(@PathParam("path") String path, @Context HttpServletRequest request,
-      @HeaderParam(HttpHeaders.USER_AGENT) String userAgent) throws IOException
-  {
-    return client.doProxy(request, "ide/{path}", path);
   }
 
   /**

@@ -739,32 +739,6 @@ public class IdeResourceTest
     assertResponseStatus(402, response);
   }
 
-  @Test
-  public void testGetAsset() throws Exception {
-    // Note this is now deprecated functionality, only legacy (2.5.0 and earlier) versions of the ide plugin will access
-    // this resource
-    setHdsResponseForURI("ide/sub/dir/some%20space.html?x=y&a=b", "OK", 200);
-    HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
-    assertResponseStatus(200, response);
-    Assert.assertEquals("OK", response.getBodyText());
-  }
-
-  @Test
-  public void testGetAsset_Unlicensed() throws Exception {
-    uninstallLicense();
-    HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
-    assertResponseStatus(402, response);
-  }
-
-  @Test
-  public void testGetAsset_EnforcementPointUnlicensed() throws Exception {
-    // note this enforcement point should not apply to this request
-    setEnforcementPoints(CLMEnforcementPoint.StageRelease);
-
-    HttpResponse response = restRequest().path("asset/sub/dir/some%20space.html").query("x=y&a=b").anon().get();
-    assertResponseStatus(402, response);
-  }
-
   @SuppressWarnings("deprecation")
   private void assertGavInIdeMatchedComponent(String groupId, String artifactId, String version,
       IdeMatchedComponent ideMatchedComponent)

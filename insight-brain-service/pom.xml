@@ -605,6 +605,7 @@
                 <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>frontend/lib/ui-bootstrap-tpls-*.min.js</include>
                 <include>frontend/lib/X-editable/bootstrap-editable.min.js</include>
+                <include>frontend/**/*.module.js</include>
                 <include>frontend/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>
@@ -623,9 +624,11 @@
               </sourceExcludes>
               <specIncludes>
                 <include>frontend/SpecUtil.js</include>
+                <include>frontend/**/*utils.js</include>
                 <include>frontend/**/lib/*.js</include>
                 <include>frontend/**/*MockData.js</include>
                 <include>frontend/**/*-spec.js</include>
+                <include>frontend/**/*.spec.js</include>
                 <include>frontend/**/*Spec.js</include>
               </specIncludes>
               <specExcludes>

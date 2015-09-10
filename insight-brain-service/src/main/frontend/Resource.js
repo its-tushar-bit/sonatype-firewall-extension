@@ -97,6 +97,15 @@
         }).error(getErrorFn(storeDeferred));
       }
 
+      function doRefreshLoad() {
+        error = false;
+        // If there is an existing unfulfilled request by the store ($$state.status === 0), then it is in a current
+        // state of refreshing and doLoad() does not need be called. If not, refresh the store.
+        if (!storeDeferred || storeDeferred.promise.$$state.status !== 0) {
+          doLoad();
+        }
+      }
+
       resourceStore.get = function() {
         if (error || !storeDeferred) {
           // An error occurred previously, or the store hasn't been loaded
@@ -134,8 +143,8 @@
         return resource;
       };
       resourceStore.refresh = function() {
-        error = false;
-        doLoad();
+        doRefreshLoad();
+
         return storeDeferred.promise;
       };
 

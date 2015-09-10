@@ -191,6 +191,37 @@ describe('Resource', function() {
     expect(spy).not.toHaveBeenCalled();
   }));
 
+  it('Refreshes and gets simultaneously', inject(function(CLMResource, $httpBackend) {
+    var store = CLMResource.getStore({
+      id: 'id',
+      url: storeUrl,
+      template: { id: null}
+    });
+
+    $httpBackend.expectGET(storeUrl).respond([
+      { id: 'foo' },
+      { id: 'bar' }
+    ]);
+    store.get().then(function() {
+      // The original request is fulfilled and 2 items are returned.
+      expect(arguments[0].length).toEqual(2);
+    });
+    $httpBackend.whenGET(storeUrl).respond([
+      { id: 'foo' }
+    ]);
+    store.refresh().then(function() {
+      // The original request is fulfilled and 2 items are returned.
+      expect(arguments[0].length).toEqual(2);
+    });
+    $httpBackend.flush();
+
+    store.refresh().then(function() {
+      // Once the promise is fulfilled, the service is requeried by a refresh
+      expect(arguments[0].length).toEqual(1);
+    });
+    $httpBackend.flush();
+  }));
+
   it('Refreshes related', inject(function(CLMResource, $httpBackend) {
     var store = CLMResource.getStore({
       id: 'id',

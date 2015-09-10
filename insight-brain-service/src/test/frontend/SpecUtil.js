@@ -48,6 +48,11 @@ var SpecUtil = {
     return data;
   },
 
+  respondWithTemplate: function(httpBackend, templateUrl) {
+    var ownerTreeViewTemplate = SpecUtil.getTemplate('../../../frontend/' + templateUrl);
+    httpBackend.expectGET(templateUrl).respond(ownerTreeViewTemplate);
+  },
+
   toRegExp: function toRegExp(url) {
     var addedTimestamp = false, parts = url.split('?');
     //Note that i go through all of this funkiness as the params are added to the request

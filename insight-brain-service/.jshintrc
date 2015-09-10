@@ -19,6 +19,7 @@
   "globals": {
     "angular": false,
     "$": false,
-    "clmBuildTimestamp": false
+    "clmBuildTimestamp": false,
+    "Fuse": false
   }
 }

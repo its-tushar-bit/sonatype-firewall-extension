@@ -12,9 +12,9 @@
   ]);
 
   module.controller('PolicyEditorController', [
-    '$scope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'StageTypeStore',
+    '$scope', '$rootScope', '$state', '$location', '$modal', '$timeout', 'Dialog', 'Messages', 'PolicyStore', '$q', 'StageTypeStore',
     'ProductFeatures', 'PolicyTagStore', 'CLMAppLocations', '$http',
-    function($scope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, StageTypeStore, ProductFeatures, PolicyTagStore, CLMAppLocations, $http) {
+    function($scope, $rootScope, $state, $location, $modal, $timeout, Dialog, messages, policyStore, $q, StageTypeStore, ProductFeatures, PolicyTagStore, CLMAppLocations, $http) {
       var originalTags;
 
       function isDirty() {
@@ -286,12 +286,13 @@
               }
               $q.all(promises).then(function() {
                 PolicyTagStore.getByPolicyId($scope.policy.id).get().then(function(policyTags) {
-                  $scope.$emit('policySaveComplete', $scope.policy.id, policyTags);
+                  $rootScope.$broadcast('policySaveComplete', !$scope.isApplication, $scope.policy.id, policyTags);
                   $scope.hide();
                 }, errorFunction);
               }, errorFunction);
             }
             else {
+              $rootScope.$broadcast('policySaveComplete', !$scope.isApplication, $scope.policy.id, []);
               $scope.hide();
             }
           }, errorFunction);
@@ -588,6 +589,11 @@
         if (isDirty()) {
           event.preventDefault();
         }
+      });
+
+      // Remove original constraint of successful save to prevent dirty check
+      $scope.$on('policySaveComplete', function() {
+        delete $scope.originalConstraint;
       });
 
       $scope.conditionTypeChanged = function(condition) {

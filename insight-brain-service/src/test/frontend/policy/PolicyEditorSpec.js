@@ -475,8 +475,9 @@ describe('PolicyEditor.js', function() {
       scope.appliedTagIds.splice(0, 1);
       scope.appliedTagIds.push('tagId3');
 
-      var policyId, policyTags;
-      scope.$on('policySaveComplete', function(event, id, tags){
+      var isOrganization, policyId, policyTags;
+      scope.$on('policySaveComplete', function(event, isOrg, id, tags){
+        isOrganization = isOrg;
         policyId = id;
         policyTags = tags;
       });
@@ -487,6 +488,7 @@ describe('PolicyEditor.js', function() {
       scope.savePolicy();
       $httpBackend.flush();
       expect(scope.hide).toHaveBeenCalled();
+      expect(isOrganization).toBe(true);
       expect(policyId).toBeUndefined(); //we didn't actually
       expect(policyTags).toBeDefined();
       expect(policyTags.length).toBe(2);
@@ -543,6 +545,25 @@ describe('PolicyEditor.js', function() {
         e = testScope.$broadcast('pageChangeStarted', null);
         expect(e.defaultPrevented).toEqual(true);
       }));
+
+      it('clears dirty state after successful save', function() {
+        var controller = getConstraintEditorController(),
+            policy = createNewPolicy(),
+            e;
+
+        testScope.constraint = angular.copy(policy.constraints[0]);
+        testScope.$digest();
+
+        // dirty state
+        controller.scope.constraint.name = 'A Constraint Name';
+        e = testScope.$broadcast('pageChangeStarted', null);
+        expect(e.defaultPrevented).toEqual(true);
+
+        // clean state after policy save is complete
+        testScope.$broadcast('policySaveComplete');
+        e = testScope.$broadcast('pageChangeStarted', null);
+        expect(e.defaultPrevented).toEqual(false);
+      });
 
       xit('figures dirty state of existing constraint', inject(function() {
         var controller = getConstraintEditorController(),

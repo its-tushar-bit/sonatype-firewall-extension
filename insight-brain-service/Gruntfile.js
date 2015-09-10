@@ -94,8 +94,21 @@
         },
         develop: {
           expand: true,
-          cwd: '<%= config.temp %>/concat',
-          src: ['**/*'],
+          cwd: '<%= config.frontend %>',
+          src: [
+            '**/*.{html,js,css,ttf,woff,woff2,png,gif,jpg}',
+            '!lib/*',
+            'lib/**/*.{js,css,ttf,woff,woff2}',
+            '!lib/**/test/*'
+          ],
+          dest: '<%= config.generated %>'
+        },
+        develop_sass: {
+          expand: true,
+          cwd: '<%= config.temp %>',
+          src: [
+            '**/*.css'
+          ],
           dest: '<%= config.generated %>'
         }
       },
@@ -284,12 +297,9 @@
             '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js,jpg}'
           ],
           tasks: [
-            'copy:build',
-            'template:build',
-            'useminPrepare:build',
-            'concat:generated',
             'copy:develop',
-            'usemin'
+            'copy:build',
+            'template:build'
           ]
         },
         develop_styles: {
@@ -297,13 +307,10 @@
             '<%= config.frontend %>/**/*.{css,scss}'
           ],
           tasks: [
-            'copy:build',
+            'copy:develop',
             'template:build',
             'sass:build',
-            'useminPrepare:build',
-            'concat:generated',
-            'copy:develop',
-            'usemin'
+            'copy:develop_sass'
           ]
         }
       }
@@ -348,15 +355,12 @@
       'configure_override:develop',
 
       'clean',
-      'copy:build',
+      'copy:develop',
       'copy:build_cip',
       'copy:build_brain_client',
       'sass',
-      'useminPrepare',
-      'concat:generated',
+      'copy:develop_sass',
       'cssmin:build_cip',
-      'copy:develop',
-      'usemin',
       'template',
       'clean:temp'
     ]);
@@ -367,19 +371,14 @@
       'jshint',
       'bower:install',
       'clean',
-      'copy:build',
+      'copy:develop',
       'copy:build_cip',
       'copy:build_brain_client',
       'sass',
-      'useminPrepare',
-      'concat:generated',
+      'copy:develop_sass',
       'cssmin:build_cip',
-      'copy:develop',
-      'usemin',
       'template',
-
       'watch',
-
       'clean:temp'
     ]);
 

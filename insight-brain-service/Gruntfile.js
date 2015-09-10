@@ -247,37 +247,37 @@
           }
         }
       },
-      //styleguide: {
-      //  build: {
-      //    options: {
-      //      name: 'CLM Living Style Guide',
-      //      framework: {
-      //        name: 'styledocco',
-      //        options: {
-      //          preprocessor: process.execPath + ' ' + path.join(path.dirname(require.resolve('node-sass')), '/../bin/node-sass')
-      //        }
-      //      },
-      //      template: {
-      //        include: [
-      //          '<%= config.temp %>/scss/bootstrap.css',
-      //          '<%= config.frontend %>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
-      //          '<%= config.frontend %>/lib/components-font-awesome/css/font-awesome.css',
-      //          '<%= config.temp %>/styleguide.css',
-      //          '<%= config.frontend %>/lib/jquery/jquery-1.8.3.min.js',
-      //          '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular.js',
-      //          '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular-sanitize.js',
-      //          '<%= config.frontend %>/lib/ui-bootstrap-tpls-0.8.0.min.js',
-      //          '<%= config.frontend %>/util/AngularCommon.js',
-      //          '<%= config.frontend %>/FormsModule.js',
-      //          '<%= config.styleguideSrc %>/styleguide.js'
-      //        ]
-      //      }
-      //    },
-      //    files: {
-      //      '<%= config.styleguide %>': '<%= config.frontend %>/scss/*.scss'
-      //    }
-      //  }
-      //},
+      styleguide: {
+        build: {
+          options: {
+            name: 'CLM Living Style Guide',
+            framework: {
+              name: 'styledocco',
+              options: {
+                preprocessor: process.execPath + ' ' + path.join(path.dirname(require.resolve('node-sass')), '/../bin/node-sass')
+              }
+            },
+            template: {
+              include: [
+                '<%= config.temp %>/scss/bootstrap.css',
+                '<%= config.frontend %>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
+                '<%= config.frontend %>/lib/components-font-awesome/css/font-awesome.css',
+                '<%= config.temp %>/styleguide.css',
+                '<%= config.frontend %>/lib/jquery/jquery-1.8.3.min.js',
+                '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular.js',
+                '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular-sanitize.js',
+                '<%= config.frontend %>/lib/ui-bootstrap-tpls-0.8.0.min.js',
+                '<%= config.frontend %>/util/AngularCommon.js',
+                '<%= config.frontend %>/FormsModule.js',
+                '<%= config.styleguideSrc %>/styleguide.js'
+              ]
+            }
+          },
+          files: {
+            '<%= config.styleguide %>': '<%= config.frontend %>/scss/*.scss'
+          }
+        }
+      },
       watch: {
         develop: {
           files: [
@@ -334,7 +334,12 @@
       'filerev_replace',
       'template',
 
-      //'livingstyle',
+      'clean:temp'
+    ]);
+
+    grunt.registerTask('deploy', [
+      'build',
+      'livingstyle',
 
       'clean:temp'
     ]);
@@ -378,13 +383,13 @@
       'clean:temp'
     ]);
 
-    //grunt.registerTask('livingstyle', [
-    //  'clean:styleguide',
-    //  'bower:install',
-    //  'sass:build',
-    //  'file-creator:styleguide',
-    //  'styleguide:build',
-    //  'clean:temp'
-    //]);
+    grunt.registerTask('livingstyle', [
+      'clean:styleguide',
+      'bower:install',
+      'sass:build',
+      'file-creator:styleguide',
+      'styleguide:build',
+      'clean:temp'
+    ]);
   };
 }());

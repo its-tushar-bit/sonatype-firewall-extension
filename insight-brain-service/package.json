@@ -19,6 +19,7 @@
     "grunt-filerev": "^2.3.1",
     "grunt-filerev-replace": "^0.1.4",
     "grunt-sass": "^1.0.0",
+    "grunt-styleguide": "^0.2.17",
     "grunt-template": "^0.2.3",
     "grunt-usemin": "^3.0.0",
     "load-grunt-tasks": "^3.2.0",

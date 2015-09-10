@@ -63,7 +63,7 @@ public class InsightMockServer
 
   private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<RequestMatcher, ResponseProvider>();
 
-  public void reset() throws IOException {
+  public void reset() {
     responseProviders.clear();
   }
 

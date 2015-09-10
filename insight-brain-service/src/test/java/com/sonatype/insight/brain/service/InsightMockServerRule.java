@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.IOException;
-
 import com.sonatype.insight.mock.InsightMockServer;
 
 import org.junit.rules.ExternalResource;
@@ -66,7 +64,7 @@ public class InsightMockServerRule
     insightMockServer.setResponseForURI(uri, body, status);
   }
 
-  public void reset() throws IOException {
+  public void reset() {
     insightMockServer.reset();
   }
 }

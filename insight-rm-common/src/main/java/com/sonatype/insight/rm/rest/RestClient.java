@@ -61,6 +61,8 @@ public interface RestClient
   {
     void enableRepository() throws IOException;
 
+    void setQuarantine(final boolean enabled) throws IOException;
+
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 

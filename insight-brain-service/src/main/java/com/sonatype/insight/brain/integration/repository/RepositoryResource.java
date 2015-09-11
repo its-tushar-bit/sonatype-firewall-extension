@@ -25,9 +25,12 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 @Path(RepositoryResource.SERVICE_PATH)
 public class RepositoryResource
 {
+
   public static final String SERVICE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
 
   public static final String SUMMARY_PATH = "summary";
+
+  static final String QUARANTINE_PATH = "quarantine/{enabled}";
 
   public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
 
@@ -71,5 +74,14 @@ public class RepositoryResource
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList);
+  }
+
+  @Path(QUARANTINE_PATH)
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("enabled") boolean enabled)
+  {
+    repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
 }

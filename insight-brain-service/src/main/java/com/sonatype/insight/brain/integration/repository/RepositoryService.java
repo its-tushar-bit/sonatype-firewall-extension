@@ -172,6 +172,38 @@ public class RepositoryService
     }
   }
 
+  public void setQuarantine(final String repositoryManagerInstanceId, final String repositoryPublicId,
+      final boolean enabled)
+  {
+    checkLicenseFeature();
+
+    log.debug("Setting quarantine to {} for repository {} repositoryManagerInstanceId {}", enabled, repositoryPublicId,
+        repositoryManagerInstanceId);
+
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
+        repositoryPublicId);
+    if (repository == null) {
+      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
+          + repositoryManagerInstanceId + ".");
+    }
+
+    if (enabled && !repository.isEnabled()) {
+      throw new BadRequestException("Cannot enable quarantine when repository " + repositoryPublicId + " is disabled.");
+    }
+
+    setQuarantine(repository, enabled);
+
+    String enabledState = enabled ? "enabled" : "disabled";
+    log.info("Quarantine is {} for repository {} repositoryManagerId {}", enabledState, repositoryPublicId,
+        repositoryManagerInstanceId);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void setQuarantine(@AuthzContext(Key.REPOSITORY) final Repository repository, final boolean enabled) {
+    repository.setQuarantineEnabled(enabled);
+    repositoryDAO.update(repository);
+  }
+
   public void evaluateComponents(String repositoryManagerInstanceId, String repositoryPublicId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {

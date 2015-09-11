@@ -78,6 +78,26 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
+  public void testSetQuarantine_Authorized() {
+    createRepository();
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetQuarantine_Unauthenticated() {
+    createRepository();
+    repositoryService.setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetQuarantine_Unauthorized() {
+    createRepository();
+    grantWritePermission();
+    repositoryService.setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+  }
+
+  @Test
   public void testGetPolicyEvaluationSummary_Authorized() {
     createRepository();
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);

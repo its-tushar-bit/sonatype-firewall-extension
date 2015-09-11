@@ -157,6 +157,11 @@ public class RestClientFactory
     }
 
     @Override
+    public void setQuarantine(final boolean enabled) throws IOException {
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).setQuarantine(enabled);
+    }
+
+    @Override
     public void evaluateComponents(
         final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException
     {

@@ -177,6 +177,73 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testSetQuarantine_RepositoryDoesNotExist() throws Exception {
+    try {
+      repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(),
+          is("Unknown repository " + REPO_PUBLIC_ID + " for repositoryManagerInstanceId " +
+              REPO_MAN_INSTANCE_ID + "."));
+    }
+  }
+
+  @Test
+  public void testSetQuarantine_EnabledWhenRepositoryNotEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
+
+    try {
+      repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(),
+          is("Cannot enable quarantine when repository " + REPO_PUBLIC_ID + " is disabled."));
+    }
+  }
+
+  @Test
+  public void testSetQuarantine_DisabledWhenRepositoryNotEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, true);
+
+    // Check that initial value is true
+    assertThat(repository.isQuarantineEnabled(), is(true));
+
+    repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isQuarantineEnabled(), is(false));
+  }
+
+  @Test
+  public void testSetQuarantine_EnabledWhenRepositoryEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+
+    // Check that the initial value is false
+    assertThat(repository.isQuarantineEnabled(), is(false));
+
+    repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isQuarantineEnabled(), is(true));
+  }
+
+  @Test
+  public void testSetQuarantine_DisabledWhenRepositoryEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    // Check that initial value is true
+    assertThat(repository.isQuarantineEnabled(), is(true));
+
+    repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isQuarantineEnabled(), is(false));
+  }
+
+  @Test
   public void testGetPolicyEvaluationSummary() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",

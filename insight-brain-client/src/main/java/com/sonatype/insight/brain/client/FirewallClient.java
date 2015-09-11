@@ -26,6 +26,8 @@ public class FirewallClient
 
   private static final String SUMMARY_PATH = "summary";
 
+  private static final String QUARANTINE_PATH = "quarantine";
+
   private final String repositoryManagerInstanceId;
 
   private final String repositoryPublicId;
@@ -43,6 +45,16 @@ public class FirewallClient
   public void enableRepository() throws IOException {
     Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId),
         null);
+    int status = result.status();
+    if (status >= 300) {
+      String msg = result.message();
+      throw new HttpResponseException(status, msg);
+    }
+  }
+
+  public void setQuarantine(final boolean enabled) throws IOException {
+    Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
+        Boolean.toString(enabled)), null);
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();

@@ -25,6 +25,9 @@ import static org.junit.Assert.assertTrue;
 public class RepositoryResourceTest
     extends AbstractResourceTest
 {
+
+  private static final String REPO_PUBLIC_ID = "publicId";
+
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   @Override
@@ -36,10 +39,15 @@ public class RepositoryResourceTest
     return restRequest().path(RepositoryResource.SUMMARY_PATH);
   }
 
+  private HttpRequest quarantineRequest() {
+    return restRequest().path(RepositoryResource.QUARANTINE_PATH);
+  }
+
+
   @Test
   public void testEnableRepository() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", false);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
     HttpResponse response = restRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId()).post();
     assertResponseStatus(204, response);
@@ -51,9 +59,24 @@ public class RepositoryResourceTest
   }
 
   @Test
+  public void testSetQuarantine() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+
+    HttpResponse response =
+        quarantineRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true).post();
+    assertResponseStatus(204, response);
+
+    repository = repositoryDAO.getById(repository.getId());
+
+    assertNotNull(repository);
+    assertTrue(repository.isQuarantineEnabled());
+  }
+
+  @Test
   public void testGetPolicyEvaluationSummary() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", true);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 4, "path2",
@@ -90,7 +113,7 @@ public class RepositoryResourceTest
   @Test
   public void testGetPolicyEvaluationSummary_RepositoryDisabled() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", false);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
     String repositoryId = repository.getPublicId();
 
     HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
@@ -102,7 +125,7 @@ public class RepositoryResourceTest
   @Test
   public void testEvaluateComponents() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "publicId", false);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 

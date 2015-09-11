@@ -34,6 +34,9 @@ public class Repository
   @Column(name = "enabled")
   private boolean enabled = true;
 
+  @Column(name = "quarantine_enabled")
+  private boolean quarantineEnabled = false;
+
   public Repository() {
   }
 
@@ -75,6 +78,14 @@ public class Repository
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public boolean isQuarantineEnabled() {
+    return quarantineEnabled;
+  }
+
+  public void setQuarantineEnabled(final boolean quarantineEnabled) {
+    this.quarantineEnabled = quarantineEnabled;
   }
 
   @Override

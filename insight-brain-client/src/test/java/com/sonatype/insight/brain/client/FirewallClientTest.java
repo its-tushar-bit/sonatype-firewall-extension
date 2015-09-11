@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.client;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -34,6 +34,8 @@ public class FirewallClientTest
   private String rmInstanceId;
 
   private RepositoryManager repositoryManager;
+
+  private RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   @Before
   public void start() {
@@ -64,6 +66,48 @@ public class FirewallClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(401, e.getStatusCode());
+    }
+  }
+
+  @Test
+  public void testSetQuarantine_Enable() throws Exception {
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
+
+    // Check that the initial value is false
+    assertThat(repository.isQuarantineEnabled(), is(false));
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    client.setQuarantine(true);
+
+    Repository repo = repositoryDAO.getById(repository.getId());
+    assertThat(repo.isQuarantineEnabled(), is(true));
+  }
+
+  @Test
+  public void testSetQuarantine_Disable() throws Exception {
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true, true);
+
+    // Check that the initial value is true
+    assertThat(repository.isQuarantineEnabled(), is(true));
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    client.setQuarantine(false);
+
+    Repository repo = repositoryDAO.getById(repository.getId());
+    assertThat(repo.isQuarantineEnabled(), is(false));
+  }
+
+  @Test
+  public void testSetQuarantine_Error() throws Exception {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    try {
+      client.setQuarantine(true);
+      fail("Expected HttpResponseException");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode(), is(404));
+      assertThat(e.getMessage(),
+          is("Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId " + rmInstanceId + "."));
     }
   }
 

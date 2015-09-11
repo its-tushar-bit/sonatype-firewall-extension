@@ -995,8 +995,14 @@ public class TemporaryEntity
   }
 
   public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean enabled) {
+    return newRepository(repositoryManager, publicId, enabled, false);
+  }
+
+  public Repository newRepository(RepositoryManager repositoryManager, String publicId, boolean enabled,
+      boolean quarantineEnabled) {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setEnabled(enabled);
+    repository.setQuarantineEnabled(quarantineEnabled);
     repositoryDAO.insert(repository);
     return repository;
   }

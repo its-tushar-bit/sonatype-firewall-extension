@@ -10,8 +10,6 @@ import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.model.security.User
 
-import org.apache.commons.io.IOUtils
-
 class AppEvaluationSpec
 extends BaseSpec {
   static Organization org
@@ -29,8 +27,7 @@ extends BaseSpec {
     }
 
     hdsRule.setResponseForURI('rest/application/analysis', '{"scanId": "blah", "timeToReport": 0}', 200);
-    hdsRule.setResponseForURI('rest/application/analysis/blah',
-        IOUtils.toByteArray(getClass().getResourceAsStream('/report.zip')), 200);
+    hdsRule.setResponseForURI('rest/application/analysis/blah', getClass().getResource('/report.zip'), 200);
   }
 
   def setup() {

@@ -184,7 +184,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void mockScanReceipt(ScanReceipt scanReceipt) {
-    setHdsResponseForURI("rest/application/analysis", toJson(scanReceipt), 200);
+    setHdsResponseForURI("rest/application/analysis", scanReceipt, 200);
   }
 
   protected void mockReport(String scanId, String resourceName) {
@@ -196,7 +196,7 @@ public abstract class AbstractBrainServiceTest
   {
     String uri = UriBuilder.fromPath("rest/component/summary")
         .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
-    setHdsResponseForURI(uri, toJson(componentSummary), 200);
+    setHdsResponseForURI(uri, componentSummary, 200);
   }
 
   protected void setSecurityAuditLog(String appId, String jsonResource) {
@@ -230,7 +230,7 @@ public abstract class AbstractBrainServiceTest
             + response.getBodyText(), expectedStatus, actualStatus);
   }
 
-  protected String toJson(Object object) {
+  private String toJson(Object object) {
     try {
       return objectMapper.writeValueAsString(object);
     }

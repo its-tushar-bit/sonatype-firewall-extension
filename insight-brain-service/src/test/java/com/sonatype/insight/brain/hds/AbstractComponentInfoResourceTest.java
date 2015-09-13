@@ -150,7 +150,7 @@ public abstract class AbstractComponentInfoResourceTest
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
     setHdsResponseForURI(
         convertToHdsUrl(detailsRequest(applicationPublicId, MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
-        toJson(hdsComponentDetails), 200);
+        hdsComponentDetails, 200);
 
     HttpResponse response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
@@ -179,8 +179,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), toJson(hdsComponentDetailsList),
-        200);
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), hdsComponentDetailsList, 200);
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -222,8 +221,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), toJson(hdsComponentDetailsList),
-        200);
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), hdsComponentDetailsList, 200);
 
     HttpResponse response = request.query("reportId", reportId).get();
     assertResponseStatus(200, response);

@@ -15,8 +15,6 @@ import java.util.Map;
 
 import com.sonatype.insight.mock.InsightMockServer.RequestMatcher;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.util.UrlEncoded;
 
 class SimpleRequestMatcher
@@ -66,9 +64,6 @@ class SimpleRequestMatcher
 
   private static class ParsedUri
   {
-    private static final ObjectMapper JSON = new ObjectMapper().configure(
-        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     final String path;
 
     final Map<String, Collection<Object>> query;
@@ -88,10 +83,10 @@ class SimpleRequestMatcher
             Object parsedValue = decodedValue;
             try {
               if (decodedValue.startsWith("{") && decodedValue.endsWith("}")) {
-                parsedValue = JSON.readValue(decodedValue, Map.class);
+                parsedValue = Json.read(decodedValue, Map.class);
               }
               else if (decodedValue.startsWith("[") && decodedValue.endsWith("]")) {
-                parsedValue = JSON.readValue(decodedValue, List.class);
+                parsedValue = Json.read(decodedValue, List.class);
               }
             }
             catch (IOException e) {

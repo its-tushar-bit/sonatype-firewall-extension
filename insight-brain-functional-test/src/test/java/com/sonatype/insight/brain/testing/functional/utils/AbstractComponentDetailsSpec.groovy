@@ -98,13 +98,13 @@ extends BaseSpec {
   ComponentDetails mockComponentDetails(String jsonFilename) {
     ComponentDetails hdsComponentResponse = parseJsonFile(jsonFilename, ComponentDetails.class)
     hdsComponentResponse.catalogDate = new Date().minus(366).time  // ensure that catalog data is consistent
-    hdsRule.setResponseForURI(createComponentDetailURL(hdsComponentResponse.componentIdentifier), toJson(hdsComponentResponse), 200)
+    hdsRule.setResponseForURI(createComponentDetailURL(hdsComponentResponse.componentIdentifier), hdsComponentResponse, 200)
     return hdsComponentResponse
   }
 
   void mockComponentDetailsList(String jsonFilename, ComponentDetails component) {
     ComponentDetailsList hdsComponentListResponse = parseJsonFile(jsonFilename, ComponentDetailsList.class)
-    hdsRule.setResponseForURI(createComponentDetailListURL(component.componentIdentifier), toJson(hdsComponentListResponse), 200)
+    hdsRule.setResponseForURI(createComponentDetailListURL(component.componentIdentifier), hdsComponentListResponse, 200)
   }
 
   /**

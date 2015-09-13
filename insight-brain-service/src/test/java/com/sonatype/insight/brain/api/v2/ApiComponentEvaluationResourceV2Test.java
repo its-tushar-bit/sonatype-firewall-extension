@@ -480,7 +480,7 @@ public class ApiComponentEvaluationResourceV2Test
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
     setHdsResponseForURI(ApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH.replace(
         "{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION),
-        toJson(componentEvaluationDataList), 200);
+        componentEvaluationDataList, 200);
   }
 
   private ComponentEvaluationDataList createComponentEvaluationDataList(

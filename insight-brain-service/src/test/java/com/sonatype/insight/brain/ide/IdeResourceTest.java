@@ -92,7 +92,7 @@ public class IdeResourceTest
     setHdsResponseForURI(hdsUrl, status, "/IdeResourceTest/" + resource);
   }
 
-  private void mockHdsResponse(HttpRequest request, String body, int status) {
+  private void mockHdsResponse(HttpRequest request, Object body, int status) {
     String hdsUrl = convertScanUrlToHdsUrl(request.getUrl());
     setHdsResponseForURI(hdsUrl, body, status);
   }
@@ -636,7 +636,7 @@ public class IdeResourceTest
     MatchedComponent hdsResponse = new MatchedComponent();
     hdsResponse.setHash(hash);
     hdsResponse.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 5f));
-    mockHdsResponse(request, toJson(hdsResponse), 200);
+    mockHdsResponse(request, hdsResponse, 200);
     HttpResponse response = request.get();
     hashComponentIdentifierDAO.delete(hashComponentIdentifier);
     assertResponseStatus(200, response);

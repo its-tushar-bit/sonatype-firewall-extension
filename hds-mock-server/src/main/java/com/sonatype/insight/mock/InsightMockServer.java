@@ -7,8 +7,6 @@ package com.sonatype.insight.mock;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.LinkedHashMap;
@@ -39,10 +37,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 public class InsightMockServer
 {
-  private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-
-  private static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
-
   private int httpPort = 0;
 
   private int httpsPort = -1;
@@ -61,20 +55,36 @@ public class InsightMockServer
 
   private Server server;
 
-  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<RequestMatcher, ResponseProvider>();
+  private Map<RequestMatcher, ResponseProvider> responseProviders = new LinkedHashMap<>();
 
   public void reset() {
     responseProviders.clear();
   }
 
   public void setResponseForURI(String uri, Object body, int status) {
+    ResponseProvider responseProvider;
     if (body == null) {
       throw new IllegalArgumentException("response body missing for " + uri);
+    }
+    else if (body instanceof String) {
+      responseProvider = new BytesResponseProvider(status, (String) body);
+    }
+    else if (body instanceof byte[]) {
+      responseProvider = new BytesResponseProvider(status, (byte[]) body);
+    }
+    else if (body instanceof File) {
+      responseProvider = new UrlResponseProvider(status, (File) body);
+    }
+    else if (body instanceof URL) {
+      responseProvider = new UrlResponseProvider(status, (URL) body);
+    }
+    else {
+      responseProvider = new BytesResponseProvider(status, ResponseProvider.CONTENT_TYPE_JSON, Json.write(body));
     }
     if (!uri.startsWith("/")) {
       uri = "/" + uri;
     }
-    responseProviders.put(new SimpleRequestMatcher(uri), new SimpleResponseProvider(status, body));
+    responseProviders.put(new SimpleRequestMatcher(uri), responseProvider);
   }
 
   private ResponseProvider getResponseProvider(String uri) {
@@ -232,7 +242,7 @@ public class InsightMockServer
     {
       handleMatchedRequest(request);
 
-      response.setContentType(CONTENT_TYPE_JSON);
+      response.setContentType(ResponseProvider.CONTENT_TYPE_JSON);
 
       PrintWriter writer = response.getWriter();
       writer.println("{");
@@ -272,7 +282,7 @@ public class InsightMockServer
         ResponseProvider responseProvider = getResponseProvider(uriWithParams);
         if (responseProvider != null) {
           handleMatchedRequest(request);
-          doResponse(response, responseProvider.getBody(), responseProvider.getStatus());
+          responseProvider.render(response);
           baseRequest.setHandled(true);
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
@@ -286,38 +296,6 @@ public class InsightMockServer
         response.sendError(e.statusCode, e.errorMsg);
         baseRequest.setHandled(true);
       }
-    }
-  }
-
-  private void doResponse(HttpServletResponse response, Object body, int status) throws IOException {
-    response.setStatus(status);
-    if (body instanceof String) {
-      response.setContentType(CONTENT_TYPE_JSON);
-      PrintWriter writer = response.getWriter();
-      writer.print(body);
-      writer.close();
-    }
-    else if (body instanceof byte[]) {
-      response.setContentType(CONTENT_TYPE_OCTET_STREAM);
-      OutputStream os = response.getOutputStream();
-      os.write((byte[]) body);
-      os.close();
-    }
-    else if (body instanceof URL) {
-      URL url = (URL) body;
-      response.setContentType(url.getPath().endsWith(".json") ? CONTENT_TYPE_JSON : CONTENT_TYPE_OCTET_STREAM);
-      OutputStream os = response.getOutputStream();
-      InputStream is = url.openStream();
-      try {
-        IO.copy(is, os);
-      }
-      finally {
-        IO.close(is);
-      }
-      os.close();
-    }
-    else {
-      throw new RuntimeException("Unknown body type: " + body.getClass().getName());
     }
   }
 
@@ -380,9 +358,11 @@ public class InsightMockServer
 
   interface ResponseProvider
   {
-    int getStatus();
+    static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
 
-    Object getBody();
+    static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
+
+    void render(HttpServletResponse response) throws IOException;
   }
 
   public static void main(String[] args) throws Exception {

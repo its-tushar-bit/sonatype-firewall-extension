@@ -24,20 +24,20 @@ public class RepositoryPolicyViolationDAO
     return get(tx, sQuery, id);
   }
 
-  public List<RepositoryPolicyViolation> getLastByRepositoryIdAndPathname(String repositoryId, String pathname)
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return getLastByRepositoryIdAndPathname(tx, repositoryId, pathname);
+      return getActiveByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 
-  public List<RepositoryPolicyViolation> getLastByRepositoryIdAndPathname(TransactionContext tx, String repositoryId,
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(TransactionContext tx, String repositoryId,
       String pathname)
   {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
         " AND entity.pathname=?2" + //
-        " AND entity.latestEvaluation=true";
+        " AND entity.active=true";
     return getList(tx, sQuery, repositoryId, pathname);
   }
 
@@ -53,10 +53,10 @@ public class RepositoryPolicyViolationDAO
     return getList(tx, sQuery, repositoryId);
   }
 
-  public List<RepositoryPolicyViolation> getLastByRepositoryIdAndNotWaived(final String repositoryId) {
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndNotWaived(final String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
-        " AND entity.latestEvaluation=true" + //
+        " AND entity.active=true" + //
         " AND entity.isWaived=false";
     return getList(sQuery, repositoryId);
   }

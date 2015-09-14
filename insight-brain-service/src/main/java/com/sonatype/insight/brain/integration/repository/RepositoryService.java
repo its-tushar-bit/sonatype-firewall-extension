@@ -360,9 +360,9 @@ public class RepositoryService
   {
     // Update the current last RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> lastPolicyViolations = repositoryPolicyViolationDAO
-        .getLastByRepositoryIdAndPathname(tx, repository.getId(), pathname);
+        .getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
     for (RepositoryPolicyViolation policyViolation : lastPolicyViolations) {
-      policyViolation.setLatestEvaluation(false);
+      policyViolation.setActive(false);
       repositoryPolicyViolationDAO.update(tx, policyViolation);
     }
     // Insert new RepositoryPolicyViolations for this component
@@ -462,7 +462,7 @@ public class RepositoryService
 
   private PolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getLastByRepositoryIdAndNotWaived(repository.getId());
+        .getActiveByRepositoryIdAndNotWaived(repository.getId());
 
     final Map<String, Integer> componentThreatLevels = new HashMap<>();
     for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
@@ -494,5 +494,44 @@ public class RepositoryService
     policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
 
     return policyEvaluationSummary;
+  }
+
+  void removeComponent(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
+    checkLicenseFeature();
+
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
+        repositoryPublicId);
+    if (repository == null) {
+      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
+          + repositoryManagerInstanceId + ".");
+    }
+
+    removeComponent(repository, pathname);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void removeComponent(@AuthzContext(Key.REPOSITORY) Repository repository, String pathname) {
+    if (!repository.isEnabled()) {
+      repository.setEnabled(true);
+      repositoryDAO.update(repository);
+    }
+
+    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+
+      for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
+          tx, repository.getId(), pathname)) {
+        policyViolation.setActive(false);
+        repositoryPolicyViolationDAO.update(tx, policyViolation);
+      }
+
+      RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
+          repository.getId(), pathname);
+      if (repositoryComponent != null) {
+        repositoryComponentDAO.delete(tx, repositoryComponent);
+      }
+
+      tx.commit();
+    }
   }
 }

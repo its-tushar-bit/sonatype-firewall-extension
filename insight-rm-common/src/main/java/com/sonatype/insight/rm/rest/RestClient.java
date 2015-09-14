@@ -63,6 +63,8 @@ public interface RestClient
 
     void setQuarantine(final boolean enabled) throws IOException;
 
+    void removeComponent(String pathname) throws IOException;
+
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 

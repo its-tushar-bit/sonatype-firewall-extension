@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -55,6 +55,15 @@ public class FirewallClient
   public void setQuarantine(final boolean enabled) throws IOException {
     Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
         Boolean.toString(enabled)), null);
+    int status = result.status();
+    if (status >= 300) {
+      String msg = result.message();
+      throw new HttpResponseException(status, msg);
+    }
+  }
+
+  public void removeComponent(String pathname) throws IOException {
+    Result result = deleteRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, pathname));
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();

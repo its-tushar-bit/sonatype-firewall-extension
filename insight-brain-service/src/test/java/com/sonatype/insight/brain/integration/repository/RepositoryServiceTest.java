@@ -66,6 +66,8 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -390,7 +392,7 @@ public class RepositoryServiceTest
           MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
           repositoryComponent);
 
-      RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getLastByRepositoryIdAndPathname(
+      RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
           repository.getId(), pathname).get(0);
       assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
           policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
@@ -468,7 +470,7 @@ public class RepositoryServiceTest
     policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations, hasSize(2));
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
-      if (policyViolation.isLatestEvaluation()) {
+      if (policyViolation.isActive()) {
         assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
             policy.getThreatCategory(), updatedHash, updatedComponentIdentifier, before2, after2, policyViolation);
       }
@@ -920,5 +922,50 @@ public class RepositoryServiceTest
     assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getTime(), greaterThanOrEqualTo(before));
     assertThat(actual.getTime(), lessThanOrEqualTo(after));
+  }
+
+  @Test
+  public void testRemoveComponent_RepositoryDoesNotExist() throws Exception {
+    try {
+      repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
+      fail("Expected exception");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is("Unknown repository " + REPO_PUBLIC_ID + " for repositoryManagerInstanceId "
+          + REPO_MAN_INSTANCE_ID + "."));
+    }
+  }
+
+  @Test
+  public void testRemoveComponent_RepositoryNotEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false /* enabled */);
+
+    repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
+
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(true));
+  }
+
+  @Test
+  public void testRemoveComponent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    String pathname1 = "pathname1";
+    String pathname2 = "pathname2";
+    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname1);
+    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), pathname2);
+    RepositoryPolicyViolation policyViolation1 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname1);
+    RepositoryPolicyViolation policyViolation2 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname2);
+
+    repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, pathname1);
+
+    assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId()), is(nullValue()));
+    assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId()), is(notNullValue()));
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname1), is(nullValue()));
+    policyViolation1 = repositoryPolicyViolationDAO.getById(policyViolation1.getId());
+    assertThat(policyViolation1.isActive(), is(false));
+    policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
+    assertThat(policyViolation2.isActive(), is(true));
   }
 }

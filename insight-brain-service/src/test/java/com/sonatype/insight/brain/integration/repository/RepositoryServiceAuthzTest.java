@@ -158,4 +158,21 @@ public class RepositoryServiceAuthzTest
 
     repositoryService.getReportSummary(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
   }
+
+  @Test
+  public void testRemoveComponent_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRemoveComponent_Unauthenticated() {
+    repositoryService.removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveComponent_Unauthorized() {
+    grantWritePermission();
+    repositoryService.removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
+  }
 }

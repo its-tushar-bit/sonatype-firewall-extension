@@ -134,4 +134,14 @@ public class RepositoryResourceTest
         .body(componentEvaluationDataRequestList).post();
     assertResponseStatus(204, response);
   }
+
+  @Test
+  public void testRemoveComponent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+
+    HttpResponse response = restRequest().path(RepositoryResource.REMOVE_COMPONENT_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
+    assertResponseStatus(204, response);
+  }
 }

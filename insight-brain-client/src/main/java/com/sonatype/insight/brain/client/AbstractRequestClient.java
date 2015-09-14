@@ -40,4 +40,14 @@ public abstract class AbstractRequestClient
       throw (IOException) new UnknownHostException("Unknown host: " + e.getMessage()).initCause(e);
     }
   }
+
+  protected Result deleteRequest(RequestBuilder builder) throws IOException {
+    try {
+      return builder.delete();
+    }
+    catch (UnknownHostException e) {
+      // improve error msg
+      throw (IOException) new UnknownHostException("Unknown host: " + e.getMessage()).initCause(e);
+    }
+  }
 }

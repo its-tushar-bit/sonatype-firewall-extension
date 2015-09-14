@@ -36,8 +36,8 @@ public class RepositoryPolicyViolation
   @Column(name = "pathname")
   private String pathname;
 
-  @Column(name = "latest_evaluation")
-  private boolean latestEvaluation = true;
+  @Column(name = "active")
+  private boolean active = true;
 
   public RepositoryPolicyViolation() {
   }
@@ -78,12 +78,12 @@ public class RepositoryPolicyViolation
     this.repositoryId = repositoryId;
   }
 
-  public boolean isLatestEvaluation() {
-    return latestEvaluation;
+  public boolean isActive() {
+    return active;
   }
 
-  public void setLatestEvaluation(boolean latestEvaluation) {
-    this.latestEvaluation = latestEvaluation;
+  public void setActive(boolean active) {
+    this.active = active;
   }
 
   public String getPathname() {

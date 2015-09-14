@@ -173,6 +173,11 @@ public class RestClientFactory
     public PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
       return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).getPolicyEvaluationSummary();
     }
+
+    @Override
+    public void removeComponent(String pathname) throws IOException {
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).removeComponent(pathname);
+    }
   }
 
   private class AppSpecificClient

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -33,6 +34,8 @@ public class RepositoryResource
   static final String QUARANTINE_PATH = "quarantine/{enabled}";
 
   public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
+
+  static final String REMOVE_COMPONENT_PATH = "{pathname: .+}";
 
   private final RepositoryService repositoryService;
 
@@ -83,5 +86,13 @@ public class RepositoryResource
       @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("enabled") boolean enabled)
   {
     repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled);
+  }
+
+  @DELETE
+  @Path(REMOVE_COMPONENT_PATH)
+  public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("pathname") String pathname)
+  {
+    repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 }

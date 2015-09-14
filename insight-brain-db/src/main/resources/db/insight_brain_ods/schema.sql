@@ -469,7 +469,7 @@ CREATE TABLE repository_policy_violation (
   action_type_id varchar(20),
   notifications CLOB, -- email addresses notified for this policy violation, delimited by new lines
   waived bool DEFAULT false NOT NULL,
-  latest_evaluation bool DEFAULT true NOT NULL, -- Whether this violation is from the latest evaluation,
+  active bool DEFAULT true NOT NULL, -- Whether this violation is still active. If false, then the component was removed from the repository or a more recent evaluation was performed for this component.
   CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),
   CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id)
 );

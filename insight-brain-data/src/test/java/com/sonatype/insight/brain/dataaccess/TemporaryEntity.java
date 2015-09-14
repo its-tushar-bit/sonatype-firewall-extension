@@ -1014,15 +1014,20 @@ public class TemporaryEntity
         componentIdentifier);
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String pathname) {
+    return newRepositoryPolicyViolation(repositoryId, 5 /* threatLevel */, pathname, false, true, "policyId",
+        "policyName", null /* componentIdentifier */);
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, int threatLevel, String pathname,
-      boolean isWaived, boolean isLatestEval, String policyId, String policyName,
+      boolean isWaived, boolean isActive, String policyId, String policyName,
       ComponentIdentifier componentIdentifier)
   {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, new Date(),
         policyId, policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash",
         componentIdentifier, "[]" /* constraintFacts */);
     policyViolation.setWaived(isWaived);
-    policyViolation.setLatestEvaluation(isLatestEval);
+    policyViolation.setActive(isActive);
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;
   }

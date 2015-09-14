@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.client;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -20,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -182,4 +185,30 @@ public class FirewallClientTest
     }
   }
 
+  @Test
+  public void testRemoveComponent() throws Exception {
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    String pathname = "somepath";
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    client.removeComponent(pathname);
+
+    repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());
+    assertThat(repositoryComponent, nullValue());
+  }
+
+  @Test
+  public void testRemoveComponent_Error() throws Exception {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    try {
+      client.removeComponent("somepath");
+      fail("Expected HttpResponseException");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e.getStatusCode(), is(404));
+      assertThat(e.getMessage(), is("Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId "
+          + rmInstanceId + "."));
+    }
+  }
 }

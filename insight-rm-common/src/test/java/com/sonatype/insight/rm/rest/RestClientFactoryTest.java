@@ -145,6 +145,25 @@ public class RestClientFactoryTest
   }
 
   @Test
+  public void testRestClientRepository_RemoveComponent() throws Exception {
+    FirewallClient firewallClient = mock(FirewallClient.class);
+
+    String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    String repositoryPublicId = "repositoryPublicId";
+
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
+
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    repository.removeComponent("somepath");
+
+    verify(firewallClient).removeComponent("somepath");
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
   public void testRestClientRepository_EvaluateComponents() throws Exception {
     final FirewallClient firewallClient = mock(FirewallClient.class);
 

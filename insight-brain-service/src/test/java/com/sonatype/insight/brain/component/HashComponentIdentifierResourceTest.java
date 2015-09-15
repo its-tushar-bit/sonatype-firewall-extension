@@ -41,7 +41,7 @@ public class HashComponentIdentifierResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(HashComponentIdentifierResource.SERVICE_PATH);
+    return super.restRequest().path(HashComponentIdentifierResource.RESOURCE_PATH);
   }
 
   @Before

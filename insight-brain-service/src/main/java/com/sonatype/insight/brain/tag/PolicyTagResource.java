@@ -28,10 +28,10 @@ import com.google.inject.Inject;
  * @since 1.9
  */
 @Named
-@Path(PolicyTagResource.SERVICE_PATH)
+@Path(PolicyTagResource.RESOURCE_PATH)
 public class PolicyTagResource
 {
-  public static final String SERVICE_PATH = "rest/appliedTag/policy/{policyId}";
+  public static final String RESOURCE_PATH = "rest/appliedTag/policy/{policyId}";
 
   private final TagService tagService;
 

@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.api.v2.ApiPolicyViolationResourceV2;
  */
 @Deprecated
 @Named
-@Path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH)
+@Path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH)
 public class ApiPolicyViolationResource
 {
   private ApiPolicyViolationService apiPolicyViolationService;

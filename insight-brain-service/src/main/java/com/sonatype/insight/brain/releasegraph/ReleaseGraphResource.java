@@ -20,10 +20,10 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 @Named
-@Path(ReleaseGraphResource.SERVICE_PATH)
+@Path(ReleaseGraphResource.RESOURCE_PATH)
 public class ReleaseGraphResource
 {
-  public static final String SERVICE_PATH = "rest/report/{applicationId}/{scanId}/releaseGraph";
+  public static final String RESOURCE_PATH = "rest/report/{applicationId}/{scanId}/releaseGraph";
 
   private static final long YEAR = 365L * 24 * 60 * 60 * 1000;
 

@@ -23,7 +23,7 @@ public class FeatureResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(FeaturesResource.SERVICE_PATH);
+    return super.restRequest().path(FeaturesResource.RESOURCE_PATH);
   }
 
   @Test

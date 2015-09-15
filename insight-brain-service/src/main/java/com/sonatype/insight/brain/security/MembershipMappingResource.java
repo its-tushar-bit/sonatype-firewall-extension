@@ -28,10 +28,10 @@ import com.sonatype.insight.brain.utils.IdUtils;
  * @since 1.7
  */
 @Named
-@Path(MembershipMappingResource.SERVICE_PATH)
+@Path(MembershipMappingResource.RESOURCE_PATH)
 public class MembershipMappingResource
 {
-  public static final String SERVICE_PATH = "rest/membershipMapping/{ownerType: global|application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/membershipMapping/{ownerType: global|application|organization}/{ownerId}";
 
   public static final String ROLE_PATH = "role/{roleId}";
 

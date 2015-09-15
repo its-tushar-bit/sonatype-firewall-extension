@@ -20,7 +20,7 @@ public class VersionResourceTest
 {
   @Test
   public void testGetVersionInfo_Licensed() throws Exception {
-    HttpResponse response = restRequest().path(VersionResource.SERVICE_PATH).anon().get();
+    HttpResponse response = restRequest().path(VersionResource.RESOURCE_PATH).anon().get();
     assertResponseStatus(200, response);
     Map<String, String> versionInfo = response.getBody(Map.class);
     assertNotNull(versionInfo);

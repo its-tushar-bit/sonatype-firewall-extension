@@ -25,10 +25,10 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
 @Named
-@Path(LicenseThreatGroupLicenseResource.SERVICE_PATH)
+@Path(LicenseThreatGroupLicenseResource.RESOURCE_PATH)
 public class LicenseThreatGroupLicenseResource
 {
-  public static final String SERVICE_PATH = "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
+  public static final String RESOURCE_PATH = "rest/licenseThreatGroupLicense/{ownerType: application|organization}/{ownerId}/{licenseThreatGroupId}";
 
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 

@@ -19,7 +19,7 @@ public class PolicyEvaluateResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PolicyEvaluateResource.SERVICE_PATH);
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH);
   }
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {

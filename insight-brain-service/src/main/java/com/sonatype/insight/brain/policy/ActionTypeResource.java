@@ -20,10 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-@Path(ActionTypeResource.SERVICE_PATH)
+@Path(ActionTypeResource.RESOURCE_PATH)
 public class ActionTypeResource
 {
-  public static final String SERVICE_PATH = "rest/policy/actionType";
+  public static final String RESOURCE_PATH = "rest/policy/actionType";
 
   private static final Logger log = LoggerFactory.getLogger(ActionTypeResource.class);
 

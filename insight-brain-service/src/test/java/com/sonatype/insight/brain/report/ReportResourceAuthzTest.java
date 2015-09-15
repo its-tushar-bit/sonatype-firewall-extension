@@ -19,7 +19,7 @@ public class ReportResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ReportResource.SERVICE_PATH);
+    return super.restRequest().path(ReportResource.RESOURCE_PATH);
   }
 
   @Test

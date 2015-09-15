@@ -14,6 +14,6 @@ public class ApiApplicationResourceV2Test
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.APP_SERVICE_PATH).parameter("v2");
+    return super.restRequest().path(PublicApiPaths.APP_RESOURCE_PATH).parameter("v2");
   }
 }

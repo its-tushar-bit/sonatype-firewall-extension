@@ -40,11 +40,11 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 
 @Named
-@Path(OrganizationResource.SERVICE_PATH)
+@Path(OrganizationResource.RESOURCE_PATH)
 public class OrganizationResource
     extends AbstractResourceWithIcon
 {
-  public static final String SERVICE_PATH = "rest/organization";
+  public static final String RESOURCE_PATH = "rest/organization";
 
   public static final String GET_ICON_PATH = ICON_PATH + "/{organizationId}";
 

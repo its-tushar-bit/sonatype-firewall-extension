@@ -386,7 +386,7 @@ public class PolicyMonitorTest
   private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage)
       throws Exception
   {
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}")
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", "{scanId}")
         .parameter(applicationPublicId, scanId).body(stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
@@ -395,7 +395,7 @@ public class PolicyMonitorTest
   }
 
   private Policy updatePolicy(OwnerType ownerType, String ownerId, Policy policy) throws Exception {
-    HttpResponse response = restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId).body(policy)
+    HttpResponse response = restRequest().path(PolicyResource.RESOURCE_PATH).parameter(ownerType, ownerId).body(policy)
         .put();
     assertResponseStatus(200, response);
     return response.getBody(Policy.class);

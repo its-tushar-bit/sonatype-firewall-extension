@@ -35,6 +35,6 @@ public class CIResourceAuthzTest
   }
 
   private HttpRequest scanRequest() {
-    return restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH).parameter(app.getPublicId());
+    return restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(app.getPublicId());
   }
 }

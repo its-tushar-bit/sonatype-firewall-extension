@@ -32,7 +32,7 @@ public class ReleaseGraphResourceTest
   private File reportDir;
 
   private HttpRequest getRequest(String appId, String scanId) {
-    return restRequest().path(ReleaseGraphResource.SERVICE_PATH).parameter(appId, scanId).subpath();
+    return restRequest().path(ReleaseGraphResource.RESOURCE_PATH).parameter(appId, scanId).subpath();
   }
 
   private HttpRequest addCoords(HttpRequest request, ComponentIdentifier componentIdentifier) {

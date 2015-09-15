@@ -27,10 +27,10 @@ import com.google.inject.Inject;
  * @since 1.9
  */
 @Named
-@Path(ApplicationTagResource.SERVICE_PATH)
+@Path(ApplicationTagResource.RESOURCE_PATH)
 public class ApplicationTagResource
 {
-  public static final String SERVICE_PATH = "rest/appliedTag/application/{applicationPublicId}";
+  public static final String RESOURCE_PATH = "rest/appliedTag/application/{applicationPublicId}";
 
   private final TagService tagService;
 

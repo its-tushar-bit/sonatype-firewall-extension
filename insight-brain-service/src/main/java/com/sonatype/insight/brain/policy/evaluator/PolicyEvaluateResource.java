@@ -30,11 +30,11 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path(PolicyEvaluateResource.SERVICE_PATH)
+@Path(PolicyEvaluateResource.RESOURCE_PATH)
 @Named
 public class PolicyEvaluateResource
 {
-  public static final String SERVICE_PATH = "rest/policy/{applicationPublicId}/evaluate";
+  public static final String RESOURCE_PATH = "rest/policy/{applicationPublicId}/evaluate";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluateResource.class);
 

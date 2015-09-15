@@ -23,11 +23,11 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
  * @since 1.17.0
  */
 @Named
-@Path(RepositoryResource.SERVICE_PATH)
+@Path(RepositoryResource.RESOURCE_PATH)
 public class RepositoryResource
 {
 
-  public static final String SERVICE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
+  public static final String RESOURCE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
 
   public static final String SUMMARY_PATH = "summary";
 

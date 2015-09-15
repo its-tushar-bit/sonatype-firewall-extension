@@ -42,7 +42,7 @@ public class LabelResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(LabelResource.SERVICE_PATH).parameter(ownerType, ownerId);
+    return restRequest().path(LabelResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
   @Test

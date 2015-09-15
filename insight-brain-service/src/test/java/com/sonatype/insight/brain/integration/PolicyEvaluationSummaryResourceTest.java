@@ -31,7 +31,7 @@ public class PolicyEvaluationSummaryResourceTest
   private Application application;
 
   private HttpRequest summaryRequest(String appId, String stageTypeId) {
-    return restRequest().path(PolicyEvaluationSummaryResource.SERVICE_PATH).parameter(appId, stageTypeId);
+    return restRequest().path(PolicyEvaluationSummaryResource.RESOURCE_PATH).parameter(appId, stageTypeId);
   }
 
   @Before

@@ -51,11 +51,11 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @Named
-@Path(IdeResource.SERVICE_PATH)
+@Path(IdeResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(CLMEnforcementPoint.Develop)
 public class IdeResource
 {
-  public static final String SERVICE_PATH = "rest/ide";
+  public static final String RESOURCE_PATH = "rest/ide";
 
   private final HdsClient client;
 

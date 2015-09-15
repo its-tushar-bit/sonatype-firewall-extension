@@ -53,7 +53,7 @@ public class LdapResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(LdapResource.SERVICE_PATH);
+    return super.restRequest().path(LdapResource.RESOURCE_PATH);
   }
 
   private HttpRequest testConnectionRequest(LdapConnection conn) {

@@ -20,7 +20,7 @@ public class LicensedStagesResourceTest
 {
   @Test
   public void testGetLicenseStages() throws Exception {
-    HttpResponse response = restRequest().path(LicensedStagesResource.SERVICE_PATH).get();
+    HttpResponse response = restRequest().path(LicensedStagesResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     Stage[] stages = response.getBody(Stage[].class);
     assertStages(stages);

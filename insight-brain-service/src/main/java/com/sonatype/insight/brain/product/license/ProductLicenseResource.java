@@ -25,11 +25,11 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 
 import com.sun.jersey.multipart.FormDataParam;
 
-@Path(ProductLicenseResource.SERVICE_PATH)
+@Path(ProductLicenseResource.RESOURCE_PATH)
 @Named
 public class ProductLicenseResource
 {
-  public static final String SERVICE_PATH = "rest/product/license";
+  public static final String RESOURCE_PATH = "rest/product/license";
 
   static final String VALIDATE_PATH = "validate";
 

@@ -20,7 +20,7 @@ import org.apache.http.entity.ContentType;
 public class FirewallClient
     extends AbstractRequestClient
 {
-  private static final String SERVICE_PATH = "rest/integration/repositories";
+  private static final String RESOURCE_PATH = "rest/integration/repositories";
 
   private static final String EVALUATE_PATH = "evaluate";
 
@@ -43,7 +43,7 @@ public class FirewallClient
   }
 
   public void enableRepository() throws IOException {
-    Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId),
+    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId),
         null);
     int status = result.status();
     if (status >= 300) {
@@ -53,7 +53,7 @@ public class FirewallClient
   }
 
   public void setQuarantine(final boolean enabled) throws IOException {
-    Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
+    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
         Boolean.toString(enabled)), null);
     int status = result.status();
     if (status >= 300) {
@@ -63,7 +63,7 @@ public class FirewallClient
   }
 
   public void removeComponent(String pathname) throws IOException {
-    Result result = deleteRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, pathname));
+    Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, pathname));
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();
@@ -77,7 +77,7 @@ public class FirewallClient
     final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(componentEvaluationDataRequestList),
         ContentType.APPLICATION_JSON);
 
-    final Result result = postRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
+    final Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
         entity);
     final int status = result.status();
     if (status >= 300) {
@@ -87,7 +87,7 @@ public class FirewallClient
   }
 
   public PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
-    Result result = getRequest(path(SERVICE_PATH, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
+    Result result = getRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();

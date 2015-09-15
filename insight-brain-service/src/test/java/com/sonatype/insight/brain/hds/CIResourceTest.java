@@ -22,7 +22,7 @@ public class CIResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest scanRequest(String appId) {
-    return restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH).parameter(appId);
+    return restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(appId);
   }
 
   @Test

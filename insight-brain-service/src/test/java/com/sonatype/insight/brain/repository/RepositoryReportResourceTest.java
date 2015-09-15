@@ -27,7 +27,7 @@ public class RepositoryReportResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(RepositoryReportResource.SERVICE_PATH, RepositoryReportResource.SUMMARY);
+    return super.restRequest().path(RepositoryReportResource.RESOURCE_PATH, RepositoryReportResource.SUMMARY);
   }
 
   @Before

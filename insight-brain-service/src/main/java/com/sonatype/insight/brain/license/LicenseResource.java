@@ -20,10 +20,10 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.model.license.License;
 
 @Named
-@Path(LicenseResource.SERVICE_PATH)
+@Path(LicenseResource.RESOURCE_PATH)
 public class LicenseResource
 {
-  public static final String SERVICE_PATH = "rest/license";
+  public static final String RESOURCE_PATH = "rest/license";
 
   private LicenseDAO licenseDAO = new LicenseDAO();
 

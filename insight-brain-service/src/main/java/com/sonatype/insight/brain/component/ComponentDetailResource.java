@@ -23,10 +23,10 @@ import com.yammer.metrics.annotation.Timed;
  * @since 1.11
  */
 @Named
-@Path(ComponentDetailResource.SERVICE_PATH)
+@Path(ComponentDetailResource.RESOURCE_PATH)
 public class ComponentDetailResource
 {
-  public static final String SERVICE_PATH = "rest/componentDetails";
+  public static final String RESOURCE_PATH = "rest/componentDetails";
 
   private final ComponentDetailService componentDetailService;
 

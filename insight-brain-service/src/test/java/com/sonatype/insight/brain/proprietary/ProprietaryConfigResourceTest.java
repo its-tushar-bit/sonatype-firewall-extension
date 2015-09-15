@@ -27,7 +27,7 @@ public class ProprietaryConfigResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ProprietaryConfigResource.SERVICE_PATH);
+    return super.restRequest().path(ProprietaryConfigResource.RESOURCE_PATH);
   }
 
   @After

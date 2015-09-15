@@ -22,26 +22,26 @@ public class PublicApiPaths
 
   private static final String API_VERSION_PATH_V1_V2 = BASE_PATH + "/{apiVersion: v1|v2}/";
 
-  public static final String APP_SERVICE_PATH = API_VERSION_PATH_V1_V2 + "applications";
+  public static final String APP_RESOURCE_PATH = API_VERSION_PATH_V1_V2 + "applications";
 
-  public static final String ORG_SERVICE_PATH = API_VERSION_PATH_V1_V2 + "organizations";
+  public static final String ORG_RESOURCE_PATH = API_VERSION_PATH_V1_V2 + "organizations";
 
-  public static final String POLICY_SERVICE_PATH = API_VERSION_PATH_V1_V2 + "policies";
+  public static final String POLICY_RESOURCE_PATH = API_VERSION_PATH_V1_V2 + "policies";
 
-  public static final String POLICY_VIOLATION_SERVICE_PATH = API_VERSION_PATH + "policyViolations";
+  public static final String POLICY_VIOLATION_RESOURCE_PATH = API_VERSION_PATH + "policyViolations";
 
-  public static final String POLICY_VIOLATION_SERVICE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
+  public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
-  public static final String SEARCH_SERVICE_PATH = API_VERSION_PATH + "search/component";
+  public static final String SEARCH_RESOURCE_PATH = API_VERSION_PATH + "search/component";
 
-  public static final String SEARCH_SERVICE_PATH_V2 = API_VERSION_PATH_V2 + "search/component";
+  public static final String SEARCH_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "search/component";
 
-  public static final String REPORTS_SERVICE_PATH_V2 = API_VERSION_PATH_V2 + "reports";
+  public static final String REPORTS_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "reports";
 
-  public static final String REPORT_DATA_SERVICE_PATH = API_VERSION_PATH +
+  public static final String REPORT_DATA_RESOURCE_PATH = API_VERSION_PATH +
       "applications/{applicationPublicId}/reports/{scanId}";
 
-  public static final String REPORT_DATA_SERVICE_PATH_V2 = API_VERSION_PATH_V2 +
+  public static final String REPORT_DATA_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 +
       "applications/{applicationPublicId}/reports/{scanId}";
 
   public static final String APPLICATION_EVALUATION_PATH_V2 = API_VERSION_PATH_V2 + "evaluation/applications";

@@ -14,6 +14,6 @@ public class ActionTypeResourceAuthzTest
 {
   @Test
   public void testGetActionTypes() throws Exception {
-    testAuthcGet(restRequest().path(ActionTypeResource.SERVICE_PATH));
+    testAuthcGet(restRequest().path(ActionTypeResource.RESOURCE_PATH));
   }
 }

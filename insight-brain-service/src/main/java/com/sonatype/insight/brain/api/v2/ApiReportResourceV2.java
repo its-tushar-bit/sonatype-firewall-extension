@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportServiceV2;
 
-@Path(PublicApiPaths.REPORTS_SERVICE_PATH_V2 + ApiReportResourceV2.PATH)
+@Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiReportResourceV2.PATH)
 @Named
 public class ApiReportResourceV2
 {

@@ -14,6 +14,6 @@ public class ApiOrganizationResourceV2Test
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.ORG_SERVICE_PATH).parameter("v2");
+    return super.restRequest().path(PublicApiPaths.ORG_RESOURCE_PATH).parameter("v2");
   }
 }

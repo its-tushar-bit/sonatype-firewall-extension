@@ -34,10 +34,10 @@ import com.sonatype.insight.error.exception.BadRequestException;
  * @since 1.8
  */
 @Named
-@Path(PolicyMonitoringResource.SERVICE_PATH)
+@Path(PolicyMonitoringResource.RESOURCE_PATH)
 public class PolicyMonitoringResource
 {
-  public static final String SERVICE_PATH = "rest/policyMonitoring/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/policyMonitoring/{ownerType: application|organization}/{ownerId}";
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

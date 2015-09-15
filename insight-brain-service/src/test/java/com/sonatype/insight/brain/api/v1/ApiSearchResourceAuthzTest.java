@@ -49,7 +49,7 @@ public class ApiSearchResourceAuthzTest
 
     grantReadPermission(app.getId());
 
-    HttpRequest request = restRequest().path(PublicApiPaths.SEARCH_SERVICE_PATH).query("stageId", Stage.ID_BUILD)
+    HttpRequest request = restRequest().path(PublicApiPaths.SEARCH_RESOURCE_PATH).query("stageId", Stage.ID_BUILD)
         .query("hash", "1249e25aebb15358bedd");
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);

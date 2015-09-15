@@ -56,10 +56,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-@Path(PolicyResource.SERVICE_PATH)
+@Path(PolicyResource.RESOURCE_PATH)
 public class PolicyResource
 {
-  public static final String SERVICE_PATH = "rest/policy/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/policy/{ownerType: application|organization}/{ownerId}";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 

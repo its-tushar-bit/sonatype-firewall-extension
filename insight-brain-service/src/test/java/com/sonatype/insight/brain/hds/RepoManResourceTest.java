@@ -23,7 +23,7 @@ public class RepoManResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest scanRequest(String appId) {
-    return super.restRequest().path(RepoManResource.SERVICE_PATH, RepoManResource.SCAN_PATH).parameter(appId);
+    return super.restRequest().path(RepoManResource.RESOURCE_PATH, RepoManResource.SCAN_PATH).parameter(appId);
   }
 
   @Test

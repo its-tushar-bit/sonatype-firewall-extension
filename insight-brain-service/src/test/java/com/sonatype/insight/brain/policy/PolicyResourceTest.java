@@ -42,7 +42,7 @@ public class PolicyResourceTest
   private static final PolicyDAO policyDAO = new PolicyDAO();
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(PolicyResource.SERVICE_PATH).parameter(ownerType, ownerId);
+    return restRequest().path(PolicyResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
   @Test

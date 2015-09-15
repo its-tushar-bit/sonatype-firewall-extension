@@ -30,10 +30,10 @@ import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
  * @since 1.7
  */
 @Named
-@Path(UserResource.SERVICE_PATH)
+@Path(UserResource.RESOURCE_PATH)
 public class UserResource
 {
-  public static final String SERVICE_PATH = "rest/user";
+  public static final String RESOURCE_PATH = "rest/user";
 
   public static final String MY_PASSWORD_PATH = "/password";
 

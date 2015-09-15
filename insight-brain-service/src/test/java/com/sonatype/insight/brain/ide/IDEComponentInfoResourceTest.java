@@ -14,7 +14,7 @@ public class IDEComponentInfoResourceTest
 {
   @Override
   protected String getResourcePath() {
-    return IDEComponentInfoResource.SERVICE_PATH;
+    return IDEComponentInfoResource.RESOURCE_PATH;
   }
 
   @Test

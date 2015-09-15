@@ -30,7 +30,7 @@ public class TagResourceTest
     Organization org = tempEntity.newOrganization("TagResourceTest");
     tempEntity.newTag(org.getParentOrganizationId(), "Root Tag");
 
-    HttpRequest request = restRequest().path(TagResource.SERVICE_PATH, TagResource.ORGANIZATION_PATH).parameter(org.getId());
+    HttpRequest request = restRequest().path(TagResource.RESOURCE_PATH, TagResource.ORGANIZATION_PATH).parameter(org.getId());
     // Get
     HttpResponse response = request.get();
     assertResponseStatus(200, response);

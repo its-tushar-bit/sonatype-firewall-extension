@@ -25,7 +25,7 @@ public class ApplicationSummaryResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ApplicationSummaryResource.SERVICE_PATH);
+    return super.restRequest().path(ApplicationSummaryResource.RESOURCE_PATH);
   }
 
   private HttpRequest summaryRequest(Goal goal) {

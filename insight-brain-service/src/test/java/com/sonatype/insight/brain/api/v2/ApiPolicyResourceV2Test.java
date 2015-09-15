@@ -14,6 +14,6 @@ public class ApiPolicyResourceV2Test
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.POLICY_SERVICE_PATH).parameter("v2");
+    return super.restRequest().path(PublicApiPaths.POLICY_RESOURCE_PATH).parameter("v2");
   }
 }

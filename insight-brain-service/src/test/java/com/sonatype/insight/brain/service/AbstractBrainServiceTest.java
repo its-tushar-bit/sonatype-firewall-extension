@@ -271,7 +271,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected HttpRequest licenseRequest() {
-    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH)
+    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH)
         .csrfToken("nonce", null, "nonce");
     request.part("file", "sonatype.lic", getClass().getResource("/productlicense/license.lic"));
     return request;
@@ -284,7 +284,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void uninstallLicense() throws Exception {
-    HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.SERVICE_PATH).delete();
+    HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH).delete();
     productlicenseWasUninstalled = true;
 
     Assert.assertFalse(licenseManager.isValid());

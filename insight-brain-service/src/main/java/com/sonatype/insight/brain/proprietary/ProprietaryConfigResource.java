@@ -29,10 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-@Path(ProprietaryConfigResource.SERVICE_PATH)
+@Path(ProprietaryConfigResource.RESOURCE_PATH)
 public class ProprietaryConfigResource
 {
-  public static final String SERVICE_PATH = "rest/config/proprietary";
+  public static final String RESOURCE_PATH = "rest/config/proprietary";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 

@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
  * @since 1.13
  */
 @Named
-@Path(LicensedStagesResource.SERVICE_PATH)
+@Path(LicensedStagesResource.RESOURCE_PATH)
 public class LicensedStagesResource
 {
-  public static final String SERVICE_PATH = "rest/policy/stages";
+  public static final String RESOURCE_PATH = "rest/policy/stages";
 
   private static final Logger log = LoggerFactory.getLogger(LicensedStagesResource.class);
 

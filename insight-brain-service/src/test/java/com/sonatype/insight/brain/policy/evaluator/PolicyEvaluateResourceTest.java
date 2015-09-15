@@ -98,7 +98,7 @@ public class PolicyEvaluateResourceTest
   private Application app;
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}").parameter(appId, scanId)
+    return restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", "{scanId}").parameter(appId, scanId)
         .body(stage);
   }
 
@@ -380,7 +380,7 @@ public class PolicyEvaluateResourceTest
 
     // check the calculated policy threat
     response = restRequest()
-        .path(ReportResource.SERVICE_PATH, "browseReport", ScanPolicyEvaluator.POLICY_THREATS_FILENAME)
+        .path(ReportResource.RESOURCE_PATH, "browseReport", ScanPolicyEvaluator.POLICY_THREATS_FILENAME)
         .parameter(applicationPublicId, scanId).get();
     assertResponseStatus(200, response);
     final JsonNode policyThreats = JsonUtils.parse(response.getBodyText()).get("aaData");

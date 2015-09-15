@@ -34,11 +34,11 @@ import com.sonatype.insight.error.exception.BadRequestException;
  * @since 1.7
  */
 @Named
-@Path(LdapResource.SERVICE_PATH)
+@Path(LdapResource.RESOURCE_PATH)
 public class LdapResource
 {
 
-  public static final String SERVICE_PATH = "rest/config/ldap";
+  public static final String RESOURCE_PATH = "rest/config/ldap";
 
   public static final String CONNECTION_PATH = "{ldapServerId}/connection";
 

@@ -75,7 +75,7 @@ public class ProductLicenseResourceTest
   @Test
   public void testValidateLicense() throws Exception {
     installLicense();
-    HttpResponse response = restRequest().path(ProductLicenseResource.SERVICE_PATH,
+    HttpResponse response = restRequest().path(ProductLicenseResource.RESOURCE_PATH,
         ProductLicenseResource.VALIDATE_PATH).get();
     assertResponseStatus(200, response);
     LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
@@ -85,7 +85,7 @@ public class ProductLicenseResourceTest
   @Test
   public void testGetLicenseSummary() throws Exception {
     installLicense();
-    HttpResponse response = restRequest().path(ProductLicenseResource.SERVICE_PATH).get();
+    HttpResponse response = restRequest().path(ProductLicenseResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     LicenseSummary licenseSummary = response.getBody(LicenseSummary.class);
     assertThat(licenseSummary.fingerprint, is(notNullValue()));

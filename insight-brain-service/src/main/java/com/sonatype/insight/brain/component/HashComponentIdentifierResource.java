@@ -26,10 +26,10 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
  * @since 1.4.1
  */
 @Named
-@Path(HashComponentIdentifierResource.SERVICE_PATH)
+@Path(HashComponentIdentifierResource.RESOURCE_PATH)
 public class HashComponentIdentifierResource
 {
-  public static final String SERVICE_PATH = "rest/component/identified";
+  public static final String RESOURCE_PATH = "rest/component/identified";
 
   private final HashComponentIdentifierService hashComponentIdentifierService;
 

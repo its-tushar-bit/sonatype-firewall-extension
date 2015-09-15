@@ -32,7 +32,7 @@ public class RepositoryResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(RepositoryResource.SERVICE_PATH);
+    return super.restRequest().path(RepositoryResource.RESOURCE_PATH);
   }
 
   private HttpRequest summaryRequest() {

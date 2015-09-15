@@ -16,7 +16,7 @@ public class ConditionTypeResourceTest
 {
   @Test
   public void testGetConditionTypes() throws Exception {
-    final HttpResponse response = restRequest().path(ConditionTypeResource.SERVICE_PATH).get();
+    final HttpResponse response = restRequest().path(ConditionTypeResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     final Object[] conditionTypes = response.getBody(Object[].class);
     Assert.assertNotNull(conditionTypes);

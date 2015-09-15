@@ -30,10 +30,10 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
  * @since 1.6
  */
 @Named
-@Path(LicenseOverrideResource.SERVICE_PATH)
+@Path(LicenseOverrideResource.RESOURCE_PATH)
 public class LicenseOverrideResource
 {
-  public static final String SERVICE_PATH = "rest/licenseOverride/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/licenseOverride/{ownerType: application|organization}/{ownerId}";
 
   private final LicenseOverrideService licenseOverrideService;
 

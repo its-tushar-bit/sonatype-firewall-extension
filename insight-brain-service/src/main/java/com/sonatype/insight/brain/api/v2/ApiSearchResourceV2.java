@@ -23,7 +23,7 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
  *
  * @since 1.13.0
  */
-@Path(PublicApiPaths.SEARCH_SERVICE_PATH_V2)
+@Path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2)
 @Named
 public class ApiSearchResourceV2
 {

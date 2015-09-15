@@ -27,7 +27,7 @@ public class ScanResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ScanResource.SERVICE_PATH);
+    return super.restRequest().path(ScanResource.RESOURCE_PATH);
   }
 
   private HttpRequest uploadRequest(String appPublicId, String stageId, String resource) {

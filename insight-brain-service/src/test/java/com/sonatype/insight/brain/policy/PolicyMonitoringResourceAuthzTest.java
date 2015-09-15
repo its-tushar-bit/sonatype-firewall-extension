@@ -18,7 +18,7 @@ public class PolicyMonitoringResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PolicyMonitoringResource.SERVICE_PATH);
+    return super.restRequest().path(PolicyMonitoringResource.RESOURCE_PATH);
   }
 
   @Test

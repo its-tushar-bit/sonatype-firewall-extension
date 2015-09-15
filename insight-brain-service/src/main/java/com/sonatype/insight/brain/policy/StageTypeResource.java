@@ -24,10 +24,10 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 @Named
-@Path(StageTypeResource.SERVICE_PATH)
+@Path(StageTypeResource.RESOURCE_PATH)
 public class StageTypeResource
 {
-  public static final String SERVICE_PATH = "rest/policy/stageType";
+  public static final String RESOURCE_PATH = "rest/policy/stageType";
 
   private static final Logger log = LoggerFactory.getLogger(StageTypeResource.class);
 

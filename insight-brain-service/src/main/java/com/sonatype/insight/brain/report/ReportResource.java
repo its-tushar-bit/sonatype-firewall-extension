@@ -82,11 +82,11 @@ import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path(ReportResource.SERVICE_PATH)
+@Path(ReportResource.RESOURCE_PATH)
 @Named
 public class ReportResource
 {
-  public static final String SERVICE_PATH = "rest/report/{applicationPublicId}/{scanId}";
+  public static final String RESOURCE_PATH = "rest/report/{applicationPublicId}/{scanId}";
 
   public static final String BROWSE_PATH = "browseReport";
 
@@ -156,7 +156,7 @@ public class ReportResource
   {
     if ("index.html".equals(path) || path.isEmpty()) {
       UriBuilder uriBuilder = baseUrl.redirect();
-      uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH);
+      uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH + "/" + UserInterfaceLinksResource.REPORT_PATH);
 
       StringBuilder sb = new StringBuilder();
       sb.append("<html>");
@@ -540,7 +540,7 @@ public class ReportResource
   }
 
   public static String getReportPath(final String appPublicId, final String scanId) {
-    String url = ReportResource.SERVICE_PATH + "/browseReport/";
+    String url = ReportResource.RESOURCE_PATH + "/browseReport/";
     url = url.replace("{applicationPublicId}", UrlUtils.encodeUrlComponent(appPublicId));
     url = url.replace("{scanId}", UrlUtils.encodeUrlComponent(scanId));
     return url;

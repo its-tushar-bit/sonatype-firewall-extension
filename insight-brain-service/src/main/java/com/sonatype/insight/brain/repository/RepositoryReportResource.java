@@ -19,12 +19,12 @@ import com.sonatype.insight.brain.integration.repository.RepositoryService;
  * @since 1.17.0
  */
 @Named
-@Path(RepositoryReportResource.SERVICE_PATH)
+@Path(RepositoryReportResource.RESOURCE_PATH)
 public class RepositoryReportResource
 {
   public static final String SUMMARY = "summary";
 
-  public static final String SERVICE_PATH = "rest/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}/report";
+  public static final String RESOURCE_PATH = "rest/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}/report";
 
   private final RepositoryService repositoryService;
 

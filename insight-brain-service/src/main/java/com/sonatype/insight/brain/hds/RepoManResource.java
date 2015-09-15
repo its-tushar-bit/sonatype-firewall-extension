@@ -24,12 +24,12 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-@Path(RepoManResource.SERVICE_PATH)
+@Path(RepoManResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint({ CLMEnforcementPoint.StageRelease, CLMEnforcementPoint.Release })
 @Named
 public class RepoManResource
 {
-  public static final String SERVICE_PATH = "rest/rm";
+  public static final String RESOURCE_PATH = "rest/rm";
 
   public static final String SCAN_PATH = "scan/{applicationPublicId}";
 

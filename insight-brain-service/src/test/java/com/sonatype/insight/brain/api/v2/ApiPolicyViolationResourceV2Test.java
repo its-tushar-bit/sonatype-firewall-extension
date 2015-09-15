@@ -44,7 +44,7 @@ public class ApiPolicyViolationResourceV2Test
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", new Date());
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
-    HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH_V2)
+    HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
         .query("p", orgPolicy.getId()).get();
 
     assertResponseStatus(200, response);

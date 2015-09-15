@@ -25,7 +25,7 @@ public class ApplicationTagResourceTest
   public void testCRUD() throws Exception {
     Application app = tempEntity.newApplicationWithParent("testApp");
 
-    HttpRequest request = restRequest().path(ApplicationTagResource.SERVICE_PATH).parameter(app.getPublicId());
+    HttpRequest request = restRequest().path(ApplicationTagResource.RESOURCE_PATH).parameter(app.getPublicId());
 
     //Get
     HttpResponse response = request.get();

@@ -31,11 +31,11 @@ import com.sonatype.insight.brain.service.InsightBrainService;
  * @since 1.7
  */
 @Named
-@Path(UserInterfaceLinksResource.SERVICE_PATH)
+@Path(UserInterfaceLinksResource.RESOURCE_PATH)
 @UnlicensedPath
 public class UserInterfaceLinksResource
 {
-  public static final String SERVICE_PATH = "ui/links";
+  public static final String RESOURCE_PATH = "ui/links";
 
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
@@ -85,7 +85,7 @@ public class UserInterfaceLinksResource
       @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ReportResource.SERVICE_PATH).path(ReportResource.BROWSE_PATH).path("index.html");
+    uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.BROWSE_PATH).path("index.html");
     return redirect(uriBuilder.build(applicationPublicId, scanId));
   }
 
@@ -98,7 +98,7 @@ public class UserInterfaceLinksResource
       @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ReportResource.SERVICE_PATH).path(ReportResource.PRINT_PATH);
+    uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.PRINT_PATH);
     return redirect(uriBuilder.build(applicationPublicId, scanId));
   }
 
@@ -106,7 +106,7 @@ public class UserInterfaceLinksResource
    * Gets the relative URL to the stable hyperlink for the HTML report of the given application and scan.
    */
   public static String getReportUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
+    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.REPORT_PATH)
         .build(applicationPublicId, scanId).toString();
   }
 
@@ -117,7 +117,7 @@ public class UserInterfaceLinksResource
    */
   public static String getEmbeddableReportUrl(String applicationPublicId, String scanId) {
     return UriBuilder
-        .fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH)
+        .fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH)
         .build(applicationPublicId, scanId).toString();
   }
 
@@ -127,7 +127,7 @@ public class UserInterfaceLinksResource
    * @since 1.9
    */
   public static String getPdfUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.SERVICE_PATH + '/' + UserInterfaceLinksResource.PDF_PATH)
+    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.PDF_PATH)
         .build(applicationPublicId, scanId).toString();
   }
 }

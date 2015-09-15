@@ -28,7 +28,7 @@ public class PublicRestApiAuthcTest
 {
   @Test
   public void testSessionCookieInsufficientForAuthentication() throws Exception {
-    HttpResponse response = restRequest().path(UserSessionResource.SERVICE_PATH).post();
+    HttpResponse response = restRequest().path(UserSessionResource.RESOURCE_PATH).post();
     assertResponseStatus(204, response);
 
     HttpCookie sessionCookie = response.getSessionCookie();

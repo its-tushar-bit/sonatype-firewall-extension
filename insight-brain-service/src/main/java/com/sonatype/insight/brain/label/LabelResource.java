@@ -27,10 +27,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 
 @Named
-@Path(LabelResource.SERVICE_PATH)
+@Path(LabelResource.RESOURCE_PATH)
 public class LabelResource
 {
-  public static final String SERVICE_PATH = "rest/label/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/label/{ownerType: application|organization}/{ownerId}";
 
   private final LabelService labelService;
 

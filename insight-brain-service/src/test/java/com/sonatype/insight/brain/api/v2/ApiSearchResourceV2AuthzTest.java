@@ -46,7 +46,7 @@ public class ApiSearchResourceV2AuthzTest
 
     grantReadPermission(app.getId());
 
-    HttpRequest request = restRequest().path(PublicApiPaths.SEARCH_SERVICE_PATH_V2).query("stageId", Stage.ID_BUILD)
+    HttpRequest request = restRequest().path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2).query("stageId", Stage.ID_BUILD)
         .query("hash", "1249e25aebb15358bedd");
     HttpResponse response = request.auth(unauthorized.getUsername(), unauthorized.getPassword()).get();
     assertResponseStatus(200, response);

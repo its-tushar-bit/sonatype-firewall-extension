@@ -21,7 +21,7 @@ public class LicenseResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(LicenseResource.SERVICE_PATH);
+    return super.restRequest().path(LicenseResource.RESOURCE_PATH);
   }
 
   @Test

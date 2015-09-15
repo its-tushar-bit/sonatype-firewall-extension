@@ -42,7 +42,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @since 1.11.0
  */
 @Named
-@Path(PublicApiPaths.APP_SERVICE_PATH)
+@Path(PublicApiPaths.APP_RESOURCE_PATH)
 public class ApiApplicationResource
 {
   /**

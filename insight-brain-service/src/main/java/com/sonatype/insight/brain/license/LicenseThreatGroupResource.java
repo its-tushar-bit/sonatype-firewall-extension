@@ -24,10 +24,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
 @Named
-@Path(LicenseThreatGroupResource.SERVICE_PATH)
+@Path(LicenseThreatGroupResource.RESOURCE_PATH)
 public class LicenseThreatGroupResource
 {
-  public static final String SERVICE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";
 
   private final LicenseThreatGroupService licenseThreatGroupService;
 

@@ -17,7 +17,7 @@ public class ConditionValueTypeResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(ConditionValueTypeResource.SERVICE_PATH).parameter(ownerType, ownerId);
+    return restRequest().path(ConditionValueTypeResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
   @Test

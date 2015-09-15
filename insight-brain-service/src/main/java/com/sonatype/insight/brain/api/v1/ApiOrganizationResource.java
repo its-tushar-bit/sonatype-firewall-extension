@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.security.MembershipMappingService;
  * @since 1.11.0
  */
 @Named
-@Path(PublicApiPaths.ORG_SERVICE_PATH)
+@Path(PublicApiPaths.ORG_RESOURCE_PATH)
 public class ApiOrganizationResource
 {
 

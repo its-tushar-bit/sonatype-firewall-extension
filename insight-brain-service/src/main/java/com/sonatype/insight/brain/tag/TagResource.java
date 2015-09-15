@@ -26,13 +26,13 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 @Named
-@Path(TagResource.SERVICE_PATH)
+@Path(TagResource.RESOURCE_PATH)
 /**
  * @since 1.9
  */
 public class TagResource
 {
-  public static final String SERVICE_PATH = "rest/tag/";
+  public static final String RESOURCE_PATH = "rest/tag/";
   public static final String USED_BY_APPLICATION_PATH = "application";
   public static final String APPLICATION_PATH = "application/{applicationPublicId}";
   public static final String ORGANIZATION_PATH = "organization/{organizationId}";

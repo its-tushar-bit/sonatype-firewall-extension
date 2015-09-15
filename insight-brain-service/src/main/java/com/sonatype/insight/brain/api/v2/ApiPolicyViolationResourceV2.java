@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
  * @since 1.13.0
  */
 @Named
-@Path(PublicApiPaths.POLICY_VIOLATION_SERVICE_PATH_V2)
+@Path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
 public class ApiPolicyViolationResourceV2
 {
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;

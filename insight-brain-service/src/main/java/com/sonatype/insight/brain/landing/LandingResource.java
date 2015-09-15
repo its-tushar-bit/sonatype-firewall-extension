@@ -14,11 +14,11 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 @Named
-@Path(LandingResource.SERVICE_PATH)
+@Path(LandingResource.RESOURCE_PATH)
 @UnlicensedPath
 public class LandingResource
 {
-  public static final String SERVICE_PATH = "";
+  public static final String RESOURCE_PATH = "";
 
   private final LandingService landingService;
 

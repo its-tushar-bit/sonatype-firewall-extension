@@ -19,7 +19,7 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(LicenseThreatGroupLicenseResource.SERVICE_PATH);
+    return super.restRequest().path(LicenseThreatGroupLicenseResource.RESOURCE_PATH);
   }
 
   @Test

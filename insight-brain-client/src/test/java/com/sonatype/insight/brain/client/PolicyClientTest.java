@@ -34,7 +34,7 @@ public class PolicyClientTest
     String appId = "app id";
     PolicyClient policyClient = new PolicyClient(getCLMServer().getClientConfiguration(), appId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
-    uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH).path(UserInterfaceLinksResource.MANAGEMENT_PATH);
+    uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.MANAGEMENT_PATH);
     Assert.assertEquals(policyClient.linkToManagement(), uriBuilder.build(OwnerType.APPLICATION, appId).toString());
   }
 

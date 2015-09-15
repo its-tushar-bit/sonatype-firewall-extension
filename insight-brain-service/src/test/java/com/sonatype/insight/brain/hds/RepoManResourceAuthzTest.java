@@ -35,6 +35,6 @@ public class RepoManResourceAuthzTest
   }
 
   private HttpRequest scanRequest() {
-    return restRequest().path(RepoManResource.SERVICE_PATH, RepoManResource.SCAN_PATH).parameter(app.getPublicId());
+    return restRequest().path(RepoManResource.RESOURCE_PATH, RepoManResource.SCAN_PATH).parameter(app.getPublicId());
   }
 }

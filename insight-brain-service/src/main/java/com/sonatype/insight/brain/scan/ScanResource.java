@@ -36,10 +36,10 @@ import com.sun.jersey.multipart.FormDataParam;
  * @since 1.8
  */
 @Named
-@Path(ScanResource.SERVICE_PATH)
+@Path(ScanResource.RESOURCE_PATH)
 public class ScanResource
 {
-  public static final String SERVICE_PATH = "rest/scan/{applicationPublicId}";
+  public static final String RESOURCE_PATH = "rest/scan/{applicationPublicId}";
 
   private final ScanService scanService;
 

@@ -24,11 +24,11 @@ import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
-@Path(IDEComponentInfoResource.SERVICE_PATH)
+@Path(IDEComponentInfoResource.RESOURCE_PATH)
 @Named
 public class IDEComponentInfoResource
 {
-  public static final String SERVICE_PATH = "rest/ide/componentDetails";
+  public static final String RESOURCE_PATH = "rest/ide/componentDetails";
 
   private final ComponentInfoService componentInfoService;
 

@@ -24,12 +24,12 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
-@Path(CIResource.SERVICE_PATH)
+@Path(CIResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint({ CLMEnforcementPoint.Build })
 @Named
 public class CIResource
 {
-  public static final String SERVICE_PATH = "rest/ci";
+  public static final String RESOURCE_PATH = "rest/ci";
 
   public static final String SCAN_PATH = "scan/{applicationPublicId}";
 

@@ -28,10 +28,10 @@ import org.slf4j.LoggerFactory;
  * @since 1.11.0
  */
 @Named
-@Path(PolicyEvaluationSummaryResource.SERVICE_PATH)
+@Path(PolicyEvaluationSummaryResource.RESOURCE_PATH)
 public class PolicyEvaluationSummaryResource
 {
-  public static final String SERVICE_PATH = "rest/quality/evaluations/{applicationId}/{stageTypeId}";
+  public static final String RESOURCE_PATH = "rest/quality/evaluations/{applicationId}/{stageTypeId}";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationSummaryResource.class);
 

@@ -54,11 +54,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-@Path(ApplicationResource.SERVICE_PATH)
+@Path(ApplicationResource.RESOURCE_PATH)
 public class ApplicationResource
     extends AbstractResourceWithIcon
 {
-  public static final String SERVICE_PATH = "rest/application";
+  public static final String RESOURCE_PATH = "rest/application";
 
   public static final String GET_APPLICATION_NAMES = "services/names";
 
@@ -119,7 +119,7 @@ public class ApplicationResource
   /**
    * @since 1.4
    *
-   * @Path changed in 1.6 from SERVICE_PATH to GET_APPLICATION_MANAGEMENT_SUMMARIES
+   * @Path changed in 1.6 from RESOURCE_PATH to GET_APPLICATION_MANAGEMENT_SUMMARIES
    */
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARIES)

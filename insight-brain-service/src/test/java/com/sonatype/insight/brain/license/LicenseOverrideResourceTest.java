@@ -44,11 +44,11 @@ public class LicenseOverrideResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(LicenseOverrideResource.SERVICE_PATH).parameter(ownerType, ownerId);
+    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path(LicenseOverrideResource.SERVICE_PATH).query("componentIdentifier", "{compId}")
+    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).query("componentIdentifier", "{compId}")
         .parameter(ownerType, ownerId, ComponentIdentifierAdapter.toJson(componentIdentifier));
   }
 

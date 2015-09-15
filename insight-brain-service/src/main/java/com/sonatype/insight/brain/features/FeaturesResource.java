@@ -17,11 +17,11 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 @Named
-@Path(FeaturesResource.SERVICE_PATH)
+@Path(FeaturesResource.RESOURCE_PATH)
 @UnlicensedPath
 public class FeaturesResource
 {
-  public static final String SERVICE_PATH = "rest/product/features";
+  public static final String RESOURCE_PATH = "rest/product/features";
 
   private final FeaturesService featuresService;
 

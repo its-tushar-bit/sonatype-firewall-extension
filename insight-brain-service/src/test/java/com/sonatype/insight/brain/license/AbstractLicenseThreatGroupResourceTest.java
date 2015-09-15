@@ -30,7 +30,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
   protected OrganizationDAO orgDAO = new OrganizationDAO();
 
   private HttpRequest restRequest(String ownerId) {
-    return restRequest().path(LicenseThreatGroupResource.SERVICE_PATH).parameter(getOwnerType(), ownerId);
+    return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(getOwnerType(), ownerId);
   }
 
   protected void testDelete_OwnerIdMismatch(String ownerPublicId1, String ownerId1, String ownerPublicId2,

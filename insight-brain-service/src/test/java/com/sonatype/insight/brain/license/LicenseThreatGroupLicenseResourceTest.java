@@ -25,7 +25,7 @@ public class LicenseThreatGroupLicenseResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, String licenseThreatGroupId) {
-    return super.restRequest().path(LicenseThreatGroupLicenseResource.SERVICE_PATH)
+    return super.restRequest().path(LicenseThreatGroupLicenseResource.RESOURCE_PATH)
         .parameter(ownerType, ownerId, licenseThreatGroupId);
   }
 

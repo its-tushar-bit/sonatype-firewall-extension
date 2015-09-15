@@ -24,11 +24,11 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
  * @since 1.14.0
  */
 @Named
-@Path(ProductNotificationResource.SERVICE_PATH)
+@Path(ProductNotificationResource.RESOURCE_PATH)
 @UnlicensedPath
 public class ProductNotificationResource
 {
-  public static final String SERVICE_PATH = "rest/productNotifications";
+  public static final String RESOURCE_PATH = "rest/productNotifications";
 
   public static final String VIEWED_PATH = "viewed";
 

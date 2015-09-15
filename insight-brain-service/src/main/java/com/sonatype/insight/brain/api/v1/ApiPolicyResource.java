@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.api.v1.service.ApiPolicyService;
  * @since 1.12.0
  */
 @Named
-@Path(PublicApiPaths.POLICY_SERVICE_PATH)
+@Path(PublicApiPaths.POLICY_RESOURCE_PATH)
 public class ApiPolicyResource
 {
   private final ApiPolicyService apiPolicyService;

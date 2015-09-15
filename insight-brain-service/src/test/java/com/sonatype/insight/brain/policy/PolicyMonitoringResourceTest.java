@@ -31,7 +31,7 @@ public class PolicyMonitoringResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(PolicyMonitoringResource.SERVICE_PATH).parameter(ownerType, ownerId);
+    return restRequest().path(PolicyMonitoringResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
   @Test

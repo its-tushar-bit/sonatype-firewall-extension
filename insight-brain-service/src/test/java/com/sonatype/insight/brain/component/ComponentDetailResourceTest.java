@@ -25,7 +25,7 @@ public class ComponentDetailResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ComponentDetailResource.SERVICE_PATH);
+    return super.restRequest().path(ComponentDetailResource.RESOURCE_PATH);
   }
 
   @Test

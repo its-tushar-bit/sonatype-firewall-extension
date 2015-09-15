@@ -18,7 +18,7 @@ public class ProductNotificationResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ProductNotificationResource.SERVICE_PATH);
+    return super.restRequest().path(ProductNotificationResource.RESOURCE_PATH);
   }
 
   @Test

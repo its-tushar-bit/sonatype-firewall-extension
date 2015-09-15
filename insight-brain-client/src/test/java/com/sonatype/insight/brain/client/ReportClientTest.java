@@ -66,7 +66,7 @@ public class ReportClientTest
     String scanId = "scan id";
     ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
-    uriBuilder.path(UserInterfaceLinksResource.SERVICE_PATH).path(UserInterfaceLinksResource.REPORT_PATH);
+    uriBuilder.path(UserInterfaceLinksResource.RESOURCE_PATH).path(UserInterfaceLinksResource.REPORT_PATH);
     Assert.assertEquals(reportClient.linkToReport(), uriBuilder.build(appId, scanId).toString());
   }
 

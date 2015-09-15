@@ -32,7 +32,7 @@ public class OrganizationResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(OrganizationResource.SERVICE_PATH);
+    return super.restRequest().path(OrganizationResource.RESOURCE_PATH);
   }
 
   @Test

@@ -39,7 +39,7 @@ public class DashboardResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(DashboardResource.SERVICE_PATH);
+    return super.restRequest().path(DashboardResource.RESOURCE_PATH);
   }
 
   @Test

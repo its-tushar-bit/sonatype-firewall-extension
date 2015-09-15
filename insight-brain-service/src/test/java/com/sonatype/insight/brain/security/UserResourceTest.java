@@ -41,11 +41,11 @@ public class UserResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(UserResource.SERVICE_PATH);
+    return super.restRequest().path(UserResource.RESOURCE_PATH);
   }
 
   private HttpRequest sessionRequest() {
-    return super.restRequest().path(UserSessionResource.SERVICE_PATH).anon();
+    return super.restRequest().path(UserSessionResource.RESOURCE_PATH).anon();
   }
 
   private HttpRequest findRequest(OwnerType ownerType, String ownerId, String query) {
@@ -230,7 +230,7 @@ public class UserResourceTest
     assertResponseStatus(204, response);
 
     // access an anonymous resource to create a third session
-    response = super.restRequest().path(VersionResource.SERVICE_PATH).get();
+    response = super.restRequest().path(VersionResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
 
     // now delete the first user

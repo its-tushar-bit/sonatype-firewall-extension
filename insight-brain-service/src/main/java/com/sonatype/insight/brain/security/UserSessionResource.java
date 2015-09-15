@@ -25,12 +25,12 @@ import org.apache.shiro.subject.Subject;
  * 
  * @since 1.7
  */
-@Path(UserSessionResource.SERVICE_PATH)
+@Path(UserSessionResource.RESOURCE_PATH)
 @UnlicensedPath
 @Named
 public class UserSessionResource
 {
-  public static final String SERVICE_PATH = "rest/user/session";
+  public static final String RESOURCE_PATH = "rest/user/session";
 
   public static final String LOGOUT_PATH = "logout";
 

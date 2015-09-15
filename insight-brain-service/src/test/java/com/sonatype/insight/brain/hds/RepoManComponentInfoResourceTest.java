@@ -14,7 +14,7 @@ public class RepoManComponentInfoResourceTest
 {
   @Override
   protected String getResourcePath() {
-    return RepoManComponentInfoResource.SERVICE_PATH;
+    return RepoManComponentInfoResource.RESOURCE_PATH;
   }
 
   @Test

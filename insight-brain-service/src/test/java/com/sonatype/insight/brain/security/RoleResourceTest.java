@@ -38,7 +38,7 @@ public class RoleResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(RoleResource.SERVICE_PATH);
+    return super.restRequest().path(RoleResource.RESOURCE_PATH);
   }
 
   @Test

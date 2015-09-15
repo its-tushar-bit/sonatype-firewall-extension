@@ -28,11 +28,11 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
  * 
  * @since 1.10
  */
-@Path(RepoManComponentInfoResource.SERVICE_PATH)
+@Path(RepoManComponentInfoResource.RESOURCE_PATH)
 @Named
 public class RepoManComponentInfoResource
 {
-  public static final String SERVICE_PATH = "rest/rm/componentDetails";
+  public static final String RESOURCE_PATH = "rest/rm/componentDetails";
 
   private final ComponentInfoService componentInfoService;
 

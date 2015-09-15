@@ -64,7 +64,7 @@ public class ReverseProxyAuthcTest
     initServer(ENABLED);
 
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
-    HttpResponse response = request.subpath(UserSessionResource.SERVICE_PATH).get();
+    HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie(), is(notNullValue()));
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);
@@ -72,7 +72,7 @@ public class ReverseProxyAuthcTest
     assertThat(authStatus.isClmUser(), is(false));
     assertThat(authStatus.getDisplayName(), is("John Doe"));
 
-    response = request.subpath(PublicApiPaths.ORG_SERVICE_PATH).get();
+    response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
     assertResponseStatus(401, response);
   }
 
@@ -88,7 +88,7 @@ public class ReverseProxyAuthcTest
     });
 
     HttpRequest request = restRequest().header("X-Remote-User", "testuser").anon();
-    HttpResponse response = request.subpath(UserSessionResource.SERVICE_PATH).get();
+    HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie(), is(notNullValue()));
     AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);

@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
  * @since 1.13.0
  */
 @Named
-@Path(PublicApiPaths.REPORT_DATA_SERVICE_PATH_V2)
+@Path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
 public class ApiReportDataResourceV2
 {
   private final ApiReportDataServiceV2 reportDataService;
@@ -49,6 +49,6 @@ public class ApiReportDataResourceV2
    * Gets the relative URL to this REST resource for the given application and scan.
    */
   public static String getDataUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(PublicApiPaths.REPORT_DATA_SERVICE_PATH_V2).build(applicationPublicId, scanId).toString();
+    return UriBuilder.fromPath(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).build(applicationPublicId, scanId).toString();
   }
 }

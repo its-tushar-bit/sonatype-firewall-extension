@@ -36,7 +36,7 @@ public class PolicyWaiverResourceTest
     extends AbstractResourceTest
 {
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
-    return restRequest().path(PolicyWaiverResource.SERVICE_PATH).parameter(ownerType, ownerId);
+    return restRequest().path(PolicyWaiverResource.RESOURCE_PATH).parameter(ownerType, ownerId);
   }
 
   @Test

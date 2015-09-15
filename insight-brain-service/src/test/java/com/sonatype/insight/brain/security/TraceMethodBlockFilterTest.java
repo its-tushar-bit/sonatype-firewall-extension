@@ -21,7 +21,7 @@ public class TraceMethodBlockFilterTest
     HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACE");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
 
-    response = restRequest().path(VersionResource.SERVICE_PATH).send("TRACE");
+    response = restRequest().path(VersionResource.RESOURCE_PATH).send("TRACE");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
   }
 
@@ -30,7 +30,7 @@ public class TraceMethodBlockFilterTest
     HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACK");
     assertResponseStatus(HttpStatus.NOT_IMPLEMENTED_501, response);
 
-    response = restRequest().path(VersionResource.SERVICE_PATH).send("TRACK");
+    response = restRequest().path(VersionResource.RESOURCE_PATH).send("TRACK");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
   }
 }

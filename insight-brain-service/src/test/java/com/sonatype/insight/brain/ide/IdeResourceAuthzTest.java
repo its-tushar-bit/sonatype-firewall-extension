@@ -16,7 +16,7 @@ public class IdeResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(IdeResource.SERVICE_PATH );
+    return super.restRequest().path(IdeResource.RESOURCE_PATH );
   }
 
   @Test

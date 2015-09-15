@@ -22,7 +22,7 @@ public class UserInterfaceLinksResourceTest
   }
 
   private HttpResponse get(String path, Object... params) throws Exception {
-    return restRequest().path(UserInterfaceLinksResource.SERVICE_PATH, path).parameter(params).anon().get();
+    return restRequest().path(UserInterfaceLinksResource.RESOURCE_PATH, path).parameter(params).anon().get();
   }
 
   @Test
@@ -39,7 +39,7 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   public void testLinkToReport() throws Exception {
-    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"), is(UserInterfaceLinksResource.SERVICE_PATH
+    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"), is(UserInterfaceLinksResource.RESOURCE_PATH
         + "/application/app%20id/report/scan%20id"));
     HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/reports/app%20id/scan%20id");
@@ -48,14 +48,14 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToEmbeddableReport() throws Exception {
     assertThat(UserInterfaceLinksResource.getEmbeddableReportUrl("app id", "scan id"),
-        is(UserInterfaceLinksResource.SERVICE_PATH + "/application/app%20id/report/scan%20id/embeddable"));
+        is(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id/embeddable"));
     HttpResponse response = get(UserInterfaceLinksResource.EMBEDDABLE_REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "rest/report/app%20id/scan%20id/browseReport/index.html");
   }
 
   @Test
   public void testLinkToPdf() throws Exception {
-    assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"), is(UserInterfaceLinksResource.SERVICE_PATH
+    assertThat(UserInterfaceLinksResource.getPdfUrl("app id", "scan id"), is(UserInterfaceLinksResource.RESOURCE_PATH
         + "/application/app%20id/report/scan%20id/pdf"));
     HttpResponse response = get(UserInterfaceLinksResource.PDF_PATH, "app id", "scan id");
     assertRedirect(response, "rest/report/app%20id/scan%20id/printReport");

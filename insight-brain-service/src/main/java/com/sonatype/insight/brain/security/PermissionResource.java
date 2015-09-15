@@ -23,12 +23,12 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.SecurityUtils;
 
-@Path(PermissionResource.SERVICE_PATH)
+@Path(PermissionResource.RESOURCE_PATH)
 @UnlicensedPath
 @Named
 public class PermissionResource
 {
-  public static final String SERVICE_PATH = "/rest/user/permissions/{ownerType: global|application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "/rest/user/permissions/{ownerType: global|application|organization}/{ownerId}";
 
   private final PermissionService permissionService;
 

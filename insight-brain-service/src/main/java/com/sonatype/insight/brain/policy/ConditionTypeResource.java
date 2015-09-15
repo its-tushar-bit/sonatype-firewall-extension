@@ -19,10 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-@Path(ConditionTypeResource.SERVICE_PATH)
+@Path(ConditionTypeResource.RESOURCE_PATH)
 public class ConditionTypeResource
 {
-  public static final String SERVICE_PATH = "rest/policy/conditionType";
+  public static final String RESOURCE_PATH = "rest/policy/conditionType";
 
   private static final Logger log = LoggerFactory.getLogger(ConditionTypeResource.class);
 

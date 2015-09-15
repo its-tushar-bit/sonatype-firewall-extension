@@ -16,7 +16,7 @@ public class LicensedStagesResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(LicensedStagesResource.SERVICE_PATH);
+    return super.restRequest().path(LicensedStagesResource.RESOURCE_PATH);
   }
 
   @Test

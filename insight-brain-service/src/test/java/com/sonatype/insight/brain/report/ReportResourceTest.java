@@ -93,7 +93,7 @@ public class ReportResourceTest
       "commons-pool", "1.4");
 
   private HttpRequest restRequest(String appId, String scanId) {
-    return restRequest().path(ReportResource.SERVICE_PATH).parameter(appId, scanId);
+    return restRequest().path(ReportResource.RESOURCE_PATH).parameter(appId, scanId);
   }
 
   @Test
@@ -254,7 +254,7 @@ public class ReportResourceTest
         classifier, extension);
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
-    response = restRequest().path(HashComponentIdentifierResource.SERVICE_PATH).body(hashComponentIdentifier).post();
+    response = restRequest().path(HashComponentIdentifierResource.RESOURCE_PATH).body(hashComponentIdentifier).post();
     assertResponseStatus(200, response);
 
     response = request.subpath("bom.json").get();
@@ -471,7 +471,7 @@ public class ReportResourceTest
 
     String content = response.getBodyText();
     assertTrue(content.contains(restRequest()
-        .path(UserInterfaceLinksResource.SERVICE_PATH, UserInterfaceLinksResource.REPORT_PATH)
+        .path(UserInterfaceLinksResource.RESOURCE_PATH, UserInterfaceLinksResource.REPORT_PATH)
         .parameter(appPublicId, scanId).getUrl()));
     assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", response.getHeader("Expires"));
   }
@@ -587,7 +587,7 @@ public class ReportResourceTest
     List<Message> notifications = Mailbox.get("manager@test.corp");
 
     // Evaluate policy
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
@@ -623,7 +623,7 @@ public class ReportResourceTest
     // reevaluation.
     scanId = "ReportResourceTest_ScanId1";
     mockReport(scanId, "/ReportResourceTest/report.zip");
-    response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(stage).post();
     assertResponseStatus(200, response);
 
@@ -756,7 +756,7 @@ public class ReportResourceTest
     // Override the license at organization level
     LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
-    response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
+    response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
         .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
     assertResponseStatus(200, response);
     orgLicenseOverride = response.getBody(LicenseOverride.class);
@@ -790,7 +790,7 @@ public class ReportResourceTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(),
       COMMONS_POOL_ID,
       LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
-    response = restRequest().path(LicenseOverrideResource.SERVICE_PATH)
+    response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
         .parameter(OwnerType.APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
     assertResponseStatus(200, response);
     appLicenseOverride = response.getBody(LicenseOverride.class);
@@ -933,7 +933,7 @@ public class ReportResourceTest
       "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName().replaceAll("[_]", ""));
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 
@@ -1024,7 +1024,7 @@ public class ReportResourceTest
       "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
 
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.SERVICE_PATH).parameter(applicationPublicId)
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
         .query("scanId", scanId).body(new Stage(Stage.ID_BUILD)).post();
     assertResponseStatus(200, response);
 

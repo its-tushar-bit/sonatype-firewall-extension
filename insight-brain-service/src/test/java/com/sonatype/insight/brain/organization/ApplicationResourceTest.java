@@ -43,11 +43,11 @@ public class ApplicationResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ApplicationResource.SERVICE_PATH);
+    return super.restRequest().path(ApplicationResource.RESOURCE_PATH);
   }
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return super.restRequest().path(PolicyEvaluateResource.SERVICE_PATH).query("scanId", "{scanId}")
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", "{scanId}")
         .parameter(appId, scanId).body(stage);
   }
 
@@ -254,7 +254,7 @@ public class ApplicationResourceTest
 
     makeScanReceipt();
 
-    HttpResponse response = super.restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH)
+    HttpResponse response = super.restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH)
         .parameter(applicationPublicId).body("").put();
 
     assertResponseStatus(200, response);
@@ -494,7 +494,7 @@ public class ApplicationResourceTest
     // Scans count
     makeScanReceipt();
 
-    super.restRequest().path(CIResource.SERVICE_PATH, CIResource.SCAN_PATH).parameter(applicationPublicId).body("")
+    super.restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(applicationPublicId).body("")
         .put();
 
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARIES).get();

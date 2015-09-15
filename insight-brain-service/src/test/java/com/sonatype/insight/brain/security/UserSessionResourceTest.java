@@ -26,7 +26,7 @@ public class UserSessionResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(UserSessionResource.SERVICE_PATH);
+    return super.restRequest().path(UserSessionResource.RESOURCE_PATH);
   }
 
   private HttpResponse logout(HttpCookie cookie) throws Exception {

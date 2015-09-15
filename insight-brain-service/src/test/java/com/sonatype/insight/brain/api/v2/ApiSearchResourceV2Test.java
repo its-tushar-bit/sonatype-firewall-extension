@@ -44,7 +44,7 @@ public class ApiSearchResourceV2Test
   }
 
   private HttpRequest searchRequest(String stageId) {
-    return restRequest().path(PublicApiPaths.SEARCH_SERVICE_PATH_V2).query("stageId", stageId);
+    return restRequest().path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2).query("stageId", stageId);
   }
 
   private HttpRequest addHash(HttpRequest request, String hash) {

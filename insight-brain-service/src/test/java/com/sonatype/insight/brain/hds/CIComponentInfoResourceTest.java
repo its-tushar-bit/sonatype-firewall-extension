@@ -14,7 +14,7 @@ public class CIComponentInfoResourceTest
 {
   @Override
   protected String getResourcePath() {
-    return CIComponentInfoResource.SERVICE_PATH;
+    return CIComponentInfoResource.RESOURCE_PATH;
   }
 
   @Test

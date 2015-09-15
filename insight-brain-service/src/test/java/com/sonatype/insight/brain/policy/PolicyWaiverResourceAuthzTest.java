@@ -23,7 +23,7 @@ public class PolicyWaiverResourceAuthzTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PolicyWaiverResource.SERVICE_PATH);
+    return super.restRequest().path(PolicyWaiverResource.RESOURCE_PATH);
   }
 
   @Before

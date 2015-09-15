@@ -22,11 +22,11 @@ import javax.ws.rs.core.MediaType;
 /**
  * @since 1.15.0
  */
-@Path(RoleResource.SERVICE_PATH)
+@Path(RoleResource.RESOURCE_PATH)
 @Named
 public class RoleResource
 {
-  public static final String SERVICE_PATH = "rest/security/roles";
+  public static final String RESOURCE_PATH = "rest/security/roles";
 
   public static final String ROLE_ID_PATH = "{roleId}";
 

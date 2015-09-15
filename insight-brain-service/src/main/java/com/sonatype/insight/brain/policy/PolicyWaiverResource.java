@@ -38,12 +38,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
  * @since 1.6
  */
 @Named
-@Path(PolicyWaiverResource.SERVICE_PATH)
+@Path(PolicyWaiverResource.RESOURCE_PATH)
 public class PolicyWaiverResource
 {
   public static final String SERVICE_BASEPATH = "rest/policyWaiver/";
 
-  public static final String SERVICE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 

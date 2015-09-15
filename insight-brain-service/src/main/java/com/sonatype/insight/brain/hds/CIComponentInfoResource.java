@@ -23,11 +23,11 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
-@Path(CIComponentInfoResource.SERVICE_PATH)
+@Path(CIComponentInfoResource.RESOURCE_PATH)
 @Named
 public class CIComponentInfoResource
 {
-  public static final String SERVICE_PATH = "rest/ci/componentDetails";
+  public static final String RESOURCE_PATH = "rest/ci/componentDetails";
 
   private final ComponentInfoService componentInfoService;
 

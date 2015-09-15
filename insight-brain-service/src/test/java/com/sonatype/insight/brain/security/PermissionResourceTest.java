@@ -23,7 +23,7 @@ public class PermissionResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PermissionResource.SERVICE_PATH);
+    return super.restRequest().path(PermissionResource.RESOURCE_PATH);
   }
 
   @Test

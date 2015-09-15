@@ -28,10 +28,10 @@ import com.yammer.metrics.annotation.ExceptionMetered;
 import com.yammer.metrics.annotation.Timed;
 
 @Named
-@Path(DashboardResource.SERVICE_PATH)
+@Path(DashboardResource.RESOURCE_PATH)
 public class DashboardResource
 {
-  public static final String SERVICE_PATH = "rest/dashboard";
+  public static final String RESOURCE_PATH = "rest/dashboard";
 
   public static final String GET_NEWEST_RISKS_PATH = "policy/newestRisks";
 

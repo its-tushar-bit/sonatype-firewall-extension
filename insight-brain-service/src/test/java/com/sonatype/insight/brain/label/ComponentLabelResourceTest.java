@@ -48,7 +48,7 @@ public class ComponentLabelResourceTest
   private Label orgLabel;
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, String hash) {
-    return restRequest().path(ComponentLabelResource.SERVICE_PATH).parameter(ownerType, ownerId, hash);
+    return restRequest().path(ComponentLabelResource.RESOURCE_PATH).parameter(ownerType, ownerId, hash);
   }
 
   @Before

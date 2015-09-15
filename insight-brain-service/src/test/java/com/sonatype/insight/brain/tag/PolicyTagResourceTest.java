@@ -27,7 +27,7 @@ public class PolicyTagResourceTest
 
     String policyId = tempEntity.newPolicy(org.getId(), "PolicyTagResourceTest").getId();
 
-    HttpRequest request = restRequest().path(PolicyTagResource.SERVICE_PATH).query("orgId", "{orgId}")
+    HttpRequest request = restRequest().path(PolicyTagResource.RESOURCE_PATH).query("orgId", "{orgId}")
         .parameter(policyId, org.getId());
 
     // Get

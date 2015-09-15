@@ -24,12 +24,12 @@ import org.slf4j.LoggerFactory;
  * @since 1.11.0
  */
 @Named
-@Path(ApplicationSummaryResource.SERVICE_PATH)
+@Path(ApplicationSummaryResource.RESOURCE_PATH)
 public class ApplicationSummaryResource
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationSummaryResource.class);
 
-  public static final String SERVICE_PATH = "rest/integration/applications";
+  public static final String RESOURCE_PATH = "rest/integration/applications";
 
   static final String GOAL_PARAM = "goal";
 

@@ -64,7 +64,7 @@ public class MembershipMappingResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(MembershipMappingResource.SERVICE_PATH);
+    return super.restRequest().path(MembershipMappingResource.RESOURCE_PATH);
   }
 
   private HttpResponse get(OwnerType ownerType, String ownerId) throws Exception {

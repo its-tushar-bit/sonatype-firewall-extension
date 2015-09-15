@@ -20,7 +20,7 @@ public class ApplicationResourceAuthzTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ApplicationResource.SERVICE_PATH);
+    return super.restRequest().path(ApplicationResource.RESOURCE_PATH);
   }
 
   @Test

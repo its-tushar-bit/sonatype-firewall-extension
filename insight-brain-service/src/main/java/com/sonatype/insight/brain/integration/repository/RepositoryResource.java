@@ -17,6 +17,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
 /**
@@ -36,6 +38,8 @@ public class RepositoryResource
   public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
 
   static final String REMOVE_COMPONENT_PATH = "{pathname: .+}";
+
+  public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
   private final RepositoryService repositoryService;
 
@@ -77,6 +81,19 @@ public class RepositoryResource
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList);
+  }
+
+  @POST
+  @Path(EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId,
+      final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
+  {
+    return repositoryService.evaluateComponentWithQuarantine(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequest);
   }
 
   @Path(QUARANTINE_PATH)

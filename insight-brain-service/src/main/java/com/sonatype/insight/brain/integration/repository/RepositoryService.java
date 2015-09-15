@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -204,6 +205,24 @@ public class RepositoryService
     repositoryDAO.update(repository);
   }
 
+  public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(final String repositoryManagerInstanceId,
+      final String repositoryPublicId, final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
+  {
+    checkLicenseFeature();
+
+    log.debug("Evaluating component with quarantine for repository {} for repositoryManagerInstanceId {}",
+        repositoryPublicId, repositoryManagerInstanceId);
+
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
+        repositoryPublicId);
+    if (repository == null) {
+      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
+          + repositoryManagerInstanceId + ".");
+    }
+
+    return evaluateComponentWithQuarantine(repository, componentEvaluationDataRequest);
+  }
+
   public void evaluateComponents(String repositoryManagerInstanceId, String repositoryPublicId,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
@@ -224,20 +243,88 @@ public class RepositoryService
 
   private void truncateHashes(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) {
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
-      componentEvaluationDataRequest.hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
+      truncateHash(componentEvaluationDataRequest);
     }
+  }
+
+  private void truncateHash(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest) {
+    componentEvaluationDataRequest.hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
   }
 
   private void validateEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
-      if (StringUtils.isBlank(componentEvaluationDataRequest.pathname)) {
-        throw new BadRequestException("The pathname cannot be null or empty.");
-      }
-      if (StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
-        throw new BadRequestException("The hash cannot be null or empty.");
+      validateEvaluateRequest(componentEvaluationDataRequest);
+    }
+  }
+
+  private void validateEvaluateRequest(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
+  {
+    if (componentEvaluationDataRequest == null) {
+      throw new BadRequestException("The componentEvaluationDataRequest cannot be null.");
+    }
+    if (StringUtils.isBlank(componentEvaluationDataRequest.pathname)) {
+      throw new BadRequestException("The pathname cannot be null or empty.");
+    }
+    if (StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
+      throw new BadRequestException("The hash cannot be null or empty.");
+    }
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(@AuthzContext(Key.REPOSITORY) final Repository repository,
+      final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
+  {
+    long start = System.currentTimeMillis();
+
+    if (!repository.isEnabled() || !repository.isQuarantineEnabled()) {
+      repository.setEnabled(true);
+      repository.setQuarantineEnabled(true);
+      repositoryDAO.update(repository);
+    }
+
+    validateEvaluateRequest(componentEvaluationDataRequest);
+
+    Date now = new Date();
+
+    truncateHash(componentEvaluationDataRequest);
+
+    ComponentEvaluationDataRequestList hdsRequest = new ComponentEvaluationDataRequestList();
+    // We want to get component details from HDS by hash only, not by component identifier
+    hdsRequest.components = Collections.singletonList(
+        new ComponentEvaluationDataRequest(componentEvaluationDataRequest.hash, null /* componentIdentifier */));
+    ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(hdsRequest);
+
+    ComponentEvaluationData componentEvaluationData = componentEvaluationDataList.components.get(0);
+
+    // Use the claimed component data if found
+    NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
+        null /* componentIdentifier */, componentEvaluationData.hash);
+    if (componentDetails == null) {
+      componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
+      componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+      if (MatchState.UNKNOWN.getId().equals(componentDetails.getMatchState())) {
+        componentDetails.setComponentIdentifier(componentEvaluationDataRequest.componentIdentifier);
       }
     }
+
+    Component component = augmentComponentDetails(repository, componentDetails);
+    // Evaluate the policies
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(),
+        new Stage(DevelopStageType.ID), Collections.singletonList(component), false /* forMonitoring */);
+
+    boolean quarantine = !policyResults.getActiveAlerts().isEmpty();
+    Date quarantineTime = quarantine ? now : null;
+
+    persistEvaluationResults(repository, componentEvaluationDataRequest.pathname, now,
+      componentDetails, policyResults, true, quarantineTime);
+    log.debug("Evaluated {} components for repository id {} in {} ms.", componentEvaluationDataList.components.size(),
+        repository.getId(), System.currentTimeMillis() - start);
+
+    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult = new RepositoryComponentEvaluationResult();
+    repositoryComponentEvaluationResult.quarantine = quarantine;
+
+    return repositoryComponentEvaluationResult;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -314,7 +401,7 @@ public class RepositoryService
           new Stage(DevelopStageType.ID), Collections.singletonList(component), false /* forMonitoring */);
 
       String pathname = componentEvaluationDataRequestList.components.get(requestIndex).pathname;
-      persistEvaluationResults(repository, pathname, now, componentDetails, policyResults);
+      persistEvaluationResults(repository, pathname, now, componentDetails, policyResults, false, null);
     }
 
     log.debug("Evaluated {} components for repository id {} in {} ms.", componentEvaluationDataList.components.size(),
@@ -322,12 +409,13 @@ public class RepositoryService
   }
 
   private void persistEvaluationResults(Repository repository, String pathname, Date evaluationTime,
-      ComponentDetails componentDetails, PolicyResults policyResults)
+      ComponentDetails componentDetails, PolicyResults policyResults, boolean canBeQuarantined, Date quarantineTime)
   {
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
-      persistRepositoryComponent(tx, repository, pathname, evaluationTime, componentDetails);
+      persistRepositoryComponent(tx, repository, pathname, evaluationTime, componentDetails, canBeQuarantined,
+          quarantineTime);
       persistPolicyViolations(tx, repository, pathname, evaluationTime, policyResults);
 
       tx.commit();
@@ -335,14 +423,15 @@ public class RepositoryService
   }
 
   private void persistRepositoryComponent(TransactionContext tx, Repository repository, String pathname,
-      Date evaluationTime, ComponentDetails componentDetails)
+      Date evaluationTime, ComponentDetails componentDetails, boolean canBeQuarantined, Date quarantineTime)
   {
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
     if (repositoryComponent == null) {
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime,
           componentDetails.getHash(), componentDetails.getComponentIdentifier(), componentDetails.getMatchState(),
-          componentDetails.getIdentificationSource(), evaluationTime, false /* canBeQuarantined */);
+          componentDetails.getIdentificationSource(), evaluationTime, canBeQuarantined);
+      repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponentDAO.insert(tx, repositoryComponent);
     }
     else {
@@ -413,6 +502,10 @@ public class RepositoryService
           .add(new ComponentEvaluationDataRequest(componentEvaluationDataRequest.hash, null /* componentIdentifier */));
     }
 
+    return getComponentDetailsFromHds(hdsRequest);
+  }
+
+  private ComponentEvaluationDataList getComponentDetailsFromHds(final ComponentEvaluationDataRequestList hdsRequest) {
     try {
       long start = System.currentTimeMillis();
 
@@ -420,7 +513,7 @@ public class RepositoryService
           HDS_COMPONENT_DETAILS_PATH, hdsRequest);
 
       log.debug("Got component details from HDS for {} components in {} ms.",
-          componentEvaluationDataRequestList.components.size(), System.currentTimeMillis() - start);
+          hdsRequest.components.size(), System.currentTimeMillis() - start);
 
       return result;
     }

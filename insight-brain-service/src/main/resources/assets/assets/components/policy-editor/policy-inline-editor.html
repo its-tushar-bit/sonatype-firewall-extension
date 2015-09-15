@@ -14,7 +14,8 @@
       <div ng-if="tags.length > 0" class='policy-tag' ng-class="{ error : hasPolicyTags && appliedTagIds.length == 0 }">
         <div>
           <input id='radio-all-applications{{policy.id}}' type='radio' name='policy-tag-radio{{policy.id}}' ng-click='clearTags()' ng-model='hasPolicyTags' ng-value='false'>
-          <label for='radio-all-applications{{policy.id}}'>All Applications in {{ ownerName }}</label>
+          <label ng-if='isRoot()' for='radio-all-applications{{policy.id}}'>All Applications and Repositories</label>
+          <label ng-if='!isRoot()' for='radio-all-applications{{policy.id}}'>All Applications in {{ ownerName }}</label>
         </div>
         <div>
           <input id='radio-tag-applications{{policy.id}}' type='radio' name='policy-tag-radio{{policy.id}}' ng-model='hasPolicyTags' ng-value='true'>

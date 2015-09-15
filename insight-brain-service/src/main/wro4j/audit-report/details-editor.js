@@ -147,8 +147,7 @@
       type: 'POST',
       url: '../augmentData/bom.json',
       data: buildJson(modifiedRows, $.merge(['modified'], bomKeyColumns)),
-      headers: httpHeaders,
-      beforeSend: parent.beforeSendAugmentedData
+      headers: httpHeaders
     });
 
     // send request
@@ -156,12 +155,11 @@
       type: 'POST',
       url: '../augmentData/' + file,
       data: buildJson(modifiedRows, filter),
-      headers: httpHeaders,
-      beforeSend: parent.beforeSendAugmentedData
+      headers: httpHeaders
     }).success(commitFn).error(function(resp, type, message) {
-          message = Insight.util.getErrorMessage(resp);
-          callback(message);
-        });
+      message = Insight.util.getErrorMessage(resp);
+      callback(message);
+    });
   }
 
   function buildJson(dataItemArray, filter) {

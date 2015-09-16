@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global $, window, CLM, document, Insight, angular, Base64 */
+/* global $, window, CLM, document, Insight, angular, Base64, Brain */
 (function() {
   'use strict';
 
@@ -51,6 +51,16 @@
         };
       }())
     }
+  });
+
+  // CLM-5267 - fixes an issue w/ existing reports and CSRF protection
+  $(document).ajaxSend(function (e, jqXHR, options) {
+      if (options.type !== 'GET') {
+        var headers = Brain.getCsrfHeaders();
+        $.each(headers, function (headerName, headerValue) {
+          jqXHR.setRequestHeader(headerName, headerValue);
+        });
+      }
   });
 
   function createApplicationIdProvider() {

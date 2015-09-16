@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;

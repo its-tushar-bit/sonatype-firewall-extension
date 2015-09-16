@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.client;
 import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -27,6 +29,8 @@ public class FirewallClient
   private static final String SUMMARY_PATH = "summary";
 
   private static final String QUARANTINE_PATH = "quarantine";
+
+  private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
   private final String repositoryManagerInstanceId;
 
@@ -77,12 +81,38 @@ public class FirewallClient
     final ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(componentEvaluationDataRequestList),
         ContentType.APPLICATION_JSON);
 
-    final Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
+    final Result result = postRequest(
+        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
         entity);
     final int status = result.status();
     if (status >= 300) {
       String msg = result.message();
       throw new HttpResponseException(status, msg);
+    }
+  }
+
+  public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(
+      final RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest)
+      throws IOException
+  {
+    ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequest),
+        ContentType.APPLICATION_JSON);
+
+    Result result = postRequest(
+        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH),
+        entity);
+    int status = result.status();
+    if (status >= 300) {
+      String msg = result.message();
+      throw new HttpResponseException(status, msg);
+    }
+
+    final String jsonResult = result.text();
+    try {
+      return JsonUtils.parse(jsonResult, RepositoryComponentEvaluationResult.class);
+    }
+    catch (final IOException e) {
+      throw new IOException("Could not parse: " + jsonResult, e);
     }
   }
 

@@ -5,11 +5,20 @@
  */
 package com.sonatype.insight.brain.client;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
+import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -175,6 +184,51 @@ public class FirewallClientTest
 
     try {
       client.evaluateComponents(componentEvaluationDataRequestList);
+      fail("Expected exception");
+    }
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertEquals(
+          "Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId " + rmInstanceId + ".",
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void testEvaluateComponentWithQuarantine() throws Exception {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+
+    client.enableRepository();
+
+    // Setup the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<ComponentEvaluationData>();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "hash";
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<License>();
+    componentEvaluationData.observedLicenses = new HashSet<License>();
+    hdsResult.components.add(componentEvaluationData);
+    setHdsResponseForURI("/rest/component/details/evaluation", hdsResult, 200);
+
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
+    repositoryComponentEvaluationDataRequest.pathname = "path";
+    repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
+
+    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+        client.evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequest);
+    assertThat(repositoryComponentEvaluationResult.quarantine, is(false));
+  }
+
+  @Test
+  public void testEvaluateComponentWithQuarantine_Error() throws Exception {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
+
+    try {
+      client.evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequest);
       fail("Expected exception");
     }
     catch (HttpResponseException e) {

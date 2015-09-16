@@ -233,7 +233,7 @@
       };
 
       $scope.isRoot = function () {
-        return $scope.policy && $scope.policy.ownerId === 'ROOT_ORGANIZATION_ID';
+        return $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
       };
 
       //make sure user is aware they are about to lose changes

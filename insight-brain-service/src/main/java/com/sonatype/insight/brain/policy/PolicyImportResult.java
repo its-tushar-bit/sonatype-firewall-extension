@@ -8,6 +8,4 @@ package com.sonatype.insight.brain.policy;
 public class PolicyImportResult
 {
   public String ownerName;
-
-  public String url;
 }

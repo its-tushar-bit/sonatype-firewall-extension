@@ -483,7 +483,6 @@ public class PolicyResourceTest
     PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
     assertThat(policyImportResult, is(notNullValue()));
     assertThat(policyImportResult.ownerName, is(toOrg.getName()));
-    assertThat(policyImportResult.url, endsWith("index.html#/management/organization/" + toOrg.getId()));
 
     List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());
     assertThat(policies, hasSize(1));
@@ -512,7 +511,6 @@ public class PolicyResourceTest
     PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
     assertThat(policyImportResult, is(notNullValue()));
     assertThat(policyImportResult.ownerName, is(toApp.getName()));
-    assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + toApp.getPublicId()));
 
     List<Policy> policies = policyDAO.getByOwnerId(toApp.getId());
     assertThat(policies, hasSize(1));

@@ -6,12 +6,9 @@
 package com.sonatype.insight.brain.policy;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-
-import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -42,8 +39,6 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThrea
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -54,10 +49,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -69,8 +62,6 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @since 1.7
@@ -83,16 +74,11 @@ public class PolicyImportExportTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  @Mock
-  private UriInfo uriInfo;
-
   private PolicyImportExport policyImportExport;
 
   private Organization fromOrg;
 
   private Application fromApp;
-
-  private InsightConfig insightConfig;
 
   private PolicyDAO policyDAO = new PolicyDAO();
   private LabelDAO labelDAO = new LabelDAO();
@@ -105,14 +91,10 @@ public class PolicyImportExportTest
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    insightConfig = new InsightConfig();
-    insightConfig.setBaseUrl("base");
-    insightConfig.setSonatypeWork(temporaryFolder.getRoot().getAbsolutePath());
-    policyImportExport = new PolicyImportExport(new BaseUrl(insightConfig, uriInfo));
+    policyImportExport = new PolicyImportExport();
     fromOrg = tempEntity.newOrganization();
     licenseThreatGroupDAO.createDefaultGroups(fromOrg.getId());
     fromApp = tempEntity.newApplication(fromOrg.getId());
-    when(uriInfo.getRequestUri()).thenReturn(URI.create("whatever"));
   }
 
   private void deleteFromOrg() {
@@ -229,7 +211,6 @@ public class PolicyImportExportTest
     //only interested in the deletion so import an empty DTO
     policyImportExport.importApplication(toApp, new PolicyExportResult());
 
-    verify(uriInfo).getRequestUri();
     assertThat(new PolicyWaiverDAO().getByOwnerId(toApp.getId()), is(empty()));
   }
 
@@ -246,7 +227,6 @@ public class PolicyImportExportTest
     //only interested in the deletion so import an empty DTO
     policyImportExport.importOrganization(toOrg, new PolicyExportResult());
 
-    verify(uriInfo).getRequestUri();
     assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));
     assertThat(policyWaiverDAO.getByOwnerId(toApp.getId()), is(empty()));
   }
@@ -431,7 +411,6 @@ public class PolicyImportExportTest
     PolicyImportResult policyImportResult = policyImportExport.importApplication(fromApp, policyExportResult);
     assertNotNull(policyImportResult);
     Assert.assertEquals(fromApp.getName(), policyImportResult.ownerName);
-    assertThat(policyImportResult.url, endsWith("index.html#/management/application/" + fromApp.getPublicId()));
     List<Label> labels = labelDAO.getByOwnerId(appId);
     // All labels retained.
     Assert.assertEquals(3, labels.size());

@@ -12,7 +12,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -25,7 +24,6 @@ import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -41,8 +39,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -75,11 +71,8 @@ public class PolicyImportExport
 
   private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
-  private final BaseUrl baseUrl;
-
   @Inject
-  public PolicyImportExport(BaseUrl baseUrl) {
-    this.baseUrl = baseUrl;
+  public PolicyImportExport() {
   }
 
   /**
@@ -127,7 +120,7 @@ public class PolicyImportExport
       tx.commit();
     }
 
-    return createResult(application.getName(), application.getPublicId(), OwnerType.APPLICATION);
+    return createResult(application.getName());
   }
 
   /**
@@ -185,7 +178,7 @@ public class PolicyImportExport
       tx.commit();
     }
 
-    return createResult(organization.getName(), orgId, OwnerType.ORGANIZATION);
+    return createResult(organization.getName());
   }
 
   /**
@@ -397,12 +390,9 @@ public class PolicyImportExport
     return null;
   }
 
-  private PolicyImportResult createResult(String name, String id, OwnerType type) {
+  private PolicyImportResult createResult(String name) {
     PolicyImportResult result = new PolicyImportResult();
     result.ownerName = name;
-    UriBuilder uriBuilder = baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html")
-        .fragment("/management/" + type + "/" + id);
-    result.url = uriBuilder.build().toString();
     return result;
   }
 

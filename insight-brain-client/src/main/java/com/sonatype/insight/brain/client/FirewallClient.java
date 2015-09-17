@@ -30,6 +30,8 @@ public class FirewallClient
 
   private static final String QUARANTINE_PATH = "quarantine";
 
+  private static final String REMOVE_COMPONENT_PATH = "removeComponent";
+
   private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
   private final String repositoryManagerInstanceId;
@@ -67,7 +69,8 @@ public class FirewallClient
   }
 
   public void removeComponent(String pathname) throws IOException {
-    Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, pathname));
+    Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId,
+        REMOVE_COMPONENT_PATH, pathname));
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();

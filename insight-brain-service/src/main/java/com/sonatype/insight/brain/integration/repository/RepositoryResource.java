@@ -37,7 +37,7 @@ public class RepositoryResource
 
   public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
 
-  static final String REMOVE_COMPONENT_PATH = "{pathname: .+}";
+  static final String REMOVE_COMPONENT_PATH = "removeComponent/{pathname: .+}";
 
   public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 

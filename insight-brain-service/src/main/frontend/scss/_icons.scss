@@ -82,6 +82,27 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
   }
 }
 
+
+/*
+  # Icons
+*/
+/*
+  ## Sizes
+```
+  <div><i class="fa fa-camera" style="margin-right:8px;"></i>Default</div>
+  <div><i class="fa fa-camera size-16px" style="margin-right:8px;"></i>16 Pixels</div>
+  <div><i class="fa fa-camera size-20px" style="margin-right:8px;"></i>20 Pixels</div>
+```
+*/
+/*
+  ## Styles
+```
+  <div><i class="fa fa-camera" style="margin-right:8px;"></i>Default</div>
+  <div><i class="fa fa-camera inverse" style="margin-right:8px;"></i>Inverse</div>
+  <div><i class="fa fa-camera outline" style="margin-right:8px;"></i>Outline</div>
+```
+*/
+
 .fa {
   &.inverse {
     background-color: $slate;
@@ -98,9 +119,65 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
     }
   }
 
+  &.size-16px {
+    font-size: 16px;
+    line-height: 16px;
+  }
+
   &.outline{
     -webkit-text-stroke-width: 1px;
     -webkit-text-stroke-color: black;
     color: white;
+  }
+}
+
+
+/*
+  ## Label Colors
+  Colors for organization or application labels
+
+```
+  <div><i class="fa fa-tag white" style="margin-right:8px;"></i>White</div>
+  <div><i class="fa fa-tag grey" style="margin-right:8px;"></i>Grey</div>
+  <div><i class="fa fa-tag black" style="margin-right:8px;"></i>Black</div>
+  <div><i class="fa fa-tag green" style="margin-right:8px;"></i>Green</div>
+  <div><i class="fa fa-tag yellow" style="margin-right:8px;"></i>Yellow</div>
+  <div><i class="fa fa-tag orange" style="margin-right:8px;"></i>Orange</div>
+  <div><i class="fa fa-tag red" style="margin-right:8px;"></i>Red</div>
+  <div><i class="fa fa-tag blue" style="margin-right:8px;"></i>Blue</div>
+```
+*/
+
+.fa-tag {
+  &.white {
+    color: $grey-2;
+  }
+
+  &.grey {
+    color: $slate;
+  }
+
+  &.black {
+    color: $off-black;
+  }
+
+  &.green {
+    color: $dark-green;
+  }
+
+  &.yellow {
+    color: $yellow;
+  }
+
+  &.orange {
+    color: $orange;
+  }
+
+  &.red {
+    color: $dark-red;
+  }
+
+  &.blue {
+    color: $dark-blue;
   }
 }

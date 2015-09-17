@@ -6,28 +6,23 @@
 (function(angular) {
   'use strict';
 
-  function LabelTileController($state, ApplicationStore, OrganizationStore) {
+  function LabelTileController($http, CLMAppLocations) {
     var vm = this;
+    vm.ownerName = undefined;
+    vm.applicableLabels = undefined;
+    vm.error = undefined;
+    vm.doLoad = doLoad;
 
-    getOwner();
+    vm.doLoad();
 
-    function getOwner() {
-      var isApp = $state.current.name.indexOf('application') !== -1,
-          stateIdField = isApp ? 'applicationPublicId' : 'organizationId',
-          idField = isApp ? 'publicId' : 'id';
-
-      var type = isApp ? 'application' : 'organization';
-
-      (isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get']().then(function(candidates) {
-        angular.forEach(candidates, function(candidate) {
-          if (candidate[idField] === $state.params[stateIdField]) {
-            vm.owner = candidate;
-          }
+    function doLoad() {
+      $http.get(CLMAppLocations.getApplicableLabelsUrl()).then(function(result) {
+        vm.applicableLabels = result.data.labelsByOwner;
+        vm.applicableLabels.forEach(function(labels, index) {
+          labels.inherited = index > 0;
         });
 
-        if (!vm.owner) {
-          vm.error = 'Unable to locate ' + type;
-        }
+        vm.ownerName = vm.applicableLabels[0].ownerName;
       }, function() {
         vm.error = arguments;
       });
@@ -36,7 +31,7 @@
     }
   }
 
-  LabelTileController.$inject = ['$state', 'ApplicationStore', 'OrganizationStore'];
+  LabelTileController.$inject = ['$http', 'CLMAppLocations'];
 
   angular
       .module('owner.manager.module')

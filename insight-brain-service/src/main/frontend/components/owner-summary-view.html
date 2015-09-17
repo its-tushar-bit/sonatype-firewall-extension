@@ -13,19 +13,53 @@
       </ul>
     </div>
   </div>
+
   <div class="tile-scroll-container" scrollspy="#owner-summary">
     <div class="tile" id="owner-pill-app-type">
       <h2>Application Types</h2>
       <div class="sub-header">a description</div>
     </div>
+
     <div class="tile" id="owner-pill-policy">
       <h2>Policy</h2>
       <div class="sub-header">a description</div>
     </div>
-    <div class="tile" id="owner-pill-comp-labels" ng-controller="LabelTileController as label">
-      <i class="fa fa-tag size-20px outline"></i><h2 class="with-icon">Component Labels</h2>
-      <div class="sub-header">available to {{label.owner.name}} policies</div>
+
+    <div class="tile" id="owner-pill-comp-labels" ng-controller="LabelTileController as labelTile">
+      <div load-wrapper="labelTile.error" loading="!(labelTile.ownerName && labelTile.applicableLabels)"
+           reload="labelTile.doLoad()">
+        <h2><i class="fa fa-tag size-20px outline"></i>Component Labels</h2>
+
+        <div class="sub-header">
+          available to {{labelTile.ownerName}} policies
+        </div>
+        <div class="simple-list" ng-repeat="ownerLabelList in labelTile.applicableLabels">
+          <h4 class="subsection-header" ng-if="!ownerLabelList.inherited">Local
+            <button class="btn btn-tertiary">
+              <i class="fa fa-plus"></i>Add a Label
+            </button>
+          </h4>
+          <h4 class="subsection-header" ng-if="ownerLabelList.inherited && ownerLabelList.labels.length > 0">
+            Inherited from {{ownerLabelList.ownerName}}
+          </h4>
+
+          <div class="empty-list" ng-if="!ownerLabelList.inherited && ownerLabelList.labels.length <= 0">
+            No local component labels defined
+          </div>
+          <ul>
+            <li ng-class="label.description ? 'with-subtitle' : 'simple'" ng-repeat="label in ownerLabelList.labels">
+              <div class="button-label">
+                <i class="fa fa-tag size-16px {{label.color}}"></i>
+                <strong>{{label.label}}</strong>
+              </div>
+              <div class="subtitle" ng-if="label.description">{{label.description}}</div>
+              <i class="fa fa-chevron-right" ng-if="!ownerLabelList.inherited"></i>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
+
     <div class="tile" id="owner-pill-ltgs">
       <h2>License Threat Groups</h2>
       <div class="sub-header">a description</div>

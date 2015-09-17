@@ -627,6 +627,7 @@
                 <include>frontend/**/*utils.js</include>
                 <include>frontend/**/lib/*.js</include>
                 <include>frontend/**/*MockData.js</include>
+                <include>frontend/**/*.mock.data.js</include>
                 <include>frontend/**/*-spec.js</include>
                 <include>frontend/**/*.spec.js</include>
                 <include>frontend/**/*Spec.js</include>

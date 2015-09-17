@@ -16,20 +16,72 @@
         <li><a href="">Access</a></li>
       </ul>
     </div>
+
     <div class="tile-scroll-container">
       <div class="tile">
         <h2>Another title</h2>
         <div class="sub-header">Another day</div>
       </div>
-    </div>
-    <div class="tile">
-      <i class="fa fa-tags fa-lg"></i><h2 class="with-icon">Icon Header</h2>
-      <div class="sub-header">another sub-header</div>
-    </div>
+      <div class="tile">
+        <h2><i class="fa fa-tag size-20px"></i>Icon Header</h2>
+        <div class="sub-header">another sub-header</div>
+      </div>
   </div>
 </div>
 ```
 */
+/*
+  ##List Tiles
+```
+<div class="tile">
+  <h2>Simple List Tile</h2>
+  <div class="sub-header">Tile List sub-header</div>
+  <div class="simple-list">
+    <h4 class="subsection-header">Subsection Header</h4>
+    <div class="empty-list">Empty List</div>
+  </div>
+  <div class="simple-list">
+    <h4 class="subsection-header">Subsection Header with Button
+        <button class="btn btn-tertiary">
+          <i class="fa fa-plus"></i>Button
+        </button>
+    </h4>
+
+    <ul>
+      <li class="with-subtitle">
+        <div class="button-label">
+          <i class="fa fa-tag size-16px"></i>
+          <strong>List Item with Subtitle</strong>
+        </div>
+        <div class="subtitle">Subtitle</div>
+      </li>
+      <li class="with-subtitle">
+        <div class="button-label">
+          <i class="fa fa-tag size-16px"></i>
+          <strong>List Item with Subtitle and Chevron</strong>
+        </div>
+        <div class="subtitle">Subtitle</div>
+        <i class="fa fa-chevron-right"></i>
+      </li>
+      <li class="simple">
+        <div class="button-label">
+          <i class="fa fa-tag size-16px"></i>
+          <strong>Simple List Item</strong>
+        </div>
+      </li>
+      <li class="simple">
+        <div class="button-label">
+          <i class="fa fa-tag size-16px"></i>
+          <strong>Simple List Item with Chevron</strong>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </li>
+    </ul>
+  </div>
+</div>
+```
+*/
+
 .tile-container {
   height: 100%;
   min-width: 810px;
@@ -53,7 +105,7 @@
   border : 1px solid $grey-2;
   background-color : white;
 
-  h1, h2 {
+  h1 {
     margin-top: 4px;
     margin-bottom: 8px;
   }
@@ -65,13 +117,22 @@
     vertical-align: bottom;
   }
 
-  h2.with-icon{
-    display: inline-block;
-    padding-left: 8px;
-    vertical-align: middle;
+  h2 {
+    font-size: 20px;
+    line-height: 20px;
+    margin-top: 4px;
+    margin-bottom: 0;
+
+    > .fa {
+      vertical-align: middle;
+      margin-right: 8px;
+    }
   }
+
   .sub-header {
-    margin-bottom : 12px;
+    margin-top : 2px;
+    font-size: 14px;
+    line-height: 14px;
   }
 
   &:last-child {
@@ -107,6 +168,75 @@
 
       li.active > a {
         background-color: $off-white;
+      }
+    }
+  }
+
+  .simple-list {
+    h4.subsection-header {
+      position: relative;
+      border-bottom: 1px solid $grey-3;
+      padding-top: 20px;
+      padding-bottom: 8px;
+      margin: 0;
+
+      > .btn {
+        position: absolute;
+        right: 0;
+        bottom: 8px;
+      }
+    }
+
+    div.empty-list {
+      height: 40px;
+      line-height: 34px;
+      text-align: center;
+      border-bottom: 1px solid $grey-1;
+    }
+
+    ul {
+      top: 1px solid $grey-3;
+      list-style: none;
+      margin: 0;
+
+      li {
+        padding-left: 8px;
+        position: relative;
+        border-bottom: 1px solid $grey-1;
+
+        &.with-subtitle {
+          height: 52px;
+        }
+
+        &.simple {
+          height: 40px;
+        }
+
+        .button-label {
+          padding-top: 8px;
+          font-size: 14px;
+          line-height: 14px;
+
+          > .fa {
+            vertical-align: middle;
+            margin-right: 4px;
+          }
+        }
+
+        .subtitle {
+          padding-top: 4px;
+          font-size: 14px;
+          line-height: 14px;
+        }
+
+        > .fa-chevron-right {
+          font-size: 12px;
+          top: calc(50% - 6.5px);
+          width: 7px;
+          right: 12px;
+          position: absolute;
+          color: $slate;
+        }
       }
     }
   }

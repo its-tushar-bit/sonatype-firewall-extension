@@ -1,48 +1,40 @@
-describe('LabelTileController', function () {
-  var vm;
+describe('label.tile.controller.spec.js', function() {
+  var vm,
+      $httpBackend,
+      CLMAppLocations;
 
-  beforeEach(module('owner.manager.module', function ($provide) {
+  beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {});
   }));
 
-  function createTests(type, storeName, owner) {
-    var getDeferred, $timeout;
+  beforeEach(inject(function($controller, _$httpBackend_, _CLMAppLocations_) {
+        $httpBackend = _$httpBackend_;
+        CLMAppLocations = _CLMAppLocations_;
 
-    beforeEach(inject([
-      '$controller', storeName, '$q', '$timeout', function($controller, store, $q, _$timeout_) {
-        $timeout = _$timeout_;
-        getDeferred = $q.defer();
-
-        spyOn(getDeferred.promise, 'then').andCallThrough();
-        spyOn(store, 'get').andReturn(getDeferred.promise);
-
-        vm = $controller('LabelTileController', {
-          $state: {
-            current: {
-              name: 'management.' + type + '-view'
-            },
-            params: type === 'application' ? {applicationPublicId: owner.publicId} : {organizationId: owner.id}
-          }
-        });
+        vm = $controller('LabelTileController');
       }
-    ]));
+  ));
 
-    it('Typical', inject(function() {
-      expect(getDeferred.promise.then).toHaveBeenCalled();
+  afterEach(function() {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
 
-      getDeferred.resolve([owner]);
-      $timeout.flush();
-      expect(vm.owner).toEqual(owner);
-    }));
+  it('Properly Loading Labels', function() {
+    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.flush();
 
-    it('Missing', inject(function() {
-      expect(getDeferred.promise.then).toHaveBeenCalled();
+    expect(vm.ownerName).toEqual(LabelMockData.getApplicableLabels().labelsByOwner[0].ownerName);
+    expect(vm.applicableLabels.length).toEqual(LabelMockData.getApplicableLabels().labelsByOwner.length);
+    vm.applicableLabels.forEach(function(labels, index) {
+      expect(labels.label).toEqual(LabelMockData.getApplicableLabels().labelsByOwner[index].label);
+    });
+  });
 
-      getDeferred.resolve([{}, {}]);
-      $timeout.flush();
-      expect(vm.error).toEqual('Unable to locate ' + type);
-    }));
-  }
+  it('Missing Labels', function() {
+    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(400, 'Bad Request');
+    $httpBackend.flush();
 
-  OwnerUtils.runTestsForOwnerTypes(createTests);
+    expect(vm.error).toBeDefined();
+  });
 });

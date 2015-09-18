@@ -6,7 +6,9 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 
@@ -46,6 +48,25 @@ public abstract class AbstractSummaryViewTest
     error.root().shouldBe(visible);
     error.message().shouldHave(text("unable to locate"));
     error.retryButton().shouldBe(visible, enabled);
+  }
+
+  @Test
+  public void testActionDropDown() {
+    ActionDropDown.actionButton().shouldBe(visible);
+    ActionDropDown.menu().shouldNotBe(visible);
+    ActionDropDown.actionButton().click();
+    ActionDropDown.menu().shouldBe(visible);
+  }
+
+  @Test
+  public void testEditAppOrgNameLink() {
+    String shortTypeName = getOwnerType().equalsIgnoreCase("application") ? "App" : "Org";
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldHave(text(shortTypeName));
+    OwnerEditorDialog.root().shouldNotBe(visible);
+    ActionDropDown.editOwner().click();
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text(getOwnerType()));
   }
 
   protected abstract String getOwnerType();

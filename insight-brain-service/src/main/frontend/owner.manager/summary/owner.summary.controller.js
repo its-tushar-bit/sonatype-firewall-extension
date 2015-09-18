@@ -37,6 +37,10 @@
       OwnerEditor.open($scope.owner, $scope.type, siblings);
     };
 
+    $scope.getShortTypeName = function() {
+      return $scope.type === 'application' ? 'App' : 'Org';
+    };
+
     $scope.doLoad();
   }
 

@@ -1,9 +1,21 @@
 <div class="tile-container">
   <div class="tile summary-tile" id='owner-summary' ng-controller="OwnerSummaryController">
     <div load-wrapper="error" loading="!owner" reload="doLoad()">
+      <div class="clm-dropdown pull-right" id="action-dropdown">
+        <button class="btn btn-default dropdown-toggle btn-tertiary" type="button" id="action-menu" data-toggle="dropdown">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-left">
+          <li><a ng-click='edit()' id="app-org-link"><span><i class="fa fa-pencil" />Edit {{:: getShortTypeName()}} Name / Icon</span></a></li>
+          <li><a id="eval-ahc-link"><i class="fa fa-upload" /><span>Evaluate AhcService</span></a></li>
+          <li><a id="import-policies-link"><i class="fa fa-download" /><span>Import Policies</span></a></li>
+          <li><a id="delete-ahc-link"><i class="fa fa-trash" /><span>Delete AhcService</span></a></li>
+        </ul>
+      </div>
       <h1><span owner-image="owner"></span> {{owner.name}}</h1>
       <div class="sub-header" ng-if="owner.description">{{owner.description}}</div>
-      <button ng-click='edit()'>Edit</button>
+
       <ul class="nav nav-pills">
         <li class="active"><a data-toggle="pill" data-target="#owner-pill-app-type" ng-href="">Application Types</a></li>
         <li><a data-toggle="pill" data-target="#owner-pill-policy" ng-href="">Policy</a></li>

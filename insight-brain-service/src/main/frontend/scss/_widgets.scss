@@ -479,3 +479,77 @@
 .owner-icon-tiny {
   @include owner-icon-template(16px);
 }
+
+
+
+/*
+  ## Dropdown
+
+  ```
+    <div class="clm-dropdown pull-right">
+      <button class="btn btn-default dropdown-toggle" type="button" id="actionMenu" data-toggle="dropdown">
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-left">
+        <li> <i class="fa fa-pencil" /> Edit App Name / Icon</li>
+      </ul>
+    </div>
+  ```
+*/
+
+.clm-dropdown {
+  position: relative;
+  font-size: 14px;
+
+  .btn {
+    margin-top: -4px;
+    .caret {
+      margin-top: 7px;
+      margin-left: 6px;
+      border-top: 6px solid $slate;
+      border-width: 6px;
+    }
+  }
+
+  .dropdown-menu {
+    padding: 8px 0px 8px 0px;
+    background: $off-white;
+    border: 1px solid $grey-4;
+    border-radius: 4px;
+    box-shadow: -4px 4px 10px 0px $slate;
+    color: $slate;
+
+    li {
+      vertical-align: middle;
+
+      a {
+        line-height: 32px;
+        padding: 0px 12px 0px 12px;
+        border-top: 1px solid $off-white;
+        border-bottom: 1px solid $off-white;
+        color: inherit;
+
+        span {
+          display: inline-block;
+          vertical-align: middle;
+        }
+        &:active {
+          background: $grey-1;
+          border-top: 1px solid $grey-4;
+          border-bottom: 1px solid $grey-4;
+          color: $slate;
+        }
+        &:hover {
+          color: $slate;
+          background: $off-white;
+          border-bottom: 1px solid $grey-4;
+        }
+      }
+      i {
+        margin-right: 8px;
+      }
+
+    }
+  }
+}

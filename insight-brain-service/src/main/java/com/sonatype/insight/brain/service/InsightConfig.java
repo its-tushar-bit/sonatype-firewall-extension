@@ -121,6 +121,13 @@ public class InsightConfig
   @JsonProperty
   private ReverseProxyAuthenticationConfig reverseProxyAuthentication = new ReverseProxyAuthenticationConfig();
 
+  /**
+   * @since 1.17.0
+   */
+  @NotNull
+  @JsonProperty
+  private boolean showRootOrganization = false;
+
   public ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -313,6 +320,17 @@ public class InsightConfig
     }
 
     return result;
+  }
+
+  /**
+   * @since 1.17.0
+   */
+  public boolean isShowRootOrganization() {
+    return showRootOrganization;
+  }
+
+  void setShowRootOrganization(boolean showRootOrganization) {
+    this.showRootOrganization = showRootOrganization;
   }
 
   void setDbBackupDir(String dbBackupDir) {

@@ -41,6 +41,9 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang.StringUtils;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +51,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -111,6 +115,34 @@ public class OrganizationDAOTest
 
     // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest and one for the root org
     assertThat(dao.getAll(), hasSize(orgCount + 2));
+  }
+
+  @Test
+  public void testGetAll_showRoot() throws Exception {
+    // Create a few orgs
+    int orgCount = 3;
+    tempEntity.newOrganizations(orgCount);
+
+    Matcher<Organization> rootOrgMatcher = new BaseMatcher<Organization>()
+    {
+      @Override
+      public void describeTo(Description description) {
+      }
+
+      @Override
+      public boolean matches(Object item) {
+        return item instanceof Organization && ((Organization) item).getParentOrganizationId() == null;
+      }
+    };
+
+    // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest and one for the root org
+    assertThat(dao.getAll(true), hasSize(orgCount + 2));
+    assertThat(dao.getAll(true), hasItem(rootOrgMatcher));
+
+    // getAll should return orgCount + 2, to account for org created by AbstractDbDAOTest
+    assertThat(dao.getAll(false), hasSize(orgCount + 1));
+    assertThat(dao.getAll(false), not(hasItem(rootOrgMatcher)));
+
   }
 
   @Test

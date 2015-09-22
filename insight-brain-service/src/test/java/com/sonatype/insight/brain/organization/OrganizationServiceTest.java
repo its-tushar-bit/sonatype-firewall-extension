@@ -6,18 +6,22 @@
 package com.sonatype.insight.brain.organization;
 
 import java.io.File;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.fail;
@@ -55,5 +59,20 @@ public class OrganizationServiceTest
       assertThat(iconDir.isDirectory(), is(true));
       assertThat(e.getMessage(), is("The root organization cannot be deleted."));
     }
+  }
+
+  @Test
+  public void testGetAll() throws Exception {
+    InsightConfig config = Mockito.mock(InsightConfig.class);
+    Mockito.when(config.isShowRootOrganization()).thenReturn(false);
+
+    List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(), config).getAll();
+    assertThat(orgs, hasSize(0));
+
+    Mockito.when(config.isShowRootOrganization()).thenReturn(true);
+    OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(), config);
+
+    orgs = organizationService.getAll();
+    assertThat(orgs, hasSize(1));
   }
 }

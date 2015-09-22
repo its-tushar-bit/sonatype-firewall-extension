@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -46,19 +47,22 @@ public class OrganizationService
 
   private final FileCleaner fileCleaner;
 
+  private final boolean showRoot;
+
   @Inject
   public OrganizationService(final InsightWork work, final ApplicationCleaner applicationCleaner,
-                             final FileCleaner fileCleaner, final OrganizationDAO organizationDAO)
+      final FileCleaner fileCleaner, final OrganizationDAO organizationDAO, final InsightConfig config)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
     this.fileCleaner = fileCleaner;
     this.organizationDAO = organizationDAO;
+    this.showRoot = config.isShowRootOrganization();
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public List<Organization> getAll() {
-    return organizationDAO.getAll();
+    return organizationDAO.getAll(showRoot);
   }
 
   @Authorize(permission = Permission.WRITE)

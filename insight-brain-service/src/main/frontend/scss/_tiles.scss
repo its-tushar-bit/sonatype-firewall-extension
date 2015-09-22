@@ -49,30 +49,30 @@
 
     <ul>
       <li class="with-subtitle">
-        <div class="button-label">
+        <div class="title">
           <i class="fa fa-tag size-16px"></i>
-          <strong>List Item with Subtitle</strong>
+          List Item with Subtitle
         </div>
         <div class="subtitle">Subtitle</div>
       </li>
       <li class="with-subtitle">
-        <div class="button-label">
+        <div class="title">
           <i class="fa fa-tag size-16px"></i>
-          <strong>List Item with Subtitle and Chevron</strong>
+          List Item with Subtitle and Chevron
         </div>
         <div class="subtitle">Subtitle</div>
         <i class="fa fa-chevron-right"></i>
       </li>
       <li class="simple">
-        <div class="button-label">
+        <div class="title">
           <i class="fa fa-tag size-16px"></i>
-          <strong>Simple List Item</strong>
+          Simple List Item
         </div>
       </li>
       <li class="simple">
-        <div class="button-label">
+        <div class="title">
           <i class="fa fa-tag size-16px"></i>
-          <strong>Simple List Item with Chevron</strong>
+          Simple List Item with Chevron
         </div>
         <i class="fa fa-chevron-right"></i>
       </li>
@@ -205,17 +205,19 @@
         border-bottom: 1px solid $grey-1;
 
         &.with-subtitle {
-          height: 52px;
+          min-height: 52px;
         }
 
         &.simple {
-          height: 40px;
+          min-height: 40px;
         }
 
-        .button-label {
-          padding-top: 8px;
+        .title {
+          padding-top: 10px;
           font-size: 14px;
           line-height: 14px;
+          margin-right: 42px;
+          @extend .semi-bold;
 
           > .fa {
             vertical-align: middle;
@@ -225,8 +227,12 @@
 
         .subtitle {
           padding-top: 4px;
+          padding-bottom: 12px;
+          margin-right: 42px;
           font-size: 14px;
           line-height: 14px;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         > .fa-chevron-right {

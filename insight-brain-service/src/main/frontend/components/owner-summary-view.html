@@ -60,9 +60,9 @@
           </div>
           <ul>
             <li ng-class="label.description ? 'with-subtitle' : 'simple'" ng-repeat="label in ownerLabelList.labels">
-              <div class="button-label">
+              <div class="title">
                 <i class="fa fa-tag size-16px {{label.color}}"></i>
-                <strong>{{label.label}}</strong>
+                {{label.label}}
               </div>
               <div class="subtitle" ng-if="label.description">{{label.description}}</div>
               <i class="fa fa-chevron-right" ng-if="!ownerLabelList.inherited"></i>

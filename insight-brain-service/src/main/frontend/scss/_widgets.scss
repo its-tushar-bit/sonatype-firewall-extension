@@ -525,10 +525,12 @@
 
       a {
         line-height: 32px;
+        height: 32px;
         padding: 0px 12px 0px 12px;
         border-top: 1px solid $off-white;
         border-bottom: 1px solid $off-white;
         color: inherit;
+        @extend .semi-bold;
 
         span {
           display: inline-block;
@@ -546,8 +548,9 @@
           border-bottom: 1px solid $grey-4;
         }
       }
-      i {
+      .fa {
         margin-right: 8px;
+        width: 12px;
       }
 
     }

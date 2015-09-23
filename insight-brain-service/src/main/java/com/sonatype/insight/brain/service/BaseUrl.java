@@ -19,6 +19,9 @@ import javax.ws.rs.core.UriInfo;
 public class BaseUrl
     extends AbstractInjectable<BaseUrl>
 {
+
+  static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "baseUrl is not configured.";
+
   private final InsightConfig appConfig;
 
   @Context
@@ -43,7 +46,14 @@ public class BaseUrl
     if (url != null && !url.isEmpty()) {
       return url;
     }
-    url = uriInfo.getBaseUri().toString();
+    final URI baseUri;
+    try {
+      baseUri = uriInfo.getBaseUri();
+    }
+    catch (IllegalStateException e) {
+      throw new IllegalStateException(ERR_MSG_BASE_URL_NOT_CONFIGURED, e);
+    }
+    url = baseUri.toString();
     if (!url.endsWith("/")) {
       url += '/';
     }

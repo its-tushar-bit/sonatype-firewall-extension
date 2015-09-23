@@ -12,11 +12,30 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class BaseUrlTest
 {
+
+  @Test
+  public void testGet_BaseUrlNotSet() {
+    final InsightConfig appConfig = new InsightConfig();
+    final UriInfo uriInfo = mock(UriInfo.class);
+    final IllegalStateException rootCauseException = new IllegalStateException();
+    when(uriInfo.getBaseUri()).thenThrow(rootCauseException);
+
+    BaseUrl baseUrl = new BaseUrl(appConfig, uriInfo);
+    try {
+      baseUrl.get();
+      fail("un set baseUrl should fail");
+    }
+    catch (IllegalStateException e) {
+      assertEquals(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED, e.getMessage());
+      assertEquals(rootCauseException, e.getCause());
+    }
+  }
 
   @Test
   public void testGet_BaseUrlNotConfigured() {

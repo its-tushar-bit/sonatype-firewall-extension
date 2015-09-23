@@ -540,8 +540,12 @@ public class TemporaryEntity
     return newLabel(ownerId, labelText, Color.white);
   }
 
-  public Label newLabel(String ownerId, String labelText, Color color){
-    Label label = new Label(ownerId, labelText, color);
+  public Label newLabel(String ownerId, String labelText, Color color) {
+    return newLabel(ownerId, labelText, null, color);
+  }
+
+  public Label newLabel(String ownerId, String labelText, String description, Color color) {
+    Label label = new Label(ownerId, labelText, description, color);
     labelDAO.insert(label);
     labels.add(label);
     return label;

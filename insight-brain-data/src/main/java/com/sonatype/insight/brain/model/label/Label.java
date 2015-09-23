@@ -58,6 +58,11 @@ public class Label
     this.color = color;
   }
 
+  public Label(String ownerId, String label, String description, Color color) {
+    this(ownerId, label, color);
+    this.description = description;
+  }
+
   @Override
   public String getId() {
     return id;

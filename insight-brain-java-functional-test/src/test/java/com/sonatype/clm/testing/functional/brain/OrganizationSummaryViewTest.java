@@ -17,25 +17,9 @@ public class OrganizationSummaryViewTest
 
   private Organization organization;
 
-  @Override
   @Before
   public void init() {
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
-    super.init();
-  }
-
-  @Override
-  protected String getName() {
-    return YE_OLE_ORGANIZATION;
-  }
-
-  @Override
-  protected String getOwnerType() {
-    return "organization";
-  }
-
-  @Override
-  protected String getId() {
-    return organization.getId();
+    super.init(organization);
   }
 }

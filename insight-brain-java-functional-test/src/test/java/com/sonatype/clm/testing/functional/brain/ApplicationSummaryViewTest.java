@@ -17,25 +17,9 @@ public class ApplicationSummaryViewTest
 
   private Application application;
 
-  @Override
   @Before
   public void init() {
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION);
-    super.init();
-  }
-
-  @Override
-  protected String getName() {
-    return YE_OLE_APPLICATION;
-  }
-
-  @Override
-  protected String getOwnerType() {
-    return "application";
-  }
-
-  @Override
-  protected String getId() {
-    return application.getPublicId();
+    super.init(application);
   }
 }

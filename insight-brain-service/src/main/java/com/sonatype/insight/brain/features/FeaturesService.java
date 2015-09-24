@@ -40,9 +40,10 @@ public class FeaturesService
     if (licenseManager.isValid()) {
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
-    }
-    if (showRoot) {
-      features.add(Feature.ROOT_ORG);
+
+      if (showRoot) {
+        features.add(Feature.ROOT_ORG);
+      }
     }
     return features;
   }

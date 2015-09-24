@@ -62,6 +62,7 @@ public class FeatureServiceTest
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.DASHBOARD);
+    expectedFeatures.remove(Feature.ROOT_ORG);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 
@@ -83,6 +84,7 @@ public class FeatureServiceTest
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.POLICY_MONITORING);
+    expectedFeatures.remove(Feature.ROOT_ORG);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 }

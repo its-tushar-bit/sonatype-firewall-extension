@@ -35,8 +35,8 @@
   }]);
 
   managementModule.controller('OwnerTreeViewController', [
-    '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore',
-    function($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore) {
+    '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore', 'ProductFeatures',
+    function($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore, ProductFeatures) {
       var organizations, applications, organizationWatcher, applicationWatcher,
           lastOrganizations = [], lastApplications = [];
 
@@ -282,6 +282,8 @@
       $scope.filter = {
         value: ''
       };
+
+      $scope.showRoot = ProductFeatures.isAvailable('root-org');
 
       $scope.doLoad = function() {
         delete $scope.error;

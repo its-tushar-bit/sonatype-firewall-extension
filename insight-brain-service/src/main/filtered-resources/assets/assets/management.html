@@ -34,6 +34,18 @@
             </div>
           </a>
         </div>
+        <div ng-if="!showRoot" class="tree-view-organization-group">
+          <a class="tree-view-item">
+            <div class="tree-view-new-organization">
+              <button class="btn" ng-click="$event.preventDefault();
+                                  $event.stopPropagation();
+                                  $state.go('management.organization', {organizationId: '_new_'});">
+                <i class="icon-plus"></i>
+                New Organization
+              </button>
+            </div>
+          </a>
+        </div>
         <div class="tree-view-organization-group"
              ng-repeat="organization in organizations | orderBy:'name'"
              ng-if="organization.isVisible">

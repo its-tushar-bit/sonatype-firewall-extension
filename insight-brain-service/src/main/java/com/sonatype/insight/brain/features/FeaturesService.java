@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 /**
  * Provides means to inspect the available features of the server.
@@ -22,9 +23,12 @@ public class FeaturesService
 {
   private final CLMLicenseManager licenseManager;
 
+  private final boolean showRoot;
+
   @Inject
-  public FeaturesService(CLMLicenseManager licenseManager) {
+  public FeaturesService(CLMLicenseManager licenseManager, InsightConfig config) {
     this.licenseManager = licenseManager;
+    this.showRoot = config.isShowRootOrganization();
   }
 
   /**
@@ -36,6 +40,9 @@ public class FeaturesService
     if (licenseManager.isValid()) {
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
+    }
+    if (showRoot) {
+      features.add(Feature.ROOT_ORG);
     }
     return features;
   }

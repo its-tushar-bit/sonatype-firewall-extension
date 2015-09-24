@@ -329,7 +329,7 @@ public class InsightConfig
     return showRootOrganization;
   }
 
-  void setShowRootOrganization(boolean showRootOrganization) {
+  public void setShowRootOrganization(boolean showRootOrganization) {
     this.showRootOrganization = showRootOrganization;
   }
 

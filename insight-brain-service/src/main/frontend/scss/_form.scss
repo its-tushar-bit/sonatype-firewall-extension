@@ -108,6 +108,14 @@
     }
   }
 
+  input[type=text], input[type=number], input[type=email], input[type=password] {
+    @include size(22px, 240px);
+  }
+  
+  textarea {
+    @include size(100%, 240px);
+  }
+
   input[type=text], input[type=number], input[type=email], input[type=password], textarea {
     @extend .regular;
     font-size: 14px;
@@ -116,7 +124,6 @@
 
     @include box-shadow(none);
     @include border-radius(0);
-    @include size(22px, 240px);
 
     padding: 4px 8px;
     border: 1px solid $grey-4;

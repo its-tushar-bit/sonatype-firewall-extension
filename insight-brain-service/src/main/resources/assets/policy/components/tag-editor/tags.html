@@ -42,22 +42,24 @@
         </div>
       </div>
       <div ng-repeat="tags in tagHierarchy" class='tag-hierarchy'>
-        <div class="content-header">
-          <h4 ng-switch='tags.editable'>
-            <span ng-switch-when='true'>{{tags.ownerName}} Tags</span>
-            <span ng-switch-default>Tags Inherited from {{tags.ownerName}}</span>
-          </h4>
-        </div>
-        <div class="tag-list">
-          <span ng-repeat='tag in tags.tags | orderBy:"name"' ng-click='tags.editable && editTag(tag)' class='tag-container'>
-            <span class='clm-tag {{tag.color}}Label' ng-class="{active: selectedTag.id == tag.id}"
-                  data-tooltip="{{tag.description}}" data-tooltip-placement="bottom" data-tooltip-append-to-body="true">
-              <span>{{tag.name | truncate}}</span>
-              <i ng-if="tags.editable" ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
+        <div ng-if="tags.tags.length > 0">
+          <div class="content-header">
+            <h4 ng-switch='tags.editable'>
+              <span ng-switch-when='true'>{{tags.ownerName}} Tags</span>
+              <span ng-switch-default>Tags Inherited from {{tags.ownerName}}</span>
+            </h4>
+          </div>
+          <div class="tag-list">
+            <span ng-repeat='tag in tags.tags | orderBy:"name"' ng-click='tags.editable && editTag(tag)' class='tag-container'>
+              <span class='clm-tag {{tag.color}}Label' ng-class="{active: selectedTag.id == tag.id}"
+                    data-tooltip="{{tag.description}}" data-tooltip-placement="bottom" data-tooltip-append-to-body="true">
+                <span>{{tag.name | truncate}}</span>
+                <i ng-if="tags.editable" ng-click='deleteTag(tag, $event)' class='icon-remove label-remove' title="Delete {{tag.name}}"></i>
+              </span>
+              <span ng-if="tag.appliedTags.length > 0" class="applied-tag-count">{{ tag.appliedTags.length }}</span>
             </span>
-            <span ng-if="tag.appliedTags.length > 0" class="applied-tag-count">{{ tag.appliedTags.length }}</span>
-          </span>
-          <em ng-show='tags.length == 0'>No tags available</em>
+            <em ng-show='tags.length == 0'>No tags available</em>
+          </div>
         </div>
       </div>
     </div>

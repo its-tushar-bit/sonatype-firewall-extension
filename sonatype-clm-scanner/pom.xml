@@ -16,7 +16,7 @@
     <version>1.17.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>sonatype-clm-scanner</artifactId>
+  <artifactId>nexus-iq-cli</artifactId>
 
   <properties>
     <!-- PO has requested the clients still support 1.6 -->

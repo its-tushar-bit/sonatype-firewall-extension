@@ -20,7 +20,7 @@ public class Parameters
   private File resultFile;
 
   @Parameter(names = {"-a", "--authentication"},
-      description = "Authentication credentials to use for the CLM server, format <username:password> ")
+      description = "Authentication credentials to use for the IQ Server, format <username:password> ")
   private String serverUser;
 
   public Parameters() {
@@ -32,7 +32,7 @@ public class Parameters
 
   @Override
   protected String getProgramName() {
-    return "java -jar sonatype-clm-scanner.jar";
+    return "java -jar nexus-iq-cli.jar";
   }
 
   public File getResultFile() {

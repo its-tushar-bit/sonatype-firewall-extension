@@ -67,7 +67,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   private void validateServerAccess(P params, RestClient restClient) throws ExitException {
-    log.info("Validating application ID {} with CLM server {}...", params.getApplicationId(), params.getServerUrl());
+    log.info("Validating application ID {} with the IQ Server {}...", params.getApplicationId(), params.getServerUrl());
     Collection<String> appIds = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
     try {
       ApplicationSummaryList list = restClient.getApplicationsForApplicationEvaluation();
@@ -81,28 +81,28 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       if (e instanceof HttpResponseException) {
         HttpResponseException resp = (HttpResponseException) e;
         if (resp.getStatusCode() == 503) {
-          log.error("The CLM Server is down for maintenance, please try again later.");
+          log.error("The IQ Server is down for maintenance, please try again later.");
         }
         else if (resp.getStatusCode() == 407) {
           log.error("The proxy server {} requires authentication: {}", params.getProxy(), e.getMessage());
         }
         else if (resp.getStatusCode() == 401 || resp.getStatusCode() == 403) {
-          log.error("The CLM server {} rejected the supplied credentials.", params.getServerUrl());
+          log.error("The IQ Server {} rejected the supplied credentials.", params.getServerUrl());
         }
         else {
-          log.error("The CLM server {} could not be contacted: {} ({})", params.getServerUrl(), e.getMessage(),
+          log.error("The IQ Server {} could not be contacted: {} ({})", params.getServerUrl(), e.getMessage(),
               resp.getStatusCode());
         }
       }
       else {
-        log.error("The CLM server {} could not be contacted: {}", params.getServerUrl(), e.getMessage());
+        log.error("The IQ Server {} could not be contacted: {}", params.getServerUrl(), e.getMessage());
         log.error("Error details below:", e);
       }
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     if (!(appIds.contains(params.getApplicationId()))) {
       log.error("The application ID {} is invalid.", params.getApplicationId());
-      log.error("The following application IDs are available on the CLM server: {} ", appIds);
+      log.error("The following application IDs are available on the IQ Server: {} ", appIds);
       throw new ExitException(1, String.format("The application ID %s is invalid.", params.getApplicationId()));
     }
   }
@@ -110,16 +110,16 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   private ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient)
       throws ExitException
   {
-    log.debug("Retrieving configuration for proprietary components from CLM server...");
+    log.debug("Retrieving configuration for proprietary components from the IQ Server...");
     try {
       return restClient.getProprietaryConfiguration();
     }
     catch (IOException e) {
       if (e instanceof HttpResponseException && ((HttpResponseException) e).getStatusCode() == 404) {
-        log.warn("CLM server is outdated and does not provide configuration for proprietary components");
+        log.warn("The IQ Server is outdated and does not provide configuration for proprietary components");
         return new ProprietaryConfig();
       }
-      log.error("Could not retrieve configuration for proprietary components from CLM server", e);
+      log.error("Could not retrieve configuration for proprietary components from the IQ Server", e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
@@ -171,16 +171,16 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   private ScanReceipt uploadScan(P params, RestClient restClient, File scanFile) throws ExitException {
-    log.info("Submitting scan to CLM server...");
+    log.info("Submitting scan to the IQ Server...");
     try {
       return restClient.uploadScan(params.getApplicationId(), scanFile);
     }
     catch (HttpResponseException e) {
-      log.error("The scan could not be submitted to the CLM server: {} ({})", e.getMessage(), e.getStatusCode());
+      log.error("The scan could not be submitted to the IQ Server: {} ({})", e.getMessage(), e.getStatusCode());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
-      log.error("The scan could not be submitted to the CLM server", e);
+      log.error("The scan could not be submitted to the IQ Server", e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
   }
@@ -197,17 +197,17 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
           .getStageTypeId());
     }
     catch (HttpResponseException e) {
-      log.error("The policy evaluation results could not be fetched from the CLM server: {} ({})", e.getMessage(),
+      log.error("The policy evaluation results could not be fetched from the IQ Server: {} ({})", e.getMessage(),
           e.getStatusCode());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (ClientException e) {
-      log.error("The policy evaluation results could not be fetched from the CLM server: {} ({})", e.getMessage(), e
-          .getResult().status());
+      log.error("The policy evaluation results could not be fetched from the IQ Server: {} ({})", e.getMessage(),
+          e.getResult().status());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
-      log.error("The policy evaluation results could not be fetched from the CLM server", e);
+      log.error("The policy evaluation results could not be fetched from the IQ Server", e);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (InterruptedException e) {
@@ -227,11 +227,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
         final String actionTypeId = action.getActionTypeId();
         if (Action.ID_FAIL.equals(actionTypeId)) {
           outcome = outcome.combine(PolicyAction.FAIL);
-          log.error("Sonatype CLM reports policy failing due to " + trigger);
+          log.error("The IQ Server reports policy failing due to {}", trigger);
         }
         else if (Action.ID_WARN.equals(actionTypeId)) {
           outcome = outcome.combine(PolicyAction.WARN);
-          log.warn("Sonatype CLM reports policy warning due to " + trigger);
+          log.warn("The IQ Server reports policy warning due to {}", trigger);
         }
       }
     }

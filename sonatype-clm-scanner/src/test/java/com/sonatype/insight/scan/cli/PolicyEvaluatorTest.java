@@ -172,7 +172,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The CLM Server is down for maintenance, please try again later.");
+      assertLog("[ERROR] The IQ Server is down for maintenance, please try again later.");
       assertEquals("http://localhost:8070/", httpConfig.getValue().getServerUrl());
       assertEquals("localhost", httpConfig.getValue().getProxyHost());
       assertEquals(8888, httpConfig.getValue().getProxyPort());
@@ -205,7 +205,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The CLM server http://localhost:8070/ rejected the supplied credentials.");
+      assertLog("[ERROR] The IQ Server http://localhost:8070/ rejected the supplied credentials.");
     }
   }
 
@@ -219,7 +219,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] The CLM server http://localhost:8070/ rejected the supplied credentials.");
+      assertLog("[ERROR] The IQ Server http://localhost:8070/ rejected the supplied credentials.");
     }
   }
 
@@ -251,7 +251,7 @@ public class PolicyEvaluatorTest
     evaluator.run(params);
     assertLog("[INFO] Policy Action: Warning");
     assertLog("[INFO] Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+    assertLog("[WARN] The IQ Server reports policy warning due to ");
   }
 
   @Test
@@ -282,8 +282,8 @@ public class PolicyEvaluatorTest
     }
     assertLog("[INFO] Policy Action: Failure");
     assertLog("[INFO] Summary of policy violations: 1 critical, 2 severe, 3 moderate");
-    assertLog("[ERROR] Sonatype CLM reports policy failing due to ");
-    assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+    assertLog("[ERROR] The IQ Server reports policy failing due to ");
+    assertLog("[WARN] The IQ Server reports policy warning due to ");
   }
 
   @Test
@@ -303,7 +303,7 @@ public class PolicyEvaluatorTest
     evaluator.run(params);
     assertLog("[INFO] Policy Action: Warning");
     assertLog("[INFO] Summary of policy violations: 1 critical, 0 severe, 0 moderate");
-    assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+    assertLog("[WARN] The IQ Server reports policy warning due to ");
 
     params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-w",
         "true");
@@ -317,7 +317,7 @@ public class PolicyEvaluatorTest
     }
     assertLog("[INFO] Policy Action: Warning");
     assertLog("[INFO] Summary of policy violations: 1 critical, 0 severe, 0 moderate");
-    assertLog("[WARN] Sonatype CLM reports policy warning due to ");
+    assertLog("[WARN] The IQ Server reports policy warning due to ");
   }
 
   @Test
@@ -334,7 +334,7 @@ public class PolicyEvaluatorTest
       assertEquals(1, ex.getExitCode());
     }
 
-    assertLog("[ERROR] The CLM Server is down for maintenance, please try again later.");
+    assertLog("[ERROR] The IQ Server is down for maintenance, please try again later.");
 
     params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar", "-e",
         "true");
@@ -349,7 +349,7 @@ public class PolicyEvaluatorTest
       assertEquals(0, ex.getExitCode());
     }
 
-    assertLog("[ERROR] The CLM Server is down for maintenance, please try again later.");
+    assertLog("[ERROR] The IQ Server is down for maintenance, please try again later.");
   }
 
   @Test
@@ -472,7 +472,7 @@ public class PolicyEvaluatorTest
         new PolicyEvaluationResult());
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar");
     evaluator.run(params);
-    assertLog("[WARN] CLM server is outdated and does not provide configuration for proprietary components");
+    assertLog("[WARN] The IQ Server is outdated and does not provide configuration for proprietary components");
     assertNotNull(scanFile.getValue());
     Scan scan = scanReader.read(scanFile.getValue());
     assertNotNull(scan);
@@ -488,7 +488,7 @@ public class PolicyEvaluatorTest
       fail("Expected error");
     }
     catch (ExitException e) {
-      assertLog("[ERROR] Could not retrieve configuration for proprietary components from CLM server");
+      assertLog("[ERROR] Could not retrieve configuration for proprietary components from the IQ Server");
     }
   }
 

@@ -20,7 +20,7 @@ public class Parameters
   private File reportBundleFile = new File("report.zip");
 
   @Parameter(names = {"-a", "--authentication"},
-      description = "Authentication credentials to use for the CLM server, format <username:password> ",
+      description = "Authentication credentials to use for the IQ Server, format <username:password> ",
       required = true)
   private String serverUser;
 
@@ -33,7 +33,7 @@ public class Parameters
 
   @Override
   protected String getProgramName() {
-    return "java -jar sonatype-integrator-scanner.jar";
+    return "java -jar nexus-iq-integrator-scanner.jar";
   }
 
   public File getReportBundleFile() {

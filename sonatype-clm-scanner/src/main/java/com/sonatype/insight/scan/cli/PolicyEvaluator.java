@@ -45,17 +45,17 @@ public class PolicyEvaluator
     }
     log.info("*********************************************************************************************");
     log.info("Policy Action: {}", outcome);
-    log.info("CLM stage: {}", params.getStage().getStageTypeId());
+    log.info("Stage: {}", params.getStage().getStageTypeId());
     log.info("Summary of policy violations: {} critical, {} severe, {} moderate", eval.getCriticalComponentCount(),
         eval.getSevereComponentCount(), eval.getModerateComponentCount());
     log.info("The detailed report can be viewed online at {}", reportUrl);
     log.info("*********************************************************************************************");
 
     if (outcome.equals(PolicyAction.FAIL)) {
-      throw new ExitException(1, "Sonatype CLM reports policy failing.");
+      throw new ExitException(1, "The IQ Server reports policy failing.");
     }
     else if (outcome.equals(PolicyAction.WARN) && params.isFailOnPolicyWarning()) {
-      throw new ExitException(1, "Sonatype CLM reports policy warning.");
+      throw new ExitException(1, "The IQ Server reports policy warning.");
     }
   }
 

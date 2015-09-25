@@ -46,21 +46,21 @@ public class PolicyEvaluator
     }
     log.info("*********************************************************************************************");
     log.info("Policy Action: {}", outcome);
-    log.info("CLM stage: {}", params.getStage().getStageTypeId());
+    log.info("Stage: {}", params.getStage().getStageTypeId());
     log.info("Summary of policy violations: {} critical, {} severe, {} moderate", eval.getCriticalComponentCount(),
         eval.getSevereComponentCount(), eval.getModerateComponentCount());
     log.info("The report bundle was downloaded to {}", params.getReportBundleFile());
     log.info("*********************************************************************************************");
 
     if (outcome.equals(PolicyAction.FAIL)) {
-      throw new ExitException(1, "Sonatype CLM reports policy failing.");
+      throw new ExitException(1, "The IQ Server reports policy failing.");
     }
   }
 
   private void saveReportBundleFile(Parameters params, RestClient restClient, ScanReceipt receipt)
       throws ExitException
   {
-    log.info("Downloading report bundle from CLM server...");
+    log.info("Downloading report bundle from the IQ Server...");
     try {
       restClient.saveReportBundle(params.getApplicationId(), receipt.getScanId(), params.getReportBundleFile());
     }

@@ -14,7 +14,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>sonatype-integrator-scanner</artifactId>
+  <artifactId>nexus-iq-integrator-scanner</artifactId>
   <name>${project.artifactId}</name>
 
   <properties>

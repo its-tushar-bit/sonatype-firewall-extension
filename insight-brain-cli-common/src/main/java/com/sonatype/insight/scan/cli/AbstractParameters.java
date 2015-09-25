@@ -56,14 +56,14 @@ public abstract class AbstractParameters
 
   @Parameter(names = {"-o", "--output-directory"}, description = "Path to output directory for scan results",
       hidden = true)
-  private File outputDirectory = new File(System.getProperty("java.io.tmpdir", ""), "sonatype-clm").getAbsoluteFile();
+  private File outputDirectory = new File(System.getProperty("java.io.tmpdir", ""), "nexus-iq").getAbsoluteFile();
 
-  @Parameter(names = {"-i", "--application-id"}, description = "ID of the application on the CLM server",
+  @Parameter(names = {"-i", "--application-id"}, description = "ID of the application on the IQ Server",
       required = true)
   private String applicationId;
 
   @Parameter(names = {"-s", "--server-url"},
-      description = "URL to the CLM server to which the scan result should be uploaded", required = true)
+      description = "URL to the IQ Server to which the scan result should be uploaded", required = true)
   private String serverUrl;
 
   @Parameter(names = {"-p", "--proxy"}, description = "Proxy to use, format <host[:port]>."
@@ -74,7 +74,7 @@ public abstract class AbstractParameters
   private String proxyUser;
 
   @Parameter(names = {"-t", "--stage"}, validateValueWith = StageParameterValidator.class,
-      converter = StageParameterConverter.class, description = "CLM stage to run analysis against. Accepted values: "
+      converter = StageParameterConverter.class, description = "The stage to run analysis against. Accepted values: "
       + Stage.ID_DEVELOP + "|" + Stage.ID_BUILD + "|" + Stage.ID_STAGE_RELEASE + "|" + Stage.ID_RELEASE + "|" +
       Stage.ID_OPERATE)
   private Stage stage = new Stage(Stage.ID_BUILD);
@@ -226,7 +226,7 @@ public abstract class AbstractParameters
     @Override
     public void validate(String name, Stage value) throws ParameterException {
       if (!Stage.isValidStageTypeId(value.getStageTypeId())) {
-        throw new ParameterException("An invalid CLM stage was specified: " + name + " " + value);
+        throw new ParameterException("An invalid stage was specified: " + name + " " + value);
       }
     }
   }

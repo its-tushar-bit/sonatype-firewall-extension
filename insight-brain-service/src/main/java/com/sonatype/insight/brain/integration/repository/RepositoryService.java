@@ -400,8 +400,8 @@ public class RepositoryService
       PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(),
           new Stage(DevelopStageType.ID), Collections.singletonList(component), false /* forMonitoring */);
 
-      String pathname = componentEvaluationDataRequestList.components.get(requestIndex).pathname;
-      persistEvaluationResults(repository, pathname, now, componentDetails, policyResults, false, null);
+      persistEvaluationResults(repository, componentEvaluationDataRequestList.components.get(requestIndex).pathname,
+          now, componentDetails, policyResults, false, null);
     }
 
     log.debug("Evaluated {} components for repository id {} in {} ms.", componentEvaluationDataList.components.size(),
@@ -411,6 +411,7 @@ public class RepositoryService
   private void persistEvaluationResults(Repository repository, String pathname, Date evaluationTime,
       ComponentDetails componentDetails, PolicyResults policyResults, boolean canBeQuarantined, Date quarantineTime)
   {
+    pathname = normalizePathname(pathname);
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
@@ -599,7 +600,7 @@ public class RepositoryService
           + repositoryManagerInstanceId + ".");
     }
 
-    removeComponent(repository, pathname);
+    removeComponent(repository, normalizePathname(pathname));
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -626,5 +627,13 @@ public class RepositoryService
 
       tx.commit();
     }
+  }
+
+  private String normalizePathname(String pathname) {
+    if (pathname != null && pathname.startsWith("/")) {
+      return pathname.substring(1);
+    }
+
+    return pathname;
   }
 }

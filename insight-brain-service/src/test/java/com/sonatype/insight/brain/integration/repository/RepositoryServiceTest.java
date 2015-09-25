@@ -433,6 +433,62 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponentWithQuarantine_pathnameSlashPrefix() throws Exception {
+    String pathname = "path";
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components = new ArrayList<>();
+
+    // Prepare request and mock the HDS request
+    Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
+    Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
+    List<SecurityVulnerability> securityVulnerabilities = createSecurityVulnerabilities();
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    String hash = "h";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("/" + pathname, hash, componentIdentifier);
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
+        0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+
+    // Call the service
+    Date before = new Date();
+    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+        repositoryService.evaluateComponentWithQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            repositoryComponentEvaluationDataRequest);
+    assertThat(repositoryComponentEvaluationResult.quarantine, is(true));
+    Date after = new Date();
+
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(true));
+    assertThat(repository.isQuarantineEnabled(), is(true));
+
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
+        .getId());
+    assertThat(policyViolations, hasSize(1));
+
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+        pathname);
+    assertRepositoryComponent(repository.getId(), pathname, before, after, hash, componentIdentifier,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), before, after, true, after,
+        repositoryComponent);
+
+    RepositoryPolicyViolation policyViolation = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
+        repository.getId(), pathname).get(0);
+    assertPolicyViolation(repository.getId(), pathname, policy.getId(), policy.getName(), policy.getThreatLevel(),
+        policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolation);
+  }
+
+  @Test
   public void testEvaluateComponentWithQuarantine_NoViolations() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
@@ -929,6 +985,39 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_pathnameSlashPrefix() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    String hash = "hash";
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNugetCoordinates("p", "v1");
+
+    // Prepare request and mock the HDS request
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components = new ArrayList<>();
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("/path", hash,
+        componentIdentifier1));
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components
+        .add(createComponentEvaluationData(componentIdentifier1, hash, MatchState.EXACT, 0 /* index */,
+            Collections.<License> emptySet(), Collections.<License> emptySet(), null /* securityVulnerabilities */,
+            null /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+
+    // Call the service
+    Date before = new Date();
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
+    Date after = new Date();
+
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+    RepositoryComponent repositoryComponent = repositoryComponents.get(0);
+    assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier1,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
+        repositoryComponent);
+  }
+
+  @Test
   public void testEvaluateComponents_NullPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
@@ -1180,6 +1269,28 @@ public class RepositoryServiceTest
     RepositoryPolicyViolation policyViolation2 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname2);
 
     repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, pathname1);
+
+    assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId()), is(nullValue()));
+    assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId()), is(notNullValue()));
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname1), is(nullValue()));
+    policyViolation1 = repositoryPolicyViolationDAO.getById(policyViolation1.getId());
+    assertThat(policyViolation1.isActive(), is(false));
+    policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
+    assertThat(policyViolation2.isActive(), is(true));
+  }
+
+  @Test
+  public void testRemoveComponent_pathnameSlashPrefix() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    String pathname1 = "pathname1";
+    String pathname2 = "pathname2";
+    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname1);
+    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), pathname2);
+    RepositoryPolicyViolation policyViolation1 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname1);
+    RepositoryPolicyViolation policyViolation2 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname2);
+
+    repositoryService.removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "/" + pathname1);
 
     assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId()), is(nullValue()));
     assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId()), is(notNullValue()));

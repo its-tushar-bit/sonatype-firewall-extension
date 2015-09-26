@@ -5,8 +5,9 @@
  */
 package com.sonatype.insight.brain.version;
 
-import java.util.Map;
+import java.util.Properties;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -18,14 +19,19 @@ import static org.junit.Assert.assertTrue;
 public class VersionResourceTest
     extends AbstractResourceTest
 {
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(VersionResource.RESOURCE_PATH).anon();
+  }
+
   @Test
   public void testGetVersionInfo_Licensed() throws Exception {
-    HttpResponse response = restRequest().path(VersionResource.RESOURCE_PATH).anon().get();
+    HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
-    Map<String, String> versionInfo = response.getBody(Map.class);
+    Properties versionInfo = response.getBody(Properties.class);
     assertNotNull(versionInfo);
     for (String key : new String[] { "name", "version", "timestamp", "tag", "build" }) {
-      assertTrue("Testing: " + key + " of " + versionInfo.toString(), versionInfo.get(key).length() > 0);
+      assertTrue("Testing: " + key + " of " + versionInfo, !versionInfo.getProperty(key, "").isEmpty());
     }
   }
 

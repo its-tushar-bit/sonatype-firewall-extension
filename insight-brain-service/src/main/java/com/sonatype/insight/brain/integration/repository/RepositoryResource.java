@@ -21,6 +21,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
+import com.yammer.metrics.annotation.Timed;
+
 /**
  * @since 1.17.0
  */
@@ -55,6 +57,7 @@ public class RepositoryResource
    */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
   public void enableRepository(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId)
   {
@@ -64,6 +67,7 @@ public class RepositoryResource
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public PolicyEvaluationSummary getPolicyEvaluationSummary(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId)
@@ -74,6 +78,7 @@ public class RepositoryResource
   @POST
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
   public void evaluateComponents(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -87,6 +92,7 @@ public class RepositoryResource
   @Path(EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
@@ -99,6 +105,7 @@ public class RepositoryResource
   @Path(QUARANTINE_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
   public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("enabled") boolean enabled)
   {
@@ -107,6 +114,7 @@ public class RepositoryResource
 
   @DELETE
   @Path(REMOVE_COMPONENT_PATH)
+  @Timed
   public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("pathname") String pathname)
   {

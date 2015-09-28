@@ -18,8 +18,6 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -384,7 +382,6 @@ public class RepositoryServiceTest
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -396,7 +393,7 @@ public class RepositoryServiceTest
     String hash = "h";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest(pathname, hash, componentIdentifier);
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -441,7 +438,6 @@ public class RepositoryServiceTest
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -452,7 +448,7 @@ public class RepositoryServiceTest
     String hash = "h";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest("/" + pathname, hash, componentIdentifier);
+        new RepositoryComponentEvaluationDataRequest("maven2", "/" + pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -494,7 +490,6 @@ public class RepositoryServiceTest
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -506,7 +501,7 @@ public class RepositoryServiceTest
     String hash = "h";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest(pathname, hash, componentIdentifier);
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -544,7 +539,6 @@ public class RepositoryServiceTest
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -555,7 +549,7 @@ public class RepositoryServiceTest
     String pathname = "path";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest(pathname, hash, componentIdentifier);
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
@@ -618,7 +612,6 @@ public class RepositoryServiceTest
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     int componentCount = 2;
@@ -630,8 +623,8 @@ public class RepositoryServiceTest
     for (int i = 0; i < componentCount; i++) {
       ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i,
           "c" + i, "e" + i);
-      componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path" + i, "h"
-          + i, componentIdentifier));
+      componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path"
+          + i, "h" + i));
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h" + i, MatchState.EXACT,
           i /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, i /* popularity */));
     }
@@ -690,9 +683,8 @@ public class RepositoryServiceTest
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", hash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        hash));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
@@ -720,9 +712,8 @@ public class RepositoryServiceTest
     ComponentIdentifier updatedComponentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1",
         "e1");
     componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", updatedHash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        updatedHash));
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(updatedComponentIdentifier, updatedHash, MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
@@ -767,15 +758,14 @@ public class RepositoryServiceTest
     tempEntity.newLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
     Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", "h",
-        componentIdentifier));
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "h"));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
@@ -815,7 +805,6 @@ public class RepositoryServiceTest
     tempEntity.newClaimedComponent("h", claimedComponentIdentifier);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
 
     // Prepare request and mock the HDS request
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
@@ -823,8 +812,8 @@ public class RepositoryServiceTest
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", "h",
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        "h"));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
@@ -866,9 +855,8 @@ public class RepositoryServiceTest
 
     // Prepare request and mock the HDS request
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", longHash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        longHash));
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
     Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
@@ -912,12 +900,11 @@ public class RepositoryServiceTest
 
     // Prepare request and mock the HDS request
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", hash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven", "path",
+        hash));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
-    hdsResult.components.add(createComponentEvaluationData(null /* componentIdentifier */, hash, MatchState.UNKNOWN,
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.UNKNOWN,
         0 /* index */, Collections.<License>emptySet(), Collections.<License>emptySet(),
         null /* securityVulnerabilities */, null /* popularity */));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
@@ -942,49 +929,6 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_MultipleHdsResultsForSameHash() throws Exception {
-    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-
-    String hash = "hash";
-    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNugetCoordinates("p", "v1");
-    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNugetCoordinates("p", "v2");
-    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNugetCoordinates("p", "v3");
-
-    // Prepare request and mock the HDS request
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("path", hash,
-        componentIdentifier2));
-    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
-    hdsResult.components = new ArrayList<>();
-    hdsResult.components
-        .add(createComponentEvaluationData(componentIdentifier1, hash, MatchState.EXACT, 0 /* index */,
-            Collections.<License> emptySet(), Collections.<License> emptySet(), null /* securityVulnerabilities */,
-            null /* popularity */));
-    hdsResult.components
-        .add(createComponentEvaluationData(componentIdentifier2, hash, MatchState.EXACT, 0 /* index */,
-            Collections.<License>emptySet(), Collections.<License>emptySet(), null /* securityVulnerabilities */,
-            null /* popularity */));
-    hdsResult.components
-        .add(createComponentEvaluationData(componentIdentifier3, hash, MatchState.EXACT, 0 /* index */,
-            Collections.<License> emptySet(), Collections.<License> emptySet(), null /* securityVulnerabilities */,
-            null /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
-
-    // Call the service
-    Date before = new Date();
-    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
-    Date after = new Date();
-
-    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    assertThat(repositoryComponents, hasSize(1));
-    RepositoryComponent repositoryComponent = repositoryComponents.get(0);
-    assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier2,
-        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
-        repositoryComponent);
-  }
-
-  @Test
   public void testEvaluateComponents_pathnameSlashPrefix() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
@@ -993,9 +937,8 @@ public class RepositoryServiceTest
 
     // Prepare request and mock the HDS request
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("/path", hash,
-        componentIdentifier1));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "/path",
+        hash));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     hdsResult.components
@@ -1021,14 +964,9 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_NullPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    String pathname = null;
-    String hash = "hash";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(pathname, hash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", null,
+        "hash"));
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
@@ -1043,14 +981,9 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_EmptyPathname() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    String pathname = " ";
-    String hash = "hash";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(pathname, hash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", " ",
+        "hash"));
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
@@ -1062,17 +995,48 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_NullFormat() throws Exception {
+    tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(null, "pathname",
+        "hash"));
+
+    try {
+      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("The format cannot be null or empty."));
+    }
+  }
+
+  @Test
+  public void testEvaluateComponents_EmptyFormat() throws Exception {
+    tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(" ", "pathname",
+        "hash"));
+
+    try {
+      repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("The format cannot be null or empty."));
+    }
+  }
+
+  @Test
   public void testEvaluateComponents_NullHash() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    String pathname = "path";
     String hash = null;
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(pathname, hash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        hash));
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
@@ -1087,14 +1051,9 @@ public class RepositoryServiceTest
   public void testEvaluateComponents_EmptyHash() throws Exception {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    String pathname = "path";
-    String hash = " ";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components = new ArrayList<>();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest(pathname, hash,
-        componentIdentifier));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        " "));
 
     try {
       repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList);
@@ -1147,11 +1106,12 @@ public class RepositoryServiceTest
   private void mockHdsRequest(RepositoryComponentEvaluationDataRequestList serviceRequest,
       ComponentEvaluationDataList hdsResult) throws IOException
   {
-    ComponentEvaluationDataRequestList hdsRequest = new ComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList hdsRequest = new RepositoryComponentEvaluationDataRequestList();
     hdsRequest.components = new ArrayList<>();
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : serviceRequest.components) {
       String hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
-      hdsRequest.components.add(new ComponentEvaluationDataRequest(hash, null /* componentIdentifier */));
+      hdsRequest.components.add(new RepositoryComponentEvaluationDataRequest(componentEvaluationDataRequest.format,
+          componentEvaluationDataRequest.pathname, hash));
     }
     when(
         hdsClient.post(eq(ComponentEvaluationDataList.class), eq(RepositoryService.HDS_COMPONENT_DETAILS_PATH),

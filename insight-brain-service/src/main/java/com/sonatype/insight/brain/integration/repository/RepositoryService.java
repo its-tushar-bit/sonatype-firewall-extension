@@ -10,10 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,9 +19,6 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -45,7 +40,6 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -79,7 +73,7 @@ public class RepositoryService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
-  static final String HDS_COMPONENT_DETAILS_PATH = "rest/component/details/evaluation";
+  static final String HDS_COMPONENT_DETAILS_PATH = "rest/component/details/firewall";
 
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -266,6 +260,9 @@ public class RepositoryService
     if (StringUtils.isBlank(componentEvaluationDataRequest.pathname)) {
       throw new BadRequestException("The pathname cannot be null or empty.");
     }
+    if (StringUtils.isBlank(componentEvaluationDataRequest.format)) {
+      throw new BadRequestException("The format cannot be null or empty.");
+    }
     if (StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
       throw new BadRequestException("The hash cannot be null or empty.");
     }
@@ -289,10 +286,8 @@ public class RepositoryService
 
     truncateHash(componentEvaluationDataRequest);
 
-    ComponentEvaluationDataRequestList hdsRequest = new ComponentEvaluationDataRequestList();
-    // We want to get component details from HDS by hash only, not by component identifier
-    hdsRequest.components = Collections.singletonList(
-        new ComponentEvaluationDataRequest(componentEvaluationDataRequest.hash, null /* componentIdentifier */));
+    RepositoryComponentEvaluationDataRequestList hdsRequest = new RepositoryComponentEvaluationDataRequestList();
+    hdsRequest.components.add(componentEvaluationDataRequest);
     ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(hdsRequest);
 
     ComponentEvaluationData componentEvaluationData = componentEvaluationDataList.components.get(0);
@@ -303,9 +298,6 @@ public class RepositoryService
     if (componentDetails == null) {
       componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
       componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-      if (MatchState.UNKNOWN.getId().equals(componentDetails.getMatchState())) {
-        componentDetails.setComponentIdentifier(componentEvaluationDataRequest.componentIdentifier);
-      }
     }
 
     Component component = augmentComponentDetails(repository, componentDetails);
@@ -348,51 +340,21 @@ public class RepositoryService
     truncateHashes(componentEvaluationDataRequestList);
 
     ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(componentEvaluationDataRequestList);
-    Iterator<ComponentEvaluationData> componentEvaluationDataIterator = componentEvaluationDataList.components
-        .iterator();
-    ComponentEvaluationData currentComponentEvaluationData = componentEvaluationDataIterator.next();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
-      if (currentComponentEvaluationData.requestIndex != requestIndex) {
+      RepositoryComponentEvaluationDataRequest componentEvaluationRequest = componentEvaluationDataRequestList.components
+          .get(requestIndex);
+      ComponentEvaluationData componentEvaluationData = componentEvaluationDataList.components.get(requestIndex);
+      if (componentEvaluationData.requestIndex != requestIndex) {
         throw new IllegalStateException("The request index does not match. Expected " + requestIndex + ", but found "
-            + currentComponentEvaluationData.requestIndex + ".");
+            + componentEvaluationData.requestIndex + ".");
       }
-      ComponentEvaluationData componentEvaluationData = currentComponentEvaluationData;
 
       // Use the claimed component data if found
       NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
           null /* componentIdentifier */, componentEvaluationData.hash);
-      if (componentDetails != null) {
-        // This is a claimed component, skip all results from HDS for this component.
-        while (componentEvaluationDataIterator.hasNext()) {
-          currentComponentEvaluationData = componentEvaluationDataIterator.next();
-          if (currentComponentEvaluationData.requestIndex != requestIndex) {
-            break;
-          }
-        }
-      }
-      else {
-        ComponentIdentifier inputComponentIdentifier = componentEvaluationDataRequestList.components.get(requestIndex).componentIdentifier;
-        boolean foundBestMatch = Objects.equals(inputComponentIdentifier, componentEvaluationData.componentIdentifier);
-        while (componentEvaluationDataIterator.hasNext()) {
-          currentComponentEvaluationData = componentEvaluationDataIterator.next();
-          if (currentComponentEvaluationData.requestIndex != requestIndex) {
-            break;
-          }
-          // This result is for the same input component. If it matches the input ComponentIdentifier, we'll use it as
-          // best match.
-          if (!foundBestMatch) {
-            if (Objects.equals(inputComponentIdentifier, currentComponentEvaluationData.componentIdentifier)) {
-              componentEvaluationData = currentComponentEvaluationData;
-              foundBestMatch = true;
-            }
-          }
-        }
-
+      if (componentDetails == null) {
         componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
         componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-        if (MatchState.UNKNOWN.getId().equals(componentDetails.getMatchState())) {
-          componentDetails.setComponentIdentifier(inputComponentIdentifier);
-        }
       }
 
       Component component = augmentComponentDetails(repository, componentDetails);
@@ -400,8 +362,8 @@ public class RepositoryService
       PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(),
           new Stage(DevelopStageType.ID), Collections.singletonList(component), false /* forMonitoring */);
 
-      persistEvaluationResults(repository, componentEvaluationDataRequestList.components.get(requestIndex).pathname,
-          now, componentDetails, policyResults, false, null);
+      persistEvaluationResults(repository, componentEvaluationRequest.pathname, now, componentDetails, policyResults,
+          false, null);
     }
 
     log.debug("Evaluated {} components for repository id {} in {} ms.", componentEvaluationDataList.components.size(),
@@ -492,21 +454,8 @@ public class RepositoryService
   }
 
   private ComponentEvaluationDataList getComponentDetailsFromHds(
-      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+      final RepositoryComponentEvaluationDataRequestList hdsRequest)
   {
-    ComponentEvaluationDataRequestList hdsRequest = new ComponentEvaluationDataRequestList();
-    hdsRequest.components = new ArrayList<>();
-
-    // We want to get component details from HDS by hash only, not by component identifier
-    for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : componentEvaluationDataRequestList.components) {
-      hdsRequest.components
-          .add(new ComponentEvaluationDataRequest(componentEvaluationDataRequest.hash, null /* componentIdentifier */));
-    }
-
-    return getComponentDetailsFromHds(hdsRequest);
-  }
-
-  private ComponentEvaluationDataList getComponentDetailsFromHds(final ComponentEvaluationDataRequestList hdsRequest) {
     try {
       long start = System.currentTimeMillis();
 

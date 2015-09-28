@@ -209,10 +209,11 @@ public class FirewallClientTest
     componentEvaluationData.declaredLicenses = new HashSet<License>();
     componentEvaluationData.observedLicenses = new HashSet<License>();
     hdsResult.components.add(componentEvaluationData);
-    setHdsResponseForURI("/rest/component/details/evaluation", hdsResult, 200);
+    setHdsResponseForURI("/rest/component/details/firewall", hdsResult, 200);
 
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
         new RepositoryComponentEvaluationDataRequest();
+    repositoryComponentEvaluationDataRequest.format = "maven2";
     repositoryComponentEvaluationDataRequest.pathname = "path";
     repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
 

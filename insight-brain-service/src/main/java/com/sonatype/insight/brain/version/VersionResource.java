@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 @UnlicensedPath
 public class VersionResource
 {
-  public static final String RESOURCE_PATH = "rest/version";
+  public static final String RESOURCE_PATH = "rest/product/version";
 
   private VersionService versionService;
 

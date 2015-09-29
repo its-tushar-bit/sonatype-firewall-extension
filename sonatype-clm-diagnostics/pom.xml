@@ -16,7 +16,7 @@
     <version>1.17.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>sonatype-clm-diagnostics</artifactId>
+  <artifactId>nexus-iq-diagnostics</artifactId>
 
   <properties>
   </properties>

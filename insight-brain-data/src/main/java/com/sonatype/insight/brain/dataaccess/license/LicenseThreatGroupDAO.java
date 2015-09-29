@@ -103,6 +103,28 @@ public class LicenseThreatGroupDAO
     super.insert(tx, licenseThreatGroup);
   }
 
+  public LicenseThreatGroup getInheritedByName(final TransactionContext tx,
+      final LicenseThreatGroup licenseThreatGroup)
+  {
+    String name = licenseThreatGroup.getName();
+    Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());
+    return getInheritedByName(tx, owner.getParentOwnerId(), name);
+  }
+
+  private LicenseThreatGroup getInheritedByName(final TransactionContext tx, final String parentId, final String name)
+  {
+    if (parentId == null) {
+      return null; // no parent, we're done
+    }
+
+    Organization parentOrganization = orgDAO.getByIdNotNull(tx, parentId);
+    LicenseThreatGroup ltg = getByOwnerIdAndName(tx, parentOrganization.getId(), name);
+    if (ltg != null) {
+      return ltg;
+    }
+    return getInheritedByName(tx, parentOrganization.getParentOrganizationId(), name);
+  }
+
   private void validateName(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
     NameHelper.validate(licenseThreatGroup.getName());
 

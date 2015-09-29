@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.policy;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -603,6 +605,74 @@ public class PolicyImportExportTest
     // verify that app label data was preserved during import.
     assertThat(componentLabelDAO.getByOwnerId(toApp.getId()), hasSize(1));
     assertThat(labelDAO.getByOwnerId(toApp.getId()), hasSize(1));
+  }
+
+  @Test
+  public void testImportToOrgWithConflictingInheritedLicenseThreatGroups() {
+    Organization toOrg = tempEntity.newOrganization("To Org");
+    String parentId = toOrg.getParentOrganizationId();
+    LicenseThreatGroup parentLTG = tempEntity.newLicenseThreatGroup(parentId, "DummyLTG", 10, "Apache-2.0");
+
+
+    PolicyExportResult policyExportResult = new PolicyExportResult();
+    policyExportResult.licenseThreatGroups = new ArrayList<>();
+    LicenseThreatGroup licenseThreatGroup = new LicenseThreatGroup();
+    licenseThreatGroup.setId("ltg-id");
+    licenseThreatGroup.setName(parentLTG.getName());
+    licenseThreatGroup.setOwnerId(toOrg.getId());
+    licenseThreatGroup.setThreatLevel(5);
+    policyExportResult.licenseThreatGroups.add(licenseThreatGroup);
+
+    policyExportResult.licenseThreatGroupLicenses = new ArrayList<>();
+    LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
+    licenseThreatGroupLicense.setId(UUID.randomUUID().toString());
+    licenseThreatGroupLicense.setLicenseId("Apache-2.0");
+    licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
+    licenseThreatGroupLicense.setOwnerId(toOrg.getId());
+    policyExportResult.licenseThreatGroupLicenses.add(licenseThreatGroupLicense);
+
+    policyExportResult.policies = new ArrayList<>();
+    Policy policy = new Policy();
+    policy.setId(UUID.randomUUID().toString());
+    policy.setName("DummyPolicy");
+    policy.setOwnerId(toOrg.getId());
+    policy.setEnabled(true);
+    policy.setThreatLevel(5);
+    List<Constraint> constraints = new ArrayList<>();
+    Constraint constraint = new Constraint();
+    constraint.setId(UUID.randomUUID().toString());
+    constraint.setName("DummyConstraint");
+    constraint.setEnabled(true);
+    List<Condition> conditions = new ArrayList<>();
+    Condition condition = new Condition("License Threat Group", "is", licenseThreatGroup.getId());
+    conditions.add(condition);
+    constraint.setConditions(conditions);
+    constraints.add(constraint);
+    policy.setConstraints(constraints);
+    policyExportResult.policies.add(policy);
+
+    PolicyImportResult policyImportResult = policyImportExport.importOrganization(toOrg, policyExportResult);
+    assertThat(policyImportResult.ownerName, is(toOrg.getName()));
+
+    // must be null as the value in the parent should be used
+    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), "DummyLTG"), nullValue());
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(toOrg.getId()), empty());
+
+    List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());
+    assertThat(policies, hasSize(1));
+    Policy retrievedPolicy = policies.get(0);
+    assertThat(retrievedPolicy.getName(), is("DummyPolicy"));
+    List<Constraint> retrievedConstraints = retrievedPolicy.getConstraints();
+    assertThat(retrievedConstraints, hasSize(1));
+    Constraint retrievedConstraint = retrievedConstraints.get(0);
+    assertThat(retrievedConstraint.getName(), is("DummyConstraint"));
+    List<Condition> retrievedConditions = retrievedConstraint.getConditions();
+    assertThat(retrievedConditions, hasSize(1));
+    Condition retrievedCondition = retrievedConditions.get(0);
+    assertThat(retrievedCondition.getConditionTypeId(), is("License Threat Group"));
+    assertThat(retrievedCondition.getOperator(), is("is"));
+    // must use the parent ltg
+    assertThat(retrievedCondition.getValue(), is(parentLTG.getId()));
   }
 
   private Label findLabel(List<Label> labels, String name) {

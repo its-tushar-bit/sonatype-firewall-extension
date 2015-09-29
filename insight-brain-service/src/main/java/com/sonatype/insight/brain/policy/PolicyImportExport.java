@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -81,7 +83,9 @@ public class PolicyImportExport
    * merged if they match (case-insensitive by name) existing data; this preserves any related ComponentLabels.
    * </p>
    * <p>
-   * License Threat Groups and associated Licenses are all deleted as part of the import.
+   * License Threat Groups and associated Licenses on this application are all deleted as part of the import.
+   * If the imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy,
+   * then it will be discarded and the existing one higher up in the hierarchy will be used in it's place
    * </p>
    * 
    * @param application application to import policy to
@@ -131,7 +135,9 @@ public class PolicyImportExport
    * preserves any related ComponentLabels.
    * </p>
    * <p>
-   * License Threat Groups and associated Licenses are all deleted as part of the import.
+   * License Threat Groups and associated Licenses on this organization are all deleted as part of the import.
+   * If the imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy,
+   * then it will be discarded and the existing one higher up in the hierarchy will be used in it's place
    * </p>
    * 
    * @param organization org to import policy to
@@ -216,6 +222,8 @@ public class PolicyImportExport
 
   /**
    * Will import LicenseThreatGroup and LicenseThreatGroupLicense information from the exportDTO.
+   * If the imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy,
+   * then it will be discarded and the existing one higher up in the hierarchy will be used in it's place
    * 
    * @param tx tx for sharing transaction
    * @param exportDTO exportDTO modified by side-effect to update ids from newly saved objects
@@ -224,14 +232,25 @@ public class PolicyImportExport
   private void importLicenseThreatGroups(TransactionContext tx, PolicyExportResult exportDTO, String ownerId) {
     if (!exportDTO.licenseThreatGroups.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();
+      Set<String> idInheritedSet = new HashSet<>();
       for (LicenseThreatGroup licenseThreatGroup : exportDTO.licenseThreatGroups) {
-        String oldId = licenseThreatGroup.getId();
-        licenseThreatGroup.setId(null);
         licenseThreatGroup.setOwnerId(ownerId);
-        licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
-        idMap.put(oldId, licenseThreatGroup.getId());
+        String oldId = licenseThreatGroup.getId();
+        LicenseThreatGroup inheritedLtg = licenseThreatGroupDAO.getInheritedByName(tx, licenseThreatGroup);
+        if (inheritedLtg == null) {
+          licenseThreatGroup.setId(null);
+          licenseThreatGroupDAO.insert(tx, licenseThreatGroup);
+          idMap.put(oldId, licenseThreatGroup.getId());
+        }
+        else {
+          idMap.put(oldId, inheritedLtg.getId());
+          idInheritedSet.add(oldId);
+        }
       }
       for (LicenseThreatGroupLicense licenseThreatGroupLicense : exportDTO.licenseThreatGroupLicenses) {
+        if (idInheritedSet.contains(licenseThreatGroupLicense.getLicenseThreatGroupId())) {
+          continue; // Skip as these are already defined in the inherited one
+        }
         licenseThreatGroupLicense.setId(null);
         licenseThreatGroupLicense.setOwnerId(ownerId);
         licenseThreatGroupLicense

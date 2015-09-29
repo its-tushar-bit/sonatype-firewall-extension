@@ -45,6 +45,8 @@ public class UserInterfaceLinksResource
 
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
 
+  public static final String REPO_REPORT_PATH = "repository/{repositoryManagerInstanceId}/{repositoryId}/report";
+
   private final BaseUrl baseUrl;
 
   @Inject
@@ -102,6 +104,19 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder.build(applicationPublicId, scanId));
   }
 
+  @GET
+  @Path(REPO_REPORT_PATH)
+  public Response linkToRepositoryReport(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryId") String repositoryId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.AUDIT_REPORT_ASSET_PATH)
+        .path("index.html").replaceQuery(
+            "repositoryManagerInstanceId={repositoryManagerInstanceId}&repositoryPublicId={repositoryPublicId}");
+
+    return redirect(uriBuilder.build(repositoryManagerInstanceId, repositoryId));
+  }
+
   /**
    * Gets the relative URL to the stable hyperlink for the HTML report of the given application and scan.
    */
@@ -129,5 +144,15 @@ public class UserInterfaceLinksResource
   public static String getPdfUrl(String applicationPublicId, String scanId) {
     return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH + '/' + UserInterfaceLinksResource.PDF_PATH)
         .build(applicationPublicId, scanId).toString();
+  }
+
+  /**
+   * Gets the releative URL to the stable hyperlink for the repository audit report for a given rm/repository
+   *
+   * @since 1.17
+   */
+  public static String getRepositoryReportUrl(String repositoryManagerInstanceId, String repositoryId) {
+    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(REPO_REPORT_PATH)
+        .build(repositoryManagerInstanceId, repositoryId).toString();
   }
 }

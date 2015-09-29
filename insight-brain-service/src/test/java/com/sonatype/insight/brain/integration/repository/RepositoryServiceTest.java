@@ -265,6 +265,8 @@ public class RepositoryServiceTest
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
+    assertThat(policyEvaluationSummary.getReportUrl(),
+        is("ui/links/repository/" + REPO_MAN_INSTANCE_ID + "/" + REPO_PUBLIC_ID + "/report"));
   }
 
   @Test

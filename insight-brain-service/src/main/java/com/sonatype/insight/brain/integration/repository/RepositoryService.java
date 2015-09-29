@@ -19,6 +19,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -535,6 +537,9 @@ public class RepositoryService
     policyEvaluationSummary.setSevereComponentCount(severeCount);
     policyEvaluationSummary.setModerateComponentCount(moderateCount);
     policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
+
+    policyEvaluationSummary.setReportUrl(UserInterfaceLinksResource.getRepositoryReportUrl(
+        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId(), repository.getPublicId()));
 
     return policyEvaluationSummary;
   }

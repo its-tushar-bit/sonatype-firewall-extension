@@ -561,3 +561,59 @@
     }
   }
 }
+/*
+  #Color Picker
+
+  ```
+    <div class="color-picker-row">
+      <div class="light-red"></div>
+      <div class="yellow"></div>
+      <div class="light-green selected"></div>
+      <div class="light-blue"></div>
+      <div class="light-purple"></div>
+    </div>
+    <div class="color-picker-row">
+      <div class="dark-red"></div>
+      <div class="orange"></div>
+      <div class="dark-green"></div>
+      <div class="dark-blue"></div>
+      <div class="dark-purple"></div>
+    </div>
+  ```
+*/
+$color-picker-zindex: $zindexModalBackdrop - 10;
+
+.color-picker-row {
+  line-height: 0;
+  font-size: 0;
+
+  div {
+    @include square(32px);
+    display: inline-block;
+    border: 1px solid $off-black;
+    position: relative;
+    z-index: $color-picker-zindex;
+    cursor: pointer;
+
+    @each $color-name, $pickable-color in $pickable-colors {
+      &.#{$color-name} {
+        background-color: $pickable-color;
+      }
+    }
+
+    &:not(:first-child) {
+      margin-left: -1px;
+    }
+
+    &.selected {
+      border: 1px solid $off-white;
+      z-index: $color-picker-zindex + 1;
+    }
+  }
+
+  &:not(:first-child) {
+    div {
+      margin-top: -1px;
+    }
+  }
+}

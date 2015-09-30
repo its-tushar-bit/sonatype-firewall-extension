@@ -1,0 +1,8 @@
+<div>
+  <div class="color-picker-row" ng-repeat="colorRow in vm.colorRows">
+    <div ng-repeat="color in colorRow"
+         class="{{ ::color }}"
+         ng-class="{ selected: vm.selectedColor == color }"
+         ng-click="vm.selectedColor = color"></div>
+  </div>
+</div>

@@ -381,6 +381,17 @@ $fail-bg: #fce2e2;
 $fail-active: #5c0000;
 $fail-disabled: #dd9595;
 
+$pickable-colors: ('light-red', $light-red),
+        ('yellow', $yellow),
+        ('light-green', $light-green),
+        ('light-blue', $light-blue),
+        ('light-purple', $light-purple),
+        ('dark-red', $dark-red),
+        ('orange', $orange),
+        ('dark-green', $dark-green),
+        ('dark-blue', $dark-blue),
+        ('dark-purple', $dark-purple);
+
 /*
   ##Threat Colors
   Threat colors are accessible in an array to iterate over as such ```@each $threatdef in $threat-levels```

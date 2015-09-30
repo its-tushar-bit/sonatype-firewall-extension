@@ -89,7 +89,7 @@ extends BaseSpec {
 
     when: 'Two new licenses are selected'
     licenses.selectedLicenses.toggleOption('Beerware')
-    licenses.selectedLicenses.toggleOption('Boost')
+    licenses.selectedLicenses.toggleOption('BSL-1.0')
 
     then: 'The update button should be enabled'
     waitFor { !licenses.update.disabled }
@@ -104,7 +104,7 @@ extends BaseSpec {
     AuditLogModule auditLog = cip.auditLog
     auditLog.showTrigger.click()
     waitFor { auditLog.audits.size() == 1 }
-    auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as Beerware, Boost',
+    auditLog.validateRow(auditLog.audits[0], 'admin', 'Overrode', 'License as BSL-1.0, Beerware',
         'Because everything goes better with beer and boost!')
 
     when: 'We go back to the licenses, our new info appears (the UI does not automatically update)'
@@ -112,6 +112,6 @@ extends BaseSpec {
 
     then:
     waitFor { cip.licenses.form.displayed }
-    licenses.validateLicense('', '', 'Beerware\nBoost', app.name, 'Overridden', 'Beerware, Boost', '', false)
+    licenses.validateLicense('', '', 'Beerware\nBSL-1.0', app.name, 'Overridden', 'Beerware, BSL-1.0', '', false)
   }
 }

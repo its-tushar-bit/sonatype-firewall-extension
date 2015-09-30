@@ -222,7 +222,7 @@
 
         scope.$watch('formMaskActive', function (newValue) {
           var msgElement,
-              submittingText = attrs.formMask || 'Saving';                  ''
+              submittingText = attrs.formMask || 'Saving';
 
           if (maskElement && !newValue) {
             // remove mask

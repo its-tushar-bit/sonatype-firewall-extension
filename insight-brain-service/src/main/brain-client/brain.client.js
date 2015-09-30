@@ -183,8 +183,23 @@ var clmBuildTimestamp = '${build.timestamp}';
      *
      * @since version 1.14
      */
-    'getVulnerabilityDetailUrl' : function (source, refId) {
-      return '/rest/vulnerability/details/' + encodeURIComponent(source) + '/' + encodeURIComponent(refId);
+    'getVulnerabilityDetailUrl' : function (source, refId, componentIdentifier, hash) {
+      var url = '/rest/vulnerability/details/' + encodeURIComponent(source) + '/' + encodeURIComponent(refId),
+          params = {};
+
+      if (componentIdentifier) {
+        params.componentIdentifier = JSON.stringify(componentIdentifier);
+      }
+      if (hash) {
+        params.hash = hash;
+      }
+
+      params = param(params);
+      if (params.length > 0) {
+        url += '?' + params;
+      }
+
+      return url;
     }
   };
 }());

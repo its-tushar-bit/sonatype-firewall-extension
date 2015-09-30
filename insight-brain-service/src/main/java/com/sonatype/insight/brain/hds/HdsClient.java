@@ -100,7 +100,21 @@ public class HdsClient
   public HttpResponse getResponse(HttpServletRequest request, String path, Map<String, String> queryParams,
       String... uriParams) throws IOException
   {
-    return execute(request, path, queryParams, uriParams);
+    return execute(request, buildUri(request, path, queryParams, uriParams));
+  }
+
+  private HttpResponse getResponse(HttpServletRequest request, String path) throws IOException {
+    String url = config.getServerUrl();
+    if (!url.endsWith("/")) {
+      url += '/';
+    }
+    if (path.startsWith("/")) {
+      url += path.substring(1);
+    }
+    else {
+      url += path;
+    }
+    return execute(request, url);
   }
 
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams)
@@ -120,6 +134,22 @@ public class HdsClient
 
     try {
       HttpResponse response = getResponse(request, path, queryParams, uriParams);
+      return fromHttpResponse(response, clazz);
+    }
+    finally {
+      log.debug("Completed HDS request in {} ms.", System.currentTimeMillis() - start);
+    }
+  }
+
+  public <T> T get(Class<T> clazz, String url) throws IOException {
+    return get(null, clazz, url);
+  }
+
+  private <T> T get(HttpServletRequest request, Class<T> clazz, String url) throws IOException {
+    long start = System.currentTimeMillis();
+
+    try {
+      HttpResponse response = getResponse(request, url);
       return fromHttpResponse(response, clazz);
     }
     finally {
@@ -224,25 +254,24 @@ public class HdsClient
     return buildResponse(response);
   }
 
-  private HttpResponse execute(HttpServletRequest request, String path, Map<String, String> queryParams,
-      String... uriParams) throws IOException
+  private HttpResponse execute(HttpServletRequest request, String url) throws IOException
   {
     HttpUriRequest cloudReq;
     if (request == null || "GET".equals(request.getMethod())) {
-      cloudReq = new HttpGet(buildUri(request, path, queryParams, uriParams));
+      cloudReq = new HttpGet(url);
     }
     else if ("POST".equals(request.getMethod())) {
-      cloudReq = new HttpPost(buildUri(request, path, queryParams, uriParams));
+      cloudReq = new HttpPost(url);
 
       ((HttpPost) cloudReq).setEntity(new BufferedHttpEntity(buildEntity(request)));
     }
     else if ("PUT".equals(request.getMethod())) {
-      cloudReq = new HttpPut(buildUri(request, path, queryParams, uriParams));
+      cloudReq = new HttpPut(url);
 
       ((HttpPut) cloudReq).setEntity(new BufferedHttpEntity(buildEntity(request)));
     }
     else if ("DELETE".equals(request.getMethod())) {
-      cloudReq = new HttpDelete(buildUri(request, path, queryParams, uriParams));
+      cloudReq = new HttpDelete(url);
     }
     else {
       throw new IllegalArgumentException("Unknown request method " + request.getMethod());

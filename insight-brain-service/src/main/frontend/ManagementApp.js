@@ -8,27 +8,3 @@
   angular.module('managementApp',
     ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'RoleModule', 'LdapConfiguration', 'owner.manager.module']);
 }());
-
-(function() {
-  'use strict';
-
-  var managementModule = angular.module('ManagementModule', ['ui.router', 'Stores'], ['$stateProvider', function($stateProvider) {
-    $stateProvider.state('management', {
-      url: '/management',
-      templateUrl: 'management.html?' + clmBuildTimestamp,
-      controller: 'ManagementController',
-      data : {
-        title : 'Management'
-      }
-    });
-  }]);
-
-  managementModule.controller('ManagementController', ['$scope', '$state', 'commonCodeFactory', function($scope, $state, commonCodeFactory) {
-    $scope.$state = $state;
-    $scope.syncAlerts = [];
-    var error = commonCodeFactory.getEncodedQueryString('errorMessage');
-    if (error) {
-      $scope.syncAlerts.push({ type: 'error', msg: decodeURIComponent(error) });
-    }
-  }]);
-}());

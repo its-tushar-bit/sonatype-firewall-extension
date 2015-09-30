@@ -6,7 +6,7 @@
  /* global angular, AngularUtils, ZeroClipboard, clmBuildTimestamp, $ */
 (function() {
   'use strict';
-  angular.module('SecurityModule', ['ui.router', 'ManagementModule', 'AngularCommon', 'ApplicationSecurityModule', 'PermissionServiceModule'], ['$stateProvider',
+  angular.module('SecurityModule', ['ui.router', 'AngularCommon', 'ApplicationSecurityModule', 'PermissionServiceModule'], ['$stateProvider',
       function($stateProvider) {
         $stateProvider.state('administrators', {
           url: '/administrators',

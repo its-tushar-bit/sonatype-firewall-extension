@@ -8,13 +8,9 @@
   'use strict';
 
   var applicationModule = angular.module('ApplicationModule',
-      ['ui.router', 'AngularCommon', 'CLMLocation', 'ManagementModule', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'Stores', 'owner.manager.module'],
+      ['ui.router', 'AngularCommon', 'CLMLocation', 'Policy', 'LicenseThreatGroup', 'Labels', 'ApplicationSecurityModule', 'Stores', 'owner.manager.module'],
       ['$stateProvider', function($stateProvider) {
-        $stateProvider.state('management.application-view', {
-          parent: 'management',
-          url: '/application/{applicationPublicId}',
-          templateUrl: 'components/owner-summary-view.html?' + clmBuildTimestamp
-        }).state('management.application.view.policies', {
+        $stateProvider.state('management.application.view.policies', {
           parent: 'management.application.view',
           url: '/policies',
           controller: 'PolicyController',

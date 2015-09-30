@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  angular.module('OrganizationModule', ['ui.router', 'ManagementModule', 'Stores', 'owner.manager.module'], [
+  angular.module('OrganizationModule', ['ui.router', 'Stores', 'owner.manager.module'], [
     '$stateProvider', function($stateProvider) {
       $stateProvider.state('management.organization-view', {
         parent: 'management',

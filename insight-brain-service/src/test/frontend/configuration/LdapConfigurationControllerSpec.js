@@ -31,6 +31,7 @@ describe('Tests for the LdapConfigurationController', function() {
       httpBackend = $httpBackend;
 
       $state.current.name = 'ldap';
+      spyOn($state, 'transitionTo').andReturn(false);
 
       scope = $rootScope.$new();
       scope.ldapNameForm = {
@@ -40,7 +41,7 @@ describe('Tests for the LdapConfigurationController', function() {
 
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLdapConfig())).respond([]);
 
-      httpBackend.whenGET('management.html?').respond('<div></div>');
+      httpBackend.whenGET('owner.manager/state/owner.manager.view.html?').respond('<div></div>');
       httpBackend.whenGET('configuration/components/ldap.html?').respond('<div></div>');
       httpBackend.whenGET('configuration/components/ldap-connection.html?').respond('<div></div>');
 
@@ -59,7 +60,7 @@ describe('Tests for the LdapConfigurationController', function() {
       scope.$destroy();
     });
 
-    it('create/update/delete ldap server', inject(function(CLMLocations) {
+    it('create/update/delete ldap server', inject(function(CLMLocations, $state) {
 
       // retrieve (empty configuration)
 
@@ -125,6 +126,7 @@ describe('Tests for the LdapConfigurationController', function() {
       expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
 
       expect(scope.ldap).toBeNull();
+      expect($state.transitionTo).toHaveBeenCalledWith('management');
 
     }));
   });

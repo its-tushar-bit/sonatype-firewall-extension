@@ -93,19 +93,19 @@ describe('owner.tree-view.directive.spec.js', function() {
 
     it('checks if an organization or application is selected', function() {
       expect(scope.vm.$state.includes.calls.length).toBe(59);
-      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization-view', {
+      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization.view', {
         organizationId: 'rootOrg'
       });
-      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization-view', {
+      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization.view', {
         organizationId: organizations[0].id
       });
-      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization-view', {
+      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization.view', {
         organizationId: organizations[1].id
       });
-      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization-view', {
+      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.organization.view', {
         organizationId: applications[2].organizationId
       });
-      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.application-view');
+      expect(scope.vm.$state.includes).toHaveBeenCalledWith('management.application.view');
     });
 
     it('filters organizations', function() {

@@ -16,12 +16,12 @@
     </h4>
     <div ng-if="vm.rootOrganization" class="tree-view-root-organization-group">
       <a class="tree-view-item"
-         ng-class="{ selected : vm.$state.includes('management.organization-view', {organizationId: vm.rootOrganization.id}) }"
-         ui-sref="management.organization-view({organizationId: vm.rootOrganization.id})">
+         ng-class="{ selected : vm.$state.includes('management.organization.view', {organizationId: vm.rootOrganization.id}) }"
+         ui-sref="management.organization.view({organizationId: vm.rootOrganization.id})">
         <i class="fa fa-globe fa-lg tree-view-icon"></i>
         {{vm.rootOrganization.name}}
         <div class="tree-view-new-organization"
-             ng-class="{ hide : !vm.$state.includes('management.organization-view', {organizationId: vm.rootOrganization.id}) }">
+             ng-class="{ hide : !vm.$state.includes('management.organization.view', {organizationId: vm.rootOrganization.id}) }">
           <button class="btn" ng-click="vm.createOrganization()">
             <i class="fa fa-plus"></i>
             New Organization
@@ -33,7 +33,7 @@
          ng-repeat="organization in vm.organizations | orderBy:'name'"
          ng-if="organization.isVisible">
       <a class="tree-view-item"
-         ng-class="{ selected : vm.$state.includes('management.organization-view', {organizationId: organization.id}),
+         ng-class="{ selected : vm.$state.includes('management.organization.view', {organizationId: organization.id}),
                            disabled : organization.synthetic,
                            childSelected : vm.selectedParentOrganization.id === organization.id }"
          ng-click="organization.isExpanded = true;
@@ -42,7 +42,7 @@
              ng-click="$event.preventDefault();
                        $event.stopPropagation();
                        organization.isExpanded =
-                         vm.$state.includes('management.organization-view', {organizationId: organization.id}) ||
+                         vm.$state.includes('management.organization.view', {organizationId: organization.id}) ||
                          vm.selectedParentOrganization.id === organization.id || !organization.isExpanded;">
                 <span class="twisty"
                       ng-class="{ empty: organization.applications.length == 0,
@@ -55,7 +55,7 @@
                 {{organization.name}}
               </span>
         <div class="tree-view-new-application"
-             ng-class="{ hide : !vm.$state.includes('management.organization-view', {organizationId: organization.id}) }">
+             ng-class="{ hide : !vm.$state.includes('management.organization.view', {organizationId: organization.id}) }">
           <button class="btn"
                   ng-click="$event.preventDefault();
                             $event.stopPropagation();
@@ -68,8 +68,8 @@
       <a class="tree-view-item"
          ng-repeat="application in organization.applications | orderBy:'name'"
          ng-if="organization.isExpanded && application.isVisible"
-         ui-sref="management.application-view({applicationPublicId: application.publicId})"
-         ng-class="{ selected : vm.$state.includes('management.application-view', {applicationPublicId: application.publicId}) }">
+         ui-sref="management.application.view({applicationPublicId: application.publicId})"
+         ng-class="{ selected : vm.$state.includes('management.application.view', {applicationPublicId: application.publicId}) }">
         <i class="fa fa-terminal tree-view-icon icon-12px inverse"></i><!--
          -->{{application.name}}
       </a>

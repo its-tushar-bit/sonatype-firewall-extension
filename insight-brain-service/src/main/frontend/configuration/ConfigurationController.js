@@ -9,7 +9,7 @@
   'use strict';
 
   var module = angular.module('Configuration',
-    ['ui.router', 'ManagementModule', 'ProductLicense', 'PermissionServiceModule', 'AngularCommon', 'Validators'],
+    ['ui.router', 'ProductLicense', 'PermissionServiceModule', 'AngularCommon', 'Validators'],
     ['$stateProvider', function($stateProvider) {
       $stateProvider.state('productlicense', {
         url: '/productlicense',

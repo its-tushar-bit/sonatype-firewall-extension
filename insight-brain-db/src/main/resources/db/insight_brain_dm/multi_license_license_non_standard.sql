@@ -3,7 +3,6 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Adobe-
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Adobe-EULA','Adobe-EULA');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('ATT','ATT');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Beerware','Beerware');
-INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Boost','Boost');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Dyade','Dyade');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('HP-DEC','HP-DEC');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('IETF','IETF');
@@ -47,3 +46,4 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CIP4-1
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CIP4-2.0','CIP4-2.0');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('SISSL-1.1','SISSL-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('SISSL-1.2','SISSL-1.2');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CPOL-1.02','CPOL-1.02');

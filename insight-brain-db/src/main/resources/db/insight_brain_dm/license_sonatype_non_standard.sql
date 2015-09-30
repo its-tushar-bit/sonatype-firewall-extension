@@ -3,7 +3,6 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_cate
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Adobe-EULA','Adobe-EULA','Adobe-EULA','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('ATT','ATT','ATT','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Beerware','Beerware','Beerware','NON-STANDARD');
-INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Boost','Boost','Boost','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('Dyade','Dyade','Dyade','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('HP-DEC','HP-DEC','HP-DEC','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('IETF','IETF','IETF','NON-STANDARD');
@@ -45,3 +44,4 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_cate
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-I','WS-I','Web Services Interoperability','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-1.0','CIP4-1.0','CIP4 Software License, Version 1.0');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-2.0','CIP4-2.0','CIP4 Software License, Version 2.0');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CPOL-1.02','CPOL-1.02','Code Project Open License 1.02');

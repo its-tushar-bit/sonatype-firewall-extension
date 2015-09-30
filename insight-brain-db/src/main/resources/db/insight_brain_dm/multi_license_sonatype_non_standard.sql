@@ -3,7 +3,6 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Adobe-EULA','Adobe-EULA','Adobe-EULA');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('ATT','ATT','ATT');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Beerware','Beerware','Beerware');
-INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Boost','Boost','Boost');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('Dyade','Dyade','Dyade');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('HP-DEC','HP-DEC','HP-DEC');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('IETF','IETF','IETF');
@@ -45,3 +44,4 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-I','WS-I','Web Services Interoperability');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-1.0','CIP4-1.0','CIP4 Software License, Version 1.0');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-2.0','CIP4-2.0','CIP4 Software License, Version 2.0');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CPOL-1.02','CPOL-1.02','Code Project Open License 1.02');

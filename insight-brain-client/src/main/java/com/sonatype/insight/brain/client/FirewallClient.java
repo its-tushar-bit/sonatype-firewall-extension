@@ -24,13 +24,13 @@ public class FirewallClient
 {
   private static final String RESOURCE_PATH = "rest/integration/repositories";
 
-  private static final String EVALUATE_PATH = "evaluate";
+  private static final String EVALUATE_PATH = "evaluate/audit";
 
   private static final String SUMMARY_PATH = "summary";
 
   private static final String QUARANTINE_PATH = "quarantine";
 
-  private static final String REMOVE_COMPONENT_PATH = "removeComponent";
+  private static final String COMPONENTS_PATH = "components";
 
   private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
@@ -70,7 +70,7 @@ public class FirewallClient
 
   public void removeComponent(String pathname) throws IOException {
     Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId,
-        REMOVE_COMPONENT_PATH, pathname));
+        COMPONENTS_PATH, pathname));
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();

@@ -140,7 +140,7 @@ public class RepositoryResourceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
-    HttpResponse response = restRequest().path(RepositoryResource.REMOVE_COMPONENT_PATH)
+    HttpResponse response = restRequest().path(RepositoryResource.COMPONENTS_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
     assertResponseStatus(204, response);
   }

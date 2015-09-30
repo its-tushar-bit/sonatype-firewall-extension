@@ -37,9 +37,9 @@ public class RepositoryResource
 
   static final String QUARANTINE_PATH = "quarantine/{enabled}";
 
-  public static final String EVALUATE_COMPONENTS_PATH = "evaluate";
+  public static final String EVALUATE_COMPONENTS_PATH = "evaluate/audit";
 
-  static final String REMOVE_COMPONENT_PATH = "removeComponent/{pathname: .+}";
+  static final String COMPONENTS_PATH = "components/{pathname: .+}";
 
   public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
@@ -113,7 +113,7 @@ public class RepositoryResource
   }
 
   @DELETE
-  @Path(REMOVE_COMPONENT_PATH)
+  @Path(COMPONENTS_PATH)
   @Timed
   public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("pathname") String pathname)

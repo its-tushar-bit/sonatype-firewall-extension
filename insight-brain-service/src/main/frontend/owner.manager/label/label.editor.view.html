@@ -35,7 +35,7 @@
             <i class="fa fa-refresh"></i>Retry
           </button><!--   
         --><button type="button" class='btn btn-tertiary' ng-click="vm.reset()" ng-disabled="!vm.dirtyLabel.isDirty()">Reset</button>
-          <button class='btn btn-tertiary' type="button"
+          <button id="delete-label-button" class='btn btn-tertiary' type="button"
                   ng-click="vm.deleteLabel()" ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new">
             <i class="fa fa-fw fa-trash"></i> Delete Component Label
           </button>

@@ -311,7 +311,7 @@ var AngularStateUtils = {
       return {
         restrict: 'A',
         priority: 99,
-        template: '<div ng-show="error != null" class="alert alert-error clm-error">' +
+        template: '<div ng-show="error != null" class="clm-alert alert alert-error">' +
             '<div><i class="fa fa-warning"></i>' +
             '<span>{{message || "An error occurred loading data."}} </span>' +
             '<span ng-if="error">{{getDetails()}}</span>' +

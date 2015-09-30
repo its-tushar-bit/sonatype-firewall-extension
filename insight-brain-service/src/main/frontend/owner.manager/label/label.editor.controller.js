@@ -6,10 +6,11 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($stateParams, LabelStore, Messages) {
+  function LabelEditorController($stateParams, LabelStore, Messages, DeleteModalService) {
     var vm = this;
 
     vm.dirtyLabel = undefined;
+    vm.deleteLabel = deleteLabel;
     vm.doLoad = doLoad;
     vm.error = undefined;
     vm.siblings = [];
@@ -17,6 +18,12 @@
     vm.save = save;
 
     vm.doLoad();
+
+    function deleteLabel() {
+      DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function() {
+        //TODO CLM-5302 Handle Label Delete Redirects
+      });
+    }
 
     function doLoad() {
       LabelStore[vm.error ? 'refresh' : 'get']().then(function(labelCandidates) {
@@ -37,7 +44,6 @@
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
       });
-      delete vm.error;
     }
 
     function reset() {
@@ -59,7 +65,7 @@
     }
   }
 
-  LabelEditorController.$inject = ['$stateParams', 'LabelStore', 'Messages'];
+  LabelEditorController.$inject = ['$stateParams', 'LabelStore', 'Messages', 'DeleteModalService'];
 
   angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
 

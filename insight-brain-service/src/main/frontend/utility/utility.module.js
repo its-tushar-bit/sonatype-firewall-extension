@@ -7,5 +7,5 @@
 (function(angular) {
   'use strict';
 
-  angular.module('utility', []);
+  angular.module('utility', ['CommonServices', 'FormsModule']);
 }(angular));

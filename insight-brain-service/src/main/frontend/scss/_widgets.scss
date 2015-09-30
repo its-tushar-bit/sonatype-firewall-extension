@@ -57,7 +57,7 @@
   ## Load error
 
   ```
-  <div class="alert alert-error clm-error">
+  <div class="clm-alert alert alert-error">
     <div>
       <i class="fa fa-warning"></i>
       <span>An error occurred loading data. (Unable to reach CLM server)</span>
@@ -68,13 +68,20 @@
   </div>
   ```
 */
-.alert-error.clm-error {
+.clm-alert {
   margin: 5px;
   padding: 12px 8px;
-  border-color: $fail-fg;
-  background-color: $fail-bg;
-  color: $fail-fg;
-  border-radius: 0px;
+  border-radius: 0;
+
+  border-color: $alert-fg;
+  background-color: $alert-bg;
+  color: $alert-fg;
+
+  &.alert-error {
+    border-color: $fail-fg;
+    background-color: $fail-bg;
+    color: $fail-fg;
+  }
 
   .btn {
     margin-top: 24px;
@@ -479,8 +486,6 @@
 .owner-icon-tiny {
   @include owner-icon-template(16px);
 }
-
-
 
 /*
   ## Dropdown

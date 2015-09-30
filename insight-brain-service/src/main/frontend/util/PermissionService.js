@@ -45,7 +45,7 @@
       template : '<div>' +
                    '<div ng-if="authed" ng-transclude></div>' +
                    '<div ng-if="!authed" class="container">' +
-                     '<div class="alert alert-error clm-error">' +
+                     '<div class="clm-alert alert alert-error">' +
                        '<p><strong>Error</strong></p>' +
                        '<p>It appears you do not have permission to access this page.  If you believe this to be incorrect please contact your administrator.</p>' +
                      '</div>' +

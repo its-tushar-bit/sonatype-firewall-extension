@@ -14,7 +14,7 @@
     <input name="{{::csrfTokenName}}" value="{{::csrfTokenValue}}" type="text"/>
     <div upload-submit="fileUploadComplete(content, completed)"></div>
   </form>
-  <form name="ownerEditor" role="form" ng-submit="ownerEditor.$valid && save()" class="clm-form" form-mask>
+  <form name="ownerEditor" role="form" ng-submit="save()" class="clm-form" form-mask>
     <div class="clm-modal-body">
       <div class="section">
         <div class="field">

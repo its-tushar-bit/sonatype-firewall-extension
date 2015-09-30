@@ -2,6 +2,23 @@ window.CLM = {
   path: '../brain/'
 };
 var SpecUtil = {
+  populateMockObjectWithSpiedPromises: function($q, mockObject, arrayOfDeferredFunctionNames) {
+    arrayOfDeferredFunctionNames.forEach(function(deferredFunctionName) {
+      var deferred = $q.defer();
+      mockObject[deferredFunctionName] = function() {
+        return deferred.promise;
+      };
+      spyOn(deferred.promise, 'then').andCallThrough();
+      spyOn(mockObject, deferredFunctionName).andCallThrough();
+
+      mockObject['resolve' + deferredFunctionName] = function(value) {
+        deferred.resolve(value);
+      };
+      mockObject['reject' + deferredFunctionName] = function(value) {
+        deferred.reject(value);
+      };
+    });
+  },
   setupProviders: function(applicationId, organizationId) {
     angular.module('ApplicationIdProvider', []).service('ApplicationId',function() {
       // TODO Are ui-router parameters encoded or decoded?

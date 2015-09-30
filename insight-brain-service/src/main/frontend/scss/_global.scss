@@ -298,6 +298,18 @@ h1 + div > *:first-child, h2 + div > *:first-child, h3 + div > *:first-child, h4
         <td>#84c900</td>
         <td style='background-color: #84c900'></td>
       </tr>
+      <td>Alert Foreground</td>
+        <td>$alert-fg</td>
+        <td>#9d6800</td>
+        <td style='background-color: #9d6800'></td>
+      </tr>
+      <tr>
+        <td>Alert Background</td>
+        <td>$alert-bg</td>
+        <td>#fce2e2</td>
+        <td style='background-color: #fce2e2'></td>
+      </tr>
+      <tr>
       <tr>
         <td>INVALID RED</td>
         <td>$invalid-red</td>
@@ -360,6 +372,9 @@ $yellow: #f5c648;
 
 $valid-green: #84c900;
 $invalid-red: #c70000;
+
+$alert-fg: #9d6800;
+$alert-bg: #fcf8e3;
 
 $fail-fg: #831d1d;
 $fail-bg: #fce2e2;

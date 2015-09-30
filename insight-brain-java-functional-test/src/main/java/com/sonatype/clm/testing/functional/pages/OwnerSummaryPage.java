@@ -31,7 +31,7 @@ public class OwnerSummaryPage
     }
 
     public static ErrorBox error() {
-      return new ErrorBox(root().find(".clm-error"));
+      return new ErrorBox(root().find(".clm-alert.alert-error"));
     }
   }
 }

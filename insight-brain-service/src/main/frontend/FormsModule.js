@@ -211,7 +211,7 @@
 
   module.directive('formMask', [function () {
     return {
-      link: function (scope, form) {
+      link: function (scope, form, attrs) {
         var maskElement;
 
         scope.$on('destroy', function () {
@@ -221,7 +221,8 @@
         });
 
         scope.$watch('formMaskActive', function (newValue) {
-          var msgElement;
+          var msgElement,
+              submittingText = attrs.formMask || 'Saving';                  ''
 
           if (maskElement && !newValue) {
             // remove mask
@@ -232,7 +233,7 @@
             // open mask
             var offset = form.offset();
 
-            maskElement = $('<div class="form-mask"><div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> Saving</h3></div></div>');
+            maskElement = $('<div class="form-mask"><div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' + submittingText + '</h3></div></div>');
 
             //note we are tweaking the size a slight bit to not overrun the margin of the form
             maskElement.css('top', offset.top + 1).css('left', offset.left + 1).css('width', form.width() - 2).css('height', form.height() - 2);

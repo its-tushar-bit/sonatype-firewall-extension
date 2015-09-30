@@ -43,3 +43,7 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Werner
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WS-Addressing-200403','WS-Addressing-200403');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WS-Addressing-200408','WS-Addressing-200408');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WS-I','WS-I');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CIP4-1.0','CIP4-1.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CIP4-2.0','CIP4-2.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('SISSL-1.1','SISSL-1.1');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('SISSL-1.2','SISSL-1.2');

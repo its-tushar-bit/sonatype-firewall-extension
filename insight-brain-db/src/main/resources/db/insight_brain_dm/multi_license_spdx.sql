@@ -161,3 +161,9 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('AGPL-1.0','AGPL-1.0','Affero General Public License v1.0','http://spdx.org/licenses/AGPL-1.0');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('SMLNJ','SMLNJ','Standard ML of New Jersey License','http://spdx.org/licenses/SMLNJ');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('WTFPL','WTFPL','Do What The F*ck You Want To Public License','http://spdx.org/licenses/WTFPL');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('CC-BY-4.0','CC-BY-4.0','Creative Commons Attribution 4.0','http://www.spdx.org/licenses/CC-BY-4.0');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('CC-BY-SA-4.0','CC-BY-SA-4.0','Creative Commons Attribution Share Alike 4.0','http://www.spdx.org/licenses/CC-BY-SA-4.0');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('OPL-1.0','OPL-1.0','Open Public License v1.0','http://www.spdx.org/licenses/OPL-1.0');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('SISSL-1.1','SISSL-1.1','Sun Industry Standards Source License v1.1','http://www.spdx.org/licenses/SISSL');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('SISSL-1.2','SISSL-1.2','Sun Industry Standards Source License v1.2','http://www.spdx.org/licenses/SISSL-1.2');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName, licenseUrl) VALUES ('X11','X11','X11 License','http://www.spdx.org/licenses/X11');

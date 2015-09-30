@@ -373,3 +373,7 @@ INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('WTFPL'
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('Spice-1.1','Spice-1.1');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('SPL-1.0-LGPL-UNSPECIFIED','LGPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('SPL-1.0-LGPL-UNSPECIFIED','SPL-1.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CC-BY-4.0','CC-BY-4.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('CC-BY-SA-4.0','CC-BY-SA-4.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('OPL-1.0','OPL-1.0');
+INSERT INTO multi_license_license (multi_license_id, license_id) VALUES ('X11','X11');

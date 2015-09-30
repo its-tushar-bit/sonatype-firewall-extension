@@ -43,3 +43,5 @@ INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) 
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-Addressing-200403','WS-Addressing-200403','WS-Addressing-200403');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-Addressing-200408','WS-Addressing-200408','WS-Addressing-200408');
 INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('WS-I','WS-I','Web Services Interoperability');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-1.0','CIP4-1.0','CIP4 Software License, Version 1.0');
+INSERT INTO multi_license (multi_license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-2.0','CIP4-2.0','CIP4 Software License, Version 2.0');

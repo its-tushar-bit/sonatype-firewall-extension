@@ -43,3 +43,5 @@ INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_cate
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-Addressing-200403','WS-Addressing-200403','WS-Addressing-200403','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-Addressing-200408','WS-Addressing-200408','WS-Addressing-200408','NON-STANDARD');
 INSERT INTO license (license_id, shortDisplayName, longDisplayName, license_category_id) VALUES ('WS-I','WS-I','Web Services Interoperability','NON-STANDARD');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-1.0','CIP4-1.0','CIP4 Software License, Version 1.0');
+INSERT INTO license (license_id, shortDisplayName, longDisplayName) VALUES ('CIP4-2.0','CIP4-2.0','CIP4 Software License, Version 2.0');

@@ -123,12 +123,6 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
     font-size: 16px;
     line-height: 16px;
   }
-
-  &.outline {
-    // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
-    text-shadow: $black 0px 0px 1px, $black 0px 0px 1px, $black 0px 0px 1px, $black 0px 0px 1px, $black 0px 0px 1px, $black 0px 0px 1px;
-    color: white;
-  }
 }
 
 

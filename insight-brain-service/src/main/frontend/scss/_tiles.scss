@@ -126,6 +126,12 @@
     > .fa {
       vertical-align: middle;
       margin-right: 8px;
+
+      &.outline {
+        // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
+        text-shadow: $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px;
+        color: $white;
+      }
     }
   }
 

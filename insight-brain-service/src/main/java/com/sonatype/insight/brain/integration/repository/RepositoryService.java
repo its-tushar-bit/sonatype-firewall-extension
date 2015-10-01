@@ -19,11 +19,10 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -201,7 +200,7 @@ public class RepositoryService
     repositoryDAO.update(repository);
   }
 
-  public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(final String repositoryManagerInstanceId,
+  public RepositoryComponentEvaluationData evaluateComponentWithQuarantine(final String repositoryManagerInstanceId,
       final String repositoryPublicId, final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
   {
     checkLicenseFeature();
@@ -271,7 +270,7 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(@AuthzContext(Key.REPOSITORY) final Repository repository,
+  RepositoryComponentEvaluationData evaluateComponentWithQuarantine(@AuthzContext(Key.REPOSITORY) final Repository repository,
       final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
   {
     long start = System.currentTimeMillis();
@@ -315,7 +314,7 @@ public class RepositoryService
     log.debug("Evaluated {} components for repository id {} in {} ms.", componentEvaluationDataList.components.size(),
         repository.getId(), System.currentTimeMillis() - start);
 
-    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult = new RepositoryComponentEvaluationResult();
+    RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
     repositoryComponentEvaluationResult.quarantine = quarantine;
 
     return repositoryComponentEvaluationResult;

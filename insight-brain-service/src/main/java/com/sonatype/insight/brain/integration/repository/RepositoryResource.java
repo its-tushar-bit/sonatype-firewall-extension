@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
 import com.yammer.metrics.annotation.Timed;
@@ -93,7 +93,7 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(
+  public RepositoryComponentEvaluationData evaluateComponentWithQuarantine(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
       final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)

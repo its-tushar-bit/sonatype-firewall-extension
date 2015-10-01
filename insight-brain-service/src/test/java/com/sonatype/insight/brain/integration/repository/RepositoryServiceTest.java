@@ -19,9 +19,9 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -403,7 +403,7 @@ public class RepositoryServiceTest
 
     // Call the service
     Date before = new Date();
-    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+    RepositoryComponentEvaluationData repositoryComponentEvaluationResult =
         repositoryService.evaluateComponentWithQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             repositoryComponentEvaluationDataRequest);
     assertThat(repositoryComponentEvaluationResult.quarantine, is(true));
@@ -458,7 +458,7 @@ public class RepositoryServiceTest
 
     // Call the service
     Date before = new Date();
-    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+    RepositoryComponentEvaluationData repositoryComponentEvaluationResult =
         repositoryService.evaluateComponentWithQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             repositoryComponentEvaluationDataRequest);
     assertThat(repositoryComponentEvaluationResult.quarantine, is(true));
@@ -511,7 +511,7 @@ public class RepositoryServiceTest
 
     // Call the service
     Date before = new Date();
-    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+    RepositoryComponentEvaluationData repositoryComponentEvaluationResult =
         repositoryService.evaluateComponentWithQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             repositoryComponentEvaluationDataRequest);
     assertThat(repositoryComponentEvaluationResult.quarantine, is(false));
@@ -559,7 +559,7 @@ public class RepositoryServiceTest
 
     // Call the service
     Date before = new Date();
-    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+    RepositoryComponentEvaluationData repositoryComponentEvaluationResult =
         repositoryService.evaluateComponentWithQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             repositoryComponentEvaluationDataRequest);
     assertThat(repositoryComponentEvaluationResult.quarantine, is(false));

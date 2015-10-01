@@ -269,7 +269,7 @@ public class ComponentInfoServiceTest
     ComponentLicenses licenses = componentInfoService.getLicenses(applicationPublicId, MAVEN_COORDINATES,
         httpRequestMock);
     assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", null, licenses.declaredlicenses);
+    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, licenses.declaredlicenses);
     assertThat(licenses.observedlicenses, hasSize(1));
     assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.observedlicenses);
     assertThat(licenses.effectiveLicenses, hasSize(1));
@@ -288,7 +288,7 @@ public class ComponentInfoServiceTest
     assertThat(licenses.declaredlicenses, hasSize(1));
     assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.declaredlicenses);
     assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("No-Sources", "No Sources", null, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("No-Sources", "No Sources", 5, licenses.observedlicenses);
     assertThat(licenses.effectiveLicenses, hasSize(1));
     List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
     assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
@@ -305,7 +305,7 @@ public class ComponentInfoServiceTest
     assertThat(licenses.declaredlicenses, hasSize(1));
     assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, licenses.declaredlicenses);
     assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", null, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, licenses.observedlicenses);
     assertThat(licenses.effectiveLicenses, hasSize(1));
     List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
     assertContainsLicenseWithThreatLevel("GPL-2.0", "GPL-2.0", 9, effectiveList);
@@ -320,13 +320,13 @@ public class ComponentInfoServiceTest
     ComponentLicenses licenses = componentInfoService.getLicenses(applicationPublicId, MAVEN_COORDINATES,
         httpRequestMock);
     assertThat(licenses.declaredlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", null, licenses.declaredlicenses);
+    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, licenses.declaredlicenses);
     assertThat(licenses.observedlicenses, hasSize(1));
-    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", null, licenses.observedlicenses);
+    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, licenses.observedlicenses);
     assertThat(licenses.effectiveLicenses, hasSize(2));
     List<LicenseWithThreatLevel> effectiveList = new ArrayList<>(licenses.effectiveLicenses);
-    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", null, effectiveList);
-    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", null, effectiveList);
+    assertContainsLicenseWithThreatLevel("Not-Declared", "Not Declared", 5, effectiveList);
+    assertContainsLicenseWithThreatLevel("No-Source-License", "No Source License", 5, effectiveList);
   }
 
   @Test

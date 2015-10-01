@@ -82,7 +82,7 @@ class EclipseViewDetailsSpec
     and: 'there is a single license violation'
       licenseAnalysisTable.displayed
       LicenseViolationTableRow row = licenseAnalysisTable.rows[0]
-      row.policyName == 'Weak Copyleft'
+      row.policyName == 'Sonatype Special Licenses'
       row.declaredLicense == JUNIT.declaredLicenses[0].licenseName
       row.observedLicense == JUNIT.observedLicenses[0].licenseName
   }

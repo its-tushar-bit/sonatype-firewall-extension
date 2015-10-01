@@ -1150,7 +1150,7 @@ public class ReportResourceTest
     Assert.assertEquals(3, data.get("copyleftLicenseCount").asInt());
     Assert.assertEquals(20, data.get("liberalLicenseCount").asInt());
     Assert.assertEquals(1, data.get("notProvidedLicenseCount").asInt());
-    Assert.assertEquals("[19,0,2,0,0,0,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
+    Assert.assertEquals("[10,0,1,0,0,11,2,0,0,4,0]", data.get("effectiveLicenseCounts").toString());
 
     Assert.assertEquals(7, data.get("insecureArtifactCount").asInt());
     Assert.assertEquals("[0,4,0,0,2,12,15,2,0,1]", data.get("securityCounts").toString());
@@ -1159,7 +1159,7 @@ public class ReportResourceTest
     Assert.assertEquals(0, data.get("policyComponentCount").asInt());
 
     Assert.assertEquals("[[4,11,3],[0,18,0],[0,12,0],[0,6,0],[0,6,0]]", data.get("securityPunchCard").toString());
-    Assert.assertEquals("[[2,1,2],[2,1,0],[1,0,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
+    Assert.assertEquals("[[2,7,1],[2,6,0],[1,3,0],[0,1,0],[0,1,0]]", data.get("licensePunchCard").toString());
   }
 
   private void testLicensesJsonApplyChanges(String json) throws IOException {

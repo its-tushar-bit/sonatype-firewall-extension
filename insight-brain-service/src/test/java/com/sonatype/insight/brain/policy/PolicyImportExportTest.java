@@ -480,7 +480,8 @@ public class PolicyImportExportTest
     // verify that org data is untouched
     // 127 at time of writing, should only break if we remove many
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(fromOrg.getId()).size(), is(greaterThan(100)));
-    assertThat(licenseThreatGroupDAO.getByOwnerId(fromOrg.getId()), hasSize(4));
+    assertThat(licenseThreatGroupDAO.getByOwnerId(fromOrg.getId()),
+        hasSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT));
     assertThat(policyDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
     assertThat(labelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));
     assertThat(componentLabelDAO.getByOwnerId(fromOrg.getId()), hasSize(1));

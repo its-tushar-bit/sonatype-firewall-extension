@@ -177,8 +177,8 @@
   {
     "id": "6fec4f8d306542ffa225678461fc06c0",
     "ownerId": "6c0a425633cd4bb0be0598f4010a1345",
-    "name": "Banned",
-    "nameLowercaseNoWhitespace": "banned",
+    "name": "Test Banned",
+    "nameLowercaseNoWhitespace": "testbanned",
     "threatLevel": 10
   },
   {

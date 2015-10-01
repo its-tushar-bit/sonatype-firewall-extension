@@ -5,7 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
-import java.util.LinkedHashMap;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,12 +16,11 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
-  public static final int DEFAULT_LICENSE_THREAT_GROUP_COUNT = 4;
+  public static final int DEFAULT_LICENSE_THREAT_GROUP_COUNT = 6;
 
   private static final Logger log = LoggerFactory.getLogger(LicenseThreatGroupDAO.class);
 
@@ -228,53 +228,42 @@ public class LicenseThreatGroupDAO
   private void createDefaultGroups(TransactionContext tx, String ownerId) {
     long start = System.currentTimeMillis();
 
-    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    LicenseThreatGroupDefaults defaults = LicenseThreatGroupDefaults.load();
 
-    Map<String, LicenseThreatGroup> licenseThreatGroupsByName = new LinkedHashMap<>();
-    List<License> allLicenses = new LicenseDAO().getAll();
-    for (License license : allLicenses) {
-      String licenseCategoryId = license.getLicenseCategoryId();
-      if (licenseCategoryId == null) {
-        continue;
-      }
-      String licenseThreatGroupName;
-      int threatLevel = 0;
-      if (LicenseCategory.COPYLEFT_ID.equals(licenseCategoryId)) {
-        licenseThreatGroupName = "Copyleft";
-        threatLevel = 9;
-      }
-      else if (LicenseCategory.NON_STANDARD_ID.equals(licenseCategoryId)) {
-        licenseThreatGroupName = "Non Standard";
-        threatLevel = 6;
-      }
-      else if (LicenseCategory.WEAKCOPYLEFT_ID.equals(licenseCategoryId)) {
-        licenseThreatGroupName = "Weak Copyleft";
-        threatLevel = 2;
-      }
-      else if (LicenseCategory.LIBERAL_ID.equals(licenseCategoryId)) {
-        licenseThreatGroupName = "Liberal";
-        threatLevel = 0;
-      }
-      else {
-        throw new IllegalStateException("Unknown license category id: " + licenseCategoryId);
-      }
-      LicenseThreatGroup licenseThreatGroup = licenseThreatGroupsByName.get(licenseThreatGroupName);
-      if (licenseThreatGroup == null) {
-        licenseThreatGroup = new LicenseThreatGroup();
-        licenseThreatGroup.setOwnerId(ownerId);
-        licenseThreatGroup.setName(licenseThreatGroupName);
-        licenseThreatGroup.setThreatLevel(threatLevel);
-        insert(tx, licenseThreatGroup);
-        licenseThreatGroupsByName.put(licenseThreatGroupName, licenseThreatGroup);
-      }
-      LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-      licenseThreatGroupLicense.setOwnerId(ownerId);
-      licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
-      licenseThreatGroupLicense.setLicenseId(license.getId());
-      licenseThreatGroupLicenseDAO.insert(tx, licenseThreatGroupLicense);
+    Map<String, String> newLtgIdsByOldId = new HashMap<>();
+    for (LicenseThreatGroup licenseThreatGroup : defaults.licenseThreatGroups) {
+      LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, licenseThreatGroup.getName(),
+          licenseThreatGroup.getThreatLevel());
+      insert(tx, ltg);
+      newLtgIdsByOldId.put(licenseThreatGroup.getId(), ltg.getId());
+    }
+
+    LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+    for (LicenseThreatGroupLicense licenseThreatGroupLicense : defaults.licenseThreatGroupLicenses) {
+      String licenseThreatGroupId = newLtgIdsByOldId.get(licenseThreatGroupLicense.getLicenseThreatGroupId());
+      LicenseThreatGroupLicense ltgl = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
+          licenseThreatGroupLicense.getLicenseId());
+      licenseThreatGroupLicenseDAO.insert(tx, ltgl);
     }
 
     log.debug("Created default license threat groups for owner id {} in {} ms.", ownerId, System.currentTimeMillis()
         - start);
+  }
+
+  private static class LicenseThreatGroupDefaults
+  {
+    public List<LicenseThreatGroup> licenseThreatGroups;
+
+    public List<LicenseThreatGroupLicense> licenseThreatGroupLicenses;
+
+    static LicenseThreatGroupDefaults load() {
+      Class<LicenseThreatGroupDefaults> type = LicenseThreatGroupDefaults.class;
+      try {
+        return JsonUtils.parse(type.getResourceAsStream("/LicenseThreatGroupDefaults.json"), type);
+      }
+      catch (IOException e) {
+        throw new IllegalStateException("Invalid LTG defaults", e);
+      }
+    }
   }
 }

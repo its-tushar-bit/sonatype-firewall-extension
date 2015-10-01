@@ -12,9 +12,9 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -217,7 +217,7 @@ public class FirewallClientTest
     repositoryComponentEvaluationDataRequest.pathname = "path";
     repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
 
-    RepositoryComponentEvaluationResult repositoryComponentEvaluationResult =
+    RepositoryComponentEvaluationData repositoryComponentEvaluationResult =
         client.evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequest);
     assertThat(repositoryComponentEvaluationResult.quarantine, is(false));
   }

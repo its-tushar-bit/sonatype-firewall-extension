@@ -16,9 +16,9 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -172,7 +172,7 @@ public class RestClientFactory
     }
 
     @Override
-    public RepositoryComponentEvaluationResult evaluateComponentWithQuarantine(
+    public RepositoryComponentEvaluationData evaluateComponentWithQuarantine(
         final RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest) throws IOException
     {
       return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).evaluateComponentWithQuarantine(

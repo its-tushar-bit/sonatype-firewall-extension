@@ -7,22 +7,16 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
 
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -127,47 +121,23 @@ public class RepositoryServiceAuthzTest
   public void testEvaluateComponents_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
+        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */,
+            false);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
     repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
+        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */,
+            false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_Unauthorized() {
     grantWritePermission();
     repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */);
-  }
-
-  @Test
-  public void testEvaluateComponentWithQuarantine_Authorized() throws Exception {
-    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest();
-    try {
-      repositoryService.evaluateComponentWithQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-          repositoryComponentEvaluationDataRequest);
-      fail("Expected BadRequestException");
-    } catch (BadRequestException e) {
-      assertThat(e.getMessage(), is("The pathname cannot be null or empty."));
-    }
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testEvaluateComponentWithQuarantine_Unauthenticated() {
-    repositoryService.evaluateComponentWithQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testEvaluateComponentWithQuarantine_Unauthorized() {
-    grantWritePermission();
-    repositoryService.evaluateComponentWithQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
-        null);
+        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */,
+            false);
   }
 
   @Test

@@ -14,9 +14,8 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
@@ -70,8 +69,8 @@ public interface RestClient
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 
-    RepositoryComponentEvaluationData evaluateComponentWithQuarantine(
-        final RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest) throws IOException;
+    RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+        final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
 
     PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
   }

@@ -12,9 +12,9 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -216,20 +217,26 @@ public class FirewallClientTest
     repositoryComponentEvaluationDataRequest.format = "maven2";
     repositoryComponentEvaluationDataRequest.pathname = "path";
     repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components = new ArrayList<RepositoryComponentEvaluationDataRequest>();
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    RepositoryComponentEvaluationData repositoryComponentEvaluationResult =
-        client.evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequest);
-    assertThat(repositoryComponentEvaluationResult.quarantine, is(false));
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult =
+        client.evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine, is(false));
   }
 
   @Test
   public void testEvaluateComponentWithQuarantine_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components = new ArrayList<RepositoryComponentEvaluationDataRequest>();
 
     try {
-      client.evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequest);
+      client.evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
       fail("Expected exception");
     }
     catch (HttpResponseException e) {

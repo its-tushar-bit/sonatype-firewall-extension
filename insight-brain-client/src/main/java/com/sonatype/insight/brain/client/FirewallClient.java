@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -94,11 +93,11 @@ public class FirewallClient
     }
   }
 
-  public RepositoryComponentEvaluationData evaluateComponentWithQuarantine(
-      final RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest)
+  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+      final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
       throws IOException
   {
-    ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequest),
+    ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequestList),
         ContentType.APPLICATION_JSON);
 
     Result result = postRequest(
@@ -112,7 +111,7 @@ public class FirewallClient
 
     final String jsonResult = result.text();
     try {
-      return JsonUtils.parse(jsonResult, RepositoryComponentEvaluationData.class);
+      return JsonUtils.parse(jsonResult, RepositoryComponentEvaluationDataList.class);
     }
     catch (final IOException e) {
       throw new IOException("Could not parse: " + jsonResult, e);

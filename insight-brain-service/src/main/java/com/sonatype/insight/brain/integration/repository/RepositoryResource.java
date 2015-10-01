@@ -17,8 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 
 import com.yammer.metrics.annotation.Timed;
@@ -85,7 +84,7 @@ public class RepositoryResource
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequestList);
+        componentEvaluationDataRequestList, false);
   }
 
   @POST
@@ -93,13 +92,13 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public RepositoryComponentEvaluationData evaluateComponentWithQuarantine(
+  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
-      final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
+      final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
-    return repositoryService.evaluateComponentWithQuarantine(repositoryManagerInstanceId, repositoryPublicId,
-        componentEvaluationDataRequest);
+    return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequestList, true);
   }
 
   @Path(QUARANTINE_PATH)

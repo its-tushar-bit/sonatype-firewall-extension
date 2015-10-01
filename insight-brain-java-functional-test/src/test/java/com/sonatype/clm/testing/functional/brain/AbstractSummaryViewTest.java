@@ -65,7 +65,7 @@ public abstract class AbstractSummaryViewTest
 
     ErrorBox error = OwnerSummaryPage.SummaryTile.error();
     error.root().shouldBe(visible);
-    error.message().shouldHave(text("unable to locate"));
+    error.message().shouldHave(text("Could not find an " + currentOwner.getType().toString()));
     error.retryButton().shouldBe(visible, enabled);
   }
 

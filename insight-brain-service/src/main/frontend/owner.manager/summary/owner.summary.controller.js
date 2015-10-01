@@ -24,7 +24,8 @@
         isApp = $state.current.name.indexOf('application') !== -1,
         stateIdField = isApp ? 'applicationPublicId' : 'organizationId',
         idField = isApp ? 'publicId' : 'id',
-        type = isApp ? 'application' : 'organization';
+        type = isApp ? 'application' : 'organization',
+        id = $state.params[stateIdField];
 
     vm.doLoad();
 
@@ -35,7 +36,7 @@
 
       if (isApp) {
         promises.push(StageTypeStore.getDashboardStages());
-        promises.push($http.get(CLMLocations.getApplicationSummaryUrl($state.params[stateIdField])));
+        promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
       }
 
       $q.all(promises).then(function(results) {
@@ -52,10 +53,10 @@
         }
 
         if (!vm.owner) {
-          vm.error = 'Unable to locate ' + type;
+          vm.error = 'Could not find an ' + type + ' with ID ' +  id + '.';
         }
-      }, function() {
-        vm.error = arguments;
+      }, function(error) {
+        vm.error = error;
       });
 
       delete vm.error;

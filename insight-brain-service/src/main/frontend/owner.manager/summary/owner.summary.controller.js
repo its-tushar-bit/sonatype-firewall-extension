@@ -6,48 +6,86 @@
 (function(angular) {
   'use strict';
 
-  function OwnerSummaryController($scope, $state, OwnerEditor, ApplicationStore, OrganizationStore) {
-    var siblings;
+  function OwnerSummaryController($state, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
+                                  CLMLocations,
+                                  StageTypeStore)
+  {
+    var vm = this;
 
-    $scope.doLoad = function() {
-      var isApp = $state.current.name.indexOf('application') !== -1, stateIdField = isApp ? 'applicationPublicId'
-          : 'organizationId', idField = isApp ? 'publicId' : 'id';
+    vm.error = undefined;
+    vm.owner = undefined;
+    vm.stages = undefined;
+    vm.doLoad = doLoad;
+    vm.edit = edit;
+    vm.getShortTypeName = getShortTypeName;
+    vm.openReport = openReport;
 
-      $scope.type = isApp ? 'application' : 'organization';
+    var siblings,
+        isApp = $state.current.name.indexOf('application') !== -1,
+        stateIdField = isApp ? 'applicationPublicId' : 'organizationId',
+        idField = isApp ? 'publicId' : 'id',
+        type = isApp ? 'application' : 'organization';
 
-      (isApp ? ApplicationStore : OrganizationStore)[$scope.error ? 'refresh' : 'get']().then(function(candidates) {
-        siblings = candidates;
-        angular.forEach(candidates, function(candidate) {
+    vm.doLoad();
+
+    function doLoad() {
+      var promises = [
+        ( isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get']()
+      ];
+
+      if (isApp) {
+        promises.push(StageTypeStore.getDashboardStages());
+        promises.push($http.get(CLMLocations.getApplicationSummaryUrl($state.params[stateIdField])));
+      }
+
+      $q.all(promises).then(function(results) {
+        siblings = results[0];
+        angular.forEach(siblings, function(candidate) {
           if (candidate[idField] === $state.params[stateIdField]) {
-            $scope.owner = candidate;
+            vm.owner = candidate;
           }
         });
 
-        if (!$scope.owner) {
-          $scope.error = 'Unable to locate ' + $scope.type;
+        if (isApp) {
+          vm.stages = results[1];
+          vm.applicationSummary = results[2].data;
+        }
+
+        if (!vm.owner) {
+          vm.error = 'Unable to locate ' + type;
         }
       }, function() {
-        $scope.error = arguments;
+        vm.error = arguments;
       });
 
-      delete $scope.error;
-    };
+      delete vm.error;
+    }
 
-    $scope.edit = function() {
-      OwnerEditor.open($scope.owner, $scope.type, siblings);
-    };
+    function edit() {
+      OwnerEditor.open(vm.owner, type, siblings);
+    }
 
-    $scope.getShortTypeName = function() {
-      return $scope.type === 'application' ? 'App' : 'Org';
-    };
+    function getShortTypeName() {
+      return type === 'application' ? 'App' : 'Org';
+    }
 
-    $scope.doLoad();
+    function openReport(stage) {
+      if (vm.applicationSummary.policyEvaluations[stage.id]) {
+        $window.open($state.href('report', {
+          publicId: vm.applicationSummary.publicId,
+          scanId: vm.applicationSummary.policyEvaluations[stage.id].scanId
+        }), '_blank');
+      }
+    }
   }
 
-  OwnerSummaryController.$inject = ['$scope', '$state', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore'];
+  OwnerSummaryController.$inject = [
+    '$state', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore', 'CLMLocations',
+    'StageTypeStore'
+  ];
 
-  angular
-    .module('owner.manager.module')
-    .controller('OwnerSummaryController', OwnerSummaryController);
+  angular//
+      .module('owner.manager.module')//
+      .controller('OwnerSummaryController', OwnerSummaryController);
 
 }(angular));

@@ -537,6 +537,27 @@
         color: inherit;
         @extend .semi-bold;
 
+        &.link {
+          &.disabled {
+            color: $light-blue;
+            cursor: default;
+
+            &:hover {
+              background: $off-white;
+              border-bottom: 1px solid $light-blue;
+            }
+          }
+
+          &:not(.disabled) {
+            color: $link-blue;
+
+            &:hover {
+              background: $off-white;
+              border-bottom: 1px solid $link-blue;
+            }
+          }
+        }
+
         span {
           display: inline-block;
           vertical-align: middle;

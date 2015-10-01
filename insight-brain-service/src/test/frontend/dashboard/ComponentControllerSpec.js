@@ -56,13 +56,16 @@ describe('ComponentController tests', function() {
       {value: ':'},
       {field: 'Version', value: '1.0'}
     ];
-    beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
+    beforeEach(inject(function($rootScope, $controller, $httpBackend, $timeout, $q, CLMLocations, StageTypeStore) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond([]);
+      var stageTypeStoreDefer = $q.defer();
+      spyOn(StageTypeStore, 'getDashboardStages').andReturn(stageTypeStoreDefer.promise);
+      stageTypeStoreDefer.resolve([]);
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
       $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
+      $timeout.flush();
     }));
 
     afterEach(inject(function($httpBackend) {

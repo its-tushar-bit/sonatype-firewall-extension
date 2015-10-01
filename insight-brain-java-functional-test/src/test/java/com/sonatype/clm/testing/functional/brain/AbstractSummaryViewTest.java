@@ -220,4 +220,6 @@ public abstract class AbstractSummaryViewTest
     }
     return hierarchySize;
   }
+
+  protected abstract void testReportLinks();
 }

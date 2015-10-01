@@ -54,13 +54,14 @@
       var stageTypeStore = CLMResource.getStore({
         id: 'id',
         url: CLMLocations.getActionStageUrl()
-      }), promise = stageTypeStore.get();
+      });
+
       return {
         'get': function() {
-          return promise;
+          return stageTypeStore.get();
         },
         'getDashboardStages': function() {
-          return promise.then(function(result) {
+          return stageTypeStore.get().then(function(result) {
             result = angular.copy(result);
             for (var i = 0; i < result.length; i++) {
               if (result[i].id === 'develop') {

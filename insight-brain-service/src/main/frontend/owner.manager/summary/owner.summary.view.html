@@ -1,20 +1,26 @@
 <div class="tile-container">
-  <div class="tile summary-tile" id='owner-summary' ng-controller="OwnerSummaryController">
-    <div load-wrapper="error" loading="!owner" reload="doLoad()">
+  <div class="tile summary-tile" id='owner-summary' ng-controller="OwnerSummaryController as vm">
+    <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
       <div class="clm-dropdown pull-right" id="action-dropdown">
         <button class="btn btn-default dropdown-toggle btn-tertiary" type="button" id="action-menu" data-toggle="dropdown">
           Actions
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-left">
-          <li><a ng-click='edit()' id="app-org-link"><span><i class="fa fa-pencil fa-fw" />Edit {{:: getShortTypeName()}} Name / Icon</span></a></li>
-          <li><a id="eval-ahc-link"><i class="fa fa-upload fa-fw" /><span>Evaluate AhcService</span></a></li>
-          <li><a id="import-policies-link"><i class="fa fa-download fa-fw" /><span>Import Policies</span></a></li>
-          <li><a id="delete-ahc-link"><i class="fa fa-trash fa-fw" /><span>Delete AhcService</span></a></li>
+          <li><a ng-click='vm.edit()' id="app-org-link"><span><i class="fa fa-pencil fa-fw"/>Edit {{:: vm.getShortTypeName()}} Name / Icon</span></a></li>
+          <li><a id="eval-ahc-link"><i class="fa fa-upload fa-fw"/><span>Evaluate AhcService</span></a></li>
+          <li><a id="import-policies-link"><i class="fa fa-download fa-fw"/><span>Import Policies</span></a></li>
+          <li><a id="delete-ahc-link"><i class="fa fa-trash fa-fw"/><span>Delete AhcService</span></a></li>
+          <li ng-repeat="stage in ::vm.stages">
+            <a id="app-report-link" class="link"
+               ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.id]}"
+               ng-click="vm.openReport(stage)">
+              <i class="fa fa-external-link fa-fw"/><span>View {{::stage.name | lowercase}} report</span></a>
+          </li>
         </ul>
       </div>
-      <h1><span owner-image="owner"></span> {{owner.name}}</h1>
-      <div class="sub-header" ng-if="owner.description">{{owner.description}}</div>
+      <h1><span owner-image="owner"></span> {{vm.owner.name}}</h1>
+      <div class="sub-header" ng-if="vm.owner.description">{{vm.owner.description}}</div>
 
       <ul class="nav nav-pills">
         <li class="active"><a data-toggle="pill" data-target="#owner-pill-app-type" ng-href="">Application Types</a></li>

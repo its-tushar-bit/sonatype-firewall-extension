@@ -34,7 +34,6 @@ public class MultiLicenseDAOTest
     String shortName = "SDN";
     Assert.assertNull(dao.getByName(shortName));
     MultiLicense multiLicense = new MultiLicense();
-    multiLicense.setLicenseUrl("License Url");
     multiLicense.setShortDisplayName(shortName);
     multiLicense.setLongDisplayName("Long Display Name");
     dao.insert(multiLicense);
@@ -43,7 +42,6 @@ public class MultiLicenseDAOTest
 
     multiLicense = dao.getById(multiLicense.getId());
     Assert.assertNotNull(multiLicense);
-    Assert.assertEquals("License Url", multiLicense.getLicenseUrl());
     Assert.assertEquals("SDN", multiLicense.getShortDisplayName());
     Assert.assertEquals("Long Display Name", multiLicense.getLongDisplayName());
 

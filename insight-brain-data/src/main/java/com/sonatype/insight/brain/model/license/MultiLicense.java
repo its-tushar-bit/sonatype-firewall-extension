@@ -33,9 +33,6 @@ public class MultiLicense
   @Column(name = "longDisplayName")
   private String longDisplayName;
 
-  @Column(name = "licenseUrl")
-  private String licenseUrl;
-
   @Override
   public String getId() {
     return id;
@@ -60,14 +57,6 @@ public class MultiLicense
 
   public void setLongDisplayName(String longDisplayName) {
     this.longDisplayName = longDisplayName;
-  }
-
-  public String getLicenseUrl() {
-    return licenseUrl;
-  }
-
-  public void setLicenseUrl(String licenseUrl) {
-    this.licenseUrl = licenseUrl;
   }
 
   @Override

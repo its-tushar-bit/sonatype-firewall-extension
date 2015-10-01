@@ -16,7 +16,6 @@ CREATE TABLE license (
   license_id varchar(1000) NOT NULL,
   shortDisplayName varchar(1000) NOT NULL,
   longDisplayName varchar(1000) default NULL,
-  licenseUrl varchar(100) default NULL,
   license_category_id varchar(50) NULL,
   CONSTRAINT license_pk PRIMARY KEY (license_id),
   UNIQUE KEY license_shortDisplayName_uk (shortDisplayName),
@@ -27,7 +26,6 @@ CREATE TABLE multi_license (
   multi_license_id varchar(1000) NOT NULL,
   shortDisplayName varchar(1000) NOT NULL,
   longDisplayName varchar(1000) default NULL,
-  licenseUrl varchar(100) default NULL,
   CONSTRAINT multi_license_pk PRIMARY KEY (multi_license_id),
   UNIQUE KEY multi_license_shortDisplayName_uk (shortDisplayName)
 );

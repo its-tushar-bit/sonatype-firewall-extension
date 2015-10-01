@@ -40,9 +40,6 @@ public class License
   @Column(name = "longDisplayName")
   private String longDisplayName;
 
-  @Column(name = "licenseUrl")
-  private String licenseUrl;
-
   @Column(name = "license_category_id")
   private String licenseCategoryId;
 
@@ -70,14 +67,6 @@ public class License
 
   public void setLongDisplayName(String longDisplayName) {
     this.longDisplayName = longDisplayName;
-  }
-
-  public String getLicenseUrl() {
-    return licenseUrl;
-  }
-
-  public void setLicenseUrl(String licenseUrl) {
-    this.licenseUrl = licenseUrl;
   }
 
   public String getLicenseCategoryId() {

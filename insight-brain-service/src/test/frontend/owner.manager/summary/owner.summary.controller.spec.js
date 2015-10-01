@@ -90,7 +90,7 @@ describe('owner.summary.controller.js', function() {
       $timeout.flush();
 
       expect(vm.owner).toBeUndefined();
-      expect(vm.error).toEqual('Unable to locate ' + type);
+      expect(vm.error).toContain('Could not find an ' + type);
     });
 
     it('Refreshing Owner After Error', function() {

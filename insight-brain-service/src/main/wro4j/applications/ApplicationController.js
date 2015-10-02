@@ -148,9 +148,19 @@
               $scope.applicationIconTimestamp[$scope.selectedApplication.publicId];
         }
 
-        function isExternalDestination(destination) {
+        function isExternalDestination(toState, toParams) {
           var application = $scope.selectedApplication;
-          return !destination || (application && destination.indexOf('application/' + application.publicId) === -1);
+
+          // Navigating outside IQ or to unknown state
+          if (!toState || !toParams) {
+            return true;
+          }
+          // Application not loaded yet
+          if (!application) {
+            return true;
+          }
+          // Navigating to a state outside of the current application
+          return toState.parent !== 'management.application' || toParams.applicationPublicId !== application.publicId;
         }
         
         function assignAppSummary(data) {
@@ -309,16 +319,16 @@
         };
 
         //make sure user is aware they are about to lose changes
-        $scope.$on('pageChangeStarted', function(event, destination) {
-          if (isExternalDestination(destination)) {
+        $scope.$on('pageChangeStarted', function(event, toState, toParams) {
+          if (isExternalDestination(toState, toParams)) {
             if ($scope.isFormDirty() && !$scope.isPostingIcon) {
               event.preventDefault();
             }
           }
         });
 
-        $scope.$on('pageChangeAccepted', function(event, destination) {
-          if (isExternalDestination(destination)) {
+        $scope.$on('pageChangeAccepted', function(event, toState, toParams) {
+          if (isExternalDestination(toState, toParams)) {
             //clear on leaving, don't want to keep around forever
             LastSelectedOrganization.clear();
             $scope.cancel();

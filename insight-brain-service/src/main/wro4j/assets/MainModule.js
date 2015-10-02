@@ -168,9 +168,9 @@
           });
         }
 
-        $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState) {
-          if (toState.name !== fromState.name && !isShowingModal) {
-            var e = $rootScope.$broadcast('pageChangeStarted');
+        $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
+          if ((toState.name !== fromState.name || !angular.equals(toParams, fromParams)) && !isShowingModal) {
+            var e = $rootScope.$broadcast('pageChangeStarted', toState, toParams);
             if (e.defaultPrevented) {
               event.preventDefault();
               isShowingModal = true;
@@ -180,12 +180,13 @@
                 templateUrl: 'unsaved-modal',
                 windowClass: 'master-modal'
               }).result.then(function() {
-                    resetIsShowing();
-                    $state.go(toState, toParams);
-                  }, resetIsShowing);
+                resetIsShowing();
+                $rootScope.$broadcast('pageChangeAccepted', toState, toParams);
+                $state.go(toState, toParams);
+              }, resetIsShowing);
+            } else {
+              $rootScope.$broadcast('pageChangeAccepted', toState, toParams);
             }
-
-            $rootScope.$broadcast('pageChangeAccepted');
           }
         });
 

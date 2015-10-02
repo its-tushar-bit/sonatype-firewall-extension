@@ -164,9 +164,21 @@
             $scope.organizationIconTimestamp[$scope.selectedOrganization.id];
       }
 
-      function isExternalDestination(destination) {
+      function isExternalDestination(toState, toParams) {
         var organization = $scope.selectedOrganization;
-        return !destination || (organization && destination.indexOf('organization/' + organization.id) === -1);
+
+        // Navigating outside IQ or to unknown state
+        if (!toState || !toParams) {
+          return true;
+        }
+
+        // Organization not loaded yet
+        if (!organization) {
+          return true;
+        }
+
+        // Navigating to a state outside of the current organization
+        return toState.parent !== 'management.organization' || toParams.organizationId !== organization.id;
       }
 
       function doLoad() {
@@ -203,16 +215,16 @@
       $scope.$on('resetIconCache', resetIconCache);
 
       //make sure user is aware they are about to lose changes
-      $scope.$on('pageChangeStarted', function(event, destination) {
-        if (isExternalDestination(destination)) {
+      $scope.$on('pageChangeStarted', function(event, toState, toParams) {
+        if (isExternalDestination(toState, toParams)) {
           if ($scope.isFormDirty() && !$scope.isPostingIcon) {
             event.preventDefault();
           }
         }
       });
 
-      $scope.$on('pageChangeAccepted', function(event, destination) {
-        if (isExternalDestination(destination)) {
+      $scope.$on('pageChangeAccepted', function(event, toState, toParams) {
+        if (isExternalDestination(toState, toParams)) {
           $scope.cancel();
         }
       });

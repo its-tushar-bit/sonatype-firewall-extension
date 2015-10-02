@@ -42,7 +42,7 @@
         </div>
       </div>
       <div ng-repeat="tags in tagHierarchy" class='tag-hierarchy'>
-        <div ng-if="tags.tags.length > 0">
+        <div ng-if="tags.tags.length > 0 || tags.editable">
           <div class="content-header">
             <h4 ng-switch='tags.editable'>
               <span ng-switch-when='true'>{{tags.ownerName}} Tags</span>

@@ -213,7 +213,8 @@ describe('ApplicationEditorController', function() {
 
     it('does not cancel edits when changing between tabs', function() {
       scope.selectedApplication.name = 'new_name';
-      e = scope.$broadcast('pageChangeAccepted', 'application/' + scope.selectedApplication.publicId);
+      e = scope.$broadcast('pageChangeAccepted', { parent: 'management.application' },
+          { applicationPublicId: scope.selectedApplication.publicId });
       expect(scope.selectedApplication.name).toEqual('new_name');
 
       e = scope.$broadcast('pageChangeAccepted', 'organization/');
@@ -429,7 +430,8 @@ describe('ApplicationEditorController', function() {
       expect(e.defaultPrevented).not.toBeTruthy();
 
       scope.selectedApplication.name = 'new_name';
-      e = scope.$broadcast('pageChangeStarted', 'application/' + scope.selectedApplication.publicId);
+      e = scope.$broadcast('pageChangeAccepted', { parent: 'management.application' },
+          { applicationPublicId: scope.selectedApplication.publicId });
       expect(e.defaultPrevented).not.toBeTruthy();
     });
 

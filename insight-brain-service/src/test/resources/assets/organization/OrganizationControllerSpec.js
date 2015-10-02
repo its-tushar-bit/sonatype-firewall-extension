@@ -292,13 +292,15 @@ describe('Tests for the OrganizationController', function() {
         expect(e.defaultPrevented).not.toBeTruthy();
 
         scope.selectedOrganization.name = 'new_name';
-        e = scope.$broadcast('pageChangeStarted', 'organization/' + scope.selectedOrganization.id);
+        e = scope.$broadcast('pageChangeStarted', { parent: 'management.organization' },
+            { organizationId: scope.selectedOrganization.id });
         expect(e.defaultPrevented).not.toBeTruthy();
       });
 
       it('does not cancel edits when changing between tabs', function() {
         scope.selectedOrganization.name = 'new_name';
-        e = scope.$broadcast('pageChangeAccepted', 'organization/' + scope.selectedOrganization.id);
+        e = scope.$broadcast('pageChangeStarted', { parent: 'management.organization' },
+            { organizationId: scope.selectedOrganization.id });
         expect(scope.selectedOrganization.name).toEqual('new_name');
 
         e = scope.$broadcast('pageChangeAccepted', 'organization/');

@@ -30,7 +30,7 @@
                  class='icon-remove label-remove' title="Delete {{label.label}}"></i>
             </span>
           </span>
-          <em ng-show='labels.length == 0'>No labels available</em>
+          <em ng-show='applicableLabel.labels.length == 0'>No labels available</em>
           <div ng-if='applicableLabel.editable'>
             <div clm-alerts='alerts'></div>
           </div>

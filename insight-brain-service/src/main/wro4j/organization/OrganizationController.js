@@ -178,7 +178,7 @@
         }
 
         // Navigating to a state outside of the current organization
-        return toState.parent !== 'management.organization' || toParams.organizationId !== organization.id;
+        return toState.parent.indexOf('management.organization') !== 0 || toParams.organizationId !== organization.id;
       }
 
       function doLoad() {

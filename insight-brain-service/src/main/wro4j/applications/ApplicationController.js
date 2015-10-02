@@ -160,7 +160,7 @@
             return true;
           }
           // Navigating to a state outside of the current application
-          return toState.parent !== 'management.application' || toParams.applicationPublicId !== application.publicId;
+          return toState.parent.indexOf('management.application') !== 0 || toParams.applicationPublicId !== application.publicId;
         }
         
         function assignAppSummary(data) {

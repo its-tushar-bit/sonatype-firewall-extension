@@ -723,6 +723,12 @@
       "licenseId": "GPL-UNSPECIFIED"
     },
     {
+      "id": "68bf70fe48004261b4e5d036db21cc77",
+      "ownerId": "ROOT_ORGANIZATION_ID",
+      "licenseThreatGroupId": "948496b7bcaa4fe69a302f03a0aac9cb",
+      "licenseId": "GPL-UNSPECIFIED-with-classpath-exception"
+    },
+    {
       "id": "bc33f9e4472b4223bc62bd69c799f106",
       "ownerId": "ROOT_ORGANIZATION_ID",
       "licenseThreatGroupId": "f8d270d2a70e4c579515b2e810031b55",

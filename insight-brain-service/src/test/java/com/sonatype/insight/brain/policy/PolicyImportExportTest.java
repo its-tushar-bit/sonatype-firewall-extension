@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -626,7 +625,7 @@ public class PolicyImportExportTest
 
     policyExportResult.licenseThreatGroupLicenses = new ArrayList<>();
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense();
-    licenseThreatGroupLicense.setId(UUID.randomUUID().toString());
+    licenseThreatGroupLicense.setId("ltglId");
     licenseThreatGroupLicense.setLicenseId("Apache-2.0");
     licenseThreatGroupLicense.setLicenseThreatGroupId(licenseThreatGroup.getId());
     licenseThreatGroupLicense.setOwnerId(toOrg.getId());
@@ -634,14 +633,14 @@ public class PolicyImportExportTest
 
     policyExportResult.policies = new ArrayList<>();
     Policy policy = new Policy();
-    policy.setId(UUID.randomUUID().toString());
+    policy.setId("policyId");
     policy.setName("DummyPolicy");
     policy.setOwnerId(toOrg.getId());
     policy.setEnabled(true);
     policy.setThreatLevel(5);
     List<Constraint> constraints = new ArrayList<>();
     Constraint constraint = new Constraint();
-    constraint.setId(UUID.randomUUID().toString());
+    constraint.setId("constraintId");
     constraint.setName("DummyConstraint");
     constraint.setEnabled(true);
     List<Condition> conditions = new ArrayList<>();
@@ -656,7 +655,7 @@ public class PolicyImportExportTest
     assertThat(policyImportResult.ownerName, is(toOrg.getName()));
 
     // must be null as the value in the parent should be used
-    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), "DummyLTG"), nullValue());
+    assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), parentLTG.getName()), nullValue());
     assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(toOrg.getId()), empty());
 
     List<Policy> policies = policyDAO.getByOwnerId(toOrg.getId());

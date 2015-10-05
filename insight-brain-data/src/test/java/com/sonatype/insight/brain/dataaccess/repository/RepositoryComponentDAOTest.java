@@ -119,4 +119,19 @@ public class RepositoryComponentDAOTest
     assertThat(actual.getLastEvaluationTime(), is(lastEvaluationTime));
     assertThat(actual.isCanBeQuarantined(), is(canBeQuarantined));
   }
+
+  @Test
+  public void testGetQuarantinedComponentCountByRepositoryId() {
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(0));
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", new Date(), null);
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(1));
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), null);
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
+    //unquarantined component, so shouldn't add to to total
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined3", new Date(), new Date());
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
+    //not a quarantined item, shouldn't add to count
+    tempEntity.newRepositoryComponent(repository.getId(), "/notquarantined", null, null);
+    assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
+  }
 }

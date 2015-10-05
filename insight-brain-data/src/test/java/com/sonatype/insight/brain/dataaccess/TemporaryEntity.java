@@ -1042,9 +1042,17 @@ public class TemporaryEntity
   }
 
   public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname) {
+    return newRepositoryComponent(repositoryId, pathname, null, null);
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname, Date quarantineTime,
+      Date unquarntineTime)
+  {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(), "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+    repositoryComponent.setQuarantineTime(quarantineTime);
+    repositoryComponent.setUnquarantineTime(unquarntineTime);
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;
   }

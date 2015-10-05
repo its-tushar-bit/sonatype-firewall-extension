@@ -27,9 +27,9 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -111,7 +111,7 @@ public class RepositoryService
     }
   }
 
-  public PolicyEvaluationSummary getPolicyEvaluationSummary(final String repositoryManagerInstanceId,
+  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(final String repositoryManagerInstanceId,
       final String repositoryPublicId)
   {
     checkLicenseFeature();
@@ -131,7 +131,7 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  PolicyEvaluationSummary getPolicyEvaluationSummary(@AuthzContext(Key.REPOSITORY) final Repository repository)
+  RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@AuthzContext(Key.REPOSITORY) final Repository repository)
   {
     return getPolicyEvaluationSummaryInternal(repository);
   }
@@ -445,16 +445,17 @@ public class RepositoryService
     summary.knownComponentCount = repositoryComponentDAO.getKnownComponentCountByRepositoryId(repository.getId());
     summary.totalComponentCount = repositoryComponentDAO.getComponentCountByRepositoryId(repository.getId());
 
-    PolicyEvaluationSummary policyEvalSummary = this.getPolicyEvaluationSummaryInternal(repository);
+    RepositoryPolicyEvaluationSummary policyEvalSummary = this.getPolicyEvaluationSummaryInternal(repository);
     summary.criticalComponentCount = policyEvalSummary.getCriticalComponentCount();
     summary.severeComponentCount = policyEvalSummary.getSevereComponentCount();
     summary.moderateComponentCount = policyEvalSummary.getModerateComponentCount();
     summary.affectedComponentCount = policyEvalSummary.getAffectedComponentCount();
+    summary.quarantinedComponentCount = policyEvalSummary.getQuarantinedComponentCount();
 
     return summary;
   }
 
-  private PolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {
+  private RepositoryPolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndNotWaived(repository.getId());
 
@@ -481,11 +482,13 @@ public class RepositoryService
       }
     }
 
-    PolicyEvaluationSummary policyEvaluationSummary = new PolicyEvaluationSummary();
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary = new RepositoryPolicyEvaluationSummary();
     policyEvaluationSummary.setCriticalComponentCount(criticalCount);
     policyEvaluationSummary.setSevereComponentCount(severeCount);
     policyEvaluationSummary.setModerateComponentCount(moderateCount);
     policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
+    policyEvaluationSummary.setQuarantinedComponentCount(
+        repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId()));
 
     policyEvaluationSummary.setReportUrl(UserInterfaceLinksResource.getRepositoryReportUrl(
         repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId(), repository.getPublicId()));

@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -259,7 +259,10 @@ public class RepositoryServiceTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4",
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
 
-    PolicyEvaluationSummary policyEvaluationSummary =
+    // And a quarantined component
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined", new Date(), null);
+
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary =
         repositoryService.getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
@@ -267,6 +270,7 @@ public class RepositoryServiceTest
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getReportUrl(),
         is("ui/links/repository/" + REPO_MAN_INSTANCE_ID + "/" + REPO_PUBLIC_ID + "/report"));
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
   }
 
   @Test
@@ -279,7 +283,7 @@ public class RepositoryServiceTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, "path1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
 
-    PolicyEvaluationSummary policyEvaluationSummary =
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary =
         repositoryService.getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
@@ -295,7 +299,7 @@ public class RepositoryServiceTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1", false, true, "policyId2", "policyName2",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
 
-    PolicyEvaluationSummary policyEvaluationSummary =
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary =
         repositoryService.getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
@@ -1137,15 +1141,18 @@ public class RepositoryServiceTest
     tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, component3.getPathname(), null);
     tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
 
+    tempEntity.newRepositoryComponent(repo.getId(), "/quarantined", new Date(), null);
+
     RepositoryReportSummary summary = repositoryService.getReportSummary(repositoryManager.getInstanceId(),
         repo.getPublicId());
 
-    assertThat(summary.knownComponentCount, is(4));
-    assertThat(summary.totalComponentCount, is(5));
+    assertThat(summary.knownComponentCount, is(5));
+    assertThat(summary.totalComponentCount, is(6));
     assertThat(summary.criticalComponentCount, is(1));
     assertThat(summary.severeComponentCount, is(2));
     assertThat(summary.moderateComponentCount, is(0));
     assertThat(summary.affectedComponentCount, is(3));
+    assertThat(summary.quarantinedComponentCount, is(1));
   }
 
   @Test

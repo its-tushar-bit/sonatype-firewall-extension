@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 
 import com.yammer.metrics.annotation.Timed;
 
@@ -67,7 +67,7 @@ public class RepositoryResource
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public PolicyEvaluationSummary getPolicyEvaluationSummary(
+  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId)
   {

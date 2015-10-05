@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.Date;
+
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -85,16 +87,18 @@ public class RepositoryResourceTest
         ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4",
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+    tempEntity.newRepositoryComponent(repository.getId(), "/blah", new Date(), null);
 
     HttpResponse response = summaryRequest().
         parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
 
     assertResponseStatus(200, response);
-    PolicyEvaluationSummary policyEvaluationSummary = response.getBody(PolicyEvaluationSummary.class);
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary = response.getBody(RepositoryPolicyEvaluationSummary.class);
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(3));
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
   }
 
   @Test

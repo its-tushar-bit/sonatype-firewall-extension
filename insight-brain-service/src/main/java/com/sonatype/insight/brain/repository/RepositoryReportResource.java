@@ -55,5 +55,7 @@ public class RepositoryReportResource
     public int moderateComponentCount;
 
     public int affectedComponentCount;
+
+    public int quarantinedComponentCount;
   }
 }

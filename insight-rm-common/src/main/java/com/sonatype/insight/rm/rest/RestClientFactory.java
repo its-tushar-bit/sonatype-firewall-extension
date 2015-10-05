@@ -16,10 +16,10 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
@@ -180,7 +180,7 @@ public class RestClientFactory
     }
 
     @Override
-    public PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
+    public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
       return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).getPolicyEvaluationSummary();
     }
 

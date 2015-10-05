@@ -12,7 +12,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.ScanClient;
@@ -203,11 +203,12 @@ public class RestClientFactoryTest
 
   @Test
   public void testRestClientRepository_GetPolicyEvaluationSummary() throws Exception {
-    PolicyEvaluationSummary policyEvaluationSummary = new PolicyEvaluationSummary();
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary = new RepositoryPolicyEvaluationSummary();
     policyEvaluationSummary.setAffectedComponentCount(3);
     policyEvaluationSummary.setCriticalComponentCount(1);
     policyEvaluationSummary.setSevereComponentCount(1);
     policyEvaluationSummary.setModerateComponentCount(1);
+    policyEvaluationSummary.setQuarantinedComponentCount(2);
 
     final FirewallClient firewallClient = mock(FirewallClient.class);
     when(firewallClient.getPolicyEvaluationSummary()).thenReturn(policyEvaluationSummary);

@@ -80,10 +80,42 @@
       </div>
     </div>
 
-    <div class="tile" id="owner-pill-ltgs">
-      <h2>License Threat Groups</h2>
-      <div class="sub-header">a description</div>
+
+    <div class="tile" id="owner-pill-ltgs" ng-controller="LicenseThreatGroupTileController as vm">
+      <div load-wrapper="vm.error"
+           loading="!(vm.ownerName && vm.applicableLicenseGroups)"
+           reload="vm.doLoad()">
+        <h2><i class="fa fa-book size-20px slate"></i>License Threat Groups</h2>
+        <div class="sub-header">
+          available to {{vm.ownerName}} policies
+        </div>
+
+        <div class="simple-list" ng-repeat="ownerLicenseGroupList in vm.applicableLicenseGroups">
+          <h4 class="subsection-header" ng-if="!ownerLicenseGroupList.inherited && (ownerLicenseGroupList.licenseThreatGroups.length > 0 || ownerLicenseGroupList.ownerType !== 'application')">Local
+            <button class="btn btn-tertiary" ng-if="ownerLicenseGroupList.ownerType !== 'application'">
+              <i class="fa fa-plus"></i>Add a Threat Group
+            </button>
+          </h4>
+          <h4 class="subsection-header" ng-if="ownerLicenseGroupList.inherited && ownerLicenseGroupList.licenseThreatGroups.length > 0">
+              Inherited from {{ownerLicenseGroupList.ownerName}}
+          </h4>
+          <div class="empty-list" ng-if="!ownerLicenseGroupList.inherited && ownerLicenseGroupList.licenseThreatGroups.length <= 0 && ownerLicenseGroupList.ownerType !== 'application'">
+            No local threat groups defined
+          </div>
+          <ul>
+            <li class="simple clickable" ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups">
+              <span class='threat-legend threat-level-{{licenseThreatGroup.threatLevel}}'>&nbsp;</span>
+
+              <div class="threat-group-title">
+                {{licenseThreatGroup.name}}
+              </div>
+              <i class="fa fa-chevron-right"></i>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
+
     <div class="tile" id="owner-pill-access">
       <h2>Access</h2>
       <div class="sub-header">a description</div>

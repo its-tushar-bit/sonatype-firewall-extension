@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.client;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import com.sonatype.clm.dto.model.License;
@@ -15,7 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -135,13 +136,15 @@ public class FirewallClientTest
         ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4",
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined", new Date(), null);
 
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId());
-    PolicyEvaluationSummary policyEvaluationSummary = client.getPolicyEvaluationSummary();
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary = client.getPolicyEvaluationSummary();
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(3));
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
   }
 
   @Test

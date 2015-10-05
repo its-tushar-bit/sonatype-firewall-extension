@@ -9,7 +9,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -118,7 +118,7 @@ public class FirewallClient
     }
   }
 
-  public PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
+  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
     Result result = getRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH));
     int status = result.status();
     if (status >= 300) {
@@ -128,7 +128,7 @@ public class FirewallClient
 
     final String jsonResult = result.text();
     try {
-      return JsonUtils.parse(jsonResult, PolicyEvaluationSummary.class);
+      return JsonUtils.parse(jsonResult, RepositoryPolicyEvaluationSummary.class);
     }
     catch (final IOException e) {
       throw new IOException("Could not parse: " + jsonResult, e);

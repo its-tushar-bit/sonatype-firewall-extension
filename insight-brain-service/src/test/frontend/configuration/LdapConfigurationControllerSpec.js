@@ -34,8 +34,9 @@ describe('Tests for the LdapConfigurationController', function() {
       spyOn($state, 'transitionTo').andReturn(false);
 
       scope = $rootScope.$new();
-      scope.ldapNameForm = {
-        $save : angular.noop
+      scope.$$childHead = scope.$new();
+      scope.$$childHead.ldapNameForm = {
+        $save: angular.noop
       };
       state = $state;
 

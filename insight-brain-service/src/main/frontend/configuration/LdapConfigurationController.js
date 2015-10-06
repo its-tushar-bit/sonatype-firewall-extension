@@ -13,7 +13,7 @@
   }
 
   var module = angular.module('LdapConfiguration',
-  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
+  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration', 'EditorTools'],
   ['$stateProvider', function($stateProvider) {
     $stateProvider.state('ldap', {
       url: '/ldap',
@@ -169,7 +169,11 @@
       };
 
       $scope.save = function() {
-        $scope.ldapNameForm.$save();
+        $scope.$$childHead.ldapNameForm.$save();
+
+        if (!isDirty() || $scope.$$childHead.ldapNameForm.$invalid) {
+          return;
+        }
         $scope.saving = true;
         $scope.ldap.$save().then(function() {
           $scope.saving = false;

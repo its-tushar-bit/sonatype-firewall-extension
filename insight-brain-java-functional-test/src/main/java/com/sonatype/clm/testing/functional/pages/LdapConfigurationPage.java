@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LdapConfigurationPage
 {
-  public static String URL = "assets/index.html#/ldap";
+  public static String URL = "new/assets/index.html#/ldap";
 
   public static SelenideElement root() {
     return $("*[ng-show=ldap]");

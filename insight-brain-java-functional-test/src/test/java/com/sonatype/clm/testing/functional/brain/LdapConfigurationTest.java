@@ -64,7 +64,7 @@ public class LdapConfigurationTest
     ldapName.getElement().should(appear);
     ldapName.getElement().shouldBe(visible);
 
-    LdapConfigurationPage.nameSaveButton().shouldBe(visible, disabled);
+    LdapConfigurationPage.nameSaveButton().shouldBe(visible);
     LdapConfigurationPage.nameCancelButton().shouldBe(visible);
 
     ldapName.setValue("CLM Ldap Server");

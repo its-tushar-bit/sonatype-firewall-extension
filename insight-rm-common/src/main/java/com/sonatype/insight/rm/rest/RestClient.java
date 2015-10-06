@@ -14,10 +14,10 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.Resource;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 
 public interface RestClient
 {
@@ -72,6 +72,6 @@ public interface RestClient
     RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
         final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
 
-    PolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
+    RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
   }
 }

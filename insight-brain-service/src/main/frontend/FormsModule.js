@@ -7,6 +7,33 @@
 (function() {
   'use strict';
 
+  var applyInitialValue = function () {
+    return {
+      restrict: 'E',
+      link: function (scope, element, attrs) {
+        if (element.parents('.clm-form').length > 0) {
+          var initialValue;
+
+          scope.$watch(attrs.ngModel, function (newVal) {
+            if (initialValue === undefined) {
+              initialValue = newVal || '';
+            }
+          });
+
+          element.addClass('initial-value');
+          element.on('input', function () {
+            if ($(this).val() === initialValue) {
+              element.addClass('initial-value');
+            }
+            else {
+              element.removeClass('initial-value');
+            }
+          });
+        }
+      }
+    };
+  };
+
   var module = angular.module('FormsModule', ['AngularCommon'])
   /**
    * Watches for changes to the input validity and shows a popover above the input field if invalid input is seen, or
@@ -278,30 +305,8 @@
   }]);
 
   // Add class when input value changes to help avoid double lines
-  module.directive('input', [function () {
-    return {
-      restrict: 'E',
-      link: function (scope, element, attrs) {
-        if (element.parents('.clm-form').length > 0) {
-          var initialValue;
+  module.directive('input', [applyInitialValue]);
 
-          scope.$watch(attrs.ngModel, function (newVal) {
-            if (initialValue === undefined) {
-              initialValue = newVal || '';
-            }
-          });
-
-          element.addClass('initial-value');
-          element.on('input', function () {
-            if ($(this).val() === initialValue) {
-              element.addClass('initial-value');
-            }
-            else {
-              element.removeClass('initial-value');
-            }
-          });
-        }
-      }
-    };
-  }]);
+  // The same for text areas
+  module.directive('textarea', [applyInitialValue]);
 }());

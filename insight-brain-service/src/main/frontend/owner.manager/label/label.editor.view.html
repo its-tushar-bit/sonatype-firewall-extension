@@ -1,10 +1,10 @@
 <div id="label-editor" class="tile-editor-container">
-  <div class="tile">
+  <div class="tile" load-wrapper="vm.error" loading="!vm.dirtyLabel" reload="vm.doLoad()">
     <h2>
       <i class="fa size-20px fa-tag outline">
-      </i> {{vm.dirtyLabel.id ? 'Edit' : 'New'}} Component Label
+      </i>{{vm.dirtyLabel.id ? 'Edit' : 'New'}} Component Label
     </h2>
-    <div id="labelEditorWrapper" load-wrapper="vm.error" loading="!vm.dirtyLabel" reload="vm.doLoad()" >
+    <div id="labelEditorWrapper">
       <form name="labelEditor" class="clm-form" role="form" ng-submit="labelEditor.$valid && vm.save()" >
           <div class="section">
             <div class="field">
@@ -33,9 +33,8 @@
           </button><!--
        --><button type="submit" class="btn btn-error" ng-if="vm.error" ng-disabled="labelEditor.$invalid">
             <i class="fa fa-refresh"></i>Retry
-          </button><!--   
-        --><button type="button" class='btn btn-tertiary' ng-click="vm.reset()" ng-disabled="!vm.dirtyLabel.isDirty()">Reset</button>
-          <button id="delete-label-button" class='btn btn-tertiary' type="button"
+          </button><!--
+       --><button id="delete-label-button" class='btn btn-tertiary' type="button"
                   ng-click="vm.deleteLabel()" ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new">
             <i class="fa fa-fw fa-trash"></i> Delete Component Label
           </button>

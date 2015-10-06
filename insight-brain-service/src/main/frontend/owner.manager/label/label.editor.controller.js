@@ -14,7 +14,6 @@
     vm.doLoad = doLoad;
     vm.error = undefined;
     vm.siblings = [];
-    vm.reset = reset;
     vm.save = save;
 
     vm.doLoad();
@@ -44,10 +43,6 @@
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
       });
-    }
-
-    function reset() {
-      vm.dirtyLabel.$revert();
     }
 
     function save() {

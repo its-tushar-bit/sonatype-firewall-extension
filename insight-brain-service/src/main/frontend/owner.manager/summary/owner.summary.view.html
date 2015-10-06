@@ -65,14 +65,13 @@
             No local component labels defined
           </div>
           <ul>
-            <li ng-class="label.description ? 'with-subtitle' : 'simple'" ng-repeat="label in ownerLabelList.labels">
+            <li ng-class="label.description ? 'with-subtitle' : 'simple'" ng-repeat="label in ownerLabelList.labels" ui-sref="^.edit-label({ labelId: label.id })">
               <div class="title">
                 <i class="fa fa-tag size-16px {{label.color}}"></i>
                 {{label.label}}
               </div>
               <div class="subtitle" ng-if="label.description">{{label.description}}</div>
               <i class="fa fa-chevron-right"
-                 ui-sref="^.edit-label({ labelId: label.id })"
                  ng-if="!ownerLabelList.inherited"></i>
             </li>
           </ul>

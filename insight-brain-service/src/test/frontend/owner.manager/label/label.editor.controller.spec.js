@@ -52,17 +52,6 @@ describe('label.editor.controller.spec.js', function() {
     expect(vm.error).toBeDefined();
   })
 
-  it('Resets the label', function() {
-    inject(function($controller) {
-      vm = $controller('label.editor.controller', {$stateParams: {labelId:'123'}});
-    });
-    mockLabel.id = '123';
-    mockLabelStore.resolveGet([mockLabel]);
-    $timeout.flush();
-    vm.reset();
-    expect(vm.dirtyLabel.$revert).toHaveBeenCalled();
-  })
-
   it('Unsuccessful save sets error message', function() {
     mockLabelStore.resolveGet([]);
     $timeout.flush();

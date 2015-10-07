@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.audit;
 
+import java.util.Date;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
@@ -54,6 +56,9 @@ public class RepositoryReportTest
     tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, "9", null);
     tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, "10", null);
 
+    tempEntity.newRepositoryComponent(repo.getId(), "quarantined1", new Date(), null);
+    tempEntity.newRepositoryComponent(repo.getId(), "quarantined2", new Date(), null);
+
     open(RepositoryReportPage.url(repoManager.getInstanceId(), repo.getPublicId()));
 
     RepositoryReportPage.Summary.root().shouldBe(visible);
@@ -62,9 +67,10 @@ public class RepositoryReportTest
     RepositoryReportPage.Summary.severeCount().shouldBe(visible).shouldHave(text("2"));
     RepositoryReportPage.Summary.criticalCount().shouldBe(visible).shouldHave(text("3"));
     RepositoryReportPage.Summary.violatingComponentsCount().shouldBe(visible).shouldHave(text("6"));
+    RepositoryReportPage.Summary.quarantinedCount().shouldBe(visible).shouldHave(text("2"));
 
-    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("1"));
-    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("50"));
+    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("3"));
+    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("75"));
   }
 
   @Test
@@ -76,5 +82,6 @@ public class RepositoryReportTest
     RepositoryReportPage.Summary.noPolicyViolations().shouldBe(visible).shouldHave(text("0"));
     RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("0"));
     RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("0"));
+    RepositoryReportPage.Summary.quarantinedCount().shouldBe(visible).shouldHave(text("0"));
   }
 }

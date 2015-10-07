@@ -537,3 +537,9 @@ body {
   max-height: 400px;
   overflow: auto;
 }
+
+.violation-container {
+  display: inline-block;
+  padding-right: 10px;
+  vertical-align: top;
+}

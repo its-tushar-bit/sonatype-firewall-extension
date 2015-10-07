@@ -45,7 +45,7 @@ public class RepositoryReportPage
     }
 
     public static SelenideElement violatingComponentsCount() {
-      return root().find(".span21 .value_sml");
+      return root().find("#policyViolationContainer .value_sml");
     }
 
     public static SelenideElement noPolicyViolations() {
@@ -58,6 +58,10 @@ public class RepositoryReportPage
 
     public static SelenideElement identifiedPercent() {
       return root().find(".header-container .value_sml");
+    }
+
+    public static SelenideElement quarantinedCount() {
+      return root().find("#quarantineContainer .value_lrg .bdg");
     }
   }
 }

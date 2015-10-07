@@ -38,7 +38,7 @@
               </span>
             </div>
             <div class="span21" tooltip="A policy alert advises you of components that violate one or more policies within the application." tooltip-placement="bottom">
-              <div ng-if="policyViolationCount > 0">
+              <div id="policyViolationContainer" class="violation-container" ng-if="policyViolationCount > 0">
                 <div class="value_lrg pval">
                   <span class="pv-red" ng-if="criticalComponentCount">
                     <span class="bdg">{{criticalComponentCount}}</span>
@@ -53,9 +53,15 @@
                 <div class="label_med">POLICY ALERT{{policyViolationCount > 0 ? 'S' : ''}}</div>
                 <div class="label_sml">AFFECTING <span class="value_sml">{{affectedComponentCount}}</span> COMPONENT{{affectedComponentCount > 0 ? 'S' : ''}}</div>
               </div>
-              <div ng-if="policyViolationCount === 0">
+              <div class="violation-container" ng-if="policyViolationCount === 0">
                 <div class="value_lrg pval">0</div>
                 <div class="label_med">POLICY ALERTS</div>
+              </div>
+              <div id="quarantineContainer" class="violation-container">
+                <div class="value_lrg">
+                  <span class="bdg">{{quarantinedComponentCount}}</span>
+                </div>
+                <div class="label_med">QUARANTINED COMPONENT{{quarantinedComponentCount != 1 ? 'S' : ''}}</div>
               </div>
             </div>
           </div>

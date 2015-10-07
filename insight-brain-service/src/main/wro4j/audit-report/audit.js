@@ -25,6 +25,7 @@
         $scope.severeComponentCount = data.severeComponentCount;
         $scope.moderateComponentCount = data.moderateComponentCount;
         $scope.affectedComponentCount = data.affectedComponentCount;
+        $scope.quarantinedComponentCount = data.quarantinedComponentCount;
 
         $scope.policyViolationCount = data.criticalComponentCount + data.severeComponentCount + data.moderateComponentCount;
       }).error(function () {

@@ -68,27 +68,7 @@
         </div>
       </div>
 
-      <div id="componentcontainer" style="width:100%;padding-top:5px">
-        <div class="sectionBorder">
-          <div class="pull-right" id="policy-violation-filter">
-            <h4>Violations:</h4>
-            <ul class="nav nav-pills">
-              <li class="active"><a href="#">Summary</a></li>
-              <li><a href="#">All</a></li>
-              <li><a href="#">Waived</a></li>
-            </ul>
-          </div>
-          <h4>Filter:</h4>
-          <ul class="nav nav-pills" id="policy-match-state-filter">
-            <li class="active"><a href="#">All</a></li>
-            <li><a href="#">Exact</a></li>
-            <li><a href="#">Unknown</a></li>
-            <li><a href="#">Proprietary</a></li>
-          </ul>
-          <div audit-threat class='borderedTable'></div>
-          <div id="componentTablePager"></div>
-        </div>
-      </div>
+      <div id="componentcontainer" style="width:100%;padding-top:5px" audit-threat></div>
     </div>
 <script type="text/x-mustache-template" id="errorTemplate">
 <div class='alert alert-error fade in' style='margin:auto;margin-top:20px;padding-top:5px;width:50%'>

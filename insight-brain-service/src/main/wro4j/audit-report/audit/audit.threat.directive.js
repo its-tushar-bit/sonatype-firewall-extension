@@ -176,17 +176,32 @@
       controller : ['$scope', 'Repository', '$http', function ($scope, Repository, $http) {
         var vm = this;
 
-        vm.doLoad = function () {
+        vm.error = undefined;
+        vm.grid = undefined;
+
+        vm.doLoad = doLoad;
+
+        function doLoad() {
           delete vm.error;
 
           $http.get('/rest/repositories/' + Repository.managerInstanceId + '/' + Repository.publicId + '/report/details').success(function (data) {
             vm.grid = createTable(data);
+            setFilter();
           }).error(function () {
             vm.error = arguments;
           });
-        };
+        }
+
+        function setFilter() {
+          if (vm.grid && vm.filter) {
+            vm.grid.dataView.setFilterArgs(vm.filter);
+            vm.grid.dataView.refresh();
+          }
+        }
 
         vm.doLoad();
+
+        $scope.$watch('vm.filter', setFilter);
 
         $scope.$on('$destroy', function () {
           if (vm.grid) {

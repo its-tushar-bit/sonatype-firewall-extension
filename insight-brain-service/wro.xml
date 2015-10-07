@@ -261,5 +261,6 @@
     <group-ref>cip-loader-core</group-ref>
     <js>/audit-report/audit/audit.js</js>
     <js>/audit-report/audit/audit.threat.directive.js</js>
+    <js>/audit-report/audit/repository.violation.table.filter.directive.js</js>
   </group>
 </groups>

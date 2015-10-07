@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Filter;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Row;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Table;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -93,12 +94,13 @@ public class RepositoryReportTest
   }
 
   @Test
-  public void testPolicyViolationTable() throws Exception {
+  public void testPage() throws Exception {
     // one no violation, unknown
-    RepositoryComponent unknownComponent = tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
+    UNKNOWN = new ExpectedRow(Table.noThreat, "No violations", component.getPathname(), false, false);
 
     // one of each threat level
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
+    component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("ignored", "threat", "1.0."));
     tempEntity.newRepositoryPolicyViolation(component, 1, false, "Meh");
 
@@ -131,46 +133,160 @@ public class RepositoryReportTest
 
     open(RepositoryReportPage.url(repoManager.getInstanceId(), repo.getPublicId()));
 
-    Table.rows().shouldHaveSize(8);
+    testReportSummary();
 
-    assertRow(Table.row(0), Table.criticalThreat, "Extremely Bad", "critical : threat : 1.0",
-        false, false);
-    assertRow(Table.row(1), Table.criticalThreat, "", "quarantined : component : 1.0", false, true);
-    assertRow(Table.row(2), Table.criticalThreat, "", "waived : threat : 1.0", true, false);
+    // Default filter settings
+    Filter.allMatchState().shouldBe(Filter.active);
+    Filter.summaryViolations().shouldBe(Filter.active);
 
-    assertRow(Table.row(3), Table.criticalThreat, "Not in summary", "critical : threat : 1.0",
-        false, false);
+    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, UNKNOWN);
 
-    assertRow(Table.row(4), Table.severeThreat, "Really Bad", "severe : threat : 1.0", false,
-        false);
+    testExactMatchesFilter();
+    testUnknownMatchesFilter();
 
-    assertRow(Table.row(5), Table.moderateThreat, "Sorta Bad", "moderate : threat : 1.0", false,
-        false);
-
-    assertRow(Table.row(6), Table.ignoredScore, "Meh", "ignored : threat : 1.0", false, false);
-
-    // TODO should this not be the path?
-    assertRow(Table.row(7), Table.noThreat, "No violations", unknownComponent.getPathname(), false, false);
+    testAllViolationsFilter();
+    testWaivedFilter();
+    testQuarantinedFilter();
   }
 
-  private static void assertRow(Row actualRow, Condition threatLevel, String policyName, String componentName,
-      boolean waived, boolean quarantined)
-  {
-    actualRow.policy().shouldHave(threatLevel, text(policyName));
-    actualRow.component().shouldHave(text(componentName));
+  private void testReportSummary() {
+    RepositoryReportPage.Summary.root().shouldBe(visible);
 
-    if (waived) {
+    RepositoryReportPage.Summary.moderateCount().shouldBe(visible).shouldHave(text("1"));
+    RepositoryReportPage.Summary.severeCount().shouldBe(visible).shouldHave(text("1"));
+    RepositoryReportPage.Summary.criticalCount().shouldBe(visible).shouldHave(text("2"));
+    RepositoryReportPage.Summary.violatingComponentsCount().shouldBe(visible).shouldHave(text("4"));
+
+    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("6"));
+    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("86"));
+  }
+
+  private void testUnknownMatchesFilter() {
+    Filter.unknownMatchStateButton().click();
+    Filter.unknownMatchState().shouldBe(Filter.active);
+
+    assertRows(UNKNOWN);
+
+    resetFilter();
+  }
+
+  private void testExactMatchesFilter() {
+    Filter.exactMatchStateButton().click();
+    Filter.exactMatchState().shouldBe(Filter.active);
+
+    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW);
+
+    resetFilter();
+  }
+
+  private void testAllViolationsFilter() {
+    Filter.allViolationsButton().click();
+    Filter.allViolations().shouldBe(Filter.active);
+
+    assertRows(CRITICAL_ROW, QUARANTINED, WAIVED, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
+        UNKNOWN);
+    resetFilter();
+  }
+
+  private void testWaivedFilter() {
+    Filter.waivedViolationsButton().click();
+    Filter.waivedViolations().shouldBe(Filter.active);
+
+    assertRows(WAIVED);
+    resetFilter();
+  }
+
+  private void testQuarantinedFilter() {
+    Filter.quarantinedViolationsButton().click();
+    Filter.quarantinedViolations().shouldBe(Filter.active);
+
+    assertRows(QUARANTINED);
+    resetFilter();
+  }
+
+  private void resetFilter() {
+    Filter.allMatchStateButton().click();
+    Filter.summaryViolationsButton().click();
+    Filter.allMatchState().shouldBe(Filter.active);
+    Filter.summaryViolations().shouldBe(Filter.active);
+  }
+
+  private static void assertRows(ExpectedRow... expectedRows) {
+    Table.rows().shouldHaveSize(expectedRows.length);
+
+    String previousPolicyName = null;
+    for (int i = 0; i < expectedRows.length; i++) {
+      assertRow(Table.row(i), expectedRows[i], expectedRows[i].policyName.equals(previousPolicyName));
+      previousPolicyName = expectedRows[i].policyName;
+    }
+  }
+
+  private static void assertRow(Row actualRow, ExpectedRow expectedRow, boolean shouldBeGrouped) {
+    actualRow.policy().shouldHave(expectedRow.threatLevel);
+    if (shouldBeGrouped) {
+      actualRow.policy().shouldHave(text(""));
+    }
+    else {
+      actualRow.policy().shouldHave(text(expectedRow.policyName));
+    }
+    actualRow.component().shouldHave(text(expectedRow.componentName));
+
+    if (expectedRow.waived) {
       actualRow.waived().shouldBe(present);
     }
     else {
       actualRow.waived().shouldNotBe(present);
     }
 
-    if (quarantined) {
+    if (expectedRow.quarantined) {
       actualRow.quarantined().shouldBe(present);
     }
     else {
       actualRow.quarantined().shouldNotBe(present);
+    }
+  }
+
+  private ExpectedRow UNKNOWN;
+
+  private final ExpectedRow QUARANTINED = new ExpectedRow(Table.criticalThreat, "Extremely Bad",
+      "quarantined : component : 1.0", false, true);
+
+  private final ExpectedRow WAIVED = new ExpectedRow(Table.criticalThreat, "Extremely Bad", "waived : threat : 1.0",
+      true, false);
+
+  private final ExpectedRow CRITICAL_ROW = new ExpectedRow(Table.criticalThreat, "Extremely Bad",
+      "critical : threat : 1.0", false, false);
+
+  private final ExpectedRow CRITICAL_ROW_SECONDARY = new ExpectedRow(Table.criticalThreat, "Not In Summary",
+      "critical : threat : 1.0", false, false);
+
+  private final ExpectedRow SEVERE_ROW = new ExpectedRow(Table.severeThreat, "Really Bad", "severe : threat : 1.0",
+      false, false);
+
+  private final ExpectedRow MODERATE_ROW = new ExpectedRow(Table.moderateThreat, "Sorta Bad", "moderate : threat : 1.0",
+      false, false);
+
+  private final ExpectedRow IGNORED_ROW = new ExpectedRow(Table.ignoredScore, "Meh", "ignored : threat : 1.0", false,
+      false);
+
+  private static class ExpectedRow
+  {
+    Condition threatLevel;
+
+    String policyName;
+
+    String componentName;
+
+    boolean waived;
+
+    boolean quarantined;
+
+    ExpectedRow(Condition threatLevel, String policyName, String componentName, boolean waived, boolean quarantined) {
+      this.threatLevel = threatLevel;
+      this.policyName = policyName;
+      this.componentName = componentName;
+      this.waived = waived;
+      this.quarantined = quarantined;
     }
   }
 }

@@ -71,6 +71,62 @@ public class RepositoryReportPage
   public static class Filter
   {
     public static final Condition active = cssClass("active");
+
+    public static SelenideElement allMatchState() {
+      return $("#all-matches");
+    }
+
+    public static SelenideElement exactMatchState() {
+      return $("#exact-matches");
+    }
+
+    public static SelenideElement unknownMatchState() {
+      return $("#unknown-matches");
+    }
+
+    public static SelenideElement summaryViolations() {
+      return $("#summary-violations");
+    }
+
+    public static SelenideElement allViolations() {
+      return $("#all-violations");
+    }
+
+    public static SelenideElement waivedViolations() {
+      return $("#waived-violations");
+    }
+
+    public static SelenideElement quarantinedViolations() {
+      return $("#quarantined-violations");
+    }
+
+    public static SelenideElement allMatchStateButton() {
+      return allMatchState().find("a");
+    }
+
+    public static SelenideElement exactMatchStateButton() {
+      return exactMatchState().find("a");
+    }
+
+    public static SelenideElement unknownMatchStateButton() {
+      return unknownMatchState().find("a");
+    }
+
+    public static SelenideElement summaryViolationsButton() {
+      return summaryViolations().find("a");
+    }
+
+    public static SelenideElement allViolationsButton() {
+      return allViolations().find("a");
+    }
+
+    public static SelenideElement waivedViolationsButton() {
+      return waivedViolations().find("a");
+    }
+
+    public static SelenideElement quarantinedViolationsButton() {
+      return quarantinedViolations().find("a");
+    }
   }
 
   public static class Table

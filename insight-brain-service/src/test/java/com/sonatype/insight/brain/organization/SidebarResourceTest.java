@@ -7,12 +7,10 @@ package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;

@@ -14,13 +14,10 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
-
 import static com.codeborne.selenide.Condition.visible;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.organization;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -15,10 +14,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class SidebarServiceAuthzTest
     extends AbstractServiceAuthzTest

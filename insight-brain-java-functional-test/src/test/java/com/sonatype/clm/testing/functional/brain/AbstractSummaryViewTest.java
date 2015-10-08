@@ -213,7 +213,7 @@ public abstract class AbstractSummaryViewTest
 
   private int getHierarchySize(String ownerId) {
     int hierarchySize = 0;
-    Iterator iterator = new OwnerDAO().walkHierarchy(ownerId).iterator();
+    Iterator<Owner> iterator = new OwnerDAO().walkHierarchy(ownerId).iterator();
 
     for (; iterator.hasNext(); ++hierarchySize) {
       iterator.next();

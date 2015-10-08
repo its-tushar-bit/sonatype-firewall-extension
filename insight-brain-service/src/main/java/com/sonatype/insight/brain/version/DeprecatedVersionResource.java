@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 /**
  * @deprecated As of 1.17 superseded by {@link VersionResource}.
  */
+@Deprecated
 @Named
 @Path(DeprecatedVersionResource.RESOURCE_PATH)
 @UnlicensedPath

@@ -5,17 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class LabelEditorPage
 {
-  public static String url(String ownerType, String ownerId, String labelId)
-      throws UnsupportedEncodingException {
+  public static String url(String ownerType, String ownerId, String labelId) {
     return "new/assets/index.html#/management/" + ownerType + "/" + ownerId + "/label/" + labelId + "/edit";
   }
 

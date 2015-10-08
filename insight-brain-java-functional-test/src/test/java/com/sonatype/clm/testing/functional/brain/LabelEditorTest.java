@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.UnsupportedEncodingException;
-
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
@@ -39,8 +37,7 @@ public class LabelEditorTest
   }
 
   @Before
-  public void before()
-      throws UnsupportedEncodingException {
+  public void before() {
     // Application name can include characters that need to be encoded
     Application application = tempEntity.newApplicationWithParent(getClass().getSimpleName());
     label = tempEntity.newLabel(application.getId());

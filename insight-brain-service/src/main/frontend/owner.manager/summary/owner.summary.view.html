@@ -53,7 +53,7 @@
         </div>
         <div class="simple-list" ng-repeat="ownerLabelList in labelTile.applicableLabels">
           <h4 class="subsection-header" ng-if="!ownerLabelList.inherited">Local
-            <button class="btn btn-tertiary">
+            <button ui-sref="^.create-label" class="btn btn-tertiary">
               <i class="fa fa-plus"></i>Add a Label
             </button>
           </h4>
@@ -65,14 +65,20 @@
             No local component labels defined
           </div>
           <ul>
-            <li ng-class="label.description ? 'with-subtitle' : 'simple'" ng-repeat="label in ownerLabelList.labels" ui-sref="^.edit-label({ labelId: label.id })">
+            <li ng-class="label.description ? 'with-subtitle' : 'simple'" class="clickable" ng-repeat="label in ownerLabelList.labels" ui-sref="^.edit-label({ labelId: label.id })" ng-if="!ownerLabelList.inherited">
               <div class="title">
                 <i class="fa fa-tag size-16px {{label.color}}"></i>
                 {{label.label}}
               </div>
               <div class="subtitle" ng-if="label.description">{{label.description}}</div>
-              <i class="fa fa-chevron-right"
-                 ng-if="!ownerLabelList.inherited"></i>
+              <i class="fa fa-chevron-right"></i>
+            </li>
+            <li ng-class="label.description ? 'with-subtitle' : 'simple'" ng-repeat="label in ownerLabelList.labels" ng-if="ownerLabelList.inherited">
+              <div class="title">
+                <i class="fa fa-tag size-16px {{label.color}}"></i>
+                {{label.label}}
+              </div>
+              <div class="subtitle" ng-if="label.description">{{label.description}}</div>
             </li>
           </ul>
         </div>

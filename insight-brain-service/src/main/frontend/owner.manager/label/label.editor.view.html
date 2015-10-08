@@ -28,7 +28,7 @@
           </div>
         <div class="editor-footer" ng-class="{ error : vm.error }">
           <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i> {{vm.error}}</div>
-          <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="labelEditor.$invalid">
+          <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="labelEditor.$invalid || labelEditor.$pristine">
             {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
           </button><!--
        --><button type="submit" class="btn btn-error" ng-if="vm.error" ng-disabled="labelEditor.$invalid">

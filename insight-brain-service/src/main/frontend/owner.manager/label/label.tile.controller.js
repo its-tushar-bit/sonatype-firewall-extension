@@ -6,12 +6,13 @@
 (function(angular) {
   'use strict';
 
-  function LabelTileController($http, CLMAppLocations) {
+  function LabelTileController($http, $state, CLMAppLocations) {
     var vm = this;
     vm.ownerName = undefined;
     vm.applicableLabels = undefined;
     vm.error = undefined;
     vm.doLoad = doLoad;
+    vm.editLabel = editLabel;
 
     vm.doLoad();
 
@@ -29,9 +30,15 @@
 
       delete vm.error;
     }
+
+    function editLabel(labelId, inherited) {
+      if (!inherited) {
+        $state.go('^.edit-label', { labelId: labelId });
+      }
+    }
   }
 
-  LabelTileController.$inject = ['$http', 'CLMAppLocations'];
+  LabelTileController.$inject = ['$http', '$state', 'CLMAppLocations'];
 
   angular
       .module('owner.manager.module')

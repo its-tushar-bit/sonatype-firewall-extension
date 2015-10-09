@@ -39,6 +39,40 @@ $font-families: ('sonatype-icons', 'sonatype-glyphicons');
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@mixin icon-colours($property) {
+  &.white {
+    #{$property}: $grey-2;
+  }
+
+  &.grey {
+    #{$property}: $slate;
+  }
+
+  &.black {
+    #{$property}: $off-black;
+  }
+
+  &.green {
+    #{$property}: $dark-green;
+  }
+
+  &.yellow {
+    #{$property}: $yellow;
+  }
+
+  &.orange {
+    #{$property}: $orange;
+  }
+
+  &.red {
+    #{$property}: $dark-red;
+  }
+
+  &.blue {
+    #{$property}: $dark-blue;
+  }
+}
 /*
   The sonatype icon font
 */
@@ -82,7 +116,6 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
   }
 }
 
-
 /*
   # Icons
 */
@@ -125,7 +158,6 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
   }
 }
 
-
 /*
   ## Label Colors
   Colors for organization or application labels
@@ -143,35 +175,9 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
 */
 
 .fa-tag {
-  &.white {
-    color: $grey-2;
-  }
+  @include icon-colours(color);
+}
 
-  &.grey {
-    color: $slate;
-  }
-
-  &.black {
-    color: $off-black;
-  }
-
-  &.green {
-    color: $dark-green;
-  }
-
-  &.yellow {
-    color: $yellow;
-  }
-
-  &.orange {
-    color: $orange;
-  }
-
-  &.red {
-    color: $dark-red;
-  }
-
-  &.blue {
-    color: $dark-blue;
-  }
+.hexagon {
+  @include icon-colours(fill);
 }

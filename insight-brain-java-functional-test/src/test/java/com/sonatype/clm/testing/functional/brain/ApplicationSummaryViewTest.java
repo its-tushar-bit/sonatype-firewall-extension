@@ -9,15 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.Test;
+
+import static com.codeborne.selenide.CollectionCondition.empty;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -80,5 +89,47 @@ public class ApplicationSummaryViewTest
       Selenide.switchTo().window(0);
       ActionDropDown.actionButton().click();
     }
+  }
+
+  @Test
+  public void testAppliedCategoryTile() {
+    testAppliedCategoryTile_Empty();
+    testAppliedCategoryTile_WithAppliedCategory();
+  }
+
+  private void testAppliedCategoryTile_Empty() {
+    CategoryTile categoryTile = new CategoryTile();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application.getName()));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.associateAppButtonText());
+
+    categoryTile.categoryLists().shouldHaveSize(1);
+
+    TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
+
+    appliedCategoryList.emptyDescriptor().shouldBe(visible)
+        .shouldHave(CategoryTile.emptyAssociateAppCategoryListDescriptorText());
+    appliedCategoryList.elements().shouldBe(empty);
+  }
+
+  private void testAppliedCategoryTile_WithAppliedCategory() {
+    Tag category = tempEntity.newTag(application.getParentOwnerId(), "Test Tag", Color.blue);
+    tempEntity.newApplicationTag(application.getId(), category.getId());
+
+    refresh();
+
+    CategoryTile categoryTile = new CategoryTile();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application.getName()));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.associateAppButtonText());
+
+    categoryTile.categoryLists().shouldHaveSize(1);
+
+    TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
+
+    appliedCategoryList.emptyDescriptor().shouldNotBe(visible);
+    appliedCategoryList.elements().shouldHaveSize(1);
+    appliedCategoryList.element(0).name().shouldBe(visible).shouldHave(text(category.getName()));
+    appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
+    appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
+    appliedCategoryList.element(0).chevron().shouldNotBe(visible);
   }
 }

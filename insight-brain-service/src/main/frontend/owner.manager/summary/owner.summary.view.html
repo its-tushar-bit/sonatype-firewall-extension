@@ -23,7 +23,7 @@
       <div class="sub-header" ng-if="vm.owner.description">{{vm.owner.description}}</div>
 
       <ul class="nav nav-pills">
-        <li class="active"><a data-toggle="pill" data-target="#owner-pill-app-type" ng-href="">Application Types</a></li>
+        <li class="active"><a data-toggle="pill" data-target="#owner-pill-app-categories" ng-href="">Application Categories</a></li>
         <li><a data-toggle="pill" data-target="#owner-pill-policy" ng-href="">Policy</a></li>
         <li><a data-toggle="pill" data-target="#owner-pill-comp-labels" ng-href="">Component Labels</a></li>
         <li><a data-toggle="pill" data-target="#owner-pill-ltgs" ng-href="">License Threat Groups</a></li>
@@ -33,9 +33,34 @@
   </div>
 
   <div class="tile-scroll-container" scrollspy="#owner-summary">
-    <div class="tile" id="owner-pill-app-type">
-      <h2>Application Types</h2>
-      <div class="sub-header">a description</div>
+    <div class="tile" id="owner-pill-app-categories" ng-controller="ApplicationCategoryTileController as vm">
+      <div load-wrapper="vm.error" loading="vm.isApp && !(vm.ownerName && vm.appliedCategories)" reload="vm.doLoad()">
+        <h2>
+          <hexagon class="outline" width="17" height="20"></hexagon><!--
+          -->Application Categories
+        </h2>
+        <div class="sub-header">associated with {{vm.ownerName}}</div>
+        <div class="simple-list" ng-if="vm.isApp">
+          <h4 class="subsection-header">
+            <button class="btn btn-tertiary">
+              <i class="fa fa-pencil"></i>Associate App Category
+            </button>
+          </h4>
+          <div class="empty-list" ng-if="vm.appliedCategories.length <= 0"><!--
+          -->No application categories associated
+          </div>
+          <ul>
+            <li ng-class="category.description ? 'with-subtitle' : 'simple'"
+                ng-repeat="category in vm.appliedCategories">
+              <div class="title">
+                <hexagon class="{{category.color}}" width="14" height="16"></hexagon><!--
+                -->{{category.name}}
+              </div>
+              <div class="subtitle" ng-if="category.description">{{category.description}}</div>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div class="tile" id="owner-pill-policy">

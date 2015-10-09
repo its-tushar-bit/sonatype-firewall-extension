@@ -721,6 +721,18 @@ var AngularStateUtils = {
     };
   }]);
 
+  angularCommon.directive('hexagon', [
+    function() {
+      return {
+        restrict: 'E',
+        replace: true,
+        template: '<svg class="hexagon" viewBox="0 0 185.5 208">' +
+        '<path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path>' +
+        '</svg>'
+      };
+    }
+  ]);
+
   /**
    * Used to ensure that model is updated when forms are filled using auto complete. This will occur when a password
    * is saved by a password manager but filled when selecting a username via a dropdown list.

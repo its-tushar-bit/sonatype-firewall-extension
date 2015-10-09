@@ -41,7 +41,7 @@ public class TileSimpleList
     }
 
     public SelenideElement icon() {
-      return root.$(".title .fa");
+      return root.$(".title .fa, .title .hexagon");
     }
 
     public SelenideElement name() {

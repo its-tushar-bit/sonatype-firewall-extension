@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var labelTemplate = {id: null, ownerId: null, label: null, labelLowercase: null, color: 'white', description: null};
+  var labelTemplate = {id: null, ownerId: null, label: null, labelLowercase: null, color: null, description: null};
 
   var labelModule = angular.module('Labels', ['AngularCommon', 'CLMAppLocation', 'CommonServices', 'Stores']);
 

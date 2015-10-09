@@ -25,6 +25,10 @@
                      ng-maxlength="255"
                      clm-input></textarea>
             </div>
+            <div class="field" >
+              <label for="editor-label-color-picker">Icon color</label>
+              <div id="editor-label-color-picker" ng-model="vm.dirtyLabel.color" color-picker required/>
+            </div>
           </div>
         <div class="editor-footer" ng-class="{ error : vm.error }">
           <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i> {{vm.error}}</div>

@@ -18,12 +18,13 @@
   function ColorPicker() {
     return {
       scope: {
-        colorPicker: '='
+        ngModel: '='
       },
       templateUrl: 'utility/widgets/color.picker.directive.html',
       controller: ColorPickerController,
       controllerAs: 'vm',
-      bindToController: true
+      bindToController: true,
+      require: 'ngModel'
     };
   }
 

@@ -12,7 +12,7 @@
     vm.applicableLabels = undefined;
     vm.error = undefined;
     vm.doLoad = doLoad;
-    vm.openLabel = openLabel;
+    vm.editLabel = editLabel;
 
     vm.doLoad();
 
@@ -31,14 +31,12 @@
       delete vm.error;
     }
 
-    function openLabel(labelId, inherited) {
+    function editLabel(labelId, inherited) {
       if (!inherited) {
         $state.go('^.edit-label', { labelId: labelId });
       }
     }
   }
-
-
 
   LabelTileController.$inject = ['$http', '$state', 'CLMAppLocations'];
 

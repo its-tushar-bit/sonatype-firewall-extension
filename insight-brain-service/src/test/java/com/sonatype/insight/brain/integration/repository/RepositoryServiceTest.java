@@ -602,6 +602,61 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponentWithQuarantine_QuarantineRequestAfterAuditWithoutExplicitRemoval() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+
+    String hash = "hash";
+    String pathname = "pathname";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("p", "1");
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("nuget", pathname,
+        hash));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0,
+        Collections.singleton(new License("EPL-1.0", "EPL-2.0")),
+        Collections.singleton(new License("EPL-1.0", "EPL-2.0")), createSecurityVulnerabilities(), 80));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+
+    // initial evaluation of component, audit-only
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false);
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(false));
+
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(true));
+    assertThat(repository.isQuarantineEnabled(), is(false));
+
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
+    assertThat(repositoryComponents.get(0).isCanBeQuarantined(), is(false));
+    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
+
+    // re-evaluation of component, this time with quarantine enabled
+    Date before = new Date();
+    repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
+        REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
+    Date after = new Date();
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults, hasSize(1));
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults.get(0).quarantine, is(true));
+
+    repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(true));
+    assertThat(repository.isQuarantineEnabled(), is(true));
+
+    repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+    assertThat(repositoryComponents.get(0).getPathname(), is(pathname));
+    assertThat(repositoryComponents.get(0).isCanBeQuarantined(), is(true));
+    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(greaterThanOrEqualTo(before)));
+    assertThat(repositoryComponents.get(0).getQuarantineTime(), is(lessThanOrEqualTo(after)));
+  }
+
+  @Test
   public void testEvaluateComponents_RepositoryDoesNotExist() throws Exception {
     try {
       repositoryService

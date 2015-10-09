@@ -354,6 +354,10 @@ public class RepositoryService
       repositoryComponent.setMatchStateId(componentDetails.getMatchState());
       repositoryComponent.setIdentificationSourceId(componentDetails.getIdentificationSource());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
+      if (canBeQuarantined) {
+        repositoryComponent.setCanBeQuarantined(canBeQuarantined);
+        repositoryComponent.setQuarantineTime(quarantineTime);
+      }
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
   }

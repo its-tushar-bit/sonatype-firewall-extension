@@ -29,7 +29,6 @@ public abstract class LicenseDataUpdater
     }
 
     updater.doUpdate();
-    new LicenseCategoryDAO().load();
     new LicenseDAO().load();
     new MultiLicenseDAO().load();
   }

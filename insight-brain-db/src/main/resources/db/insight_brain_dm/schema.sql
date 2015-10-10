@@ -4,22 +4,12 @@ CREATE TABLE test_table (
   name varchar(50) NOT NULL
 );
 
-CREATE TABLE license_category (
-  license_category_id varchar(50) NOT NULL,
-  name varchar(50) NOT NULL,
-  severity smallint(2) NOT NULL,
-  CONSTRAINT license_category_pk PRIMARY KEY (license_category_id),
-  UNIQUE KEY license_category_name_uk (name)
-);
-
 CREATE TABLE license (
   license_id varchar(1000) NOT NULL,
   shortDisplayName varchar(1000) NOT NULL,
   longDisplayName varchar(1000) default NULL,
-  license_category_id varchar(50) NULL,
   CONSTRAINT license_pk PRIMARY KEY (license_id),
-  UNIQUE KEY license_shortDisplayName_uk (shortDisplayName),
-  CONSTRAINT license_license_category_fk FOREIGN KEY (license_category_id) REFERENCES license_category(license_category_id)
+  UNIQUE KEY license_shortDisplayName_uk (shortDisplayName)
 );
 
 CREATE TABLE multi_license (

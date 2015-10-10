@@ -10,13 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.sonatype.insight.brain.dataaccess.license.LicenseCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater.LicenseData;
 import com.sonatype.insight.brain.model.license.License;
-import com.sonatype.insight.brain.model.license.LicenseCategory;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 
@@ -32,23 +29,6 @@ public class DefaultLicenseDataUpdaterTest
     extends AbstractBrainServiceTest
 {
   @Test
-  public void testLicenseCategory() throws Exception {
-    LicenseData licenseData = createLicenseData();
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
-    String newId = "New license category id";
-    LicenseCategoryDAO licenseCategoryDAO = new LicenseCategoryDAO();
-    assertNull(licenseCategoryDAO.getById(newId));
-
-    LicenseCategory newLicenseCategory = new LicenseCategory();
-    newLicenseCategory.setId(newId);
-    newLicenseCategory.setName("New name");
-    newLicenseCategory.setSeverity(4);
-    licenseData.categories.add(newLicenseCategory);
-    setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
-    assertNotNull(licenseCategoryDAO.getById(newId));
-  }
-
-  @Test
   public void testLicense() throws Exception {
     LicenseData licenseData = createLicenseData();
     setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
@@ -60,7 +40,6 @@ public class DefaultLicenseDataUpdaterTest
     newLicense.setId(newId);
     newLicense.setShortDisplayName("New short name");
     newLicense.setLongDisplayName("New long name");
-    newLicense.setLicenseCategoryId("COPYLEFT");
     licenseData.licenses.add(newLicense);
     setHdsResponseForURI(DefaultLicenseDataUpdater.HDS_LICENSE_PATH, licenseData, 200);
     assertNotNull(licenseDAO.getById(newId));
@@ -131,7 +110,6 @@ public class DefaultLicenseDataUpdaterTest
 
   private LicenseData createLicenseData() {
     LicenseData licenseData = new LicenseData();
-    licenseData.categories = new ArrayList<>();
     licenseData.licenses = new ArrayList<>();
     licenseData.multiLicenses = new ArrayList<>();
     licenseData.multiLicenseMappings = new LinkedHashMap<>();

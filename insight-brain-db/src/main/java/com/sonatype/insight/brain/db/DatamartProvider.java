@@ -21,7 +21,7 @@ public class DatamartProvider
 {
   private static final Logger log = LoggerFactory.getLogger(DatamartProvider.class);
 
-  public static final int DESIRED_DATABASE_VERSION = 6;
+  public static final int DESIRED_DATABASE_VERSION = 7;
 
   public static final String ID = "insight_brain_dm";
 

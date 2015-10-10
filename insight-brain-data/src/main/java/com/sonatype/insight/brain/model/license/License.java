@@ -40,9 +40,6 @@ public class License
   @Column(name = "longDisplayName")
   private String longDisplayName;
 
-  @Column(name = "license_category_id")
-  private String licenseCategoryId;
-
   @Override
   public String getId() {
     return id;
@@ -67,14 +64,6 @@ public class License
 
   public void setLongDisplayName(String longDisplayName) {
     this.longDisplayName = longDisplayName;
-  }
-
-  public String getLicenseCategoryId() {
-    return licenseCategoryId;
-  }
-
-  public void setLicenseCategoryId(String licenseCategoryId) {
-    this.licenseCategoryId = licenseCategoryId;
   }
 
   @Override

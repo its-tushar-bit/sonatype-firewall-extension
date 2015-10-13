@@ -11,6 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
@@ -161,12 +162,17 @@ public class RepositoryComponent
     this.unquarantineTime = unquarantineTime;
   }
 
+  @Transient
+  public boolean isQuarantined() {
+    return (quarantineTime != null && unquarantineTime == null);
+  }
+
   @Override
   public String toString() {
     return "RepositoryComponent [id=" + id + ", repositoryId=" + repositoryId + ", time=" + time + ", hash=" + hash
         + ", matchStateId=" + matchStateId + ", identificationSourceId=" + identificationSourceId
         + ", lastEvaluationTime=" + lastEvaluationTime + ", canBeQuarantined=" + canBeQuarantined + ", quarantineTime="
-        + quarantineTime + ", unquarantineTime=" + unquarantineTime + "]";
+        + quarantineTime + ", unquarantineTime=" + unquarantineTime + ", isQuarantined=" + isQuarantined() + "]";
   }
 
   public String getPathname() {

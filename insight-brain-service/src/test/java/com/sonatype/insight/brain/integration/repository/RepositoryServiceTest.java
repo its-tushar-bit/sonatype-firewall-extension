@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryReportDetail;
 import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -68,6 +69,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -82,6 +84,7 @@ import static org.mockito.Mockito.when;
 public class RepositoryServiceTest
     extends AbstractComponentTest
 {
+
   private static final String MANUAL_REPO_MAN_INSTANCE_ID = "manualDeleteRepoManagerInstanceId";
 
   private static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
@@ -253,7 +256,7 @@ public class RepositoryServiceTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1", true, true, "policyId1", "policyName1",
         ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
     // Now add an obsolete one that should not show up in the test
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1", false, false,  "policyId2", "policyName2",
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1", false, false, "policyId2", "policyName2",
         ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
     // And one not in the range that should not show up in the test
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4",
@@ -928,7 +931,8 @@ public class RepositoryServiceTest
 
     // Call the service
     Date before = new Date();
-    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false);
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false);
     Date after = new Date();
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
@@ -1379,5 +1383,91 @@ public class RepositoryServiceTest
     assertThat(policyViolation1.isActive(), is(false));
     policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
     assertThat(policyViolation2.isActive(), is(true));
+  }
+
+  @Test
+  public void testTHREAT_LEVEL_DESC_PATHNAME_ASC() throws Exception {
+    final RepositoryReportDetail detail1 = RepositoryReportDetail.create(
+        new RepositoryComponent(null, "z", null, null, null, null, null, null, false));
+    final RepositoryReportDetail detail2 = RepositoryReportDetail.create(
+        new RepositoryComponent(null, "a", null, null, null, null, null, null, false),
+        new RepositoryPolicyViolation(null, null, null, null, null, 9, null, null, null, "[]" /* constraintFacts */),
+        false);
+    assertTrue("Should sort ThreatLevel Descending",
+        0 < RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail2));
+
+    final RepositoryReportDetail detail3 = RepositoryReportDetail.create(
+        new RepositoryComponent(null, "a", null, null, null, null, null, null, false),
+        new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null, null, "[]" /* constraintFacts */),
+        false);
+    assertTrue("Should sort Pathname Ascending",
+        0 < RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail3));
+
+    final RepositoryReportDetail detail4 = RepositoryReportDetail.create(
+        new RepositoryComponent(null, "z", null, null, null, null, null, null, false),
+        new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null, null, "[]" /* constraintFacts */),
+        false);
+    assertEquals("Equal ThreatLevel and pathname",
+        0, RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail4));
+  }
+
+  @Test
+  public void testGetReportDetails() throws Exception {
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+
+    // component with 1 violation
+    final String pathname1 = "pathname1";
+    createRepositoryPolicyViolation(repository, pathname1, 5);
+
+    // component with no violation
+    final String pathname2 = "pathname2";
+    createRepositoryPolicyViolation(repository, pathname2);
+
+    // component with 2 violations
+    final String pathname3 = "pathname3";
+    createRepositoryPolicyViolation(repository, pathname3, 5, 9);
+
+    // add violations for a different repository, which should not be included in current repo details
+    final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
+    createRepositoryPolicyViolation(repositoryOther, pathname1, 6);
+
+    final List<RepositoryReportDetail> reportDetails = repositoryService
+        .getReportDetails(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    assertThat(reportDetails.size(), is(4));
+
+    int idx = 0;
+    // list should be sorted by 'threadLevel DESC', 'pathname ASC'
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 9, true);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname1, "policyName", 5, true);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 5, false);
+    assertRepositoryReportDetail(reportDetails.get(idx), pathname2, null, 0, true);
+  }
+
+  private void createRepositoryPolicyViolation(final Repository repository, final String pathname,
+      int... threatLevels)
+  {
+    tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    for (final int threatLevel : threatLevels) {
+      tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, null);
+    }
+  }
+
+  private void assertRepositoryReportDetail(final RepositoryReportDetail actualReportDetail,
+      final String expectedPathname, final String expectedPolicyName, final int expectedThreatLevel,
+      final boolean expectedHighestThreatLevel)
+  {
+    assertEquals(expectedPathname, actualReportDetail.getPathname());
+    assertEquals(expectedPolicyName, actualReportDetail.getPolicyName());
+    assertEquals(expectedThreatLevel, actualReportDetail.getThreatLevel());
+    assertEquals(expectedHighestThreatLevel, actualReportDetail.isHighestThreatLevel());
+
+    assertEquals("hash", actualReportDetail.getHash());
+    assertEquals("exact", actualReportDetail.getMatchState());
+    assertEquals("g : a : v", actualReportDetail.getComponentDisplayText());
+    assertEquals("maven", actualReportDetail.getComponentIdentifier().getFormat());
+    assertFalse(actualReportDetail.isQuarantined());
+    assertFalse(actualReportDetail.isWaived());
   }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,7 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryReportDetail;
 import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -361,7 +363,7 @@ public class RepositoryService
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
   }
-  
+
   private void persistPolicyViolations(TransactionContext tx, Repository repository, String pathname,
       Date evaluationTime, PolicyResults policyResults)
   {
@@ -499,6 +501,69 @@ public class RepositoryService
 
     return policyEvaluationSummary;
   }
+
+  public List<RepositoryReportDetail> getReportDetails(final String repositoryManagerInstanceId,
+      final String repositoryPublicId)
+  {
+    log.debug("Get report details for repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
+        repositoryManagerInstanceId);
+
+    checkLicenseFeature();
+
+    final Repository repository = repositoryDAO
+        .getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, repositoryPublicId);
+
+    return getReportDetails(repository);
+  }
+
+  @SuppressWarnings("WeakerAccess")
+  @Authorize(permission = Permission.READ)
+  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository) {
+    final List<RepositoryReportDetail> details = new ArrayList<>();
+
+    final List<RepositoryComponent> componentList = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    for (final RepositoryComponent component : componentList) {
+
+      final List<RepositoryPolicyViolation> componentViolations = repositoryPolicyViolationDAO
+          // violations are sorted by 'ThreatLevel DESC, policyId', so highestThreatLevel per component is first
+          .getActiveByRepositoryIdAndPathname(repository.getId(), component.getPathname());
+      boolean highestThreatLevel = true;
+
+      if (componentViolations.size() > 0) {
+        for (final RepositoryPolicyViolation violation : componentViolations) {
+          details.add(RepositoryReportDetail.create(component, violation, highestThreatLevel));
+          // like the CI report, we choose one of the violations and use it as the highest.
+          highestThreatLevel = false;
+        }
+      }
+      else {
+        details.add(RepositoryReportDetail.create(component));
+      }
+    }
+
+    // sort by threatLevel DESC, pathname ASC
+    Collections.sort(details, THREAT_LEVEL_DESC_PATHNAME_ASC);
+
+    return details;
+  }
+
+  /**
+   * Sort by threatLevel DESC, pathname ASC.
+   */
+  static final Comparator<RepositoryReportDetail> THREAT_LEVEL_DESC_PATHNAME_ASC = new Comparator<RepositoryReportDetail>()
+  {
+    @Override
+    public int compare(final RepositoryReportDetail detail1, final RepositoryReportDetail detail2) {
+      // sort ThreatLevel Descending
+      final int cmpThreatLevel = detail2.getThreatLevel() - detail1.getThreatLevel();
+      if (cmpThreatLevel != 0) {
+        return cmpThreatLevel;
+      }
+
+      // sort pathname Ascending
+      return detail1.getPathname().compareTo(detail2.getPathname());
+    }
+  };
 
   void removeComponent(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
     checkLicenseFeature();

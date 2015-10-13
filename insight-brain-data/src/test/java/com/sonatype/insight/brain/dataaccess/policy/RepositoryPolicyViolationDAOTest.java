@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -86,5 +87,32 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getTime(), is(time));
     assertThat(actual.getActionTypeId(), is(actionTypeId));
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathname_OrderByThreatLevelDesc_PolicyId() throws Exception {
+    final String pathname = "pathname";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
+
+    final String policyIdSecond = "policyId2";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, true, policyIdSecond, "policyName2", null);
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, pathname, null);
+
+    final List<RepositoryPolicyViolation> violations = dao.getActiveByRepositoryIdAndPathname(repository.getId(),
+        pathname);
+
+    int i = 0;
+    final RepositoryPolicyViolation firstViolation = violations.get(i++);
+    assertThat(firstViolation.getThreatLevel(), is(3));
+    assertThat(firstViolation.getPolicyId(), is("policyId"));
+
+    final RepositoryPolicyViolation secondViolation = violations.get(i++);
+    assertThat(secondViolation.getThreatLevel(), is(3));
+    assertThat(secondViolation.getPolicyId(), is(policyIdSecond));
+
+    assertThat(violations.get(i++).getThreatLevel(), is(2));
+    assertThat(violations.get(i).getThreatLevel(), is(1));
   }
 }

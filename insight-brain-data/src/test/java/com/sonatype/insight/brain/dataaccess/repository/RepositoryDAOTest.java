@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
@@ -150,5 +151,17 @@ public class RepositoryDAOTest
     dao.delete(repository);
 
     assertThat(new RepositoryPolicyViolationDAO().getById(policyViolation.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testGetByRepositoryManagerInstanceIdAndPublicIdNotNull() throws Exception {
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String publicId = "publicId";
+    try {
+      dao.getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, publicId);
+      fail("Expected NotFoundException");
+    } catch (NotFoundException e) {
+      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId)));
+    }
   }
 }

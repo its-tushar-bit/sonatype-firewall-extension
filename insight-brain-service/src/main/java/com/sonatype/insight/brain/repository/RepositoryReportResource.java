@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -23,6 +25,8 @@ import com.sonatype.insight.brain.integration.repository.RepositoryService;
 public class RepositoryReportResource
 {
   public static final String SUMMARY = "summary";
+
+  static final String DETAILS_PATH = "details";
 
   public static final String RESOURCE_PATH = "rest/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}/report";
 
@@ -57,5 +61,15 @@ public class RepositoryReportResource
     public int affectedComponentCount;
 
     public int quarantinedComponentCount;
+  }
+
+  @GET
+  @Path(DETAILS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<RepositoryReportDetail> getReportDetails(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId)
+  {
+    return repositoryService.getReportDetails(repositoryManagerInstanceId, repositoryPublicId);
   }
 }

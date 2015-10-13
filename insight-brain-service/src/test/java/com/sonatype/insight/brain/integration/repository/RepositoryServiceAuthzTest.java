@@ -163,6 +163,26 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
+  public void testGetReportDetails_Authorized() {
+    Repository repo = createRepository();
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.getReportDetails(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetReportDetails_Unauthenticated() {
+    Repository repo = createRepository();
+    repositoryService.getReportDetails(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetReportDetails_Unauthorized() {
+    grantWritePermission();
+    Repository repo = createRepository();
+    repositoryService.getReportDetails(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+  }
+
+  @Test
   public void testRemoveComponent_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");

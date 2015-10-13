@@ -24,6 +24,11 @@ public class RepositoryDAO
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryDAO.class);
 
+  public static String getErrMsgMissingRepo(final String repositoryManagerInstanceId, final String repositoryPublicId) {
+    return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId +
+        " and publicId=" + repositoryPublicId + ".";
+  }
+
   @Override
   public Repository getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM Repository entity" + //
@@ -41,6 +46,16 @@ public class RepositoryDAO
     String sQuery = "SELECT entity FROM Repository entity" + //
         " WHERE entity.repositoryManagerId=?1";
     return getList(tx, sQuery, repositoryManagerId);
+  }
+
+  public Repository getByRepositoryManagerInstanceIdAndPublicIdNotNull(final String repositoryManagerInstanceId,
+      final String publicId)
+  {
+    final Repository repository = getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, publicId);
+    if (repository == null) {
+      throw new NotFoundException(getErrMsgMissingRepo(repositoryManagerInstanceId, publicId));
+    }
+    return repository;
   }
 
   public Repository getByRepositoryManagerInstanceIdAndPublicId(String repositoryManagerInstanceId, String publicId) {

@@ -156,8 +156,7 @@ public class FirewallClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode(), is(404));
-      assertThat(e.getMessage(), is("Cannot find a repository with repositoryManagerInstanceId=" + rmInstanceId +
-          " and publicId=" + REPOSITORY_PUBLIC_ID + "."));
+      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID)));
     }
   }
 

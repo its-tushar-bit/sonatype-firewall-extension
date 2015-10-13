@@ -37,7 +37,8 @@ public class RepositoryPolicyViolationDAO
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
         " AND entity.pathname=?2" + //
-        " AND entity.active=true";
+        " AND entity.active=true" + //
+        " ORDER BY entity.threatLevel DESC, entity.policyId";
     return getList(tx, sQuery, repositoryId, pathname);
   }
 

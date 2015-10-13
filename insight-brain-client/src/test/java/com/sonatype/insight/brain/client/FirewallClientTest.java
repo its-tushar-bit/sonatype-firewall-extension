@@ -120,8 +120,7 @@ public class FirewallClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode(), is(404));
-      assertThat(e.getMessage(),
-          is("Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId " + rmInstanceId + "."));
+      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID)));
     }
   }
 
@@ -191,9 +190,7 @@ public class FirewallClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
-      assertEquals(
-          "Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId " + rmInstanceId + ".",
-          e.getMessage());
+      assertEquals(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID), e.getMessage());
     }
   }
 
@@ -243,9 +240,7 @@ public class FirewallClientTest
     }
     catch (HttpResponseException e) {
       assertEquals(404, e.getStatusCode());
-      assertEquals(
-          "Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId " + rmInstanceId + ".",
-          e.getMessage());
+      assertEquals(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID), e.getMessage());
     }
   }
 
@@ -271,8 +266,7 @@ public class FirewallClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode(), is(404));
-      assertThat(e.getMessage(), is("Unknown repository " + REPOSITORY_PUBLIC_ID + " for repositoryManagerInstanceId "
-          + rmInstanceId + "."));
+      assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID)));
     }
   }
 }

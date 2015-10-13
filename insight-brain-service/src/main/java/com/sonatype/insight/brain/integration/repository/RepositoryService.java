@@ -118,12 +118,8 @@ public class RepositoryService
   {
     checkLicenseFeature();
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
-        repositoryPublicId);
-    if (repository == null) {
-      throw new NotFoundException("Cannot find a repository with repositoryManagerInstanceId=" +
-          repositoryManagerInstanceId + " and publicId=" + repositoryPublicId + ".");
-    }
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
 
     if (!repository.isEnabled()) {
       throw new BadRequestException("Repository " + repositoryPublicId + " is disabled.");
@@ -179,12 +175,8 @@ public class RepositoryService
     log.debug("Setting quarantine to {} for repository {} repositoryManagerInstanceId {}", enabled, repositoryPublicId,
         repositoryManagerInstanceId);
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
-        repositoryPublicId);
-    if (repository == null) {
-      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
-          + repositoryManagerInstanceId + ".");
-    }
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
 
     if (enabled && !repository.isEnabled()) {
       throw new BadRequestException("Cannot enable quarantine when repository " + repositoryPublicId + " is disabled.");
@@ -211,12 +203,8 @@ public class RepositoryService
     log.debug("Evaluating components for repository {} with quarantine {} for repositoryManagerInstanceId {}",
         repositoryPublicId, withQuarantine, repositoryManagerInstanceId);
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
-        repositoryPublicId);
-    if (repository == null) {
-      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
-          + repositoryManagerInstanceId + ".");
-    }
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
 
     return evaluateComponents(repository, componentEvaluationDataRequestList, withQuarantine);
   }
@@ -435,12 +423,8 @@ public class RepositoryService
     log.debug("Get report summary for repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
         repositoryManagerInstanceId);
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
-        repositoryPublicId);
-    if (repository == null) {
-      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
-          + repositoryManagerInstanceId + ".");
-    }
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
 
     return getReportSummary(repository);
   }
@@ -568,12 +552,8 @@ public class RepositoryService
   void removeComponent(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
     checkLicenseFeature();
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
-        repositoryPublicId);
-    if (repository == null) {
-      throw new NotFoundException("Unknown repository " + repositoryPublicId + " for repositoryManagerInstanceId "
-          + repositoryManagerInstanceId + ".");
-    }
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
 
     removeComponent(repository, normalizePathname(pathname));
   }

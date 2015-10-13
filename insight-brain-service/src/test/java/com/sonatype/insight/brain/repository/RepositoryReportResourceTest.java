@@ -73,8 +73,7 @@ public class RepositoryReportResourceTest
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText(),
-        is("Unknown repository " + repositoryId + " for repositoryManagerInstanceId " +
-            repositoryManager.getInstanceId() + "."));
+        is(RepositoryDAO.getErrMsgMissingRepo(repositoryManager.getInstanceId(), repositoryId)));
   }
 
   @Test

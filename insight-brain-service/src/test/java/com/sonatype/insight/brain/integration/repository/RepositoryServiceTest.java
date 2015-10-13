@@ -187,9 +187,7 @@ public class RepositoryServiceTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertThat(expected.getMessage(),
-          is("Unknown repository " + REPO_PUBLIC_ID + " for repositoryManagerInstanceId " +
-              REPO_MAN_INSTANCE_ID + "."));
+      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
     }
   }
 
@@ -330,8 +328,7 @@ public class RepositoryServiceTest
       fail("Expected NotFoundException");
     }
     catch (NotFoundException expected) {
-      assertThat(expected.getMessage(),
-          is("Unknown repository repoPublicId for repositoryManagerInstanceId repoManagerInstanceId."));
+      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
     }
   }
 
@@ -668,8 +665,7 @@ public class RepositoryServiceTest
       fail("Expected exception");
     }
     catch (NotFoundException expected) {
-      assertThat(expected.getMessage(),
-          is("Unknown repository repoPublicId for repositoryManagerInstanceId repoManagerInstanceId."));
+      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
     }
   }
 
@@ -1325,8 +1321,7 @@ public class RepositoryServiceTest
       fail("Expected exception");
     }
     catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Unknown repository " + REPO_PUBLIC_ID + " for repositoryManagerInstanceId "
-          + REPO_MAN_INSTANCE_ID + "."));
+      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
     }
   }
 

@@ -9,28 +9,28 @@
 a { text-decoration : none }
 a:hover { text-decoration : underline }
 div.scoreCol,td.scoreCol { font-family: Arial, Helvetica, sans-serif; font-weight:bold; font-size: 18px; color: #656565}
-div.criticalScore,td.criticalScore { padding: 4px 0px 0px 15px !important; background: transparent url(public/bg-score-critical.png) 0 0 repeat-y; height:27px !important }
-div.severeScore,td.severeScore { padding: 4px 0px 0px 15px !important; background: transparent url(public/bg-score-severe.png) 0 0 repeat-y; height:27px !important }
-div.moderateScore,td.moderateScore { padding: 4px 0px 0px 15px !important; background: transparent url(public/bg-score-moderate.png) 0 0 repeat-y; height:27px !important }
-div.unspecifiedScore,td.unspecifiedScore { padding: 4px 0px 0px 15px !important; background: transparent url(public/bg-score-unspecified.png) 0 0 repeat-y; height:27px !important }
-div.noScore,td.noScore { padding: 4px 0px 0px 15px !important; background: transparent url(public/bg-score-none.png) 0 0 repeat-y; height:27px !important }
-div.ignoredScore,td.ignoredScore { padding: 4px 0px 0px 15px !important; background: transparent url(public/bg-score-ignore.png) 0 0 repeat-y; height:27px !important }
+div.criticalScore,td.criticalScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-critical.png) 0 0 repeat-y; height:27px !important }
+div.severeScore,td.severeScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-severe.png) 0 0 repeat-y; height:27px !important }
+div.moderateScore,td.moderateScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-moderate.png) 0 0 repeat-y; height:27px !important }
+div.unspecifiedScore,td.unspecifiedScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-unspecified.png) 0 0 repeat-y; height:27px !important }
+div.noScore,td.noScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-none.png) 0 0 repeat-y; height:27px !important }
+div.ignoredScore,td.ignoredScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-ignore.png) 0 0 repeat-y; height:27px !important }
 div.nopad { padding : 0px; height:29px !important }
 .sorting_asc span {
     padding-right: 14px;
     background: no-repeat right 8px;
-    background-image: url('sort_asc.png');
+    background-image: url('img/sort_asc.png');
 }
 .sorting_desc span {
     padding-right: 14px;
     background: no-repeat right 7px;
-    background-image: url('sort_desc.png');
+    background-image: url('img/sort_desc.png');
 }
 .sorting_asc span {
-    background-image: url('sort_asc.png');
+    background-image: url('img/sort_asc.png');
 }
 .sorting_desc span {
-    background-image: url('sort_desc.png');
+    background-image: url('img/sort_desc.png');
 }
 .slick-header-columns input[type=checkbox] {
 	display:block;
@@ -120,7 +120,7 @@ div.slick-header-column-sorted {
   border-bottom: 0 !important;
 }
 
-.ui-icon { display: block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat;width: 16px; height: 16px; background-image: url(ui-icons_888888_256x240.png); }
+.ui-icon { display: block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat;width: 16px; height: 16px; background-image: url(img/ui-icons_888888_256x240.png); }
 .ui-icon-triangle-1-s { background-position: -64px 0px; }
 .ui-icon-seek-first { background-position: -80px -160px; }
 .ui-icon-seek-next { background-position: -32px -160px; }

@@ -4,12 +4,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Audit Report</title>
+    <link href="../assets/css/style.css?${build.timestamp}" rel="stylesheet"/>
+    <link type="text/css" href="audit-report.css?{build.timestamp}" rel="stylesheet" />
     <script src="../assets/js/external.js?{build.timestamp}"></script>
     <script src="../assets/version-graph/protovis.min.js?${build.timestamp}"></script>
     <script type="text/javascript" src="../assets/js/brain.client.js"></script>
     <script src="audit-report.js?{build.timestamp}"></script>
-    <link href="../assets/css/style.css?${build.timestamp}" rel="stylesheet"/>
-    <link type="text/css" href="audit-report.css?{build.timestamp}" rel="stylesheet" />
   </head>
   <body ng-app="Audit" id="audit-report">
     <div class="container">
@@ -70,7 +70,7 @@
 
       <div id="componentcontainer" style="width:100%;padding-top:5px">
         <div class="sectionBorder">
-          <div class="pull-right hide" id="policy-violation-filter">
+          <div class="pull-right" id="policy-violation-filter">
             <h4>Violations:</h4>
             <ul class="nav nav-pills">
               <li class="active"><a href="#">Summary</a></li>
@@ -82,11 +82,10 @@
           <ul class="nav nav-pills" id="policy-match-state-filter">
             <li class="active"><a href="#">All</a></li>
             <li><a href="#">Exact</a></li>
-            <li><a href="#">Similar</a></li>
             <li><a href="#">Unknown</a></li>
             <li><a href="#">Proprietary</a></li>
           </ul>
-          <div id="componentTable" class="borderedTable"></div>
+          <div audit-threat class='borderedTable'></div>
           <div id="componentTablePager"></div>
         </div>
       </div>

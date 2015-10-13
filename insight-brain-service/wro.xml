@@ -243,8 +243,6 @@
     <js>/audit-report/slickgrid/informationPanel.js</js>
     <js>/audit-report/insight.js</js>
     <js>/audit-report/table.js</js>
-    <js>/audit-report/details.js</js>
-    <js>/audit-report/details-editor.js</js>
     <css>/audit-report/report.css</css>
 
     <js>/lib/slickgrid/slick.core.js</js>
@@ -261,6 +259,7 @@
     <js>/audit-report/slickgrid/slick.grid.tipsy.js</js>
 
     <group-ref>cip-loader-core</group-ref>
-    <js>/audit-report/audit.js</js>
+    <js>/audit-report/audit/audit.js</js>
+    <js>/audit-report/audit/audit.threat.directive.js</js>
   </group>
 </groups>

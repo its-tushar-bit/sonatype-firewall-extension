@@ -1036,6 +1036,13 @@ public class TemporaryEntity
     return policyViolation;
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component, int threatLevel,
+      boolean isWaived, String policyName)
+  {
+    return newRepositoryPolicyViolation(component.getRepositoryId(), threatLevel, component.getPathname(), isWaived,
+        true, uuid(), policyName, component.getComponentIdentifier());
+  }
+
   public RepositoryComponent newRepositoryComponent(String repositoryId)
   {
     return newRepositoryComponent(repositoryId, "path");

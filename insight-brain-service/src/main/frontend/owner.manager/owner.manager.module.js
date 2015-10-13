@@ -31,7 +31,7 @@
             parent: 'management',
             abstract: true,
             url: '/' + ownerType.name + '/{' + ownerType.id + '}',
-            template: '<div ui-view></div>'
+            template: '<div ui-view class="template-container"></div>'
           }).state('management.' + ownerType.name + '.view', {
             parent: 'management.' + ownerType.name,
             url: '/view',

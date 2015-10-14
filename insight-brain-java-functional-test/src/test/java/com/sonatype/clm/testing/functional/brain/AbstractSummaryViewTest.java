@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
@@ -20,6 +21,7 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.Label;
 
@@ -34,11 +36,16 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public abstract class AbstractSummaryViewTest
     extends AbstractFunctionalTest
 {
+  protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
+
   private Owner currentOwner;
 
   @BeforeClass
@@ -208,6 +215,57 @@ public abstract class AbstractSummaryViewTest
           actualLabel.chevron().shouldNot(exist);
         }
       }
+    }
+  }
+  
+  @Test
+  public void testDeleteOwner() {
+    List<Owner> parentOwners = new ArrayList<>();
+
+    for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
+      parentOwners.add(owner);
+    }
+
+    String ownerName = currentOwner.getName();
+    
+    // Test cancel button
+    ActionDropDown.actionButton().click();
+    ActionDropDown.deleteOwnerButton().shouldBe(visible).click();
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.cancelButton().click();
+
+    DeleteModal.root().shouldNotBe(visible);
+
+    currentOwner = new OwnerDAO().getById(currentOwner.getId());
+
+    OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+    assertThat(currentOwner, is(not(nullValue())));
+    
+    ActionDropDown.actionButton().click();
+    ActionDropDown.deleteOwnerButton().shouldBe(visible).shouldHave(text(ownerName));
+    ActionDropDown.deleteOwnerButton().click();
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(DeleteModal.headerText(currentOwner.getType().toString()));
+    DeleteModal.body().shouldHave(DeleteModal.bodyText(ownerName));
+
+    
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.deleteButton().click();
+
+    // Modal should be hidden 800 ms after delete REST call is successful
+    DeleteModal.root().shouldNotBe(visible);
+
+    currentOwner = new OwnerDAO().getById(currentOwner.getId());
+    
+    assertThat(currentOwner, is(nullValue()));
+
+    if (Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(parentOwners.size() - 1).getId())) {
+      OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldNotHave(text(ownerName));
+    } else {
+      OwnerSummaryPage.SummaryTile.name().shouldBe(visible)
+          .shouldNotHave(text(parentOwners.get(parentOwners.size() - 1).getName()));
     }
   }
 

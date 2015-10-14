@@ -12,14 +12,22 @@ describe('owner.summary.controller.js', function() {
         mockState,
         mockWindow,
         isApp = type === 'application',
-        mockOwnerStore = StoreUtils().createMockStore(storeName);
+        mockOwnerStore = StoreUtils().createMockStore(storeName),
+        deleteOwnerDefer,
+        mockDeleteService;
 
     beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {
           $timeout = _$timeout_;
           $httpBackend = _$httpBackend_;
           CLMLocations = _CLMLocations_;
           stageTypeStoreDefer = $q.defer();
-
+          deleteOwnerDefer = $q.defer();
+          mockDeleteService = {
+            deleteResource: function() {
+              return deleteOwnerDefer.promise;
+            }
+          }
+          
           spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
           spyOn(StageTypeStore, 'getDashboardStages').andReturn(stageTypeStoreDefer.promise);
 
@@ -29,7 +37,8 @@ describe('owner.summary.controller.js', function() {
             },
             params: isApp ? {applicationPublicId: owner.publicId} : {organizationId: owner.id},
             href: function() {
-            }
+            },
+            go: function(state, params) {}
           };
 
           mockWindow = {
@@ -39,7 +48,8 @@ describe('owner.summary.controller.js', function() {
 
           vm = $controller('OwnerSummaryController', {
             $state: mockState,
-            $window: mockWindow
+            $window: mockWindow,
+            DeleteModalService: mockDeleteService
           });
         }
     ));
@@ -139,6 +149,28 @@ describe('owner.summary.controller.js', function() {
       else {
         expect(vm.error).toBeUndefined();
       }
+    });
+
+    it('Delete Owner goes to parent view', function() {
+
+      mockOwnerStore.resolveGet([owner]);
+      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
+      $timeout.flush();
+
+      if (isApp) {
+        owner.organizationId = owner.id;
+      } 
+      else {
+        owner.parentOrganizationId = owner.id;
+      } 
+
+      spyOn(mockState, 'go');
+      vm.deleteOwner();
+      deleteOwnerDefer.resolve();
+      $timeout.flush();
+
+      expect(mockState.go).toHaveBeenCalledWith('management.organization.view', {organizationId: owner.id});
     });
 
     function resolveApplicationSummary() {

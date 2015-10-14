@@ -16,9 +16,7 @@ import static com.codeborne.selenide.CollectionCondition.empty;
 public class OrganizationSummaryViewTest
     extends AbstractSummaryViewTest
 {
-
-  private static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
-
+  
   private Organization organization;
 
   @Before

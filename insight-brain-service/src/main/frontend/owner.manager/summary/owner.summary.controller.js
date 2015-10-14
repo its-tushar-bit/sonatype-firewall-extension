@@ -7,8 +7,7 @@
   'use strict';
 
   function OwnerSummaryController($state, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
-                                  CLMLocations,
-                                  StageTypeStore)
+                                  CLMLocations, StageTypeStore, DeleteModalService)
   {
     var vm = this;
 
@@ -17,8 +16,11 @@
     vm.stages = undefined;
     vm.doLoad = doLoad;
     vm.edit = edit;
+    vm.deleteOwner = deleteOwner;
     vm.getShortTypeName = getShortTypeName;
+    vm.getResourceTypeName = getResourceTypeName;
     vm.openReport = openReport;
+    vm.goToParentView = goToParentView;
 
     var siblings,
         isApp = $state.current.name.indexOf('application') !== -1,
@@ -66,8 +68,18 @@
       OwnerEditor.open(vm.owner, type, siblings);
     }
 
+    function deleteOwner() {
+      DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function() {
+        vm.goToParentView();
+      });
+    }
+
     function getShortTypeName() {
-      return type === 'application' ? 'App' : 'Org';
+      return isApp ? 'App' : 'Org';
+    }
+    
+    function getResourceTypeName() {
+      return isApp ? 'Application' : 'Organization';
     }
 
     function openReport(stage) {
@@ -78,11 +90,20 @@
         }), '_blank');
       }
     }
+
+    function goToParentView() {
+      if (!isApp) {
+        $state.go('management.organization.view', {organizationId: vm.owner.parentOrganizationId});
+      } 
+      else {
+        $state.go('management.organization.view', {organizationId: vm.owner.organizationId});
+      }     
+    }
   }
 
   OwnerSummaryController.$inject = [
     '$state', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore', 'CLMLocations',
-    'StageTypeStore'
+    'StageTypeStore', 'DeleteModalService'
   ];
 
   angular//

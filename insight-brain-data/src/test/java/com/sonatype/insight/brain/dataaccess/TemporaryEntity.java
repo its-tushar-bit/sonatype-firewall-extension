@@ -411,12 +411,16 @@ public class TemporaryEntity
 
   public Application newApplicationWithParent(String appPublicId) {
     // Application Name must be unique
-    return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid());
+    return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
+  }
+
+  public Application newApplicationWithParent(String publicId, String name, String orgName) {
+    Organization org = newOrganization(orgName);
+    return newApplication(name, publicId, org.getId());
   }
 
   public Application newApplicationWithParent(String publicId, String name) {
-    Organization org = newOrganization(name);
-    return newApplication(name, publicId, org.getId());
+    return newApplicationWithParent(publicId, name, name);
   }
 
   public Application newApplication(String orgId) {

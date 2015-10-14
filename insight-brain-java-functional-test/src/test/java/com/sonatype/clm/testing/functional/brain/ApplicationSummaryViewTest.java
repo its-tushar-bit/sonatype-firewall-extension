@@ -41,7 +41,7 @@ public class ApplicationSummaryViewTest
 
   @Before
   public void init() {
-    application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION);
+    application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION, YE_OLE_ORGANIZATION);
     super.init(application);
   }
 

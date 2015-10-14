@@ -29,6 +29,10 @@ public class ActionDropDown
     return root().find("#app-org-link");
   }
 
+  public static SelenideElement deleteOwnerButton() {
+    return root().find("#delete-owner-link");
+  }
+
   public static SelenideElement actionButton() {
     return root().find("button");
   }

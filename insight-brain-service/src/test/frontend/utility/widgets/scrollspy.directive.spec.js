@@ -9,6 +9,10 @@ describe('scrollspy.directive.spec.js', function(){
     '<div id="scroller" scrollspy="#pills"><div id="pill1"></div></div>');
   }));
 
+  afterEach(function(){
+    controllerScope.$destroy();
+  });
+
   it('Validate scrollspy is initialized prpoerly', inject(function($compile) {
     spy = spyOn($.fn, 'scrollspy');
     expect(spy).not.toHaveBeenCalled();

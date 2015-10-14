@@ -161,7 +161,7 @@
 
         $.each(data, function(key, dataItem) {
           dataItem.id = key;
-          dataItem.policyName = dataItem.policyName || 'No Violations'
+          dataItem.policyName = dataItem.policyName || 'No Violations';
         });
 
         return data;

@@ -14,6 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class RepositoryReportPage
 {
@@ -141,17 +142,13 @@ public class RepositoryReportPage
 
     public static final Condition ignoredScore = cssClass("ignoredScore");
 
-    public static SelenideElement root() {
-      // Very specific selector to avoid catching the CIP SV table
-      return $("#componentTable > .slick-viewport > .grid-canvas");
-    }
-
     public static Row row(int num) {
       return new Row(rows().get(num));
     }
 
     public static ElementsCollection rows() {
-      return root().$$(":scope > .slick-row");
+      // Very specific selector to avoid catching the CIP SV table
+      return $$("#componentTable > .slick-viewport > .grid-canvas > .slick-row");
     }
   }
 

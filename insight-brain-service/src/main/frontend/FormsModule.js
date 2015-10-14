@@ -10,7 +10,8 @@
   var applyInitialValue = function () {
     return {
       restrict: 'E',
-      link: function (scope, element, attrs) {
+      require: '?ngModel',
+      link: function (scope, element, attrs, ngModelController) {
         if (element.parents('.clm-form').length > 0) {
           var initialValue;
 
@@ -19,6 +20,17 @@
               initialValue = newVal || '';
             }
           });
+
+          if (ngModelController) {
+            scope.$watch(function() {
+              return ngModelController.$pristine;
+            }, function(newVal) {
+              if (newVal) {
+                initialValue = '';
+                element.addClass('initial-value');
+              }
+            });
+          }
 
           element.addClass('initial-value');
           element.on('input', function () {
@@ -248,7 +260,8 @@
         });
 
         scope.$watch('formMaskActive', function (newValue) {
-          var msgElement,
+          var msgElement, offset, el,
+              body = $('body'),
               submittingText = attrs.formMask || 'Saving';
 
           if (maskElement && !newValue) {
@@ -258,20 +271,31 @@
           }
           else if (!maskElement && newValue) {
             // open mask
-            var offset = form.offset();
-
             maskElement = $('<div class="form-mask"><div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' + submittingText + '</h3></div></div>');
 
+            //if maskAttachToBody flag is set the mask will cover the whole page
+            if (attrs.maskAttachToBody === undefined) {
+              el = form;
+            } else {
+              el = body;
+              scope.$on('$destroy', function() {
+                maskElement.remove();
+                maskElement = null;
+              });
+            }
+
             //note we are tweaking the size a slight bit to not overrun the margin of the form
-            maskElement.css('top', offset.top + 1).css('left', offset.left + 1).css('width', form.width() - 2).css('height', form.height() - 2);
-            form.append(maskElement);
+            offset = el.offset();
+            maskElement.css('top', offset.top + 1).css('left', offset.left + 1).css('width', el.width() - 2).css('height', el.height() - 2);
+            el.append(maskElement);
 
             // prior to adding to the DOM the element has no height
             msgElement = $('.form-mask-msg', form);
+
             msgElement.css('margin-top', - msgElement.outerHeight());
           }
           else if (maskElement && newValue === 'successful') {
-            msgElement = $('.form-mask-msg', form);
+            msgElement = $('.form-mask-msg', attrs.maskAttachToBody ? body : form);
             msgElement.addClass('success');
             msgElement.html('<h3><i class="fa fa-check-circle"></i> Success!</h3>');
           }

@@ -4,8 +4,8 @@
       <i class="fa size-20px fa-tag outline">
       </i>{{vm.dirtyLabel.id ? 'Edit' : 'New'}} Component Label
     </h2>
-    <div id="labelEditorWrapper">
-      <form name="labelEditor" class="clm-form" role="form" ng-submit="labelEditor.$valid && vm.save()" >
+    <div id="labelEditorWrapper" load-wrapper="vm.error" loading="!vm.dirtyLabel" reload="vm.doLoad()" >
+      <form name="vm.labelEditor" class="clm-form" role="form" ng-submit="vm.labelEditor.$valid && vm.save()" form-mask mask-attach-to-body>
           <div class="section">
             <div class="field">
               <label for="editor-label-name">Component Label Name</label>
@@ -32,10 +32,11 @@
           </div>
         <div class="editor-footer" ng-class="{ error : vm.error }">
           <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i> {{vm.error}}</div>
-          <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="labelEditor.$invalid || labelEditor.$pristine">
+
+          <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="vm.labelEditor.$invalid || !vm.dirtyLabel.isDirty()">
             {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
           </button><!--
-       --><button type="submit" class="btn btn-error" ng-if="vm.error" ng-disabled="labelEditor.$invalid">
+       --><button type="submit" class="btn btn-error" ng-if="vm.error" ng-disabled="vm.labelEditor.$invalid">
             <i class="fa fa-refresh"></i>Retry
           </button><!--
        --><button id="delete-label-button" class='btn btn-tertiary' type="button"

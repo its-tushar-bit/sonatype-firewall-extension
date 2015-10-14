@@ -6,13 +6,14 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($stateParams, LabelStore, Messages, DeleteModalService) {
+  function LabelEditorController($stateParams, $state, $scope, LabelStore, Messages, DeleteModalService, formMaskDelay) {
     var vm = this;
 
     vm.dirtyLabel = undefined;
     vm.deleteLabel = deleteLabel;
     vm.doLoad = doLoad;
     vm.error = undefined;
+    vm.labelEditor = undefined;
     vm.siblings = [];
     vm.save = save;
 
@@ -20,7 +21,7 @@
 
     function deleteLabel() {
       DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function() {
-        //TODO CLM-5302 Handle Label Delete Redirects
+        $state.go('^.create-label');
       });
     }
 
@@ -49,10 +50,10 @@
       var isNew = vm.dirtyLabel.$new;
       delete vm.error;
 
-      //TODO CLM-5302 Handle Label Save Mask
-      vm.dirtyLabel.$save().then(function() {
+      formMaskDelay.wrap($scope, vm.dirtyLabel.$save()).then(function() {
         if (isNew) {
-          //TODO CLM-5302 Handle Label Save Redirects
+          vm.dirtyLabel = LabelStore.create();
+          vm.labelEditor.$setPristine();
         }
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
@@ -60,7 +61,7 @@
     }
   }
 
-  LabelEditorController.$inject = ['$stateParams', 'LabelStore', 'Messages', 'DeleteModalService'];
+  LabelEditorController.$inject = ['$stateParams', '$state', '$scope', 'LabelStore', 'Messages', 'DeleteModalService', 'FormMaskDelay'];
 
   angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
 

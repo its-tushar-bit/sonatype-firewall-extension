@@ -119,11 +119,6 @@ public class RepositoryReportTest
     // one with multiple violations
     tempEntity.newRepositoryPolicyViolation(component, 9, false, "Not in summary");
 
-    // one with a waived violation
-    component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
-        ComponentIdentifier.createMavenCoordinates("waived", "threat", "1.0."));
-    tempEntity.newRepositoryPolicyViolation(component, 10, true, "Extremely Bad");
-
     // one quarantined, that groups
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("quarantined", "component", "1.0."));
@@ -145,7 +140,6 @@ public class RepositoryReportTest
     testUnknownMatchesFilter();
 
     testAllViolationsFilter();
-    testWaivedFilter();
     testQuarantinedFilter();
   }
 
@@ -157,8 +151,8 @@ public class RepositoryReportTest
     RepositoryReportPage.Summary.criticalCount().shouldBe(visible).shouldHave(text("2"));
     RepositoryReportPage.Summary.violatingComponentsCount().shouldBe(visible).shouldHave(text("4"));
 
-    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("6"));
-    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("86"));
+    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("5"));
+    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("83"));
   }
 
   private void testUnknownMatchesFilter() {
@@ -183,16 +177,8 @@ public class RepositoryReportTest
     Filter.allViolationsButton().click();
     Filter.allViolations().shouldBe(Filter.active);
 
-    assertRows(CRITICAL_ROW, QUARANTINED, WAIVED, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
+    assertRows(CRITICAL_ROW, QUARANTINED, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
         UNKNOWN);
-    resetFilter();
-  }
-
-  private void testWaivedFilter() {
-    Filter.waivedViolationsButton().click();
-    Filter.waivedViolations().shouldBe(Filter.active);
-
-    assertRows(WAIVED);
     resetFilter();
   }
 
@@ -250,9 +236,6 @@ public class RepositoryReportTest
 
   private final ExpectedRow QUARANTINED = new ExpectedRow(Table.criticalThreat, "Extremely Bad",
       "quarantined : component : 1.0", false, true);
-
-  private final ExpectedRow WAIVED = new ExpectedRow(Table.criticalThreat, "Extremely Bad", "waived : threat : 1.0",
-      true, false);
 
   private final ExpectedRow CRITICAL_ROW = new ExpectedRow(Table.criticalThreat, "Extremely Bad",
       "critical : threat : 1.0", false, false);

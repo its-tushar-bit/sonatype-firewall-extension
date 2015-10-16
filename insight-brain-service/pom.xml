@@ -1175,6 +1175,12 @@
       </properties>
     </profile>
     <profile>
+      <id>idea</id>
+      <properties>
+        <wro4j.minimize>false</wro4j.minimize>
+      </properties>
+    </profile>
+    <profile>
       <id>obfuscate</id>
       <activation>
         <property>

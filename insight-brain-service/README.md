@@ -53,3 +53,8 @@ The grunt tooling provides a variety of other tasks to allow for testing and pro
 
     grunt --help
 
+## Misc
+
+* Disable javascript minification using the system property: `-Dwro4j.minimize=false`. 
+  
+    This property can also set by activating the profiles: `m2e` or `idea`.

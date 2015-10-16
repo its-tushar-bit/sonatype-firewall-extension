@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, $, window, CLM, setTimeout, Insight, AngularUtils, applicationId */
+/*global angular, $, CLM, Insight, AngularUtils, applicationId */
 (function() {
   'use strict';
   function LabelTab(node, options) {
@@ -38,8 +38,8 @@
   }
 
   function relocateModal(selector) {
-    $("body > " + selector).remove();
-    $(selector).appendTo("body");
+    $('body > ' + selector).remove();
+    $(selector).appendTo('body');
   }
 
   (function() {
@@ -78,13 +78,13 @@
           $scope.labelAddError = null;
           var parts = $scope.label.selectedOwner.split('$$');
           $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
-                  ComponentLabelEditorComponent.hash, currentLabelData.get()).success(function(responseData) {
+                  ComponentLabelEditorComponent.hash, currentLabelData.get()).success(function() {
             $scope.labelSaving = false;
             $('#labelAssignScopeModal').modal('hide');
-          }).error(function(data, status, headersFn, config) {
-                $scope.labelSaving = false;
-                $scope.labelAddError = messages.getHttpErrorMessage(arguments);
-              });
+          }).error(function() {
+            $scope.labelSaving = false;
+            $scope.labelAddError = messages.getHttpErrorMessage(arguments);
+          });
         };
         //after dialog is shown, make sure to apply the angular stuff
         $('#labelAssignScopeModal').on('shown', function() {
@@ -105,17 +105,17 @@
                 }
                 else if (item.type === 'organization') {
                   $scope.labelOwners.push(item);
-                  angular.forEach(item.children, function(child, childIndex) {
+                  angular.forEach(item.children, function(child) {
                     processItem(child);
                   });
                 }
               }
 
               processItem(data);
-            }).error(function(data, status) {
-                  $scope.labelLoading = false;
-                  $scope.labelAddError = messages.getHttpErrorMessage(arguments);
-                });
+            }).error(function() {
+              $scope.labelLoading = false;
+              $scope.labelAddError = messages.getHttpErrorMessage(arguments);
+            });
           });
         });
         //move the dialog onto the body in the dom, so the backdrop shows properly
@@ -136,13 +136,13 @@
           $scope.labelRemoveError = null;
           var label = currentLabelData.get();
           $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
-                  ComponentLabelEditorComponent.hash + '/' + label.id).success(function(responseData) {
+                  ComponentLabelEditorComponent.hash + '/' + label.id).success(function() {
             $scope.labelDeleting = false;
             $('#labelRemoveModal').modal('hide');
-          }).error(function(data, status, headersFn, config) {
-                $scope.labelDeleting = false;
-                $scope.labelRemoveError = messages.getHttpErrorMessage(arguments);
-              });
+          }).error(function() {
+            $scope.labelDeleting = false;
+            $scope.labelRemoveError = messages.getHttpErrorMessage(arguments);
+          });
         };
         $('#labelRemoveModal').on('show', function() {
           AngularUtils.safeApply($scope, function() {
@@ -157,7 +157,7 @@
     labelsApp.controller('LabelsController', [
       '$http', '$scope', 'CurrentLabelData', 'ComponentLabelEditorComponent', 'Messages',
       function($http, $scope, currentLabelData, ComponentLabelEditorComponent, messages) {
-        function errorFn(data, status, headersFn, config) {
+        function errorFn() {
           $scope.alerts.length = 0;
           $scope.alerts.push({
             type: 'error',
@@ -167,8 +167,8 @@
 
         function flattenLabelList(data) {
           var list = [];
-          angular.forEach(data.labelsByOwner, function(labelOwner, labelOwnerIndex) {
-            angular.forEach(labelOwner.labels, function(label, labelIndex) {
+          angular.forEach(data.labelsByOwner, function(labelOwner) {
+            angular.forEach(labelOwner.labels, function(label) {
               label.ownerId = labelOwner.ownerId;
               label.ownerType = labelOwner.ownerType;
               label.ownerName = labelOwner.ownerName;
@@ -201,7 +201,7 @@
         $scope.addLabel = function(label) {
           if (label.ownerType === 'application') {
             $http.post(CLM.path + 'rest/label/component/application/' + ComponentLabelEditorComponent.applicationId + '/' +
-                    ComponentLabelEditorComponent.hash, label).success(function(responseData) {
+                    ComponentLabelEditorComponent.hash, label).success(function() {
               $scope.loadLabelData();
             }).error(errorFn);
           }
@@ -211,12 +211,12 @@
           }
         };
         $scope.isWhite = function(label) {
-          return label.color === "green" || label.color === "black" || label.color === "orange" ||
-              label.color === "red" || label.color === "blue";
+          return label.color === 'green' || label.color === 'black' || label.color === 'orange' ||
+              label.color === 'red' || label.color === 'blue';
         };
         $scope.isApplied = function(label) {
           var duplicate = false;
-          angular.forEach($scope.itemLabels, function(candidate, key) {
+          angular.forEach($scope.itemLabels, function(candidate) {
             duplicate = duplicate || (candidate.label === label.label);
             return !duplicate;
           });
@@ -237,7 +237,7 @@
      * Enables tipsy tooltip on an element(with fixed parameters)
      */
     labelsApp.directive('tip', function() {
-      return function(scope, element, attrs) {
+      return function(scope, element) {
         /**
          * Note: Setting html:false to prevent XSS attacks. See CLM-4637 for more details.
          */
@@ -248,16 +248,16 @@
       var properties = ['-ms-transform', '-webkit-transform', '-moz-transform', 'transform'];
 
       function setElement(element, value) {
-        angular.forEach(properties, function(prop, key) {
+        angular.forEach(properties, function(prop) {
           element.css(prop, value);
         });
         return element;
       }
 
-      return function(scope, element, attrs) {
-        element.bind('click', function(e) {
+      return function(scope, element) {
+        element.bind('click', function() {
           setElement(element, '').prop('rotate', null).animate({ rotate: '+360'}, {
-            step: function(now, fx) {
+            step: function(now) {
               now = now % 360;
               setElement(element, 'rotate(' + now + 'deg)');
             }

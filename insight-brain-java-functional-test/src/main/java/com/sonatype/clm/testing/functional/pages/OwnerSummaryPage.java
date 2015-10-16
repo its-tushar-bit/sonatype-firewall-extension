@@ -7,9 +7,16 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class OwnerSummaryPage
 {
@@ -22,12 +29,21 @@ public class OwnerSummaryPage
     private static SelenideElement root() {
       return $("#owner-summary");
     }
+
     public static SelenideElement name() {
       return root().find("h1");
     }
 
     public static SelenideElement icon() {
       return $("img");
+    }
+
+    public static SelenideElement addLabelButton() {
+      return $("#add-label-button");
+    }
+
+    public static SelenideElement localLabel(String labelName) {
+      return $$("#owner-pill-comp-labels  ul div.title").findBy(text(labelName));
     }
 
     public static ErrorBox error() {

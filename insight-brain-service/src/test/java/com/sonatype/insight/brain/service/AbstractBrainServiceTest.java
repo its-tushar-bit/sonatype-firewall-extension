@@ -273,7 +273,7 @@ public abstract class AbstractBrainServiceTest
   protected HttpRequest licenseRequest() {
     HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH)
         .csrfToken("nonce", null, "nonce");
-    request.part("file", "sonatype.lic", getClass().getResource("/productlicense/license.lic"));
+    request.part("file", "sonatype.lic", new byte[0]);
     return request;
   }
 

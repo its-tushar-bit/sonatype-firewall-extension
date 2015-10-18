@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.inject.Inject;
@@ -22,7 +23,7 @@ public class ProductLicenseServiceAuthzTest
   private ProductLicenseService productLicenseService;
 
   private InputStream getLicense() {
-    return getClass().getResourceAsStream("/productlicense/license.lic");
+    return new ByteArrayInputStream(new byte[0]);
   }
 
   @Test

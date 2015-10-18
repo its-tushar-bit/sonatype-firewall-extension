@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,16 +20,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.sonatype.licensing.LicenseKey;
 import org.sonatype.licensing.LicensingException;
-import org.sonatype.licensing.feature.Feature;
-import org.sonatype.licensing.feature.FeatureValidator;
-import org.sonatype.licensing.internal.DefaultFeatureValidator;
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.internal.DefaultProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
-import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -48,40 +40,20 @@ public class CLMLicenseManagerTest
   @Inject
   private CLMLicenseManager clmLicenseManager;
 
-  private TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
+  @Inject
+  private TestLicenseFingerprinter licenseFingerprinter;
 
-  private TestProductLicenseManager licenseManager = new TestProductLicenseManager();
-
-  private static class NegativeFeatureValidator
-      extends DefaultFeatureValidator
-  {
-    @Override
-    public boolean isValid(Feature feature, LicenseKey licenseKey) {
-      return false;
-    }
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    if ("testLicenseLacksClmFeature".equals(testName.getMethodName())) {
-      binder.bind(FeatureValidator.class).toInstance(new NegativeFeatureValidator());
-      binder.bind(ProductLicenseManager.class).to(DefaultProductLicenseManager.class);
-    }
-    else {
-      binder.bind(ProductLicenseManager.class).toInstance(licenseManager);
-      binder.bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-    }
-    super.configure(binder);
-  }
+  @Inject
+  private TestProductLicenseManager licenseManager;
 
   private void installLicense() throws IOException, LicensingException {
-    try (InputStream licenseStream = getClass().getResourceAsStream("/productlicense/license.lic")) {
-      clmLicenseManager.installLicense(licenseStream);
-    }
+    clmLicenseManager.installLicense(new ByteArrayInputStream(new byte[0]));
   }
 
   @Test
   public void testLicenseLacksClmFeature() throws Exception {
+    clmLicenseManager.uninstallLicense();
+    licenseManager.setForceVerificationFailure(true);
     try {
       installLicense();
       fail("Expected LicensingException");

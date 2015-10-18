@@ -113,6 +113,11 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setForceInstallIOFailure(forceInstallIOFailure);
   }
 
+  public void setForceVerificationFailure(boolean forceVerificationFailure) {
+    wasChanged = true;
+    mockProductLicenseManager.setForceVerificationFailure(forceVerificationFailure);
+  }
+
   public void setProducts(String... products) {
     wasChanged = true;
     mockProductLicenseManager.setProducts(products);
@@ -150,6 +155,8 @@ public class TestProductLicenseManager
     private boolean forceInstallLicenseFailure = false;
 
     private boolean forceInstallIOFailure = false;
+
+    private boolean forceVerificationFailure;
 
     public MockProductLicenseManager() {
       resetEnforcementPoints();
@@ -238,7 +245,9 @@ public class TestProductLicenseManager
 
     @Override
     public void verifyFeature(final ProductLicenseKey key, final Feature feature) throws LicensingException {
-      // TODO
+      if (forceVerificationFailure) {
+        throw new LicensingException("License does not permit use of feature '" + feature.getId() + "'");
+      }
     }
 
     public boolean isValid() {
@@ -291,6 +300,10 @@ public class TestProductLicenseManager
 
     public void setForceInstallIOFailure(boolean forceInstallIOFailure) {
       this.forceInstallIOFailure = forceInstallIOFailure;
+    }
+
+    public void setForceVerificationFailure(boolean forceVerificationFailure) {
+      this.forceVerificationFailure = forceVerificationFailure;
     }
 
     public void setProperty(String key, String value) {

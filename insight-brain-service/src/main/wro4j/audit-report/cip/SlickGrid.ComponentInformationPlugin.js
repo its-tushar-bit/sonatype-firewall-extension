@@ -40,7 +40,7 @@
 
   ComponentInformationPanelPlugin.prototype.toggle = function (row) {
     var me = this,
-        item = row ? me.grid.getDataItem(row) : undefined;
+        item = typeof row === "number" ? me.grid.getDataItem(row) : undefined;
     me.scope.$applyAsync(function () {
       me.selectedComponent.toggle(item);
     });

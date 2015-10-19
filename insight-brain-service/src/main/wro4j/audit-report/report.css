@@ -184,7 +184,6 @@ div.popout {
   position: absolute;
   z-index: 2;
   background-color: white;
-  display: none;
   height: 320px;
 }
 

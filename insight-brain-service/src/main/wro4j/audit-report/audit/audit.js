@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  var module = angular.module('Audit', ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation']);
+  var module = angular.module('Audit', ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation', 'component.information.panel']);
 
   module.controller('AuditSummaryController', ['$scope', '$http', '$window', 'Repository', 'CLMLocations', function ($scope, $http, $window, Repository, CLMLocations) {
 

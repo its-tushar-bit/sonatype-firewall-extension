@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, Slick, $, clmBuildTimestamp, Insight */
+/*global angular, Slick, $, clmBuildTimestamp, Insight, ComponentInformationPanelPlugin */
 (function () {
   'use strict';
 
@@ -12,7 +12,7 @@
     return encoder.text(text).html();
   }
 
-  function createTable(data) {
+  function createTable(data, $scope, $compile) {
     var columnGrouping = new Slick.ColumnGrouping({ columnId: 'policyName', style: 'scoreCol' }),
       scoreStyler = columnGrouping.getCellStyler(),
       cellFormatter = columnGrouping.getCellRenderer(),
@@ -131,7 +131,7 @@
           return '';
         }
       }],
-      plugins = [columnGrouping, new Insight.InformationPanel({ byHash: true })];
+      plugins = [columnGrouping, new ComponentInformationPanelPlugin($scope)];
 
     return new Insight.Table('component', data, {
       columns: columns,
@@ -185,7 +185,7 @@
           delete vm.error;
 
           $http.get('/rest/repositories/' + Repository.managerInstanceId + '/' + Repository.publicId + '/report/details').success(function (data) {
-            vm.grid = createTable(data);
+            vm.grid = createTable(data, $scope);
             setFilter();
           }).error(function () {
             vm.error = arguments;

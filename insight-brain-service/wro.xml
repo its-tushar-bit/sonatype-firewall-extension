@@ -228,6 +228,13 @@
     <js>/version-graph/viewdetails.js</js>
   </group>
 
+  <group name='repository-cip'>
+    <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
+    <js>/audit-report/cip/component.information.panel.module.js</js>
+    <js>/audit-report/cip/component.information.panel.directive.js</js>
+    <js>/audit-report/cip/cip.tab.pane.directive.js</js>
+  </group>
+
   <group name='audit-report'>
     <js>/lib/hogan.js</js>
     <js>/lib/protovis/protovis-tipsy.js</js>
@@ -240,7 +247,7 @@
     <css>/lib/slickgrid/slick.pager.css</css>
     <css>/audit-report/jquery/tipsy.css</css>
 
-    <js>/audit-report/slickgrid/informationPanel.js</js>
+    <js>/version-graph/appcheck.js</js>
     <js>/audit-report/insight.js</js>
     <js>/audit-report/table.js</js>
     <css>/audit-report/report.css</css>
@@ -258,8 +265,12 @@
     <js>/audit-report/slickgrid/sort.js</js>
     <js>/audit-report/slickgrid/slick.grid.tipsy.js</js>
 
-    <group-ref>cip-loader-core</group-ref>
+    <group-ref>repository-cip</group-ref>
+    <js>/util/CLMLocation.js</js>
+    <js>/util/AngularCommon.js</js>
+    <js>/util/HttpInterceptors.js</js>
     <js>/audit-report/audit/audit.js</js>
+    <js>/audit-report/cip/selected.component.service.js</js>
     <js>/audit-report/audit/audit.threat.directive.js</js>
     <js>/audit-report/audit/repository.violation.table.filter.directive.js</js>
   </group>

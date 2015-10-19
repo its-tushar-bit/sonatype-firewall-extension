@@ -126,7 +126,7 @@ public class InsightConfig
    */
   @NotNull
   @JsonProperty
-  private boolean showRootOrganization = false;
+  private boolean showRootOrganization = true;
 
   public ProxyConfig getProxyConfig() {
     return proxy;

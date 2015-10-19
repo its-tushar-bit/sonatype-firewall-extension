@@ -52,7 +52,7 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
   }
 
   @Test
@@ -62,7 +62,6 @@ public class FeatureServiceTest
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.DASHBOARD);
-    expectedFeatures.remove(Feature.ROOT_ORG);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 
@@ -74,7 +73,7 @@ public class FeatureServiceTest
     assertThat(
         features,
         containsInAnyOrder(Feature.LABELS, Feature.NOTIFICATIONS, Feature.POLICY, Feature.POLICY_VIOLATIONS,
-            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH));
+            Feature.REEVALUATE_POLICY, Feature.RELEASE_GRAPH, Feature.ROOT_ORG));
   }
 
   @Test
@@ -84,7 +83,6 @@ public class FeatureServiceTest
     Set<Feature> features = featuresService.getFeatures();
     EnumSet<Feature> expectedFeatures = EnumSet.allOf(Feature.class);
     expectedFeatures.remove(Feature.POLICY_MONITORING);
-    expectedFeatures.remove(Feature.ROOT_ORG);
     assertThat(features, containsInAnyOrder(expectedFeatures.toArray()));
   }
 }

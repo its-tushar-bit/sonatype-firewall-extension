@@ -4,18 +4,18 @@
     <h5>Available <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
     <div class='labelContainer'>
       <span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
-              <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
-              <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
-            </span>
+        <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
+        <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
+      </span>
     </div>
   </div>
   <div style='width:49.5%;margin-bottom:10px'>
     <h5>Applied <i class='icon-refresh' ng-click='loadLabelData()' spinner></i></h5>
     <div class='labelContainer'>
       <span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
-              <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
-              <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
-            </span>
+        <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
+        <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
+      </span>
     </div>
   </div>
   <div id="labelAssignScopeModal" data-keyboard="false" data-backdrop="static" class="modal hide fade" ng-controller="LabelAddController">
@@ -24,7 +24,7 @@
       <h3>Label Assignment</h3>
     </div>
     <div class="modal-body" ng-show="labelLoading">
-        <span>Loading data...</span>
+      <span>Loading data...</span>
     </div>
     <div class="modal-body" ng-show="!labelLoading">
       <div ng-repeat="labelOwner in labelOwners">
@@ -32,9 +32,9 @@
           <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
           <span>Assign label<span ng-if="displayName"> to component <em ng-repeat="part in displayName.parts">{{part.value}}</em></span> for </span>
           <span ng-switch on="labelOwner.type">
-                <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
-                <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
-            </span>
+            <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
+            <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
+          </span>
         </label>
       </div>
     </div>

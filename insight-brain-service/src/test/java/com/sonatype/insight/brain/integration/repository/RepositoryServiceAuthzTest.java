@@ -145,13 +145,13 @@ public class RepositoryServiceAuthzTest
     Repository repo = createRepository();
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    repositoryService.getReportSummary(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+    repositoryService.getReportSummary(repo.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetReportSummary_Unauthenticated() {
     Repository repo = createRepository();
-    repositoryService.getReportSummary(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+    repositoryService.getReportSummary(repo.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -159,27 +159,27 @@ public class RepositoryServiceAuthzTest
     grantWritePermission();
     Repository repo = createRepository();
 
-    repositoryService.getReportSummary(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+    repositoryService.getReportSummary(repo.getId());
   }
 
   @Test
   public void testGetReportDetails_Authorized() {
     Repository repo = createRepository();
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.getReportDetails(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+    repositoryService.getReportDetails(repo.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetReportDetails_Unauthenticated() {
     Repository repo = createRepository();
-    repositoryService.getReportDetails(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+    repositoryService.getReportDetails(repo.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetReportDetails_Unauthorized() {
     grantWritePermission();
     Repository repo = createRepository();
-    repositoryService.getReportDetails(MANUAL_REPO_MAN_INSTANCE_ID, repo.getPublicId());
+    repositoryService.getReportDetails(repo.getId());
   }
 
   @Test

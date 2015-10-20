@@ -67,7 +67,7 @@ public class RepositoryReportTest
     tempEntity.newRepositoryComponent(repo.getId(), "quarantined1", new Date(), null);
     tempEntity.newRepositoryComponent(repo.getId(), "quarantined2", new Date(), null);
 
-    open(RepositoryReportPage.url(repoManager.getInstanceId(), repo.getPublicId()));
+    open(RepositoryReportPage.url(repo.getId()));
 
     RepositoryReportPage.Summary.root().shouldBe(visible);
 
@@ -83,7 +83,7 @@ public class RepositoryReportTest
 
   @Test
   public void testSummary_Empty() throws Exception {
-    open(RepositoryReportPage.url(repoManager.getInstanceId(), repo.getPublicId()));
+    open(RepositoryReportPage.url(repo.getId()));
 
     RepositoryReportPage.Summary.root().shouldBe(visible);
 
@@ -126,7 +126,7 @@ public class RepositoryReportTest
     new RepositoryComponentDAO().update(component);
     tempEntity.newRepositoryPolicyViolation(component, 10, false, "Extremely Bad");
 
-    open(RepositoryReportPage.url(repoManager.getInstanceId(), repo.getPublicId()));
+    open(RepositoryReportPage.url(repo.getId()));
 
     testReportSummary();
 

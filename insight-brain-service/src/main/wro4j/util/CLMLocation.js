@@ -196,9 +196,8 @@
         /**
          * @Since 1.17
          */
-        getAuditReportSummary: function(repositoryManagerInstanceId, repositoryPublicId) {
-          return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryManagerInstanceId) +
-                  '/' + encodeURIComponent(repositoryPublicId) + '/report/summary';
+        getAuditReportSummary: function(repositoryId) {
+          return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryId) + '/report/summary';
         }
       };
     }

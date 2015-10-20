@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -44,11 +44,11 @@ public class RepositoryReportResourceTest
     repositoryManager = tempEntity.newRepositoryManager();
   }
 
-  private HttpResponse testGet(final String subPath, final String repoInstanceId, final String repositoryId,
-      final int expectedStatus) throws Exception
+  private HttpResponse testGet(final String subPath, final String repositoryId, final int expectedStatus)
+      throws Exception
   {
 
-    final HttpResponse response = restRequestSubpath(subPath).parameter(repoInstanceId, repositoryId).get();
+    final HttpResponse response = restRequestSubpath(subPath).parameter(repositoryId).get();
 
     assertResponseStatus(expectedStatus, response);
     return response;
@@ -56,9 +56,9 @@ public class RepositoryReportResourceTest
 
   @Test
   public void testGetSummary() throws Exception {
-    tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
 
-    HttpResponse response = restRequestSummary().parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID).get();
+    HttpResponse response = restRequestSummary().parameter(repository.getId()).get();
 
     assertResponseStatus(200, response);
     RepositoryReportSummary policyEvaluationSummary = response.getBody(RepositoryReportSummary.class);
@@ -69,18 +69,17 @@ public class RepositoryReportResourceTest
   public void testGetSummary_NoRepository() throws Exception {
     String repositoryId = "NonExistentRepositoryId";
 
-    HttpResponse response = restRequestSummary().parameter(repositoryManager.getInstanceId(), repositoryId).get();
+    HttpResponse response = restRequestSummary().parameter(repositoryId).get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(),
-        is(RepositoryDAO.getErrMsgMissingRepo(repositoryManager.getInstanceId(), repositoryId)));
+    assertThat(response.getBodyText(), is(getErrorMessage(repositoryId)));
   }
 
   @Test
   public void testGetSummary_RepositoryDisabled() throws Exception {
-    tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
 
-    HttpResponse response = restRequestSummary().parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID).get();
+    HttpResponse response = restRequestSummary().parameter(repository.getId()).get();
 
     assertResponseStatus(200, response);
     RepositoryReportSummary policyEvaluationSummary = response.getBody(RepositoryReportSummary.class);
@@ -89,10 +88,9 @@ public class RepositoryReportResourceTest
 
   @Test
   public void testGetReportDetails() throws Exception {
-    tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
 
-    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repositoryManager.getInstanceId(),
-        REPOSITORY_PUBLIC_ID, 200);
+    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repository.getId(), 200);
 
     final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
     assertThat(policyEvaluationDetail, notNullValue());
@@ -102,21 +100,22 @@ public class RepositoryReportResourceTest
   public void testGetReportDetails_NoRepository() throws Exception {
     final String repositoryId = "NonExistentRepositoryId";
 
-    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repositoryManager.getInstanceId(),
-        repositoryId, 404);
+    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repositoryId, 404);
 
-    assertThat(response.getBodyText(), is(
-        RepositoryDAO.getErrMsgMissingRepo(repositoryManager.getInstanceId(), repositoryId)));
+    assertThat(response.getBodyText(), is(getErrorMessage(repositoryId)));
   }
 
   @Test
   public void testGetReportDetails_RepositoryDisabled() throws Exception {
-    tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
 
-    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repositoryManager.getInstanceId(),
-        REPOSITORY_PUBLIC_ID, 200);
+    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repository.getId(), 200);
 
     final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
     assertThat(policyEvaluationDetail, notNullValue());
+  }
+
+  private String getErrorMessage(String repositoryId) {
+    return "Cannot find a repository with ID " + repositoryId + ".";
   }
 }

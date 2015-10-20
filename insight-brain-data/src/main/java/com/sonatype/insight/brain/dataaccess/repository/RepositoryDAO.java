@@ -25,8 +25,8 @@ public class RepositoryDAO
   private static final Logger log = LoggerFactory.getLogger(RepositoryDAO.class);
 
   public static String getErrMsgMissingRepo(final String repositoryManagerInstanceId, final String repositoryPublicId) {
-    return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId +
-        " and publicId=" + repositoryPublicId + ".";
+    return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId + " and publicId="
+        + repositoryPublicId + ".";
   }
 
   @Override

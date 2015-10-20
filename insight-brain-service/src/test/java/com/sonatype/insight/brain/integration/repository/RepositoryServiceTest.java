@@ -19,9 +19,9 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -1198,8 +1198,7 @@ public class RepositoryServiceTest
 
     tempEntity.newRepositoryComponent(repo.getId(), "/quarantined", new Date(), null);
 
-    RepositoryReportSummary summary = repositoryService.getReportSummary(repositoryManager.getInstanceId(),
-        repo.getPublicId());
+    RepositoryReportSummary summary = repositoryService.getReportSummary(repo.getId());
 
     assertThat(summary.knownComponentCount, is(5));
     assertThat(summary.totalComponentCount, is(6));
@@ -1427,8 +1426,7 @@ public class RepositoryServiceTest
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     createRepositoryPolicyViolation(repositoryOther, pathname1, 6);
 
-    final List<RepositoryReportDetail> reportDetails = repositoryService
-        .getReportDetails(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId());
 
     assertThat(reportDetails.size(), is(4));
 

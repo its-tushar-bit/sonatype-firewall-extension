@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
@@ -20,14 +19,10 @@ public class RepositoryReportPage
 {
   private static final String BASE_URL = "audit-report/index.html";
 
-  public static String url(String repositoryManagerInstanceId, String repositoryPublicId)
+  public static String url(String repositoryId)
       throws UnsupportedEncodingException
   {
-    repositoryManagerInstanceId = URLEncoder.encode(repositoryManagerInstanceId, "UTF-8");
-    repositoryPublicId = URLEncoder.encode(repositoryPublicId, "UTF-8");
-
-    return BASE_URL + "?repositoryManagerInstanceId=" + repositoryManagerInstanceId + "&repositoryPublicId="
-        + repositoryPublicId;
+    return BASE_URL + "?repositoryId=" + repositoryId;
   }
 
   public static class Summary

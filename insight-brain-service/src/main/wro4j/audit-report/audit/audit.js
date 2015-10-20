@@ -15,7 +15,7 @@
       $scope.error = null;
       $scope.loadActive = true;
 
-      $http.get(CLMLocations.getAuditReportSummary(Repository.managerInstanceId, Repository.publicId)).success(function(data) {
+      $http.get(CLMLocations.getAuditReportSummary(Repository.id)).success(function(data) {
         $scope.loadActive = false;
 
         $scope.knownComponentCount = data.knownComponentCount;
@@ -89,8 +89,7 @@
       });
 
       return {
-        managerInstanceId: result.repositoryManagerInstanceId,
-        publicId: result.repositoryPublicId
+        id: result.repositoryId
       };
   }]);
 }());

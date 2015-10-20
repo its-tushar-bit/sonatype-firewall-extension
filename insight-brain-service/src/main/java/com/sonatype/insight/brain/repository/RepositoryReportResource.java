@@ -28,7 +28,7 @@ public class RepositoryReportResource
 
   static final String DETAILS_PATH = "details";
 
-  public static final String RESOURCE_PATH = "rest/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}/report";
+  public static final String RESOURCE_PATH = "rest/repositories/{repositoryId}/report";
 
   private final RepositoryService repositoryService;
 
@@ -40,10 +40,9 @@ public class RepositoryReportResource
   @GET
   @Path(SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  public RepositoryReportSummary getSummary(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId)
+  public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId)
   {
-    return repositoryService.getReportSummary(repositoryManagerInstanceId, repositoryPublicId);
+    return repositoryService.getReportSummary(repositoryId);
   }
 
   public static class RepositoryReportSummary
@@ -66,10 +65,7 @@ public class RepositoryReportResource
   @GET
   @Path(DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RepositoryReportDetail> getReportDetails(
-      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") final String repositoryPublicId)
-  {
-    return repositoryService.getReportDetails(repositoryManagerInstanceId, repositoryPublicId);
+  public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId) {
+    return repositoryService.getReportDetails(repositoryId);
   }
 }

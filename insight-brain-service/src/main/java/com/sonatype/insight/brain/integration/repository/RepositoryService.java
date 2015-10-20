@@ -21,16 +21,16 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.component.ComponentDetailsAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -416,14 +416,12 @@ public class RepositoryService
     }
   }
 
-  public RepositoryReportSummary getReportSummary(String repositoryManagerInstanceId, String repositoryPublicId) {
+  public RepositoryReportSummary getReportSummary(String repositoryId) {
     checkLicenseFeature();
 
-    log.debug("Get report summary for repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
-        repositoryManagerInstanceId);
+    log.debug("Get report summary for repository {}", repositoryId);
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
-        repositoryManagerInstanceId, repositoryPublicId);
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
 
     return getReportSummary(repository);
   }
@@ -479,27 +477,22 @@ public class RepositoryService
     policyEvaluationSummary.setQuarantinedComponentCount(
         repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId()));
 
-    policyEvaluationSummary.setReportUrl(UserInterfaceLinksResource.getRepositoryReportUrl(
-        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId(), repository.getPublicId()));
+    policyEvaluationSummary.setReportUrl(UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
 
     return policyEvaluationSummary;
   }
 
-  public List<RepositoryReportDetail> getReportDetails(final String repositoryManagerInstanceId,
-      final String repositoryPublicId)
+  public List<RepositoryReportDetail> getReportDetails(final String repositoryId)
   {
-    log.debug("Get report details for repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
-        repositoryManagerInstanceId);
+    log.debug("Get report details for repository {}", repositoryId);
 
     checkLicenseFeature();
 
-    final Repository repository = repositoryDAO
-        .getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, repositoryPublicId);
+    final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
 
     return getReportDetails(repository);
   }
 
-  @SuppressWarnings("WeakerAccess")
   @Authorize(permission = Permission.READ)
   List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository) {
     final List<RepositoryReportDetail> details = new ArrayList<>();

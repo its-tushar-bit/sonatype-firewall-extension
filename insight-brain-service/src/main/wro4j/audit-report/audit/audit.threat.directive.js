@@ -184,7 +184,7 @@
         function doLoad() {
           delete vm.error;
 
-          $http.get('/rest/repositories/' + Repository.managerInstanceId + '/' + Repository.publicId + '/report/details').success(function (data) {
+          $http.get('/rest/repositories/' + Repository.id + '/report/details').success(function (data) {
             vm.grid = createTable(data, $scope);
             setFilter();
           }).error(function () {

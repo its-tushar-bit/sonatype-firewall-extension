@@ -45,7 +45,7 @@ public class UserInterfaceLinksResource
 
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
 
-  public static final String REPO_REPORT_PATH = "repository/{repositoryManagerInstanceId}/{repositoryId}/report";
+  public static final String REPO_REPORT_PATH = "repository/{repositoryId}/report";
 
   private final BaseUrl baseUrl;
 
@@ -106,15 +106,13 @@ public class UserInterfaceLinksResource
 
   @GET
   @Path(REPO_REPORT_PATH)
-  public Response linkToRepositoryReport(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryId") String repositoryId)
+  public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.AUDIT_REPORT_ASSET_PATH)
-        .path("index.html").replaceQuery(
-            "repositoryManagerInstanceId={repositoryManagerInstanceId}&repositoryPublicId={repositoryPublicId}");
+    uriBuilder.path(InsightBrainService.AUDIT_REPORT_ASSET_PATH).path("index.html")
+        .replaceQuery("repositoryId={repositoryId}");
 
-    return redirect(uriBuilder.build(repositoryManagerInstanceId, repositoryId));
+    return redirect(uriBuilder.build(repositoryId));
   }
 
   /**
@@ -151,8 +149,8 @@ public class UserInterfaceLinksResource
    *
    * @since 1.17
    */
-  public static String getRepositoryReportUrl(String repositoryManagerInstanceId, String repositoryId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(REPO_REPORT_PATH)
-        .build(repositoryManagerInstanceId, repositoryId).toString();
+  public static String getRepositoryReportUrl(String repositoryId) {
+    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(REPO_REPORT_PATH).build(repositoryId)
+        .toString();
   }
 }

@@ -9,13 +9,14 @@ describe('label.editor.controller.spec.js', function() {
   var vm,
       scope,
       $timeout,
+      $httpBackend,
       deleteServiceResourceDefer,
       mockDeleteService,
       $state = {go: function(state, params) {}},
       mockLabelStore = StoreUtils().createMockStore('LabelStore'),
       mockLabel = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_) {
+  beforeEach(inject(function($rootScope, $q, _$timeout_, _$httpBackend_) {
       scope = $rootScope.$new();
       $timeout = _$timeout_;
       deleteServiceResourceDefer = $q.defer();
@@ -24,56 +25,66 @@ describe('label.editor.controller.spec.js', function() {
           return deleteServiceResourceDefer.promise;
         }
       }
-    }
-  ));
+      $httpBackend = _$httpBackend_;
+  }));
 
   it('Creates new on load', function() {
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
     inject(function($controller) {
       vm = $controller('label.editor.controller', {$scope: scope});
     });
     mockLabelStore.resolveGet([]);
+    $httpBackend.flush();
     $timeout.flush();
     expect(vm.dirtyLabel).toBeDefined();
     expect(vm.dirtyLabel.$new).toBe(true);
   });
 
   it('Captures siblings', function() {
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: [{labels: ['label_1']}]});
     inject(function($controller) {
       vm = $controller('label.editor.controller', {$scope: scope});
     })
-    mockLabelStore.resolveGet(['label_1']);
+    mockLabelStore.resolveGet();
     $timeout.flush();
+    $httpBackend.flush();
     expect(vm.siblings).toContain('label_1');
     expect(vm.siblings.length).toBe(1);
   });
 
   it('Finds match with URL parameter', function() {
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
     inject(function($controller) {
       vm = $controller('label.editor.controller', {$stateParams: {labelId:'456'}, $scope: scope});
     });
     mockLabel.id = '456';
     mockLabelStore.resolveGet([mockLabel, {id:'123'}]);
     $timeout.flush();
+    $httpBackend.flush();
     expect(vm.dirtyLabel.$clone).toHaveBeenCalled();
     expect(vm.dirtyLabel.id).toBe('456');
   });
 
   it('Errors if no match found', function() {
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
     inject(function($controller) {
       vm = $controller('label.editor.controller', {$stateParams: {labelId:'789'}, $scope: scope});
     });
     mockLabelStore.resolveGet([{id:'123'}, {id:'456'}]);
     $timeout.flush();
+    $httpBackend.flush();
     expect(vm.dirtyLabel).toBeUndefined();
     expect(vm.error).toBeDefined();
   });
   
   it('Unsuccessful save sets error message', function() {
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
     inject(function($controller) {
       vm = $controller('label.editor.controller', {$scope: scope});
     });
     mockLabelStore.resolveGet([]);
     $timeout.flush();
+    $httpBackend.flush();
     vm.dirtyLabel = mockLabel;
     vm.save();
     mockLabel.rejectSave('dammit');
@@ -83,6 +94,7 @@ describe('label.editor.controller.spec.js', function() {
 
   it('After delete goes to create new label', function() {
     // given
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
     spyOn($state, 'go');
     inject(function($controller) {
       vm = $controller('label.editor.controller',
@@ -91,6 +103,7 @@ describe('label.editor.controller.spec.js', function() {
     mockLabel.id = '1';
     mockLabelStore.resolveGet([mockLabel]);
     $timeout.flush();
+    $httpBackend.flush();
     // when
     vm.deleteLabel();
     deleteServiceResourceDefer.resolve();

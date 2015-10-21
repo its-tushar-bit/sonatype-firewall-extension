@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($stateParams, $state, $scope, LabelStore, Messages, DeleteModalService, formMaskDelay) {
+  function LabelEditorController($q, $http, $stateParams, $state, $scope, LabelStore, CLMAppLocations, Messages, DeleteModalService, formMaskDelay) {
     var vm = this;
 
     vm.dirtyLabel = undefined;
@@ -26,12 +26,15 @@
     }
 
     function doLoad() {
-      LabelStore[vm.error ? 'refresh' : 'get']().then(function(labelCandidates) {
-        vm.siblings = labelCandidates;
+      $q.all([LabelStore[vm.error ? 'refresh' : 'get'](), $http.get(CLMAppLocations.getApplicableLabelsUrl(CLMAppLocations.getEntityId()))]).then(function(results) {
+        results[1].data.labelsByOwner.forEach(function(owner) {
+          vm.siblings = vm.siblings.concat(owner.labels);
+        });
+
         if (!$stateParams.labelId) {
           vm.dirtyLabel = LabelStore.create();
         } else {
-          labelCandidates.forEach(function(labelCandidate) {
+          results[0].forEach(function(labelCandidate) {
             if (labelCandidate.id === $stateParams.labelId) {
               vm.dirtyLabel = labelCandidate.$clone();
               return true;
@@ -41,8 +44,8 @@
         if (!vm.dirtyLabel) {
           vm.error = 'Unable to locate label.';
         }
-      }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
+      }, function() {
+        vm.error = arguments;
       });
     }
 
@@ -61,7 +64,7 @@
     }
   }
 
-  LabelEditorController.$inject = ['$stateParams', '$state', '$scope', 'LabelStore', 'Messages', 'DeleteModalService', 'FormMaskDelay'];
+  LabelEditorController.$inject = ['$q', '$http', '$stateParams', '$state', '$scope', 'LabelStore', 'CLMAppLocations',  'Messages', 'DeleteModalService', 'FormMaskDelay'];
 
   angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
 

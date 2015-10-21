@@ -809,10 +809,12 @@
   </div>
 ```
  */
+$form-mask-zindex: $zindexModal + 10;
 .form-mask {
   background-color: rgba($off-white, 0.9);
   position: fixed;
   text-align: center;
+  z-index: $form-mask-zindex;
 
   .form-mask-msg {
     background-color: $off-white;
@@ -822,6 +824,7 @@
     padding: 12px;
     position: relative;
     top : 50%;
+    z-index: $form-mask-zindex + 1;
 
     &.success {
       color: $dark-green;

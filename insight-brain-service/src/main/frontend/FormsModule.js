@@ -295,7 +295,7 @@
             msgElement.css('margin-top', - msgElement.outerHeight());
           }
           else if (maskElement && newValue === 'successful') {
-            msgElement = $('.form-mask-msg', attrs.maskAttachToBody ? body : form);
+            msgElement = $('.form-mask-msg', attrs.maskAttachToBody === undefined ? form : body);
             msgElement.addClass('success');
             msgElement.html('<h3><i class="fa fa-check-circle"></i> Success!</h3>');
           }

@@ -82,7 +82,7 @@ public class PolicyThreatsAdapter
     result.policyName = violation.getPolicyName();
     result.policyThreatLevel = violation.getThreatLevel();
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
-    result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation));
+    result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
     return result;
   }
 
@@ -106,9 +106,9 @@ public class PolicyThreatsAdapter
     return result;
   }
 
-  private List<PolicyThreats.PolicyConstraint> toPolicyThreatsPolicyConstraints(PolicyViolation violation) {
+  public List<PolicyThreats.PolicyConstraint> toPolicyThreatsPolicyConstraints(List<ConstraintFact> constraintFacts) {
     List<PolicyThreats.PolicyConstraint> result = new ArrayList<>();
-    for (ConstraintFact fact : violation.getConstraintFacts()) {
+    for (ConstraintFact fact : constraintFacts) {
       PolicyThreats.PolicyConstraint constraint = new PolicyThreats.PolicyConstraint();
       constraint.constraintId = fact.getConstraintId();
       constraint.constraintName = fact.getConstraintName();

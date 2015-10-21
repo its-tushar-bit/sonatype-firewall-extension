@@ -47,6 +47,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.repository.RepositoryReportDetail;
 import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -122,6 +124,56 @@ public class RepositoryServiceTest
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
     if (repositoryManager != null) {
       repositoryManagerDAO.delete(repositoryManager);
+    }
+  }
+
+  @Test
+  public void testGetPolicyThreats() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    String pathname = "path1";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, true, "policyId1", "policyName1",
+        componentIdentifier);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, pathname, true, true, "policyId2", "policyName2",
+        componentIdentifier);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, false, "policyId3", "policyName3",
+        componentIdentifier);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, true, "policyId4", "policyName4",
+        componentIdentifier);
+
+    tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
+
+    RepositoryPolicyThreatDTO repositoryPolicyThreatDTO =
+        repositoryService.getPolicyThreats(repository.getId(), pathname);
+
+    assertThat(repositoryPolicyThreatDTO.activePolicyViolations, hasSize(1));
+    RepositoryPolicyViolationDTO repositoryViolationDTO = repositoryPolicyThreatDTO.activePolicyViolations.get(0);
+    assertThat(repositoryViolationDTO.policyId, is("policyId1"));
+    assertThat(repositoryViolationDTO.policyName, is("policyName1"));
+    assertThat(repositoryViolationDTO.policyThreatLevel, is(8));
+  }
+
+  @Test
+  public void testGetPolicyThreats_RepositoryComponentDoesNotExist() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    try {
+      repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist");
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(),
+          is("Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + "."));
+    }
+  }
+
+  @Test
+  public void testGetPolicyThreats_RepositoryDoesNotExist() {
+    try {
+      repositoryService.getPolicyThreats("RepositoryIdDoesNotExist", null);
+      fail("Expected NotFoundException");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is("Cannot find a repository with ID RepositoryIdDoesNotExist."));
     }
   }
 

@@ -54,8 +54,12 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyResults;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.repository.RepositoryReportDetail;
 import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.security.Authorize;
@@ -63,6 +67,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -96,20 +101,56 @@ public class RepositoryService
 
   private final CLMLicenseManager licenseManager;
 
+  private final PolicyThreatsAdapter policyThreatsAdapter;
+
   @Inject
   public RepositoryService(HdsClient hdsClient, ComponentPolicyEvaluator componentPolicyEvaluator,
-      ComponentDetailsLoader componentDetailsLoader, CLMLicenseManager licenseManager)
+      ComponentDetailsLoader componentDetailsLoader, CLMLicenseManager licenseManager,
+      PolicyThreatsAdapter policyThreatsAdapter)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsLoader = componentDetailsLoader;
     this.licenseManager = licenseManager;
+    this.policyThreatsAdapter = policyThreatsAdapter;
   }
 
   private void checkLicenseFeature() {
     if (!licenseManager.hasRepositoryFirewall()) {
       throw new InvalidLicenseException("Your product license does not support the repository firewall feature.");
     }
+  }
+
+  public RepositoryPolicyThreatDTO getPolicyThreats(final String repositoryId, final String pathname) {
+    checkLicenseFeature();
+
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    return getPolicyThreats(repository, pathname);
+  }
+
+  @Authorize(permission = Permission.READ)
+  RepositoryPolicyThreatDTO getPolicyThreats(@AuthzContext(Key.REPOSITORY) final Repository repository,
+      final String pathname)
+  {
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    if (repositoryComponent == null) {
+      throw new NotFoundException("Cannot find a component with path " + pathname +
+          " in repository with ID " + repository.getId() + ".");
+    }
+
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
+
+    List<RepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
+    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
+      List<PolicyThreats.PolicyConstraint> constraints = policyThreatsAdapter.toPolicyThreatsPolicyConstraints(
+          repositoryPolicyViolation.getConstraintFacts());
+      activeRepositoryViolationDTOs.add(new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
+          repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(), constraints));
+    }
+
+    return new RepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
   }
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(final String repositoryManagerInstanceId,

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -16,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -37,6 +39,10 @@ public class RepositoryReportResourceTest
 
   private HttpRequest restRequestSummary() {
     return restRequest().path(RepositoryReportResource.SUMMARY);
+  }
+
+  private HttpRequest restPolicyThreatRequest(final String repositoryId, final String pathname) {
+    return restRequest().path(RepositoryReportResource.POLICY_THREAT_PATH).parameter(repositoryId, pathname);
   }
 
   @Before
@@ -113,6 +119,19 @@ public class RepositoryReportResourceTest
 
     final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
     assertThat(policyEvaluationDetail, notNullValue());
+  }
+
+  @Test
+  public void testGetPolicyThreats() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, repositoryComponent.getPathname(), false, true,
+        "policyId1", "policyName1", repositoryComponent.getComponentIdentifier());
+
+    HttpResponse response = restPolicyThreatRequest(repository.getId(), repositoryComponent.getPathname()).get();
+    assertResponseStatus(200, response);
+    RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = response.getBody(RepositoryPolicyThreatDTO.class);
+    assertThat(repositoryPolicyThreatDTO.activePolicyViolations, hasSize(1));
   }
 
   private String getErrorMessage(String repositoryId) {

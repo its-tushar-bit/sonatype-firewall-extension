@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -36,6 +38,31 @@ public class RepositoryServiceAuthzTest
     if (repositoryManager != null) {
       repositoryManagerDAO.delete(repositoryManager);
     }
+  }
+
+  @Test
+  public void testGetPolicyThreats_Authorized() {
+    Repository repo = createRepository();
+    String path = "path";
+    tempEntity.newRepositoryComponent(repo.getId(), path, new Date(), null);
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.getPolicyThreats(repo.getId(), path);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyThreats_Unauthenticated() {
+    Repository repo = createRepository();
+
+    repositoryService.getPolicyThreats(repo.getId(), "path");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyThreats_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.getPolicyThreats(repo.getId(), "path");
   }
 
   @Test

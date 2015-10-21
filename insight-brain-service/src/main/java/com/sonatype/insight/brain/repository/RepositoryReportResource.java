@@ -28,6 +28,8 @@ public class RepositoryReportResource
 
   static final String DETAILS_PATH = "details";
 
+  static final String POLICY_THREAT_PATH = "policyThreat/{pathname}";
+
   public static final String RESOURCE_PATH = "rest/repositories/{repositoryId}/report";
 
   private final RepositoryService repositoryService;
@@ -67,5 +69,17 @@ public class RepositoryReportResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId) {
     return repositoryService.getReportDetails(repositoryId);
+  }
+
+  /**
+   * @since 1.18.0
+   */
+  @GET
+  @Path(POLICY_THREAT_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public RepositoryPolicyThreatDTO getPolicyThreats(@PathParam("repositoryId") final String repositoryId,
+      @PathParam("pathname") final String pathname)
+  {
+    return repositoryService.getPolicyThreats(repositoryId, pathname);
   }
 }

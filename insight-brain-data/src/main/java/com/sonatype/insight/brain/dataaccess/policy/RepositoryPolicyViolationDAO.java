@@ -42,6 +42,18 @@ public class RepositoryPolicyViolationDAO
     return getList(tx, sQuery, repositoryId, pathname);
   }
 
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(String repositoryId,
+      String pathname, boolean isWaived)
+  {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.pathname=?2" + //
+        " AND entity.isWaived=?3" + //
+        " AND entity.active=true" + //
+        " ORDER BY entity.threatLevel DESC, entity.policyId";
+    return getList(sQuery, repositoryId, pathname, isWaived);
+  }
+
   public List<RepositoryPolicyViolation> getByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryId(tx, repositoryId);

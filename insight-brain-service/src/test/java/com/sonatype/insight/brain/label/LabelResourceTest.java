@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -282,7 +284,7 @@ public class LabelResourceTest
   }
 
   /**
-   * Tests for {@link LabelResource#getApplicableLabels(java.lang.String, java.lang.String)}.
+   * Tests for {@link LabelResource#getApplicableLabels(OwnerType, String)}.
    */
   @Test
   public void testGetApplicableLabels() throws Exception {
@@ -292,6 +294,9 @@ public class LabelResourceTest
     String appPublicId = "testGetApplicableLabelsApp";
     Application app = tempEntity.newApplication(appPublicId, appPublicId, org.getId());
     Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
+
+    final Repository repository = tempEntity.newRepository();
+    final String repoId = repository.getId();
 
     // Verify the applicable labels for the application
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).path("applicable").get();
@@ -309,10 +314,20 @@ public class LabelResourceTest
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
-    // One the org and one for the root org
+    // One for the org and one for the root org
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(org, 0, applicableLabels.labelsByOwner.get(0));
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
+
+    // Verify the applicable labels for the repository
+    response = restRequest(OwnerType.REPOSITORY, repoId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicableLabels = response.getBody(ApplicableLabels.class);
+    // One for the repository, one for the repositoryContainer, and one for the root org
+    Assert.assertEquals(3, applicableLabels.labelsByOwner.size());
+    assertLabelsByOwner(repository, 0, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(RepositoryContainer.SINGLETON, 0, applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
 
     // Create a label for the application
     Label appLabel = tempEntity.newLabel(app.getId(), "testGetApplicableLabels_App_label");
@@ -386,12 +401,24 @@ public class LabelResourceTest
     assertResponseStatus(200, response);
     applicableLabels = response.getBody(ApplicableLabels.class);
     Assert.assertNotNull(applicableLabels);
-    // One the org and one for the root org
+    // One for the org and one for the root org
     Assert.assertEquals(2, applicableLabels.labelsByOwner.size());
     assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(0));
     assertLabelsByOwner(parentOrg, 1, applicableLabels.labelsByOwner.get(1));
     Assert.assertEquals(orgLabel.getId(), applicableLabels.labelsByOwner.get(0).labels.get(0).getId());
     Assert.assertEquals(rootOrgLabel.getId(), applicableLabels.labelsByOwner.get(1).labels.get(0).getId());
+
+    // Verify the applicable labels for the repository
+    response = restRequest(OwnerType.REPOSITORY, repoId).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicableLabels = response.getBody(ApplicableLabels.class);
+    Assert.assertNotNull(applicableLabels);
+    // One for the repository, one for the repositoryContainer, and one for the root org
+    Assert.assertEquals(3, applicableLabels.labelsByOwner.size());
+    assertLabelsByOwner(repository, 0, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(RepositoryContainer.SINGLETON, 0, applicableLabels.labelsByOwner.get(1));
+    assertLabelsByOwner(parentOrg, 1, applicableLabels.labelsByOwner.get(2));
+    Assert.assertEquals(rootOrgLabel.getId(), applicableLabels.labelsByOwner.get(2).labels.get(0).getId());
   }
 
   @Test
@@ -404,6 +431,8 @@ public class LabelResourceTest
     HttpRequest request = restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(
         "applicable/context/{labelId}");
 
+    final Repository repository = tempEntity.newRepository();
+
     HttpResponse response = request.parameter(appLabel.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext context = response.getBody(ApplicableContext.class);
@@ -411,6 +440,31 @@ public class LabelResourceTest
     Assert.assertThat(context.getId(), is(app.getPublicId()));
     Assert.assertThat(context.getName(), is(app.getName()));
     Assert.assertThat(context.getType(), is(OwnerType.APPLICATION));
+    Assert.assertThat(context.getChildren(), is(nullValue()));
+
+    final HttpRequest requestRepository = restRequest(OwnerType.REPOSITORY, repository.getId()).subpath(
+        "applicable/context/{labelId}");
+    response = requestRepository.parameter(appLabel.getId()).get();
+    assertResponseStatus(200, response);
+    context = response.getBody(ApplicableContext.class);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(org.getParentOrganizationId()));
+    Assert.assertThat(context.getName(), is("Root Organization"));
+    Assert.assertThat(context.getType(), is(OwnerType.ORGANIZATION));
+    Assert.assertThat(context.getChildren(), is(notNullValue()));
+    Assert.assertThat(context.getChildren(), hasSize(1));
+    context = context.getChildren().get(0);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    Assert.assertThat(context.getName(), is(RepositoryContainer.SINGLETON.getName()));
+    Assert.assertThat(context.getType(), is(OwnerType.REPOSITORY_CONTAINER));
+    Assert.assertThat(context.getChildren(), is(notNullValue()));
+    Assert.assertThat(context.getChildren(), hasSize(1));
+    context = context.getChildren().get(0);
+    Assert.assertThat(context, is(notNullValue()));
+    Assert.assertThat(context.getId(), is(repository.getId()));
+    Assert.assertThat(context.getName(), is(repository.getName()));
+    Assert.assertThat(context.getType(), is(repository.getType()));
     Assert.assertThat(context.getChildren(), is(nullValue()));
 
     response = request.parameter(orgLabel.getId()).get();

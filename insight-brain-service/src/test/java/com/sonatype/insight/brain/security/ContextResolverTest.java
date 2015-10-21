@@ -144,7 +144,7 @@ public class ContextResolverTest
   public void testResolveContextIds_TypedContext_Repository() {
     Repository repository = tempEntity.newRepository();
     Map<AuthzContext.Key, Object> parameters = new HashMap<>();
-    parameters.put(AuthzContext.Key.INTERNAL_ID, repository.getId());
+    parameters.put(AuthzContext.Key.ID, repository.getId());
     parameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY);
     assertThat(resolver.resolveContextIds(parameters),
         contains(repository.getId(), repository.getParentOwnerId(), Organization.ROOT_ORGANIZATION_ID,

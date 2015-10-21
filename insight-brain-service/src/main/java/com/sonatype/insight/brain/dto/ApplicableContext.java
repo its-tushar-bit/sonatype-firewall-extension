@@ -23,7 +23,7 @@ public class ApplicableContext
   private String name;
 
   /**
-   * "application" or "organization"
+   * "application", "organization", "repository", or "repository container"
    */
   private OwnerType type;
 
@@ -59,7 +59,8 @@ public class ApplicableContext
   }
 
   public void setType(OwnerType type) {
-    if (!OwnerType.APPLICATION.equals(type) && !(OwnerType.ORGANIZATION.equals(type))) {
+    if (!OwnerType.APPLICATION.equals(type) && !(OwnerType.ORGANIZATION.equals(type)) &&
+        !OwnerType.REPOSITORY.equals(type) && !OwnerType.REPOSITORY_CONTAINER.equals(type)) {
       throw new IllegalArgumentException("Unknown context type: " + type);
     }
     this.type = type;

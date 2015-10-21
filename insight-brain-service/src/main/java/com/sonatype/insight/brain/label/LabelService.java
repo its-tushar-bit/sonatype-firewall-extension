@@ -110,18 +110,19 @@ public class LabelService
    * Enumerates the contexts (org/app) in which the given label could be applied.
    */
   @Authorize(permission = Permission.WRITE)
-  public ApplicableContext getApplicableContexts(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String ownerPublicId, final String labelId)
+  public ApplicableContext getApplicableContexts(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerIdPrivateOrPublic, final String labelId)
   {
     Label label = labelDAO.getByIdNotNull(labelId);
 
-    Application application = applicationDAO.getById(label.getOwnerId());
-    if (application != null) {
-      return new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION);
-    }
+    final String ownerId = IdUtils.getInternalOwnerId(ownerType, ownerIdPrivateOrPublic);
 
-    application = applicationDAO.getByPublicIdNotNull(ownerPublicId);
-    String ownerId = application.getId();
+    if (OwnerType.APPLICATION.equals(ownerType)) {
+      Application application = applicationDAO.getById(label.getOwnerId());
+      if (application != null) {
+        return new ApplicableContext(application.getPublicId(), application.getName(), OwnerType.APPLICATION);
+      }
+    }
 
     ApplicableContext context = null;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
@@ -130,7 +131,9 @@ public class LabelService
         break;
       }
 
-      ApplicableContext currentContext = new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
+      ApplicableContext currentContext = new ApplicableContext(
+          OwnerType.APPLICATION.equals(ownerType) ? owner.getPublicId() : owner.getId(), owner.getName(),
+          owner.getType());
       if (context == null) {
         context = currentContext;
       }

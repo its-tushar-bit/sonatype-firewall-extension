@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Assert;
@@ -43,6 +44,8 @@ public class ComponentLabelResourceTest
 
   private Application app;
 
+  private Repository repository;
+
   private Label appLabel;
 
   private Label orgLabel;
@@ -55,6 +58,7 @@ public class ComponentLabelResourceTest
   public void init() throws Exception {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication("Test", "test-app", org.getId());
+    repository = tempEntity.newRepository();
     appLabel = tempEntity.newLabel(app.getId(), "app");
     orgLabel = tempEntity.newLabel(org.getId(), "org");
   }
@@ -90,6 +94,12 @@ public class ComponentLabelResourceTest
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(0));
+    // Verify repository level
+    response = restRequest(OwnerType.REPOSITORY, repository.getId(), componentHash).get();
+    assertResponseStatus(200, response);
+    componentLabels = response.getBody(AppliedLabels.class);
+    assertThat(componentLabels.labelsByOwner, hasSize(0));
+
 
     // Labels applied to componentHash at all levels
     tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
@@ -113,6 +123,13 @@ public class ComponentLabelResourceTest
     assertLabelsByOwner(componentLabels.labelsByOwner.get(1), parentOrg, parentOrgLabel.getId());
     // Verify parent org level
     response = restRequest(OwnerType.ORGANIZATION, parentOrg.getId(), componentHash).get();
+    assertResponseStatus(200, response);
+    componentLabels = response.getBody(AppliedLabels.class);
+    assertThat(componentLabels.labelsByOwner, hasSize(1));
+    assertLabelsByOwner(componentLabels.labelsByOwner.get(0), parentOrg, parentOrgLabel.getId());
+    // Verify repository level
+    // NOTE: Currently, only RootOrg labels are possible for a Repository.
+    response = restRequest(OwnerType.REPOSITORY, repository.getId(), componentHash).get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(1));

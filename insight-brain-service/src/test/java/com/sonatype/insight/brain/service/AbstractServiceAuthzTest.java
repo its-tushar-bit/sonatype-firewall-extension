@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -30,6 +31,8 @@ import org.junit.Before;
 public class AbstractServiceAuthzTest
     extends AbstractComponentTest
 {
+  protected Repository repository;
+
   protected Organization org;
 
   protected Application app;
@@ -55,6 +58,7 @@ public class AbstractServiceAuthzTest
   @Override
   @Before
   public void setUpSecurity() {
+    repository = tempEntity.newRepository();
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     user = tempEntity.newUser();

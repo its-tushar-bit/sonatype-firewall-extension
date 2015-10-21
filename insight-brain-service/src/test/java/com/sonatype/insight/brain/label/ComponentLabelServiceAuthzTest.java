@@ -34,6 +34,12 @@ public class ComponentLabelServiceAuthzTest
     componentLabelService.getComponentLabels(OwnerType.ORGANIZATION, org.getId(), "bad");
   }
 
+  @Test
+  public void testGetComponentLabelsForRepository_Authorized() {
+    grantReadPermission(repository.getId());
+    componentLabelService.getComponentLabels(OwnerType.REPOSITORY, repository.getId(), "bad");
+  }
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentLabelsForApplication_Unauthenticated() {
     componentLabelService.getComponentLabels(OwnerType.APPLICATION, app.getPublicId(), "bad");
@@ -42,6 +48,11 @@ public class ComponentLabelServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentLabelsForOrganization_Unauthenticated() {
     componentLabelService.getComponentLabels(OwnerType.ORGANIZATION, org.getId(), "bad");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentLabelsForRepository_Unauthenticated() {
+    componentLabelService.getComponentLabels(OwnerType.REPOSITORY, repository.getId(), "bad");
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -54,6 +65,12 @@ public class ComponentLabelServiceAuthzTest
   public void testGetComponentLabelsForOrganization_Unauthorized() {
     login();
     componentLabelService.getComponentLabels(OwnerType.ORGANIZATION, org.getId(), "bad");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentLabelsForRepository_Unauthorized() {
+    login();
+    componentLabelService.getComponentLabels(OwnerType.REPOSITORY, repository.getId(), "bad");
   }
 
   @Test

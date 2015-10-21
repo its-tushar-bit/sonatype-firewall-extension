@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.label.Label;
 @Path(LabelResource.RESOURCE_PATH)
 public class LabelResource
 {
-  public static final String RESOURCE_PATH = "rest/label/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/label/{ownerType: application|organization|repository}/{ownerId}";
 
   private final LabelService labelService;
 
@@ -77,10 +77,10 @@ public class LabelResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable/context/{labelId}")
-  public ApplicableContext getApplicableContexts(@PathParam("ownerId") String ownerPublicId,
-      @PathParam("labelId") String labelId)
+  public ApplicableContext getApplicableContexts(@PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerIdPrivateOrPublic, @PathParam("labelId") String labelId)
   {
-    return labelService.getApplicableContexts(ownerPublicId, labelId);
+    return labelService.getApplicableContexts(ownerType, ownerIdPrivateOrPublic, labelId);
   }
 
   /**

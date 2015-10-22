@@ -217,7 +217,7 @@ public abstract class AbstractSummaryViewTest
       }
     }
   }
-  
+
   @Test
   public void testDeleteOwner() {
     List<Owner> parentOwners = new ArrayList<>();
@@ -227,7 +227,7 @@ public abstract class AbstractSummaryViewTest
     }
 
     String ownerName = currentOwner.getName();
-    
+
     // Test cancel button
     ActionDropDown.actionButton().click();
     ActionDropDown.deleteOwnerButton().shouldBe(visible).click();
@@ -241,7 +241,7 @@ public abstract class AbstractSummaryViewTest
 
     OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldHave(text(currentOwner.getName()));
     assertThat(currentOwner, is(not(nullValue())));
-    
+
     ActionDropDown.actionButton().click();
     ActionDropDown.deleteOwnerButton().shouldBe(visible).shouldHave(text(ownerName));
     ActionDropDown.deleteOwnerButton().click();
@@ -250,7 +250,7 @@ public abstract class AbstractSummaryViewTest
     DeleteModal.header().shouldHave(DeleteModal.headerText(currentOwner.getType().toString()));
     DeleteModal.body().shouldHave(DeleteModal.bodyText(ownerName));
 
-    
+
     DeleteModal.root().shouldBe(visible);
     DeleteModal.deleteButton().click();
 
@@ -258,12 +258,13 @@ public abstract class AbstractSummaryViewTest
     DeleteModal.root().shouldNotBe(visible);
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
-    
+
     assertThat(currentOwner, is(nullValue()));
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(parentOwners.size() - 1).getId())) {
       OwnerSummaryPage.SummaryTile.name().shouldBe(visible).shouldNotHave(text(ownerName));
-    } else {
+    }
+    else {
       OwnerSummaryPage.SummaryTile.name().shouldBe(visible)
           .shouldNotHave(text(parentOwners.get(parentOwners.size() - 1).getName()));
     }

@@ -16,7 +16,7 @@ import static com.codeborne.selenide.CollectionCondition.empty;
 public class OrganizationSummaryViewTest
     extends AbstractSummaryViewTest
 {
-  
+
   private Organization organization;
 
   @Before

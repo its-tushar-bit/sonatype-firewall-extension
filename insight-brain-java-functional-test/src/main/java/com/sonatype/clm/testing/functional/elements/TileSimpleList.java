@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
@@ -34,6 +35,10 @@ public class TileSimpleList
 
   public static class TileSimpleListElement
   {
+    public static Condition clickable() {
+      return Condition.cssClass("clickable");
+    }
+
     public SelenideElement root;
 
     public TileSimpleListElement(SelenideElement root) {

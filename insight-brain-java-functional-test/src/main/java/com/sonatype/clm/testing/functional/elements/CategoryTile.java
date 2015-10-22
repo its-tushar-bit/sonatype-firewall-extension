@@ -10,25 +10,17 @@ import com.codeborne.selenide.ElementsCollection;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class CategoryTile
+public abstract class CategoryTile
     extends OwnerTile
 {
   private static final String CATEGORY_OWNER_ELEMENT_ID = "#owner-pill-app-categories";
 
+  public static Condition inheritedText(String parent) {
+    return Condition.text("inherited from " + parent);
+  }
+
   public CategoryTile() {
     super($(CATEGORY_OWNER_ELEMENT_ID));
-  }
-
-  public static Condition associateAppButtonText() {
-    return Condition.text("associate app category");
-  }
-
-  public static Condition subHeaderText(String ownerName) {
-    return Condition.text("associated with " + ownerName);
-  }
-
-  public static Condition emptyAssociateAppCategoryListDescriptorText() {
-    return Condition.text("No application categories associated");
   }
 
   public ElementsCollection categoryLists() {
@@ -37,5 +29,49 @@ public class CategoryTile
 
   public TileSimpleList categoryList(int num) {
     return new TileSimpleList(categoryLists().get(num));
+  }
+
+  public abstract Condition subHeaderText(String ownerName);
+
+  public abstract Condition buttonText();
+
+  public abstract Condition emptyListDescriptorText();
+
+  public static class CategoryTileAppContext
+      extends CategoryTile
+  {
+    @Override
+    public Condition subHeaderText(String ownerName) {
+      return Condition.text("associated with " + ownerName);
+    }
+
+    @Override
+    public Condition buttonText() {
+      return Condition.text("associate app category");
+    }
+
+    @Override
+    public Condition emptyListDescriptorText() {
+      return Condition.text("No application categories associated");
+    }
+  }
+
+  public static class CategoryTileOrgContext
+      extends CategoryTile
+  {
+    @Override
+    public Condition subHeaderText(String ownerName) {
+      return Condition.text("available to apps in " + ownerName);
+    }
+
+    @Override
+    public Condition buttonText() {
+      return Condition.text("add an app category");
+    }
+
+    @Override
+    public Condition emptyListDescriptorText() {
+      return Condition.text("No application categories defined");
+    }
   }
 }

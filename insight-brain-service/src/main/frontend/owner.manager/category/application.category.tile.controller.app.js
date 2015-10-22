@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileController($q, $http, ApplicationStore, CLMAppLocations, CLMLocations) {
+  function ApplicationCategoryTileControllerApp($q, $http, ApplicationStore, CLMAppLocations, CLMLocations) {
     var vm = this;
 
     vm.appliedCategories = undefined;
@@ -43,10 +43,10 @@
     }
   }
 
-  ApplicationCategoryTileController.$inject = ['$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'];
+  ApplicationCategoryTileControllerApp.$inject = ['$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'];
 
-  angular//
-      .module('owner.manager.module')//
-      .controller('ApplicationCategoryTileController', ApplicationCategoryTileController);
+  angular //
+      .module('owner.manager.module') //
+      .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp);
 
 }(angular));

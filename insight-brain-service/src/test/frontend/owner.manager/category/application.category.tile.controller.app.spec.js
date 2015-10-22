@@ -1,4 +1,4 @@
-describe('application.category.tile.controller.spec.js', function() {
+describe('application.category.tile.controller.app.spec.js', function() {
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {});
   }));
@@ -26,7 +26,7 @@ describe('application.category.tile.controller.spec.js', function() {
             }
           };
 
-          vm = $controller('ApplicationCategoryTileController', {
+          vm = $controller('ApplicationCategoryTileControllerApp', {
             CLMAppLocations: mockCLMAppLocations
           });
         }

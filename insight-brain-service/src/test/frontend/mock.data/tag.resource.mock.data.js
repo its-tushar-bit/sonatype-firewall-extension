@@ -17,6 +17,49 @@ var TagResourceMockData = {
         organizationId: orgId || "f3cea033acf84984ae08d9250db4aa7b"
       }
     ];
+  },
+  getTagsUrl: function() {
+    return {
+      "tagsByOwner": [
+        {
+          "ownerId": "orgownerid",
+          "ownerName": "orgname",
+          "ownerType": "organization",
+          "tags": [
+            {
+              color: "black",
+              description: "Description 1",
+              id: "appCategoryId_1",
+              name: "Category 1",
+              nameLowercaseNoWhitespace: "category1",
+              organizationId: "orgownerid"
+            },
+            {
+              color: "black",
+              description: "Description 2",
+              id: "appCategoryId_2",
+              name: "Category 2",
+              nameLowercaseNoWhitespace: "category2",
+              organizationId: "orgownerid"
+            }
+          ]
+        },
+        {
+          "ownerId": "rootorgownerid",
+          "ownerName": "rootorgname",
+          "ownerType": "organization",
+          "tags": [
+            {
+              color: "red",
+              description: "Description 3",
+              id: "appCategoryId_3",
+              name: "Category 3",
+              nameLowercaseNoWhitespace: "category3",
+              organizationId: "rootorgownerid"
+            }
+          ]
+        }
+      ]
+    };
   }
-
 };

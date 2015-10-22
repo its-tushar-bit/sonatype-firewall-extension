@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -41,8 +42,7 @@ public class ApplicationSummaryViewTest
 
   @Before
   public void init() {
-    application = tempEntity
-        .newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION, YE_OLE_ORGANIZATION);
+    application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION, YE_OLE_ORGANIZATION);
     super.init(application);
   }
 
@@ -92,35 +92,36 @@ public class ApplicationSummaryViewTest
     }
   }
 
+  @Override
   @Test
-  public void testAppliedCategoryTile() {
-    testAppliedCategoryTile_Empty();
-    testAppliedCategoryTile_WithAppliedCategory();
+  public void testApplicationCategoryTile() {
+    testApplicationCategoryTile_Empty();
+    testApplicationCategoryTile_WithAppliedCategory();
   }
 
-  private void testAppliedCategoryTile_Empty() {
-    CategoryTile categoryTile = new CategoryTile();
-    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application.getName()));
-    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.associateAppButtonText());
+  private void testApplicationCategoryTile_Empty() {
+    CategoryTile categoryTile = new CategoryTileAppContext();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 
     categoryTile.categoryLists().shouldHaveSize(1);
 
     TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
 
     appliedCategoryList.emptyDescriptor().shouldBe(visible)
-        .shouldHave(CategoryTile.emptyAssociateAppCategoryListDescriptorText());
+        .shouldHave(categoryTile.emptyListDescriptorText());
     appliedCategoryList.elements().shouldBe(empty);
   }
 
-  private void testAppliedCategoryTile_WithAppliedCategory() {
+  private void testApplicationCategoryTile_WithAppliedCategory() {
     Tag category = tempEntity.newTag(application.getParentOwnerId(), "Test Tag", Color.blue);
     tempEntity.newApplicationTag(application.getId(), category.getId());
 
     refresh();
 
-    CategoryTile categoryTile = new CategoryTile();
-    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application.getName()));
-    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.associateAppButtonText());
+    CategoryTile categoryTile = new CategoryTileAppContext();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
+    categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 
     categoryTile.categoryLists().shouldHaveSize(1);
 

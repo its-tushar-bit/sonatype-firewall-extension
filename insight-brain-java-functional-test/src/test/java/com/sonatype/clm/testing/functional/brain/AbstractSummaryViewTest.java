@@ -270,7 +270,7 @@ public abstract class AbstractSummaryViewTest
     }
   }
 
-  private int getHierarchySize(String ownerId) {
+  protected int getHierarchySize(String ownerId) {
     int hierarchySize = 0;
     Iterator<Owner> iterator = new OwnerDAO().walkHierarchy(ownerId).iterator();
 
@@ -281,4 +281,6 @@ public abstract class AbstractSummaryViewTest
   }
 
   protected abstract void testReportLinks();
+
+  protected abstract void testApplicationCategoryTile();
 }

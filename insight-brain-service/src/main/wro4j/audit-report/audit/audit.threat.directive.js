@@ -12,7 +12,7 @@
     return encoder.text(text).html();
   }
 
-  function createTable(data, $scope, $compile) {
+  function createTable(data, $scope) {
     var columnGrouping = new Slick.ColumnGrouping({ columnId: 'policyName', style: 'scoreCol' }),
       scoreStyler = columnGrouping.getCellStyler(),
       cellFormatter = columnGrouping.getCellRenderer(),
@@ -173,7 +173,7 @@
     return {
       templateUrl : 'audit/audit.threat.directive.html?' + clmBuildTimestamp,
       controllerAs: 'vm',
-      controller : ['$scope', 'Repository', '$http', function ($scope, Repository, $http) {
+      controller : ['$scope', 'OwnerContext', '$http', function ($scope, OwnerContext, $http) {
         var vm = this;
 
         vm.error = undefined;
@@ -184,7 +184,7 @@
         function doLoad() {
           delete vm.error;
 
-          $http.get('/rest/repositories/' + Repository.id + '/report/details').success(function (data) {
+          $http.get('/rest/repositories/' + OwnerContext.ownerId + '/report/details').success(function (data) {
             vm.grid = createTable(data, $scope);
             setFilter();
           }).error(function () {

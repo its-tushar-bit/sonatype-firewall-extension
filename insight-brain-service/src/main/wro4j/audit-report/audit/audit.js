@@ -3,19 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/rhc/pro/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, HealthCheck, Brain*/
+/*global angular, HealthCheck, Brain, window */
+window.CLM = {
+  path: '../'
+};
+
 (function () {
   'use strict';
 
   var module = angular.module('Audit', ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation', 'component.information.panel']);
 
-  module.controller('AuditSummaryController', ['$scope', '$http', '$window', 'Repository', 'CLMLocations', function ($scope, $http, $window, Repository, CLMLocations) {
+  module.controller('AuditSummaryController', ['$scope', '$http', '$window', 'OwnerContext', 'CLMLocations', function ($scope, $http, $window, OwnerContext, CLMLocations) {
 
     $scope.doLoad = function () {
       $scope.error = null;
       $scope.loadActive = true;
 
-      $http.get(CLMLocations.getAuditReportSummary(Repository.id)).success(function(data) {
+      $http.get(CLMLocations.getAuditReportSummary(OwnerContext.ownerId)).success(function(data) {
         $scope.loadActive = false;
 
         $scope.knownComponentCount = data.knownComponentCount;
@@ -70,26 +74,4 @@
       }
     };
   });
-
-  module.service('Repository', ['$window', function ($window) {
-      function decode(encodedString) {
-        return decodeURIComponent((encodedString || '').replace(/\+/g, '%20'));
-      }
-
-      var search = $window.location.search,
-          result = {};
-      if (search.length === 0) {
-        return;
-      }
-
-      search = search.substring(1).split('&');
-      angular.forEach(search, function(item) {
-        var field = item.split('=');
-        result[decode(field[0])] = decode(field[1]);
-      });
-
-      return {
-        id: result.repositoryId
-      };
-  }]);
 }());

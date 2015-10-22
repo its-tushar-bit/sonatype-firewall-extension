@@ -127,7 +127,10 @@
   <group name='cip-loader-core'>
     <js>/cip/cip-loader.js</js>
     <js>/cip/cip-component-util.js</js>
-    <js>/cip/cip-label-editor.js</js>
+
+    <js>/cip/ci-label-tab.js</js>
+    <group-ref>cip-label-editor</group-ref>
+
     <js>/cip/cip-policy-violations.js</js>
     <js>/cip/cip-claim-component.js</js>
     <js>/cip/cip-license-editor.js</js>
@@ -195,7 +198,7 @@
 
   <group name='cip'>
     <css>/cip/cip-claim-component.css</css>
-    <css>/cip/cip-label-editor.css</css>
+    <css>/cip/cip.label.editor/cip-label-editor.css</css>
     <css>/cip/cip-policy-violations.css</css>
     <css>/cip/cip-license-editor.css</css>
     <css>/version-graph/content.css</css>
@@ -228,11 +231,29 @@
     <js>/version-graph/viewdetails.js</js>
   </group>
 
+  <group name='cip-label-editor'>
+    <css>/cip/cip.label.editor/cip-label-editor.css</css>
+    <js>/util/CLMLocation.js</js>
+    <js>/util/AngularCommon.js</js>
+    <js>/util/HttpInterceptors.js</js>
+    <js>/cip/cip.label.editor/cip.label.editor.module.js</js>
+    <js>/cip/cip.label.editor/current.label.data.service.js</js>
+    <js>/cip/cip.label.editor/label.add.controller.js</js>
+    <js>/cip/cip.label.editor/label.remove.controller.js</js>
+    <js>/cip/cip.label.editor/labels.controller.js</js>
+    <js>/cip/cip.label.editor/spinner.directive.js</js>
+    <js>/cip/cip.label.editor/tip.directive.js</js>
+    <js>/cip/cip.label.editor/cip.label.editor.directive.js</js>
+    <js>/cip/cip.label.editor/label.modification.service.js</js>
+  </group>
+
   <group name='repository-cip'>
     <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
     <js>/audit-report/cip/component.information.panel.module.js</js>
     <js>/audit-report/cip/component.information.panel.directive.js</js>
     <js>/audit-report/cip/cip.tab.pane.directive.js</js>
+    <js>/audit-report/cip/selected.component.service.js</js>
+    <group-ref>cip-label-editor</group-ref>
   </group>
 
   <group name='audit-report'>
@@ -266,12 +287,9 @@
     <js>/audit-report/slickgrid/slick.grid.tipsy.js</js>
 
     <group-ref>repository-cip</group-ref>
-    <js>/util/CLMLocation.js</js>
-    <js>/util/AngularCommon.js</js>
-    <js>/util/HttpInterceptors.js</js>
     <js>/audit-report/audit/audit.js</js>
-    <js>/audit-report/cip/selected.component.service.js</js>
     <js>/audit-report/audit/audit.threat.directive.js</js>
+    <js>/audit-report/audit/owner.context.service.js</js>
     <js>/audit-report/audit/repository.violation.table.filter.directive.js</js>
   </group>
 </groups>

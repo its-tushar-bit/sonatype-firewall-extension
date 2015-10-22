@@ -3,7 +3,7 @@
     <a class="close" ng-click="vm.hide()">&times;</a>
     <ul class="nav nav-tabs" style="margin-bottom:0px; !important">
       <li ng-repeat="tab in vm.tabs" ng-class="{ active: vm.selectedTab === tab }">
-        <a ng-click="vm.selectedTab === tab">{{tab.title}}</a>
+        <a ng-click="vm.selectedTab = tab">{{tab.title}}</a>
       </li>
     </ul>
     <div class="tab-content">

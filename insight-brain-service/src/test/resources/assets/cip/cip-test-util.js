@@ -12,13 +12,10 @@ var InsightDatatable = {
 },
 clmBuildTimestamp = 'testTimestamp';
 
-if (window.CLM) {
-  CLM.loadPlugin = function() {
-  };
-}
-else {
-  window.CLM = {
-    loadPlugin: function() {
-    }
-  };
-}
+window.Insight = window.Insight || {}
+
+window.CLM = window.CLM || {}
+window.CLM = {
+  loadPlugin: function() {
+  }
+};

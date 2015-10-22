@@ -9,13 +9,17 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Filter;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Row;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Table;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -36,6 +40,8 @@ public class RepositoryReportTest
   private RepositoryManager repoManager;
 
   private Repository repo;
+
+  private String criticalComponentHash;
 
   @BeforeClass
   public static void startup() {
@@ -115,6 +121,7 @@ public class RepositoryReportTest
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0."));
     tempEntity.newRepositoryPolicyViolation(component, 10, false, "Extremely Bad");
+    criticalComponentHash = component.getHash();
 
     // one with multiple violations
     tempEntity.newRepositoryPolicyViolation(component, 9, false, "Not in summary");
@@ -141,6 +148,27 @@ public class RepositoryReportTest
 
     testAllViolationsFilter();
     testQuarantinedFilter();
+
+    testLabelsCIP();
+  }
+
+  private void testLabelsCIP() {
+    Label applied = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.blue);
+    tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, applied.getId(), criticalComponentHash);
+
+    // open CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+
+    RepositoryReportPage.Table.cipTab("Labels").click();
+
+    LabelsCIP.appliedLabels().shouldHaveSize(1);
+    LabelsCIP.appliedLabel(0).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.blue));
+    LabelsCIP.availableLabelsContainer().shouldNotBe(present);
+
+    // close CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
   private void testReportSummary() {

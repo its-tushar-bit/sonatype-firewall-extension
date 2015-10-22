@@ -78,7 +78,7 @@ span.clmLabel {
   filter: alpha(opacity=80);
 }
 
-.labelContainer {
+.cip-label-container {
   border: 1px solid black;
   border-radius: 4px;
   padding: 5px;
@@ -114,4 +114,10 @@ span.clmLabel {
 #informationPanel .labelEditor .alert {
   margin-left: 0px;
   width: 830px;
+}
+
+#available-labels, #applied-labels {
+  display: inline-block;
+  margin-bottom: 10px;
+  width: 49.5%;
 }

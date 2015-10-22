@@ -569,6 +569,8 @@
               <sourceIncludes>
                 <include>brain-client/*.js</include>
                 <include>wro4j/cip/*.js</include>
+                <include>wro4j/cip/**/*module.js</include>
+                <include>wro4j/cip/cip.label.editor/*.js</include>
                 <include>wro4j/util/AngularCommon.js</include>
                 <include>wro4j/util/CLMAppLocation.js</include>
                 <include>wro4j/util/CLMLocation.js</include>
@@ -661,7 +663,7 @@
                 <include>wro4j/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>
-                <exclude>wro4j/cip/*.js</exclude>
+                <exclude>wro4j/cip/**/*.js</exclude>
                 <exclude>wro4j/audit-report/**/*.js</exclude>
                 <exclude>wro4j/lib/angular-${angularjs.version}/*.min.js</exclude>
                 <exclude>wro4j/lib/hogan.js</exclude>
@@ -725,7 +727,7 @@
                 <include>wro4j/assets/ComponentDisplayModule.js</include>
               </sourceIncludes>
               <sourceExcludes>
-                <exclude>wro4j/cip/*.js</exclude>
+                <exclude>wro4j/cip/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
                 <include>resources/assets/**/lib/*.js</include>

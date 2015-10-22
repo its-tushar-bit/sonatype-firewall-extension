@@ -25,7 +25,6 @@
             childElement.remove();
             childElement = undefined;
           }
-
           if (directive) {
             childScope = $scope.$new(true);
             childElement = $compile('<div ' + directive + '></div>')(childScope);

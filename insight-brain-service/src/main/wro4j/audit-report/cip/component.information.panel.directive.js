@@ -19,6 +19,11 @@
         vm.selectedTab = undefined;
         vm.tabs = [];
 
+        vm.tabs = [{
+          title: 'Labels',
+          directive: 'cip-label-editor'
+        }];
+
         function hide() {
           selectedComponent.toggle();
         }
@@ -27,6 +32,9 @@
           return selectedComponent.get();
         }, function () {
           vm.showCIP = selectedComponent.get();
+          if (vm.showCIP) {
+            vm.selectedTab = vm.tabs[0];
+          }
         });
       }]
     };

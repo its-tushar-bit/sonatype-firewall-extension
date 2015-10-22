@@ -197,6 +197,10 @@ div.popout {
   overflow: hidden;
 }
 
+.informationPanel .clm-error {
+  margin-top: 0px;
+}
+
 #infoPanelArtifactTable .license {
   display: inline-block;
 }

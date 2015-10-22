@@ -12,6 +12,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
@@ -144,6 +145,14 @@ public class RepositoryReportPage
     public static ElementsCollection rows() {
       // Very specific selector to avoid catching the CIP SV table
       return $$("#componentTable > .slick-viewport > .grid-canvas > .slick-row");
+    }
+
+    public static SelenideElement cip() {
+      return $("#informationPanel");
+    }
+
+    public static SelenideElement cipTab(String name) {
+      return cip().$$(".nav > li a").find(text(name));
     }
   }
 

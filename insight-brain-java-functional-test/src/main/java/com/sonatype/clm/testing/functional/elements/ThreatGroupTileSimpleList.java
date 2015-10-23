@@ -9,11 +9,12 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-public class TileSimpleList
+public class ThreatGroupTileSimpleList
 {
+
   protected SelenideElement root;
 
-  public TileSimpleList(SelenideElement root) {
+  public ThreatGroupTileSimpleList(SelenideElement root) {
     this.root = root;
   }
 
@@ -21,11 +22,11 @@ public class TileSimpleList
     return root.$$("li");
   }
 
-  public TileSimpleListElement element(int num) {
-    return new TileSimpleListElement(elements().get(num));
+  public ThreatGroupTileSimpleListElement element(int num) {
+    return new ThreatGroupTileSimpleListElement(elements().get(num));
   }
 
-  public SelenideElement subsectionHeader() {
+  public SelenideElement ownerName() {
     return root.$(".subsection-header");
   }
 
@@ -33,32 +34,29 @@ public class TileSimpleList
     return root.$(".empty-list");
   }
 
-  public static class TileSimpleListElement
+  public static Condition threatLevel(int threatLevel) {
+    return Condition.cssClass("threat-level-" + threatLevel);
+  }
+  
+  public static class ThreatGroupTileSimpleListElement
   {
-    public static Condition clickable() {
-      return Condition.cssClass("clickable");
-    }
 
     public SelenideElement root;
 
-    public TileSimpleListElement(SelenideElement root) {
+    public ThreatGroupTileSimpleListElement(SelenideElement root) {
       this.root = root;
-    }
-
-    public SelenideElement icon() {
-      return root.$(".title .fa, .title .hexagon");
-    }
-
-    public SelenideElement name() {
-      return root.$(".title");
-    }
-
-    public SelenideElement description() {
-      return root.$(".subtitle");
     }
 
     public SelenideElement chevron() {
       return root.$(".fa-chevron-right");
+    }
+
+    public SelenideElement threatLevel() {
+      return root.$(".threat-legend");
+    }
+
+    public SelenideElement name() {
+      return root.$(".threat-group-title");
     }
 
   }

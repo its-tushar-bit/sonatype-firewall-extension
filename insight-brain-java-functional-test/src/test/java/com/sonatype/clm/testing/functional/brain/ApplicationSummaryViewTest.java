@@ -11,7 +11,12 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -21,6 +26,8 @@ import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -90,6 +97,32 @@ public class ApplicationSummaryViewTest
       WebDriverRunner.getWebDriver().close();
       Selenide.switchTo().window(0);
       ActionDropDown.actionButton().click();
+    }
+  }
+
+  @Test
+  public void testLTGTile_NoLocal() {
+    int hierarchySize = getHierarchySize(application.getId());
+
+    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
+    ltgTile.newButton().shouldNotBe(visible);
+    
+    ltgTile.ltgLists().shouldHaveSize(hierarchySize);
+
+    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+                                               
+      if (i != hierarchySize - 1) {
+        list.ownerName().shouldNotBe(visible);
+        list.emptyDescriptor().shouldNotBe(visible);
+        list.elements().shouldBe(empty);
+      } 
+      else {
+        list.ownerName().shouldBe(visible);
+        list.emptyDescriptor().shouldNotBe(visible);
+        list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
+      }
     }
   }
 

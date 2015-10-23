@@ -9,9 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
+import com.sonatype.clm.testing.functional.elements.TileSimpleList;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Color;
@@ -48,6 +52,32 @@ public class OrganizationSummaryViewTest
   public void testReportLinks() {
     ActionDropDown.actionButton().click();
     ActionDropDown.reportLinks().shouldBe(empty);
+  }
+
+  @Test
+  public void testLTGTile_NoLocal() {
+    int hierarchySize = getHierarchySize(organization.getId());
+
+    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
+    ltgTile.newButton().shouldBe(visible, enabled);
+
+    ltgTile.ltgLists().shouldHaveSize(hierarchySize);
+
+    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+
+      if (i == 0) {
+        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+        list.emptyDescriptor().shouldBe(visible).shouldHave(text("No local threat groups defined"));
+        list.elements().shouldBe(empty);
+      } 
+      else {
+        list.ownerName().shouldBe(visible);
+        list.emptyDescriptor().shouldNotBe(visible);
+        list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
+      }
+    }
   }
 
   @Override

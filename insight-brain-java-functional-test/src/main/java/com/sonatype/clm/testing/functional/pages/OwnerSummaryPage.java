@@ -49,5 +49,26 @@ public class OwnerSummaryPage
     public static ErrorBox error() {
       return new ErrorBox(root().find(".clm-alert.alert-error"));
     }
+    
+    public static SelenideElement appCategoriesButton() {
+      return root().find("#owner-app-categories-button");
+    }
+    
+    public static SelenideElement policyButton() {
+      return root().find("#owner-policy-button");
+    }
+
+    public static SelenideElement labelsButton() {
+      return root().find("#owner-comp-labels-button");
+    }
+
+    public static SelenideElement ltgsButton() {
+      return root().find("#owner-ltgs-button");
+    }
+
+    public static SelenideElement accessButton() {
+      return root().find("#owner-access-button");
+    }
+    
   }
 }

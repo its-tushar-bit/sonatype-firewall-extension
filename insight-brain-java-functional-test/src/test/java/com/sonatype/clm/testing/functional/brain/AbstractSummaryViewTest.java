@@ -14,17 +14,24 @@ import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
+import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
+import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -44,9 +51,9 @@ import static org.junit.Assert.assertThat;
 public abstract class AbstractSummaryViewTest
     extends AbstractFunctionalTest
 {
-  protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
-
   private Owner currentOwner;
+
+  protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
   @BeforeClass
   public static void boot() {
@@ -120,15 +127,26 @@ public abstract class AbstractSummaryViewTest
     }
   }
 
+
   @Test
-  public void testLabelTile_local() {
-    int hierarchySize = getHierarchySize(currentOwner.getId());
+  public void testTiles_Local() {
+
     List<Label> localLabels = new ArrayList<>();
     localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 1", Color.black));
     localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 2", "With Subtitle", Color.blue));
 
-    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    List<LicenseThreatGroup> locaLTGs = new ArrayList<>();
+    locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
+    locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
 
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    testLabelTile_Local(localLabels);
+    testLTGTile_Local(locaLTGs);
+  }
+
+  private void testLabelTile_Local(List<Label> localLabels) {
+
+    int hierarchySize = getHierarchySize(currentOwner.getId());
     LabelTile labelTile = new LabelTile();
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
@@ -163,12 +181,63 @@ public abstract class AbstractSummaryViewTest
     }
   }
 
-  @Test
-  public void testLabelTile_inherited() {
-    List<List<Label>> inheritedLabels = new ArrayList<>();
-    List<Owner> parentOwners = new ArrayList<>();
+  private void testLTGTile_Local(List<LicenseThreatGroup> locaLTGs) {
+    int hierarchySize = getHierarchySize(currentOwner.getId());
 
+    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    ltgTile.ltgLists().shouldHaveSize(hierarchySize);
+
+    if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+      ltgTile.newButton().shouldNotBe(visible);
+    }
+    else {
+      ltgTile.newButton().shouldBe(visible);
+    }
+
+    // scroll to the ltgs
+    OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
+
+    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+
+      if (i == 0) {
+        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+        list.emptyDescriptor().shouldNot(exist);
+        list.elements().shouldHaveSize(locaLTGs.size());
+
+        for (int j = 0; j < list.elements().size(); j++) {
+          ThreatGroupTileSimpleListElement actualLTG = list.element(j);
+          LicenseThreatGroup expectedLTG = locaLTGs.get(j);
+
+          actualLTG.name().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
+
+          actualLTG.threatLevel().shouldBe(visible).shouldHave(
+              ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
+          actualLTG.chevron().shouldBe(visible);
+        }
+      }
+      else if (i != hierarchySize - 1) {
+        list.ownerName().shouldNot(exist);
+        list.elements().shouldBe(empty);
+      }
+      else {
+        list.ownerName().shouldBe(visible);
+        list.emptyDescriptor().shouldNotBe(visible);
+        list.elements().shouldHaveSize(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT);
+      }
+    }
+  }
+
+
+  @Test
+  public void testTiles_Inherited() {
+    List<List<Label>> inheritedLabels = new ArrayList<>();
+    List<List<LicenseThreatGroup>> inheritedLTGs = new ArrayList<>();
+
+    List<Owner> parentOwners = new ArrayList<>();
+    
     for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
+      List<LicenseThreatGroup> ltgs = new ArrayList<>();
       List<Label> labels = new ArrayList<>();
       parentOwners.add(owner);
 
@@ -177,11 +246,20 @@ public abstract class AbstractSummaryViewTest
         labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 2", "With Subtitle", Color.blue));
 
         inheritedLabels.add(labels);
+
+        ltgs.add(tempEntity.newLicenseThreatGroup(owner.getId(), "Temp License 1 - " + owner.getName(), 9));
+        ltgs.add(tempEntity.newLicenseThreatGroup(owner.getId(), "Temp License 2 - " + owner.getName(), 1));
+
+        inheritedLTGs.add(ltgs);
       }
     }
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    testLabelTile_Inherited(inheritedLabels, parentOwners);
+    testLTGTile_Inherited(inheritedLTGs, parentOwners);
+  }
 
+  private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
     LabelTile labelTile = new LabelTile();
     assertThat(inheritedLabels.size(), equalTo(parentOwners.size()));
     labelTile.labelLists().shouldHaveSize(parentOwners.size() + 1);
@@ -267,6 +345,49 @@ public abstract class AbstractSummaryViewTest
     else {
       OwnerSummaryPage.SummaryTile.name().shouldBe(visible)
           .shouldNotHave(text(parentOwners.get(parentOwners.size() - 1).getName()));
+    }
+  }
+
+  private void testLTGTile_Inherited(List<List<LicenseThreatGroup>> inheritedLTGs, List<Owner> parentOwners) {
+    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+
+    // scroll to the ltgs
+    OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
+
+    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+
+      if (i == 0) {
+        if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+          list.ownerName().shouldNot(exist);
+          list.emptyDescriptor().shouldNot(exist);
+        }
+        else {
+          list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+          list.emptyDescriptor().shouldBe(visible);
+        }
+        list.elements().shouldBe(empty);
+      }
+      else {
+        int expectedDefaultLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(i - 1).getId())
+            ? LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT : 0;
+        list.elements().shouldHaveSize(inheritedLTGs.get(i - 1).size() + expectedDefaultLTGSize);
+        list.ownerName().shouldBe(visible)
+            .shouldHave(LicenseThreatGroupTile.inheritedText(parentOwners.get(i - 1).getName()));
+
+        for (int j = 0; j < list.elements().size(); j++) {
+          ThreatGroupTileSimpleListElement actualLTG = list.element(j);
+
+          if (inheritedLTGs.size() < i) {
+            LicenseThreatGroup expectedLTG = inheritedLTGs.get(i - 1).get(j);
+            actualLTG.name().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
+            actualLTG.threatLevel().shouldBe(visible).shouldHave(
+                ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
+          }
+
+          actualLTG.chevron().shouldBe(visible);
+        }
+      }
     }
   }
 

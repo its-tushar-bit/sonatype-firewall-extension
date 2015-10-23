@@ -20,6 +20,9 @@
         vm.tabs = [];
 
         vm.tabs = [{
+          title: 'Policy',
+          directive: 'cip-policy-violations'
+        },{
           title: 'Labels',
           directive: 'cip-label-editor'
         }];

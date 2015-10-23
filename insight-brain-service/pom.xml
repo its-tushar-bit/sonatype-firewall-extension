@@ -568,9 +568,9 @@
               </preloadSources>
               <sourceIncludes>
                 <include>brain-client/*.js</include>
-                <include>wro4j/cip/*.js</include>
                 <include>wro4j/cip/**/*module.js</include>
-                <include>wro4j/cip/cip.label.editor/*.js</include>
+                <include>wro4j/cip/*.js</include>
+                <include>wro4j/cip/**/*.js</include>
                 <include>wro4j/util/AngularCommon.js</include>
                 <include>wro4j/util/CLMAppLocation.js</include>
                 <include>wro4j/util/CLMLocation.js</include>

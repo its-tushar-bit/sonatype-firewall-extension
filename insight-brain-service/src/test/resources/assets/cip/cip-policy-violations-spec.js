@@ -1,7 +1,7 @@
 describe('CIP Policy Waiver tests', function() {
   var _scope, _viewScope;
 
-  beforeEach(module('PolicyViolations'));
+  beforeEach(module('cip.policy.violations', 'TestComponentProvider'));
 
   afterEach(inject(function($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -34,7 +34,7 @@ describe('CIP Policy Waiver tests', function() {
                 version: "1.3.0"
               }
             },
-            hash: "1",
+            hash: "3102cdd0edd5a05afe00",
             policyId: "policyId",
             policyName: "name",
             threatLevel: 5,
@@ -75,7 +75,7 @@ describe('CIP Policy Waiver tests', function() {
                 version: "1.3.0"
               }
             },
-            hash: "1",
+            hash: "3102cdd0edd5a05afe00",
             policyId: "policyId2",
             policyName: "name2",
             threatLevel: 7,
@@ -109,23 +109,19 @@ describe('CIP Policy Waiver tests', function() {
         });
 
         $controller('PolicyViolationsController', {
-          $scope: _scope,
-          PolicyViolationData: {
-            hash: "1",
-            appId: "appId"
-          }
+          $scope: _scope
         });
 
         $httpBackend.flush();
       }));
+
       it('Validate loaded', inject(function($httpBackend) {
         //policyId2 first as we need to account for sorting
         expect(_scope.processedPolicyAlerts).toEqual([{
           id: 'policyId2',
           name: 'name2',
           threatLevel: 7,
-          hash: '1',
-          color: 'orange',
+          hash: '3102cdd0edd5a05afe00',
           constraints: [{
             constraintId: 'd7ad07e00c4948c59651cce82163e50a',
             constraintName: 'test4',
@@ -148,8 +144,7 @@ describe('CIP Policy Waiver tests', function() {
           id: 'policyId',
           name: 'name',
           threatLevel: 5,
-          hash: '1',
-          color: 'orange',
+          hash: '3102cdd0edd5a05afe00',
           constraints: [{
             constraintId: 'c7ad07e00c4948c59651cce82163e50a',
             constraintName: 'test3',
@@ -173,6 +168,7 @@ describe('CIP Policy Waiver tests', function() {
           }]
         }]);
       }));
+
       it('Open Add Waiver', inject(function ($modal) {
         var modalSpy = spyOn($modal, 'open');
         _scope.waiveComponent(_scope.processedPolicyAlerts[0]);
@@ -221,7 +217,7 @@ describe('CIP Policy Waiver tests', function() {
                     groupId: "bsh",
                     artifactId: "bsh",
                     version: "1.3.0",
-                    hash: "1",
+                    hash: '3102cdd0edd5a05afe00',
                     constraintFacts: [
                       {
                         constraintId: "c7ad07e00c4948c59651cce82163e50a",
@@ -254,8 +250,8 @@ describe('CIP Policy Waiver tests', function() {
         $controller('PolicyViolationsController', {
           $scope: _scope,
           PolicyViolationData: {
-            hash: "1",
-            appId: "appId"
+            hash: "3102cdd0edd5a05afe00",
+            appId: "bom1-12345678"
           }
         });
 
@@ -270,8 +266,7 @@ describe('CIP Policy Waiver tests', function() {
           groupId: 'bsh',
           artifactId: 'bsh',
           version: '1.3.0',
-          hash: '1',
-          color: 'orange',
+          hash: '3102cdd0edd5a05afe00',
           constraints: [{
             constraintId: 'c7ad07e00c4948c59651cce82163e50a',
             constraintName: 'test3',
@@ -302,13 +297,13 @@ describe('CIP Policy Waiver tests', function() {
       _scope.$close = angular.noop;
       _scope.$dismiss = angular.noop;
 
-      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/appId/applicable/context/policyId')).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/bom1-12345678/applicable/context/policyId')).respond({
         id: 'orgId',
         name: 'org',
         type: 'organization',
         children: [
           {
-            id: 'appId',
+            id: 'bom1-12345678',
             name: 'app',
             type: 'application',
             children: null
@@ -319,8 +314,8 @@ describe('CIP Policy Waiver tests', function() {
       $controller('AddWaiverController', {
         $scope: _scope,
         PolicyViolationData: {
-          hash: "1",
-          appId: "appId"
+          hash: "3102cdd0edd5a05afe00",
+          appId: "bom1-12345678"
         },
         policy : {
           id: 'policyId'
@@ -339,7 +334,7 @@ describe('CIP Policy Waiver tests', function() {
       });
 
       $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/organization/orgId'), {
-        hash: "1",
+        hash: "3102cdd0edd5a05afe00",
         ownerId : 'orgId',
         policyId: "policyId",
         comment: "this is my comment!"
@@ -355,14 +350,14 @@ describe('CIP Policy Waiver tests', function() {
       var modalSpy = spyOn(_scope, '$close');
 
       _scope.$apply(function () {
-        _scope.waiver.ownerId = 'appId';
+        _scope.waiver.ownerId = 'bom1-12345678';
         _scope.waiver.comment = 'this is my comment!';
         _scope.owner.type = 'application';
       });
 
-      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/appId'), {
-        hash: "1",
-        ownerId : 'appId',
+      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/bom1-12345678'), {
+        hash: "3102cdd0edd5a05afe00",
+        ownerId : 'bom1-12345678',
         policyId: "policyId",
         comment: "this is my comment!"
       }).respond({});
@@ -381,19 +376,15 @@ describe('CIP Policy Waiver tests', function() {
       _viewScope = $rootScope.$new();
       $controller('ViewWaiverController', {
         $scope: _viewScope,
-        global: {},
-        PolicyViolationData: {
-          hash: "1",
-          appId: "appId"
-        }
+        global: {}
       });
     }));
 
     it('Validate data in scope', inject(function($httpBackend) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1')).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/bom1-12345678/component/3102cdd0edd5a05afe00')).respond({
         waiversByOwner: [
           {
-            ownerId: "appId",
+            ownerId: "bom1-12345678",
             ownerName: "ownerName",
             ownerType: "application",
             waivers: [
@@ -403,7 +394,7 @@ describe('CIP Policy Waiver tests', function() {
                 policyId: "policyId",
                 policyName: "policyName",
                 constraintId: null,
-                ownerId: "appId",
+                ownerId: "bom1-12345678",
                 comment: "some comment",
                 createTime: 1375366539817
               }
@@ -419,16 +410,16 @@ describe('CIP Policy Waiver tests', function() {
       expect(_viewScope.waivers[0].policyId).toEqual("policyId");
       expect(_viewScope.waivers[0].policyName).toEqual("policyName");
       expect(_viewScope.waivers[0].constraintId).toEqual(null);
-      expect(_viewScope.waivers[0].ownerId).toEqual("appId");
+      expect(_viewScope.waivers[0].ownerId).toEqual("bom1-12345678");
       expect(_viewScope.waivers[0].comment).toEqual("some comment");
       expect(_viewScope.waivers[0].createTime).toEqual(1375366539817);
     }));
 
     it('Validate delete waiver', inject(function($httpBackend) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/component/1')).respond({
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/bom1-12345678/component/3102cdd0edd5a05afe00')).respond({
         waiversByOwner: [
           {
-            ownerId: "appId",
+            ownerId: "bom1-12345678",
             ownerName: "ownerName",
             ownerType: "application",
             waivers: [
@@ -438,7 +429,7 @@ describe('CIP Policy Waiver tests', function() {
                 policyId: "policyId",
                 policyName: "policyName",
                 constraintId: null,
-                ownerId: "appId",
+                ownerId: "bom1-12345678",
                 comment: "some comment",
                 createTime: 1375366539817
               }
@@ -451,7 +442,7 @@ describe('CIP Policy Waiver tests', function() {
       _viewScope.remove(_viewScope.waivers[0]);
       expect(_viewScope.confirmDelete).toEqual(_viewScope.waivers[0]);
 
-      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/appId/id')).respond(200);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/bom1-12345678/id')).respond(200);
       _viewScope.removeWaiver();
       $httpBackend.flush();
       expect(_viewScope.confirmDelete).toEqual(null);

@@ -1,33 +1,33 @@
-<div ng-controller="PolicyViolationsController" id='cip-policy-violations'>
-  <script type='text/ng-template' id='add-waiver-modal-tmpl'>
+<div id="cip-policy-violations" load-wrapper2="error" reload="doLoad()" error-message="Unable to load policy violation data." loading="!error && !processedPolicyAlerts">
+  <script type="text/ng-template" id="add-waiver-modal-tmpl">
   <div id="add-waiver-modal">
     <div class="modal-header">
-      <button type="button" class="close" ng-click='$dismiss()' aria-hidden="true">&times;</button>
+      <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
       <h3>Add Policy Waiver</h3>
     </div>
     <div class="modal-body">
       <div ng-show="waiverLoading">
-        <i class='icon icon-time'></i> Loading...
+        <i class="icon icon-time"></i> Loading...
       </div>
       <div ng-show="!waiverLoading">
-        <div id="add-waiver-scope" ng-show="waiverSelectOwner" class='radio-container'>
+        <div id="add-waiver-scope" ng-show="waiverSelectOwner" class="radio-container">
           <div>The waiver should be limited to:</div>
           <label class="radio" ng-repeat="waiverTarget in waiverTargets">
-            <input type="radio" ng-model="waiver.ownerId" name="waiverSelectedTarget" ng-value="waiverTarget.id" ng-change='owner.type = waiverTarget.type'>
+            <input type="radio" ng-model="waiver.ownerId" name="waiverSelectedTarget" ng-value="waiverTarget.id" ng-change="owner.type = waiverTarget.type">
             {{waiverTarget.type == 'application' ? 'Application' : 'Organization'}} <em>{{waiverTarget.name}}</em>
           </label>
         </div>
-        <div id="add-waiver-apply" class='radio-container'>
+        <div id="add-waiver-apply" class="radio-container">
           <div>
-            <span ng-show='waiverSelectOwner'>And apply to:</span>
-            <span ng-hide='waiverSelectOwner'>The waiver should apply to:</span>
+            <span ng-show="waiverSelectOwner">And apply to:</span>
+            <span ng-hide="waiverSelectOwner">The waiver should apply to:</span>
           </div>
-          <label class='radio'>
-            <input type="radio" name='waiver-hash' ng-model='waiver.hash' value='{{component.hash}}'>
-            Selected component (<em><span ng-repeat='part in component.displayName.parts'>{{part.value}}</span></em>)
+          <label class="radio">
+            <input type="radio" name="waiver-hash" ng-model="waiver.hash" value="{{component.hash}}">
+            Selected component (<em><span ng-repeat="part in component.displayName.parts">{{part.value}}</span></em>)
           </label>
-          <label class='radio'>
-            <input type="radio" name='waiver-hash' ng-model='waiver.hash' ng-value='null'>
+          <label class="radio">
+            <input type="radio" name="waiver-hash" ng-model="waiver.hash" ng-value="null">
             All components
           </label>
         </div>
@@ -37,12 +37,12 @@
     </div>
     <div class="modal-footer">
       <span class="alert alert-error" ng-show="waiveAssignError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{waiveAssignError}}</span>
-      <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
-      <button type='button' class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Waive</button>
+      <button type="button" class="btn" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
+      <button type="button" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Waive</button>
     </div>
   </div>
   </script>
-  <script type='text/ng-template' id='view-waivers-modal-tmpl'>
+  <script type="text/ng-template" id="view-waivers-modal-tmpl">
     <div id="componentExistingWaiverModal">
       <div ng-hide="confirmDelete">
         <div class="modal-header">
@@ -93,7 +93,7 @@
       </div>
     </div>
   </script>
-  <div style="width:100%;text-align:right;margin-bottom:5px;">
+  <div style="width:100%;text-align:right;margin-bottom:5px;" ng-if="isEdit()">
     <button id="view-existing-waivers" class="btn" ng-click="viewWaivers()">View Existing Waivers</button>
   </div>
   <div class="cip-policy-wrapper">
@@ -103,11 +103,11 @@
           <th class="cip-policy-table-header">Policy/<em>Action</em></th>
           <th class="cip-policy-table-header">Constraint</th>
           <th class="cip-policy-table-header">Condition Value</th>
-          <th class="cip-policy-table-header">Waivers</th>
+          <th class="cip-policy-table-header" ng-if="isEdit()">Waivers</th>
         </tr>
       </thead>
       <tr ng-repeat="policyAlert in processedPolicyAlerts">
-        <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{policyAlert.color}}">
+        <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{::getThreatColor(policyAlert.threatLevel)}}">
           <div>
             <b>{{policyAlert.name}}</b>
           </div>
@@ -130,14 +130,13 @@
             <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
           </div>
         </td>
-        <td style="vertical-align:middle;">
-          <button type='none' class='btn btn-primary' ng-click='waiveComponent(policyAlert)'>Waive</button>
+        <td style="vertical-align:middle;" ng-if="isEdit()">
+          <button type="none" class="btn btn-primary" ng-click="waiveComponent(policyAlert)">Waive</button>
         </td>
       </tr>
+      <tr ng-if="processedPolicyAlerts.length === 0">
+        <td colspan="{{:: isEdit() ? '4' : '3'}}"><b>No Policy Violations</b></td>
+      </tr>
     </table>
-  </div>
-  <div clm-alerts='alerts'></div>
-  <div style="text-align:center;width:100%;" ng-show='processedPolicyAlerts.length == 0'>
-    <b>No Policy Violations</b>
   </div>
 </div>

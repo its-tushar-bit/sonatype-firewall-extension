@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ReportCip;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
@@ -121,8 +122,28 @@ public class WaiverCip
       this.element = element;
     }
 
+    public SelenideElement policyName() {
+      return element.find("td:nth-child(1)");
+    }
+
+    public ElementsCollection constraints() {
+      return element.findAll("td:nth-child(2) b");
+    }
+
+    public ElementsCollection conditions() {
+      return element.findAll("td:nth-child(3) > div > div");
+    }
+
     public SelenideElement waiveButton() {
       return element.find(".btn-primary");
+    }
+
+    public void shouldBe(int threatLevel, String policyName, String[] expectedConstraints,
+        String[] expectedConditions)
+    {
+      policyName().shouldHave(text(policyName));
+      constraints().shouldHave(CollectionCondition.texts(expectedConstraints));
+      conditions().shouldHave(CollectionCondition.texts(expectedConditions));
     }
   }
 
@@ -146,7 +167,11 @@ public class WaiverCip
   }
 
   public static PolicyWaiverRow row(int num) {
-    return new PolicyWaiverRow($$(CONTAINER_ID + " .cip-policy-table tbody tr").get(num));
+    return new PolicyWaiverRow(rows().get(num));
+  }
+
+  public static ElementsCollection rows() {
+    return $$(CONTAINER_ID + " .cip-policy-table tbody tr");
   }
 
   public static SelenideElement viewWaivers() {

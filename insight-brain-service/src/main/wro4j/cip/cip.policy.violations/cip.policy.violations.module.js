@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-(function () {
+(function() {
   'use strict';
 
-  angular.module('component.information.panel', ['cip.label.editor', 'cip.policy.violations']);
+  angular.module('cip.policy.violations', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap']);
 }());

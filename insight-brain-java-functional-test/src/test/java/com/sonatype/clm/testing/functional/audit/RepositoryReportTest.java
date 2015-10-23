@@ -10,11 +10,14 @@ import java.util.Date;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
+import com.sonatype.clm.testing.functional.elements.ReportCip;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Filter;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Row;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Table;
+import com.sonatype.clm.testing.functional.pages.WaiverCip;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.PolicyWaiverRow;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -29,6 +32,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.present;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -149,6 +153,7 @@ public class RepositoryReportTest
     testAllViolationsFilter();
     testQuarantinedFilter();
 
+    testPolicyCIP();
     testLabelsCIP();
   }
 
@@ -165,6 +170,30 @@ public class RepositoryReportTest
     LabelsCIP.appliedLabels().shouldHaveSize(1);
     LabelsCIP.appliedLabel(0).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.blue));
     LabelsCIP.availableLabelsContainer().shouldNotBe(present);
+
+    // close CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+  }
+
+  private void testPolicyCIP() {
+    // open CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+
+    RepositoryReportPage.Table.cipTab("Policy").click();
+    ReportCip.policyTab().should(appear).click();
+
+    WaiverCip.rows().shouldHaveSize(2);
+
+    PolicyWaiverRow row = WaiverCip.row(0);
+    row.waiveButton().shouldNotBe(visible); // editing is disabled
+    row.shouldBe(10, CRITICAL_ROW.policyName, new String[] { "aa c" }, new String[] { "Match State was exact" });
+
+    row = WaiverCip.row(1);
+    row.waiveButton().shouldNotBe(visible); // editing is disabled
+    row.shouldBe(10, CRITICAL_ROW_SECONDARY.policyName, new String[] { "aa c" },
+        new String[] { "Match State was exact" });
 
     // close CIP
     RepositoryReportPage.Table.row(0).component().click();

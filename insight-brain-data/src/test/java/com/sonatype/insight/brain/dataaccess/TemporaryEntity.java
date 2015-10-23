@@ -1032,8 +1032,8 @@ public class TemporaryEntity
       ComponentIdentifier componentIdentifier)
   {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, new Date(),
-        policyId, policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash",
-        componentIdentifier, "[]" /* constraintFacts */);
+        policyId, policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
+        "[{\"constraintId\":\"acdb7a00d0914415802b5faa131bc058\",\"constraintName\":\"aa c\",\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\",\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
     policyViolation.setWaived(isWaived);
     policyViolation.setActive(isActive);
     repositoryPolicyViolationDAO.insert(policyViolation);

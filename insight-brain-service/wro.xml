@@ -131,7 +131,10 @@
     <js>/cip/ci-label-tab.js</js>
     <group-ref>cip-label-editor</group-ref>
 
-    <js>/cip/cip-policy-violations.js</js>
+    <js>/cip/ci-policy-violations-tab.js</js>
+    <group-ref>cip-policy-violations</group-ref>
+    <js>/cip/ci.policy.violations.service.js</js>
+
     <js>/cip/cip-claim-component.js</js>
     <js>/cip/cip-license-editor.js</js>
     <js>/cip/cip-version-graph.js</js>
@@ -199,7 +202,7 @@
   <group name='cip'>
     <css>/cip/cip-claim-component.css</css>
     <css>/cip/cip.label.editor/cip-label-editor.css</css>
-    <css>/cip/cip-policy-violations.css</css>
+    <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
     <css>/cip/cip-license-editor.css</css>
     <css>/version-graph/content.css</css>
     <css>/lib/bootstrap/bootstrap-variables.scss</css>
@@ -247,13 +250,25 @@
     <js>/cip/cip.label.editor/label.modification.service.js</js>
   </group>
 
+  <group name='cip-policy-violations'>
+    <js>/cip/cip.policy.violations/cip.policy.violations.module.js</js>
+    <js>/cip/cip.policy.violations/add.waiver.controller.js</js>
+    <js>/cip/cip.policy.violations/cip.policy.violations.directive.js</js>
+    <js>/cip/cip.policy.violations/policy.violations.controller.js</js>
+    <js>/cip/cip.policy.violations/view.waiver.controller.js</js>
+
+    <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
+  </group>
+
   <group name='repository-cip'>
     <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
     <js>/audit-report/cip/component.information.panel.module.js</js>
     <js>/audit-report/cip/component.information.panel.directive.js</js>
+    <js>/audit-report/cip/repository.policy.violations.service.js</js>
     <js>/audit-report/cip/cip.tab.pane.directive.js</js>
     <js>/audit-report/cip/selected.component.service.js</js>
     <group-ref>cip-label-editor</group-ref>
+    <group-ref>cip-policy-violations</group-ref>
   </group>
 
   <group name='audit-report'>

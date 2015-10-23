@@ -66,7 +66,7 @@ public abstract class CategoryTile
 
     @Override
     public Condition buttonText() {
-      return Condition.text("add an app category");
+      return Condition.text("add a category");
     }
 
     @Override

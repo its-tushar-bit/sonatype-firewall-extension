@@ -33,10 +33,6 @@ public class RepositoryReportResourceTest
     return super.restRequest().path(RepositoryReportResource.RESOURCE_PATH);
   }
 
-  private HttpRequest restRequestSubpath(final String subPath) {
-    return restRequest().path(subPath);
-  }
-
   private HttpRequest restRequestSummary() {
     return restRequest().path(RepositoryReportResource.SUMMARY);
   }
@@ -53,8 +49,7 @@ public class RepositoryReportResourceTest
   private HttpResponse testGet(final String subPath, final String repositoryId, final int expectedStatus)
       throws Exception
   {
-
-    final HttpResponse response = restRequestSubpath(subPath).parameter(repositoryId).get();
+    final HttpResponse response = restRequest().path(subPath).parameter(repositoryId).get();
 
     assertResponseStatus(expectedStatus, response);
     return response;

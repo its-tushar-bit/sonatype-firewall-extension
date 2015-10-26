@@ -473,4 +473,4 @@ CREATE TABLE repository_policy_violation (
   CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),
   CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id)
 );
-CREATE INDEX repository_policy_violation_hash_idx ON repository_policy_violation(hash);
+CREATE INDEX repository_policy_violation_pathname_idx ON repository_policy_violation(pathname);

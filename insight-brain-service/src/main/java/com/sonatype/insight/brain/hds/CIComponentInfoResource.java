@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 @Path(CIComponentInfoResource.RESOURCE_PATH)
@@ -28,6 +30,9 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 public class CIComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";
+
+  public static final String VULNERABILITIES_PATH =
+      "vulnerabilities/{ownerType: application|organization|repository}/{ownerId}";
 
   private final ComponentInfoService componentInfoService;
 
@@ -72,5 +77,15 @@ public class CIComponentInfoResource
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
     return componentInfoService.getLicenses(applicationPublicId, componentIdentifier, httpRequest);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(VULNERABILITIES_PATH)
+  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId, @QueryParam("hash") final String hash,
+      @QueryParam("componentIdentifier") final JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+  {
+    return componentInfoService.getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest);
   }
 }

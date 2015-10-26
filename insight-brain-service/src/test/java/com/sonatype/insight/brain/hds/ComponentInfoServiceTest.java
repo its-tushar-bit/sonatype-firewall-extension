@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,9 +33,11 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.hds.ComponentInfoService.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -52,6 +55,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -101,6 +105,8 @@ public class ComponentInfoServiceTest
 
   private HdsClient hdsClientMock = mock(HdsClient.class);
 
+  private Repository repository;
+
   private HttpServletRequest httpRequestMock = mock(HttpServletRequest.class);
 
   @Override
@@ -114,6 +120,7 @@ public class ComponentInfoServiceTest
     componentInfoService.setToolName(TOOL_NAME);
 
     application = tempEntity.newApplicationWithParent(applicationPublicId);
+    repository = tempEntity.newRepository();
   }
 
   private NamedComponentDetails newNamedComponentDetails(ComponentIdentifier componentIdentifier) {
@@ -977,5 +984,27 @@ public class ComponentInfoServiceTest
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertEquals(1, policyAlerts.size());
     assertEquals(policy1.getName(), policyAlerts.get(0).getTrigger().getPolicyName());
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilities() throws Exception{
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    String hash = "01234567890123456789";
+    SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
+    vulnerability.setStatus("status");
+    hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
+    hdsComponentDetails.setHash(hash);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+
+    ComponentSecurityVulnerabilities retrievedVulnerabilities =
+        componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), hash,
+            MAVEN_COORDINATES, httpRequestMock);
+    assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
+    SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
+    assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));
+    assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
+    assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
+    assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
+    assertThat(retrievedVulnerability.getStatus(), is(vulnerability.getStatus()));
   }
 }

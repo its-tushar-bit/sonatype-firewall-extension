@@ -22,6 +22,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -46,6 +48,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -303,6 +306,24 @@ public class ComponentInfoService
     return result;
   }
 
+  /**
+   * @since 1.18.0
+   */
+  @Authorize(permission = Permission.READ)
+  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash,
+      final ComponentIdentifier componentIdentifier, final HttpServletRequest httpRequest)
+      throws IOException
+  {
+    if (componentIdentifier == null) {
+      throw new BadRequestException("componentIdentifier is required");
+    }
+
+    ComponentDetails componentDetails = getComponentDetailsFromHDS(null, hash, componentIdentifier, httpRequest);
+    return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
+  }
+
   private Set<License> getSelectableLicenses(Collection<License> declared, Collection<License> observed) {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     Set<License> result = new LinkedHashSet<>();
@@ -355,6 +376,21 @@ public class ComponentInfoService
     }
 
     return result;
+  }
+
+  /**
+   * @since 1.18.0
+   */
+  public static class ComponentSecurityVulnerabilities
+  {
+    public List<SecurityVulnerability> securityVulnerabilities;
+
+    public ComponentSecurityVulnerabilities() {
+    }
+
+    public ComponentSecurityVulnerabilities(final List<SecurityVulnerability> securityVulnerabilities) {
+      this.securityVulnerabilities = securityVulnerabilities;
+    }
   }
 
   /**

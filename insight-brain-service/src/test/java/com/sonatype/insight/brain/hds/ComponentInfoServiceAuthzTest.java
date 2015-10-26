@@ -16,8 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
-import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -179,5 +178,26 @@ public class ComponentInfoServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenses_Unauthenticated() throws Exception {
     componentInfoService.getLicenses(app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilities_Authorized() throws Exception {
+    configureHdsClientMock();
+    grantReadPermission(repository.getId());
+    componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), "hash",
+        COMPONENT_IDENTIFIER, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSecurityVulnerabilities_Unauthorized() throws Exception {
+    login();
+    componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), "hash",
+        COMPONENT_IDENTIFIER, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSecurityVulnerabilities_Unauthenticated() throws Exception {
+    componentInfoService.getSecurityVulnerabilities(OwnerType.REPOSITORY, repository.getId(), "hash",
+        COMPONENT_IDENTIFIER, null);
   }
 }

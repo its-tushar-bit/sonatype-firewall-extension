@@ -41,7 +41,7 @@ import static org.junit.Assert.assertThat;
 public abstract class AbstractComponentInfoResourceTest
     extends AbstractResourceTest
 {
-  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+  protected static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v1", "", "jar");
 
   protected abstract String getResourcePath();
@@ -233,7 +233,7 @@ public abstract class AbstractComponentInfoResourceTest
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
-  private String convertToHdsUrl(String brainUrl, String applicationId) {
+  protected String convertToHdsUrl(String brainUrl, String applicationId) {
     return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+)(.*)", "$2/componentDetails$4");
   }
 

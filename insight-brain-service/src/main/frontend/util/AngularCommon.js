@@ -594,8 +594,8 @@ var AngularStateUtils = {
         var model = $parse(attrs.focusInput);
         scope.$watch(function() {
           return form.$pristine;
-        }, function() {
-          if (model(scope)) {
+        }, function(newVal) {
+          if (model(scope) && newVal) {
             element[0].focus();
           }
         });

@@ -707,7 +707,11 @@ public class TemporaryEntity
   }
 
   public Tag newTag(String orgId, String name, Color color) {
-    Tag tag = new Tag(orgId, name, "description", color);
+    return newTag(orgId, name, "description", color);
+  }
+
+  public Tag newTag(String orgId, String name, String description, Color color) {
+    Tag tag = new Tag(orgId, name, description, color);
     tagDAO.insert(tag);
     tags.add(tag);
     return tag;

@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var tagTemplate = {id: null, organizationId: null, name: null, description: null, color:'white'};
+  var tagTemplate = {id: null, organizationId: null, name: null, description: null, color: null};
 
   var tagModule = angular.module('Tags', ['AngularCommon', 'CLMAppLocation', 'CLMLocation', 'CommonServices', 'ResourceModule', 'Stores']);
 

@@ -72,6 +72,12 @@ $font-families: ('sonatype-icons', 'sonatype-glyphicons');
   &.blue {
     #{$property}: $dark-blue;
   }
+
+  @each $color-name, $pickable-color in $pickable-colors {
+    &.#{$color-name} {
+      #{$property}: $pickable-color;
+    }
+  }
 }
 /*
   The sonatype icon font

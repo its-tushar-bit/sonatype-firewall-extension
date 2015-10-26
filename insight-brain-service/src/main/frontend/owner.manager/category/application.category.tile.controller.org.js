@@ -6,11 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileControllerOrg($http, CLMAppLocations) {
+  function ApplicationCategoryTileControllerOrg($http, $state, CLMAppLocations) {
     var vm = this;
 
     vm.appCategoryOwners = [];
     vm.doLoad = doLoad;
+    vm.editCategory = editCategory;
     vm.error = undefined;
     vm.isOrg = CLMAppLocations.isOrganization();
     vm.ownerName = undefined;
@@ -37,9 +38,15 @@
         delete vm.error;
       }
     }
+
+    function editCategory(categoryId, inherited) {
+      if (!inherited) {
+        $state.go('^.edit-category', { categoryId: categoryId });
+      }
+    }
   }
 
-  ApplicationCategoryTileControllerOrg.$inject = ['$http', 'CLMAppLocations'];
+  ApplicationCategoryTileControllerOrg.$inject = ['$http', '$state', 'CLMAppLocations'];
 
   angular //
       .module('owner.manager.module') //

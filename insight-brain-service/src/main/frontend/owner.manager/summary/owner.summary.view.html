@@ -74,7 +74,7 @@
           <div class="sub-header">available to apps in {{vm.ownerName}}</div>
           <div class="simple-list" ng-repeat="owner in vm.appCategoryOwners">
             <h4 class="subsection-header" ng-if="!owner.parent">Local
-              <button class="btn btn-tertiary">
+              <button id="add-category-button" class="btn btn-tertiary" ui-sref="^.create-category">
                 <i class="fa fa-plus"></i>Add a Category
               </button>
             </h4>
@@ -87,7 +87,8 @@
             </div>
             <ul>
               <li ng-class="{'with-subtitle' : category.description, 'simple' : !category.description, 'clickable' : !owner.parent}"
-                  ng-repeat="category in owner.tags">
+                  ng-repeat="category in owner.tags"
+                  ng-click="vm.editCategory(category.id, owner.parent)">
                 <div class="title">
                   <hexagon class="{{category.color}}" width="14" height="16"></hexagon><!--
                   -->{{category.name}}

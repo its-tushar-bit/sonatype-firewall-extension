@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  angular.module('owner.manager.module', ['Stores', 'Labels', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule', 'utility'])
+  angular.module('owner.manager.module', ['Stores', 'Labels', 'Tags', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule', 'utility'])
       .config(['$stateProvider', function($stateProvider) {
         var ownerTypes = [
           {
@@ -24,6 +24,28 @@
           templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp,
           controller: 'owner.manager.controller',
           controllerAs: 'vm'
+        });
+
+        $stateProvider.state('management.organization.edit-category', {
+          parent: 'management.organization',
+          url: '/category/{categoryId}/edit',
+          templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
+          controller: 'category.editor.controller',
+          controllerAs: 'vm',
+          data: {
+            isEditView: true
+          }
+        });
+
+        $stateProvider.state('management.organization.create-category', {
+          parent: 'management.organization',
+          url: '/category/create',
+          templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
+          controller: 'category.editor.controller',
+          controllerAs: 'vm',
+          data: {
+            isEditView: true
+          }
         });
 
         ownerTypes.forEach(function(ownerType) {

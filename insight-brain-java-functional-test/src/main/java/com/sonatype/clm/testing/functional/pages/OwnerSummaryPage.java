@@ -7,12 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -42,8 +37,16 @@ public class OwnerSummaryPage
       return $("#add-label-button");
     }
 
+    public static SelenideElement addCategoryButton() {
+      return $("#add-category-button");
+    }
+
     public static SelenideElement localLabel(String labelName) {
       return $$("#owner-pill-comp-labels  ul div.title").findBy(text(labelName));
+    }
+
+    public static SelenideElement localCategory(String categoryName) {
+      return $$("#owner-pill-app-categories ul div.title").findBy(text(categoryName));
     }
 
     public static ErrorBox error() {

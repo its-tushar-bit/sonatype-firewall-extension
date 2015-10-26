@@ -31,8 +31,7 @@
             </div>
           </div>
         <div class="editor-footer" ng-class="{ error : vm.error }">
-          <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i> {{vm.error}}</div>
-
+          <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i>{{vm.error}}</div>
           <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="vm.labelEditor.$invalid || !vm.dirtyLabel.isDirty()">
             {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
           </button><!--
@@ -41,7 +40,7 @@
           </button><!--
        --><button id="delete-label-button" class='btn btn-tertiary' type="button"
                   ng-click="vm.deleteLabel()" ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new">
-            <i class="fa fa-fw fa-trash"></i> Delete Component Label
+            <i class="fa fa-fw fa-trash"></i>Delete Component Label
           </button>
         </div>
       </form>

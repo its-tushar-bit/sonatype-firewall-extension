@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -18,8 +19,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.tag.Tag;
-
-import com.google.inject.Inject;
 
 /**
  * Resource for managing applications applied tags

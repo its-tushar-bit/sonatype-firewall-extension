@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.tag.TagResource.ApplicationTagsByOwner;
 import com.sonatype.insight.brain.tag.TagResource.AppliedTags;
 import com.sonatype.insight.brain.tag.TagResource.TagsByOwner;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Iterables;
@@ -44,9 +45,12 @@ class TagService
 {
   private final ApplicationService applicationService;
 
+  private final ApplicationTagDAO applicationTagDAO;
+
   @Inject
-  public TagService(ApplicationService applicationService) {
+  public TagService(ApplicationService applicationService, ApplicationTagDAO applicationTagDAO) {
     this.applicationService = applicationService;
+    this.applicationTagDAO = applicationTagDAO;
   }
 
   public List<Tag> getTagsUsedByApplications() {
@@ -128,6 +132,29 @@ class TagService
     }
 
     return entities;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public List<ApplicationTag> updateApplicationTags(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId, final List<Tag> tags)
+  {
+    String applicationId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
+
+    List<ApplicationTag> applicationTags = new ArrayList<>();
+    try (TransactionContext tx = applicationTagDAO.createTransactionContext()) {
+      tx.begin();
+      for (ApplicationTag applicationTag : applicationTagDAO.getByApplicationId(applicationId)) {
+        applicationTagDAO.delete(tx, applicationTag);
+      }
+
+      for (Tag tag : tags) {
+        ApplicationTag applicationTag = new ApplicationTag(applicationId, tag.getId());
+        applicationTagDAO.insert(tx, applicationTag);
+        applicationTags.add(applicationTag);
+      }
+      tx.commit();
+    }
+    return applicationTags;
   }
 
   @Authorize(permission = Permission.WRITE)

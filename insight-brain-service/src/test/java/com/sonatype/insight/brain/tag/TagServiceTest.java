@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -36,6 +37,26 @@ public class TagServiceTest
 {
   @Inject
   private TagService tagService;
+
+  @Test
+  public void testUpdateApplicationTags() {
+    Application app = tempEntity.newApplicationWithParent("appPublicId");
+    Tag tag = tempEntity.newTag(app.getOrganizationId(), "Tag");
+
+    List<ApplicationTag> applicationTags =
+        tagService.updateApplicationTags(app.getPublicId(), Collections.singletonList(tag));
+    assertThat(applicationTags, hasSize(1));
+    assertThat(applicationTags.get(0).getApplicationId(), is(app.getId()));
+    assertThat(applicationTags.get(0).getTagId(), is(tag.getId()));
+
+    List<Tag> tags = tagService.getAppliedApplicationTags(app.getPublicId());
+    assertThat(tags, hasSize(1));
+    assertThat(tags.get(0).getName(), is(tag.getName()));
+    assertThat(tags.get(0).getId(), is(tag.getId()));
+    assertThat(tags.get(0).getDescription(), is(tag.getDescription()));
+    assertThat(tags.get(0).getColor(), is(tag.getColor()));
+    assertThat(tags.get(0).getOrganizationId(), is(tag.getOrganizationId()));
+  }
 
   /**
    * Confirm that if we accidentally try to delete a Tag in the context of

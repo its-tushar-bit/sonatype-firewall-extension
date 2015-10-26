@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
@@ -230,5 +232,22 @@ public class TagServiceAuthzTest
     List<Tag> allTags = tagService.getTagsUsedByApplications();
     assertThat(allTags, hasSize(1));
     assertThat(allTags.get(0).getId(), is(tag1.getId()));
+  }
+
+  @Test
+  public void testUpdateApplicationUpdateTags_Authorized() throws Exception {
+    grantWritePermission(app.getId());
+    tagService.updateApplicationTags(app.getPublicId(), Collections.<Tag>emptyList());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateApplicationUpdateTags_Unauthorized() throws Exception {
+    login();
+    tagService.updateApplicationTags(app.getPublicId(), Collections.<Tag>emptyList());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateApplicationUpdateTags_Unauthenticated() throws Exception {
+    tagService.updateApplicationTags(app.getPublicId(), Collections.<Tag>emptyList());
   }
 }

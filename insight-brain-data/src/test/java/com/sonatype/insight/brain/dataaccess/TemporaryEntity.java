@@ -409,6 +409,10 @@ public class TemporaryEntity
     Collections.addAll(claimedComponents, hashComponentIdentifiers);
   }
 
+  public void register(LicenseOverride... licenseOverrides) {
+    Collections.addAll(this.licenseOverrides, licenseOverrides);
+  }
+
   public Application newApplicationWithParent(String appPublicId) {
     // Application Name must be unique
     return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());

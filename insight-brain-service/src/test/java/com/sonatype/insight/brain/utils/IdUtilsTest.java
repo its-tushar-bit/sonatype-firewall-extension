@@ -30,7 +30,8 @@ public class IdUtilsTest
     try {
       IdUtils.getOwnerNotNull(OwnerType.GLOBAL, null /* ownerId */);
       fail("Should fail to get 'GLOBAL' owner object.");
-    } catch (IllegalArgumentException e) {
+    }
+    catch (IllegalArgumentException e) {
       assertThat(e.getMessage(), is(IdUtils.MSG_PREFIX_NO_OWNER_INSTANCE + OwnerType.GLOBAL));
     }
   }
@@ -39,6 +40,7 @@ public class IdUtilsTest
     final Owner actual = IdUtils.getOwnerNotNull(expected.getType(), expected.getId());
     assertOwnerEqual(expected, actual);
   }
+
   private void assertOwnerEqual(final Owner expected, final Owner actual) {
     assertThat(actual.getType(), is(expected.getType()));
     assertThat(actual.getId(), is(expected.getId()));

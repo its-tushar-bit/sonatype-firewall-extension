@@ -423,7 +423,8 @@ public class LicenseOverrideResourceTest
   private void assertLicenseOverrideByOwner(Owner owner, boolean hasLicenseOverride, LicenseOverrideByOwner actual) {
     if (owner instanceof Repository) {
       assertEquals(owner.getId(), actual.ownerId);
-    } else {
+    }
+    else {
       assertEquals(owner.getPublicId(), actual.ownerId);
     }
 

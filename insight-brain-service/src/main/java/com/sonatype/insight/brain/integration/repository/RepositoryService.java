@@ -17,7 +17,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
@@ -45,7 +44,6 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -310,6 +308,7 @@ public class RepositoryService
     truncateHashes(componentEvaluationDataRequestList);
 
     ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(componentEvaluationDataRequestList);
+    List<Component> components = new ArrayList<>();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest = componentEvaluationDataRequestList.components
           .get(requestIndex);
@@ -328,15 +327,21 @@ public class RepositoryService
       }
 
       Component component = augmentComponentDetails(repository, componentDetails);
-      // Evaluate the policies
-      PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(),
-          new Stage(DevelopStageType.ID), Collections.singletonList(component), false /* forMonitoring */);
+      component.addPathname(normalizePathname(componentEvaluationRequest.pathname));
+      components.add(component);
+    }
 
-      boolean quarantine = withQuarantine && !policyResults.getActiveAlerts().isEmpty();
+    // Evaluate the policies
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(),
+        new Stage(DevelopStageType.ID), components, false /* forMonitoring */);
+    
+    for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
+      Component component = components.get(requestIndex);
+
+      boolean quarantine = withQuarantine && hasComponentFact(policyResults.getActiveAlerts(), component);
       Date quarantineTime = quarantine ? now : null;
 
-      persistEvaluationResults(repository, componentEvaluationRequest.pathname, now, componentDetails, policyResults,
-          withQuarantine, quarantineTime);
+      persistEvaluationResults(repository, now, component, policyResults, withQuarantine, quarantineTime);
 
       RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
@@ -351,38 +356,37 @@ public class RepositoryService
     return componentEvaluationResultList;
   }
 
-  private void persistEvaluationResults(Repository repository, String pathname, Date evaluationTime,
-      ComponentDetails componentDetails, PolicyResults policyResults, boolean canBeQuarantined, Date quarantineTime)
+  private void persistEvaluationResults(Repository repository, Date evaluationTime, Component component,
+      PolicyResults policyResults, boolean canBeQuarantined, Date quarantineTime)
   {
-    pathname = normalizePathname(pathname);
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
 
-      persistRepositoryComponent(tx, repository, pathname, evaluationTime, componentDetails, canBeQuarantined,
-          quarantineTime);
-      persistPolicyViolations(tx, repository, pathname, evaluationTime, policyResults);
+      persistRepositoryComponent(tx, repository, evaluationTime, component, canBeQuarantined, quarantineTime);
+      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults);
 
       tx.commit();
     }
   }
 
-  private void persistRepositoryComponent(TransactionContext tx, Repository repository, String pathname,
-      Date evaluationTime, ComponentDetails componentDetails, boolean canBeQuarantined, Date quarantineTime)
+  private void persistRepositoryComponent(TransactionContext tx, Repository repository, Date evaluationTime,
+      Component component, boolean canBeQuarantined, Date quarantineTime)
   {
+    String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
     if (repositoryComponent == null) {
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime,
-          componentDetails.getHash(), componentDetails.getComponentIdentifier(), componentDetails.getMatchState(),
-          componentDetails.getIdentificationSource(), evaluationTime, canBeQuarantined);
+          component.getHash(), component.getComponentIdentifier(), component.getMatchState().getId(),
+          component.getIdentificationSource().getId(), evaluationTime, canBeQuarantined);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponentDAO.insert(tx, repositoryComponent);
     }
     else {
-      repositoryComponent.setHash(componentDetails.getHash());
-      repositoryComponent.setComponentIdentifier(componentDetails.getComponentIdentifier());
-      repositoryComponent.setMatchStateId(componentDetails.getMatchState());
-      repositoryComponent.setIdentificationSourceId(componentDetails.getIdentificationSource());
+      repositoryComponent.setHash(component.getHash());
+      repositoryComponent.setComponentIdentifier(component.getComponentIdentifier());
+      repositoryComponent.setMatchStateId(component.getMatchState().getId());
+      repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
       if (canBeQuarantined) {
         repositoryComponent.setCanBeQuarantined(canBeQuarantined);
@@ -392,9 +396,10 @@ public class RepositoryService
     }
   }
 
-  private void persistPolicyViolations(TransactionContext tx, Repository repository, String pathname,
-      Date evaluationTime, PolicyResults policyResults)
+  private void persistPolicyViolations(TransactionContext tx, Repository repository, Date evaluationTime,
+      Component component, PolicyResults policyResults)
   {
+    String pathname = component.getPathnames().get(0);
     // Update the current last RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> lastPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
@@ -407,26 +412,53 @@ public class RepositoryService
     allPolicyAlerts.addAll(policyResults.getActiveAlerts());
     allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
     for (PolicyAlert policyAlert : allPolicyAlerts) {
-      PolicyFact policyFact = policyAlert.getTrigger();
-      Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
-      PolicyThreatCategory threatCategory = policy.getThreatCategory();
-      for (ComponentFact componentFact : policyFact.getComponentFacts()) {
-        RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
-            evaluationTime, policy.getId(), policy.getName(), policyFact.getThreatLevel(), threatCategory,
-            componentFact.getHash(), componentFact.getComponentIdentifier(), componentFact.getConstraintFacts());
-        for (Action action : policyAlert.getActions()) {
-          // Don't save notification data into policy violations here because we don't want to send notifications for
-          // policy violations on repository components. At least not yet.
-          if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
-            policyViolation.setActionTypeId(action.getActionTypeId());
-            break;
-          }
-        }
-        PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
-        policyViolation.setWaived(policyWaiver != null);
-        repositoryPolicyViolationDAO.insert(tx, policyViolation);
+      ComponentFact componentFact = getComponentFact(policyAlert, component);
+      if (componentFact == null) {
+        continue;
+      }
+      RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, componentFact, pathname,
+          repository, evaluationTime, policyResults.getPolicyWaiver(componentFact) != null);
+      repositoryPolicyViolationDAO.insert(tx, policyViolation);
+    }
+  }
+
+  private RepositoryPolicyViolation createRepositoryPolicyViolation(PolicyAlert policyAlert,
+      ComponentFact componentFact, String pathname, Repository repository, Date evaluationTime, boolean waived)
+  {
+    PolicyFact policyFact = policyAlert.getTrigger();
+    Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
+    PolicyThreatCategory threatCategory = policy.getThreatCategory();
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
+        evaluationTime, policy.getId(), policy.getName(), policyFact.getThreatLevel(), threatCategory,
+        componentFact.getHash(), componentFact.getComponentIdentifier(), componentFact.getConstraintFacts());
+    for (Action action : policyAlert.getActions()) {
+      // Don't save notification data into policy violations here because we don't want to send notifications for
+      // policy violations on repository components. At least not yet.
+      if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
+        policyViolation.setActionTypeId(action.getActionTypeId());
+        break;
       }
     }
+    policyViolation.setWaived(waived);
+    return policyViolation;
+  }
+
+  private boolean hasComponentFact(List<PolicyAlert> policyAlerts, Component component) {
+    for (PolicyAlert policyAlert : policyAlerts) {
+      if (getComponentFact(policyAlert, component) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private ComponentFact getComponentFact(PolicyAlert policyAlert, Component component) {
+    for (ComponentFact componentFact : policyAlert.getTrigger().getComponentFacts()) {
+      if (component.getPathnames().equals(componentFact.getPathnames())) {
+        return componentFact;
+      }
+    }
+    return null;
   }
 
   private Component augmentComponentDetails(Repository repository, NamedComponentDetails componentDetails) {

@@ -190,7 +190,7 @@
             '?componentIdentifier=' + encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier))));
 
         // Component licenses
-        promises.push($http.get(CLM.path + 'rest/ci/componentDetails/licenses/' + ApplicationId.encoded() +
+        promises.push($http.get(CLM.path + 'rest/ci/componentDetails/licenses/application/' + ApplicationId.encoded() +
             '?componentIdentifier=' + encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier))));
 
         $q.all(promises).then(function(results) {

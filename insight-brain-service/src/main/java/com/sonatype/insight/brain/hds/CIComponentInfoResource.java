@@ -31,6 +31,8 @@ public class CIComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";
 
+  public static final String LICENSES_PATH = "licenses/{ownerType: application|repository}/{ownerId}";
+
   public static final String VULNERABILITIES_PATH =
       "vulnerabilities/{ownerType: application|organization|repository}/{ownerId}";
 
@@ -72,11 +74,13 @@ public class CIComponentInfoResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path("licenses/{applicationPublicId}")
-  public ComponentLicenses getLicenses(@PathParam("applicationPublicId") String applicationPublicId,
+  @Path(LICENSES_PATH)
+  public ComponentLicenses getLicenses(@PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
-    return componentInfoService.getLicenses(applicationPublicId, componentIdentifier, httpRequest);
+    return componentInfoService
+        .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest);
   }
 
   @GET

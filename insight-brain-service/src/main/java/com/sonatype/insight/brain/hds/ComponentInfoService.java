@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
@@ -272,8 +274,8 @@ public class ComponentInfoService
     return componentDetailsList;
   }
 
-  private Component loadComponent(Application application, ComponentDetails componentDetails) throws IOException {
-    return componentDetailsLoader.augmentComponentDetails(application, componentDetails);
+  private Component loadComponent(Owner owner, ComponentDetails componentDetails) throws IOException {
+    return componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
   }
 
   /**
@@ -282,24 +284,24 @@ public class ComponentInfoService
    * @since 1.6
    */
   @Authorize(permission = Permission.READ)
-  public ComponentLicenses getLicenses(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+  public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerIdPrivateOrPublic,
       ComponentIdentifier componentIdentifier, HttpServletRequest httpRequest) throws IOException
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerIdPrivateOrPublic);
 
     ComponentLicenses result = new ComponentLicenses();
 
     ComponentDetails componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
 
-    loadComponent(application, componentDetails);
-    result.declaredlicenses = getLicensesWithThreatLevels(application, componentDetails.getDeclaredLicenses());
-    result.observedlicenses = getLicensesWithThreatLevels(application, componentDetails.getObservedLicenses());
-    result.effectiveLicenses = getLicensesWithThreatLevels(application, componentDetails.getEffectiveLicenses());
+    loadComponent(owner, componentDetails);
+    result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
+    result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
+    result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
     result.selectableLicenses = new ArrayList<>(getSelectableLicenses(componentDetails.getDeclaredLicenses(),
         componentDetails.getObservedLicenses()));
 
@@ -359,7 +361,7 @@ public class ComponentInfoService
   /**
    * @since 1.6
    */
-  private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Application application, Set<License> multiLicenses)
+  private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Owner owner, Set<License> multiLicenses)
   {
     List<LicenseWithThreatLevel> result = new ArrayList<>();
 
@@ -369,7 +371,7 @@ public class ComponentInfoService
         Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
             .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
         for (com.sonatype.insight.brain.model.license.License license : licenses) {
-          LicenseWithThreatLevel licenseWithThreatLevel = LicenseUtils.getLicenseWithThreatLevel(application, license);
+          LicenseWithThreatLevel licenseWithThreatLevel = LicenseUtils.getLicenseWithThreatLevel(owner, license);
           result.add(licenseWithThreatLevel);
         }
       }

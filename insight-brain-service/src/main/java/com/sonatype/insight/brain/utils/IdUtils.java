@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.utils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -17,6 +18,29 @@ import com.google.common.base.Predicate;
 
 public class IdUtils
 {
+  static final String MSG_PREFIX_NO_OWNER_INSTANCE = "There is no Owner instance for OwnerType: ";
+
+  private IdUtils() {
+    // Utility class
+  }
+
+  public static Owner getOwnerNotNull(final OwnerType ownerType, final String ownerId) {
+    switch (ownerType) {
+      case APPLICATION:
+        return new ApplicationDAO().getByPublicIdNotNull(ownerId);
+      case ORGANIZATION:
+        return new OrganizationDAO().getByIdNotNull(ownerId);
+      case REPOSITORY:
+        return new RepositoryDAO().getByIdNotNull(ownerId);
+      case REPOSITORY_CONTAINER:
+        return RepositoryContainer.SINGLETON;
+      case GLOBAL:
+        throw new IllegalArgumentException(MSG_PREFIX_NO_OWNER_INSTANCE + ownerType);
+    }
+
+    throw new IllegalStateException("Unknown owner type: " + ownerType);
+  }
+
   public static String getInternalOwnerId(OwnerType ownerType, String ownerId) {
     switch (ownerType) {
       case APPLICATION:

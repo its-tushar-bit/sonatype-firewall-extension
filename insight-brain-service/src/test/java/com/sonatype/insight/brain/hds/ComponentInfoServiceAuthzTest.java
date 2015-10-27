@@ -163,21 +163,45 @@ public class ComponentInfoServiceAuthzTest
   }
 
   @Test
-  public void testGetLicenses_Authorized() throws Exception {
+  public void testGetLicensesApplication_Authorized() throws Exception {
     configureHdsClientMock();
     grantReadPermission(app.getId());
-    componentInfoService.getLicenses(app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService
+        .getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+  }
+
+  @Test
+  public void testGetLicensesRepository_Authorized() throws Exception {
+    configureHdsClientMock();
+    grantReadPermission(repository.getId());
+    componentInfoService
+        .getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetLicenses_Unauthorized() throws Exception {
+  public void testGetLicensesApplication_Unauthorized() throws Exception {
     login();
-    componentInfoService.getLicenses(app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+    componentInfoService
+        .getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLicensesRepository_Unauthorized() throws Exception {
+    login();
+    componentInfoService
+        .getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetLicenses_Unauthenticated() throws Exception {
-    componentInfoService.getLicenses(app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+  public void testGetLicensesApplication_Unauthenticated() throws Exception {
+    componentInfoService
+        .getLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetLicensesRepository_Unauthenticated() throws Exception {
+    componentInfoService
+        .getLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER, null /* httpRequest */);
   }
 
   @Test

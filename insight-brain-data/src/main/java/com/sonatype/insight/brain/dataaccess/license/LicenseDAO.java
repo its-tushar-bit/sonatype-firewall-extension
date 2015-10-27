@@ -16,7 +16,6 @@ import java.util.TreeMap;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDatamartSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -140,12 +139,12 @@ public class LicenseDAO
   /**
    * @since 1.6
    */
-  public Integer getLicenseThreatLevelByApplicationAndLicenseId(Application application, String licenseId) {
+  public Integer getLicenseThreatLevelByOwnerAndLicenseId(final Owner owner, String licenseId) {
     final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     Integer threatLevel = null;
-    String ownerId = application.getId();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(owner.getId(),
+    String ownerId = owner.getId();
+    for (final Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
+      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(currentOwner.getId(),
           licenseId);
       threatLevel = max(threatLevel, licenseThreatGroups);
     }

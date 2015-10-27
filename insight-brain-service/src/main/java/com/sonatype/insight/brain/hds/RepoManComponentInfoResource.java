@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 /**
@@ -74,6 +75,7 @@ public class RepoManComponentInfoResource
   public ComponentLicenses getLicenses(@PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
   {
-    return componentInfoService.getLicenses(applicationPublicId, componentIdentifier, httpRequest);
+    return componentInfoService
+        .getLicenses(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, httpRequest);
   }
 }

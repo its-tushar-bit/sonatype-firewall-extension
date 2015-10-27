@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverride
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
@@ -61,6 +62,20 @@ public class LicenseOverrideServiceTest
     assertThat(overrides.licenseOverridesByOwner, hasSize(3));
     assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(app.getPublicId())));
     assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(app.getParentOwnerId())));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverridesRepository_hierarchy() {
+    Repository repository = tempEntity.newRepository();
+
+    config.setShowRootOrganization(true);
+    AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(OwnerType.REPOSITORY, repository.getId(),
+        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+
+    assertThat(overrides.licenseOverridesByOwner, hasSize(3));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(repository.getId())));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(repository.getParentOwnerId())));
     assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
   }
 

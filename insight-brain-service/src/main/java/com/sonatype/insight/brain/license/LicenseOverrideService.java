@@ -144,7 +144,7 @@ public class LicenseOverrideService
         break;
       }
       LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();
-      licenseOverrideByOwner.ownerId = owner.getPublicId();
+      licenseOverrideByOwner.ownerId = OwnerType.REPOSITORY.equals(ownerType) ? owner.getId() : owner.getPublicId();
       licenseOverrideByOwner.ownerName = owner.getName();
       licenseOverrideByOwner.ownerType = owner.getType();
       licenseOverrideByOwner.licenseOverride = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(owner.getId(),

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -32,6 +33,8 @@ public abstract class AbstractResourceAuthzTest
 
   protected Application app;
 
+  protected Repository repo;
+
   protected User unauthorized;
 
   protected User authorized;
@@ -40,6 +43,7 @@ public abstract class AbstractResourceAuthzTest
   public void createEntities() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
+    repo = tempEntity.newRepository();
     unauthorized = tempEntity.newUser();
     authorized = tempEntity.newUser();
   }

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
@@ -46,9 +47,31 @@ public abstract class AbstractComponentInfoResourceTest
 
   protected abstract String getResourcePath();
 
+  /**
+   * Because we reuse the HDS product path for multiple IQ Rest clients, test subclasses may override this method to
+   * provide the HDS product name (toolName) {ide|rm|ci} for use in mocking the HDS client calls.
+   * see com.sonatype.insight.portal.rest.service.cip.ComponentDetailsResource for details.
+   * @return the HDS product name (toolName) {ide|rm|ci} for use in mocking the HDS client calls.
+   */
+  protected String getHDSProduct() {
+    return "ci";
+  }
+
+  private HttpRequest getHDSRequest() {
+    return super.restRequest().path("rest/" + getHDSProduct() + "/componentDetails");
+  }
+
   private String applicationPublicId = "AbstractComponentInfoResourceTest";
 
   private Application application;
+
+  protected Owner getOwner() {
+    return application;
+  }
+
+  protected String getOwnerId() {
+    return application.getPublicId();
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -58,7 +81,7 @@ public abstract class AbstractComponentInfoResourceTest
   protected HttpRequest detailsRequest(String appId, ComponentIdentifier componentIdentifier, String hash,
       MatchState matchState, Boolean proprietary)
   {
-    return restRequest().path(appId).query("componentIdentifier", componentIdentifier).query("hash", hash)
+    return getHDSRequest().path(appId).query("componentIdentifier", componentIdentifier).query("hash", hash)
         .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary);
   }
 
@@ -66,8 +89,10 @@ public abstract class AbstractComponentInfoResourceTest
     return restRequest().path(appId, "list").query("componentIdentifier", componentIdentifier);
   }
 
-  protected HttpRequest licensesRequest(String appId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path("licenses", appId).query("componentIdentifier", componentIdentifier);
+  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
+    return restRequest().path(CIComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
+        .subpath().query(
+            "componentIdentifier", componentIdentifier);
   }
 
   @Before
@@ -84,8 +109,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetLicenses_Unlicensed() throws Exception {
     uninstallLicense();
-    HttpResponse response = licensesRequest(applicationPublicId,
-        ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
+    HttpResponse response = licensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
 
@@ -149,10 +173,10 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
     setHdsResponseForURI(
-        convertToHdsUrl(detailsRequest(applicationPublicId, MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
+        convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
         hdsComponentDetails, 200);
 
-    HttpResponse response = licensesRequest(applicationPublicId, MAVEN_COORDINATES).get();
+    HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
     assertResponseStatus(200, response);
     ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
     assertThat(licenses.declaredlicenses, hasSize(1));

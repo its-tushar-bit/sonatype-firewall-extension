@@ -156,6 +156,14 @@ public class LicenseOverrideServiceAuthzTest
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
+  @Test
+  public void testGetAppliedLicenseOverridesForRepository_Authorized() throws Exception {
+    grantReadPermission(repository.getId());
+
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.REPOSITORY, repository.getId(),
+        JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
+  }
+
   @Test(expected = UnauthorizedException.class)
   public void testGetAppliedLicenseOverridesForApplication_Unauthorized() throws Exception {
     login();
@@ -172,6 +180,14 @@ public class LicenseOverrideServiceAuthzTest
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedLicenseOverridesForRepository_Unauthorized() throws Exception {
+    login();
+
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.REPOSITORY, repository.getId(),
+        JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
+  }
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetAppliedLicenseOverridesForApplication_Unauthenticated() throws Exception {
     licenseOverrideService.getAppliedLicenseOverrides(OwnerType.APPLICATION, app.getPublicId(),
@@ -181,6 +197,12 @@ public class LicenseOverrideServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetAppliedLicenseOverridesForOrganization_Unauthenticated() throws Exception {
     licenseOverrideService.getAppliedLicenseOverrides(OwnerType.ORGANIZATION, org.getId(),
+        JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverridesForRepository_Unauthenticated() throws Exception {
+    licenseOverrideService.getAppliedLicenseOverrides(OwnerType.REPOSITORY, repository.getId(),
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));
   }
 }

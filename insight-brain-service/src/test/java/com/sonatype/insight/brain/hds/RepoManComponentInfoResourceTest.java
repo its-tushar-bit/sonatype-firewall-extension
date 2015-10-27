@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import com.sonatype.insight.brain.hds.RepoManComponentInfoResource;
-
 import org.junit.Test;
 
 public class RepoManComponentInfoResourceTest

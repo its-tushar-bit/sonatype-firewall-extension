@@ -187,10 +187,10 @@
           return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
         },
         getNotificationUrl: function() {
-          return baseUrl.get() + '/rest/productNotifications';
+          return baseUrl.get() + '/rest/product/notifications';
         },
         getNotificationViewedUrl: function() {
-          return baseUrl.get() + '/rest/productNotifications/viewed';
+          return baseUrl.get() + '/rest/product/notifications/viewed';
         }
       };
     }

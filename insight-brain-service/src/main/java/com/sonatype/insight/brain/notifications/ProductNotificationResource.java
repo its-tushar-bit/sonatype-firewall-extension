@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 @UnlicensedPath
 public class ProductNotificationResource
 {
-  public static final String RESOURCE_PATH = "rest/productNotifications";
+  public static final String RESOURCE_PATH = "rest/product/notifications";
 
   public static final String VIEWED_PATH = "viewed";
 

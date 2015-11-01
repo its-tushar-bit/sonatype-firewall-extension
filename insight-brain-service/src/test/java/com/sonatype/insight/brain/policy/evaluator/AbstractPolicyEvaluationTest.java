@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -18,7 +20,6 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -26,18 +27,22 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Assert;
-import org.junit.Rule;
 
 public abstract class AbstractPolicyEvaluationTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
+  @Inject
+  protected ComponentPolicyEvaluator componentPolicyEvaluator;
 
-  protected ComponentPolicyEvaluator componentPolicyEvaluator = new ComponentPolicyEvaluator();
-
+  @Override
+  public void setUpDefaultLicenseThreatGroups() {
+    // blank slate please
+  }
+  
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
     return evaluate(new Stage(BuildStageType.ID), policy, components);
   }

@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.PolicyWaiverEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
 
 public class HdsIdeResourcePerformance
@@ -85,7 +87,8 @@ public class HdsIdeResourcePerformance
 
     this.iterations = iterations * connections;
     work = HdsIdeResourcePerformanceUtils.createInsightWork();
-    resource = new IdeResource(work, null, HdsIdeResourcePerformanceUtils.createHdsClient(server));
+    resource = new IdeResource(work, null, HdsIdeResourcePerformanceUtils.createHdsClient(server),
+        new ComponentPolicyEvaluator(new PolicyWaiverEvaluator()));
 
     // trigger db
     testApplication = new Application();

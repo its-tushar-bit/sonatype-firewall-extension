@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
 
+import javax.inject.Named;
+
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
@@ -19,7 +21,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @since 1.9
  */
-class PolicyWaiverEvaluator
+@Named
+public class PolicyWaiverEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyWaiverEvaluator.class);
 

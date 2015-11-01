@@ -77,16 +77,19 @@ public class ComponentInfoService
 
   private final ReportService reportService;
 
+  private final ComponentPolicyEvaluator componentPolicyEvaluator;
+
   private String toolName;
 
   @Inject
   public ComponentInfoService(HdsClient hdsClient, ComponentDetailsLoader componentDetailsLoader,
-      InsightWork insightWork, ReportService reportService)
+      InsightWork insightWork, ReportService reportService, ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.hdsClient = hdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
     this.insightWork = insightWork;
     this.reportService = reportService;
+    this.componentPolicyEvaluator = componentPolicyEvaluator;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -172,7 +175,7 @@ public class ComponentInfoService
     component.setProprietary(proprietary);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = new ComponentPolicyEvaluator().evaluate(app.getId(),
+    List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(),
         new Stage(DevelopStageType.ID), Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 

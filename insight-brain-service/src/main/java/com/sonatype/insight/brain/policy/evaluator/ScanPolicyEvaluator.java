@@ -74,13 +74,16 @@ public class ScanPolicyEvaluator
 
   private final PolicyThreatsAdapter policyThreatsAdapter;
 
+  private final ComponentPolicyEvaluator componentPolicyEvaluator;
+
   @Inject
   public ScanPolicyEvaluator(final InsightWork insightWork, final ReportService reportService,
-      final PolicyThreatsAdapter policyThreatsAdapter)
+      final PolicyThreatsAdapter policyThreatsAdapter, final ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.work = insightWork;
     this.reportService = reportService;
     this.policyThreatsAdapter = policyThreatsAdapter;
+    this.componentPolicyEvaluator = componentPolicyEvaluator;
   }
 
   public PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage)
@@ -120,7 +123,7 @@ public class ScanPolicyEvaluator
         securityReportEntry.buf, bomReportEntry.buf);
 
     // Evaluate the policies
-    PolicyResults policyResults = new ComponentPolicyEvaluator().evaluate(appId, stage, components, forMonitoring);
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, components, forMonitoring);
 
     // Save the policy evaluation and violations
     PolicyEvaluation policyEvaluation = persistPolicyResults(appId, scanId, stage, forMonitoring, policyResults,

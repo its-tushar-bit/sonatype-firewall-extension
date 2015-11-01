@@ -43,9 +43,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -55,9 +53,6 @@ import static org.hamcrest.Matchers.notNullValue;
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
   @Test
   public void testEvaluate_ConstraintFactHasDisplayName() {
 

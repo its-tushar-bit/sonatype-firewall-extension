@@ -65,11 +65,16 @@ public class IdeResource
 
   private final BaseUrl baseUrl;
 
+  private final ComponentPolicyEvaluator componentPolicyEvaluator;
+
   @Inject
-  public IdeResource(InsightWork work, BaseUrl baseUrl, HdsClient client) {
+  public IdeResource(InsightWork work, BaseUrl baseUrl, HdsClient client,
+      ComponentPolicyEvaluator componentPolicyEvaluator)
+  {
     this.work = work;
     this.baseUrl = baseUrl;
     this.client = client;
+    this.componentPolicyEvaluator = componentPolicyEvaluator;
   }
 
   /**
@@ -121,7 +126,7 @@ public class IdeResource
       ComponentDAO componentDAO = new ComponentDAO();
       Component component = componentDAO.getComponent(app, matchedComponent, svData);
       component.setProprietary(proprietary);
-      List<PolicyAlert> policyAlerts = new ComponentPolicyEvaluator().evaluate(applicationId, new Stage(
+      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(applicationId, new Stage(
           DevelopStageType.ID), Collections.singletonList(component));
       ideComponent.setAlerts(policyAlerts);
     }

@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -47,6 +50,7 @@ import org.drools.runtime.StatefulKnowledgeSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
 public class ComponentPolicyEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentPolicyEvaluator.class);
@@ -65,7 +69,12 @@ public class ComponentPolicyEvaluator
     }
   };
 
-  private final PolicyWaiverEvaluator waiverEvaluator = new PolicyWaiverEvaluator();
+  private final PolicyWaiverEvaluator waiverEvaluator;
+
+  @Inject
+  public ComponentPolicyEvaluator(PolicyWaiverEvaluator waiverEvaluator) {
+    this.waiverEvaluator = waiverEvaluator;
+  }
 
   public List<PolicyAlert> evaluate(String ownerId, Stage stage, List<Component> components)
   {

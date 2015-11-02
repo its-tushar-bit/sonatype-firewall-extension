@@ -38,7 +38,7 @@
         <div ng-if="vm.isApp" load-wrapper="vm.error" loading="!(vm.ownerName && vm.appliedCategories)"
              reload="vm.doLoad()">
           <h2>
-            <hexagon class="outline" width="17" height="20"></hexagon><!--
+            <hexagon class="size-20px outline"></hexagon><!--
             -->Application Categories
           </h2>
           <div class="sub-header">associated with {{vm.ownerName}}</div>
@@ -55,7 +55,7 @@
               <li ng-class="category.description ? 'with-subtitle' : 'simple'"
                   ng-repeat="category in vm.appliedCategories">
                 <div class="title">
-                  <hexagon class="{{category.color}}" width="14" height="16"></hexagon><!--
+                  <hexagon class="size-16px {{category.color}}"></hexagon><!--
                   -->{{category.name}}
                 </div>
                 <div class="subtitle" ng-if="category.description">{{category.description}}</div>
@@ -68,7 +68,7 @@
         <div ng-if="vm.isOrg" load-wrapper="vm.error" loading="!(vm.ownerName && vm.appCategoryOwners)"
              reload="vm.doLoad()">
           <h2>
-            <hexagon class="outline" width="17" height="20"></hexagon><!--
+            <hexagon class="size-20px outline"></hexagon><!--
             -->Application Categories
           </h2>
           <div class="sub-header">available to apps in {{vm.ownerName}}</div>
@@ -90,7 +90,7 @@
                   ng-repeat="category in owner.tags"
                   ng-click="vm.editCategory(category.id, owner.parent)">
                 <div class="title">
-                  <hexagon class="{{category.color}}" width="14" height="16"></hexagon><!--
+                  <hexagon class="size-16px {{category.color}}"></hexagon><!--
                   -->{{category.name}}
                 </div>
                 <div class="subtitle" ng-if="category.description">{{category.description}}</div>

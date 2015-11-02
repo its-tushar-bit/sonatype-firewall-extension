@@ -126,14 +126,6 @@
     > .hexagon {
       vertical-align: bottom;
       margin-right: 8px;
-
-      &.outline {
-        > path {
-          fill: none;
-          stroke: $slate;
-          stroke-width: 12px;
-        }
-      }
     }
 
     > .fa {

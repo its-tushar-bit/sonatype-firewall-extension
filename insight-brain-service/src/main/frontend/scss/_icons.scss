@@ -186,4 +186,24 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
 
 .hexagon {
   @include icon-colours(fill);
+  width: 12px;
+  height: 14px;
+
+  &.outline {
+    > path {
+      fill: none;
+      stroke: $slate;
+      stroke-width: 12px;
+    }
+  }
+
+  &.size-20px {
+    width: 17px;
+    height: 20px;
+  }
+
+  &.size-16px {
+    width: 14px;
+    height: 16px;
+  }
 }

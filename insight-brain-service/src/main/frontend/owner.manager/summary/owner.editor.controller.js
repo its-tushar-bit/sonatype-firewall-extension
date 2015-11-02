@@ -70,7 +70,7 @@
         return deferred.promise;
       })).then(function(updatedOwner) {
         if (isNew) {
-          $state.go('management.' + ownerType + '.view', ownerType === 'application' ? {
+          $state.go('management.view.' + ownerType, ownerType === 'application' ? {
             applicationPublicId: updatedOwner.publicId
           } : {
             organizationId: updatedOwner.id

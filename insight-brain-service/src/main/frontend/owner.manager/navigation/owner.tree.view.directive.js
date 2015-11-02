@@ -89,7 +89,7 @@
 
         for (var key in touchedOrganizations) {
           if (touchedOrganizations.hasOwnProperty(key)) {
-            touchedOrganizations[key].isExpanded = $state.includes('management.organization.view',
+            touchedOrganizations[key].isExpanded = $state.includes('management.view.organization',
                 {organizationId: touchedOrganizations[key].id}) || isOrganizationChildSelected(touchedOrganizations[key]);
           }
         }
@@ -234,12 +234,12 @@
 
     function goToOrganizationIfNotSynthetic(organization) {
       if (!organization.synthetic) {
-        $state.go('management.organization.view', { organizationId: organization.id});
+        $state.go('management.view.organization', { organizationId: organization.id});
       }
     }
 
     function isOrganizationChildSelected(organization) {
-      var isApplicationState = $state.includes('management.application.view');
+      var isApplicationState = $state.includes('management.view.application');
       if (!isApplicationState) {
         return false;
       }
@@ -280,7 +280,7 @@
         parentOrganizationId: organizationResource.parentOrganizationId,
         applications: [],
         isVisible: true,
-        isExpanded: $state.includes('management.organization.view', {organizationId: organizationResource.id})
+        isExpanded: $state.includes('management.view.organization', {organizationId: organizationResource.id})
       };
 
       $scope.$watch(function() {

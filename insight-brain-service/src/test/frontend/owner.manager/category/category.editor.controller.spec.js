@@ -11,7 +11,7 @@ describe('category.editor.controller.spec.js', function() {
       $timeout,
       deleteServiceResourceDefer,
       mockDeleteService,
-      $state = {go: function(state, params) {}},
+      SameOwnerStateNavigationService = {goEdit: function(to, params) {}},
       mockCategoryStore = StoreUtils().createMockStore('TagStore'),
       mockCategory = ResourceUtils().createMockResource(),
       mockOwner = {store: {create: function(){return 'stub';}}, tags: [mockCategory]};
@@ -86,10 +86,10 @@ describe('category.editor.controller.spec.js', function() {
 
   it('After delete goes to create new category', function() {
     // given
-    spyOn($state, 'go');
+    spyOn(SameOwnerStateNavigationService, 'goEdit');
     inject(function($controller) {
       vm = $controller('category.editor.controller',
-          {$scope: scope, $state: $state, $stateParams: {categoryId: '1'}, DeleteModalService: mockDeleteService});
+          {$scope: scope, SameOwnerStateNavigationService: SameOwnerStateNavigationService, $stateParams: {categoryId: '1'}, DeleteModalService: mockDeleteService});
     });
     mockCategory.id = '1';
     mockCategoryStore.resolveGet([mockOwner]);
@@ -99,7 +99,7 @@ describe('category.editor.controller.spec.js', function() {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
     // then
-    expect($state.go).toHaveBeenCalledWith('^.create-category');
+    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-category');
   });
 
 })

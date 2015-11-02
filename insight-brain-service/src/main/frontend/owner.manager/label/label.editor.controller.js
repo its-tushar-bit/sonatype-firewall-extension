@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($q, $http, $stateParams, $state, $scope, LabelStore, CLMAppLocations, Messages, DeleteModalService, formMaskDelay) {
+  function LabelEditorController($q, $http, $stateParams, $scope, LabelStore, CLMAppLocations, Messages, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
     var vm = this;
 
     vm.dirtyLabel = undefined;
@@ -21,7 +21,7 @@
 
     function deleteLabel() {
       DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function() {
-        $state.go('^.create-label');
+        SameOwnerStateNavigationService.goEdit('create-label');
       });
     }
 
@@ -64,7 +64,7 @@
     }
   }
 
-  LabelEditorController.$inject = ['$q', '$http', '$stateParams', '$state', '$scope', 'LabelStore', 'CLMAppLocations',  'Messages', 'DeleteModalService', 'FormMaskDelay'];
+  LabelEditorController.$inject = ['$q', '$http', '$stateParams', '$scope', 'LabelStore', 'CLMAppLocations',  'Messages', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
 
   angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
 

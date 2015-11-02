@@ -106,7 +106,7 @@ describe('owner.editor.controller.spec.js', function () {
           $httpBackend.flush();
           $timeout.flush();
 
-          expect($state.go).toHaveBeenCalledWith('management.' + type + '.view', type === 'application' ? {
+          expect($state.go).toHaveBeenCalledWith('management.view.' + type, type === 'application' ? {
             applicationPublicId: controllerScope.dirtyOwner.publicId
           } : {
             organizationId: 'abcd'

@@ -7,5 +7,5 @@ package com.sonatype.clm.testing.functional.pages;
 
 public class OrganizationManagementPage
 {
-  public static String URL = "new/assets/index.html#/management";
+  public static String URL = "new/assets/index.html#/management/view";
 }

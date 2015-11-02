@@ -14,11 +14,11 @@ public class LabelEditorPage
   private static final ColorPicker colorPicker = new ColorPicker($("#editor-label-color-picker"));
 
   public static String urlToEdit(String ownerType, String ownerId, String labelId) {
-    return "new/assets/index.html#/management/" + ownerType + "/" + ownerId + "/label/" + labelId + "/edit";
+    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label/" + labelId;
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "new/assets/index.html#/management/" + ownerType + "/" + ownerId + "/label/create";
+    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label";
   }
 
   public static SelenideElement title() {

@@ -19,11 +19,11 @@ public class CategoryEditorPage
   private static final ColorPicker colorPicker = new ColorPicker($("#editor-category-color-picker"));
 
   public static String urlToEdit(String ownerId, String categoryId) {
-    return "new/assets/index.html#/management/organization/" + ownerId + "/category/" + categoryId + "/edit";
+    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/category/" + categoryId;
   }
 
   public static String urlToCreate(String ownerId) {
-    return "new/assets/index.html#/management/organization/" + ownerId + "/category/create";
+    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/category";
   }
 
   public static SelenideElement root() {

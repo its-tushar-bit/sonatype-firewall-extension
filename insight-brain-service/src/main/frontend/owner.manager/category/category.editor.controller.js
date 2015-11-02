@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($stateParams, $state, $scope, TagStore, Messages, DeleteModalService, formMaskDelay) {
+  function CategoryEditorController($stateParams, $scope, TagStore, Messages, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
     var vm = this;
     var store;
 
@@ -22,7 +22,7 @@
 
     function deleteCategory() {
       DeleteModalService.deleteResource('Category', vm.dirtyCategory.name, vm.dirtyCategory).then(function() {
-        $state.go('^.create-category');
+        SameOwnerStateNavigationService.goEdit('create-category');
       });
     }
 
@@ -67,7 +67,7 @@
     }
   }
 
-  CategoryEditorController.$inject = ['$stateParams', '$state', '$scope', 'TagStore', 'Messages', 'DeleteModalService', 'FormMaskDelay'];
+  CategoryEditorController.$inject = ['$stateParams', '$scope', 'TagStore', 'Messages', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);
 

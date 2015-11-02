@@ -6,77 +6,96 @@
 (function(angular) {
   'use strict';
 
-  angular.module('owner.manager.module', ['Stores', 'Labels', 'Tags', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule', 'utility'])
-      .config(['$stateProvider', function($stateProvider) {
-        var ownerTypes = [
-          {
-            name: 'organization',
-            id: 'organizationId'
-          },
-          {
-            name: 'application',
-            id: 'applicationPublicId'
-          }
-        ];
-
-        $stateProvider.state('management', {
-          url: '/management',
-          templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp,
-          controller: 'owner.manager.controller',
-          controllerAs: 'vm'
-        });
-
-        $stateProvider.state('management.organization.edit-category', {
-          parent: 'management.organization',
-          url: '/category/{categoryId}/edit',
-          templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
-          controller: 'category.editor.controller',
-          controllerAs: 'vm',
-          data: {
-            isEditView: true
-          }
-        });
-
-        $stateProvider.state('management.organization.create-category', {
-          parent: 'management.organization',
-          url: '/category/create',
-          templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
-          controller: 'category.editor.controller',
-          controllerAs: 'vm',
-          data: {
-            isEditView: true
-          }
-        });
-
-        ownerTypes.forEach(function(ownerType) {
-          $stateProvider.state('management.' + ownerType.name, {
-            parent: 'management',
-            abstract: true,
-            url: '/' + ownerType.name + '/{' + ownerType.id + '}',
-            template: '<div ui-view class="template-container"></div>'
-          }).state('management.' + ownerType.name + '.view', {
-            parent: 'management.' + ownerType.name,
-            url: '/view',
-            templateUrl: 'owner.manager/summary/owner.summary.view.html?' + clmBuildTimestamp
-          }).state('management.' + ownerType.name + '.edit-label', {
-            parent: 'management.' + ownerType.name,
-            url: '/label/{labelId}/edit',
-            templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp,
-            controller: 'label.editor.controller',
-            controllerAs: 'vm',
-            data: {
-              isEditView: true
+  angular.module('owner.manager.module',
+      ['Stores', 'Labels', 'Tags', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule', 'utility'])
+      .config([
+        '$stateProvider', function($stateProvider) {
+          var ownerTypes = [
+            {
+              name: 'organization',
+              id: 'organizationId'
+            },
+            {
+              name: 'application',
+              id: 'applicationPublicId'
             }
-          }).state('management.' + ownerType.name + '.create-label', {
-            parent: 'management.' + ownerType.name,
-            url: '/label/create',
-            templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp,
-            controller: 'label.editor.controller',
-            controllerAs: 'vm',
-            data: {
-              isEditView: true
+          ];
+
+          $stateProvider.state('management', {
+            url: '/management',
+            abstract: true,
+            templateUrl: 'owner.manager/state/owner.manager.view.html?' + clmBuildTimestamp,
+            controller: 'owner.manager.controller',
+            controllerAs: 'vm'
+          }).state('management.view', {
+            parent: 'management',
+            url: '/view',
+            views: {
+              'navigation@management': {
+                template: '<owner-tree-view></owner-tree-view>'
+              }
+            }
+          }).state('management.edit', {
+            parent: 'management',
+            abstract: true
+          });
+
+          ownerTypes.forEach(function(ownerType) {
+            $stateProvider.state('management.view.' + ownerType.name, {
+              parent: 'management.view',
+              url: '/' + ownerType.name + '/{' + ownerType.id + '}',
+              views: {
+                '@management': {
+                  templateUrl: 'owner.manager/summary/owner.summary.view.html?' + clmBuildTimestamp
+                }
+              }
+            }).state('management.edit.' + ownerType.name, {
+              parent: 'management.edit',
+              url: '/edit/' + ownerType.name + '/{' + ownerType.id + '}'
+            }).state('management.edit.' + ownerType.name + '.label', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/label/{labelId}',
+              views: {
+                '@management': {
+                  controller: 'label.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
+                }
+              }
+            }).state('management.edit.' + ownerType.name + '.create-label', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/label',
+              views: {
+                '@management': {
+                  controller: 'label.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
+                }
+              }
+            });
+          });
+
+          $stateProvider.state('management.edit.organization.category', {
+            parent: 'management.edit.organization',
+            url: '/category/{categoryId}',
+            views: {
+              '@management': {
+                templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
+                controller: 'category.editor.controller',
+                controllerAs: 'vm'
+              }
+            }
+          }).state('management.edit.organization.create-category', {
+            parent: 'management.edit.organization',
+            url: '/category',
+            views: {
+              '@management': {
+                templateUrl: 'owner.manager/category/category.editor.view.html?' + clmBuildTimestamp,
+                controller: 'category.editor.controller',
+                controllerAs: 'vm'
+              }
             }
           });
-        });
-      }]);
+        }
+      ]);
 }(angular));

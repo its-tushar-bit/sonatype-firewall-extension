@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LabelTileController($http, $state, CLMAppLocations) {
+  function LabelTileController($http, CLMAppLocations, SameOwnerStateNavigationService) {
     var vm = this;
     vm.ownerName = undefined;
     vm.applicableLabels = undefined;
@@ -33,12 +33,12 @@
 
     function editLabel(labelId, inherited) {
       if (!inherited) {
-        $state.go('^.edit-label', { labelId: labelId });
+        SameOwnerStateNavigationService.goEdit('label', {labelId: labelId});
       }
     }
   }
 
-  LabelTileController.$inject = ['$http', '$state', 'CLMAppLocations'];
+  LabelTileController.$inject = ['$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'];
 
   angular
       .module('owner.manager.module')

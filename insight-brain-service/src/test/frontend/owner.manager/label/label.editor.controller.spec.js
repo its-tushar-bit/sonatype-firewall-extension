@@ -12,7 +12,7 @@ describe('label.editor.controller.spec.js', function() {
       $httpBackend,
       deleteServiceResourceDefer,
       mockDeleteService,
-      $state = {go: function(state, params) {}},
+      SameOwnerStateNavigationService = {goEdit: function(to, params) {}},
       mockLabelStore = StoreUtils().createMockStore('LabelStore'),
       mockLabel = ResourceUtils().createMockResource();
 
@@ -95,10 +95,10 @@ describe('label.editor.controller.spec.js', function() {
   it('After delete goes to create new label', function() {
     // given
     $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
-    spyOn($state, 'go');
+    spyOn(SameOwnerStateNavigationService, 'goEdit');
     inject(function($controller) {
       vm = $controller('label.editor.controller',
-        {$scope: scope, $state: $state, $stateParams: {labelId: '1'}, DeleteModalService: mockDeleteService});
+        {$scope: scope, SameOwnerStateNavigationService: SameOwnerStateNavigationService, $stateParams: {labelId: '1'}, DeleteModalService: mockDeleteService});
     });
     mockLabel.id = '1';
     mockLabelStore.resolveGet([mockLabel]);
@@ -109,7 +109,7 @@ describe('label.editor.controller.spec.js', function() {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
     // then
-    expect($state.go).toHaveBeenCalledWith('^.create-label');
+    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-label');
   });
 
 })

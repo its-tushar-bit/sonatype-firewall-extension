@@ -93,10 +93,10 @@
 
     function goToParentView() {
       if (!isApp) {
-        $state.go('management.organization.view', {organizationId: vm.owner.parentOrganizationId});
+        $state.go('management.view.organization', {organizationId: vm.owner.parentOrganizationId});
       } 
       else {
-        $state.go('management.organization.view', {organizationId: vm.owner.organizationId});
+        $state.go('management.view.organization', {organizationId: vm.owner.organizationId});
       }     
     }
   }

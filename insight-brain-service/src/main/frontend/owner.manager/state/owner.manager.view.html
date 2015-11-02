@@ -2,7 +2,7 @@
   <div class='marginless-alert' clm-alerts='syncAlerts'></div>
   <div class="root-container" maximize-container-height>
     <div class="navigation-container">
-      <div ng-if="!$state.current.data.isEditView" owner-tree-view></div>
+      <div ui-view="navigation"></div>
     </div><!--
     --><div ui-view class="body-container"></div>
   </div>

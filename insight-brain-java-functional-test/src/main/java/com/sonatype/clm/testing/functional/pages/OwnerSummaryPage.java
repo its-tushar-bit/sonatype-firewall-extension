@@ -16,7 +16,7 @@ import static com.codeborne.selenide.Selenide.$$;
 public class OwnerSummaryPage
 {
   public static String url(String contextType, String id) {
-    return "new/assets/index.html#/management/" + contextType + "/" + id + "/view";
+    return "new/assets/index.html#/management/view/" + contextType + "/" + id;
   }
 
   public static class SummaryTile

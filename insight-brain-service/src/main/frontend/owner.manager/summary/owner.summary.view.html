@@ -74,7 +74,7 @@
           <div class="sub-header">available to apps in {{vm.ownerName}}</div>
           <div class="simple-list" ng-repeat="owner in vm.appCategoryOwners">
             <h4 class="subsection-header" ng-if="!owner.parent">Local
-              <button id="add-category-button" class="btn btn-tertiary" ui-sref="^.create-category">
+              <button id="add-category-button" class="btn btn-tertiary" same-owner-edit-sref="create-category">
                 <i class="fa fa-plus"></i>Add a Category
               </button>
             </h4>
@@ -117,7 +117,7 @@
         </div>
         <div class="simple-list" ng-repeat="ownerLabelList in labelTile.applicableLabels">
           <h4 class="subsection-header" ng-if="!ownerLabelList.inherited">Local
-            <button id="add-label-button" ui-sref="^.create-label" class="btn btn-tertiary">
+            <button id="add-label-button" same-owner-edit-sref="create-label" class="btn btn-tertiary">
               <i class="fa fa-plus"></i>Add a Label
             </button>
           </h4>

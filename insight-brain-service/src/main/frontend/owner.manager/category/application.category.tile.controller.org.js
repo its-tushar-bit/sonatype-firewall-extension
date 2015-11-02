@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileControllerOrg($http, $state, CLMAppLocations) {
+  function ApplicationCategoryTileControllerOrg($http, CLMAppLocations, SameOwnerStateNavigationService) {
     var vm = this;
 
     vm.appCategoryOwners = [];
@@ -41,12 +41,12 @@
 
     function editCategory(categoryId, inherited) {
       if (!inherited) {
-        $state.go('^.edit-category', { categoryId: categoryId });
+        SameOwnerStateNavigationService.goEdit('category', { categoryId: categoryId });
       }
     }
   }
 
-  ApplicationCategoryTileControllerOrg.$inject = ['$http', '$state', 'CLMAppLocations'];
+  ApplicationCategoryTileControllerOrg.$inject = ['$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'];
 
   angular //
       .module('owner.manager.module') //

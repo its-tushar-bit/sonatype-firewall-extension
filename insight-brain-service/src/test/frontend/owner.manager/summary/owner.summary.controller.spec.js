@@ -170,7 +170,7 @@ describe('owner.summary.controller.js', function() {
       deleteOwnerDefer.resolve();
       $timeout.flush();
 
-      expect(mockState.go).toHaveBeenCalledWith('management.organization.view', {organizationId: owner.id});
+      expect(mockState.go).toHaveBeenCalledWith('management.view.organization', {organizationId: owner.id});
     });
 
     function resolveApplicationSummary() {

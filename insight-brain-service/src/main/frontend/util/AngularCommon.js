@@ -809,7 +809,7 @@ var AngularStateUtils = {
       }
     };
   }]);
-  
+
   angularCommon.service('Dialog', ['$modal', function ($modal) {
     function wrapClick(fn, scope, dismiss) {
       return function () {
@@ -1377,7 +1377,7 @@ var AngularStateUtils = {
               break;
             }
           }
-          
+
           // check if we are in a report
           if (idx < 0) {
             idx = window.location.href.indexOf('/rest/report/');
@@ -1414,7 +1414,7 @@ var AngularStateUtils = {
       }
     };
   }]);
-  
+
   services.service('LastSelectedOrganization', [function(){
     var lastOrg = {};
     return {

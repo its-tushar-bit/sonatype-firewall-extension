@@ -63,6 +63,7 @@ public class DashboardFilterServiceTest
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("app1", "app1", org.getId());
     app2 = tempEntity.newApplication("app2", "app2", org.getId());
+    tempEntity.newPolicy(org.getParentOrganizationId(), "root org owned policy", 4);
     orgPolicy = tempEntity.newPolicy(org.getId(), "org owned policy", 3);
     app1Policy = tempEntity.newPolicy(app1.getId(), "app owned policy", 5);
     long time = System.currentTimeMillis() - 1000;
@@ -93,8 +94,8 @@ public class DashboardFilterServiceTest
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null);
     assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(2));
-    assertThat(summary.matchedPolicies, is(2));
+    assertThat(summary.totalPolicies, is(3));
+    assertThat(summary.matchedPolicies, is(3));
     assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(4));
   }
@@ -105,8 +106,8 @@ public class DashboardFilterServiceTest
         null, null);
     assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(1));
-    assertThat(summary.totalPolicies, is(2));
-    assertThat(summary.matchedPolicies, is(1));
+    assertThat(summary.totalPolicies, is(3));
+    assertThat(summary.matchedPolicies, is(2));
     assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(1));
   }
@@ -120,8 +121,8 @@ public class DashboardFilterServiceTest
         Collections.singleton(app2Tag.getId()), null, null);
     assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(1));
-    assertThat(summary.totalPolicies, is(2));
-    assertThat(summary.matchedPolicies, is(1));
+    assertThat(summary.totalPolicies, is(3));
+    assertThat(summary.matchedPolicies, is(2));
     assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(1));
   }
@@ -132,7 +133,7 @@ public class DashboardFilterServiceTest
         new PolicyThreatLevelFilter(orgPolicy.getThreatLevel(), orgPolicy.getThreatLevel()));
     assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(1));
     assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(4));
@@ -149,7 +150,7 @@ public class DashboardFilterServiceTest
         new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null);
     assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(2));
+    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(1));
     assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(4));
@@ -161,8 +162,8 @@ public class DashboardFilterServiceTest
         Collections.singleton(ReleaseStageType.ID), null, null, null);
     assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(2));
-    assertThat(summary.matchedPolicies, is(2));
+    assertThat(summary.totalPolicies, is(3));
+    assertThat(summary.matchedPolicies, is(3));
     assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(2));
   }

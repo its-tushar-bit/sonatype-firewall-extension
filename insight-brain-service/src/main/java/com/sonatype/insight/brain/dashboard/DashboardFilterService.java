@@ -22,9 +22,11 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -49,6 +51,8 @@ public class DashboardFilterService
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardFilterService.class);
 
+  private final OwnerDAO ownerDAO;
+
   private final ApplicationDAO applicationDAO;
 
   private final ApplicationComponentDAO applicationComponentDAO;
@@ -66,8 +70,9 @@ public class DashboardFilterService
   @Inject
   public DashboardFilterService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
       ApplicationService applicationService, PolicyDAO policyDAO, DashboardFilterDAO dashboardFilterDAO,
-      CurrentUser currentUser, DashboardUtils dashboardUtils)
+      CurrentUser currentUser, DashboardUtils dashboardUtils, OwnerDAO ownerDAO)
   {
+    this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.applicationService = applicationService;
@@ -215,7 +220,13 @@ public class DashboardFilterService
     Set<String> policyOwnerIds = new HashSet<>(applications.size() * 2);
     for (Application app : applications) {
       policyOwnerIds.add(app.getId());
-      policyOwnerIds.add(app.getOrganizationId());
+      if (policyOwnerIds.add(app.getOrganizationId())) {
+        for (Owner owner : ownerDAO.walkHierarchy(app.getOrganizationId())) {
+          if (owner.getParentOwnerId() == null || !policyOwnerIds.add(owner.getParentOwnerId())) {
+            break;
+          }
+        }
+      }
     }
     return policyOwnerIds;
   }

@@ -70,6 +70,12 @@ public class LicenseOverrideResourceTest
   }
 
   @Test
+  public void testCRUD_Repository() throws Exception {
+    final Repository repository = tempEntity.newRepository();
+    testCRUD(OwnerType.REPOSITORY, repository.getId(), repository.getId());
+  }
+
+  @Test
   public void testCRUD_Nuget_Application() throws Exception {
     String appPublicId = "LicenseOverrideResourceTest";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
@@ -82,6 +88,12 @@ public class LicenseOverrideResourceTest
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
     testCRUD_Nuget(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
+  }
+
+  @Test
+  public void testCRUD_Nuget_Repository() throws Exception {
+    final Repository repository = tempEntity.newRepository();
+    testCRUD_Nuget(OwnerType.REPOSITORY, repository.getId(), repository.getId());
   }
 
   private void testCRUD_Nuget(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
@@ -238,6 +250,14 @@ public class LicenseOverrideResourceTest
     Organization organization = tempEntity.newOrganization("LicenseOverrideResourceTest");
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).path("YettiId").delete();
+    assertResponseStatus(404, response);
+    assertEquals("Cannot find a license override with ID YettiId.", response.getBodyText());
+  }
+
+  @Test
+  public void testDelete_Nonexistent_Repository() throws Exception {
+    final Repository repository = tempEntity.newRepository();
+    final HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("YettiId").delete();
     assertResponseStatus(404, response);
     assertEquals("Cannot find a license override with ID YettiId.", response.getBodyText());
   }
@@ -400,6 +420,13 @@ public class LicenseOverrideResourceTest
     Organization organization2 = tempEntity.newOrganization("LicenseOverrideResourceTest2");
 
     testDelete_OwnerIdMismatch(OwnerType.ORGANIZATION, organization1.getId(), organization2.getId());
+  }
+
+  @Test
+  public void testDelete_OwnerIdMismatch_Repository() throws Exception {
+    final Repository repository = tempEntity.newRepository();
+    final Repository repository2 = tempEntity.newRepository();
+    testDelete_OwnerIdMismatch(OwnerType.REPOSITORY, repository.getId(), repository2.getId());
   }
 
   private void testDelete_OwnerIdMismatch(OwnerType ownerType, String ownerPublicId1,

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,11 +23,14 @@ public abstract class AbstractDbDAOTest
 
   protected Organization organization;
 
+  protected Repository repository;
+
   @Before
   public void setup() {
     organization = tempEntity.newOrganization("AbstractDbDAOTest");
     application = tempEntity.newApplication("AbstractDbDAOTest-AppName", "AbstractDbDAOTest-AppPublicId",
         organization.getId());
     applicationId = application.getId();
+    repository = tempEntity.newRepository();
   }
 }

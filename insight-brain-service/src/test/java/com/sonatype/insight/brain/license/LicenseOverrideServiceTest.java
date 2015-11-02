@@ -12,8 +12,7 @@ import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseO
 import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverrideByOwner;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
@@ -37,46 +36,62 @@ public class LicenseOverrideServiceTest
   @Inject
   private InsightConfig config;
 
-  @Test
-  public void testGetAppliedLicenseOverrides_hierarchyHideRoot() {
-    Application app = tempEntity.newApplicationWithParent("test");
+  private void testGetAppliedLicenseOverrides_hierarchyHideRoot(final Owner owner) {
+    testGetAppliedLicenseOverrides_hierarchyHideRoot(owner, owner.getId());
+  }
 
-    config.setShowRootOrganization(false);
-    AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(OwnerType.APPLICATION, "test",
+  private void testGetAppliedLicenseOverrides_hierarchyHideRoot(final Owner owner, final String ownerId) {
+    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
         JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
 
     assertThat(overrides.licenseOverridesByOwner, hasSize(2));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(app.getPublicId())));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(app.getParentOwnerId())));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(ownerId)));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getParentOwnerId())));
     assertThat(overrides.licenseOverridesByOwner, not(hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID))));
   }
 
   @Test
-  public void testGetAppliedLicenseOverrides_hierarchy() {
-    Application app = tempEntity.newApplicationWithParent("test");
+  public void testGetAppliedLicenseOverrides_hierarchyHideRoot_App() {
+    config.setShowRootOrganization(false);
 
-    config.setShowRootOrganization(true);
-    AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(OwnerType.APPLICATION, "test",
+    final Application app = tempEntity.newApplicationWithParent("test");
+    testGetAppliedLicenseOverrides_hierarchyHideRoot(app, app.getPublicId());
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverrides_hierarchyHideRoot_Repository() {
+    config.setShowRootOrganization(false);
+
+    testGetAppliedLicenseOverrides_hierarchyHideRoot(tempEntity.newRepository());
+  }
+
+  private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner) {
+    testGetAppliedLicenseOverrides_hierarchy(owner, owner.getId());
+  }
+
+  private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner, final String ownerId) {
+    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), ownerId,
         JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
 
     assertThat(overrides.licenseOverridesByOwner, hasSize(3));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(app.getPublicId())));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(app.getParentOwnerId())));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(ownerId)));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getParentOwnerId())));
     assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
   }
 
   @Test
-  public void testGetAppliedLicenseOverridesRepository_hierarchy() {
-    Repository repository = tempEntity.newRepository();
-
+  public void testGetAppliedLicenseOverrides_hierarchy_App() {
     config.setShowRootOrganization(true);
-    AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(OwnerType.REPOSITORY, repository.getId(),
-        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
 
-    assertThat(overrides.licenseOverridesByOwner, hasSize(3));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(repository.getId())));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(repository.getParentOwnerId())));
-    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
+    final Application app = tempEntity.newApplicationWithParent("test");
+    testGetAppliedLicenseOverrides_hierarchy(app, app.getPublicId());
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverrides_hierarchy_Repository() {
+    config.setShowRootOrganization(true);
+
+    testGetAppliedLicenseOverrides_hierarchy(tempEntity.newRepository());
   }
 
   private Matcher<LicenseOverrideByOwner> ownerId(final String ownerId) {

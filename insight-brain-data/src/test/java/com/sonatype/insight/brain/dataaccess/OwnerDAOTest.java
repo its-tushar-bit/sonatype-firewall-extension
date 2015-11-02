@@ -54,7 +54,6 @@ public class OwnerDAOTest
 
   @Test
   public void testWalkHierarchy_Repository() {
-    Repository repository = tempEntity.newRepository();
     List<String> ownersIds = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(repository.getId())) {
       ownersIds.add(owner.getId());
@@ -85,7 +84,6 @@ public class OwnerDAOTest
 
   @Test
   public void testGetChildOwners_RepositoryContainer() {
-    Repository repository = tempEntity.newRepository();
     List<Owner> childOwners = ownerDAO.getChildOwners(RepositoryContainer.SINGLETON);
     assertThat(childOwners, hasSize(1));
     assertThat(childOwners.get(0).getId(), is(repository.getId()));
@@ -93,7 +91,6 @@ public class OwnerDAOTest
 
   @Test
   public void testGetChildOwners_Repository() {
-    Repository repository = tempEntity.newRepository();
     assertThat(ownerDAO.getChildOwners(repository), hasSize(0));
   }
 }

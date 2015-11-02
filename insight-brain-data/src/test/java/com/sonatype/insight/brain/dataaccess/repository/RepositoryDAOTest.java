@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -151,6 +155,17 @@ public class RepositoryDAOTest
     dao.delete(repository);
 
     assertThat(new RepositoryPolicyViolationDAO().getById(policyViolation.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testCascadeDeleteToRepositoryLicenseOverrides() {
+    final ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    final LicenseOverride licenseOverride = tempEntity.newLicenseOverride(repository.getId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD");
+
+    dao.delete(repository);
+
+    assertThat(new LicenseOverrideDAO().getById(licenseOverride.getId()), is(nullValue()));
   }
 
   @Test

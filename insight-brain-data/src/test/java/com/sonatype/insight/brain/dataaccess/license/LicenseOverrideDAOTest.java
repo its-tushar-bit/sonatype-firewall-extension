@@ -101,6 +101,11 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
+  public void testCRUD_Repository() throws Exception {
+    testCRUD(repository.getId());
+  }
+
+  @Test
   public void testCommentTooLong() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN, (String)null,
@@ -446,6 +451,16 @@ public class LicenseOverrideDAOTest
         componentIdentifier);
     assertNotNull(override);
     assertLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-3-Clause",
+        "testing", override);
+
+    // Set @ Repository
+    tempEntity.newLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        "BSD-4-Clause");
+
+    override = new LicenseOverrideDAO().getAppliedByOwnerIdAndComponentIdentifier(repository.getId(),
+        componentIdentifier);
+    assertNotNull(override);
+    assertLicenseOverride(repository.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "BSD-4-Clause",
         "testing", override);
   }
 }

@@ -26,6 +26,8 @@ import static org.hamcrest.Matchers.notNullValue;
 public class ApiPolicyServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  private static final String PARENT_ORG_POLICY_NAME1 = "parent-org-policy1";
+
   private static final String ORG_POLICY_NAME1 = "org-policy1";
 
   private static final String APP_POLICY_NAME1 = "app-policy1";
@@ -40,6 +42,7 @@ public class ApiPolicyServiceAuthzTest
 
   @Before
   public void setUpPolicies() {
+    tempEntity.newPolicy(org.getParentOrganizationId(), PARENT_ORG_POLICY_NAME1);
     tempEntity.newPolicy(org.getId(), ORG_POLICY_NAME1);
     tempEntity.newPolicy(app.getId(), APP_POLICY_NAME1);
 
@@ -55,9 +58,10 @@ public class ApiPolicyServiceAuthzTest
     grantReadPermission(app.getId());
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
     assertThat(policyListDTO, notNullValue());
-    assertThat(policyListDTO.policies, hasSize(2));
-    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name);
-    assertThat(policyNames, containsInAnyOrder(ORG_POLICY_NAME1, APP_POLICY_NAME1));
+    assertThat(policyListDTO.policies, hasSize(3));
+    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
+        policyListDTO.policies.get(2).name);
+    assertThat(policyNames, containsInAnyOrder(PARENT_ORG_POLICY_NAME1, ORG_POLICY_NAME1, APP_POLICY_NAME1));
   }
 
   @Test
@@ -66,9 +70,10 @@ public class ApiPolicyServiceAuthzTest
     grantReadPermission(app.getId());
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
     assertThat(policyListDTO, notNullValue());
-    assertThat(policyListDTO.policies, hasSize(2));
-    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name);
-    assertThat(policyNames, containsInAnyOrder(ORG_POLICY_NAME1, APP_POLICY_NAME1));
+    assertThat(policyListDTO.policies, hasSize(3));
+    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
+        policyListDTO.policies.get(2).name);
+    assertThat(policyNames, containsInAnyOrder(PARENT_ORG_POLICY_NAME1, ORG_POLICY_NAME1, APP_POLICY_NAME1));
   }
 
   @Test

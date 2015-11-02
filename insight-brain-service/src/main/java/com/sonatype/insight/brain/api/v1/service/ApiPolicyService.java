@@ -16,9 +16,11 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.api.v1.dto.ApiPolicyDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiPolicyListDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiPolicyOwnerType;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.OrganizationService;
@@ -37,14 +39,17 @@ public class ApiPolicyService
 
   private final ApiPolicyAdapter apiPolicyAdapter;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public ApiPolicyService(final PolicyDAO policyDAO, final ApplicationService applicationService,
-      final OrganizationService organizationService, final ApiPolicyAdapter apiPolicyAdapter)
+      final OrganizationService organizationService, final ApiPolicyAdapter apiPolicyAdapter, final OwnerDAO ownerDAO)
   {
     this.policyDAO = policyDAO;
     this.applicationService = applicationService;
     this.organizationService = organizationService;
     this.apiPolicyAdapter = apiPolicyAdapter;
+    this.ownerDAO = ownerDAO;
   }
 
   public ApiPolicyListDTO getPolicies() {
@@ -72,13 +77,25 @@ public class ApiPolicyService
     for (Application application : applicationService.getApplications()) {
       applicationIds.add(application.getId());
       // Since the user has permission to the app,
-      // add the org the app belongs to even if they don't have permissions to the org)
-      organizationIds.add(application.getOrganizationId());
+      // add the org hierarchy the app belongs to even if they don't have permissions to the orgs themselves)
+      addOrganizationIds(application.getOrganizationId(), organizationIds);
     }
 
     // Now add the orgs that the user has permissions to
     for (Organization organization : organizationService.getAll()) {
       organizationIds.add(organization.getId());
+      // as with apps, also add any parent orgs regardless of explicit permission
+      addOrganizationIds(organization.getParentOrganizationId(), organizationIds);
+    }
+  }
+
+  private void addOrganizationIds(String organizationId, Set<String> organizationIds) {
+    if (organizationId != null && organizationIds.add(organizationId)) {
+      for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
+        if (owner.getParentOwnerId() == null || !organizationIds.add(owner.getParentOwnerId())) {
+          break;
+        }
+      }
     }
   }
 }

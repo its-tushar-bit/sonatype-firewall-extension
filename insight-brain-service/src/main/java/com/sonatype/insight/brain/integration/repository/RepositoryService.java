@@ -37,6 +37,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -91,7 +93,9 @@ public class RepositoryService
 
   private static final PolicyDAO policyDAO = new PolicyDAO();
 
-  private final HdsClient hdsClient;
+  private final FirewallAuditHdsClient auditHdsClient;
+
+  private final FirewallQuarantineHdsClient quarantineHdsClient;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
@@ -102,11 +106,12 @@ public class RepositoryService
   private final PolicyThreatsAdapter policyThreatsAdapter;
 
   @Inject
-  public RepositoryService(HdsClient hdsClient, ComponentPolicyEvaluator componentPolicyEvaluator,
-      ComponentDetailsLoader componentDetailsLoader, CLMLicenseManager licenseManager,
-      PolicyThreatsAdapter policyThreatsAdapter)
+  public RepositoryService(FirewallAuditHdsClient auditHdsClient, FirewallQuarantineHdsClient quarantineHdsClient,
+      ComponentPolicyEvaluator componentPolicyEvaluator, ComponentDetailsLoader componentDetailsLoader,
+      CLMLicenseManager licenseManager, PolicyThreatsAdapter policyThreatsAdapter)
   {
-    this.hdsClient = hdsClient;
+    this.auditHdsClient = auditHdsClient;
+    this.quarantineHdsClient = quarantineHdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsLoader = componentDetailsLoader;
     this.licenseManager = licenseManager;
@@ -307,7 +312,8 @@ public class RepositoryService
 
     truncateHashes(componentEvaluationDataRequestList);
 
-    ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(componentEvaluationDataRequestList);
+    ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(withQuarantine,
+        componentEvaluationDataRequestList);
     List<Component> components = new ArrayList<>();
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest = componentEvaluationDataRequestList.components
@@ -470,12 +476,13 @@ public class RepositoryService
     }
   }
 
-  private ComponentEvaluationDataList getComponentDetailsFromHds(
+  private ComponentEvaluationDataList getComponentDetailsFromHds(boolean withQuarantine,
       final RepositoryComponentEvaluationDataRequestList hdsRequest)
   {
     try {
       long start = System.currentTimeMillis();
 
+      HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
       ComponentEvaluationDataList result = hdsClient.post(ComponentEvaluationDataList.class,
           HDS_COMPONENT_DETAILS_PATH, hdsRequest);
 

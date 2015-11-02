@@ -89,10 +89,16 @@ public class HdsClient
   public HdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService,
       IdleConnectionReaper idleConnectionReaper)
   {
+    this(proxy, licenseManager, versionService, idleConnectionReaper, 20);
+  }
+
+  protected HdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService,
+      IdleConnectionReaper idleConnectionReaper, int poolSize)
+  {
     this.licenseManager = licenseManager;
     config = proxy.contextualize(new Configuration());
     HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
-    HttpClientConnectionManager connectionManager = buildHttpClientConnectionManager();
+    HttpClientConnectionManager connectionManager = buildHttpClientConnectionManager(poolSize);
     idleConnectionReaper.register(connectionManager);
     clientBuilder.setConnectionManager(connectionManager);
     client = clientBuilder.build();
@@ -441,8 +447,9 @@ public class HdsClient
     return result;
   }
 
-  private HttpClientConnectionManager buildHttpClientConnectionManager() {
+  private HttpClientConnectionManager buildHttpClientConnectionManager(int poolSize) {
     PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+    connManager.setMaxTotal(poolSize);
     connManager.setDefaultMaxPerRoute(connManager.getMaxTotal());
     return connManager;
   }

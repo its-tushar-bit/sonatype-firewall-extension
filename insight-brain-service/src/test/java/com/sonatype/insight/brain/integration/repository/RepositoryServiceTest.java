@@ -28,7 +28,8 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -111,12 +112,16 @@ public class RepositoryServiceTest
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   @Mock
-  private HdsClient hdsClient;
+  private FirewallAuditHdsClient auditHdsClient;
+
+  @Mock
+  private FirewallQuarantineHdsClient quarantineHdsClient;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-    binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
+    binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
   }
 
   @After
@@ -461,7 +466,7 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // Call the service
     Date before = new Date();
@@ -518,7 +523,7 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // Call the service
     Date before = new Date();
@@ -573,7 +578,7 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // Call the service
     Date before = new Date();
@@ -623,7 +628,7 @@ public class RepositoryServiceTest
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     // Call the service
     Date before = new Date();
@@ -669,7 +674,7 @@ public class RepositoryServiceTest
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0,
         Collections.singleton(new License("EPL-1.0", "EPL-2.0")),
         Collections.singleton(new License("EPL-1.0", "EPL-2.0")), createSecurityVulnerabilities(), 80));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // initial evaluation of component, audit-only
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = repositoryService
@@ -688,6 +693,7 @@ public class RepositoryServiceTest
     assertThat(repositoryComponents.get(0).getQuarantineTime(), is(nullValue()));
 
     // re-evaluation of component, this time with quarantine enabled
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
     Date before = new Date();
     repositoryComponentEvaluationResultList = repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID,
         REPO_PUBLIC_ID, componentEvaluationDataRequestList, true);
@@ -782,7 +788,7 @@ public class RepositoryServiceTest
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h" + i, MatchState.EXACT,
           i /* index */, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, i /* popularity */));
     }
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service
     Date before = new Date();
@@ -842,7 +848,7 @@ public class RepositoryServiceTest
         hash));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service first time
     Date before1 = new Date();
@@ -873,7 +879,7 @@ public class RepositoryServiceTest
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(updatedComponentIdentifier, updatedHash, MatchState.EXACT,
         0 /* index */, declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
     Date before2 = new Date();
     repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
         false);
@@ -925,7 +931,7 @@ public class RepositoryServiceTest
         .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "h"));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service
     Date before = new Date();
@@ -974,7 +980,7 @@ public class RepositoryServiceTest
         "h"));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "h", MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service
     Date before = new Date();
@@ -1022,7 +1028,7 @@ public class RepositoryServiceTest
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
         declaredLicenseSet, observedLicenseSet, null /* securityVulnerabilities */, 0 /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service
     Date before = new Date();
@@ -1067,7 +1073,7 @@ public class RepositoryServiceTest
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.UNKNOWN,
         0 /* index */, Collections.<License>emptySet(), Collections.<License>emptySet(),
         null /* securityVulnerabilities */, null /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service
     Date before = new Date();
@@ -1106,7 +1112,7 @@ public class RepositoryServiceTest
         .add(createComponentEvaluationData(componentIdentifier1, hash, MatchState.EXACT, 0 /* index */,
             Collections.<License> emptySet(), Collections.<License> emptySet(), null /* securityVulnerabilities */,
             null /* popularity */));
-    mockHdsRequest(componentEvaluationDataRequestList, hdsResult);
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Call the service
     Date before = new Date();
@@ -1274,7 +1280,7 @@ public class RepositoryServiceTest
   }
 
   private void mockHdsRequest(RepositoryComponentEvaluationDataRequestList serviceRequest,
-      ComponentEvaluationDataList hdsResult) throws IOException
+      ComponentEvaluationDataList hdsResult, boolean quarantine) throws IOException
   {
     RepositoryComponentEvaluationDataRequestList hdsRequest = new RepositoryComponentEvaluationDataRequestList();
     hdsRequest.components = new ArrayList<>();
@@ -1284,8 +1290,8 @@ public class RepositoryServiceTest
           componentEvaluationDataRequest.pathname, hash));
     }
     when(
-        hdsClient.post(eq(ComponentEvaluationDataList.class), eq(RepositoryService.HDS_COMPONENT_DETAILS_PATH),
-            eq(hdsRequest))).thenReturn(hdsResult);
+        (quarantine ? quarantineHdsClient : auditHdsClient).post(eq(ComponentEvaluationDataList.class),
+            eq(RepositoryService.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash,

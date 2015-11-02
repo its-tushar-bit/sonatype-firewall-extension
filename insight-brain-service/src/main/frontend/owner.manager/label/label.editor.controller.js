@@ -55,6 +55,7 @@
 
       formMaskDelay.wrap($scope, vm.dirtyLabel.$save()).then(function() {
         if (isNew) {
+          vm.siblings.push(vm.dirtyLabel);
           vm.dirtyLabel = LabelStore.create();
           vm.labelEditor.$setPristine();
         }

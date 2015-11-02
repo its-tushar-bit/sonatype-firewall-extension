@@ -52,6 +52,26 @@ describe('label.editor.controller.spec.js', function() {
     expect(vm.siblings.length).toBe(1);
   });
 
+  it('Updates siblings list after creating new', function() {
+    $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
+    inject(function($controller) {
+      vm = $controller('label.editor.controller', {$scope: scope});
+    })
+    mockLabelStore.resolveGet();
+    $timeout.flush();
+    $httpBackend.flush();
+    mockLabel.$new = true;
+    vm.dirtyLabel = mockLabel;
+    vm.labelEditor = {$setPristine: function(){}};
+    vm.save();
+    mockLabel.resolveSave();
+    $timeout.flush();
+    $timeout(function(){}, 1000); // mask delay = 0.8s
+    $timeout.flush();
+    expect(vm.siblings).toContain(mockLabel);
+    expect(vm.siblings.length).toBe(1);
+  });
+
   it('Finds match with URL parameter', function() {
     $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
     inject(function($controller) {

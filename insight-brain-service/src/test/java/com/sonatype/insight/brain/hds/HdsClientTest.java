@@ -88,7 +88,8 @@ public class HdsClientTest
   private void initClient() {
     CLMLicenseManager licenseManager = mock(CLMLicenseManager.class);
     when(licenseManager.getLicenseFingerprint()).thenReturn("license-fingerprint");
-    client = new HdsClient(new InsightProxy(config), licenseManager, new VersionService());
+    client = new HdsClient(new InsightProxy(config), licenseManager, new VersionService(),
+        mock(IdleConnectionReaper.class));
   }
 
   @After

@@ -86,11 +86,15 @@ public class HdsClient
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
 
   @Inject
-  public HdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService) {
+  public HdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService,
+      IdleConnectionReaper idleConnectionReaper)
+  {
     this.licenseManager = licenseManager;
     config = proxy.contextualize(new Configuration());
     HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
-    clientBuilder.setConnectionManager(buildHttpClientConnectionManager());
+    HttpClientConnectionManager connectionManager = buildHttpClientConnectionManager();
+    idleConnectionReaper.register(connectionManager);
+    clientBuilder.setConnectionManager(connectionManager);
     client = clientBuilder.build();
     this.versionService = versionService;
     // TODO Need to determine if there is additional information we should be sending to the HDS

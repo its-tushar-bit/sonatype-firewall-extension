@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.IdleConnectionReaper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -68,7 +69,7 @@ public class HdsIdeResourcePerformanceUtils
     InsightConfig config = new InsightConfig();
     config.setHdsUrl(hdsUrl);
     return new HdsClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
-        new TestLicenseFingerprinter()), new VersionService());
+        new TestLicenseFingerprinter()), new VersionService(), Mockito.mock(IdleConnectionReaper.class));
   }
 
   public static InsightWork createInsightWork() throws IOException {

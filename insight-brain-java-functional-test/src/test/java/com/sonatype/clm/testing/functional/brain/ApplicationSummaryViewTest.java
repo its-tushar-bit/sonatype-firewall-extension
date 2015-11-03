@@ -16,12 +16,15 @@ import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.Selenide;
@@ -51,7 +54,19 @@ public class ApplicationSummaryViewTest
   public void init() {
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
+
     super.init(application);
+  }
+
+  // This is rudimentary as CLM-4836 deals with editing the contact
+  @Test
+  public void testApplicationContact() {
+    User user = tempEntity.newUser();
+    Application testApp = tempEntity.newApplication("testApp", "testApp", application.getOrganizationId(), user.getUsername());
+    refresh();
+    super.init(testApp);
+    String contactDisplayName = user.calculateDisplayName();
+    OwnerSummaryPage.SummaryTile.contact().shouldHave(text(contactDisplayName));
   }
 
   @Override

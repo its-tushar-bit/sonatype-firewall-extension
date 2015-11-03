@@ -20,7 +20,7 @@
         </ul>
       </div>
       <h1><span owner-image="vm.owner"></span> {{vm.owner.name}}</h1>
-      <div class="sub-header" ng-if="vm.owner.description">{{vm.owner.description}}</div>
+      <div class="sub-header" ng-if="vm.owner.contact"><i class="fa fa-user size-12px"></i>{{vm.owner.contact.displayName}}</div>
 
       <ul class="nav nav-pills">
         <li class="active"><a data-toggle="pill" id="owner-app-categories-button" data-target="#owner-pill-app-categories" ng-href="">Application Categories</a></li>

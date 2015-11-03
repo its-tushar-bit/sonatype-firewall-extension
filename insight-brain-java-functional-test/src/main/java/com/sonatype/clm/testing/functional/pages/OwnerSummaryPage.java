@@ -29,6 +29,10 @@ public class OwnerSummaryPage
       return root().find("h1");
     }
 
+    public static SelenideElement contact() {
+      return root().find(".sub-header");
+    }
+
     public static SelenideElement icon() {
       return $("img");
     }

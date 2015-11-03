@@ -7,5 +7,5 @@
 (function(angular) {
   'use strict';
 
-  angular.module('utility', ['CommonServices', 'FormsModule']);
+  angular.module('utility', ['ngAria', 'CommonServices', 'FormsModule']);
 }(angular));

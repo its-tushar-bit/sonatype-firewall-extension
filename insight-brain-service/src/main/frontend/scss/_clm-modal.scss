@@ -215,3 +215,7 @@
 .owner-editor-modal {
   width: 400px;
 }
+
+.loginPanel {
+  z-index: $zindex-login-modal;
+}

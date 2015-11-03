@@ -82,6 +82,7 @@
           if (requestQueue.length === 1) {
             $modal.open({
               backdrop: 'static',
+              windowClass: 'loginPanel',
               keyboard: false,
               template: '<div class="modal-header" id="loginModalHeader"><h3>User Login</h3></div>' +
                 '<form name="loginForm" class="form-horizontal">' +

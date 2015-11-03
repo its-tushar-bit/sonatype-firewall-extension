@@ -458,6 +458,16 @@ $threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
         ("none", #FFF, $none-color, (0));
 
 /*
+  #z-indexes
+  Gathered here for better visibility
+*/
+$color-picker-zindex: $zindexModalBackdrop - 10;
+$form-mask-zindex: $zindexModal + 10;
+// need the login panel above the form save mask
+// ui-bootstrap modal window template sets z-index via ng-style, hence important
+$zindex-login-modal: $zindexModal + 20 !important;
+
+/*
   #Other
 */
 //Global stuff

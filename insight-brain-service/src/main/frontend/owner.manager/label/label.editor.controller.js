@@ -57,8 +57,8 @@
         if (isNew) {
           vm.siblings.push(vm.dirtyLabel);
           vm.dirtyLabel = LabelStore.create();
-          vm.labelEditor.$setPristine();
         }
+        vm.labelEditor.$setPristine();
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
       });

@@ -26,7 +26,7 @@
               return ngModelController.$pristine;
             }, function(newVal) {
               if (newVal) {
-                initialValue = '';
+                initialValue = initialValue || '';
                 element.addClass('initial-value');
               }
             });

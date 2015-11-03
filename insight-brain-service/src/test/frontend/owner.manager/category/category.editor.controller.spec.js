@@ -50,6 +50,24 @@ describe('category.editor.controller.spec.js', function() {
     expect(vm.siblings.length).toBe(3);
   });
 
+  it('Updates siblings list after creating new', function() {
+    inject(function($controller) {
+      vm = $controller('category.editor.controller', {$scope: scope});
+    })
+    mockCategoryStore.resolveGet([{store: {create: function(){}}, tags:[]}]);
+    $timeout.flush();
+    mockCategory.$new = true;
+    vm.dirtyCategory = mockCategory;
+    vm.categoryEditor = {$setPristine: function(){}};
+    vm.save();
+    mockCategory.resolveSave();
+    $timeout.flush();
+    $timeout(function(){}, 1000); // mask delay = 0.8s
+    $timeout.flush();
+    expect(vm.siblings).toContain(mockCategory);
+    expect(vm.siblings.length).toBe(1);
+  });
+
   it('Finds match with URL parameter', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$stateParams: {categoryId:'456'}, $scope: scope});

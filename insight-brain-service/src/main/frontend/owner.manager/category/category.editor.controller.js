@@ -58,6 +58,7 @@
 
       formMaskDelay.wrap($scope, vm.dirtyCategory.$save()).then(function() {
         if (isNew) {
+          vm.siblings.push(vm.dirtyCategory);
           vm.dirtyCategory = store.create();
         }
         vm.categoryEditor.$setPristine();

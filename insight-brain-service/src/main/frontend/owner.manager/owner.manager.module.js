@@ -51,7 +51,12 @@
               }
             }).state('management.edit.' + ownerType.name, {
               parent: 'management.edit',
-              url: '/edit/' + ownerType.name + '/{' + ownerType.id + '}'
+              url: '/edit/' + ownerType.name + '/{' + ownerType.id + '}',
+              views: {
+                'navigation@management': {
+                  template: '<owner-detail-tree-view></owner-detail-tree-view>'
+                }
+              }
             }).state('management.edit.' + ownerType.name + '.label', {
               parent: 'management.edit.' + ownerType.name,
               url: '/label/{labelId}',

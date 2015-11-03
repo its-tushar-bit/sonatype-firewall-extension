@@ -515,12 +515,12 @@ var AngularStateUtils = {
       scope: false,
       require: 'ngModel',
       template: '<span class="threat-level-dropdown dropdown">' +
-          '<a class="btn dropdown-toggle threat-level-{{ngModel.$modelValue}}" data-toggle="dropdown" href="#">' +
+          '<a class="btn dropdown-toggle legacy-threat-level threat-level-{{ngModel.$modelValue}}" data-toggle="dropdown" href="#">' +
           '{{ngModel.$modelValue}} <span class="caret"></span>' +
           '</a>' +
           '<ul class="dropdown-menu">' +
           '<li ng-repeat="threatLevel in threatLevels">' +
-          '<a ng-click="select(10 - $index)" class="threat-level-{{10 - $index}}">{{ threatLevel }}</a>' +
+          '<a ng-click="select(10 - $index)" class="legacy-threat-level threat-level-{{10 - $index}}">{{ threatLevel }}</a>' +
           '</li>' +
           '</ul>' +
           '</span>',
@@ -734,7 +734,7 @@ var AngularStateUtils = {
       return {
         restrict: 'E',
         replace: true,
-        template: '<svg class="hexagon" viewBox="0 0 185.5 208">' +
+        template: '<svg class="hexagon" viewBox="0 0 185.5 208" preserveAspectRatio="xMidYMid meet">' +
         '<path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path>' +
         '</svg>'
       };

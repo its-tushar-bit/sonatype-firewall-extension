@@ -1,0 +1,126 @@
+<div id="owner-editing-detail-tree-view" class="tree-view detail-tree-view">
+  <div load-wrapper="vm.error" loading="!vm.details" reload="vm.doLoad()">
+    <div class="tree-view-group">
+      <a class="tree-view-item" ng-click="vm.categoryState.isExpanded = vm.state.$current.name.endsWith('category') ? true : !vm.categoryState.isExpanded">
+        <div class="twisty-container">
+          <span class="twisty"
+                ng-class="{ expand: !vm.categoryState.isExpanded && !vm.state.$current.name.endsWith('category'),
+                collapse: vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category')}"></span>
+        </div>
+        <hexagon class="size-16px size-fw outline tree-view-icon"></hexagon><!--
+        -->Application Categories
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category')"
+         ui-sref=".create-category"
+         ui-sref-active="selected">
+        <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
+        -->New Application Category
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category')"
+         ng-repeat="category in vm.details.tags"
+         ui-sref=".category({ categoryId: category.id })"
+         ui-sref-active="selected">
+        <hexagon class="size-16px size-fw {{category.color}} tree-view-icon"></hexagon><!--
+        -->{{ category.name }}
+      </a>
+    </div>
+    <div class="tree-view-group">
+      <a class="tree-view-item" ng-click="vm.policyState.isExpanded = !vm.policyState.isExpanded">
+        <div class="twisty-container">
+          <span class="twisty"
+                ng-class="{ expand: !vm.policyState.isExpanded, collapse: vm.policyState.isExpanded }"></span>
+        </div>
+        <i class="fa fa-university size-16px size-fw tree-view-icon"></i><!--
+        -->Policies
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.policyState.isExpanded"
+         ui-sref-active="selected">
+        <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
+        -->New Policy
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.policyState.isExpanded"
+         ng-repeat="policy in vm.details.policies"
+         ui-sref-active="selected">
+        <i class="fa fa-university size-16px size-fw tree-view-icon"></i><!--
+        -->{{ policy.name }}
+      </a>
+    </div>
+    <div class="tree-view-group">
+      <a class="tree-view-item"
+         ng-click="vm.labelState.isExpanded = vm.state.$current.name.endsWith('label') ? true : !vm.labelState.isExpanded">
+        <div class="twisty-container">
+          <span class="twisty"
+                ng-class="{ expand: !vm.labelState.isExpanded && !vm.state.$current.name.endsWith('label'),
+                            collapse: vm.labelState.isExpanded || vm.state.$current.name.endsWith('label') }"></span>
+        </div>
+        <i class="fa fa-tag size-16px size-fw outline tree-view-icon"></i><!--
+        -->Component Labels
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.labelState.isExpanded || vm.state.$current.name.endsWith('label')"
+         ui-sref=".create-label"
+         ui-sref-active="selected">
+        <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
+        -->New Component Label
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.labelState.isExpanded || vm.state.$current.name.endsWith('label')"
+         ng-repeat="label in vm.details.labels"
+         ui-sref=".label({ labelId: label.id })"
+         ui-sref-active="selected">
+        <i class="fa fa-tag size-16px size-fw {{label.color}} tree-view-icon"></i><!--
+        -->{{ label.label }}
+      </a>
+    </div>
+    <div class="tree-view-group">
+      <a class="tree-view-item" ng-click="vm.ltgState.isExpanded = !vm.ltgState.isExpanded">
+        <div class="twisty-container">
+          <span class="twisty"
+                ng-class="{ expand: !vm.ltgState.isExpanded, collapse: vm.ltgState.isExpanded }"></span>
+        </div>
+        <i class="fa fa-book size-16px size-fw tree-view-icon"></i><!--
+        -->License Threat Groups
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.ltgState.isExpanded"
+         ui-sref-active="selected">
+        <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
+        -->New License Threat Group
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.ltgState.isExpanded"
+         ng-repeat="licenseThreatGroup in vm.details.licenseThreatGroups"
+         ui-sref-active="selected">
+        <i class="fa fa-book size-16px size-fw threat-level-{{licenseThreatGroup.threatLevel}} tree-view-icon"></i><!--
+        -->{{ licenseThreatGroup.name }}
+      </a>
+    </div>
+    <div class="tree-view-group">
+      <a class="tree-view-item" ng-click="vm.accessState.isExpanded = !vm.accessState.isExpanded">
+        <div class="twisty-container">
+          <span class="twisty"
+                ng-class="{ expand: !vm.accessState.isExpanded, collapse: vm.accessState.isExpanded }"></span>
+        </div>
+        <i class="fa fa-key size-16px size-fw tree-view-icon"></i><!--
+        -->Access
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.accessState.isExpanded"
+         ui-sref-active="selected">
+        <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
+        -->New Role
+      </a>
+      <a class="tree-view-item"
+         ng-if="vm.accessState.isExpanded"
+         ng-repeat="role in vm.details.roles"
+         ui-sref-active="selected">
+        <i class="fa fa-key size-16px size-fw tree-view-icon"></i><!--
+        -->{{ role.name }}
+      </a>
+    </div>
+  </div>
+</div>

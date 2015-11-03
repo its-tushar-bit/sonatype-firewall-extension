@@ -45,7 +45,7 @@ public class OwnerTreeView
   public static class RootOrganizationNode
   {
     public static SelenideElement treeViewElement() {
-      return $(".tree-view-root-organization-group .tree-view-item");
+      return $("#tree-view-root-organization-group .tree-view-item");
     }
 
     public static SelenideElement newOrganizationButton() {

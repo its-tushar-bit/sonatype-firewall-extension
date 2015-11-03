@@ -137,8 +137,6 @@
       }
 
       &.outline {
-        // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
-        text-shadow: $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px, $slate 0px 0px 1px;
         color: $white;
       }
     }
@@ -242,6 +240,14 @@
           float: left;
           min-height: inherit;
           margin: 0px 8px 0px -8px;
+
+          @each $threat in $threat-levels {
+            @each $threatLevel in nth($threat, 4) {
+              &.threat-level-#{$threatLevel} {
+                background-color: nth($threat, 3);
+              }
+            }
+          }
         }
 
         .title {

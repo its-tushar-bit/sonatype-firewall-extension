@@ -14,7 +14,7 @@
     <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">
       Filter Results
     </h4>
-    <div ng-if="vm.rootOrganization" class="tree-view-root-organization-group">
+    <div id="tree-view-root-organization-group" ng-if="vm.rootOrganization" class="tree-view-group">
       <a class="tree-view-item"
          ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
          ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
@@ -29,7 +29,7 @@
         </div>
       </a>
     </div>
-    <div class="tree-view-organization-group"
+    <div class="tree-view-group tree-view-organization-group"
          ng-repeat="organization in vm.organizations | orderBy:'name'"
          ng-if="organization.isVisible">
       <a class="tree-view-item"

@@ -107,7 +107,7 @@
           </span>
           <input type="text" placeholder="App or Org Name / ID">
         </div>
-        <div class="tree-view-root-organization-group">
+        <div class="tree-view-group">
           <a class="tree-view-item selected">
             <i class="fa fa-lg fa-globe tree-view-icon"></i>
             Root Organization
@@ -119,7 +119,7 @@
             </div>
           </a>
         </div>
-        <div class="tree-view-organization-group">
+        <div class="tree-view-group tree-view-organization-group">
           <a class="tree-view-item">
             <div class="twisty-container">
               <span class="twisty expand"></span>
@@ -128,7 +128,7 @@
            -->Sonatype
           </a>
         </div>
-        <div class="tree-view-organization-group">
+        <div class="tree-view-group tree-view-organization-group">
           <a class="tree-view-item selected">
             <div class="twisty-container">
               <span class="twisty collapse"></span>
@@ -181,14 +181,11 @@
     margin-right: 8px;
   }
 
-  .tree-view-organization-group, .tree-view-root-organization-group {
+  .tree-view-group {
     .tree-view-icon {
       margin-right: 8px;
       margin-left: 8px;
-
-      &.fa-terminal {
-        margin-left: 48px;
-      }
+      vertical-align: bottom;
 
       &.fa-globe {
         margin-left: 0px;
@@ -205,6 +202,10 @@
           vertical-align: -2px;
         }
       }
+    }
+
+    :not(:first-of-type) .tree-view-icon {
+      margin-left: 48px;
     }
 
     a.tree-view-item {
@@ -290,6 +291,15 @@
         }
       }
     }
+  }
+}
+
+/*
+  Owner Detail Tree View
+*/
+.tree-view.detail-tree-view {
+  .fa.outline {
+    color: $grey-2;
   }
 }
 

@@ -150,6 +150,10 @@
           return baseUrl.get() + '/rest/user/permissions/' + (global ? 'global/global' : getServicePathWithId());
         },
 
+        getOwnerDetailsUrl: function() {
+          return baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details';
+        },
+
         isApplication: isApplication,
         isOrganization: isOrganization,
         isGlobal: function() {

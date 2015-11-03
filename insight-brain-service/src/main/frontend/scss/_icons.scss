@@ -156,11 +156,26 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
       font-size: 90%;
       padding: 2px;
     }
+
+    &.size-fw {
+      width: 20px;
+      text-align: center;
+    }
   }
 
   &.size-16px {
     font-size: 16px;
     line-height: 16px;
+
+    &.size-fw {
+      width: 16px;
+      text-align: center;
+    }
+  }
+
+  &.outline {
+    // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
+    text-shadow: $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px, $slate 0 0 1px;
   }
 }
 
@@ -200,10 +215,33 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
   &.size-20px {
     width: 17px;
     height: 20px;
+
+    &.size-fw {
+      width: 20px;
+    }
   }
 
   &.size-16px {
     width: 14px;
     height: 16px;
+
+    &.size-fw {
+      width: 16px;
+    }
+  }
+}
+
+/*
+  ## License Threat Group Colors
+  Colors for license threat group icons
+
+*/
+.fa-book {
+  @each $threat in $threat-levels {
+    @each $threatLevel in nth($threat, 4) {
+      &.threat-level-#{$threatLevel} {
+        color: nth($threat, 3);
+      }
+    }
   }
 }

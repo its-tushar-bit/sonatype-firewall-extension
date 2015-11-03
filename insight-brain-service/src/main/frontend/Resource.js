@@ -15,7 +15,7 @@
     };
   }
 
-  module.service('CLMResource', ['$q', '$http', '$parse', function($q, $http, $parse) {
+  module.service('CLMResource', ['$q', '$http', '$parse', '$rootScope', function($q, $http, $parse, $rootScope) {
     function Store(config) {
       var store = [],
           error = false,
@@ -321,7 +321,10 @@
 
           }).error(getErrorFn(deferred));
         }
-        return deferred.promise;
+        return deferred.promise.then(function(result) {
+          $rootScope.$broadcast('resource.data.modified');
+          return result;
+        });
       };
 
       Resource.prototype.$delete = function() {
@@ -352,7 +355,10 @@
           // new resources shouldn't be part of the store
           deferred.resolve(true);
         }
-        return deferred.promise;
+        return deferred.promise.then(function(result) {
+          $rootScope.$broadcast('resource.data.modified');
+          return result;
+        });
       };
 
       function LinkedResource(originalArray, relationalConfig) {

@@ -452,10 +452,10 @@ $none-color: #0047b2;
 $ignore-color: #0081c2;
 $unspecified-color: #9D9D9D;
 
-$threat-levels: ("critical", #FFF, $critical-color),
-        ("severe", #FFF, $severe-color),
-        ("moderate", #444, $moderate-color),
-        ("none", #FFF, $none-color);
+$threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
+        ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
+        ("moderate", #444, $moderate-color, (1, 2, 3)),
+        ("none", #FFF, $none-color, (0));
 
 /*
   #Other

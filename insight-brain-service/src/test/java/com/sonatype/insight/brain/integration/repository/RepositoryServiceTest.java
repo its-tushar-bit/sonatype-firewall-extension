@@ -269,10 +269,12 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, true);
 
     // Check that initial value is true
+    assertThat(repository.isEnabled(), is(false));
     assertThat(repository.isQuarantineEnabled(), is(true));
 
     repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
     repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(false));
     assertThat(repository.isQuarantineEnabled(), is(false));
   }
 
@@ -295,10 +297,12 @@ public class RepositoryServiceTest
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
     // Check that initial value is true
+    assertThat(repository.isEnabled(), is(true));
     assertThat(repository.isQuarantineEnabled(), is(true));
 
     repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
     repository = repositoryDAO.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(true));
     assertThat(repository.isQuarantineEnabled(), is(false));
   }
 

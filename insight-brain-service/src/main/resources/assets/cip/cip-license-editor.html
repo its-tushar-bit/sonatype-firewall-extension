@@ -1,4 +1,4 @@
-<div id='license-editor' ng-controller='LicenseEditorController'>
+<div id='license-editor'>
   <div class='load-error' load-error='error' reload='doLoad()'></div>
   <div style='text-align:center;margin:30px' ng-show='!licenses && !error'>
     <h5><i class='icon-time'></i> Loading...</h5>
@@ -34,7 +34,7 @@
           <li class="license" ng-show="isClaimedComponent() && !component.effectiveLicenses.length">Unavailable, Claimed Component</li>
         </ul>
       </div>
-      <div class="well" style="width:595px">
+      <div class="well" style="width:595px" ng-show="hierarchy">
         <div class="form-horizontal">
           <div class="control-group">
             <label class="control-label">Scope</label>
@@ -55,7 +55,7 @@
                 <option value="OVERRIDDEN">Overridden</option>
                 <option ng-if="component.selectableLicenses.length" value="SELECTED">Selected</option>
                 <option value="CONFIRMED">Confirmed</option>
-                <option ng-if="canInherit()" value="DELETE">Inherit Status ({{ getInheritableStatus() }})</option>
+                <option ng-if="hierarchy && canInherit()" value="DELETE">Inherit Status ({{ getInheritableStatus() }})</option>
               </select>
             </div>
           </div>

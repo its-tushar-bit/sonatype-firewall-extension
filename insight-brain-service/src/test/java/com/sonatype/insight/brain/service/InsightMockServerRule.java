@@ -60,7 +60,7 @@ public class InsightMockServerRule
     System.out.println("Stopped InsightMockServer in " + (System.currentTimeMillis() - start) + " ms.");
   }
 
-  void setResponseForURI(String uri, Object body, int status) {
+  public void setResponseForURI(String uri, Object body, int status) {
     insightMockServer.setResponseForURI(uri, body, status);
   }
 

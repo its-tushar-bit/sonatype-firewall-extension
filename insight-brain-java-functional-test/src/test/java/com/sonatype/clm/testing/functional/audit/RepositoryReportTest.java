@@ -7,9 +7,12 @@ package com.sonatype.clm.testing.functional.audit;
 
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
+import com.sonatype.clm.testing.functional.elements.LicenseCIP;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
@@ -32,6 +35,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.present;
 import static com.codeborne.selenide.Condition.text;
@@ -153,8 +157,33 @@ public class RepositoryReportTest
     testAllViolationsFilter();
     testQuarantinedFilter();
 
+    testLicenseCIP();
     testPolicyCIP();
     testLabelsCIP();
+  }
+
+  private void testLicenseCIP() {
+    // HDS call
+    ComponentDetails hdsComponentDetails = new ComponentDetails(
+        ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0"));
+    hdsComponentDetails.getDeclaredLicenses().add(new License("Amazon", "Amazon"));
+    hdsComponentDetails.getObservedLicenses().add(new License("AAL", "AAL"));
+    testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails", hdsComponentDetails, 200);
+
+    // open CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+
+    RepositoryReportPage.Table.cipTab("License").click();
+
+    LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(6), texts("Amazon"));
+    LicenseCIP.observedLicenses().shouldHave(LicenseCIP.licenseThreats(0), texts("AAL"));
+    LicenseCIP.effectiveLicenses().shouldHave(LicenseCIP.licenseThreats(0, 6), texts("AAL", "Amazon"));
+
+    // close CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+
   }
 
   private void testLabelsCIP() {

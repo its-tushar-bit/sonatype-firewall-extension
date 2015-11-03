@@ -1,15 +1,15 @@
 (function() {
-  SpecUtil.setupProviders('app1', 'org1');
+  SpecUtil.setupProviders('bom1-12345678', 'org1');
   function getAppliedLicenseOverrides(appStatus, appLicense, orgStatus, orgLicense) {
     var overrides = {
       licenseOverridesByOwner: [
         {
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           ownerName: 'Application',
           ownerType: 'application',
           licenseOverride: {
             id: 'app1override',
-            ownerId: 'app1',
+            ownerId: 'bom1-12345678',
             componentIdentifier : {
               format : 'maven',
               coordinates : {
@@ -87,24 +87,7 @@
   }
 
   describe('CIP License Editor', function() {
-    beforeEach(module('LicenseEditor', 'ApplicationIdProvider', function($provide) {
-      $provide.value('SelectedComponent', {
-        componentIdentifier : {
-          format : 'maven',
-          coordinates : {
-            artifactId : 'artifactid',
-            groupId : 'org.groupid',
-            version : '1'
-          }
-        },
-        groupId: 'org.groupid',
-        artifactId: 'artifactid',
-        version: '1'
-      });
-      $provide.value('DataView', {
-        updateItem: $.noop
-      });
-    }));
+    beforeEach(module('cip.license.editor', 'TestComponentProvider')); 
 
     var scope;
 
@@ -124,12 +107,12 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', "AFL-1.2"));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
@@ -158,7 +141,7 @@
 
       it('Default Selection', function() {
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'ACKNOWLEDGED',
           licenseIds: []
         });
@@ -168,7 +151,7 @@
       });
 
       it('Delete', inject(function($httpBackend) {
-        $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1/app1override')).respond(204);
+        $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678/app1override')).respond(204);
         scope.$apply(function() {
           scope.override.status = 'DELETE';
           scope.save();
@@ -215,12 +198,12 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, null, null));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
@@ -230,7 +213,7 @@
 
       it('Default Selection', function() {
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'OPEN',
           licenseIds: []
         });
@@ -264,13 +247,13 @@
       }));
 
       it('Add App', inject(function($httpBackend, SelectedComponent) {
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678')).respond(function(method, url, data,
                                                                                                      headers)
         {
           var post = angular.fromJson(data);
           expect(post).toEqual({
             id: null,
-            ownerId: 'app1',
+            ownerId: 'bom1-12345678',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
             licenseIds: [],
@@ -280,7 +263,7 @@
           return [200, post, headers];
         });
         scope.$apply(function() {
-          scope.override.ownerId = 'app1';
+          scope.override.ownerId = 'bom1-12345678';
         });
         scope.$apply(function() {
           scope.override.status = 'ACKNOWLEDGED';
@@ -294,18 +277,18 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, null, null));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
         });
         $httpBackend.flush();
-        
+
         scope.$apply(function() {
           scope.override.status = 'OVERRIDDEN';
         });
@@ -356,34 +339,39 @@
         expect(scope.override.licenseIds.length).toBe(0);
       }));
     });
-    
+
     describe("Effective license updated", function() {
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, null, null));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
         });
         $httpBackend.flush();
       }));
-      afterEach(inject(function($httpBackend, SelectedComponent) {
+
+      afterEach(inject(function($httpBackend, $rootScope, SelectedComponent) {
         scope.$apply(function() {
           scope.override.status = 'OVERRIDDEN';
         });
         scope.$apply(function() {
           scope.override.licenseIds = ['AFL-1.2'];
         });
-        expect(SelectedComponent.effectiveLicenses).toBeUndefined();
+
+        var emittedComponent;
+        $rootScope.$on('clm.grid.licenses.changed', function (e,component) {
+          emittedComponent = component;
+        });
         scope.save();
         $httpBackend.flush();
-        expect(SelectedComponent.effectiveLicenses).toEqual(['AFL-1.2']);
+        expect(emittedComponent.effectiveLicenses).toEqual(['AFL-1.2']);
       }));
 
       it('Add Org', inject(function($httpBackend, SelectedComponent) {
@@ -408,13 +396,13 @@
       }));
 
       it('Add App', inject(function($httpBackend, SelectedComponent) {
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678')).respond(function(method, url, data,
                                                                                                                         headers)
         {
           var post = angular.fromJson(data);
           expect(post).toEqual({
             id: null,
-            ownerId: 'app1',
+            ownerId: 'bom1-12345678',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'OVERRIDDEN',
             licenseIds: ['AFL-1.2'],
@@ -424,7 +412,7 @@
           return [200, post, headers];
         });
         scope.$apply(function() {
-          scope.override.ownerId = 'app1';
+          scope.override.ownerId = 'bom1-12345678';
         });
       }));
     });
@@ -438,12 +426,12 @@
         licenseOverridesByOwner[2].licenseOverride = licenseOverridesByOwner[1].licenseOverride;
         licenseOverridesByOwner[1].licenseOverride = licenseOverridesByOwner[0].licenseOverride = null;
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(applied);
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
@@ -461,12 +449,12 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', "AFL"));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
@@ -485,11 +473,11 @@
 
       it('Add Application', inject(function($httpBackend, SelectedComponent) {
         scope.$apply(function() {
-          scope.override.ownerId = 'app1';
+          scope.override.ownerId = 'bom1-12345678';
         });
 
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'OPEN',
           licenseIds: []
         });
@@ -499,13 +487,13 @@
           scope.override.status = 'ACKNOWLEDGED';
         });
 
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678')).respond(function(method, url, data,
                                                                                                      headers)
         {
           var posted = angular.fromJson(data);
           expect(posted).toEqual({
             id: null,
-            ownerId: 'app1',
+            ownerId: 'bom1-12345678',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
             licenseIds: [],
@@ -518,7 +506,7 @@
         $httpBackend.flush();
 
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'ACKNOWLEDGED',
           licenseIds: []
         });
@@ -530,12 +518,12 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides('OVERRIDDEN', "AFL-1.2", null, null));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
@@ -545,7 +533,7 @@
 
       it('Default Selection', function() {
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'OVERRIDDEN',
           licenseIds: ['AFL-1.2']
         });
@@ -589,12 +577,12 @@
 
         // View is reset to show the app + Inherit option
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'OVERRIDDEN',
           licenseIds: ['AFL-1.2']
         });
         scope.$apply(function() {
-          scope.override.ownerId = 'app1';
+          scope.override.ownerId = 'bom1-12345678';
         });
         expect(scope.canInherit()).toBeTruthy();
       }));
@@ -604,12 +592,12 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
+
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
-
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-            encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
           $scope: scope
@@ -619,7 +607,7 @@
 
       it('Default Selection', function() {
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'OVERRIDDEN',
           licenseIds: ['AFL']
         });
@@ -634,13 +622,13 @@
         });
         expect(scope.override.licenseIds).toEqual([]);
 
-        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1')).respond(function(method, url, data,
+        $httpBackend.expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678')).respond(function(method, url, data,
                                                                                                      headers)
         {
           var posted = angular.fromJson(data);
           expect(posted).toEqual({
             id: null,
-            ownerId: 'app1',
+            ownerId: 'bom1-12345678',
             componentIdentifier: SelectedComponent.componentIdentifier,
             status: 'ACKNOWLEDGED',
             licenseIds: [],
@@ -653,7 +641,7 @@
         $httpBackend.flush();
 
         expect(scope.override).toEqual({
-          ownerId: 'app1',
+          ownerId: 'bom1-12345678',
           status: 'ACKNOWLEDGED',
           licenseIds: []
         });
@@ -666,12 +654,12 @@
         inject(function ($controller, $httpBackend, SelectedComponent) {
           $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/app1?componentIdentifier=' +
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+                  encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats(declared, observed, selected));
+
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
                   encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
                   respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
-
-          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
-                  encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats(declared, observed, selected));
 
           $controller('LicenseEditorController', {
             $scope: scope

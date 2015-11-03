@@ -135,8 +135,10 @@
     <group-ref>cip-policy-violations</group-ref>
     <js>/cip/ci.policy.violations.service.js</js>
 
+    <js>/cip/ci-license-tab.js</js>
+    <group-ref>cip-license-editor</group-ref>
+
     <js>/cip/cip-claim-component.js</js>
-    <js>/cip/cip-license-editor.js</js>
     <js>/cip/cip-version-graph.js</js>
     <group-ref>version-graph-core</group-ref>
     <js>/util/AngularCommon.js</js>
@@ -203,7 +205,7 @@
     <css>/cip/cip-claim-component.css</css>
     <css>/cip/cip.label.editor/cip-label-editor.css</css>
     <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
-    <css>/cip/cip-license-editor.css</css>
+    <css>/cip/cip.license.editor/cip-license-editor.css</css>
     <css>/version-graph/content.css</css>
     <css>/lib/bootstrap/bootstrap-variables.scss</css>
     <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
@@ -260,6 +262,13 @@
     <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
   </group>
 
+  <group name='cip-license-editor'>
+    <css>/cip/cip.license.editor/cip-license-editor.css</css>
+    <js>/cip/cip.license.editor/cip.license.editor.module.js</js>
+    <js>/cip/cip.license.editor/cip.license.editor.directive.js</js>
+    <js>/cip/cip.license.editor/license.editor.controller.js</js>
+  </group>
+
   <group name='repository-cip'>
     <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
     <js>/audit-report/cip/component.information.panel.module.js</js>
@@ -268,6 +277,7 @@
     <js>/audit-report/cip/cip.tab.pane.directive.js</js>
     <js>/audit-report/cip/selected.component.service.js</js>
     <group-ref>cip-label-editor</group-ref>
+    <group-ref>cip-license-editor</group-ref>
     <group-ref>cip-policy-violations</group-ref>
   </group>
 

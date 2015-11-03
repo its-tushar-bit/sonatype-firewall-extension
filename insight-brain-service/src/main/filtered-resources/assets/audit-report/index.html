@@ -6,6 +6,13 @@
     <title>Audit Report</title>
     <link href="../assets/css/style.css?${build.timestamp}" rel="stylesheet"/>
     <link type="text/css" href="audit-report.css?{build.timestamp}" rel="stylesheet" />
+    <script>
+      window.clmEndpoint = {
+        type : 'ci',
+        linkTarget : '_blank',
+        path : '../assets/version-graph/'
+      };
+    </script>
     <script src="../assets/js/external.js?{build.timestamp}"></script>
     <script src="../assets/version-graph/protovis.min.js?${build.timestamp}"></script>
     <script type="text/javascript" src="../assets/js/brain.client.js"></script>

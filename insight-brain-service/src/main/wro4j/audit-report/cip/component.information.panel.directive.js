@@ -25,6 +25,9 @@
         },{
           title: 'Labels',
           directive: 'cip-label-editor'
+        },{
+          title: 'Licenses',
+          directive: 'cip-license-editor'
         }];
 
         function hide() {

@@ -160,6 +160,22 @@ public class RepositoryReportTest
     testLicenseCIP();
     testPolicyCIP();
     testLabelsCIP();
+
+    testHiddenCIPTabs();
+  }
+
+  private void testHiddenCIPTabs() {
+    // Open CIP for unknown compoment
+    RepositoryReportPage.Table.row(5).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+
+    RepositoryReportPage.Table.cipTab("Policy").shouldBe(visible);
+    RepositoryReportPage.Table.cipTab("Labels").shouldNotBe(visible);
+    RepositoryReportPage.Table.cipTab("Licenses").shouldNotBe(visible);
+
+    // close CIP
+    RepositoryReportPage.Table.row(5).component().click();
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
   private void testLicenseCIP() {

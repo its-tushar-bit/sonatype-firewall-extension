@@ -18,20 +18,31 @@
         vm.showCIP = false;
         vm.selectedTab = undefined;
         vm.tabs = [];
+        vm.tabShown = tabShown;
 
         vm.tabs = [{
           title: 'Policy',
           directive: 'cip-policy-violations'
         },{
-          title: 'Labels',
-          directive: 'cip-label-editor'
-        },{
           title: 'Licenses',
-          directive: 'cip-license-editor'
+          directive: 'cip-license-editor',
+          matchedOnly: true
+        },{
+          title: 'Labels',
+          directive: 'cip-label-editor',
+          matchedOnly: true
         }];
 
         function hide() {
           selectedComponent.toggle();
+        }
+
+        function tabShown(tab) {
+          var isUnknown = selectedComponent.get() && selectedComponent.get().matchState === 'unknown';
+          if (isUnknown) {
+            return !tab.matchedOnly;
+          }
+          return true;
         }
 
         $scope.$watch(function () {

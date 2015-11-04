@@ -106,8 +106,6 @@ public class ComponentInfoServiceAuthzTest
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
-  // /
-
   @Test
   public void testGetComponentDetailsList_ReadPermission_Authorized() throws Exception {
     configureHdsClientMock();

@@ -155,7 +155,7 @@
     this.destroyed = true;
 
     closeMessagebox(this.id);
-    $(window).unbind('resize');
+    $(window).unbind('resize', this.options.resizeFn);
 
     if (this.table) {
       if (this.table.pager) {
@@ -199,11 +199,15 @@
     }
     this.table.registerPlugin(new Slick.Tipsy());
 
-    $(window).resize(this.options.resizeFn || function() {
-      if (Insight.util.isNullOrUndefined(me.options.height)) {
-        me.updateHeight();
-      }
-    });
+    if (!this.options.resizeFn) {
+      this.options.resizeFn = function() {
+        if (Insight.util.isNullOrUndefined(me.options.height)) {
+          me.updateHeight();
+        }
+      };
+    }
+
+    $(window).resize(this.options.resizeFn);
     if (this.listeners) {
       $.each(this.listeners, function(key, listener) {
         setTimeout(listener, 0);

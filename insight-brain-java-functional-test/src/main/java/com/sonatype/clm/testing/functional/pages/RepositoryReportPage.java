@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import java.io.UnsupportedEncodingException;
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -21,7 +19,6 @@ public class RepositoryReportPage
   private static final String BASE_URL = "audit-report/index.html";
 
   public static String url(String repositoryId)
-      throws UnsupportedEncodingException
   {
     return BASE_URL + "?repositoryId=" + repositoryId;
   }

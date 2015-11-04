@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.WebDriverRunner;
 import org.apache.commons.lang.StringUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;

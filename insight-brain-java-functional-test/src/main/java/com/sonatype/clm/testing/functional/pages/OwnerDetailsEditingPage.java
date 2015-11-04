@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
-
 public class OwnerDetailsEditingPage
 {
   public static String url(String ownerType, String ownerId) {

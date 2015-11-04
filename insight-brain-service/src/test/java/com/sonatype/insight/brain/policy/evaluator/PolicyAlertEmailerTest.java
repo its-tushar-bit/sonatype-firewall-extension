@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -247,16 +248,20 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void test_Notification_Role() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("test");
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
     Role role = tempEntity.newRole(false /* global */, Permission.READ);
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
     String emailAddress3 = "test3@sonatype.com";
+    String emailAddress4 = "test4@sonatype.com";
     User user1 = tempEntity.newUser("test1", "FirstName1", "LastName1", emailAddress1);
     User user2 = tempEntity.newUser("test2", "FirstName2", "LastName2", emailAddress2);
-    tempEntity.newUser("test3", "FirstName3", "LastName3", emailAddress3);
+    User user3 = tempEntity.newUser("test3", "FirstName3", "LastName3", emailAddress3);
+    tempEntity.newUser("test4", "FirstName4", "LastName4", emailAddress4);
     tempEntity.newMembershipMapping(app.getId(), role.getId(), user1.getUsername());
     tempEntity.newMembershipMapping(app.getOrganizationId(), role.getId(), user2.getUsername());
+    tempEntity.newMembershipMapping(org.getParentOwnerId(), role.getId(), user3.getUsername());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -270,8 +275,8 @@ public class PolicyAlertEmailerTest
         eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
-    // emailAddress3 should not get a message
-    assertEmailAddresses(emailAddress1, emailAddress2);
+    // emailAddress4 should not get a message
+    assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3);
   }
 
   @Test
@@ -307,17 +312,21 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void test_Monitoring_Notification_Role() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("test");
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
 
     Role role = tempEntity.newRole(false /* global */, Permission.READ);
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
     String emailAddress3 = "test3@sonatype.com";
+    String emailAddress4 = "test4@sonatype.com";
     User user1 = tempEntity.newUser("test1", "FirstName1", "LastName1", emailAddress1);
     User user2 = tempEntity.newUser("test2", "FirstName2", "LastName2", emailAddress2);
-    tempEntity.newUser("test3", "FirstName3", "LastName3", emailAddress3);
+    User user3 = tempEntity.newUser("test3", "FirstName3", "LastName3", emailAddress3);
+    tempEntity.newUser("test4", "FirstName4", "LastName4", emailAddress4);
     tempEntity.newMembershipMapping(app.getId(), role.getId(), user1.getUsername());
     tempEntity.newMembershipMapping(app.getOrganizationId(), role.getId(), user2.getUsername());
+    tempEntity.newMembershipMapping(org.getParentOwnerId(), role.getId(), user3.getUsername());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -332,8 +341,8 @@ public class PolicyAlertEmailerTest
         eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
-    // emailAddress3 should not get a message
-    assertEmailAddresses(emailAddress1, emailAddress2);
+    // emailAddress4 should not get a message
+    assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3);
   }
 
   private void assertEmailAddresses(String... expectedEmailAddresses)

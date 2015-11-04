@@ -28,11 +28,13 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -80,15 +82,18 @@ public class PolicyAlertEmailer
 
   private final LdapManager ldapManager;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public PolicyAlertEmailer(final InsightMail mail, final BaseUrl baseUrl, final ApplicationAdapter applicationAdapter,
-      final UserDirectory userDirectory, final LdapManager ldapManager)
+      final UserDirectory userDirectory, final LdapManager ldapManager, final OwnerDAO ownerDAO)
   {
     this.mail = mail;
     this.baseUrl = baseUrl;
     this.applicationAdapter = applicationAdapter;
     memberAttributeResolver = new MemberAttributeResolver(userDirectory);
     this.ldapManager = ldapManager;
+    this.ownerDAO = ownerDAO;
   }
 
   public void sendNotifications(final Application app, final String scanId, final Stage stage,
@@ -170,18 +175,13 @@ public class PolicyAlertEmailer
 
   private Set<String> getEmailAddressesForRole(Application app, String roleId) {
     List<Member> members = new ArrayList<>();
-    // Get application role members
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(app.getId(), roleId)) {
-      Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
-          membershipMapping.getMemberName());
-      members.add(member);
-    }
-    // Get organization role members
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(app.getOrganizationId(),
-        roleId)) {
-      Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
-          membershipMapping.getMemberName());
-      members.add(member);
+    // Get role members from application on up
+    for (Owner owner : ownerDAO.walkHierarchy(app.getId())) {
+      for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextIdAndRoleId(owner.getId(), roleId)) {
+        Member member = new Member(membershipMapping.getMemberType(), membershipMapping.getMemberName(),
+            membershipMapping.getMemberName());
+        members.add(member);
+      }
     }
 
     // Fill in email addresses

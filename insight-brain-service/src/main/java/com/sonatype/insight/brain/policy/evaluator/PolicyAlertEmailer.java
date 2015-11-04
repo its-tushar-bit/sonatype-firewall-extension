@@ -72,9 +72,9 @@ public class PolicyAlertEmailer
 
   private final BaseUrl baseUrl;
 
-  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO;
 
-  private final MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+  private final MembershipMappingDAO membershipMappingDAO;
 
   private final ApplicationAdapter applicationAdapter;
 
@@ -86,7 +86,8 @@ public class PolicyAlertEmailer
 
   @Inject
   public PolicyAlertEmailer(final InsightMail mail, final BaseUrl baseUrl, final ApplicationAdapter applicationAdapter,
-      final UserDirectory userDirectory, final LdapManager ldapManager, final OwnerDAO ownerDAO)
+      final UserDirectory userDirectory, final LdapManager ldapManager, final OwnerDAO ownerDAO,
+      final ApplicationDAO applicationDAO, final MembershipMappingDAO membershipMappingDAO)
   {
     this.mail = mail;
     this.baseUrl = baseUrl;
@@ -94,6 +95,8 @@ public class PolicyAlertEmailer
     memberAttributeResolver = new MemberAttributeResolver(userDirectory);
     this.ldapManager = ldapManager;
     this.ownerDAO = ownerDAO;
+    this.applicationDAO = applicationDAO;
+    this.membershipMappingDAO = membershipMappingDAO;
   }
 
   public void sendNotifications(final Application app, final String scanId, final Stage stage,

@@ -25,6 +25,7 @@ public class CIComponentInfoResourceRepositoryTest
     return CIComponentInfoResource.RESOURCE_PATH;
   }
 
+  @Override
   protected Owner getOwner() {
     return repository;
   }

@@ -1,0 +1,24 @@
+<div id="application-category-editor" class="tile-editor-container">
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.ownerName && !vm.categories" reload="vm.doLoad()">
+    <h2>
+      <hexagon class="outline size-20px"></hexagon><!--
+        -->{{vm.ownerName}} Application Categories
+    </h2>
+    <form name="vm.categoryEditor" class="clm-form" role="form" ng-submit="vm.categoryEditor.$valid && vm.save()"
+          form-mask mask-attach-to-body>
+      <div class="section">
+        <div class="field">
+          <label for="associated-categories">Associated Application Categories</label>
+
+          <div id="associated-categories" association-editor items="vm.categories" checkbox-param="isApplied"
+               description="name" icon="hexagon"/>
+        </div>
+      </div>
+      <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.labelEditor.$invalid || vm.categories.length === 0">
+          Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

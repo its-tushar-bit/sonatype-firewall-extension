@@ -647,3 +647,73 @@
     }
   }
 }
+
+/*
+  #Association Editor
+  ```
+  <table id="association-editor" class="association-editor">
+    <tbody>
+      <tr class="association-editor-row">
+        <td>
+          <input class="check-box" type="checkbox">
+          <svg class="blue hexagon hexagon" viewBox="0 0 185.5 208" width="14" height="16"><path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path></svg>
+          <p class="description">Test 1</p>
+        </td>
+        <td>
+          <input class="check-box" type="checkbox">
+          <svg class="green hexagon hexagon" viewBox="0 0 185.5 208" width="14" height="16"><path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path></svg>
+          <p class="description">Test 2</p>
+        </td>
+      </tr>
+      <tr class="association-editor-row">
+        <td>
+          <input class="check-box" type="checkbox">
+          <i class="fa fa-pencil"></i>
+          <p class="description">Test 1</p>
+        </td>
+        <td>
+          <input class="check-box" type="checkbox">
+          <i class="fa fa-pencil"></i>
+          <p class="description">Test 1</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  ```
+*/
+
+.association-editor {
+  overflow-y: scroll;
+  max-height: 240px;
+  display: block;
+
+  .association-editor-row {
+    line-height: 14px;
+    height: 14px;
+    padding-top: 0px;
+    padding-bottom: 12px;
+
+    td {
+      padding: 0px 8px 8px 24px;
+
+      input[type='checkbox'] {
+        margin-top: -5px;
+        margin-right: 8px;
+      }
+
+      .description {
+        margin: 0px 0px 0px 8px;
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 220px;
+        max-width: 375px;
+      }
+
+      .fa {
+        vertical-align: top;
+      }
+    }
+  }
+}

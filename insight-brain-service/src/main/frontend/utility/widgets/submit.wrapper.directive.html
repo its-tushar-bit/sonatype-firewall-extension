@@ -1,0 +1,15 @@
+<div>
+  <div error="vm.error" message="vm.errorMessage" retry="vm.retry()">
+    <div ng-show="vm.error != null" class="clm-alert alert alert-error">
+      <div><i class="fa fa-warning"></i>
+        <span ng-if="vm.error">{{vm.errorDetails(vm.error)}}</span>
+      </div>
+      <div>
+        <button type="button" class="btn btn-error" ng-click="vm.retry()">
+          <i class="fa fa-refresh"></i>Retry
+        </button>
+      </div>
+    </div>
+  </div>
+  <div ng-if="!vm.error" ng-transclude/>
+</div>

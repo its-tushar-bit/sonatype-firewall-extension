@@ -1,0 +1,29 @@
+<div>
+  <table id="association-editor" class="association-editor">
+    <tr ng-if="vm.items.length < 10" class="association-editor-row" ng-repeat="item in vm.items">
+      <td><!--
+    --><input class="check-box" type="checkbox" ng-model="item[vm.checkboxParam]"/>
+        <hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon>
+        <i ng-if="vm.icon !== 'hexagon'" class="fa" ng-class="icon"></i>
+        <p class="description">{{::item[vm.description] }}</p>
+      </td>
+    </tr>
+    <tr class="association-editor-row" ng-repeat="item in vm.items"
+        ng-if="vm.items.length >= 10 && $index < vm.ceil(vm.items.length / 2)" ng-init="$secondColumnIndex = $index + vm.ceil(vm.items.length / 2)">
+      <td><!--
+  --><input class="check-box" type="checkbox" ng-model="item[vm.checkboxParam]"/>
+        <hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color}} size-16px"></hexagon>
+        <i ng-if="vm.icon !== 'hexagon'" class="fa" ng-class="icon"></i>
+        <p class="description">{{::item[vm.description]}}</p>
+      </td>
+      
+      <td ng-if="$secondColumnIndex < vm.items.length"><!--
+  --><input class="check-box" type="checkbox" ng-model="vm.items[$secondColumnIndex][vm.checkboxParam]"/>
+        <hexagon ng-if="vm.icon === 'hexagon'" class="{{::vm.items[$secondColumnIndex].color }} size-16px"></hexagon>
+        <i ng-if="vm.icon !== 'hexagon'" class="fa" ng-class="icon"></i>
+        <p class="description">{{::vm.items[$secondColumnIndex][vm.description] }}</p>
+      </td>
+    </tr>
+
+  </table>
+</div>

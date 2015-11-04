@@ -100,6 +100,16 @@
                 controllerAs: 'vm'
               }
             }
+          }).state('management.edit.application.category', {
+            parent: 'management.edit.application',
+            url: '/category',
+            views: {
+              '@management': {
+                controller: 'application.category.editor.controller',
+                controllerAs: 'vm',
+                templateUrl: 'owner.manager/category/application.category.editor.view.html?' + clmBuildTimestamp,
+              }
+            }
           });
         }
       ]);

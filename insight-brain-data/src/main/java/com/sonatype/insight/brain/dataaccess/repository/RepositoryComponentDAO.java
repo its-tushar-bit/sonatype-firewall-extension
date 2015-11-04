@@ -72,4 +72,11 @@ public class RepositoryComponentDAO
 
     return getSingle(Number.class, sQuery, repositoryId).intValue();
   }
+
+  public List<RepositoryComponent> getQuarantinedByRepositoryId(TransactionContext tx, String repositoryId) {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1 AND entity.quarantineTime IS NOT NULL AND entity.unquarantineTime IS NULL";
+
+    return getList(tx, sQuery, repositoryId);
+  }
 }

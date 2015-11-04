@@ -234,8 +234,25 @@ public class RepositoryService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void setQuarantine(@AuthzContext(Key.REPOSITORY) final Repository repository, final boolean enabled) {
-    repository.setQuarantineEnabled(enabled);
-    repositoryDAO.update(repository);
+    try (TransactionContext tx = repositoryDAO.createTransactionContext()) {
+      tx.begin();
+
+      repository.setQuarantineEnabled(enabled);
+      repositoryDAO.update(tx, repository);
+      
+      if (!enabled) {
+        // Un-quarantine the quarantined repository components
+        Date unquarantineTime = new Date();
+        List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
+            repository.getId());
+        for (RepositoryComponent quarantinedComponent : quarantinedComponents) {
+          quarantinedComponent.setUnquarantineTime(unquarantineTime);
+          repositoryComponentDAO.update(tx, quarantinedComponent);
+        }
+      }
+
+      tx.commit();
+    }
   }
 
   public RepositoryComponentEvaluationDataList evaluateComponents(String repositoryManagerInstanceId, String repositoryPublicId,
@@ -397,6 +414,7 @@ public class RepositoryService
       if (canBeQuarantined) {
         repositoryComponent.setCanBeQuarantined(canBeQuarantined);
         repositoryComponent.setQuarantineTime(quarantineTime);
+        repositoryComponent.setUnquarantineTime(null);
       }
       repositoryComponentDAO.update(tx, repositoryComponent);
     }

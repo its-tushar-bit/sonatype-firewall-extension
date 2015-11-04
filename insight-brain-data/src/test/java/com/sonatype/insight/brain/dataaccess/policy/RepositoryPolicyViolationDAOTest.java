@@ -14,9 +14,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.repository.Repository;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -27,14 +25,7 @@ import static org.junit.Assert.assertThat;
 public class RepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
-  private Repository repository;
-
   private RepositoryPolicyViolationDAO dao = new RepositoryPolicyViolationDAO();
-
-  @Before
-  public void before() {
-    repository = tempEntity.newRepository();
-  }
 
   @Test
   public void testCRUD() throws Exception {

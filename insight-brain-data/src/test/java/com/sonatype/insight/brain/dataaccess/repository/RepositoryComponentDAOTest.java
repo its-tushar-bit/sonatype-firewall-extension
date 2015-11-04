@@ -27,13 +27,10 @@ public class RepositoryComponentDAOTest
 {
   private RepositoryComponentDAO dao = new RepositoryComponentDAO();
 
-  private Repository repository;
-
   private Repository repositoryTwo;
 
   @Before
   public void before() {
-    repository = tempEntity.newRepository();
     repositoryTwo = tempEntity.newRepository();
   }
 

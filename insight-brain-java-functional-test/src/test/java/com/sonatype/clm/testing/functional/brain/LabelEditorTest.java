@@ -11,7 +11,6 @@ import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
@@ -21,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -50,9 +48,6 @@ public class LabelEditorTest
   private LabelDAO labelDAO = new LabelDAO();
   
   private Application app;
-
-  @Rule
-  public TemporaryEntity tempEntity = new TemporaryEntity();
 
   @BeforeClass
   public static void beforeClass() {

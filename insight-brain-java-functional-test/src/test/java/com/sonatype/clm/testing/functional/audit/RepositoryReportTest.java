@@ -178,6 +178,7 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.cipTab("Policy").shouldBe(visible);
     RepositoryReportPage.Table.cipTab("Labels").shouldNotBe(visible);
     RepositoryReportPage.Table.cipTab("Licenses").shouldNotBe(visible);
+    RepositoryReportPage.Table.cipTab("Vulnerabilities").shouldNotBe(visible);
 
     // close CIP
     RepositoryReportPage.Table.row(5).component().click();

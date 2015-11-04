@@ -33,7 +33,8 @@
           matchedOnly: true
         }, {
           title: 'Vulnerabilities',
-          directive: 'cip-vulnerability-editor'
+          directive: 'cip-vulnerability-editor',
+          matchedOnly: true
         }];
 
         function hide() {

@@ -83,6 +83,9 @@ public class CIComponentInfoResource
         .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest);
   }
 
+  /**
+   * @since 1.18.0
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(VULNERABILITIES_PATH)

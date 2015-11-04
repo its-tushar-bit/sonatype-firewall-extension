@@ -153,8 +153,8 @@ public class RestClientFactory
     }
 
     @Override
-    public void enableRepository() throws IOException {
-      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).enableRepository();
+    public void setEnabled(boolean enabled) throws IOException {
+      newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).setEnabled(enabled);
     }
 
     @Override

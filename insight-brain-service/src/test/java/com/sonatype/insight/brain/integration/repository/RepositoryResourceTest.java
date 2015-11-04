@@ -45,13 +45,17 @@ public class RepositoryResourceTest
     return restRequest().path(RepositoryResource.QUARANTINE_PATH);
   }
 
+  private HttpRequest enableRequest() {
+    return restRequest().path(RepositoryResource.ENABLE_PATH);
+  }
 
   @Test
-  public void testEnableRepository() throws Exception {
+  public void testSetEnabled_True() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    HttpResponse response = restRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId()).post();
+    HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
+        .post();
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());

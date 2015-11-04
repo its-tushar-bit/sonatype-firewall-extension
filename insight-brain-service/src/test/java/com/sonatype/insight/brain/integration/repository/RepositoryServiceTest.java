@@ -183,8 +183,8 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEnableRepository_noRepositoryManager() throws Exception {
-    repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+  public void testSetEnabled_NoRepositoryManager() throws Exception {
+    repositoryService.setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
 
@@ -198,10 +198,10 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEnableRepository_existingRepositoryManager() throws Exception {
+  public void testSetEnabled_ExistingRepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
 
-    repositoryService.enableRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    repositoryService.setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
@@ -211,11 +211,11 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEnableRepository_existingRepository() throws Exception {
+  public void testSetEnabled_TrueExistingRepository() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    repositoryService.enableRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    repositoryService.setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
@@ -225,16 +225,30 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEnableRepository_MissingLicenseFeature() throws Exception {
+  public void testSetEnabled_MissingLicenseFeature() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
     try {
-      repositoryService.enableRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+      repositoryService.setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
       fail("Expected exception");
     }
     catch (InvalidLicenseException expected) {
       assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
     }
+  }
+
+  @Test
+  public void testSetEnabled_FalseExistingRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+
+    repositoryService.setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+
+    assertEquals(1, repositories.size());
+    assertEquals(REPO_PUBLIC_ID, repositories.get(0).getPublicId());
+    assertFalse(repositories.get(0).isEnabled());
   }
 
   @Test

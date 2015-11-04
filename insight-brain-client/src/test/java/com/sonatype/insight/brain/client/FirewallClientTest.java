@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -58,10 +59,10 @@ public class FirewallClientTest
   }
 
   @Test
-  public void testEnableRepository() throws Exception {
+  public void testSetEnabled_True() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
 
-    client.enableRepository();
+    client.setEnabled(true);
 
     Repository repo = new RepositoryDAO()
         .getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId, REPOSITORY_PUBLIC_ID);
@@ -70,17 +71,29 @@ public class FirewallClientTest
   }
 
   @Test
-  public void testEnableRepository_Error() throws Exception {
+  public void testSetEnabled_TrueError() throws Exception {
     FirewallClient client = new FirewallClient(getCLMServer().getClientConfiguration(), rmInstanceId,
         REPOSITORY_PUBLIC_ID);
 
     try {
-      client.enableRepository();
+      client.setEnabled(true);
       fail("Did not throw the expected exception");
     }
     catch (HttpResponseException e) {
       assertEquals(401, e.getStatusCode());
     }
+  }
+
+  @Test
+  public void testSetEnabled_False() throws Exception {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+
+    client.setEnabled(false);
+
+    Repository repo = new RepositoryDAO()
+        .getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId, REPOSITORY_PUBLIC_ID);
+    assertEquals(REPOSITORY_PUBLIC_ID, repo.getPublicId());
+    assertFalse(repo.isEnabled());
   }
 
   @Test
@@ -171,7 +184,7 @@ public class FirewallClientTest
   @Test
   public void testEvaluateComponents_Empty() throws Exception {
     final FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
-    client.enableRepository();
+    client.setEnabled(true);
 
     final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
     client.evaluateComponents(componentEvaluationDataRequestList);
@@ -198,7 +211,7 @@ public class FirewallClientTest
   public void testEvaluateComponentWithQuarantine() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
 
-    client.enableRepository();
+    client.setEnabled(true);
 
     // Setup the mocked hds return
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();

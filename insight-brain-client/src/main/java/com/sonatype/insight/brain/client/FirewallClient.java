@@ -27,6 +27,8 @@ public class FirewallClient
 
   private static final String SUMMARY_PATH = "summary";
 
+  private static final String ENABLE_PATH = "enable";
+
   private static final String QUARANTINE_PATH = "quarantine";
 
   private static final String COMPONENTS_PATH = "components";
@@ -47,9 +49,9 @@ public class FirewallClient
     this.repositoryPublicId = repositoryPublicId;
   }
 
-  public void enableRepository() throws IOException {
-    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId),
-        null);
+  public void setEnabled(boolean enabled) throws IOException {
+    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH,
+        Boolean.toString(enabled)), null);
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();

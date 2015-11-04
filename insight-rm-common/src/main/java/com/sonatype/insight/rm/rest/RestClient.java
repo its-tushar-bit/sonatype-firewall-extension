@@ -60,7 +60,7 @@ public interface RestClient
 
   interface Repository
   {
-    void enableRepository() throws IOException;
+    void setEnabled(boolean enabled) throws IOException;
 
     void setQuarantine(final boolean enabled) throws IOException;
 

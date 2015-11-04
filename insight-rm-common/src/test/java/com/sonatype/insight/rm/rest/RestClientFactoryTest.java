@@ -119,9 +119,9 @@ public class RestClientFactoryTest
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
-    repository.enableRepository();
+    repository.setEnabled(true);
 
-    verify(firewallClient).enableRepository();
+    verify(firewallClient).setEnabled(true);
     verifyNoMoreInteractions(firewallClient);
   }
 

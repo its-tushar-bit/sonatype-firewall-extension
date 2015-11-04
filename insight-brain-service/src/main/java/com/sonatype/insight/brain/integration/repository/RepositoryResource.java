@@ -16,8 +16,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 
 import com.yammer.metrics.annotation.Timed;
@@ -33,6 +33,8 @@ public class RepositoryResource
   public static final String RESOURCE_PATH = "rest/integration/repositories/{repositoryManagerInstanceId}/{repositoryPublicId}";
 
   public static final String SUMMARY_PATH = "summary";
+
+  public static final String ENABLE_PATH = "enable/{enabled}";
 
   static final String QUARANTINE_PATH = "quarantine/{enabled}";
 
@@ -55,12 +57,13 @@ public class RepositoryResource
    * unknown, new entities are created in the IQ server database.
    */
   @POST
+  @Path(ENABLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
-  public void enableRepository(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId)
+  public void setEnabled(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("enabled") boolean enabled)
   {
-    repositoryService.enableRepository(repositoryManagerInstanceId, repositoryPublicId);
+    repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
 
   @GET

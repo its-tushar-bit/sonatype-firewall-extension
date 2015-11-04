@@ -177,10 +177,11 @@ public class RepositoryService
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
-  public void enableRepository(String repositoryManagerInstanceId, String repositoryPublicId) {
+  public void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
     checkLicenseFeature();
 
-    log.debug("Enabling repository {} for repositoryManagerInstanceId {}", repositoryPublicId,
+    String enableDisableMessage = enable ? "Enabling" : "Disabling";
+    log.debug("{} repository {} for repositoryManagerInstanceId {}", enableDisableMessage, repositoryPublicId,
         repositoryManagerInstanceId);
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
@@ -188,11 +189,12 @@ public class RepositoryService
     if (repository == null) {
       repository = new Repository(null, repositoryPublicId);
     }
-    enableRepository(repositoryManagerInstanceId, repository);
+    setEnabled(repositoryManagerInstanceId, repository, enable);
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  void enableRepository(String repositoryManagerInstanceId, @AuthzContext(Key.REPOSITORY) Repository repository) {
+  void setEnabled(String repositoryManagerInstanceId, @AuthzContext(Key.REPOSITORY) Repository repository,
+      boolean enable) {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
 
     if (repositoryManager == null) {
@@ -200,7 +202,7 @@ public class RepositoryService
       repositoryManagerDAO.insert(repositoryManager);
     }
 
-    repository.setEnabled(true);
+    repository.setEnabled(enable);
     if (repository.getId() == null) {
       repository.setRepositoryManagerId(repositoryManager.getId());
       repositoryDAO.insert(repository);

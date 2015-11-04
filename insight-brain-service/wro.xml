@@ -236,6 +236,12 @@
     <js>/version-graph/viewdetails.js</js>
   </group>
 
+  <group name="vulnerability.details">
+    <js>/audit-report/cip/vulnerability.details/vulnerability.details.module.js</js>
+    <js>/audit-report/cip/vulnerability.details/vulnerability.details.modal.controller.js</js>
+    <js>/audit-report/cip/vulnerability.details/vulnerability.details.service.js</js>
+  </group>
+
   <group name='cip-label-editor'>
     <css>/cip/cip.label.editor/cip-label-editor.css</css>
     <js>/util/CLMLocation.js</js>
@@ -269,6 +275,15 @@
     <js>/cip/cip.license.editor/license.editor.controller.js</js>
   </group>
 
+  <group name='cip.vulnerability.editor'>
+    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module.js</js>
+    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.create.service.js</js>
+    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.controller.js</js>
+    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.directive.js</js>
+    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.table.controller.js</js>
+    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.table.directive.js</js>
+  </group>
+
   <group name='repository-cip'>
     <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
     <js>/audit-report/cip/component.information.panel.module.js</js>
@@ -276,9 +291,11 @@
     <js>/audit-report/cip/repository.policy.violations.service.js</js>
     <js>/audit-report/cip/cip.tab.pane.directive.js</js>
     <js>/audit-report/cip/selected.component.service.js</js>
+    <group-ref>vulnerability.details</group-ref>
     <group-ref>cip-label-editor</group-ref>
     <group-ref>cip-license-editor</group-ref>
     <group-ref>cip-policy-violations</group-ref>
+    <group-ref>cip.vulnerability.editor</group-ref>
   </group>
 
   <group name='audit-report'>

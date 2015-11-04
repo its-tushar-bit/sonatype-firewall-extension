@@ -73,45 +73,5 @@
     <p><button type='button' class='btn btn-danger'><i class='icon-white icon-refresh'></i> Retry</button></p>
 </div>
 </script>
-<script type='text/x-mustache-template' id='infoPanelSecurityEditor'>
-    <div style='display:inline-block;width:350px;vertical-align:top;margin-left:10px' class='topBorder bottomBorder'><div id='sv{{timestamp}}Table' class='borderedTable'></div></div>
-    <div id='editor{{timestamp}}' class='well' style='display:inline-block;margin-left:10px;margin-bottom:10px;-moz-box-sizing:border-box;box-sizing:border-box;width:490px'>
-    </div>
-</script>
-<script type='text/x-mustache-template' id='svEditorTemplate'>
-    <div class='form-horizontal'>
-        <div class='control-group'>
-            <label class='control-label' for='svStatus{{timestamp}}'>Status</label>
-            <div class='controls' style='text-align:left'>
-                <select id='svStatus{{timestamp}}'{{#width}} style='width:{{width}}px'{{/width}}>
-                    <option value='Open'>Open</option>
-                    <option value='Acknowledged'>Acknowledged</option>
-                    <option value='Not Applicable'>Not Applicable</option>
-                    <option value='Confirmed'>Confirmed</option>
-                </select>
-            </div>
-        </div>
-        <div class='control-group'>
-            <label class='control-label' for='comment{{timestamp}}'>Comment</label>
-            <div class='controls'>
-                <textarea class='input-xlarge' id='comment{{timestamp}}' rows='3' style='{{#width}}width:{{width}}px;{{/width}}height:108px;padding:0px'></textarea>
-            </div>
-        </div>
-        <div class='controls' style='{{#width}}width:{{width}}px;{{/width}}text-align:right'>
-            <button type='none' class='btn btn-primary' data-type='update'>Update</button>
-            {{#cancel}}<button type='none' class='btn' data-type='cancel'>Cancel</button>{{/cancel}}
-        </div>
-    </div>
-</script>
-    <div id="sv-info-modal" class="modal hide fade">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3>Vulnerability Information</h3>
-      </div>
-      <div class="modal-body"></div>
-      <div class="modal-footer">
-        <a href="#" data-dismiss="modal" class="btn">Close</a>
-      </div>
-    </div>
   </body>
 </html>

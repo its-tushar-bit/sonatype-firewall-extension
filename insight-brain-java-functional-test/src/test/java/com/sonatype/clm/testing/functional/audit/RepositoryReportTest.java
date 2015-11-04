@@ -5,15 +5,20 @@
  */
 package com.sonatype.clm.testing.functional.audit;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LicenseCIP;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
+import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP;
+import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Filter;
@@ -158,6 +163,7 @@ public class RepositoryReportTest
     testQuarantinedFilter();
 
     testLicenseCIP();
+    testVulnerabilityCIP();
     testPolicyCIP();
     testLabelsCIP();
 
@@ -243,6 +249,42 @@ public class RepositoryReportTest
     // close CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
+  }
+
+  private void testVulnerabilityCIP() {
+    // HDS call
+    ComponentDetails hdsComponentDetails = new ComponentDetails(
+        ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0"));
+    // SecurityVul
+    List<SecurityVulnerability> svs = new ArrayList<SecurityVulnerability>();
+    svs.add(new SecurityVulnerability("1234-56789", "cve", 9.0f));
+    svs.add(new SecurityVulnerability("1234", "osvdb", 4.4f));
+    svs.add(new SecurityVulnerability("4321", "osvdb", null));
+    hdsComponentDetails.setSecurityVulnerabilities(svs);
+    testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails", hdsComponentDetails, 200);
+
+    // open CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+
+    RepositoryReportPage.Table.cipTab("Vulnerabilities").click();
+
+    VulnerabilityCIP.rows().shouldHaveSize(3);
+
+    assertRow(VulnerabilityCIP.row(0), 9, "CVE-1234-56789");
+    assertRow(VulnerabilityCIP.row(1), 4, "OSVDB-1234");
+    assertRow(VulnerabilityCIP.row(2), null, "OSVDB-4321");
+
+    // close CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+  }
+
+  private static void assertRow(SVTableRow actualRow, Integer threatLevel, String identifier) {
+    actualRow.identifier().shouldHave(text(identifier));
+    actualRow.info().shouldBe(visible);
+    actualRow.threatLevel().shouldHave(text(threatLevel == null ? "Unscored" : threatLevel.toString().substring(0, 1)),
+        SVTableRow.color(threatLevel));
   }
 
   private void testReportSummary() {

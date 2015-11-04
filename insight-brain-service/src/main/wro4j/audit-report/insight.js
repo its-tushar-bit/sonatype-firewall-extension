@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global $, window, Insight, Brain, Hogan */
+/*global $, window, Insight, Hogan */
 /*jslint plusplus:true */
 (function() {
   'use strict';
@@ -33,14 +33,6 @@
     }
 
     return true;
-  }
-
-  //build sv reference string (i.e. osvdb-1234) from source and refId
-  function toSvReference(source, refId) {
-    var src = Insight.util.isNullOrUndefined(source) ? '' : source.toUpperCase(),
-        ref = Insight.util.isNullOrUndefined(refId) ? '' : refId.toUpperCase();
-
-    return ref.indexOf(src) < 0 ? (src + '-' + ref) : ref;
   }
 
   function isNullOrUndefined(obj) {
@@ -93,41 +85,6 @@
     return message;
   }
 
-  var xhr;
-
-  function showSvModal(source, refId) {
-    var bodyEl = $('#sv-info-modal .modal-body');
-    if (source && refId) {
-      bodyEl.empty();
-      bodyEl.append('<p>Loading vulnerability detail content</p>');
-      if (xhr && xhr.state() ===  'pending') {
-        xhr.reject('reject');
-      }
-
-      xhr = $.getJSON(Insight.toBrain(Brain.getVulnerabilityDetailUrl(source, refId))).done(function(data) {
-        bodyEl.empty();
-        bodyEl.append(data.htmlDetails);
-      }).fail(function(resp) {
-        if (resp !== 'reject') {
-          bodyEl.empty();
-          bodyEl.append(Insight.templates.error.render());
-          $('.btn', bodyEl).click(function() {
-            showSvModal(source, refId);
-          });
-        }
-      });
-    } else {
-      bodyEl.empty();
-      bodyEl.append('Unable to construct url for vulnerability detail content.');
-    }
-
-    $('#sv-info-modal').modal('show');
-  }
-
-  function showVulnerabilityDetail() {
-    return Brain.getVulnerabilityDetailUrl;
-  }
-
   $.extend(true, window, {
     'Insight': {
       'toBrain': function(url) {
@@ -143,9 +100,6 @@
         'isNullOrUndefined': isNullOrUndefined,
         'isNotNullOrUndefined': isNotNullOrUndefined,
         'componentsEqual': componentsEqual,
-        'toSvReference': toSvReference,
-        'showSvModal' : showSvModal,
-        'showVulnerabilityDetail' : showVulnerabilityDetail,
         'encodeHtml' : (function () {
           var encode = $('<div/>');
           return function (text) {

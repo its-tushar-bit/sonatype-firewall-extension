@@ -31,6 +31,9 @@
           title: 'Labels',
           directive: 'cip-label-editor',
           matchedOnly: true
+        }, {
+          title: 'Vulnerabilities',
+          directive: 'cip-vulnerability-editor'
         }];
 
         function hide() {

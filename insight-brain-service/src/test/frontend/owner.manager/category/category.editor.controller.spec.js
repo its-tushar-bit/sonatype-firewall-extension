@@ -86,7 +86,7 @@ describe('category.editor.controller.spec.js', function() {
     mockCategoryStore.resolveGet([{tags: [{id:'123'}, {id:'456'}]}]);
     $timeout.flush();
     expect(vm.dirtyCategory).toBeUndefined();
-    expect(vm.error).toBeDefined();
+    expect(vm.loadError).toBeDefined();
   });
 
   it('Unsuccessful save sets error message', function() {
@@ -99,7 +99,7 @@ describe('category.editor.controller.spec.js', function() {
     vm.save();
     mockCategory.rejectSave('dammit');
     $timeout.flush();
-    expect(vm.error[0]).toBe('dammit');
+    expect(vm.submitError).toBe('dammit');
   });
 
   it('After delete goes to create new category', function() {

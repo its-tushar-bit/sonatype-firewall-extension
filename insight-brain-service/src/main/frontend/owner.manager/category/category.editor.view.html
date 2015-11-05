@@ -1,50 +1,43 @@
 <div id="category-editor" class="tile-editor-container">
-  <div class="tile" load-wrapper="vm.error" loading="!vm.dirtyCategory" reload="vm.doLoad()">
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.dirtyCategory" reload="vm.doLoad()">
     <h2>
       <hexagon class="size-20px outline"></hexagon><!--
       -->{{::vm.dirtyCategory.id ? 'Edit' : 'New'}} Application Category
     </h2>
-    <div id="categoryEditorWrapper" load-wrapper="vm.error" loading="!vm.dirtyCategory" reload="vm.doLoad()" >
-      <form name="vm.categoryEditor" class="clm-form" role="form" ng-submit="vm.categoryEditor.$valid && vm.save()" form-mask mask-attach-to-body>
-          <div class="section">
-            <div class="field">
-              <label for="editor-category-name">Application Category Name</label>
-              <input id="editor-category-name" type="text" name="category" required
-                     ng-model="vm.dirtyCategory.name"
-                     ng-maxlength="60"
-                     focus-input="true"
-                     valid-name-characters
-                     is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id"
-                     messages="{duplicate: 'Name is already in use'}"
-                     clm-input>
-            </div>
-            <div class="field">
-              <label for="editor-category-description">Short Description</label>
-              <textarea id="editor-category-description" name="description" class="wide" rows="2" required
-                     ng-model="vm.dirtyCategory.description"
-                     ng-maxlength="255"
-                     clm-input></textarea>
-            </div>
-            <div class="field">
-              <label for="editor-category-color-picker">Icon Color</label>
-              <div id="editor-category-color-picker" ng-model="vm.dirtyCategory.color" color-picker remove-tabindex required/>
-            </div>
-          </div>
-        <div class="editor-footer" ng-class="{ error : vm.error }">
-          <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i>{{vm.error}}</div>
-
-          <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="vm.categoryEditor.$invalid || !vm.dirtyCategory.isDirty()">
-            {{::vm.dirtyCategory.id ? 'Update' : 'Create'}}
-          </button><!--
-       --><button type="submit" class="btn btn-error" ng-if="vm.error" ng-disabled="vm.categoryEditor.$invalid">
-            <i class="fa fa-refresh"></i>Retry
-          </button><!--
-       --><button id="delete-category-button" class='btn btn-tertiary' type="button"
-                  ng-click="vm.deleteCategory()" ng-if="vm.dirtyCategory && !vm.dirtyCategory.$new">
-            <i class="fa fa-fw fa-trash"></i>Delete Application Category
-          </button>
+    <form name="vm.categoryEditor" class="clm-form" role="form" ng-submit="vm.categoryEditor.$valid && vm.save()" form-mask mask-attach-to-body>
+      <div class="section">
+        <div class="field">
+          <label for="editor-category-name">Application Category Name</label>
+          <input id="editor-category-name" type="text" name="category" required
+                 ng-model="vm.dirtyCategory.name"
+                 ng-maxlength="60"
+                 focus-input="true"
+                 valid-name-characters
+                 is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id"
+                 messages="{duplicate: 'Name is already in use'}"
+                 clm-input>
         </div>
-      </form>
-    </div>
+        <div class="field">
+          <label for="editor-category-description">Short Description</label>
+          <textarea id="editor-category-description" name="description" class="wide" rows="2" required
+                 ng-model="vm.dirtyCategory.description"
+                 ng-maxlength="255"
+                 clm-input></textarea>
+        </div>
+        <div class="field">
+          <label for="editor-category-color-picker">Icon Color</label>
+          <div id="editor-category-color-picker" ng-model="vm.dirtyCategory.color" color-picker remove-tabindex required/>
+          </div>
+        </div>
+      <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.categoryEditor.$invalid || !vm.dirtyCategory.isDirty()">
+          {{vm.dirtyCategory.id ? 'Update' : 'Create'}}
+        </button><!--
+        --><button id="delete-category-button" class='btn btn-tertiary' type="button"
+                   ng-click="vm.deleteCategory()" ng-if="vm.dirtyCategory && !vm.dirtyCategory.$new">
+        <i class="fa fa-fw fa-trash"></i>Delete Application Category
+        </button>
+      </div>
+    </form>
   </div>
 </div>

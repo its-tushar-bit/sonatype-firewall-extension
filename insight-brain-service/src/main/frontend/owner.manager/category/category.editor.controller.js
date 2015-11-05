@@ -6,17 +6,18 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($stateParams, $scope, TagStore, Messages, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
+  function CategoryEditorController($stateParams, $scope, TagStore, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
     var vm = this;
     var store;
 
     vm.dirtyCategory = undefined;
     vm.deleteCategory = deleteCategory;
     vm.doLoad = doLoad;
-    vm.error = undefined;
+    vm.loadError = undefined;
     vm.categoryEditor = undefined;
     vm.siblings = [];
     vm.save = save;
+    vm.submitError = undefined;
 
     vm.doLoad();
 
@@ -27,7 +28,7 @@
     }
 
     function doLoad() {
-      TagStore[vm.error ? 'refresh' : 'get']().then(function(tagStore) {
+      TagStore[vm.loadError ? 'refresh' : 'get']().then(function(tagStore) {
         tagStore.forEach(function(owner){
           vm.siblings = vm.siblings.concat(owner.tags);
         });
@@ -45,16 +46,17 @@
         }
 
         if (!vm.dirtyCategory) {
-          vm.error = 'Unable to locate category.';
+          vm.loadError = 'Unable to locate category.';
         }
-      }, function() {
-        vm.error = arguments;
+      }, function(error) {
+        vm.loadError = error;
       });
+      delete vm.loadError;
     }
 
     function save() {
       var isNew = vm.dirtyCategory.$new;
-      delete vm.error;
+      delete vm.submitError;
 
       formMaskDelay.wrap($scope, vm.dirtyCategory.$save()).then(function() {
         if (isNew) {
@@ -62,13 +64,13 @@
           vm.dirtyCategory = store.create();
         }
         vm.categoryEditor.$setPristine();
-      }, function() {
-        vm.error = arguments;
+      }, function(error) {
+        vm.submitError = error;
       });
     }
   }
 
-  CategoryEditorController.$inject = ['$stateParams', '$scope', 'TagStore', 'Messages', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
+  CategoryEditorController.$inject = ['$stateParams', '$scope', 'TagStore', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);
 

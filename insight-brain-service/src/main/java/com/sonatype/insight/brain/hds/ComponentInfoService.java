@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -281,10 +280,7 @@ public class ComponentInfoService
     Set<License> licenses = new LinkedHashSet<>();
     licenses.addAll(declared);
     licenses.addAll(observed);
-    Iterator<License> licenseIter = licenses.iterator();
-    while (licenseIter.hasNext()) {
-      License license = licenseIter.next();
-
+    for (final License license : licenses) {
       if (com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(license.getLicenseId())) {
         continue;
       }

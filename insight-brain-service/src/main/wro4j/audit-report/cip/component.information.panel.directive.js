@@ -21,6 +21,9 @@
         vm.tabShown = tabShown;
 
         vm.tabs = [{
+          title: 'Component Info',
+          directive: 'information-panel'
+        }, {
           title: 'Policy',
           directive: 'cip-policy-violations'
         },{

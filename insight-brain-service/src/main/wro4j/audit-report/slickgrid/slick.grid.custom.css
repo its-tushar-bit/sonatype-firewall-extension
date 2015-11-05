@@ -158,4 +158,10 @@ div.slick-header-column-sorted {
 }
 #securitycontainer input[disabled],input[readonly]{cursor:auto}
 #licensecontainer input[disabled],input[readonly]{cursor:auto}
-#informationPanel .alert {margin-left:10px; width:822px; margin-bottom:5px; padding-top:0px; padding-bottom:0px;}
+
+#informationPanel .alert {
+  margin-left:10px;
+  margin-bottom:5px;
+  padding-top:0px;
+  padding-bottom:0px;
+}

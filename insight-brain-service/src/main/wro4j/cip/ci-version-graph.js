@@ -22,32 +22,34 @@
     };
     VersionGraphTab.prototype.create = function() {
       var timestamp = new Date().getTime(),
-          container = $('<div clm-include="\'' + CLM.path + 'version-graph/version-graph.html\'"></div>'),
+          container = $('<div information-panel></div>'),
           me = this;
       me.node.empty();
       container.appendTo(this.node);
       angular.module('componentProvider' + timestamp, ['ComponentUtils']).run([
-        'ComponentUtil', function(ComponentUtil) {
+        'ComponentUtil', 'Properties', 'Coordinates', function(ComponentUtil, Properties, Coordinates) {
           var component = me.component || me.gav;
-          var properties = {
-            //legacy coordinates here is the name to display, not componentIdentifier.coordinates
-            filename: component.matchState === 'unknown' ? component.coordinates : null,
-            hash: component.hash,
-            matchState: component.matchState,
-            proprietary: component.proprietary,
-            appId: applicationId
-          };
           ComponentUtil.enhanceWithComponentIdentifier(component);
+
+          Properties.setHash(component.hash);
+          Properties.setFilename(component.matchState === 'unknown' ? component.coordinates : null);
+          Properties.setProprietary(component.proprietary || false);
+          Properties.setMatchState(component.matchState);
+
           if (component.componentIdentifier) {
-            Insight.setCoordinates(component.componentIdentifier.format, component.componentIdentifier.coordinates,
-              properties);
+            Coordinates.set(component.componentIdentifier.format, component.componentIdentifier.coordinates); //coordinates may be null for unknown
           }
           else {
-            Insight.setCoordinates(null, null, properties);
+            Coordinates.set(null, {}); // unknown
           }
         }
-      ]);
-      angular.bootstrap(container[0], ['CIP', 'componentProvider' + timestamp, 'HttpInterceptors',
+      ]).service('OwnerContext', function () {
+        return {
+          ownerType: 'application',
+          ownerId: applicationId
+        };
+      });
+      angular.bootstrap(container[0], ['version.graph', 'componentProvider' + timestamp, 'HttpInterceptors',
           'UnauthenticatedResponseHttpInterceptor']);
     };
     return VersionGraphTab;
@@ -59,7 +61,7 @@
     selectApplication : false,
     openView : angular.noop,
     linkTarget : '_blank',
-    path : CLM.path + 'version-graph/'
+    path : CLM.path + 'assets/version-graph/'
   };
 
   CLM.loadPlugin(createPlugin, 'Component Info');

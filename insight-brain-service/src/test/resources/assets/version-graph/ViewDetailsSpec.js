@@ -81,7 +81,7 @@ describe('Eclipse View Details tests', function() {
 
   describe('Legacy Plugin', function() {
     beforeEach(inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(angular.copy(data));
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(angular.copy(data));
       $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
     }));
@@ -96,7 +96,7 @@ describe('Eclipse View Details tests', function() {
 
   describe('Error Handling', function() {
     it('ignores HTML bodies', inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(500, '<html>Error</html>', {'Content-Type': 'text/html'});
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(500, '<html>Error</html>', {'Content-Type': 'text/html'});
       $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
       expect(scope.data).toBeNull();
@@ -105,7 +105,7 @@ describe('Eclipse View Details tests', function() {
     }));
 
     it('uses plain text bodies', inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(500, 'Oops', {'Content-Type': 'text/plain'});
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(500, 'Oops', {'Content-Type': 'text/plain'});
       $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
       expect(scope.data).toBeNull();
@@ -114,7 +114,7 @@ describe('Eclipse View Details tests', function() {
     }));
 
     it('falls back to error code if no message supplied', inject(function($httpBackend, $controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(500, '', {'Content-Type': 'text/plain'});
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(500, '', {'Content-Type': 'text/plain'});
       $controller('view', { $scope: scope, query : angular.copy(query) });
       httpBackend.flush();
       expect(scope.data).toBeNull();
@@ -128,7 +128,7 @@ describe('Eclipse View Details tests', function() {
 
     beforeEach(inject(function($httpBackend, $controller) {
       angular.extend(query, { deferLoad: 'true' });
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId'), function(reqHeaders) {
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId'), function(reqHeaders) {
         var match = true;
         angular.forEach(headers, function(value, key) {
           match = match && reqHeaders[key] === value;
@@ -155,9 +155,9 @@ describe('Eclipse View Details tests', function() {
     });
 
     it('legacy', inject(function ($controller) {
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(angular.copy(data));
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(angular.copy(data));
       $controller('view', { $scope: scope, query : angular.copy(query) });
-      expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith('appId', 'maven', '12345678901234567890', 'similar',
+      expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith('application', 'appId', 'maven', '12345678901234567890', 'similar',
               false, {
                 groupId: 'gid',
                 artifactId: 'aid',
@@ -182,9 +182,9 @@ describe('Eclipse View Details tests', function() {
         })
       };
 
-      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/appId')).respond(angular.copy(data));
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(angular.copy(data));
       $controller('view', { $scope: scope, query : angular.copy(query) });
-      expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith('appId', 'nuget', '12345678901234567890', 'similar',
+      expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith('application', 'appId', 'nuget', '12345678901234567890', 'similar',
               false, {
                 packageId : 'foo',
                 version: '1.0'

@@ -5,18 +5,16 @@
  */
 package com.sonatype.clm.testing.functional.audit;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
-import com.sonatype.clm.dto.model.License;
-import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LicenseCIP;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
+import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -36,12 +34,14 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import com.codeborne.selenide.Condition;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.present;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -162,19 +162,29 @@ public class RepositoryReportTest
     testAllViolationsFilter();
     testQuarantinedFilter();
 
+    setupHDSResponse();
     testLicenseCIP();
     testVulnerabilityCIP();
+    testVersionGraphCIP();
     testPolicyCIP();
     testLabelsCIP();
 
     testHiddenCIPTabs();
   }
 
+  private void setupHDSResponse() throws IOException {
+    testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails",
+        FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetails.json")), 200);
+    testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails/list",
+        FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetailsList.json")), 200);
+  }
+
   private void testHiddenCIPTabs() {
-    // Open CIP for unknown compoment
+    // Open CIP for unknown component
     RepositoryReportPage.Table.row(5).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
 
+    RepositoryReportPage.Table.cipTab("Component Info").shouldBe(visible);
     RepositoryReportPage.Table.cipTab("Policy").shouldBe(visible);
     RepositoryReportPage.Table.cipTab("Labels").shouldNotBe(visible);
     RepositoryReportPage.Table.cipTab("Licenses").shouldNotBe(visible);
@@ -186,27 +196,42 @@ public class RepositoryReportTest
   }
 
   private void testLicenseCIP() {
-    // HDS call
-    ComponentDetails hdsComponentDetails = new ComponentDetails(
-        ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0"));
-    hdsComponentDetails.getDeclaredLicenses().add(new License("Amazon", "Amazon"));
-    hdsComponentDetails.getObservedLicenses().add(new License("AAL", "AAL"));
-    testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails", hdsComponentDetails, 200);
-
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
 
     RepositoryReportPage.Table.cipTab("License").click();
 
-    LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(6), texts("Amazon"));
-    LicenseCIP.observedLicenses().shouldHave(LicenseCIP.licenseThreats(0), texts("AAL"));
-    LicenseCIP.effectiveLicenses().shouldHave(LicenseCIP.licenseThreats(0, 6), texts("AAL", "Amazon"));
+    LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(0), texts("Apache-2.0"));
+    LicenseCIP.observedLicenses().shouldHave(LicenseCIP.licenseThreats(9), texts("GPL-2.0"));
+    LicenseCIP.effectiveLicenses().shouldHave(LicenseCIP.licenseThreats(0, 9), texts("Apache-2.0", "GPL-2.0"));
 
     // close CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
+  }
 
+  private void testVersionGraphCIP() throws IOException {
+    // open CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+
+    RepositoryReportPage.Table.cipTab("Component Info").click();
+    VersionsCIP.groupId().shouldHave(text("critical"));
+    VersionsCIP.artifactId().shouldHave(text("threat"));
+    VersionsCIP.version().shouldHave(text("1.0"));
+    VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
+    VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
+    VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("NA"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
+    VersionsCIP.securityCount().shouldHave(text("3"));
+    VersionsCIP.matchState().shouldHave(text("exact"));
+    VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
+
+    // close CIP
+    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
   private void testLabelsCIP() {
@@ -253,17 +278,6 @@ public class RepositoryReportTest
   }
 
   private void testVulnerabilityCIP() {
-    // HDS call
-    ComponentDetails hdsComponentDetails = new ComponentDetails(
-        ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0"));
-    // SecurityVul
-    List<SecurityVulnerability> svs = new ArrayList<SecurityVulnerability>();
-    svs.add(new SecurityVulnerability("1234-56789", "cve", 9.0f));
-    svs.add(new SecurityVulnerability("1234", "osvdb", 4.4f));
-    svs.add(new SecurityVulnerability("4321", "osvdb", null));
-    hdsComponentDetails.setSecurityVulnerabilities(svs);
-    testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails", hdsComponentDetails, 200);
-
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);

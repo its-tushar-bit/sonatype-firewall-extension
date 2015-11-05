@@ -8,7 +8,7 @@ var clmEndpointTemplate = {
   'use strict';
 
   describe('CIP Tests', function () {
-    beforeEach(module('CIP', 'ComponentName'));
+    beforeEach(module('version.graph.app', 'ComponentName'));
 
     afterEach(function () {
       clmEndpoint = angular.copy(clmEndpointTemplate);
@@ -265,29 +265,29 @@ var clmEndpointTemplate = {
       }));
     });
 
-    describe('SelectedApp', function () {
+    describe('OwnerContext', function () {
       describe('IDE Mode', function () {
-        it ('Retrieves from setGav', inject(function (SelectedApp) {
+        it ('Retrieves from setGav', inject(function (OwnerContext) {
           Insight.setGav({
             appId : 'foo'
           });
-          expect(SelectedApp.get()).toEqual('foo');
+          expect(OwnerContext.ownerId).toEqual('foo');
         }));
-        it ('Retrieves from setCoordinates', inject(function (SelectedApp) {
+        it ('Retrieves from setCoordinates', inject(function (OwnerContext) {
           Insight.setCoordinates('maven', {}, {
             appId : 'foo'
           });
-          expect(SelectedApp.get()).toEqual('foo');
+          expect(OwnerContext.ownerId).toEqual('foo');
         }));
 
-        it ('Doesn\'t Persist', inject(function (SelectedApp) {
-          SelectedApp.set('foo');
+        it ('Doesn\'t Persist', inject(function (OwnerContext) {
+          OwnerContext.setApplicationId('foo');
           expect(document.cookie.indexOf('foo')).toEqual(-1);
         }));
 
-        it ('Doesn\'t Use Cookie', inject(function (SelectedApp) {
+        it ('Doesn\'t Use Cookie', inject(function (OwnerContext) {
           document.cookie = 'clmAppId=bar';
-          expect(SelectedApp.get()).toBeFalsy();
+          expect(OwnerContext.ownerId).toBeFalsy();
         }));
       });
 
@@ -300,13 +300,15 @@ var clmEndpointTemplate = {
         afterEach(function () {
           clmEndpoint.selectApplication = oldVal;
         });
-        it ('Loads from cookie', inject(function (SelectedApp) {
-          document.cookie = 'clmAppId=bar';
-          expect(SelectedApp.get()).toEqual('bar');
+        it ('Loads from cookie', inject(function (OwnerContext, $rootScope) {
+          $rootScope.$apply(function () {
+            document.cookie = 'clmAppId=bar';
+          });
+          expect(OwnerContext.ownerId).toEqual('bar');
         }));
 
-        it ('Saves to cookie', inject(function (SelectedApp) {
-          SelectedApp.set('save');
+        it ('Saves to cookie', inject(function (OwnerContext) {
+          OwnerContext.setApplicationId('save');
           expect(document.cookie).toEqual('clmAppId=save');
         }));
       });
@@ -358,27 +360,27 @@ var clmEndpointTemplate = {
       var scope = null;
 
       beforeEach(inject(function ($controller, $rootScope) {
+        clmEndpoint.selectApplication = true;
         scope = $rootScope.$new();
         $controller('ComponentController', {
           $scope : scope
         });
       }));
 
-      it('Http Requests', inject(function ($httpBackend) {
+      it('Http Requests', inject(function ($httpBackend, $rootScope) {
         var gav = {
           groupId : 'foo',
           artifactId : 'bar',
           version : '1',
           proprietary : true
         };
-        clmEndpoint.selectApplication = true;
 
         Insight.setGav(gav);
 
         $httpBackend.verifyNoOutstandingRequest();
 
         Insight.clearGav();
-        scope.$apply(function () {
+        $rootScope.$apply(function () {
           document.cookie = 'clmAppId=myFirstApp';
         });
         $httpBackend.verifyNoOutstandingRequest();
@@ -397,6 +399,7 @@ var clmEndpointTemplate = {
 
       beforeEach(inject(function ($controller, $rootScope) {
         scope = $rootScope.$new();
+        clmEndpoint.selectApplication = true;
         $controller('DetailsController', {
           $scope : scope
         });
@@ -415,7 +418,6 @@ var clmEndpointTemplate = {
           proprietary : true,
           matchState : 'similar'
         };
-        clmEndpoint.selectApplication = true;
 
         Insight.setGav(gav);
 
@@ -431,11 +433,11 @@ var clmEndpointTemplate = {
         $httpBackend.expectGET('foo').respond({ securityVulnerabilities : [], policyAlerts: [] });
         Insight.setGav(angular.extend({ matchState : 'similar' }, gav));
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', '01234', 'similar', true, {
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven', '01234', 'similar', true, {
           groupId : 'foo',
           artifactId : 'bar',
           version : '1'
-        });
+        }, undefined);
 
         // Another version selected
         $httpBackend.expectGET('foo').respond({
@@ -446,11 +448,11 @@ var clmEndpointTemplate = {
           Coordinates.setSelected({ groupId : 'foo', artifactId : 'bar', version : '2' });
         });
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('myFirstApp', 'maven', null, null, true, {
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven', null, null, true, {
           groupId : 'foo',
           artifactId : 'bar',
           version : '2'
-        });
+        }, undefined);
 
         // Unknown GAV
         scope.$apply(function () {
@@ -493,7 +495,7 @@ var clmEndpointTemplate = {
         expect(scope.canMigrate()).toBeTruthy();
       }));
 
-      it('getMaximumSeverity', inject(function($httpBackend, Coordinates, SelectedApp) {
+      it('getMaximumSeverity', inject(function($httpBackend, Coordinates, OwnerContext) {
         scope.componentDetails = {
           securityVulnerabilities : []
         };
@@ -518,7 +520,7 @@ var clmEndpointTemplate = {
 
         scope.$apply(function () {
           Coordinates.set('maven', gav);
-          SelectedApp.set('appId');
+          OwnerContext.setApplicationId('appId');
         });
         $httpBackend.flush();
 
@@ -552,7 +554,7 @@ var clmEndpointTemplate = {
         expect(scope.getColorClass()).toEqual(' critical');
       }));
 
-      it('calculates highestPolicyThreat', inject(function($httpBackend, Coordinates, SelectedApp) {
+      it('calculates highestPolicyThreat', inject(function($httpBackend, Coordinates, OwnerContext) {
         var gav = {
           groupId : 'groupId',
           artifactId : 'artifactId',
@@ -578,7 +580,7 @@ var clmEndpointTemplate = {
 
         scope.$apply(function () {
           Coordinates.set('maven', gav);
-          SelectedApp.set('appId');
+          OwnerContext.setApplicationId('appId');
         });
         $httpBackend.flush();
 

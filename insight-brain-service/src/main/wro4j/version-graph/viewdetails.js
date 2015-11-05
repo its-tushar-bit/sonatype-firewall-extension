@@ -218,7 +218,7 @@
 
         var promises = [];
 
-        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl(appId, identifier.format, hash, matchState, proprietary, identifier.coordinates), {
+        promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl('application', appId, identifier.format, hash, matchState, proprietary, identifier.coordinates), {
           headers: {
             "Accept": "application/json"
           }

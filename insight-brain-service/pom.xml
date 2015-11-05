@@ -668,7 +668,7 @@
                 <exclude>wro4j/lib/angular-${angularjs.version}/*.min.js</exclude>
                 <exclude>wro4j/lib/hogan.js</exclude>
                 <exclude>resources/assets/assets/version-graph/protovis-msie.min.js</exclude>
-                <exclude>wro4j/version-graph/*.js</exclude>
+                <exclude>wro4j/version-graph/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
                 <include>resources/assets/SpecUtil.js</include>
@@ -723,7 +723,10 @@
                 <include>brain-client/*.js</include>
                 <include>wro4j/version-graph/protovis.min.js</include>
                 <include>wro4j/version-graph/appcheck.js</include>
-                <include>wro4j/version-graph/cip.js</include>
+                <include>wro4j/version-graph/**/*.module.js</include>
+                <include>wro4j/version-graph/**/*.app.js</include>
+                <include>wro4j/version-graph/app/*.js</include>
+                <include>wro4j/version-graph/version.graph/*.js</include>
                 <include>wro4j/assets/ComponentDisplayModule.js</include>
               </sourceIncludes>
               <sourceExcludes>
@@ -944,7 +947,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <targetGroups>version-graph,viewdetails</targetGroups>
+              <targetGroups>version.graph.app,viewdetails</targetGroups>
               <destinationFolder>${wro4j.brain.resources}assets/version-graph/</destinationFolder>
             </configuration>
           </execution>

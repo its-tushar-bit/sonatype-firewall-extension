@@ -9,7 +9,7 @@ var clmBuildTimestamp = '${build.timestamp}';
 (function() {
   'use strict';
 
-  function toParams(componentType, hash, matchState, proprietary, coordinates) {
+  function toParams(componentType, hash, matchState, proprietary, coordinates, pathname) {
     var params = {};
 
     if (coordinates) {
@@ -25,6 +25,9 @@ var clmBuildTimestamp = '${build.timestamp}';
     if (proprietary) {
       params.proprietary = proprietary;
     }
+    if (pathname) {
+      params.pathname = pathname;
+    }
     if (window.reportId) {
       params.reportId = window.reportId;
     }
@@ -32,18 +35,18 @@ var clmBuildTimestamp = '${build.timestamp}';
   }
 
   function createComponentUrl(clientType) {
-    return function (appPublicId, componentType, hash, matchState, proprietary, coordinates) {
-      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId);
+    return function (ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
 
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates);
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname);
     };
   }
 
   function createComponentListUrl(clientType) {
-    return function (appPublicId, componentType, hash, matchState, proprietary, coordinates) {
-      var url = basePath + 'rest/' + clientType + '/componentDetails/' + encodeURIComponent(appPublicId) + '/list';
+    return function (ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname) {
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) + '/list';
 
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates);
+      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname);
     };
   }
 

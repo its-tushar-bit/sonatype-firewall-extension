@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -81,6 +82,15 @@ public class RepositoryDAO
     }
   }
 
+  /**
+   * If the repository is disabled, then quarantine must be disabled too.
+   */
+  private void ensureCorrectQuarantineMode(Repository repository) {
+    if (!repository.isEnabled()) {
+      repository.setQuarantineEnabled(false);
+    }
+  }
+
   @Override
   public void insert(TransactionContext tx, Repository repository) {
     validateNotEmptyPublicId(repository.getPublicId());
@@ -89,6 +99,8 @@ public class RepositoryDAO
       throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
     }
+
+    ensureCorrectQuarantineMode(repository);
 
     super.insert(tx, repository);
   }
@@ -102,6 +114,24 @@ public class RepositoryDAO
     if (existingRepository != null && !existingRepository.getId().equals(repository.getId())) {
       throw new InvalidRepositoryException("There is already a repository with public ID '" + repository.getPublicId()
           + "' for the same repository manager.");
+    }
+
+    ensureCorrectQuarantineMode(repository);
+
+    // If quarantine is disabled, but was enabled before this update, then unquarantine all components in this
+    // repository.
+    if (!repository.isQuarantineEnabled()) {
+      existingRepository = getById(tx, repository.getId());
+      if (existingRepository.isQuarantineEnabled()) {
+        RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+        Date unquarantineTime = new Date();
+        List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
+            repository.getId());
+        for (RepositoryComponent quarantinedComponent : quarantinedComponents) {
+          quarantinedComponent.setUnquarantineTime(unquarantineTime);
+          repositoryComponentDAO.update(tx, quarantinedComponent);
+        }
+      }
     }
 
     super.update(tx, repository);

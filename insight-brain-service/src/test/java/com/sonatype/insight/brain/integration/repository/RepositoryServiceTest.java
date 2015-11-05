@@ -282,9 +282,9 @@ public class RepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, true);
 
-    // Check that initial value is true
+    // Check initial state
     assertThat(repository.isEnabled(), is(false));
-    assertThat(repository.isQuarantineEnabled(), is(true));
+    assertThat(repository.isQuarantineEnabled(), is(false));
 
     repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
     repository = repositoryDAO.getById(repository.getId());
@@ -318,24 +318,6 @@ public class RepositoryServiceTest
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled(), is(true));
     assertThat(repository.isQuarantineEnabled(), is(false));
-  }
-
-  @Test
-  public void testSetQuarantine_Disabled_UnquarantinesComponents() throws Exception {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
-    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
-    RepositoryComponent allowedComponent = tempEntity.newRepositoryComponent(repository.getId());
-    RepositoryComponent quarantinedComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
-        new Date(), null /* unquarantineTime */);
-
-    repositoryService.setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
-    repository = repositoryDAO.getById(repository.getId());
-    assertThat(repository.isQuarantineEnabled(), is(false));
-
-    allowedComponent = repositoryComponentDAO.getById(allowedComponent.getId());
-    quarantinedComponent = repositoryComponentDAO.getById(quarantinedComponent.getId());
-    assertThat(allowedComponent.isQuarantined(), is(false));
-    assertThat(quarantinedComponent.isQuarantined(), is(false));
   }
 
   @Test

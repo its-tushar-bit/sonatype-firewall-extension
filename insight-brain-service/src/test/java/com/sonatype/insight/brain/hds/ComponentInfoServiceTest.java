@@ -57,7 +57,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -94,9 +93,6 @@ public class ComponentInfoServiceTest
 
   @Inject
   private ComponentInfoService componentInfoService;
-
-  @Inject
-  private InsightWork insightWork;
 
   private String applicationPublicId = "ComponentInfoServiceTest";
 

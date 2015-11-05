@@ -46,12 +46,12 @@ public class CIComponentInfoResourceTest
 
   @Test
   public void testGetComponentDetails() throws Exception {
-    super.testGetComponentDetails_ReadPermission();
+    testGetComponentDetails_ReadPermission();
   }
 
   @Test
   public void testGetComponentDetailsList() throws Exception {
-    super.testGetComponentDetailsList_ReadPermission();
+    testGetComponentDetailsList_ReadPermission();
   }
 
   @Test
@@ -64,7 +64,7 @@ public class CIComponentInfoResourceTest
     hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
 
     setHdsResponseForURI(
-        convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null).getUrl(), "foo"),
+        convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null).getUrl()),
         hdsComponentDetails, 200);
 
     HttpResponse response = vulnerabilitiesRequest(OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES).

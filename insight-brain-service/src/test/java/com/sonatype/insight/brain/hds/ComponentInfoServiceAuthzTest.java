@@ -16,10 +16,10 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -28,9 +28,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -106,58 +103,116 @@ public class ComponentInfoServiceAuthzTest
         MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
-  @Test
-  public void testGetComponentDetailsList_ReadPermission_Authorized() throws Exception {
+  // /
+
+  private void testGetComponentDetailsList_ReadPermission_Authorized(final Owner owner, final String ownerId)
+      throws Exception
+  {
     configureHdsClientMock();
-    grantReadPermission(app.getId());
-    try {
-      componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), "reportId",
-          COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), null /* httpRequest */);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Cannot find a report with ID 'reportId'."));
-    }
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testGetComponentDetailsList_ReadPermission_Unauthorized() throws Exception {
-    login();
-    componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), null /* reportId */,
-        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), null /* httpRequest */);
-  }
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetComponentDetailsList_ReadPermission_Unauthenticated() throws Exception {
-    componentInfoService.getComponentDetailsList_ReadPermission(app.getPublicId(), null /* reportId */,
-        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), null /* httpRequest */);
+    grantReadPermission(owner.getId());
+    componentInfoService.getComponentDetailsList_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), null /* httpRequest */);
   }
 
   @Test
-  public void testGetComponentDetails_ReadPermission_Authorized() throws Exception {
-    configureHdsClientMock();
-    grantReadPermission(app.getId());
-    try {
-      componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), "reportId", COMPONENT_IDENTIFIER,
-          MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Cannot find a report with ID 'reportId'."));
-    }
+  public void testGetComponentDetailsList_ReadPermission_Authorized_Application() throws Exception {
+    testGetComponentDetailsList_ReadPermission_Authorized(app, app.getPublicId());
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ReadPermission_Authorized_Repository() throws Exception {
+    testGetComponentDetailsList_ReadPermission_Authorized(repository, repository.getId());
+  }
+
+  private void testGetComponentDetailsList_ReadPermission_Unauthorized(final Owner owner, final String ownerId)
+      throws Exception
+  {
+    login();
+    componentInfoService.getComponentDetailsList_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), null /* httpRequest */);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetComponentDetails_ReadPermission_Unauthorized() throws Exception {
-    login();
-    componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), "reportId",
-        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+  public void testGetComponentDetailsList_ReadPermission_Unauthorized_Application() throws Exception {
+    testGetComponentDetailsList_ReadPermission_Unauthorized(app, app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentDetailsList_ReadPermission_Unauthorized_Repository() throws Exception {
+    testGetComponentDetailsList_ReadPermission_Unauthorized(repository, repository.getId());
+  }
+
+  private void testGetComponentDetailsList_ReadPermission_Unauthenticated(final Owner owner, final String ownerId)
+      throws Exception
+  {
+    componentInfoService.getComponentDetailsList_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), null /* httpRequest */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetComponentDetails_ReadPermission_Unauthenticated() throws Exception {
-    componentInfoService.getComponentDetails_ReadPermission(app.getPublicId(), null /* reportId */,
-        COMPONENT_IDENTIFIER, MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+  public void testGetComponentDetailsList_ReadPermission_Unauthenticated_Application() throws Exception {
+    testGetComponentDetailsList_ReadPermission_Unauthenticated(app, app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentDetailsList_ReadPermission_Unauthenticated_Repository() throws Exception {
+    testGetComponentDetailsList_ReadPermission_Unauthenticated(repository, repository.getId());
+  }
+
+  private void testGetComponentDetails_ReadPermission_Authorized(final Owner owner, final String ownerId)
+      throws Exception
+  {
+    configureHdsClientMock();
+    grantReadPermission(owner.getId());
+    componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_Authorized_Application() throws Exception {
+    testGetComponentDetails_ReadPermission_Authorized(app, app.getPublicId());
+  }
+
+  @Test
+  public void testGetComponentDetails_ReadPermission_Authorized_Repository() throws Exception {
+    testGetComponentDetails_ReadPermission_Authorized(repository, repository.getId());
+  }
+
+  private void testGetComponentDetails_ReadPermission_Unauthorized(final Owner owner, final String ownerId)
+      throws Exception
+  {
+    login();
+    componentInfoService
+        .getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
+            "hash", false /* proprietary */, null /* httpRequest */);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentDetails_ReadPermission_Unauthorized_Application() throws Exception {
+    testGetComponentDetails_ReadPermission_Unauthorized(app, app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentDetails_ReadPermission_Unauthorized_Repository() throws Exception {
+    testGetComponentDetails_ReadPermission_Unauthorized(repository, repository.getId());
+  }
+
+  private void testGetComponentDetails_ReadPermission_Unauthenticated(final Owner owner, final String ownerId)
+      throws Exception
+  {
+    componentInfoService
+        .getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
+            "hash", false /* proprietary */, null /* httpRequest */);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentDetails_ReadPermission_Unauthenticated_Application() throws Exception {
+    testGetComponentDetails_ReadPermission_Unauthenticated(app, app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentDetails_ReadPermission_Unauthenticated_Repository() throws Exception {
+    testGetComponentDetails_ReadPermission_Unauthenticated(repository, repository.getId());
   }
 
   @Test

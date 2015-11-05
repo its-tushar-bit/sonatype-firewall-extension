@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +36,7 @@ import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVuln
 import com.sonatype.insight.brain.hds.ComponentInfoService.LicenseWithThreatLevel;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -60,11 +60,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -855,17 +853,14 @@ public class ComponentInfoServiceTest
     return result;
   }
 
-  @Test
-  public void testGetComponentDetails_ReadPermission() throws Exception {
+  private void testGetComponentDetails_ReadPermission(final Owner owner, final String ownerId)
+      throws Exception
+  {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     mockHdsGetComponentDetails(hdsComponentDetails);
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
-        .getReportDir(application.getId(), reportId));
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(applicationPublicId,
-        reportId, MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
-        httpRequestMock);
+    ComponentDetails componentDetails = componentInfoService
+        .getComponentDetails_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */,
+            false /* proprietary */, httpRequestMock);
     assertThat(componentDetails, is(notNullValue()));
     assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
     assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
@@ -873,88 +868,23 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentDetails_ReadPermission_ReportDoesNotExist() throws Exception {
-    String reportId = "noSuchReport";
-    try {
-      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, reportId, MAVEN_COORDINATES,
-          MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Cannot find a report with ID 'noSuchReport'."));
-    }
+  public void testGetComponentDetails_ReadPermission_Application() throws Exception {
+    testGetComponentDetails_ReadPermission(application, applicationPublicId);
   }
 
   @Test
-  public void testGetComponentDetails_ReadPermission_ComponentNotInReport() throws Exception {
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
-        .getReportDir(application.getId(), reportId));
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("packageId", "version");
-    try {
-      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, reportId, componentIdentifier,
-          MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
-      fail("Expected InternalServerException");
-    }
-    catch (InternalServerException expected) {
-      assertThat(expected.getMessage(), is("Cannot get component details."));
-    }
+  public void testGetComponentDetails_ReadPermission_Repository() throws Exception {
+    testGetComponentDetails_ReadPermission(repository, repository.getId());
   }
 
-  @Test
-  public void testGetComponentDetails_ReadPermission_ComponentWithDifferentVersionInReport() throws Exception {
-    ComponentIdentifier componentIdentifier = MAVEN_COORDINATES.createAlternativeVersion("1.2.3.4");
-    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(componentIdentifier);
-    mockHdsGetComponentDetails(hdsComponentDetails);
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
-        .getReportDir(application.getId(), reportId));
-    ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(applicationPublicId,
-        reportId, componentIdentifier, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
-        httpRequestMock);
-    assertThat(componentDetails, is(notNullValue()));
-    assertThat(componentDetails.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
-    assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
-  }
-
-  @Test
-  public void testGetComponentDetails_ReadPermission_NoReportId() throws Exception {
-    // reportId is null
-    try {
-      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, null /* reportId */,
-          MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
-      fail("Expected InternalServerException");
-    }
-    catch (InternalServerException expected) {
-      assertThat(expected.getMessage(), is("The report ID must be specified."));
-    }
-
-    // reportId is empty
-    try {
-      componentInfoService.getComponentDetails_ReadPermission(applicationPublicId, " " /* reportId */,
-          MAVEN_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
-      fail("Expected InternalServerException");
-    }
-    catch (InternalServerException expected) {
-      assertThat(expected.getMessage(), is("The report ID must be specified."));
-    }
-  }
-
-  @Test
-  public void testGetComponentDetailsList_ReadPermission() throws Exception {
+  private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) throws Exception {
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList);
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
-        .getReportDir(application.getId(), reportId));
-    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
-        applicationPublicId, reportId, MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
+    ComponentDetailsList componentDetailsList = componentInfoService
+        .getComponentDetailsList_ReadPermission(owner.getType(), ownerId, MAVEN_COORDINATES, MatchState.EXACT.getId(),
+            httpRequestMock);
     assertThat(componentDetailsList.getList(), hasSize(1));
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertThat(componentDetails.getComponentIdentifier(), is(MAVEN_COORDINATES));
@@ -962,75 +892,13 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentDetailsList_ReadPermission_ReportDoesNotExist() throws Exception {
-    String reportId = "noSuchReport";
-    try {
-      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, reportId, MAVEN_COORDINATES,
-          MatchState.EXACT.getId(), httpRequestMock);
-      fail("Expected NotFoundException");
-    }
-    catch (NotFoundException expected) {
-      assertThat(expected.getMessage(), is("Cannot find a report with ID 'noSuchReport'."));
-    }
+  public void testGetComponentDetailsList_ReadPermission_Application() throws Exception {
+    testGetComponentDetailsList_ReadPermission(application, application.getPublicId());
   }
 
   @Test
-  public void testGetComponentDetailsList_ReadPermission_ComponentNotInReport() throws Exception {
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
-        .getReportDir(application.getId(), reportId));
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNugetCoordinates("packageId", "version");
-    try {
-      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, reportId, componentIdentifier,
-          MatchState.EXACT.getId(), httpRequestMock);
-      fail("Expected InternalServerException");
-    }
-    catch (InternalServerException expected) {
-      assertThat(expected.getMessage(), is("Cannot get component details."));
-    }
-  }
-
-  @Test
-  public void testGetComponentDetailsList_ReadPermission_ComponentWithDifferentVersionInReport() throws Exception {
-    ComponentIdentifier componentIdentifier = MAVEN_COORDINATES.createAlternativeVersion("1.2.3.4");
-    ComponentDetails hdsComponentDetails = newNamedComponentDetails(componentIdentifier);
-    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
-    mockHdsGetComponentDetailsList(hdsComponentDetailsList);
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/ComponentInfoServiceTest/GetComponentDetailsWithReadPermission", reportId), insightWork
-        .getReportDir(application.getId(), reportId));
-    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
-        applicationPublicId, reportId, componentIdentifier, MatchState.EXACT.getId(), httpRequestMock);
-    assertThat(componentDetailsList.getList(), hasSize(1));
-    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertThat(componentDetails.getComponentIdentifier(), is(componentIdentifier));
-    assertThat(componentDetails.getMatchState(), is(MatchState.EXACT.getId()));
-  }
-
-  @Test
-  public void testGetComponentDetailsList_ReadPermission_NoReportId() throws Exception {
-    // reportId is null
-    try {
-      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, null /* reportId */,
-          MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
-      fail("Expected InternalServerException");
-    }
-    catch (InternalServerException expected) {
-      assertThat(expected.getMessage(), is("The report ID must be specified."));
-    }
-
-    // reportId is empty
-    try {
-      componentInfoService.getComponentDetailsList_ReadPermission(applicationPublicId, " " /* reportId */,
-          MAVEN_COORDINATES, MatchState.EXACT.getId(), httpRequestMock);
-      fail("Expected InternalServerException");
-    }
-    catch (InternalServerException expected) {
-      assertThat(expected.getMessage(), is("The report ID must be specified."));
-    }
+  public void testGetComponentDetailsList_ReadPermission_Repository() throws Exception {
+    testGetComponentDetailsList_ReadPermission(repository, repository.getId());
   }
 
   @Test

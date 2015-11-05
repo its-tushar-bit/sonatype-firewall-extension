@@ -35,6 +35,8 @@ public class RepoManComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/rm/componentDetails";
 
+  private static final String APPLICATION_COMPONENT_DETAILS_PATH = "application/{applicationPublicId}";
+
   private final ComponentInfoService componentInfoService;
 
   @Context
@@ -47,7 +49,7 @@ public class RepoManComponentInfoResource
   }
 
   @GET
-  @Path("{applicationPublicId}")
+  @Path(APPLICATION_COMPONENT_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public NamedComponentDetails getComponentDetails(@PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
@@ -59,7 +61,7 @@ public class RepoManComponentInfoResource
   }
 
   @GET
-  @Path("{applicationPublicId}/list")
+  @Path(APPLICATION_COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentDetailsList getComponentDetailsList(@PathParam("applicationPublicId") String applicationPublicId,
       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,

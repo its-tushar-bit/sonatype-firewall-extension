@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 import org.junit.Before;
+import org.junit.Test;
 
 public class CIComponentInfoResourceRepositoryTest
     extends AbstractComponentInfoResourceTest
@@ -18,6 +19,7 @@ public class CIComponentInfoResourceRepositoryTest
   @Before
   public void setUp() {
     repository = tempEntity.newRepository();
+    tempEntity.newRepositoryComponent(repository.getId());
   }
 
   @Override
@@ -33,5 +35,15 @@ public class CIComponentInfoResourceRepositoryTest
   @Override
   protected String getOwnerId() {
     return repository.getId();
+  }
+
+  @Test
+  public void testGetComponentDetails() throws Exception {
+    testGetComponentDetails_ReadPermission();
+  }
+
+  @Test
+  public void testGetComponentDetailsList() throws Exception {
+    testGetComponentDetailsList_ReadPermission();
   }
 }

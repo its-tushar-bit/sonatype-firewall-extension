@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -30,7 +29,6 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,10 +56,8 @@ public abstract class AbstractComponentInfoResourceTest
   }
 
   private HttpRequest getHDSRequest() {
-    return super.restRequest().path("rest/" + getHDSProduct() + "/componentDetails");
+    return super.restRequest().path("rest", getHDSProduct(), "componentDetails");
   }
-
-  private String applicationPublicId = "AbstractComponentInfoResourceTest";
 
   private Application application;
 
@@ -78,15 +74,18 @@ public abstract class AbstractComponentInfoResourceTest
     return super.restRequest().path(getResourcePath());
   }
 
-  protected HttpRequest detailsRequest(String appId, ComponentIdentifier componentIdentifier, String hash,
+  protected HttpRequest detailsRequest(String ownerId, ComponentIdentifier componentIdentifier, String hash,
       MatchState matchState, Boolean proprietary)
   {
-    return getHDSRequest().path(appId).query("componentIdentifier", componentIdentifier).query("hash", hash)
-        .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary);
+    return getHDSRequest().path(getOwner().getType().toString(), ownerId)
+        .query("componentIdentifier", componentIdentifier).query(
+            "hash", hash).query("matchState", matchState != null ? matchState.getId() : null)
+        .query("proprietary", proprietary);
   }
 
-  protected HttpRequest listRequest(String appId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path(appId, "list").query("componentIdentifier", componentIdentifier);
+  protected HttpRequest listRequest(String ownerId, ComponentIdentifier componentIdentifier) {
+    return restRequest().path(getOwner().getType().toString(), ownerId, "list").query("componentIdentifier",
+        componentIdentifier);
   }
 
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
@@ -103,7 +102,7 @@ public abstract class AbstractComponentInfoResourceTest
      */
     setEnforcementPoints();
 
-    application = tempEntity.newApplicationWithParent(applicationPublicId);
+    application = tempEntity.newApplicationWithParent("AbstractComponentInfoResourceTest");
   }
 
   @Test
@@ -116,7 +115,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList_Unlicensed() throws Exception {
     uninstallLicense();
-    HttpResponse response = listRequest(applicationPublicId,
+    HttpResponse response = listRequest(getOwnerId(),
         ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
@@ -124,7 +123,7 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetails_Unlicensed() throws Exception {
     uninstallLicense();
-    HttpResponse response = detailsRequest(applicationPublicId,
+    HttpResponse response = detailsRequest(getOwnerId(),
         ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv"), "ulh", MatchState.UNKNOWN, null).get();
     assertResponseStatus(402, response);
   }
@@ -173,7 +172,7 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
     setHdsResponseForURI(
-        convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl(), "foo"),
+        convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()),
         hdsComponentDetails, 200);
 
     HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
@@ -187,7 +186,7 @@ public abstract class AbstractComponentInfoResourceTest
   protected void testGetComponentDetails_EvaluateComponentPermission() throws Exception {
     String hash = "01234567890123456789";
 
-    HttpResponse response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
+    HttpResponse response = detailsRequest(getOwnerId(), MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).get();
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
@@ -202,8 +201,8 @@ public abstract class AbstractComponentInfoResourceTest
     ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
-    HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), hdsComponentDetailsList, 200);
+    HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl()), hdsComponentDetailsList, 200);
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -215,16 +214,11 @@ public abstract class AbstractComponentInfoResourceTest
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
-  protected void testGetComponentDetails_ReadPermission() throws Exception {
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/AbstractComponentInfoResourceTest/GetComponentDetailsWithReadPermission", reportId),
-        getCLMServer().getReportDir(application.getId(), reportId));
+  void testGetComponentDetails_ReadPermission() throws Exception {
+    String hash = "hash";
 
-    String hash = "a235ba8b489512805ac1";
-
-    HttpResponse response = detailsRequest(applicationPublicId, MAVEN_COORDINATES, hash, MatchState.SIMILAR, false).query(
-        "reportId", reportId).get();
+    final HttpRequest request = detailsRequest(getOwnerId(), MAVEN_COORDINATES, hash, MatchState.SIMILAR, false);
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
     ComponentDetails componentDetails = response.getBody(TestNamedComponentDetails.class);
@@ -235,19 +229,14 @@ public abstract class AbstractComponentInfoResourceTest
     assertThat(componentDetails.getIdentificationSource(), is(IdentificationSource.SONATYPE.getId()));
   }
 
-  protected void testGetComponentDetailsList_ReadPermission() throws Exception {
-    String reportId = "4cabb3f39eb945158c240f36aedf05e8";
-    FileUtils.copyDirectoryStructure(new File(
-        "target/test-classes/AbstractComponentInfoResourceTest/GetComponentDetailsWithReadPermission", reportId),
-        getCLMServer().getReportDir(application.getId(), reportId));
-
+  void testGetComponentDetailsList_ReadPermission() throws Exception {
     ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
-    HttpRequest request = listRequest(applicationPublicId, MAVEN_COORDINATES);
-    setHdsResponseForURI(convertToHdsUrl(request.getUrl(), applicationPublicId), hdsComponentDetailsList, 200);
+    HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
+    setHdsResponseForURI(convertToHdsUrl(request.getUrl()), hdsComponentDetailsList, 200);
 
-    HttpResponse response = request.query("reportId", reportId).get();
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
 
     ComponentDetailsList componentDetailsList = response.getBody(TestComponentDetailsList.class);
@@ -257,8 +246,8 @@ public abstract class AbstractComponentInfoResourceTest
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
-  protected String convertToHdsUrl(String brainUrl, String applicationId) {
-    return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+)(.*)", "$2/componentDetails$4");
+  protected String convertToHdsUrl(String brainUrl) {
+    return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+/[^/]+)(.*)", "$2/componentDetails$4");
   }
 
   private void assertComponentDetails(ComponentDetails actual, ComponentDetails expected) {

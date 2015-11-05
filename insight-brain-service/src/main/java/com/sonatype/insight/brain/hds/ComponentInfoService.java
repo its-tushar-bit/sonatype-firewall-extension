@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +29,6 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -44,16 +42,11 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
-import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.LicenseUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
@@ -73,22 +66,16 @@ public class ComponentInfoService
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
-  private final InsightWork insightWork;
-
-  private final ReportService reportService;
-
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private String toolName;
 
   @Inject
   public ComponentInfoService(HdsClient hdsClient, ComponentDetailsLoader componentDetailsLoader,
-      InsightWork insightWork, ReportService reportService, ComponentPolicyEvaluator componentPolicyEvaluator)
+      ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.hdsClient = hdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
-    this.insightWork = insightWork;
-    this.reportService = reportService;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
   }
 
@@ -105,55 +92,15 @@ public class ComponentInfoService
 
   @Authorize(permission = Permission.READ)
   public NamedComponentDetails getComponentDetails_ReadPermission(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, String reportId,
-      ComponentIdentifier componentIdentifier, String matchState, String hash, boolean proprietary,
-      HttpServletRequest httpRequest) throws IOException
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId, ComponentIdentifier componentIdentifier,
+      String matchState, String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
   {
-    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    checkComponentIsInReport(app, reportId, componentIdentifier);
-    NamedComponentDetails details = getComponentDetails(app, componentIdentifier, matchState, hash, proprietary,
-        httpRequest);
-
-    return details;
+    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest);
   }
 
-  private void checkComponentIsInReport(Application app, String reportId, ComponentIdentifier checkedComponentIdentifier)
-      throws IOException
-  {
-    File reportFile = getReportFile(app, reportId);
-    checkedComponentIdentifier = checkedComponentIdentifier.createAlternativeVersion("");
-    ReportEntry bomReportEntry = Report.getEntry(reportFile, "bom.json");
-    List<Component> components = new ComponentDAO().getAll(bomReportEntry.buf);
-    for (Component component : components) {
-      ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
-      if (componentIdentifier != null) {
-        componentIdentifier = componentIdentifier.createAlternativeVersion("");
-        if (componentIdentifier.equals(checkedComponentIdentifier)) {
-          return;
-        }
-      }
-    }
-
-    // Don't give too many details because we don't want an "attacker" to use this to check if a component is in a
-    // report or not.
-    log.error("Detected possible attack: Received request for component details for a component that is not in the specified report.");
-    throw new InternalServerException("Cannot get component details.");
-  }
-
-  private File getReportFile(Application app, String reportId) throws IOException {
-    if (StringUtils.isBlank(reportId)) {
-      throw new InternalServerException("The report ID must be specified.");
-    }
-
-    File reportFile = reportService.getReport(insightWork, app.getId(), reportId);
-    if (reportFile == null || !reportFile.isFile()) {
-      throw new NotFoundException("Cannot find a report with ID '" + reportId + "'.");
-    }
-
-    return reportFile;
-  }
-
-  NamedComponentDetails getComponentDetails(Application app, final ComponentIdentifier identifier, String matchState,
+  NamedComponentDetails getComponentDetails(Owner owner, final ComponentIdentifier identifier, String matchState,
       String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
@@ -171,11 +118,11 @@ public class ComponentInfoService
       componentDetails = createEmptyComponentDetails(hash, identifier);
     }
 
-    Component component = loadComponent(app, componentDetails);
+    Component component = loadComponent(owner, componentDetails);
     component.setProprietary(proprietary);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(),
+    List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(owner.getId(),
         new Stage(DevelopStageType.ID), Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
@@ -246,15 +193,15 @@ public class ComponentInfoService
    */
   @Authorize(permission = Permission.READ)
   public ComponentDetailsList getComponentDetailsList_ReadPermission(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, String reportId,
-      ComponentIdentifier componentIdentifier, String matchState, HttpServletRequest httpRequest) throws IOException
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId, ComponentIdentifier componentIdentifier,
+      String matchState, HttpServletRequest httpRequest) throws IOException
   {
-    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    checkComponentIsInReport(app, reportId, componentIdentifier);
-    return getComponentDetailsList(app, componentIdentifier, matchState, httpRequest);
+    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    return getComponentDetailsList(owner, componentIdentifier, matchState, httpRequest);
   }
 
-  ComponentDetailsList getComponentDetailsList(Application app, ComponentIdentifier identifier, String matchState,
+  ComponentDetailsList getComponentDetailsList(Owner owner, ComponentIdentifier identifier, String matchState,
       HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
@@ -268,7 +215,7 @@ public class ComponentInfoService
 
     for (ComponentDetails componentDetails : componentDetailsList.getList()) {
       componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-      loadComponent(app, componentDetails);
+      loadComponent(owner, componentDetails);
     }
 
     log.debug("Loaded component details list in {} ms.", System.currentTimeMillis() - start);

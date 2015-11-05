@@ -12,7 +12,7 @@
       link: function(scope, element, attrs) {
         var parsedState = parseStateRef(attrs.sameOwnerEditSref),
             params = JSON.parse(parsedState.paramExpr),
-            newState = SameOwnerStateNavigationService.refactorStateParams(parsedState.state, params),
+            newState = SameOwnerStateNavigationService.refactorStateParams.edit(parsedState.state, params),
             newParamString = newState.params ? '(' + JSON.stringify(newState.params) + ')' : '';
 
         element.removeAttr('same-owner-edit-sref');

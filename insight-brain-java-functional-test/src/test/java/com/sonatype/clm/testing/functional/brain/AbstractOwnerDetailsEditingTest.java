@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDet
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -28,6 +29,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 
 public abstract class AbstractOwnerDetailsEditingTest
@@ -58,6 +60,10 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
+    OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+    assertThat(OwnerDetailTreeView.headerHref(), containsString(OwnerSummaryPage.url(currentOwner.getType().toString(),
+        currentOwner.getPublicId())));
+
     testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
     testRouting_Policies(OwnerDetailTreeView.policyGroup());
     testRouting_ComponentLabels(OwnerDetailTreeView.componentLabelGroup());

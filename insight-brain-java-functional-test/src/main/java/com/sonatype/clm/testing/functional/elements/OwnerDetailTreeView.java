@@ -20,6 +20,14 @@ public class OwnerDetailTreeView
     return $(DETAIL_TREE_VIEW_SELECTOR);
   }
 
+  public static SelenideElement header() {
+    return root().$(".tree-view-header");
+  }
+
+  public static String headerHref(){
+    return header().$("a").attr("href");
+  }
+
   public static OwnerDetailTreeViewGroup applicationCategoryGroup() {
     return new OwnerDetailTreeViewGroup(root().$$(".tree-view-group").get(0));
   }

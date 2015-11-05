@@ -14,7 +14,7 @@ describe('same.owner.edit.sref.directive.spec.js', function() {
   }));
 
   it('Properly wrapping around ui-sref', function() {
-    spyOn(SameOwnerStateNavigationService, 'refactorStateParams').andReturn({
+    spyOn(SameOwnerStateNavigationService.refactorStateParams, 'edit').andReturn({
       to: 'management.edit.organization.label',
       params: {organizationId: '123', labelId: '123'}
     });

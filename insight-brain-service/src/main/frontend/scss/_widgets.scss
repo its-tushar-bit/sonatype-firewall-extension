@@ -161,6 +161,19 @@
     @extend .semi-bold;
     color: $slate;
     margin-bottom: 16px;
+
+    a {
+      color: $link-blue;
+
+      &:hover {
+        text-decoration: none;
+        border-bottom: 1px solid $link-blue;
+      }
+
+      > .fa {
+        margin-right: 6px;
+      }
+    }
   }
 
   .tree-view-filter {

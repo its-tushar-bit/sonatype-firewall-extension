@@ -6,10 +6,14 @@
 (function(angular) {
   'use strict';
 
-  function OwnerDetailTreeViewController($scope, $http, $state, CLMAppLocations) {
-    var vm = this;
+  function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMAppLocations, ApplicationStore,
+                                         OrganizationStore)
+  {
+    var vm = this,
+        isApp = CLMAppLocations.isApplication();
 
     vm.state = $state;
+    vm.ownerName = undefined;
     vm.details = undefined;
     vm.doLoad = doLoad;
     vm.error = undefined;
@@ -19,10 +23,25 @@
     vm.doLoad();
 
     function doLoad() {
-      $http.get(CLMAppLocations.getOwnerDetailsUrl()).then(function(details) {
-        vm.details = details.data;
-      }, function() {
-        vm.error = arguments;
+      $q.all([
+        (isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get'](),
+        $http.get(CLMAppLocations.getOwnerDetailsUrl())
+      ]).then(function(results) {
+        results[0].some(function(candidate) {
+          if (candidate[isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
+            vm.ownerName = candidate.name;
+            return true;
+          }
+        });
+
+        vm.details = results[1].data;
+
+        if (!vm.ownerName) {
+          vm.error = 'Could not find an ' + (isApp ? 'application' : 'organization') + ' with ID ' +
+              CLMAppLocations.getEntityId() + '.';
+        }
+      }, function(error) {
+        vm.error = error;
       });
 
       delete vm.error;
@@ -31,7 +50,9 @@
     $scope.$on('resource.data.modified', vm.doLoad);
   }
 
-  OwnerDetailTreeViewController.$inject = ['$scope', '$http', '$state', 'CLMAppLocations'];
+  OwnerDetailTreeViewController.$inject = [
+    '$scope', '$q', '$http', '$state', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore'
+  ];
 
   angular //
       .module('owner.manager.module') //

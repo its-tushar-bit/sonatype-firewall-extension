@@ -1,17 +1,19 @@
 describe('same.owner.state.navigation.service.spec.js', function() {
   var SameOwnerStateNavigationService,
-      mockState = {
-        go: function(to, params) {
-        },
-        current: {name: "management.view.organization"},
-        params: {organizationId: "123"}
-      };
+      mockState;
 
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {});
   }));
 
   beforeEach(function() {
+    mockState = {
+      go: function(to, params) {
+      },
+      current: {name: "management.view.organization"},
+      params: {organizationId: "123"}
+    };
+
     module(function($provide) {
       $provide.value('$state', mockState);
     });
@@ -22,26 +24,35 @@ describe('same.owner.state.navigation.service.spec.js', function() {
     })
   });
 
-  it('Properly Refactoring States', function() {
+  it('Properly Refactoring Edit States', function() {
     var mockTo = "create-label",
         mockParams = {labelId: "foo"},
-        newState = SameOwnerStateNavigationService.refactorStateParams(mockTo);
+        newState = SameOwnerStateNavigationService.refactorStateParams.edit(mockTo);
 
     expect(newState.to).toEqual("management.edit.organization." + mockTo);
     expect(newState.params).toEqual(mockState.params);
 
-    newState = SameOwnerStateNavigationService.refactorStateParams(mockTo, mockParams);
+    newState = SameOwnerStateNavigationService.refactorStateParams.edit(mockTo, mockParams);
     expect(newState.to).toEqual("management.edit.organization." + mockTo);
     expect(newState.params).toEqual({organizationId: "123", labelId: "foo"});
   });
 
+  it('Properly Refactoring View State', function() {
+    mockState.current = {name: "management.edit.organization"};
+
+    var newState = SameOwnerStateNavigationService.refactorStateParams.view();
+
+    expect(newState.to).toEqual("management.view.organization");
+    expect(newState.params).toEqual(mockState.params);
+  });
+
   it('Properly Refactoring States with no input', function() {
-    var newState = SameOwnerStateNavigationService.refactorStateParams("");
+    var newState = SameOwnerStateNavigationService.refactorStateParams.edit("");
 
     expect(newState.to).toEqual("management.edit.organization");
     expect(newState.params).toEqual(mockState.params);
 
-    newState = SameOwnerStateNavigationService.refactorStateParams();
+    newState = SameOwnerStateNavigationService.refactorStateParams.edit();
 
     expect(newState.to).toEqual("management.edit.organization");
     expect(newState.params).toEqual(mockState.params);

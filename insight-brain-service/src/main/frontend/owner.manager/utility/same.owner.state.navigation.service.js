@@ -9,27 +9,29 @@
   function SameOwnerStateNavigationService($state) {
     return {
       goEdit: goEdit,
-      refactorStateParams: refactorStateParams
+      refactorStateParams: {edit: refactorStateParams('edit'), view: refactorStateParams('view')}
     };
 
     function goEdit(to, params) {
-      var refactoredParams = refactorStateParams(to, params);
+      var refactoredParams = refactorStateParams('edit')(to, params);
       $state.go(refactoredParams.to, refactoredParams.params);
     }
 
-    function refactorStateParams(to, params) {
-      var isApp = $state.current.name.indexOf('application') !== -1,
-          type = isApp ? 'application' : 'organization',
-          ownerId = isApp ? 'applicationPublicId' : 'organizationId';
+    function refactorStateParams(ownerState) {
+      return function(to, params) {
+        var isApp = $state.current.name.indexOf('application') !== -1,
+            type = isApp ? 'application' : 'organization',
+            ownerId = isApp ? 'applicationPublicId' : 'organizationId';
 
-      to = 'management.edit.' + type + (to ? ('.' + to ) : '');
-      params = params || {};
+        to = 'management.' + ownerState + '.' + type + (to ? ('.' + to ) : '');
+        params = params || {};
 
-      if ($state.params[ownerId]) {
-        params[ownerId] = $state.params[ownerId];
-      }
+        if ($state.params[ownerId]) {
+          params[ownerId] = $state.params[ownerId];
+        }
 
-      return {to: to, params: params};
+        return {to: to, params: params};
+      };
     }
   }
 

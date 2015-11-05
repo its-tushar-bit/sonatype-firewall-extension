@@ -1,5 +1,8 @@
 <div id="owner-editing-detail-tree-view" class="tree-view detail-tree-view">
   <div load-wrapper="vm.error" loading="!vm.details" reload="vm.doLoad()">
+    <div class="tree-view-header">
+      <a same-owner-view-sref><i class="fa fa-chevron-left size-14px"></i>{{vm.ownerName}}</a>
+    </div>
     <div class="tree-view-group">
       <a class="tree-view-item" ng-click="vm.categoryState.isExpanded = vm.state.$current.name.endsWith('category') ? true : !vm.categoryState.isExpanded">
         <div class="twisty-container">

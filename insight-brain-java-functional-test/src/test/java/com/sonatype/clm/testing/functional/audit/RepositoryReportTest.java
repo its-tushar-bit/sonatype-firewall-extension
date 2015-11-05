@@ -211,7 +211,7 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
-  private void testVersionGraphCIP() throws IOException {
+  private void testVersionGraphCIP() {
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);

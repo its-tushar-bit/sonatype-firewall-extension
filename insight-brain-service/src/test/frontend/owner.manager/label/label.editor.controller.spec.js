@@ -94,7 +94,7 @@ describe('label.editor.controller.spec.js', function() {
     $timeout.flush();
     $httpBackend.flush();
     expect(vm.dirtyLabel).toBeUndefined();
-    expect(vm.error).toBeDefined();
+    expect(vm.loadError).toBeDefined();
   });
   
   it('Unsuccessful save sets error message', function() {
@@ -109,7 +109,7 @@ describe('label.editor.controller.spec.js', function() {
     vm.save();
     mockLabel.rejectSave('dammit');
     $timeout.flush();
-    expect(vm.error).toBe('dammit');
+    expect(vm.submitError).toBe('dammit');
   });
 
   it('After delete goes to create new label', function() {

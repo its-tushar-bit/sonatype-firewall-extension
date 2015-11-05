@@ -1,49 +1,43 @@
 <div id="label-editor" class="tile-editor-container">
-  <div class="tile" load-wrapper="vm.error" loading="!vm.dirtyLabel" reload="vm.doLoad()">
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.dirtyLabel" reload="vm.doLoad()">
     <h2>
       <i class="fa size-20px fa-tag outline">
       </i>{{vm.dirtyLabel.id ? 'Edit' : 'New'}} Component Label
     </h2>
-    <div id="labelEditorWrapper" load-wrapper="vm.error" loading="!vm.dirtyLabel" reload="vm.doLoad()" >
-      <form name="vm.labelEditor" class="clm-form" role="form" ng-submit="vm.labelEditor.$valid && vm.save()" form-mask mask-attach-to-body>
-          <div class="section">
-            <div class="field">
-              <label for="editor-label-name">Component Label Name</label>
-              <input id="editor-label-name" type="text" name="label" required
-                     ng-model="vm.dirtyLabel.label"
-                     ng-maxlength="60"
-                     focus-input="true"
-                     valid-name-characters
-                     is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id"
-                     messages="{duplicate: 'Name is already in use'}"
-                     clm-input>
-            </div>
-            <div class="field">
-              <label for="editor-label-description">Short Description - <span class="optional">optional</span></label>
-              <textarea id="editor-label-description" name="name" class="wide" rows="2"
-                     ng-model="vm.dirtyLabel.description" 
-                     ng-maxlength="255"
-                     clm-input></textarea>
-            </div>
-            <div class="field" >
-              <label for="editor-label-color-picker">Icon Color</label>
-              <div id="editor-label-color-picker" ng-model="vm.dirtyLabel.color" color-picker remove-tabindex required/>
-            </div>
-          </div>
-        <div class="editor-footer" ng-class="{ error : vm.error }">
-          <div class="section with-icon" ng-if="vm.error" ><i class="fa fa-warning"></i>{{vm.error}}</div>
-          <button type="submit" class="btn btn-primary" ng-if="!vm.error" ng-disabled="vm.labelEditor.$invalid || !vm.dirtyLabel.isDirty()">
-            {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
-          </button><!--
-       --><button type="submit" class="btn btn-error" ng-if="vm.error" ng-disabled="vm.labelEditor.$invalid">
-            <i class="fa fa-refresh"></i>Retry
-          </button><!--
-       --><button id="delete-label-button" class='btn btn-tertiary' type="button"
-                  ng-click="vm.deleteLabel()" ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new">
-            <i class="fa fa-fw fa-trash"></i>Delete Component Label
-          </button>
+    <form name="vm.labelEditor" class="clm-form" role="form" ng-submit="vm.labelEditor.$valid && vm.save()" form-mask mask-attach-to-body>
+      <div class="section">
+        <div class="field">
+          <label for="editor-label-name">Component Label Name</label>
+          <input id="editor-label-name" type="text" name="label" required
+                 ng-model="vm.dirtyLabel.label"
+                 ng-maxlength="60"
+                 focus-input="true"
+                 valid-name-characters
+                 is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id"
+                 messages="{duplicate: 'Name is already in use'}"
+                 clm-input>
         </div>
-      </form>
-    </div>
+        <div class="field">
+          <label for="editor-label-description">Short Description - <span class="optional">optional</span></label>
+          <textarea id="editor-label-description" name="name" class="wide" rows="2"
+                 ng-model="vm.dirtyLabel.description"
+                 ng-maxlength="255"
+                 clm-input></textarea>
+        </div>
+        <div class="field" >
+          <label for="editor-label-color-picker">Icon Color</label>
+          <div id="editor-label-color-picker" ng-model="vm.dirtyLabel.color" color-picker remove-tabindex required/>
+        </div>
+      </div>
+      <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.labelEditor.$invalid || !vm.dirtyLabel.isDirty()">
+          {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
+        </button><!--
+        --><button id="delete-label-button" class='btn btn-tertiary' type="button"
+                   ng-click="vm.deleteLabel()" ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new">
+        <i class="fa fa-fw fa-trash"></i>Delete Component Label
+        </button>
+      </div>
+    </form>
   </div>
 </div>

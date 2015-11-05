@@ -6,16 +6,17 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($q, $http, $stateParams, $scope, LabelStore, CLMAppLocations, Messages, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
+  function LabelEditorController($q, $http, $stateParams, $scope, LabelStore, CLMAppLocations, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
     var vm = this;
 
     vm.dirtyLabel = undefined;
     vm.deleteLabel = deleteLabel;
     vm.doLoad = doLoad;
-    vm.error = undefined;
+    vm.loadError = undefined;
     vm.labelEditor = undefined;
     vm.siblings = [];
     vm.save = save;
+    vm.submitError = undefined;
 
     vm.doLoad();
 
@@ -26,7 +27,7 @@
     }
 
     function doLoad() {
-      $q.all([LabelStore[vm.error ? 'refresh' : 'get'](), $http.get(CLMAppLocations.getApplicableLabelsUrl(CLMAppLocations.getEntityId()))]).then(function(results) {
+      $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(CLMAppLocations.getApplicableLabelsUrl(CLMAppLocations.getEntityId()))]).then(function(results) {
         results[1].data.labelsByOwner.forEach(function(owner) {
           vm.siblings = vm.siblings.concat(owner.labels);
         });
@@ -42,16 +43,17 @@
           });
         }
         if (!vm.dirtyLabel) {
-          vm.error = 'Unable to locate label.';
+          vm.loadError = 'Unable to locate label.';
         }
-      }, function() {
-        vm.error = arguments;
+      }, function(error) {
+        vm.loadError = error;
       });
+      delete vm.loadError;
     }
 
     function save() {
       var isNew = vm.dirtyLabel.$new;
-      delete vm.error;
+      delete vm.submitError;
 
       formMaskDelay.wrap($scope, vm.dirtyLabel.$save()).then(function() {
         if (isNew) {
@@ -60,12 +62,12 @@
         }
         vm.labelEditor.$setPristine();
       }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
+        vm.submitError = error;
       });
     }
   }
 
-  LabelEditorController.$inject = ['$q', '$http', '$stateParams', '$scope', 'LabelStore', 'CLMAppLocations',  'Messages', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
+  LabelEditorController.$inject = ['$q', '$http', '$stateParams', '$scope', 'LabelStore', 'CLMAppLocations', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
 
   angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
 

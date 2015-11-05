@@ -234,14 +234,14 @@ public class ComponentInfoService
    */
   @Authorize(permission = Permission.READ)
   public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerIdPrivateOrPublic,
-      ComponentIdentifier componentIdentifier, HttpServletRequest httpRequest) throws IOException
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId, ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest) throws IOException
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerIdPrivateOrPublic);
+    final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
 
     ComponentLicenses result = new ComponentLicenses();
 
@@ -262,8 +262,8 @@ public class ComponentInfoService
    */
   @Authorize(permission = Permission.READ)
   public ComponentSecurityVulnerabilities getSecurityVulnerabilities(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash,
+      @SuppressWarnings("UnusedParameters") @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @SuppressWarnings("UnusedParameters") @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash,
       final ComponentIdentifier componentIdentifier, final HttpServletRequest httpRequest)
       throws IOException
   {

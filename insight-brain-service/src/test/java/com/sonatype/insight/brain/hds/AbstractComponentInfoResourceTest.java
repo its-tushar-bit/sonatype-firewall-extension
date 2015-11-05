@@ -246,7 +246,7 @@ public abstract class AbstractComponentInfoResourceTest
     assertComponentDetails(componentDetails, hdsComponentDetails);
   }
 
-  protected String convertToHdsUrl(String brainUrl) {
+  String convertToHdsUrl(String brainUrl) {
     return brainUrl.replaceFirst("(.*/)(rest/[^/]+)/componentDetails(/[^/]+/[^/]+)(.*)", "$2/componentDetails$4");
   }
 

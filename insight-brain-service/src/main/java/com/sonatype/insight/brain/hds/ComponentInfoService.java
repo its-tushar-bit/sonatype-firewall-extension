@@ -261,8 +261,8 @@ public class ComponentInfoService
    */
   @Authorize(permission = Permission.READ)
   public ComponentSecurityVulnerabilities getSecurityVulnerabilities(
-      @SuppressWarnings("UnusedParameters") @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @SuppressWarnings("UnusedParameters") @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash,
       final ComponentIdentifier componentIdentifier, final HttpServletRequest httpRequest)
       throws IOException
   {

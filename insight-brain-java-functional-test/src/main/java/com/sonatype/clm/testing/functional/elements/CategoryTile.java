@@ -47,7 +47,7 @@ public abstract class CategoryTile
 
     @Override
     public Condition buttonText() {
-      return Condition.text("associate app category");
+      return Condition.text("associate app categories");
     }
 
     @Override

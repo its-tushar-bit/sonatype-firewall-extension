@@ -96,7 +96,7 @@ public class HdsIdeResourcePerformance
     testApplication.setName("perf-test");
     new ApplicationDAO().insert(testApplication);
 
-    HdsIdeResourcePerformanceUtils.addPolicy(testApplication, policies, work);
+    HdsIdeResourcePerformanceUtils.addPolicy(testApplication, policies);
   }
 
   List<Long> execute(String hash) throws Exception {

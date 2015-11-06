@@ -58,21 +58,21 @@ public class HdsIdeResourcePerformanceUtils
     }
   }
 
-  public static HttpServletRequest createRequest() throws Exception {
+  static HttpServletRequest createRequest() throws Exception {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
     Mockito.when(request.getMethod()).thenReturn("GET");
     Mockito.when(request.getHeaderNames()).thenReturn(EmptyEnumeration.getInstance());
     return request;
   }
 
-  public static HdsClient createHdsClient(String hdsUrl) {
+  static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
     config.setHdsUrl(hdsUrl);
     return new HdsClient(new InsightProxy(config), new CLMLicenseManager(new TestProductLicenseManager(),
         new TestLicenseFingerprinter()), new VersionService(), Mockito.mock(IdleConnectionReaper.class));
   }
 
-  public static InsightWork createInsightWork() throws IOException {
+  static InsightWork createInsightWork() throws IOException {
     InsightConfig insightConfig = new InsightConfig();
     File workDir = File.createTempFile("hdsIde", "tmp");
     workDir.delete();
@@ -82,7 +82,7 @@ public class HdsIdeResourcePerformanceUtils
     return work;
   }
 
-  public static void addPolicy(Application app, Policy[] policies, InsightWork work) throws Exception {
+  static void addPolicy(Application app, Policy[] policies) throws Exception {
     String appId = app.getId();
     PolicyDAO policyDAO = new PolicyDAO();
 
@@ -92,7 +92,7 @@ public class HdsIdeResourcePerformanceUtils
     }
   }
 
-  public static Policy createSvPolicy() {
+  static Policy createSvPolicy() {
     Policy policy = new Policy();
     policy.setEnabled(true);
     policy.setName("NoSV" + (counter++));

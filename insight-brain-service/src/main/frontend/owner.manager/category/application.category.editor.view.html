@@ -10,12 +10,12 @@
         <div class="field">
           <label for="associated-categories">Associated Application Categories</label>
 
-          <div id="associated-categories" association-editor items="vm.categories" checkbox-param="isApplied"
+          <association-editor id="associated-categories"  items="vm.categories" checkbox-param="isApplied"
                description="name" icon="hexagon"/>
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" ng-disabled="vm.categoryEditor.$invalid || vm.categories.length === 0">
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.categoryEditor.$invalid || vm.categories.length === 0 || vm.categoryEditor.$pristine">
           Update
         </button>
       </div>

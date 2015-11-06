@@ -54,8 +54,8 @@
           if (!vm.ownerName) {
             vm.loadError = 'Could not find an application with ID ' + CLMAppLocations.getEntityId() + '.';
           }
-        }, function() {
-          vm.loadError = arguments;
+        }, function(error) {
+          vm.loadError = error;
         });
       }
 

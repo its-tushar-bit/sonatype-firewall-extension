@@ -8,12 +8,14 @@
 
   function AssociationEditor() {
     return {
+      restrict: 'E',
       scope: {
         items: '=',
         checkboxParam: '@',
         icon: '@',
         description: '@'
       },
+      replace: true,
       templateUrl: 'utility/widgets/association.editor.directive.html',
       controller: 'AssociationEditorController',
       controllerAs: 'vm',

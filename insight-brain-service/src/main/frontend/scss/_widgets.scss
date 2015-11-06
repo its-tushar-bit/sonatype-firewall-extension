@@ -695,37 +695,46 @@
   ```
 */
 
-.association-editor {
-  overflow-y: scroll;
+/*
+ The association-editor-wrapper wrapper class is a workaround for an IE 9 issue where the surrounding div causes the 
+ table's (association-editor) max-height and overflow-y properties to be ignored. Setting them on the surrounding div
+ fixes the issue.
+*/
+.association-editor-wrapper {
+  overflow-y: auto;
   max-height: 240px;
-  display: block;
 
-  .association-editor-row {
-    line-height: 14px;
-    height: 14px;
-    padding-top: 0px;
-    padding-bottom: 12px;
+  .association-editor {
+    display: block;
 
-    td {
-      padding: 0px 8px 8px 24px;
+    .association-editor-row {
+      line-height: 14px;
+      height: 14px;
+      padding-top: 0px;
+      padding-bottom: 12px;
 
-      input[type='checkbox'] {
-        margin-top: -5px;
-        margin-right: 8px;
-      }
-
-      .description {
-        margin: 0px 0px 0px 8px;
-        display: inline-block;
+      td {
+        padding: 0px 8px 8px 24px;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        min-width: 220px;
-        max-width: 375px;
-      }
 
-      .fa {
-        vertical-align: top;
+        input[type='checkbox'] {
+          margin-top: -5px;
+          margin-right: 8px;
+        }
+
+        .description {
+          margin: 0px 0px 0px 8px;
+          display: inline-block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          min-width: 220px;
+          max-width: 375px;
+        }
+
+        .fa {
+          vertical-align: top;
+        }
       }
     }
   }

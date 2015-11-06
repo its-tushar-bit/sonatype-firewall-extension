@@ -9,9 +9,9 @@
   function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMAppLocations, ApplicationStore,
                                          OrganizationStore)
   {
-    var vm = this,
-        isApp = CLMAppLocations.isApplication();
+    var vm = this;
 
+    vm.isApp = CLMAppLocations.isApplication();
     vm.state = $state;
     vm.ownerName = undefined;
     vm.details = undefined;
@@ -24,11 +24,11 @@
 
     function doLoad() {
       $q.all([
-        (isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get'](),
+        (vm.isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get'](),
         $http.get(CLMAppLocations.getOwnerDetailsUrl())
       ]).then(function(results) {
         results[0].some(function(candidate) {
-          if (candidate[isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
+          if (candidate[vm.isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
             vm.ownerName = candidate.name;
             return true;
           }
@@ -37,7 +37,7 @@
         vm.details = results[1].data;
 
         if (!vm.ownerName) {
-          vm.error = 'Could not find an ' + (isApp ? 'application' : 'organization') + ' with ID ' +
+          vm.error = 'Could not find an ' + (vm.isApp ? 'application' : 'organization') + ' with ID ' +
               CLMAppLocations.getEntityId() + '.';
         }
       }, function(error) {

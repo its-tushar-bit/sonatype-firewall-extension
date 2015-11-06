@@ -25,6 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -90,7 +91,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.associationEditor().root().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
     assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(1)));
-    ApplicationCategoryEditorPage.updateButton().shouldBe(enabled);
+    ApplicationCategoryEditorPage.updateButton().shouldBe(disabled);
 
     AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
     category1Item.checkBox().shouldBe(visible).shouldNotBe(selected);
@@ -139,7 +140,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.associationEditor().root().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(5);
     assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(2)));
-    ApplicationCategoryEditorPage.updateButton().shouldBe(enabled);
+    ApplicationCategoryEditorPage.updateButton().shouldBe(disabled);
 
     // row size should be half the number (5) of categories (2 columns)... check the initial state of the items
     for (int i = 0; i < 5; i++) {

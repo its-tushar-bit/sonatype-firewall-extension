@@ -12,7 +12,7 @@ public class AssociationEditor
 {
   private SelenideElement root;
   
-  private static final String ROOT_SELECTOR = ".association-editor";
+  private static final String ROOT_SELECTOR = ".association-editor-wrapper";
 
   public AssociationEditor(SelenideElement root) {
     this.root = root.$(ROOT_SELECTOR);

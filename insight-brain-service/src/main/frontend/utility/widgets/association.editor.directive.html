@@ -1,4 +1,4 @@
-<div>
+<div class="association-editor-wrapper">
   <table id="association-editor" class="association-editor">
     <tr ng-if="vm.items.length < 10" class="association-editor-row" ng-repeat="item in vm.items">
       <td><!--
@@ -24,6 +24,6 @@
         <p class="description">{{::vm.items[$secondColumnIndex][vm.description] }}</p>
       </td>
     </tr>
-
+  
   </table>
 </div>

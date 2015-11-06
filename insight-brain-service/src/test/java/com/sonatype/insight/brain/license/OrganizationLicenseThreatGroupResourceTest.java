@@ -32,14 +32,13 @@ public class OrganizationLicenseThreatGroupResourceTest
   public void testDelete_OwnerIdMismatch() throws Exception {
     Organization organization1 = tempEntity.newOrganization("testDeleteOwnerIdMismatch1");
     Organization organization2 = tempEntity.newOrganization("testDeleteOwnerIdMismatch2");
-    testDelete_OwnerIdMismatch(organization1.getId(), organization1.getId(), organization2.getId(),
-        organization2.getId());
+    testDelete_OwnerIdMismatch(organization1, organization2);
   }
 
   @Test
   public void testDelete_InUseByPolicy() throws Exception {
     Organization org = tempEntity.newOrganization("test");
-    testDelete_InUseByPolicy(org.getId(), org.getId(), org.getId());
+    testDelete_InUseByPolicy(org);
   }
 
   @Test

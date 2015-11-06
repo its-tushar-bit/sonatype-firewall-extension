@@ -254,7 +254,7 @@ public class InsightMockServer
       baseRequest.setHandled(true);
     }
 
-    private void handleReportDownload(Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+    private void handleReportDownload(HttpServletRequest request)
         throws IOException
     {
       handleMatchedRequest(request);
@@ -289,7 +289,7 @@ public class InsightMockServer
           handleScanUpload(baseRequest, request, response);
         }
         else if (uri.startsWith(REPORT_PATH_PREFIX) && "GET".equals(request.getMethod())) {
-          handleReportDownload(baseRequest, request, response);
+          handleReportDownload(request);
         }
       }
       catch (RequestException e) {

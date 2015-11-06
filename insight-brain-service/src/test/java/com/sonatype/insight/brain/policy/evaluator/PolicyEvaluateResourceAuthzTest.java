@@ -22,7 +22,7 @@ public class PolicyEvaluateResourceAuthzTest
     return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH);
   }
 
-  private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
+  private HttpRequest evalRequest(String scanId, Stage stage) {
     return restRequest().body(stage).parameter(app.getPublicId()).query("scanId", scanId);
   }
 
@@ -36,7 +36,7 @@ public class PolicyEvaluateResourceAuthzTest
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
-    testAuthzPost(evalRequest(app.getPublicId(), scanId, stage));
+    testAuthzPost(evalRequest(scanId, stage));
   }
 
   @Test
@@ -47,7 +47,7 @@ public class PolicyEvaluateResourceAuthzTest
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
-    HttpResponse response = evalRequest(app.getPublicId(), scanId, stage).post();
+    HttpResponse response = evalRequest(scanId, stage).post();
     assertResponseStatus(200, response);
   }
 
@@ -57,7 +57,7 @@ public class PolicyEvaluateResourceAuthzTest
 
     // Evaluate the policy
     Stage stage = new Stage(BuildStageType.ID);
-    HttpResponse response = evalRequest(app.getPublicId(), scanId, stage).auth("unknownUser", "unknownPassword").post();
+    HttpResponse response = evalRequest(scanId, stage).auth("unknownUser", "unknownPassword").post();
     assertResponseStatus(401, response);
   }
 }

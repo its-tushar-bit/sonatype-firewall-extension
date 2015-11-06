@@ -32,17 +32,15 @@ public class ApplicationLicenseThreatGroupResourceTest
 
   @Test
   public void testDelete_OwnerIdMismatch() throws Exception {
-    String appPublicId1 = "LicenseThreatGroupResourceTest_AppId1";
-    Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
-    String appPublicId2 = "LicenseThreatGroupResourceTest_AppId2";
-    Application application2 = tempEntity.newApplicationWithParent(appPublicId2);
-    testDelete_OwnerIdMismatch(appPublicId1, application1.getId(), appPublicId2, application2.getId());
+    Application application1 = tempEntity.newApplicationWithParent("LicenseThreatGroupResourceTest_AppId1");
+    Application application2 = tempEntity.newApplicationWithParent("LicenseThreatGroupResourceTest_AppId2");
+    testDelete_OwnerIdMismatch(application1, application2);
   }
 
   @Test
   public void testDelete_InUseByPolicy() throws Exception {
     Application app = tempEntity.newApplicationWithParent("appPublicId");
-    testDelete_InUseByPolicy(app.getPublicId(), app.getId(), app.getId());
+    testDelete_InUseByPolicy(app);
   }
 
   @Test

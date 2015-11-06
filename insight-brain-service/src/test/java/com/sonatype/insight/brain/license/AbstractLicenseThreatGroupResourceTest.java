@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupsByOwner;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -24,6 +25,10 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Assert;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
 abstract class AbstractLicenseThreatGroupResourceTest
     extends AbstractResourceTest
 {
@@ -33,40 +38,27 @@ abstract class AbstractLicenseThreatGroupResourceTest
     return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(getOwnerType(), ownerId);
   }
 
-  protected void testDelete_OwnerIdMismatch(String ownerPublicId1, String ownerId1, String ownerPublicId2,
-      String ownerId2) throws Exception
+  protected void testDelete_OwnerIdMismatch(Owner owner1, Owner owner2) throws Exception
   {
-    LicenseThreatGroup group = new LicenseThreatGroup();
-    group.setOwnerId(ownerId1);
-    group.setName("AAA My group");
-    group.setThreatLevel(4);
-    HttpResponse response = restRequest(ownerPublicId1).body(group).post();
-    assertResponseStatus(200, response);
-    group = response.getBody(LicenseThreatGroup.class);
+    LicenseThreatGroup group = tempEntity.newLicenseThreatGroup(owner1.getId());
 
-    response = restRequest(ownerPublicId2).path(group.getId()).delete();
+    HttpResponse response = restRequest(owner2.getPublicId()).path(group.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a license threat group with ID " + group.getId() + " for " + getOwnerType()
-        + " ID " + ownerPublicId2, response.getBodyText());
+        + " ID " + owner2.getPublicId(), response.getBodyText());
+
     // Verify that the group was not deleted
-    response = restRequest(ownerPublicId1).get();
-    assertResponseStatus(200, response);
-    LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(1, groups.length);
-    assertLicenseThreatGroup(ownerId1, "AAA My group", 4, groups[0]);
+    assertThat(new LicenseThreatGroupDAO().getById(group.getId()), is(notNullValue()));
   }
 
-  protected void testDelete_InUseByPolicy(String ownerPublicId, String ownerId, String policyOwnerId) throws Exception {
-    testDelete_InUseByPolicy(ownerPublicId, ownerId, policyOwnerId, null);
+  protected void testDelete_InUseByPolicy(Owner owner) throws Exception {
+    testDelete_InUseByPolicy(owner.getPublicId(), owner.getId(), owner.getId(), null);
   }
 
   protected void testDelete_InUseByPolicy(String ownerPublicId, String ownerId, String policyOwnerId,
       String policyLocation) throws Exception
   {
-    LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
-    LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, "ltgName", 5);
-    ltgDAO.insert(ltg);
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(ownerId);
 
     Policy policy = new Policy(null, "policyName");
     policy.setOwnerId(policyOwnerId);
@@ -84,7 +76,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     }
 
     Assert.assertEquals(error, response.getBodyText());
-    Assert.assertNotNull(ltgDAO.getById(ltg.getId()));
+    Assert.assertNotNull(new LicenseThreatGroupDAO().getById(ltg.getId()));
   }
 
   protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {

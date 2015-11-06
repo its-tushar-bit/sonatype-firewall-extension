@@ -151,8 +151,7 @@ public class ReportResource
   public Response embedReport(
       @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
       final String applicationPublicId,
-      @PathParam("scanId") final String scanId, @PathParam("path") final String path,
-      @Context final HttpServletRequest httpRequest)
+      @PathParam("scanId") final String scanId, @PathParam("path") final String path)
   {
     if ("index.html".equals(path) || path.isEmpty()) {
       UriBuilder uriBuilder = baseUrl.redirect();

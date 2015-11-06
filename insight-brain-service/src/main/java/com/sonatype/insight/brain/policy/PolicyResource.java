@@ -23,7 +23,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -48,7 +47,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.apache.commons.collections.CollectionUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -147,9 +145,7 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
-      @QueryParam("user") final String user, @QueryParam("where") final String where,
-      @Context final HttpServletRequest request)
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy)
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
 
@@ -165,9 +161,7 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy,
-      @QueryParam("user") final String user, @QueryParam("where") final String where,
-      @Context final HttpServletRequest request)
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy)
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
@@ -183,8 +177,7 @@ public class PolicyResource
   @Authorize(permission = Permission.WRITE)
   public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      @PathParam("policyId") final String policyId, @QueryParam("user") final String user,
-      @QueryParam("where") final String where, @Context final HttpServletRequest request)
+      @PathParam("policyId") final String policyId)
   {
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
@@ -229,8 +222,7 @@ public class PolicyResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public String importPolicies(@PathParam("ownerType") final OwnerType ownerType, @PathParam("ownerId") String ownerId,
       @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail)
+      @FormDataParam("file") InputStream uploadedInputStream)
   {
     String errorMessage = "";
     try {

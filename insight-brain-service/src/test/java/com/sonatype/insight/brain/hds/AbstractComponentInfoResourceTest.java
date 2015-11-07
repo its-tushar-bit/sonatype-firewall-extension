@@ -45,20 +45,6 @@ public abstract class AbstractComponentInfoResourceTest
 
   protected abstract String getResourcePath();
 
-  /**
-   * Because we reuse the HDS product path for multiple IQ Rest clients, test subclasses may override this method to
-   * provide the HDS product name (toolName) {ide|rm|ci} for use in mocking the HDS client calls.
-   * see com.sonatype.insight.portal.rest.service.cip.ComponentDetailsResource for details.
-   * @return the HDS product name (toolName) {ide|rm|ci} for use in mocking the HDS client calls.
-   */
-  protected String getHDSProduct() {
-    return "ci";
-  }
-
-  private HttpRequest getHDSRequest() {
-    return super.restRequest().path("rest", getHDSProduct(), "componentDetails");
-  }
-
   private Application application;
 
   protected Owner getOwner() {
@@ -77,7 +63,7 @@ public abstract class AbstractComponentInfoResourceTest
   protected HttpRequest detailsRequest(String ownerId, ComponentIdentifier componentIdentifier, String hash,
       MatchState matchState, Boolean proprietary)
   {
-    return getHDSRequest().path(getOwner().getType().toString(), ownerId)
+    return restRequest().path(getOwner().getType().toString(), ownerId)
         .query("componentIdentifier", componentIdentifier).query(
             "hash", hash).query("matchState", matchState != null ? matchState.getId() : null)
         .query("proprietary", proprietary);

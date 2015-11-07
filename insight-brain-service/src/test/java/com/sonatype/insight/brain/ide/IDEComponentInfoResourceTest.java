@@ -20,11 +20,6 @@ public class IDEComponentInfoResourceTest
   }
 
   @Override
-  protected String getHDSProduct() {
-    return "ide";
-  }
-
-  @Override
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
     return restRequest().path("licenses/{applicationPublicId}").parameter(getOwnerId())
         .subpath().query(

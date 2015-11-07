@@ -19,11 +19,6 @@ public class RepoManComponentInfoResourceTest
   }
 
   @Override
-  protected String getHDSProduct() {
-    return "rm";
-  }
-
-  @Override
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
     return restRequest().path("licenses/{applicationPublicId}").parameter(getOwnerId())
         .subpath().query(

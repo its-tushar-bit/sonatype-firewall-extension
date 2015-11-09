@@ -17,10 +17,15 @@ The server can be run for development by running the from the insight-brain-serv
     server src/test/resources/config-dev.yml
     
 Reload of CSS/JS resources is supplied by wro4j and the m2e plugin in Eclipse, and by grunt tooling for IDEA users. This is automatic in Eclipse,
-but for IDEA installing Node.js and the grunt-cli package is required, and you will have to execute the following commands in the insight-brain-service folder:
+but for IDEA installing Node.js and the grunt-cli package is required (example uses brew):
+
+    brew install node
+    npm install -g grunt-cli
+
+and you will have to execute the following commands in the insight-brain-service folder:
 
     npm install
-    grunt server
+    grunt develop
 
 In both of these cases changes to asset files will be detected and any required massaging will take place automatically. In addition the grunt server
 works as a proxy for the running web application and will automatically reload any pages it is serving when changes are ready.

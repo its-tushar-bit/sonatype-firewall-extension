@@ -299,7 +299,7 @@ public class ConfigurationClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
 
-    List<Stage> stages = client.getLicensedStages(Context.CI);
+    List<Stage> stages = client.getLicensedStages(Context.QA);
     // This rest call will return the stages in the following predefined order
     MatcherAssert.assertThat(stages, hasSize(4));
     MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.BUILD.getId()));
@@ -317,7 +317,7 @@ public class ConfigurationClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
 
-    List<Stage> stages = client.getLicensedStages(Context.CI);
+    List<Stage> stages = client.getLicensedStages(Context.RM);
     // This rest call will return the stages in the following predefined order
     MatcherAssert.assertThat(stages, hasSize(4));
     MatcherAssert.assertThat(stages.get(0).getStageTypeId(), is(StageTypes.BUILD.getId()));

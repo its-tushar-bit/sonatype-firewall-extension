@@ -129,7 +129,7 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT),
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.QA_CONTEXT),
         contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
   }
 
@@ -138,7 +138,7 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT),
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.RM_CONTEXT),
         contains(StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
   }
 

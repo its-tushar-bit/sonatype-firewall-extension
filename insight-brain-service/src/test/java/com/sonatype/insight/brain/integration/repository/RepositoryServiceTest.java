@@ -739,7 +739,7 @@ public class RepositoryServiceTest
       throws Exception
   {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    createQuarantiningPolicy(repository);
 
     String hash = "hash";
     String pathname = "pathname";

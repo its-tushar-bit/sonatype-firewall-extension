@@ -21,11 +21,11 @@
   ]);
 
   reportModule.controller('ReportController', [
-    '$scope', '$state', '$http', '$q', 'CLMLocations', function($scope, $state, $http, $q, clmLocations) {
+    '$scope', '$state', '$http', '$q', 'StageTypeStore', 'CLMLocations', function($scope, $state, $http, $q, StageTypeStore, clmLocations) {
       $scope.doLoad = function() {
         $scope.error = null;
 
-        var actionStagePromise = $http.get(clmLocations.getActionStageUrl()),
+        var actionStagePromise = StageTypeStore.getActionStages(),
         appScanSummary = $http.get(clmLocations.getApplicationScanSummary($state.params.publicId, $state.params.scanId));
 
         $scope.reportUrl = '../rest/report/' + encodeURIComponent($state.params.publicId) + '/' +
@@ -40,9 +40,9 @@
             }
           });
 
-          for (var i = 0; i < results[0].data.length; i++) {
-            if (results[0].data[i].id === $scope.policyEvaluation.stageTypeId) {
-              $scope.policyEvaluation.stageName = results[0].data[i].name;
+          for (var i = 0; i < results[0].length; i++) {
+            if (results[0][i].stageTypeId === $scope.policyEvaluation.stageTypeId) {
+              $scope.policyEvaluation.stageName = results[0][i].stageName;
               break;
             }
           }

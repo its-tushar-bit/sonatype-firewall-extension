@@ -136,7 +136,7 @@ class ApplicationSpec
       waitFor { policyEditor.displayed }
 
     and: "the editor lists stages in chronological order"
-      waitFor { policyEditor.actions*.stageName == ['Develop', 'Build', 'Stage Release', 'Release', 'Operate'] }
+      waitFor { policyEditor.actions*.stageName == ['Proxy', 'Develop', 'Build', 'Stage Release', 'Release', 'Operate'] }
 
     when: "we complete the form and save the policy"
       policyEditor.name = 'NewPolicy'

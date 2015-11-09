@@ -18,6 +18,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
@@ -45,6 +46,8 @@ public class StageTypeService
 
   public static final String MAVEN_CONTEXT = "maven";
 
+  public static final String DASHBOARD_CONTEXT = "dashboard";
+
   private final CLMLicenseManager licenseManager;
 
   private final Map<String, Predicate<StageType>> contextFilterMap = new HashMap<>();
@@ -54,10 +57,11 @@ public class StageTypeService
     this.licenseManager = licenseManager;
     contextFilterMap.put(ALL_CONTEXT, Predicates.<StageType>alwaysTrue());
     contextFilterMap.put(CI_CONTEXT, new CiFilter());
-    contextFilterMap.put(CLI_CONTEXT, Predicates.<StageType>alwaysTrue());
+    contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
     contextFilterMap.put(QA_CONTEXT, new CiFilter());
     contextFilterMap.put(RM_CONTEXT, new CiFilter());
-    contextFilterMap.put(MAVEN_CONTEXT, Predicates.<StageType>alwaysTrue());
+    contextFilterMap.put(MAVEN_CONTEXT, new BuildFilter());
+    contextFilterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
   }
 
   /**
@@ -121,6 +125,14 @@ public class StageTypeService
         allowed.add(StageTypes.OPERATE);
       }
     }
+
+    if (licenseManager.hasRepositoryFirewall()) {
+      allowed.add(StageTypes.PROXY);
+    }
+    else {
+      allowed.remove(StageTypes.PROXY);
+    }
+
     return allowed;
   }
 
@@ -148,7 +160,33 @@ public class StageTypeService
       if (input == null) {
         return false;
       }
-      return !DevelopStageType.ID.equals(input.getId());
+      return !DevelopStageType.ID.equals(input.getId()) && !ProxyStageType.ID.equals(input.getId());
+    }
+  }
+
+  private static class BuildFilter
+      implements Predicate<StageType>
+  {
+
+    @Override
+    public boolean apply(StageType input) {
+      if (input == null) {
+        return false;
+      }
+      return !ProxyStageType.ID.equals(input.getId());
+    }
+  }
+
+  private static class DashboardFilter
+      implements Predicate<StageType>
+  {
+
+    @Override
+    public boolean apply(StageType input) {
+      if (input == null) {
+        return false;
+      }
+      return !StageTypes.isIgnoredForDashboard(input.getId());
     }
   }
 }

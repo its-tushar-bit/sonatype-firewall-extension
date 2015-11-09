@@ -29,8 +29,8 @@
               <div>RISK</div>
             </th>
             <th ng-repeat="stage in stageTypes"
-                class="stage-column stage-column-{{stage.id}}">
-              <div>{{stage.name | uppercase}}</div>
+                class="stage-column stage-column-{{stage.stageTypeId}}">
+              <div>{{stage.shortName | uppercase}}</div>
             </th>
           </tr>
         </thead>

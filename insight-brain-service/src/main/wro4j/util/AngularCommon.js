@@ -527,7 +527,7 @@ var AngularStateUtils = {
       var arrayToReturn = [];
       if (items) {
         angular.forEach(items, function(item) {
-          switch (item.name) {
+          switch (item.stageName) {
             case 'Build':
             case 'Stage Release':
             case 'Release':

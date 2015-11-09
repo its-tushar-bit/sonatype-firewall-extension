@@ -72,13 +72,15 @@
             getPolicyTypeSortIndex((b ? b : '').toLowerCase());
       }
 
-      function buildTooltip(items, nameMap, emptyTip, sortFn) {
+      function buildTooltip(items, nameMap, emptyTip, sortFn, idSort) {
         if (items && items.length) {
+          if (idSort && sortFn) {
+            items = angular.copy(items).sort(sortFn);
+          }
           var mappedItems = $.map(items, function(item){
             return nameMap[item];
           });
-
-          if (sortFn) {
+          if (!idSort && sortFn) {
             mappedItems.sort(sortFn);
           }
 
@@ -99,9 +101,9 @@
         $scope.applicationTagsTooltip = buildTooltip($scope.filters.applicationTagIds, $scope.nameMaps.applicationTags,
             'All applications', alphaSort);
         $scope.stageTypesTooltip = buildTooltip($scope.filters.stageTypeIds, $scope.nameMaps.stageTypes,
-            'All stage types', stageSort);
+            'All stage types', stageSort, true);
         $scope.policyTypesTooltip = buildTooltip($scope.filters.policyThreatTypes, $scope.nameMaps.policyTypes,
-            'All policy types', policyTypeSort);
+            'All policy types', policyTypeSort, true);
         $scope.policyThreatLevelsTooltip = ($scope.filters.policyThreatLevel[0] !==
             $scope.filters.policyThreatLevel[1] ? 'Policy threat levels ' + $scope.filters.policyThreatLevel[0] +
             ' through ' + $scope.filters.policyThreatLevel[1] : 'Policy threat level ' +
@@ -122,7 +124,7 @@
 
         var promises = [
           ApplicationStore.get(),
-          StageTypeStore.get(),
+          StageTypeStore.getDashboardStages(),
           OrganizationStore.get(),
           $http.get(CLMLocations.getApplicationTagsUrl()),
           $http.get(CLMLocations.getDashboardFilters())
@@ -134,6 +136,12 @@
           var organizations = data[2];
           $scope.applicationTags = data[3].data;
 
+          // multiSelect specifically uses name & id fields
+          $scope.stageTypes.forEach(function (stage) {
+            stage.name = stage.stageName;
+            stage.id = stage.stageTypeId;
+          });
+
           angular.forEach($scope.applicationTags, function(tag) {
             for (var i = 0; i < organizations.length; i++) {
               if (tag.organizationId === organizations[i].id) {
@@ -142,13 +150,6 @@
               }
             }
           });
-
-          for (var i = 0; i < $scope.stageTypes.length; i++) {
-            if ($scope.stageTypes[i].id === 'develop') {
-              $scope.stageTypes.splice(i, 1);
-              break;
-            }
-          }
 
           $scope.policyThreatTypes = [
             {id: 'SECURITY', name: 'Security'},

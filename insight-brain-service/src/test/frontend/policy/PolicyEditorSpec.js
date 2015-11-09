@@ -707,7 +707,7 @@ describe('PolicyEditor.js', function() {
         { actionTypeId: 'notify', target: 'single@email.org' }
       ];
 
-      var emails = editorScope.getEmailList({ id: 'foo' });
+      var emails = editorScope.getEmailList({ stageTypeId: 'foo' });
       expect(emails).toEqual(['single@email.org']);
     });
 
@@ -716,7 +716,7 @@ describe('PolicyEditor.js', function() {
         { actionTypeId: 'notify', target: roles.membersByRole[0].roleId, targetType: 'role' }
       ];
 
-      var roleList = editorScope.getRolesList({ id: 'foo' });
+      var roleList = editorScope.getRolesList({ stageTypeId: 'foo' });
       expect(roleList).toEqual([roles.membersByRole[0]]);
     });
 
@@ -726,7 +726,7 @@ describe('PolicyEditor.js', function() {
         { actionTypeId: 'notify', target: 'another@email.org' }
       ];
 
-      var emails = editorScope.getEmailList({ id: 'foo' });
+      var emails = editorScope.getEmailList({ stageTypeId: 'foo' });
       expect(emails).toEqual(['any@email.org', 'another@email.org']);
     });
 
@@ -736,7 +736,7 @@ describe('PolicyEditor.js', function() {
         { actionTypeId: 'notify', target: roles.membersByRole[1].roleId, targetType: 'role' }
       ];
 
-      var roleList = editorScope.getRolesList({ id: 'foo' });
+      var roleList = editorScope.getRolesList({ stageTypeId: 'foo' });
       expect(roleList).toEqual([roles.membersByRole[0], roles.membersByRole[1]]);
     });
 

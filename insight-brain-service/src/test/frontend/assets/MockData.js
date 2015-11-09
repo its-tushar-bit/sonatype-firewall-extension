@@ -1,20 +1,56 @@
 MockData = {
   getActionStageData: function() {
     return [{
-      "name": "Develop",
-      "id": "develop"
+      "stageName": "Proxy",
+      "stageTypeId": "proxy"
     }, {
-      "name": "Build",
-      "id": "build"
+      "stageName": "Develop",
+      "stageTypeId": "develop"
     }, {
-      "name": "Stage Release",
-      "id": "stage-release"
+      "stageName": "Build",
+      "stageTypeId": "build"
     }, {
-      "name": "Release",
-      "id": "release"
+      "stageName": "Stage Release",
+      "stageTypeId": "stage-release"
     }, {
-      "name": "Operate",
-      "id": "operate"
+      "stageName": "Release",
+      "stageTypeId": "release"
+    }, {
+      "stageName": "Operate",
+      "stageTypeId": "operate"
+    }];
+  },
+  getDashboardStageData: function() {
+    return [{
+      "stageName": "Build",
+      "stageTypeId": "build"
+    }, {
+      "stageName": "Stage Release",
+      "stageTypeId": "stage-release"
+    }, {
+      "stageName": "Release",
+      "stageTypeId": "release"
+    }, {
+      "stageName": "Operate",
+      "stageTypeId": "operate"
+    }];
+  },
+  getStageData: function() {
+    return [{
+      "stageName": "Develop",
+      "stageTypeId": "develop"
+    }, {
+      "stageName": "Build",
+      "stageTypeId": "build"
+    }, {
+      "stageName": "Stage Release",
+      "stageTypeId": "stage-release"
+    }, {
+      "stageName": "Release",
+      "stageTypeId": "release"
+    }, {
+      "stageName": "Operate",
+      "stageTypeId": "operate"
     }];
   },
   getRoleOneData: function() {

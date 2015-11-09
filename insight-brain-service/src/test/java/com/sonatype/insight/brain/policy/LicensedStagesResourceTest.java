@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -23,21 +24,25 @@ public class LicensedStagesResourceTest
     HttpResponse response = restRequest().path(LicensedStagesResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     Stage[] stages = response.getBody(Stage[].class);
-    assertStages(stages);
+    assertStages(stages, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+        StageTypes.OPERATE);
   }
 
-  private void assertStages(final Stage[] stages) {
-    // This rest call will return the stages in the following predefined order
-    assertThat(stages.length, is(5));
-    assertThat(stages[0].getStageTypeId(), is(StageTypes.DEVELOP.getId()));
-    assertThat(stages[0].getStageName(), is(StageTypes.DEVELOP.getName()));
-    assertThat(stages[1].getStageTypeId(), is(StageTypes.BUILD.getId()));
-    assertThat(stages[1].getStageName(), is(StageTypes.BUILD.getName()));
-    assertThat(stages[2].getStageTypeId(), is(StageTypes.STAGE_RELEASE.getId()));
-    assertThat(stages[2].getStageName(), is(StageTypes.STAGE_RELEASE.getName()));
-    assertThat(stages[3].getStageTypeId(), is(StageTypes.RELEASE.getId()));
-    assertThat(stages[3].getStageName(), is(StageTypes.RELEASE.getName()));
-    assertThat(stages[4].getStageTypeId(), is(StageTypes.OPERATE.getId()));
-    assertThat(stages[4].getStageName(), is(StageTypes.OPERATE.getName()));
+  @Test
+  public void testGetLicenseStages_All() throws Exception {
+    HttpResponse response = restRequest().path(LicensedStagesResource.RESOURCE_PATH)
+        .query("context", StageTypeService.ALL_CONTEXT).get();
+    assertResponseStatus(200, response);
+    Stage[] stages = response.getBody(Stage[].class);
+    assertStages(stages, StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE, StageTypes.OPERATE);
+  }
+
+  private void assertStages(final Stage[] actualStages, final StageType... expectedStages) {
+    assertThat(actualStages.length, is(expectedStages.length));
+    for (int i = 0; i < expectedStages.length; i++) {
+      assertThat(actualStages[i].getStageTypeId(), is(expectedStages[i].getId()));
+      assertThat(actualStages[i].getStageName(), is(expectedStages[i].getName()));
+    }
   }
 }

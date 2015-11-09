@@ -13,9 +13,9 @@
           <li><a id="delete-owner-link" ng-click='vm.deleteOwner()'><i class="fa fa-trash fa-fw"/><span>Delete {{vm.owner.name}}</span></a></li>
           <li ng-repeat="stage in ::vm.stages">
             <a id="app-report-link" class="link"
-               ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.id]}"
+               ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
                ng-click="vm.openReport(stage)">
-              <i class="fa fa-external-link fa-fw"/><span>View {{::stage.name | lowercase}} report</span></a>
+              <i class="fa fa-external-link fa-fw"/><span>View {{::stage.shortName | lowercase}} report</span></a>
           </li>
         </ul>
       </div>

@@ -94,8 +94,8 @@
             }
             if (policyMonitoringOwner.policyMonitoring) {
               var stageName = $.grep($scope.actionStageList, function(e) {
-                return e.id === policyMonitoringOwner.policyMonitoring.stageTypeId;
-              })[0].name;
+                return e.stageTypeId === policyMonitoringOwner.policyMonitoring.stageTypeId;
+              })[0].stageName;
               $scope.policyMonitoringPlaceHolder =  stageName + ' (inherited from ' + policyMonitoringOwner.ownerName + ')';
               return true;
             }
@@ -195,7 +195,7 @@
   policyModule.directive('policyItems', [
     'StageTypeStore', function(StageTypeStore) {
       var actionStageList = null;
-      StageTypeStore.get().then(function(data) {
+      StageTypeStore.getActionStages().then(function(data) {
         actionStageList = data;
       });
       return {
@@ -225,12 +225,12 @@
             return actionStageList;
           };
           scope.getStageClass = function(stage, policy) {
-            if (policy.actions[stage.id]) {
-              for (var i = 0; i < policy.actions[stage.id].length; i++) {
-                if (policy.actions[stage.id][i].actionTypeId === 'warn') {
+            if (policy.actions[stage.stageTypeId]) {
+              for (var i = 0; i < policy.actions[stage.stageTypeId].length; i++) {
+                if (policy.actions[stage.stageTypeId][i].actionTypeId === 'warn') {
                   return 'sonatype-icons warn';
                 }
-                else if (policy.actions[stage.id][i].actionTypeId === 'fail') {
+                else if (policy.actions[stage.stageTypeId][i].actionTypeId === 'fail') {
                   return 'sonatype-icons fail';
                 }
               }

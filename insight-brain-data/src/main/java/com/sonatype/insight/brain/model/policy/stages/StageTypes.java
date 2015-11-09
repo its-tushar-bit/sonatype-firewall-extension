@@ -24,9 +24,12 @@ public class StageTypes
 
   public static final StageType OPERATE = new OperateStageType();
 
+  public static final StageType PROXY = new ProxyStageType();
+
   private static final Map<String, StageType> allStageTypes = new LinkedHashMap<>();
 
   static {
+    add(PROXY);
     add(DEVELOP);
     add(BUILD);
     add(STAGE_RELEASE);
@@ -54,6 +57,6 @@ public class StageTypes
   }
 
   public static boolean isIgnoredForDashboard(String stageTypeId) {
-    return DevelopStageType.ID.equals(stageTypeId);
+    return DevelopStageType.ID.equals(stageTypeId) || ProxyStageType.ID.equals(stageTypeId);
   }
 }

@@ -4,7 +4,7 @@ describe('ApplicationEditorController', function() {
   beforeEach(module('ApplicationModule', 'OrganizationModule', 'HttpInterceptors'));
 
   describe('Performs parent functions', function() {
-    beforeEach(inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
+    beforeEach(inject(function ($controller, $rootScope, $httpBackend) {
       httpBackend = $httpBackend;
       var state = {
         params : {
@@ -14,13 +14,11 @@ describe('ApplicationEditorController', function() {
       };
       scope = $rootScope.$new();
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
       $controller('applicationEditorController', {
         $scope: scope,
         $state: state,
         selectedApplication : null
       });
-      $httpBackend.flush();
     }));
 
     afterEach(function() {
@@ -29,7 +27,7 @@ describe('ApplicationEditorController', function() {
       scope.$destroy();
     });
 
-    it('passes through alerts', inject(function($state, $httpBackend, CLMAppLocations) {
+    it('passes through alerts', inject(function($state, $httpBackend, CLMAppLocations, CLMLocations) {
       $httpBackend.expectGET('../assets/management.html?').respond('<div></div>');
       $httpBackend.expectGET('../application-assets/components/aoeditor.html?').respond('<div></div>');
 
@@ -93,7 +91,7 @@ describe('ApplicationEditorController', function() {
       mockApplication = applicationsData[0];
       $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getCliStageUrl())).respond(MockData.getStageData());
       
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
@@ -143,7 +141,7 @@ describe('ApplicationEditorController', function() {
 
       var organizationData = OrganizationMockData.getGETResponse();
       mockOrganization = organizationData[0];
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getCliStageUrl())).respond(MockData.getStageData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getOrganizationsUrl())).respond(organizationData);
 
       $controller('applicationEditorController', { $scope: scope, $state: state, selectedApplication : selectedApplication });
@@ -171,7 +169,7 @@ describe('ApplicationEditorController', function() {
       mockApplication = applicationsData[0];
       httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getEntitiesUrl())).respond(applicationsData);
 
-      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getCliStageUrl())).respond(MockData.getStageData());
       
       var applicationSummaryData = ApplicationMockData.getApplicationSummaryData();
       httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationSummaryUrl(mockApplication.publicId))).respond(applicationSummaryData);
@@ -336,7 +334,7 @@ describe('ApplicationEditorController', function() {
     }));
 
     it('shows report summary.', function() {
-      expect(scope.state.actionStageList.length).toEqual(MockData.getActionStageData().length);
+      expect(scope.state.actionStageList.length).toEqual(MockData.getStageData().length);
     });
     
     it('report summary refreshed on event.', inject(function(CLMLocations) {

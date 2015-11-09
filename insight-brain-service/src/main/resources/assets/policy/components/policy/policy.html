@@ -35,7 +35,7 @@
                 </label>
                 <div class='controls'>
                   <select id="policy-monitoring" name="policyMonitoring" ng-model="policyMonitoring.stageTypeId"
-                          ng-options="s.id as s.name for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
+                          ng-options="s.stageTypeId as s.stageName for s in actionStageList" ng-change="savePolicyMonitoring()" ng-disabled="!isPolicyMonitoringLicensed()">
                     <option value="">{{ policyMonitoringPlaceHolder }}</option>
                   </select>
                   <span class="icon-question-sign"

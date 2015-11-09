@@ -22,8 +22,10 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -43,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -465,7 +468,7 @@ public class RepositoryServiceTest
   public void testEvaluateComponentWithQuarantine() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    Policy policy = createQuarantiningPolicy(repository);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -523,7 +526,7 @@ public class RepositoryServiceTest
     String pathname = "path";
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    Policy policy = createQuarantiningPolicy(repository);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         new RepositoryComponentEvaluationDataRequestList();
@@ -678,7 +681,7 @@ public class RepositoryServiceTest
   @Test
   public void testEvaluateComponentWithQuarantine_QuarantineRequestAfterAuditWithoutExplicitRemoval() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    createQuarantiningPolicy(repository);
 
     String hash = "hash";
     String pathname = "pathname";
@@ -1598,5 +1601,12 @@ public class RepositoryServiceTest
     assertEquals("maven", actualReportDetail.getComponentIdentifier().getFormat());
     assertFalse(actualReportDetail.isQuarantined());
     assertFalse(actualReportDetail.isWaived());
+  }
+
+  private Policy createQuarantiningPolicy(Repository repository) {
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy");
+    policy.setActions(ProxyStageType.ID, Collections.singletonList(new Action(Action.ID_FAIL)));
+    new PolicyDAO().update(policy);
+    return policy;
   }
 }

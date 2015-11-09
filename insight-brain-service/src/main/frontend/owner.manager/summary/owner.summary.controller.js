@@ -83,10 +83,10 @@
     }
 
     function openReport(stage) {
-      if (vm.applicationSummary.policyEvaluations[stage.id]) {
+      if (vm.applicationSummary.policyEvaluations[stage.stageTypeId]) {
         $window.open($state.href('report', {
           publicId: vm.applicationSummary.publicId,
-          scanId: vm.applicationSummary.policyEvaluations[stage.id].scanId
+          scanId: vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId
         }), '_blank');
       }
     }

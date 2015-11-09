@@ -351,14 +351,7 @@
     '$scope', 'StageTypeStore', 'ComponentDisplayNameUtil', '$filter',
     function($scope, StageTypeStore, ComponentDisplayNameUtil, $filter) {
       StageTypeStore.getDashboardStages().then(function(data) {
-        $scope.stageTypes = [];
-        // Copy values so we can modify the content for this use-case
-        for (var i = 0; i < data.length; i++) {
-          $scope.stageTypes.push({
-            stageTypeId: data[i].id,
-            name: data[i].name
-          });
-        }
+        $scope.stageTypes = data;
       });
       // to aid sortability:
       // - copy the times from each stage to a property on the row

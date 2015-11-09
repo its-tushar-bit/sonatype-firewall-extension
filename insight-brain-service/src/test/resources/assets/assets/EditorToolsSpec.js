@@ -37,7 +37,7 @@ describe('EditorToolsSpec', function() {
 
   describe('Bundle Upload', function(){
     beforeEach(inject(function ($controller, $httpBackend, CLMLocations) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getCliStageUrl())).respond(MockData.getActionStageData());
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationsUrl())).respond([{
         "id": "0",
         "publicId": "bom0-12345678",
@@ -76,10 +76,10 @@ describe('EditorToolsSpec', function() {
       expect(scope.bundle.stage).toBeUndefined();
       expect(scope.bundle.notify).toEqual('true');
       expect(scope.stages.length).toEqual(4);
-      expect(scope.stages[0].id).toEqual('build');
-      expect(scope.stages[1].id).toEqual('stage-release');
-      expect(scope.stages[2].id).toEqual('release');
-      expect(scope.stages[3].id).toEqual('operate');
+      expect(scope.stages[0].stageTypeId).toEqual('build');
+      expect(scope.stages[1].stageTypeId).toEqual('stage-release');
+      expect(scope.stages[2].stageTypeId).toEqual('release');
+      expect(scope.stages[3].stageTypeId).toEqual('operate');
     });
 
     it('Test validation', function () {

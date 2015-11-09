@@ -23,8 +23,8 @@
                 <th id='report-list-header-app'>
                   <div sort-columns='name'>Application Name</div>
                 </th>
-                <th id='report-list-header-{{stage.id}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
-                  <div>{{stage.name}} Violations</div>
+                <th id='report-list-header-{{stage.stageTypeId}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
+                  <div>{{stage.stageName}} Violations</div>
                 </th>
                 <th id='report-list-header-contact'><div>Contact</div></th>
                 <th id='report-list-header-org'>
@@ -41,19 +41,19 @@
                 </a>
               </td>
               <td ng-repeat='stage in stages | filterReportColumns'>
-                <div ng-if='application.policyEvaluationsResults[stage.id]'>
+                <div ng-if='application.policyEvaluationsResults[stage.stageTypeId]'>
                   <div>
                     <a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
-                        href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId | EncodeURIComponent}}'>
-                      <div chiclets critical="application.policyEvaluationsResults[stage.id].criticalComponentCount"
-                        severe="application.policyEvaluationsResults[stage.id].severeComponentCount"
-                        moderate="application.policyEvaluationsResults[stage.id].moderateComponentCount"></div>
-                      <span ng-show='!(application.policyEvaluationsResults[stage.id].criticalComponentCount + application.policyEvaluationsResults[stage.id].severeComponentCount + application.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+                        href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
+                      <div chiclets critical="application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount"
+                        severe="application.policyEvaluationsResults[stage.stageTypeId].severeComponentCount"
+                        moderate="application.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount"></div>
+                      <span ng-show='!(application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount + application.policyEvaluationsResults[stage.stageTypeId].severeComponentCount + application.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount)' style="color:#000000;">No violations</span>
                     </a>
                   </div>
                   <div>
-                    <a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.id].scanId | EncodeURIComponent}}'>
-                      {{application.policyEvaluations[stage.id].time | ago}}</a>
+                    <a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
+                      {{application.policyEvaluations[stage.stageTypeId].time | ago}}</a>
                   </div>
                 </div>
               </td>

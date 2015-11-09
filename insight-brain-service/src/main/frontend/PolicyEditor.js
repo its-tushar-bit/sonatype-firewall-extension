@@ -181,11 +181,11 @@
        * Extracts the notification targets with type email
        */
       $scope.getEmailList = function(stage) {
-        return $scope.extractAddresses($scope.policy.actions[stage.id] || []);
+        return $scope.extractAddresses($scope.policy.actions[stage.stageTypeId] || []);
       };
 
       $scope.getRolesList = function(stage) {
-        return $scope.extractRoles($scope.policy.actions[stage.id] || []);
+        return $scope.extractRoles($scope.policy.actions[stage.stageTypeId] || []);
       };
 
       $scope.getMonitoringEmailList = function() {
@@ -198,10 +198,10 @@
 
       $scope.editNotification = function(stage) {
         // local reference for updating/adding notification actions
-        var actions = $scope.policy.actions[stage.id] || [];
+        var actions = $scope.policy.actions[stage.stageTypeId] || [];
         openNotificationModal(actions, function(actions){
           // replace policy action state with updated copy
-          $scope.policy.actions[stage.id] = actions;
+          $scope.policy.actions[stage.stageTypeId] = actions;
         });
       };
 
@@ -213,23 +213,27 @@
       };
 
       $scope.toggleWarnAction = function(stage) {
-        toggleAction(stage.id, 'warn');
+        toggleAction(stage.stageTypeId, 'warn');
       };
 
       $scope.toggleFailureAction = function(stage) {
-        toggleAction(stage.id, 'fail');
+        toggleAction(stage.stageTypeId, 'fail');
       };
 
       $scope.showWarningIcon = function(stage) {
-        return showActionIcon(stage.id, 'warn');
+        return showActionIcon(stage.stageTypeId, 'warn');
       };
 
       $scope.showFailureIcon = function(stage) {
-        return showActionIcon(stage.id, 'fail');
+        return showActionIcon(stage.stageTypeId, 'fail');
       };
 
       $scope.clearTags = function() {
         $scope.appliedTagIds = [];
+      };
+
+      $scope.isRoot = function () {
+        return $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
       };
 
       //make sure user is aware they are about to lose changes
@@ -393,7 +397,7 @@
         originalTags = [];
         $scope.appliedTagIds = [];
         var promises = [
-          StageTypeStore.get(),
+          StageTypeStore.getActionStages(),
           $http.get(CLMAppLocations.getRoleMappingUrl())
         ];
         if (!$scope.policy.$new && !$scope.isApplication) {

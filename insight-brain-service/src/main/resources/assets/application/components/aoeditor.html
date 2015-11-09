@@ -2,18 +2,18 @@
   <script type='text/ng-template' id='recent-policy-eval'>
     <div id='policy-eval-summary' ng-show='applicationSummary.stageCount'>
       <div ng-repeat='stage in state.actionStageList | filterReportColumns' class="report-summary">
-        <span>{{stage.name}}</span>
-        <span ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
+        <span>{{stage.stageName}}</span>
+        <span ng-if='applicationSummary.policyEvaluationsResults[stage.stageTypeId]'>
         </span>
-        <div ng-if='applicationSummary.policyEvaluationsResults[stage.id]'>
-          <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.id].time | ago}}'
-             ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.id].scanId | EncodeURIComponent}}' target='_blank'>
-            <span chiclets critical="applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount"
-               severe="applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount"
-               moderate="applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount"></span>
-            <span ng-show='!(applicationSummary.policyEvaluationsResults[stage.id].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.id].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.id].moderateComponentCount)' style="color:#000000;">No violations</span>
+        <div ng-if='applicationSummary.policyEvaluationsResults[stage.stageTypeId]'>
+          <a class='no-hover-underline' style='vertical-align: middle;' title='View Report - {{applicationSummary.policyEvaluations[stage.stageTypeId].time | ago}}'
+             ng-href='index.html#/reports/{{encodeURIComponent(applicationSummary.publicId)}}/{{applicationSummary.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}' target='_blank'>
+            <span chiclets critical="applicationSummary.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount"
+               severe="applicationSummary.policyEvaluationsResults[stage.stageTypeId].severeComponentCount"
+               moderate="applicationSummary.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount"></span>
+            <span ng-show='!(applicationSummary.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount + applicationSummary.policyEvaluationsResults[stage.stageTypeId].severeComponentCount + applicationSummary.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount)' style="color:#000000;">No violations</span>
           </a>
-          <span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.id])' title='Re-evaluate Policy'></span>
+          <span class="refresh-chiclet" refresh-button='reEvaluatePolicy(applicationSummary.policyEvaluations[stage.stageTypeId])' title='Re-evaluate Policy'></span>
         </div>
       </div>
     </div>
@@ -75,7 +75,7 @@
               </select>
           </div>
           <div clm-control-group for="bundleStage" label="Which CLM stage should this evaluation be associated with?" ng-if="true"><!-- bogus ng-if to fix IE9 combobox rendering --> 
-              <select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.id as stage.name for stage in stages">
+              <select id='bundleStage' ng-required="true" ng-model="bundle.stage" ng-change="updateFormActionUrl()" ng-options="stage.stageTypeId as stage.stageName for stage in stages">
                 <option value="">-- Select CLM Stage --</option>
               </select>
           </div>

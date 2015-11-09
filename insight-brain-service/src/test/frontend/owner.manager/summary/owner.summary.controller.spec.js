@@ -61,21 +61,21 @@ describe('owner.summary.controller.js', function() {
 
     it('Properly Loading Data', function() {
       mockOwnerStore.resolveGet([owner]);
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
       expect(vm.owner).toEqual(owner);
 
       if (isApp) {
-        expect(vm.stages).toEqual(PolicyResourceMockData.getDashboardStages());
+        expect(vm.stages).toEqual(MockData.getDashboardStageData());
         expect(vm.applicationSummary).toEqual(ApplicationResourceMockData.getApplicationSummaryUrl());
       }
     });
 
     it('Properly routing to Build Report', inject(function($window) {
       mockOwnerStore.resolveGet([owner]);
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
@@ -83,11 +83,11 @@ describe('owner.summary.controller.js', function() {
         spyOn(mockState, 'href').andReturn();
         spyOn(mockWindow, 'open');
 
-        vm.openReport(PolicyResourceMockData.getDashboardStages()[0]);
+        vm.openReport(MockData.getDashboardStageData()[0]);
 
         expect(mockState.href).toHaveBeenCalledWith('report', {
           publicId: ApplicationResourceMockData.getApplicationSummaryUrl().publicId,
-          scanId: ApplicationResourceMockData.getApplicationSummaryUrl().policyEvaluations[PolicyResourceMockData.getDashboardStages()[0].id].scanId
+          scanId: ApplicationResourceMockData.getApplicationSummaryUrl().policyEvaluations[MockData.getDashboardStageData()[0].stageTypeId].scanId
         });
         expect(mockWindow.open).toHaveBeenCalled();
       }
@@ -95,7 +95,7 @@ describe('owner.summary.controller.js', function() {
 
     it('Properly Displaying Error', function() {
       mockOwnerStore.resolveGet([{}, {}]);
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
@@ -105,7 +105,7 @@ describe('owner.summary.controller.js', function() {
 
     it('Refreshing Owner After Error', function() {
       mockOwnerStore.rejectGet('Error');
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
@@ -115,7 +115,7 @@ describe('owner.summary.controller.js', function() {
       // reload successfully
       vm.doLoad();
       mockOwnerStore.resolveRefresh([owner]);
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
@@ -125,7 +125,7 @@ describe('owner.summary.controller.js', function() {
 
     it('ApplicationSummary Loading Error', function() {
       mockOwnerStore.resolveGet([owner]);
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(400, 'Bad Request');
       $timeout.flush();
 
@@ -154,7 +154,7 @@ describe('owner.summary.controller.js', function() {
     it('Delete Owner goes to parent view', function() {
 
       mockOwnerStore.resolveGet([owner]);
-      resolveStageTypeStore(PolicyResourceMockData.getDashboardStages());
+      resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(ApplicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 

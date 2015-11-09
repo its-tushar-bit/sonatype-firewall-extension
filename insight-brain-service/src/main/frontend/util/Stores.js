@@ -51,27 +51,36 @@
 
   storesModule.service('StageTypeStore', [
     'CLMResource', 'CLMLocations', function(CLMResource, CLMLocations) {
-      var stageTypeStore = CLMResource.getStore({
-        id: 'id',
+      var actionStageTypeStore = CLMResource.getStore({
+        id: 'stageTypeId',
         url: CLMLocations.getActionStageUrl()
+      });
+      var dashboardStageTypeStore = CLMResource.getStore({
+        id: 'stageTypeId',
+        url: CLMLocations.getDashboardStageUrl()
+      });
+      var cliTypeStore = CLMResource.getStore({
+        id: 'stageTypeId',
+        url: CLMLocations.getCliStageUrl()
       });
 
       return {
         'get': function() {
-          return stageTypeStore.get();
+          return cliTypeStore.get();
+        },
+        'getActionStages': function() {
+          return actionStageTypeStore.get();
         },
         'getDashboardStages': function() {
-          return stageTypeStore.get().then(function(result) {
-            result = angular.copy(result);
-            for (var i = 0; i < result.length; i++) {
-              if (result[i].id === 'develop') {
-                result.splice(i, 1);
-                i--;
+          return dashboardStageTypeStore.get().then(function (result) {
+            result.forEach(function (element) {
+              if (element.stageTypeId === 'stage-release') {
+                element.shortName = 'Stage';
               }
-              else if (result[i].id === 'stage-release') {
-                result[i].name = 'Stage';
+              else {
+                element.shortName = element.stageName;
               }
-            }
+            });
             return result;
           });
         }

@@ -1,20 +1,7 @@
 /* global describe, beforeEach, afterEach, module, inject, it, angular, expect */
 describe('FilterController', function() {
   "use strict";
-  var $scope, stageTypeData = [
-    {
-      id: 'release',
-      name: 'Release'
-    },
-    {
-      id: 'stage-release',
-      name: 'Stage-Release'
-    },
-    {
-      id: 'build',
-      name: 'Build'
-    }
-  ], applicationData = [
+  var $scope, applicationData = [
     {
       id: 'applicationIdZ',
       publicId: 'applicationPublicIdZ',
@@ -68,12 +55,10 @@ describe('FilterController', function() {
 
   beforeEach(module('FilterModule'));
 
-  beforeEach(inject(function($rootScope, $httpBackend, $controller, $timeout, $q, StageTypeStore, CLMLocations) {
+  beforeEach(inject(function($rootScope, $httpBackend, $controller, CLMLocations) {
     $scope = $rootScope.$new();
-    var stageTypeStoreDefer = $q.defer();
-    spyOn(StageTypeStore, 'get').andReturn(stageTypeStoreDefer.promise);
-    stageTypeStoreDefer.resolve(stageTypeData);
     $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(applicationData);
+    $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
     $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(organizationData);
     $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(tagData);
     $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterData);
@@ -81,7 +66,6 @@ describe('FilterController', function() {
     $controller('FilterController', { $scope: $scope});
     expect($scope.filtersLoaded).toBeFalsy();
     $httpBackend.flush();
-    $timeout.flush();
     expect($scope.filtersLoaded).toBe(true);
   }));
 
@@ -102,16 +86,16 @@ describe('FilterController', function() {
     expect($scope.applications.length).toBe(applicationData.length);
     expect($scope.applications[0].id).toBe(applicationData[0].id);
     expect($scope.applications[1].id).toBe(applicationData[1].id);
-    expect($scope.stageTypes.length).toBe(stageTypeData.length);
-    expect($scope.stageTypes[0].id).toBe(stageTypeData[0].id);
-    expect($scope.stageTypes[1].id).toBe(stageTypeData[1].id);
+    expect($scope.stageTypes.length).toBe(MockData.getDashboardStageData().length);
+    expect($scope.stageTypes[0].stageTypeId).toBe(MockData.getDashboardStageData()[0].stageTypeId);
+    expect($scope.stageTypes[1].stageTypeId).toBe(MockData.getDashboardStageData()[1].stageTypeId);
     expect($scope.applicationTags.length).toBe(tagData.length);
     expect($scope.applicationTags[0].id).toBe(tagData[0].id);
     expect($scope.applicationTags[0].owner).toBe(organizationData[0].name);
     //make sure the html encoding done
     expect($scope.applicationsTooltip).toBe('ApplicationA<br/>ApplicationQ<br/>ApplicationZ &lt;b style="woah" class=\'evenmorewoah\'&gt;&amp;nbsp;shouldnotbebold&lt;/b&gt;');
     expect($scope.applicationTagsTooltip).toBe('TagOne<br/>TagTwo');
-    expect($scope.stageTypesTooltip).toBe('Build<br/>Stage-Release<br/>Release');
+    expect($scope.stageTypesTooltip).toBe('Build<br/>Stage Release<br/>Release');
     expect($scope.policyTypesTooltip).toBe('Security<br/>Quality<br/>Other');
     expect($scope.policyThreatLevelsTooltip).toBe('Policy threat levels 3 through 6');
   }));
@@ -162,18 +146,15 @@ describe('FilterController load errors', function() {
   "use strict";
   var $scope;
 
-  function validateErrorRequest($httpBackend, $controller,  $timeout, $q, CLMLocations, StageTypeStore, actionResponse, appResponse, orgResponse, appTagResponse, filterResponse) {
-    var stageTypeStoreDefer = $q.defer();
-    spyOn(StageTypeStore, 'get').andReturn(stageTypeStoreDefer.promise);
-    stageTypeStoreDefer[actionResponse === 500 ? 'reject' : 'resolve'](actionResponse);
+  function validateErrorRequest($httpBackend, $controller, CLMLocations, actionResponse, appResponse, orgResponse, appTagResponse, filterResponse) {
     $httpBackend.expectGET(CLMLocations.getApplicationsUrl()).respond(appResponse);
+    $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(actionResponse);
     $httpBackend.expectGET(CLMLocations.getOrganizationsUrl()).respond(orgResponse);
     $httpBackend.expectGET(CLMLocations.getApplicationTagsUrl()).respond(appTagResponse);
     $httpBackend.expectGET(CLMLocations.getDashboardFilters()).respond(filterResponse);
     $controller('FilterController', { $scope: $scope});
     expect($scope.fatalError).toBeNull();
     $httpBackend.flush();
-    $timeout.flush();
     expect($scope.fatalError).not.toBeNull();
   }
 
@@ -191,24 +172,24 @@ describe('FilterController load errors', function() {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('validate action stage error is handled properly', inject(function($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore){
-    validateErrorRequest($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore, 500, {}, {}, {}, {});
+  it('validate action stage error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, 500, {}, {}, {}, {});
   }));
 
-  it('validate application error is handled properly', inject(function($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore){
-    validateErrorRequest($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore, {}, 500, {}, {}, {});
+  it('validate application error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, 500, {}, {}, {});
   }));
 
-  it('validate organization error is handled properly', inject(function($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore){
-    validateErrorRequest($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore, {}, {}, 500, {}, {});
+  it('validate organization error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, {}, 500, {}, {});
   }));
 
-  it('validate application tag error is handled properly', inject(function($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore){
-    validateErrorRequest($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore, {}, {}, {}, 500, {});
+  it('validate application tag error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, {}, {}, 500, {});
   }));
 
-  it('validate filter error is handled properly', inject(function($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore){
-    validateErrorRequest($httpBackend, $controller, $timeout, $q, CLMLocations, StageTypeStore, {}, {}, {}, {}, 500);
+  it('validate filter error is handled properly', inject(function($httpBackend, $controller, CLMLocations){
+    validateErrorRequest($httpBackend, $controller, CLMLocations, {}, {}, {}, {}, 500);
   }));
 });
 

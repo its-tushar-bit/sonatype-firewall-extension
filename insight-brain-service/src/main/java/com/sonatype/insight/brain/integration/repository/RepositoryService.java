@@ -47,7 +47,7 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -341,12 +341,12 @@ public class RepositoryService
 
     // Evaluate the policies
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(),
-        new Stage(DevelopStageType.ID), components, false /* forMonitoring */);
+        new Stage(ProxyStageType.ID), components, false /* forMonitoring */);
     
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       Component component = components.get(requestIndex);
 
-      boolean quarantine = withQuarantine && hasComponentFact(policyResults.getActiveAlerts(), component);
+      boolean quarantine = withQuarantine && shouldQuarantine(policyResults.getActiveAlerts(), component);
       Date quarantineTime = quarantine ? now : null;
 
       persistEvaluationResults(repository, now, component, policyResults, withQuarantine, quarantineTime);
@@ -452,10 +452,21 @@ public class RepositoryService
     return policyViolation;
   }
 
-  private boolean hasComponentFact(List<PolicyAlert> policyAlerts, Component component) {
+  private boolean shouldQuarantine(List<PolicyAlert> policyAlerts, Component component) {
     for (PolicyAlert policyAlert : policyAlerts) {
-      if (getComponentFact(policyAlert, component) != null) {
+      if (getComponentFact(policyAlert, component) != null && hasFailAction(policyAlert)) {
         return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasFailAction(PolicyAlert policyAlert) {
+    if (policyAlert.getActions() != null) {
+      for (Action action : policyAlert.getActions()) {
+        if (Action.ID_FAIL.equals(action.getActionTypeId())) {
+          return true;
+        }
       }
     }
     return false;

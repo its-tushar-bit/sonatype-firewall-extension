@@ -19,7 +19,15 @@
         },
 
         getActionStageUrl: function() {
-          return baseUrl.get() + '/rest/policy/stageType';
+          return baseUrl.get() + '/rest/policy/stages?context=all';
+        },
+
+        getDashboardStageUrl: function() {
+          return baseUrl.get() + '/rest/policy/stages?context=dashboard';
+        },
+
+        getCliStageUrl: function() {
+          return baseUrl.get() + '/rest/policy/stages';
         },
 
         getApplicationsUrl: function() {

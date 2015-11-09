@@ -440,14 +440,6 @@ describe('DashboardModule', function() {
 
 
   describe('NewestRiskTableController', function() {
-    var stageTypes = [
-      {"name": "Build", "id": "build"},
-      {"name": "Develop", "id": "develop"},
-      {"name": "Release", "id": "release"},
-      {"name": "Stage Release", "id": "stage-release"},
-      {"name": "Operate", "id": "operate"}
-    ];
-
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
       scope.data = [
@@ -497,14 +489,14 @@ describe('DashboardModule', function() {
           ]
         }
       ];
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(stageTypes);
+      $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
       $controller('NewestRiskTableController', { $scope: scope });
       $httpBackend.flush();
     }));
 
     it('Modifies the loaded stages to remove develop and rename Stage-Release', function(){
       expect(scope.stageTypes.length).toBe(4);
-      expect(scope.stageTypes[2].name).toBe('Stage');
+      expect(scope.stageTypes[1].shortName).toBe('Stage');
     });
 
     it('Enhances the available data to aid sorting by row', function(){

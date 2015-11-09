@@ -25,9 +25,10 @@ describe('PolicyController tests', function() {
   beforeEach(inject(function($httpBackend, $rootScope, $controller, CLMLocations, CLMAppLocations, $state) {
     $state.current.name = "management.application";
 
-    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(PolicyMockData.getPolicyData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicies())).respond(ApplicationMockData.getApplicablePolicies());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getActionStageUrl())).respond(MockData.getActionStageData());
+    $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getCliStageUrl())).respond(MockData.getStageData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getApplicablePolicyMonitoring())).respond(PolicyMonitoringMockData);
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMLocations.getConditionTypeUrl())).respond(PolicyMockData.getConditionTypeData());
     $httpBackend.whenGET(SpecUtil.toRegExp(CLMAppLocations.getConditionValueTypeUrl())).respond(PolicyMockData.getConditionValueTypeData());
@@ -157,7 +158,7 @@ describe('PolicyController tests', function() {
   describe('Policy Monitoring', function() {
 
     it('Handles inherited Org policy monitoring properly', function(){
-      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from parent)");
+      expect(scope.policyMonitoringPlaceHolder).toBe("Develop (inherited from Dummy Org)");
     });
 
     it('Can save policy monitoring stage choice', inject(function($httpBackend, CLMAppLocations) {
@@ -232,6 +233,7 @@ describe('PolicyController organization tests', function() {
     $httpBackend.whenGET(CLMAppLocations.getApplicablePolicyMonitoring()).respond(PolicyMonitoringMockData);
     $httpBackend.whenGET(CLMAppLocations.getTagsUrl()).respond(tags);
 
+    $httpBackend.expectGET(CLMLocations.getCliStageUrl()).respond(MockData.getStageData());
     $controller('PolicyController', {
       $scope: scope,
       global: {}

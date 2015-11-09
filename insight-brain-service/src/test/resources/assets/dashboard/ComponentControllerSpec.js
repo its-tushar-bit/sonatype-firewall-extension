@@ -58,9 +58,9 @@ describe('ComponentController tests', function() {
     ];
     beforeEach(inject(function($rootScope, $controller, $httpBackend, CLMLocations) {
       scope = $rootScope.$new();
-      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond([]);
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
       $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);
+      $httpBackend.expectGET(CLMLocations.getDashboardStageUrl()).respond(MockData.getDashboardStageData());
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
     }));

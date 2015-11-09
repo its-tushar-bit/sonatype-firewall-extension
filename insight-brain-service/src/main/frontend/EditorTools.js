@@ -67,7 +67,7 @@
           $scope.applications = results[1];
           $scope.stages = [];
           angular.forEach(results[0], function(stage) {
-            if (validEvaluateBundleStages.indexOf(stage.id) > -1) {
+            if (validEvaluateBundleStages.indexOf(stage.stageTypeId) > -1) {
               $scope.stages.push(stage);
             }
           });

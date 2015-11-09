@@ -82,23 +82,28 @@
           promises.push(TagStore.refresh());
         }
 
-        /**
-         * Conditionally render text for the select box to take into account inheritance.
-         */
-        function createPlaceHolderText(isApplication, orgPolicyMonitor) {
-          if(isApplication && orgPolicyMonitor !== null){
-            var stageName = $.grep($scope.actionStageList, function(e){ return e.id === orgPolicyMonitor.stageTypeId; })[0].name;
-            return stageName + ' (inherited from parent)';
-          }
-          return '-- do not monitor --';
-        }
-
         $q.all(promises).then(function(results) {
           $scope.applicablePolicies = results[1].data.policiesByOwner;
           $scope.actionStageList = results[2];
-          $scope.policyMonitoring = clmAppLocations.isApplication() ? results[3].data.appPolicyMonitor : results[3].data.orgPolicyMonitor;
-          $scope.policyMonitoring = $scope.policyMonitoring || {};
-          $scope.policyMonitoringPlaceHolder = createPlaceHolderText(clmAppLocations.isApplication(), results[3].data.orgPolicyMonitor);
+
+          var policyMonitoringByOwner = results[3].data.policyMonitoringByOwner;
+          $scope.policyMonitoring = policyMonitoringByOwner[0].policyMonitoring || {};
+          policyMonitoringByOwner.some(function(policyMonitoringOwner, ownerIndex) {
+            if (ownerIndex === 0) {
+              return false;
+            }
+            if (policyMonitoringOwner.policyMonitoring) {
+              var stageName = $.grep($scope.actionStageList, function(e) {
+                return e.stageTypeId === policyMonitoringOwner.policyMonitoring.stageTypeId;
+              })[0].stageName;
+              $scope.policyMonitoringPlaceHolder =  stageName + ' (inherited from ' + policyMonitoringOwner.ownerName + ')';
+              return true;
+            }
+          });
+          if (!$scope.policyMonitoringPlaceHolder) {
+            $scope.policyMonitoringPlaceHolder = '-- do not monitor --';
+          }
+
           angular.forEach($scope.applicablePolicies, function(applicablePolicy, index) {
             applicablePolicy.editable = index === 0;
             if (index === 0) {
@@ -190,7 +195,7 @@
   policyModule.directive('policyItems', [
     'StageTypeStore', function(StageTypeStore) {
       var actionStageList = null;
-      StageTypeStore.get().then(function(data) {
+      StageTypeStore.getActionStages().then(function(data) {
         actionStageList = data;
       });
       return {
@@ -220,12 +225,12 @@
             return actionStageList;
           };
           scope.getStageClass = function(stage, policy) {
-            if (policy.actions[stage.id]) {
-              for (var i = 0; i < policy.actions[stage.id].length; i++) {
-                if (policy.actions[stage.id][i].actionTypeId === 'warn') {
+            if (policy.actions[stage.stageTypeId]) {
+              for (var i = 0; i < policy.actions[stage.stageTypeId].length; i++) {
+                if (policy.actions[stage.stageTypeId][i].actionTypeId === 'warn') {
                   return 'sonatype-icons warn';
                 }
-                else if (policy.actions[stage.id][i].actionTypeId === 'fail') {
+                else if (policy.actions[stage.stageTypeId][i].actionTypeId === 'fail') {
                   return 'sonatype-icons fail';
                 }
               }

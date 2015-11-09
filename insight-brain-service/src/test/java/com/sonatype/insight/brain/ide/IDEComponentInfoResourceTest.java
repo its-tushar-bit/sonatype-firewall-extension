@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.ide;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.hds.AbstractComponentInfoResourceTest;
 
 import org.junit.Test;
@@ -17,13 +15,6 @@ public class IDEComponentInfoResourceTest
   @Override
   protected String getResourcePath() {
     return IDEComponentInfoResource.RESOURCE_PATH;
-  }
-
-  @Override
-  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
-    return restRequest().path("licenses/{applicationPublicId}").parameter(getOwnerId())
-        .subpath().query(
-            "componentIdentifier", componentIdentifier);
   }
 
   @Test

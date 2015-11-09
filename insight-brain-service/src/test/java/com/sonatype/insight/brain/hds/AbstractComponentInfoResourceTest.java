@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.hds;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -20,7 +18,6 @@ import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
@@ -74,12 +71,6 @@ public abstract class AbstractComponentInfoResourceTest
         componentIdentifier);
   }
 
-  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
-    return restRequest().path(CIComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
-        .subpath().query(
-            "componentIdentifier", componentIdentifier);
-  }
-
   @Before
   public void clearEnforcementPointsFromLicense() throws Exception {
     /*
@@ -89,13 +80,6 @@ public abstract class AbstractComponentInfoResourceTest
     setEnforcementPoints();
 
     application = tempEntity.newApplicationWithParent("AbstractComponentInfoResourceTest");
-  }
-
-  @Test
-  public void testGetLicenses_Unlicensed() throws Exception {
-    uninstallLicense();
-    HttpResponse response = licensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
-    assertResponseStatus(402, response);
   }
 
   @Test
@@ -139,34 +123,8 @@ public abstract class AbstractComponentInfoResourceTest
     return componentDetails;
   }
 
-  private License toLicenseDTO(MultiLicense multiLicense) {
+  protected License toLicenseDTO(MultiLicense multiLicense) {
     return new License(multiLicense.getId(), multiLicense.getShortDisplayName());
-  }
-
-  private Set<License> toLicenseSet(String... licenseIds) {
-    Set<License> result = new LinkedHashSet<>();
-    MultiLicenseDAO dao = new MultiLicenseDAO();
-    for (String licenseId : licenseIds) {
-      MultiLicense multiLicense = dao.getByIdNotNull(licenseId);
-      result.add(toLicenseDTO(multiLicense));
-    }
-    return result;
-  }
-
-  @Test
-  public void testGetLicenses() throws Exception {
-    ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
-    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
-    setHdsResponseForURI(
-        convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()),
-        hdsComponentDetails, 200);
-
-    HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
-    assertResponseStatus(200, response);
-    ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
-    assertThat(licenses.declaredlicenses, hasSize(1));
-    assertThat(licenses.declaredlicenses.get(0).license.getLicenseId(), is("Apache-2.0"));
-    assertThat(licenses.observedlicenses, hasSize(0));
   }
 
   protected void testGetComponentDetails_EvaluateComponentPermission() throws Exception {

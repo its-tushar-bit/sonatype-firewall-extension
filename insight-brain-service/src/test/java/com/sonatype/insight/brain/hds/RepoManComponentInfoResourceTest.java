@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.HttpRequest;
-
 import org.junit.Test;
 
 public class RepoManComponentInfoResourceTest
@@ -16,13 +13,6 @@ public class RepoManComponentInfoResourceTest
   @Override
   protected String getResourcePath() {
     return RepoManComponentInfoResource.RESOURCE_PATH;
-  }
-
-  @Override
-  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
-    return restRequest().path("licenses/{applicationPublicId}").parameter(getOwnerId())
-        .subpath().query(
-            "componentIdentifier", componentIdentifier);
   }
 
   @Test

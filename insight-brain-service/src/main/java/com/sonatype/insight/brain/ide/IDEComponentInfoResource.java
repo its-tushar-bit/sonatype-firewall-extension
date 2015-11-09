@@ -21,8 +21,6 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
 @Path(IDEComponentInfoResource.RESOURCE_PATH)
@@ -65,15 +63,5 @@ public class IDEComponentInfoResource
   {
     return componentInfoService.getComponentDetailsList_EvaluateComponentPermission(applicationPublicId, identifier,
         matchState, httpRequest);
-  }
-
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
-  @Path("licenses/{applicationPublicId}")
-  public ComponentLicenses getLicenses(@PathParam("applicationPublicId") String applicationPublicId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
-  {
-    return componentInfoService
-        .getLicenses(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, httpRequest);
   }
 }

@@ -6,14 +6,20 @@
 package com.sonatype.insight.brain.hds;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 import org.junit.Before;
@@ -34,6 +40,11 @@ public class CIComponentInfoResourceTest
         query("hash", hash).query("componentIdentifier", componentIdentifier);
   }
 
+  protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
+    return restRequest().path(CIComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
+        .subpath().query("componentIdentifier", componentIdentifier);
+  }
+
   @Before
   public void createRepository() {
     repository = tempEntity.newRepository();
@@ -52,6 +63,39 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     testGetComponentDetailsList_ReadPermission();
+  }
+
+  @Test
+  public void testGetLicenses_Unlicensed() throws Exception {
+    uninstallLicense();
+    HttpResponse response = licensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testGetLicenses() throws Exception {
+    ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
+    setHdsResponseForURI(
+        convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()),
+        hdsComponentDetails, 200);
+
+    HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
+    assertResponseStatus(200, response);
+    ComponentLicenses licenses = response.getBody(ComponentLicenses.class);
+    assertThat(licenses.declaredlicenses, hasSize(1));
+    assertThat(licenses.declaredlicenses.get(0).license.getLicenseId(), is("Apache-2.0"));
+    assertThat(licenses.observedlicenses, hasSize(0));
+  }
+
+  private Set<License> toLicenseSet(String... licenseIds) {
+    Set<License> result = new LinkedHashSet<>();
+    MultiLicenseDAO dao = new MultiLicenseDAO();
+    for (String licenseId : licenseIds) {
+      MultiLicense multiLicense = dao.getByIdNotNull(licenseId);
+      result.add(toLicenseDTO(multiLicense));
+    }
+    return result;
   }
 
   @Test

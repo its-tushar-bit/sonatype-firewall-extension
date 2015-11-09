@@ -4,7 +4,8 @@
       <hexagon class="outline size-20px"></hexagon><!--
         -->{{vm.ownerName}} Application Categories
     </h2>
-    <form name="vm.categoryEditor" class="clm-form" role="form" ng-submit="vm.categoryEditor.$valid && vm.save()"
+    <form name="vm.categoryEditor" class="clm-form" role="form"
+          ng-submit="vm.categoryEditor.$valid && !vm.categoryEditor.$pristine && vm.save()"
           form-mask mask-attach-to-body>
       <div class="section">
         <div class="field">
@@ -15,8 +16,10 @@
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" ng-disabled="vm.categoryEditor.$invalid || vm.categories.length === 0 || vm.categoryEditor.$pristine">
-          Update
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.categories.length === 0"
+                submit-validation="vm.categoryEditor.$valid && !vm.categoryEditor.$pristine"
+                submit-type="update"><!--
+          -->Update
         </button>
       </div>
     </form>

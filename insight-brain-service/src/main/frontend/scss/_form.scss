@@ -162,6 +162,16 @@
     }
   }
 
+  // Once user has clicked submit, indicate which fields are invalid regardless if they have been touched
+  &.ng-submitted {
+    input[type=text], input[type=number], input[type=email], input[type=password], textarea {
+      &.ng-invalid {
+        border-color: $invalid-red;
+        border-left-style: solid;
+      }
+    }
+  }
+
   input[type=text].with-threat-dropdown {
     width: 421px !important;
   }

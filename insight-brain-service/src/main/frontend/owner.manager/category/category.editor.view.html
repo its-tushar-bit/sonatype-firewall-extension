@@ -4,7 +4,8 @@
       <hexagon class="size-20px outline"></hexagon><!--
       -->{{::vm.dirtyCategory.id ? 'Edit' : 'New'}} Application Category
     </h2>
-    <form name="vm.categoryEditor" class="clm-form" role="form" ng-submit="vm.categoryEditor.$valid && vm.save()" form-mask mask-attach-to-body>
+    <form name="vm.categoryEditor" class="clm-form" role="form"
+          ng-submit="vm.categoryEditor.$valid && vm.dirtyCategory.isDirty() && vm.save()" form-mask mask-attach-to-body>
       <div class="section">
         <div class="field">
           <label for="editor-category-name">Application Category Name</label>
@@ -30,7 +31,9 @@
           </div>
         </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" ng-disabled="vm.categoryEditor.$invalid || !vm.dirtyCategory.isDirty()">
+        <button type="submit" class="btn btn-primary"
+                submit-validation="vm.categoryEditor.$valid && vm.dirtyCategory.isDirty()"
+                submit-type="vm.dirtyCategory.id ? 'update' : 'create'">
           {{vm.dirtyCategory.id ? 'Update' : 'Create'}}
         </button><!--
         --><button id="delete-category-button" class='btn btn-tertiary' type="button"

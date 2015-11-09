@@ -390,6 +390,10 @@
 
 .tooltip.in {
   opacity: 1;
+
+  .modal & {
+    z-index: $zindexTooltip + $zindexModal;
+  }
 }
 
 .tooltip-inner {
@@ -635,7 +639,6 @@
     display: inline-block;
     border: 1px solid $off-black;
     position: relative;
-    z-index: $color-picker-zindex;
     cursor: pointer;
 
     @each $color-name, $pickable-color in $pickable-colors {
@@ -650,7 +653,15 @@
 
     &.selected {
       border: 1px solid $off-white;
-      z-index: $color-picker-zindex + 1;
+      z-index: 1;
+    }
+
+    .modal & {
+      z-index: $color-picker-zindex;
+
+      &.selected {
+        z-index: $color-picker-zindex + 1;
+      }
     }
   }
 

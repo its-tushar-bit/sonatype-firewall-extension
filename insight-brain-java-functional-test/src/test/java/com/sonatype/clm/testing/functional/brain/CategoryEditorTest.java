@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
@@ -23,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -67,25 +67,24 @@ public class CategoryEditorTest
     assertInitialStateIsCorrect();
     CategoryEditorPage.categoryName().val("$$$"); // invalid characters
     PopoverViolations.on(CategoryEditorPage.categoryName()).shouldShowInvalidCharactersError();
-    CategoryEditorPage.saveButton().shouldBe(disabled);
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass());
 
     CategoryEditorPage.categoryName().val(CATEGORY_NAME); // description and color are mandatory as well
     // TODO check color 'field' validation error after CLM-5436
     PopoverViolations.on(CategoryEditorPage.categoryName()).shouldNotExist();
-    CategoryEditorPage.saveButton().shouldBe(disabled);
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass());
 
     CategoryEditorPage.description().val(StringUtils.repeat("a", 256)); // too long
     PopoverViolations.on(CategoryEditorPage.description()).shouldShowMaxLengthError();
-    CategoryEditorPage.saveButton().shouldBe(disabled);
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass());
 
     CategoryEditorPage.description().val("Description");
     PopoverViolations.on(CategoryEditorPage.description()).shouldNotExist();
-    CategoryEditorPage.saveButton().shouldBe(disabled); // color still missing
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass()); // color still missing
 
     CategoryEditorPage.colorPicker().color(light_green).click();
-    CategoryEditorPage.saveButton().shouldBe(enabled);
+    CategoryEditorPage.saveButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
 
-    CategoryEditorPage.saveButton().click();
     assertInitialStateIsCorrect(); // form reset
 
     Tag category = getCategoryByName(org.getId(), CATEGORY_NAME);
@@ -107,19 +106,19 @@ public class CategoryEditorTest
     CategoryEditorPage.description().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original description"));
     CategoryEditorPage.colorPicker().root().shouldBe(visible);
     CategoryEditorPage.colorPicker().color(light_green).shouldHave(cssClass("selected"));
-    CategoryEditorPage.saveButton().shouldBe(disabled);
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass());
     // when
     CategoryEditorPage.categoryName().val("updated name");
     CategoryEditorPage.description().val("updated description");
     CategoryEditorPage.colorPicker().color(dark_red).click();
-    CategoryEditorPage.saveButton().shouldBe(enabled).click();
+    CategoryEditorPage.saveButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
     // then
     CategoryEditorPage.title().shouldHave(text("Edit"));
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(value("updated name"));
     CategoryEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
     CategoryEditorPage.colorPicker().root().shouldBe(visible);
     CategoryEditorPage.colorPicker().color(dark_red).shouldHave(cssClass("selected"));
-    CategoryEditorPage.saveButton().shouldBe(disabled);
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass());
 
     category = getCategoryByName(org.getId(), "updated name");
     assertNotNull(category);
@@ -170,7 +169,7 @@ public class CategoryEditorTest
     CategoryEditorPage.description().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     CategoryEditorPage.colorPicker().root().shouldBe(visible);
     CategoryEditorPage.colorPicker().selectedColor().shouldNot(exist);
-    CategoryEditorPage.saveButton().shouldBe(disabled);
+    CategoryEditorPage.saveButton().shouldHave(CLM.disabledClass());
   }
 
   private Tag getCategoryByName(String organizationId, String categoryName) {

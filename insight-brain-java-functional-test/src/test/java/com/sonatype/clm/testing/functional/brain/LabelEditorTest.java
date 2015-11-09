@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -23,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -78,25 +78,25 @@ public class LabelEditorTest
     LabelEditorPage.labelName().val("$$$");
     // then error on name, disabled save
     popoverViolations(LabelEditorPage.labelName()).shouldBe(visible).shouldHave(text("Use valid characters"));
-    LabelEditorPage.saveButton().shouldBe(disabled);
+    LabelEditorPage.saveButton().shouldHave(CLM.disabledClass());
     // when valid name, but no color
     LabelEditorPage.labelName().val("valid name");
     // then error on name is gone, but save still disabled. TODO check color 'field' validation error after CLM-5436
     popoverViolations(LabelEditorPage.labelName()).shouldNot(exist);
-    LabelEditorPage.saveButton().shouldBe(disabled);
+    LabelEditorPage.saveButton().shouldHave(CLM.disabledClass());
     // when select color
     LabelEditorPage.colorPicker().color(light_green).click();
     // then save enabled
-    LabelEditorPage.saveButton().shouldBe(enabled);
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass());
     // when invalid description - too long
     LabelEditorPage.description().val(StringUtils.repeat("a", 256));
     // then error on description and disabled save
     popoverViolations(LabelEditorPage.description()).shouldBe(visible).shouldHave(text("Maximum length"));
-    LabelEditorPage.saveButton().shouldBe(disabled);
+    LabelEditorPage.saveButton().shouldHave(CLM.disabledClass());
     // when valid description
     LabelEditorPage.description().val("Description");
     popoverViolations(LabelEditorPage.description()).shouldNot(exist);
-    LabelEditorPage.saveButton().shouldBe(enabled);
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass());
   }
 
   @Test
@@ -130,19 +130,19 @@ public class LabelEditorTest
     LabelEditorPage.description().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original description"));
     LabelEditorPage.colorPicker().root().shouldBe(visible);
     LabelEditorPage.colorPicker().color(light_green).shouldHave(cssClass("selected"));
-    LabelEditorPage.saveButton().shouldBe(disabled);
+    LabelEditorPage.saveButton().shouldHave(CLM.disabledClass());
     // when
     LabelEditorPage.labelName().val("updated name");
     LabelEditorPage.description().val("updated description");
     LabelEditorPage.colorPicker().color(dark_red).click();
-    LabelEditorPage.saveButton().shouldBe(enabled).click();
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
     // then
     LabelEditorPage.title().shouldHave(text("Edit"));
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(value("updated name"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
     LabelEditorPage.colorPicker().root().shouldBe(visible);
     LabelEditorPage.colorPicker().color(dark_red).shouldHave(cssClass("selected"));
-    LabelEditorPage.saveButton().shouldBe(disabled);
+    LabelEditorPage.saveButton().shouldHave(CLM.disabledClass());
 
     label = getLabelByName(app.getOrganizationId(), "updated name");
     assertNotNull(label);
@@ -200,7 +200,7 @@ public class LabelEditorTest
     LabelEditorPage.description().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     LabelEditorPage.colorPicker().root().shouldBe(visible);
     LabelEditorPage.colorPicker().selectedColor().shouldNot(exist);
-    LabelEditorPage.saveButton().shouldBe(disabled);
+    LabelEditorPage.saveButton().shouldHave(CLM.disabledClass());
   }
 
   private Label getLabelByName(String ownerId, String labelName) {

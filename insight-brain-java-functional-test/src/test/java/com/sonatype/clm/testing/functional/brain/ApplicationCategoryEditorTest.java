@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
@@ -25,7 +26,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -73,7 +73,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.title().shouldHave(text(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().root().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(0);
-    ApplicationCategoryEditorPage.updateButton().shouldNotBe(enabled);
+    ApplicationCategoryEditorPage.updateButton().shouldHave(CLM.disabledClass());
   }
 
   @Test
@@ -91,7 +91,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.associationEditor().root().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
     assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(1)));
-    ApplicationCategoryEditorPage.updateButton().shouldBe(disabled);
+    ApplicationCategoryEditorPage.updateButton().shouldHave(CLM.disabledClass());
 
     AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
     category1Item.checkBox().shouldBe(visible).shouldNotBe(selected);
@@ -106,7 +106,7 @@ public class ApplicationCategoryEditorTest
     // just pick one to click
     category1Item.checkBox().click();
 
-    ApplicationCategoryEditorPage.updateButton().click();
+    ApplicationCategoryEditorPage.updateButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
 
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
 
@@ -140,7 +140,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.associationEditor().root().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(5);
     assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(2)));
-    ApplicationCategoryEditorPage.updateButton().shouldBe(disabled);
+    ApplicationCategoryEditorPage.updateButton().shouldHave(CLM.disabledClass());
 
     // row size should be half the number (5) of categories (2 columns)... check the initial state of the items
     for (int i = 0; i < 5; i++) {
@@ -159,7 +159,7 @@ public class ApplicationCategoryEditorTest
     category1Item.checkBox().click();
     category6Item.checkBox().click();
 
-    ApplicationCategoryEditorPage.updateButton().click();
+    ApplicationCategoryEditorPage.updateButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
 
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
 

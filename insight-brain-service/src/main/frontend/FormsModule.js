@@ -189,6 +189,12 @@
               element.popover('destroy');
             });
 
+            scope.$watch(form.$name + '.$submitted', function(isFormSubmitted) {
+              if (isFormSubmitted) {
+                updateValidationMessages(element, attrs, ctrl);
+              }
+            });
+
             // Update state whenever the $error state is changed
             scope.$watch(form.$name + '.' + ctrl.$name + '.$error', function() {
               if (ctrl.$dirty) {

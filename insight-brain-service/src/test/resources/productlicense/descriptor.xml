@@ -23,6 +23,9 @@
     <feature>
       <id>SonatypeCLM</id>
     </feature>
+    <feature>
+      <id>Firewall</id>
+    </feature>
   </features>
   <contact>
     <name>name</name>
@@ -38,7 +41,7 @@
     </property>
     <property>
       <key>clm.products</key>
-      <value>Nexus,Risk,RiskAndRemediation</value>
+      <value>Nexus,Risk,RiskAndRemediation,Firewall</value>
     </property>
     <property>
       <key>clm.maxActiveApplications</key>

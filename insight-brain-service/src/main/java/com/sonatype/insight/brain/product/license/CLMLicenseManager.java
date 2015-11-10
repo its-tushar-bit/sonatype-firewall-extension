@@ -269,10 +269,25 @@ public class CLMLicenseManager
     return "";
   }
 
+  private void validateFeatures(final ProductLicenseKey key) throws LicensingException {
+    try {
+      licenseManager.verifyFeature(key, new CLMFeature());
+    }
+    catch (LicensingException e1) {
+      try {
+        licenseManager.verifyFeature(key, new FirewallFeature());
+      }
+      catch (LicensingException e2) {
+        throw new LicensingException("License does not permit use of feature '" + CLMFeature.ID + "' or '" +
+            FirewallFeature.ID + "'");
+      }
+    }
+  }
+
   private void populateLicenseCache() throws LicensingException {
     ProductLicenseKey key = licenseManager.getLicenseDetails();
 
-    licenseManager.verifyFeature(key, new CLMFeature());
+    validateFeatures(key);
 
     String licenseFingerprint = licenseFingerprinter.calculate(key);
 
@@ -320,7 +335,7 @@ public class CLMLicenseManager
         features.add(FEATURE_POLICY_MONITORING);
         features.add(FEATURE_DASHBOARD);
       }
-      if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)
+      if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)
           || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
         features.add(FEATURE_REPOSITORY_FIREWALL);
       }

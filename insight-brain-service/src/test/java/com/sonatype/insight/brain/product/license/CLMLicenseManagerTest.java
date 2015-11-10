@@ -51,15 +51,16 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testLicenseLacksClmFeature() throws Exception {
+  public void testLicenseLacksClmFeatureAndFirewallFeature() throws Exception {
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);
     try {
       installLicense();
       fail("Expected LicensingException");
     }
-    catch (LicensingException expected) {
-      assertEquals("License does not permit use of feature 'SonatypeCLM'", expected.getMessage());
+    catch (LicensingException e) {
+      assertThat(e.getMessage(),
+          is("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'"));
     }
 
     assertNull(clmLicenseManager.getLicenseFingerprint());
@@ -211,7 +212,7 @@ public class CLMLicenseManagerTest
   public void testHasRepositoryFirewall_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
+    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
   }
 
   @Test
@@ -219,6 +220,13 @@ public class CLMLicenseManagerTest
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     installLicense();
     assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
+  }
+
+  @Test
+  public void testHasRepositoryFirewall_Firewall() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
   }
 
   @Test(expected = LicensingException.class)

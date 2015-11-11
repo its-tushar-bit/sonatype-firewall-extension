@@ -5,7 +5,7 @@
         -->{{vm.ownerName}} Application Categories
     </h2>
     <form name="vm.categoryEditor" class="clm-form" role="form"
-          ng-submit="vm.categoryEditor.$valid && !vm.categoryEditor.$pristine && vm.save()"
+          ng-submit="vm.categoryEditor.$valid && vm.areCategoriesDirty() && vm.save()"
           form-mask mask-attach-to-body>
       <div class="section">
         <div class="field">
@@ -16,9 +16,8 @@
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" ng-disabled="vm.categories.length === 0"
-                submit-validation="vm.categoryEditor.$valid && !vm.categoryEditor.$pristine"
-                submit-type="update"><!--
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.categories.length === 0" submit-validation
+                submit-dirty="vm.areCategoriesDirty()" submit-type="update"><!--
           -->Update
         </button>
       </div>

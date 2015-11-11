@@ -31,8 +31,7 @@
           </div>
         </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary"
-                submit-validation="vm.categoryEditor.$valid && vm.dirtyCategory.isDirty()"
+        <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyCategory.isDirty()"
                 submit-type="vm.dirtyCategory.id ? 'update' : 'create'">
           {{vm.dirtyCategory.id ? 'Update' : 'Create'}}
         </button><!--

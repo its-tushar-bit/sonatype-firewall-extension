@@ -8,7 +8,8 @@
 
   function ApplicationCategoryEditorController($q, $http, $scope, ApplicationStore, CLMAppLocations, CLMLocations, formMaskDelay)
   {
-    var vm = this;
+    var originalCategoryArray,
+        vm = this;
 
     vm.doLoad = doLoad;
     vm.save = save;
@@ -19,6 +20,7 @@
     vm.isApp = CLMAppLocations.isApplication();
     vm.ownerName = undefined;
     vm.categoryEditor = undefined;
+    vm.areCategoriesDirty = areCategoriesDirty;
 
     vm.doLoad();
 
@@ -51,6 +53,8 @@
             vm.categories.push(organizationCategory);
           });
 
+          originalCategoryArray = angular.copy(vm.categories);
+
           if (!vm.ownerName) {
             vm.loadError = 'Could not find an application with ID ' + CLMAppLocations.getEntityId() + '.';
           }
@@ -71,10 +75,15 @@
 
       formMaskDelay.wrap($scope, $http.put(CLMLocations.getApplicationTagUrl(CLMAppLocations.getEntityId()),
           appliedCategories)).then(function() {
+        originalCategoryArray = angular.copy(vm.categories);
         vm.categoryEditor.$setPristine();
       }, function(error) {
         vm.submitError = error;
       });
+    }
+
+    function areCategoriesDirty() {
+      return !angular.equals(originalCategoryArray, vm.categories);
     }
   }
 

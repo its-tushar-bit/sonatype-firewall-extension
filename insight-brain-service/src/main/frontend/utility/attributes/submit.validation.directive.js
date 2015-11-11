@@ -10,15 +10,23 @@
     return {
       restrict: 'A',
       scope: {
-        submitValidation: '=',
+        submitDirty: '&',
         submitType: '&'
       },
       require: '^form',
       link: function(scope, element, attrs, formCtrl) {
-        var isSubmissionValid;
+        var isSubmissionValid,
+            isSubmissionDirty;
 
-        scope.$watch('submitValidation', function(newValue) {
-          isSubmissionValid = newValue;
+        scope.$watchGroup([
+          function() {
+            return scope.submitDirty();
+          }, function() {
+            return formCtrl.$valid;
+          }
+        ], function(results) {
+          isSubmissionDirty = results[0];
+          isSubmissionValid = isSubmissionDirty && formCtrl.$valid;
 
           if (isSubmissionValid) {
             element.tooltip('destroy');
@@ -30,11 +38,9 @@
           }
         });
 
-        scope.$watchGroup([
-          attrs.submitType, function() {
-            return formCtrl.$pristine;
-          }
-        ], function() {
+        scope.$watch(function() {
+          return scope.submitType() || attrs.submitType;
+        }, function() {
           if (!isSubmissionValid) {
             insertAndUpdateTooltip();
           }
@@ -44,14 +50,11 @@
           var title,
               submitType = scope.submitType() || attrs.submitType;
 
-          switch (submitType) {
-            case 'update':
-              title = formCtrl.$pristine ? 'There are no changes to update.' : 'Unable to ' +
-              (submitType ? submitType : 'save') + ' with invalid or missing fields.';
-              break;
-            default:
-              title = 'Unable to ' + (submitType ? submitType : 'save') + ' with invalid or missing fields.';
-              break;
+          if (submitType === 'update' && !isSubmissionDirty) {
+            title = 'There are no changes to update.';
+          }
+          else {
+            title = 'Unable to ' + (submitType ? submitType : 'save') + ': fields with invalid or missing data.';
           }
 
           element.tooltip({container: element}).attr('title', title).tooltip('fixTitle');

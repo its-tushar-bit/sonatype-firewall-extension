@@ -62,7 +62,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        contains(StageTypes.PROXY, StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
+        contains(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 
   @Test

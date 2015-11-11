@@ -13,15 +13,15 @@
         <hexagon class="size-16px size-fw outline tree-view-icon"></hexagon><!--
         -->Application Categories
       </a>
-      <a ng-if="!vm.isApp" class="tree-view-item"
-         ng-if="vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category')"
+      <a class="tree-view-item"
+         ng-if="!vm.isApp && (vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category'))"
          ui-sref=".create-category"
          ui-sref-active="selected">
         <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
         -->New Application Category
       </a>
-      <a ng-if="vm.isApp" class="tree-view-item"
-         ng-if="vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category')"
+      <a class="tree-view-item"
+         ng-if="vm.isApp && (vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category'))"
          ui-sref=".category"
          ui-sref-active="selected">
         <i class="fa fa-pencil size-16px size-fw tree-view-icon"></i><!--

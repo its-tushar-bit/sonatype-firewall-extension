@@ -5,7 +5,8 @@
       -->{{::vm.dirtyCategory.id ? 'Edit' : 'New'}} Application Category
     </h2>
     <form name="vm.categoryEditor" class="clm-form" role="form"
-          ng-submit="vm.categoryEditor.$valid && vm.dirtyCategory.isDirty() && vm.save()" form-mask mask-attach-to-body>
+          ng-submit="vm.categoryEditor.$valid && vm.dirtyCategory.isDirty() && vm.save()" novalidate form-mask
+          mask-attach-to-body>
       <div class="section">
         <div class="field">
           <label for="editor-category-name">Application Category Name</label>

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -24,6 +25,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.nullValue;
@@ -200,16 +202,37 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity
         .newRepository(repoManager, "SomePublicID", true /* enabled */, true /* quarantineEnabled */);
+    tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", new Date() /* quarantineTime */, null /* unquarantineTime */);
+    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), "pathname");
+
+    repository.setEnabled(false);
+    dao.update(repository);
+
+    repository = dao.getById(repository.getId());
+    assertThat(repository.isEnabled(), is(false));
+    assertThat(repository.isQuarantineEnabled(), is(false));
+
+    List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(0));
+    policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
+    assertThat(policyViolation.isActive(), is(false));
+  }
+
+  @Test
+  public void testDisableQuarantine_Update() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity
+        .newRepository(repoManager, "SomePublicID", true /* enabled */, true /* quarantineEnabled */);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
         new Date() /* quarantineTime */, null /* unquarantineTime */);
 
-    repository.setEnabled(false);
+    repository.setQuarantineEnabled(false);
     Date before = new Date();
     dao.update(repository);
     Date after = new Date();
 
     repository = dao.getById(repository.getId());
-    assertThat(repository.isEnabled(), is(false));
     assertThat(repository.isQuarantineEnabled(), is(false));
 
     repositoryComponent = new RepositoryComponentDAO().getById(repositoryComponent.getId());

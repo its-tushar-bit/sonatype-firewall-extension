@@ -118,23 +118,42 @@ public class RepositoryDAO
 
     ensureCorrectQuarantineMode(repository);
 
-    // If quarantine is disabled, but was enabled before this update, then unquarantine all components in this
-    // repository.
-    if (!repository.isQuarantineEnabled()) {
-      existingRepository = getById(tx, repository.getId());
-      if (existingRepository.isQuarantineEnabled()) {
-        RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
-        Date unquarantineTime = new Date();
-        List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
-            repository.getId());
-        for (RepositoryComponent quarantinedComponent : quarantinedComponents) {
-          quarantinedComponent.setUnquarantineTime(unquarantineTime);
-          repositoryComponentDAO.update(tx, quarantinedComponent);
-        }
-      }
+    if (!repository.isEnabled()) {
+      onDisable(tx, repository);
+    }
+    else if (!repository.isQuarantineEnabled()) {
+      onDisableQuarantine(tx, repository);
     }
 
     super.update(tx, repository);
+  }
+
+  /**
+   * If the repository is disabled, then delete all components in this repository and set all policy violations as
+   * inactive.
+   */
+  private void onDisable(TransactionContext tx, Repository repository) {
+    Repository existingRepository = getById(tx, repository.getId());
+    if (existingRepository.isEnabled()) {
+      new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
+    }
+  }
+
+  /**
+   * If quarantine is disabled, then unquarantine all components in this repository.
+   */
+  private void onDisableQuarantine(TransactionContext tx, Repository repository) {
+    Repository existingRepository = getById(tx, repository.getId());
+    if (existingRepository.isQuarantineEnabled()) {
+      RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+      Date unquarantineTime = new Date();
+      List<RepositoryComponent> quarantinedComponents = repositoryComponentDAO.getQuarantinedByRepositoryId(tx,
+          repository.getId());
+      for (RepositoryComponent quarantinedComponent : quarantinedComponents) {
+        quarantinedComponent.setUnquarantineTime(unquarantineTime);
+        repositoryComponentDAO.update(tx, quarantinedComponent);
+      }
+    }
   }
 
   @Override
@@ -149,11 +168,7 @@ public class RepositoryDAO
     }
 
     // Cascade to repository components
-    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
-    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(tx, repository.getId());
-    for (RepositoryComponent repositoryComponent : repositoryComponents) {
-      repositoryComponentDAO.delete(tx, repositoryComponent);
-    }
+    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
 
     // Cascade to repository policy violations
     RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();

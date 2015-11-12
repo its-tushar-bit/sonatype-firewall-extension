@@ -651,22 +651,10 @@ public class RepositoryService
       repositoryDAO.update(repository);
     }
 
-    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
-      tx.begin();
-
-      for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
-          tx, repository.getId(), pathname)) {
-        policyViolation.setActive(false);
-        repositoryPolicyViolationDAO.update(tx, policyViolation);
-      }
-
-      RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
-          repository.getId(), pathname);
-      if (repositoryComponent != null) {
-        repositoryComponentDAO.delete(tx, repositoryComponent);
-      }
-
-      tx.commit();
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+        pathname);
+    if (repositoryComponent != null) {
+      repositoryComponentDAO.delete(repositoryComponent);
     }
   }
 

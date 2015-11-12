@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.dataaccess.repository;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -78,5 +80,39 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1 AND entity.quarantineTime IS NOT NULL AND entity.unquarantineTime IS NULL";
 
     return getList(tx, sQuery, repositoryId);
+  }
+
+  @Override
+  public void delete(TransactionContext tx, RepositoryComponent repositoryComponent) {
+    // Mark all violations for this component as inactive.
+    RepositoryPolicyViolationDAO policyViolationDAO = new RepositoryPolicyViolationDAO();
+    for (RepositoryPolicyViolation policyViolation : policyViolationDAO.getActiveByRepositoryIdAndPathname(tx,
+        repositoryComponent.getRepositoryId(), repositoryComponent.getPathname())) {
+      policyViolation.setActive(false);
+      policyViolationDAO.update(tx, policyViolation);
+    }
+
+    super.delete(tx, repositoryComponent);
+  }
+
+  /**
+   * Deletes all components in a repository.
+   * 
+   * WARNING: This method bypasses the standard DAO delete(tx) method, so it has to match its implementation/behavior.
+   */
+  public int deleteByRepositoryId(TransactionContext tx, String repositoryId) {
+    // Mark all violations for this repository as inactive.
+    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+    for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
+        repositoryId)) {
+      policyViolation.setActive(false);
+      repositoryPolicyViolationDAO.update(tx, policyViolation);
+    }
+
+    // Delete all components.
+    String sQuery = "DELETE FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1";
+    Query query = createQuery(sQuery, repositoryId);
+    return query.executeUpdate(tx);
   }
 }

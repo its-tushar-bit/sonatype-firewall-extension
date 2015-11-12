@@ -73,4 +73,11 @@ public class RepositoryPolicyViolationDAO
         " AND entity.isWaived=false";
     return getList(sQuery, repositoryId);
   }
+
+  public List<RepositoryPolicyViolation> getActiveByRepositoryId(TransactionContext tx, String repositoryId) {
+    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.active=true";
+    return getList(tx, sQuery, repositoryId);
+  }
 }

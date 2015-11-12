@@ -185,7 +185,7 @@
   }
 
   var head = $('head'),
-      styles = ['cip/cip.css', 'policy-assets/css/cip-loader.css'];
+      styles = ['cip/cip.css'];
 
   applyHttpOverride();
 

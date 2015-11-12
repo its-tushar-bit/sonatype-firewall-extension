@@ -938,6 +938,7 @@
             <configuration>
               <targetGroups>cip</targetGroups>
               <cssDestinationFolder>${wro4j.brain.resources}cip/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}cip/</jsDestinationFolder>
             </configuration>
           </execution>
           <execution>

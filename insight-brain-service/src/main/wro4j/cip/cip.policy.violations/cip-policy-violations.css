@@ -86,3 +86,7 @@
 #add-waiver-modal .radio-container > div:first-child {
   margin-bottom: 3px;
 }
+
+#add-waiver-modal .modal-footer .alert {
+  max-width: 330px
+}

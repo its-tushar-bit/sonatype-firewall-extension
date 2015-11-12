@@ -115,8 +115,6 @@
   </group>
 
   <group name='cip-loader'>
-    <js>/lib/datepicker/bootstrap-datepicker.js</js>
-    <css>/lib/datepicker/datepicker.css</css>
     <js>/lib/angular-1.3.15/angular.js</js>
     <js>/lib/angular-1.3.15/angular-route.js</js>
     <js>/lib/ui-bootstrap-tpls-0.8.0.js</js>
@@ -125,27 +123,18 @@
   </group>
 
   <group name='cip-loader-core'>
+    <group-ref>cip</group-ref>
     <js>/cip/cip-loader.js</js>
     <js>/cip/cip-component-util.js</js>
 
     <js>/cip/ci-label-tab.js</js>
-    <group-ref>cip-label-editor</group-ref>
 
     <js>/cip/ci-policy-violations-tab.js</js>
-    <group-ref>cip-policy-violations</group-ref>
     <js>/cip/ci.policy.violations.service.js</js>
 
     <js>/cip/ci-license-tab.js</js>
-    <group-ref>cip-license-editor</group-ref>
 
-    <js>/cip/cip-claim-component.js</js>
     <js>/cip/ci-version-graph.js</js>
-    <group-ref>cip-version-graph</group-ref>
-    <js>/util/AngularCommon.js</js>
-    <js>/util/CLMAppLocation.js</js>
-    <js>/util/CLMLocation.js</js>
-    <js>/util/HttpInterceptors.js</js>
-    <js>/lib/angular-1.3.15/angular-sanitize.js</js>
   </group>
 
   <group name='external'>
@@ -202,15 +191,18 @@
   </group>
 
   <group name='cip'>
-    <css>/cip/cip-claim-component.css</css>
-    <css>/cip/cip.label.editor/cip-label-editor.css</css>
-    <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
-    <css>/cip/cip.license.editor/cip-license-editor.css</css>
-    <css>/version-graph/content.css</css>
-    <css>/lib/bootstrap/bootstrap-variables.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
-    <css>/assets/multi-select.css</css>
+    <js>/util/AngularCommon.js</js>
+    <js>/util/CLMAppLocation.js</js>
+    <js>/util/CLMLocation.js</js>
+    <js>/util/HttpInterceptors.js</js>
+    <js>/lib/angular-1.3.15/angular-sanitize.js</js>
+    <group-ref>vulnerability.details</group-ref>
+    <group-ref>cip-version-graph</group-ref>
+    <group-ref>cip-label-editor</group-ref>
+    <group-ref>cip-license-editor</group-ref>
+    <group-ref>cip-policy-violations</group-ref>
+    <group-ref>cip.vulnerability.editor</group-ref>
+    <group-ref>cip-claim-component</group-ref>
   </group>
 
   <group name='version-graph'>
@@ -264,9 +256,6 @@
 
   <group name='cip-label-editor'>
     <css>/cip/cip.label.editor/cip-label-editor.css</css>
-    <js>/util/CLMLocation.js</js>
-    <js>/util/AngularCommon.js</js>
-    <js>/util/HttpInterceptors.js</js>
     <js>/cip/cip.label.editor/cip.label.editor.module.js</js>
     <js>/cip/cip.label.editor/current.label.data.service.js</js>
     <js>/cip/cip.label.editor/label.add.controller.js</js>
@@ -287,13 +276,17 @@
 
     <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
   </group>
-  
+
   <group name='cip-version-graph'>
     <js>/cip/cip.version.graph/cip.version.graph.module.js</js>
     <group-ref>version-graph</group-ref>
   </group>
 
   <group name='cip-license-editor'>
+    <css>/lib/bootstrap/bootstrap-variables.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
+    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
+    <css>/assets/multi-select.css</css>
     <css>/cip/cip.license.editor/cip-license-editor.css</css>
     <js>/cip/cip.license.editor/cip.license.editor.module.js</js>
     <js>/cip/cip.license.editor/cip.license.editor.directive.js</js>
@@ -309,6 +302,13 @@
     <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.table.directive.js</js>
   </group>
 
+  <group name='cip-claim-component'>
+    <css>/lib/datepicker/datepicker.css</css>
+    <js>/lib/datepicker/bootstrap-datepicker.js</js>
+    <css>/cip/cip-claim-component.css</css>
+    <js>/cip/cip-claim-component.js</js>
+  </group>
+
   <group name='repository-cip'>
     <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
     <js>/audit-report/cip/component.information.panel.module.js</js>
@@ -316,12 +316,6 @@
     <js>/audit-report/cip/repository.policy.violations.service.js</js>
     <js>/audit-report/cip/cip.tab.pane.directive.js</js>
     <js>/audit-report/cip/selected.component.service.js</js>
-    <group-ref>vulnerability.details</group-ref>
-    <group-ref>cip-version-graph</group-ref>
-    <group-ref>cip-label-editor</group-ref>
-    <group-ref>cip-license-editor</group-ref>
-    <group-ref>cip-policy-violations</group-ref>
-    <group-ref>cip.vulnerability.editor</group-ref>
   </group>
 
   <group name='audit-report'>

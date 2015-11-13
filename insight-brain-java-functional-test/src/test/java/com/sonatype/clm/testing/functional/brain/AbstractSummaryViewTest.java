@@ -134,13 +134,13 @@ public abstract class AbstractSummaryViewTest
     localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 1", Color.black));
     localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 2", "With Subtitle", Color.blue));
 
-    List<LicenseThreatGroup> locaLTGs = new ArrayList<>();
-    locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
-    locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
+    List<LicenseThreatGroup> localLTGs = new ArrayList<>();
+    localLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
+    localLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     testLabelTile_Local(localLabels);
-    testLTGTile_Local(locaLTGs);
+    testLTGTile_Local(localLTGs);
   }
 
   private void testLabelTile_Local(List<Label> localLabels) {

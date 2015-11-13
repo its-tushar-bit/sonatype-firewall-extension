@@ -40,6 +40,15 @@ public class StageTypeServiceTest
   }
 
   @Test
+  public void testGetLicensedStageTypes_Firewall() throws Exception {
+    productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    clmLicenseManager.installLicense(null);
+
+    assertThat(stageTypeService.getLicensedStageTypes(), contains(StageTypes.PROXY, StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE));
+  }
+
+  @Test
   public void testGetLicensedStageTypes_RiskRemediation() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
@@ -53,7 +62,7 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(), contains(StageTypes.RELEASE));
+    assertThat(stageTypeService.getLicensedStageTypes(), contains(StageTypes.PROXY, StageTypes.RELEASE));
   }
 
   @Test
@@ -62,7 +71,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        contains(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
+        contains(StageTypes.PROXY, StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 
   @Test
@@ -73,7 +82,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+        contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
             StageTypes.OPERATE));
   }
 
@@ -84,7 +93,7 @@ public class StageTypeServiceTest
     clmLicenseManager.installLicense(null);
 
     assertThat(stageTypeService.getLicensedStageTypes(),
-        contains(StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
+        contains(StageTypes.PROXY, StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 
   @Test

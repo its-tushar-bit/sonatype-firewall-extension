@@ -100,14 +100,22 @@ public class StageTypeService
       // all allowed
       allowed.addAll(StageTypes.getAll());
     }
-    else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
+
+    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
       allowed.add(StageTypes.RELEASE);
     }
-    else if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
+
+    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
       allowed.add(StageTypes.STAGE_RELEASE);
       allowed.add(StageTypes.RELEASE);
     }
-    else {
+
+    if (licenseManager.hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
+      allowed.add(StageTypes.STAGE_RELEASE);
+      allowed.add(StageTypes.RELEASE);
+    }
+
+    if (allowed.isEmpty()) {
       // if no product is defined, we are dealing with legacy license
       if (licenseManager.hasEnforcementPoint(CLMEnforcementPoint.Build)) {
         allowed.add(StageTypes.BUILD);
@@ -125,13 +133,7 @@ public class StageTypeService
         allowed.add(StageTypes.OPERATE);
       }
     }
-
-    if (licenseManager.hasRepositoryFirewall()) {
-      allowed.add(StageTypes.PROXY);
-    }
-    else {
-      allowed.remove(StageTypes.PROXY);
-    }
+    allowed.add(StageTypes.PROXY);
 
     return allowed;
   }

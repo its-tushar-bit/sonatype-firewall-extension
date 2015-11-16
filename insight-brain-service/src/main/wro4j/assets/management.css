@@ -185,7 +185,7 @@ a:focus {
 }
 
 .editor-header {
-  padding-top: 20px;
+  padding-top: 5px;
   padding-left: 25px;
 }
 
@@ -826,4 +826,12 @@ ul.tri-pane.left {
   .span2 {
     width: 159px;
   }
+}
+
+root-org-migrate {
+  display: block;
+  margin: 5px 50px 5px 25px;
+}
+.dashboard-content root-org-migrate {
+  margin: 0px;
 }

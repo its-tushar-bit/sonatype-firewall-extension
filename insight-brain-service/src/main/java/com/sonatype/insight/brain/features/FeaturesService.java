@@ -44,6 +44,9 @@ public class FeaturesService
       if (showRoot) {
         features.add(Feature.ROOT_ORG);
       }
+      else {
+        features.add(Feature.ROOT_ORG_MIGRATE);
+      }
     }
     return features;
   }

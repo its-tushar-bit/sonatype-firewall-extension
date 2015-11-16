@@ -106,7 +106,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testAddDuplicate_ComponentLevel() throws Exception {
+  public void testInsert_Duplicate_ComponentLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -130,7 +130,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testAddDuplicate_PolicyLevel() throws Exception {
+  public void testInsert_Duplicate_PolicyLevel() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
@@ -184,7 +184,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testCommentTooLong() throws Exception {
+  public void testInsert_CommentTooLong() throws Exception {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";

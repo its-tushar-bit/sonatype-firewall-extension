@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -23,12 +24,14 @@ public class FeaturesService
 {
   private final CLMLicenseManager licenseManager;
 
-  private final boolean showRoot;
+  private RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService;
 
   @Inject
-  public FeaturesService(CLMLicenseManager licenseManager, InsightConfig config) {
+  public FeaturesService(CLMLicenseManager licenseManager, InsightConfig config,
+      RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService)
+  {
     this.licenseManager = licenseManager;
-    this.showRoot = config.isShowRootOrganization();
+    this.rootOrganizationConfigMigrationService = rootOrganizationConfigMigrationService;
   }
 
   /**
@@ -41,10 +44,10 @@ public class FeaturesService
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
 
-      if (showRoot) {
+      if (rootOrganizationConfigMigrationService.isMigrated()) {
         features.add(Feature.ROOT_ORG);
       }
-      else {
+      else if (!rootOrganizationConfigMigrationService.isMigrationScheduled()) {
         features.add(Feature.ROOT_ORG_MIGRATE);
       }
     }

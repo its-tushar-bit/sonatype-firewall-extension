@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -63,14 +62,14 @@ public class OrganizationServiceTest
 
   @Test
   public void testGetAll() throws Exception {
-    InsightConfig config = Mockito.mock(InsightConfig.class);
-    Mockito.when(config.isShowRootOrganization()).thenReturn(false);
+    RootOrganizationConfigMigrationService service = Mockito.mock(RootOrganizationConfigMigrationService.class);
+    Mockito.when(service.isMigrated()).thenReturn(false);
 
-    List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(), config).getAll();
+    List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(), service).getAll();
     assertThat(orgs, hasSize(0));
 
-    Mockito.when(config.isShowRootOrganization()).thenReturn(true);
-    OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(), config);
+    Mockito.when(service.isMigrated()).thenReturn(true);
+    OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(), service);
 
     orgs = organizationService.getAll();
     assertThat(orgs, hasSize(1));

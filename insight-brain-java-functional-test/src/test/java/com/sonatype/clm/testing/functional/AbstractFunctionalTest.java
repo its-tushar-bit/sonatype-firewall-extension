@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.TestCLMServer;
 
@@ -35,6 +36,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.NoAlertPresentException;
@@ -56,6 +58,8 @@ public abstract class AbstractFunctionalTest
   public static TestLicenseFingerprinter licenseFingerprinter;
 
   public static CLMLicenseManager clmLicenseManager;
+
+  protected static RootOrganizationConfigMigrationService service;
 
   protected static TestCLMServer testCLMServer;
 
@@ -87,6 +91,9 @@ public abstract class AbstractFunctionalTest
     if (!(driver instanceof PageTweakingWebDriver)) {
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
     }
+
+    Mockito.when(service.isMigrated()).thenReturn(true);
+    Mockito.when(service.isMigrationScheduled()).thenReturn(false);
   }
 
   @AfterClass
@@ -108,6 +115,9 @@ public abstract class AbstractFunctionalTest
         bind(ProductLicenseManager.class).toInstance(productLicenseManager);
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(CLMLicenseManager.class).toInstance(clmLicenseManager);
+
+        service = Mockito.mock(RootOrganizationConfigMigrationService.class);
+        bind(RootOrganizationConfigMigrationService.class).toInstance(service);
       }
     });
   }

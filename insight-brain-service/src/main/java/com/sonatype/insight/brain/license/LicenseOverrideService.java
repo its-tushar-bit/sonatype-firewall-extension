@@ -22,10 +22,10 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -48,17 +48,17 @@ public class LicenseOverrideService
 
   private final OwnerDAO ownerDAO;
 
-  private final InsightConfig config;
+  private RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService;
 
   @Inject
-  public LicenseOverrideService(final InsightWork work, final InsightConfig config, final CurrentUser currentUser,
-      final LicenseOverrideDAO licenseOverrideDAO, final OwnerDAO ownerDAO)
+  public LicenseOverrideService(final InsightWork work, final OwnerDAO ownerDAO, final CurrentUser currentUser,
+      final LicenseOverrideDAO licenseOverrideDAO, final RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService)
   {
     this.work = work;
     this.currentUser = currentUser;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.ownerDAO = ownerDAO;
-    this.config = config;
+    this.rootOrganizationConfigMigrationService = rootOrganizationConfigMigrationService;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -140,7 +140,7 @@ public class LicenseOverrideService
     result.licenseOverridesByOwner = new ArrayList<>();
 
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      if (owner.getParentOwnerId() == null && !config.isShowRootOrganization()) {
+      if (owner.getParentOwnerId() == null && !rootOrganizationConfigMigrationService.isMigrated()) {
         break;
       }
       LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();

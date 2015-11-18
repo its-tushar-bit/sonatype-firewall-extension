@@ -99,13 +99,14 @@ public class RootOrganizationConfigMigrationServiceTest
     assertFalse(getMigrationFile().exists());
   }
 
+  @Test
   public void testSetRootOrganizationTemplate_missingOrg() throws IOException {
     try {
       service.setRootOrganizationTemplate("missing-org");
       fail("Did not throw exception");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find organization with ID missing-org"));
+      assertThat(e.getMessage(), is("Cannot find organization with ID missing-org."));
     }
   }
 

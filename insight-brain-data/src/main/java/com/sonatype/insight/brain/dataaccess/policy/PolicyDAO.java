@@ -14,9 +14,9 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
@@ -179,8 +179,7 @@ public class PolicyDAO
 
     List<ApplicationTag> appTags = null;
     Owner owner = ownerDAO.getById(ownerId);
-    boolean forApplication = owner instanceof Application;
-    if (forApplication) {
+    if (OwnerType.APPLICATION.equals(owner.getType())) {
       // ownerId is an app id
       appTags = appTagDAO.getByApplicationId(ownerId);
       result.addAll(getByOwnerId(ownerId));
@@ -189,16 +188,25 @@ public class PolicyDAO
 
     for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
       List<Policy> orgPolicies = getByOwnerId(currentOwner.getId());
-      if (forApplication) {
-        for (Policy orgPolicy : orgPolicies) {
-          List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
-          if (policyTags.isEmpty() || intersects(policyTags, appTags)) {
-            result.add(orgPolicy);
+      switch (owner.getType()) {
+        case APPLICATION:
+          for (Policy orgPolicy : orgPolicies) {
+            List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
+            if (policyTags.isEmpty() || intersects(policyTags, appTags)) {
+              result.add(orgPolicy);
+            }
           }
-        }
-      }
-      else {
-        result.addAll(orgPolicies);
+          break;
+        case REPOSITORY:
+          for (Policy orgPolicy : orgPolicies) {
+            List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
+            if (policyTags.isEmpty()) {
+              result.add(orgPolicy);
+            }
+          }
+          break;
+        default:
+          result.addAll(orgPolicies);
       }
     }
     return result;

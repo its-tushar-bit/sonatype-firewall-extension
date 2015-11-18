@@ -13,6 +13,7 @@ import java.util.Locale;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -478,8 +479,8 @@ public class PolicyDAOTest
 
   @Test
   public void testGetApplicable() {
-    String policyNameParentOrg = "testGetApplicableParentOrganization";
-    tempEntity.newPolicy(organization.getParentOrganizationId(), policyNameParentOrg);
+    String policyNameRootOrg = "testGetApplicableRootOrganization";
+    tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, policyNameRootOrg);
     String policyNameOrg = "testGetApplicableOrganization";
     tempEntity.newPolicy(organization.getId(), policyNameOrg);
     String policyNameApp = "testGetApplicableApplication";
@@ -490,48 +491,57 @@ public class PolicyDAOTest
     assertThat(policies, hasSize(3));
     assertEquals(policyNameApp, policies.get(0).getName());
     assertEquals(policyNameOrg, policies.get(1).getName());
-    assertEquals(policyNameParentOrg, policies.get(2).getName());
+    assertEquals(policyNameRootOrg, policies.get(2).getName());
+
+    // Check repo level
+    policies = policyDAO.getApplicableByOwnerId(repository.getId());
+    assertThat(policies, hasSize(1));
+    assertEquals(policyNameRootOrg, policies.get(0).getName());
 
     // Check org level
     policies = policyDAO.getApplicableByOwnerId(organization.getId());
     assertThat(policies, hasSize(2));
     assertEquals(policyNameOrg, policies.get(0).getName());
-    assertEquals(policyNameParentOrg, policies.get(1).getName());
+    assertEquals(policyNameRootOrg, policies.get(1).getName());
 
-    // Check parent org level
-    policies = policyDAO.getApplicableByOwnerId(organization.getParentOrganizationId());
+    // Check root org level
+    policies = policyDAO.getApplicableByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     assertThat(policies, hasSize(1));
-    assertEquals(policyNameParentOrg, policies.get(0).getName());
+    assertEquals(policyNameRootOrg, policies.get(0).getName());
   }
 
   @Test
   public void testGetApplicable_WithTags() {
     Policy policyOrg1 = tempEntity.newPolicy(organization.getId(), "policyOrg1");
     Policy policyOrg2 = tempEntity.newPolicy(organization.getId(), "policyOrg2");
-    Policy policyParentOrg1 = tempEntity.newPolicy(organization.getParentOrganizationId(), "policyParentOrg1");
-    Policy policyParentOrg2 = tempEntity.newPolicy(organization.getParentOrganizationId(), "policyParentOrg2");
+    Policy policyRootOrg1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policyRootOrg1");
+    Policy policyRootOrg2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policyRootOrg2");
 
     Tag tag1 = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policyOrg1.getId(), tag1.getId());
-    tempEntity.newPolicyTag(policyParentOrg1.getId(), tag1.getId());
+    tempEntity.newPolicyTag(policyRootOrg1.getId(), tag1.getId());
     Tag tag2 = tempEntity.newTag(organization.getId());
     tempEntity.newPolicyTag(policyOrg2.getId(), tag2.getId());
-    tempEntity.newPolicyTag(policyParentOrg2.getId(), tag2.getId());
+    tempEntity.newPolicyTag(policyRootOrg2.getId(), tag2.getId());
     tempEntity.newApplicationTag(application.getId(), tag2.getId());
 
     // For apps, must retrieve only the org policies that match the tags associated with the app
     List<Policy> policies = policyDAO.getApplicableByOwnerId(application.getId());
     assertThat(policies, hasSize(2));
     assertEquals("policyOrg2", policies.get(0).getName());
-    assertEquals("policyParentOrg2", policies.get(1).getName());
+    assertEquals("policyRootOrg2", policies.get(1).getName());
+
+    // For repositories, must retrieve only the org policies that don't have any tags
+    policies = policyDAO.getApplicableByOwnerId(repository.getId());
+    assertThat(policies, hasSize(0));
 
     // For orgs, must retrieve all org policies, regardless of the tags associated with them
     policies = policyDAO.getApplicableByOwnerId(organization.getId());
     assertThat(policies, hasSize(4));
     assertEquals("policyOrg1", policies.get(0).getName());
     assertEquals("policyOrg2", policies.get(1).getName());
-    assertEquals("policyParentOrg1", policies.get(2).getName());
-    assertEquals("policyParentOrg2", policies.get(3).getName());
+    assertEquals("policyRootOrg1", policies.get(2).getName());
+    assertEquals("policyRootOrg2", policies.get(3).getName());
   }
 
   @Test

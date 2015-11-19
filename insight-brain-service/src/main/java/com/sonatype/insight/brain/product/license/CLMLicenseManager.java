@@ -437,7 +437,7 @@ public class CLMLicenseManager
         listener.licenseChanged();
       }
       catch (RuntimeException e) {
-        log.warn("Failed to nofify {} of license update", listener, e);
+        log.warn("Failed to notify {} of license update", listener, e);
       }
     }
   }

@@ -291,7 +291,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testNotifiyListener_InstallLicense() throws Exception {
+  public void testNotifyListener_InstallLicense() throws Exception {
     LicenseListener listener = mock(LicenseListener.class);
     clmLicenseManager.addListener(listener);
     installLicense();
@@ -303,7 +303,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testNotifiyListener_UninstallLicense() throws Exception {
+  public void testNotifyListener_UninstallLicense() throws Exception {
     installLicense();
     LicenseListener listener = mock(LicenseListener.class);
     clmLicenseManager.addListener(listener);

@@ -320,12 +320,12 @@
   ```
 */
 .clm-form {
-  .checkbox {
+  label.checkbox {
     @extend .regular;
     font-size: 14px;
     display: block;
     cursor: pointer;
-    margin-bottom: 4px;
+    margin-bottom: 0px;
     padding-left: 24px;
 
     // Monochrome checkbox to override native implementation. Native is hidden and pseudo selectors on the label's
@@ -362,7 +362,8 @@
         display: inline-block;
         position: absolute;
         left: 1px;
-        top: 3px;
+        top: 2px;
+        color: $slate;
       }
 
       // Implementations for focus marker on custom checkbox
@@ -384,13 +385,13 @@
     }
 
     &.disabled {
-      input[type=radio] {
+      input[type=checkbox] {
         & + span:before {
-          border-color: $slate;
+          border-color: $grey-3;
         }
 
         &:checked + span:after {
-          color: $slate;
+          color: $grey-3;
         }
       }
     }

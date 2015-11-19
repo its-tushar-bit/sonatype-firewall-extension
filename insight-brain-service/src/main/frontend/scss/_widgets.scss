@@ -675,34 +675,54 @@
 /*
   #Association Editor
   ```
-  <table id="association-editor" class="association-editor">
-    <tbody>
-      <tr class="association-editor-row">
-        <td>
-          <input class="check-box" type="checkbox">
-          <svg class="blue hexagon hexagon" viewBox="0 0 185.5 208" width="14" height="16"><path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path></svg>
-          <p class="description">Test 1</p>
-        </td>
-        <td>
-          <input class="check-box" type="checkbox">
-          <svg class="green hexagon hexagon" viewBox="0 0 185.5 208" width="14" height="16"><path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path></svg>
-          <p class="description">Test 2</p>
-        </td>
-      </tr>
-      <tr class="association-editor-row">
-        <td>
-          <input class="check-box" type="checkbox">
-          <i class="fa fa-pencil"></i>
-          <p class="description">Test 1</p>
-        </td>
-        <td>
-          <input class="check-box" type="checkbox">
-          <i class="fa fa-pencil"></i>
-          <p class="description">Test 1</p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <form class="clm-form">
+    <div class="association-editor-wrapper">
+      <table id="association-editor" class="association-editor">
+        <tbody>
+          <tr class="association-editor-row">
+            <td>
+              <label class="checkbox">
+                <input type="checkbox">
+                <span>
+                  <svg class="blue hexagon" viewBox="0 0 185.5 208" width="14" height="16"><path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path></svg>
+                  <p class="description">Test 1</p>
+                </span>
+              </label>
+            </td>
+            <td>
+              <label class="checkbox">
+                <input type="checkbox">
+                <span>
+                  <svg class="blue hexagon" viewBox="0 0 185.5 208" width="14" height="16"><path d="M91.952,6.246L7.653,55l0.073,97.383l84.373,48.628l84.299-48.754l-0.073-97.382L91.952,6.246z M92.084,183.74"></path></svg>
+                  <p class="description">Test 2</p>
+                </span>
+              </label>
+            </td>
+          </tr>
+          <tr class="association-editor-row">
+            <td>
+              <label class="checkbox">
+                <input type="checkbox">
+                <span>
+                  <i class="fa fa-pencil"></i>
+                  <p class="description">Test 1</p>
+                </span>
+              </label>
+            </td>
+            <td>
+              <label class="checkbox">
+                <input type="checkbox">
+                <span>
+                  <i class="fa fa-pencil"></i>
+                  <p class="description">Test 2</p>
+                </span>
+              </label>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </form>
   ```
 */
 
@@ -713,25 +733,14 @@
 */
 .association-editor-wrapper {
   overflow-y: auto;
-  max-height: 270px;
+  max-height: 220px;
 
   .association-editor {
     display: block;
 
     .association-editor-row {
-      line-height: 14px;
-      height: 14px;
-      padding-top: 0px;
-      padding-bottom: 12px;
-
       td {
-        padding: 0px 8px 8px 24px;
         white-space: nowrap;
-
-        input[type='checkbox'] {
-          margin-top: -5px;
-          margin-right: 8px;
-        }
 
         .description {
           margin: 0px 0px 0px 8px;
@@ -741,10 +750,17 @@
           text-overflow: ellipsis;
           min-width: 220px;
           max-width: 375px;
+          vertical-align: bottom;
+        }
+
+        .hexagon {
+          vertical-align: top;
+          padding-top: 1px;
         }
 
         .fa {
           vertical-align: top;
+          padding-top: 2px;
         }
       }
     }

@@ -296,19 +296,21 @@ public class CLMLicenseManager
     Integer applicationCount = getApplicationLimit(key);
 
     Set<CLMEnforcementPoint> enforcementPoints = EnumSet.noneOf(CLMEnforcementPoint.class);
-    String[] enforcementPointIds = getPropertyNotNull(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS)
-        .split(",");
-    for (String enforcementPointId : enforcementPointIds) {
-      enforcementPointId = enforcementPointId.trim();
-      if ("Procure".equals(enforcementPointId)) {
-        // ignore, unsupported
-        continue;
-      }
-      try {
-        enforcementPoints.add(CLMEnforcementPoint.valueOf(enforcementPointId));
-      }
-      catch (IllegalArgumentException e) {
-        log.warn("License enables unknown enforcement point {}, ignored", enforcementPointId);
+    final String enforcementPointsPropertyValue = getProperty(key, ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS);
+    if (enforcementPointsPropertyValue != null) {
+      String[] enforcementPointIds = enforcementPointsPropertyValue.split(",");
+      for (String enforcementPointId : enforcementPointIds) {
+        enforcementPointId = enforcementPointId.trim();
+        if ("Procure".equals(enforcementPointId)) {
+          // ignore, unsupported
+          continue;
+        }
+        try {
+          enforcementPoints.add(CLMEnforcementPoint.valueOf(enforcementPointId));
+        }
+        catch (IllegalArgumentException e) {
+          log.warn("License enables unknown enforcement point {}, ignored", enforcementPointId);
+        }
       }
     }
 

@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.audit;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -16,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseCIP;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP;
+import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVDetailModal;
 import com.sonatype.clm.testing.functional.elements.VulnerabilityCIP.SVTableRow;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
@@ -24,6 +26,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Row;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Table;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.PolicyWaiverRow;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
@@ -45,6 +48,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.present;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 
 public class RepositoryReportTest
@@ -277,7 +281,7 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
-  private void testVulnerabilityCIP() {
+  private void testVulnerabilityCIP() throws IOException {
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
@@ -289,6 +293,23 @@ public class RepositoryReportTest
     assertRow(VulnerabilityCIP.row(0), 9, "CVE-1234-56789");
     assertRow(VulnerabilityCIP.row(1), 4, "OSVDB-1234");
     assertRow(VulnerabilityCIP.row(2), null, "OSVDB-4321");
+
+    String componentIdentifier = URLEncoder.encode(ComponentIdentifierAdapter
+        .toJson(ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0.")), "UTF-8");
+
+    testCLMServer.getInsightServer().setResponseForURI(
+        "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash=" +
+            criticalComponentHash,
+        FileUtils.readFileToString(new File("src/test/resources/vulnerabilityDetails/vulnerabilityDetails.json")), 200);
+
+    VulnerabilityCIP.row(0).info().click();
+
+    SVDetailModal.root().shouldBe(Condition.visible);
+
+    //html from the json response we send above
+    $("#somedivfortest").shouldBe(Condition.visible);
+
+    SVDetailModal.closeButton().shouldBe(Condition.enabled).click();
 
     // close CIP
     RepositoryReportPage.Table.row(0).component().click();

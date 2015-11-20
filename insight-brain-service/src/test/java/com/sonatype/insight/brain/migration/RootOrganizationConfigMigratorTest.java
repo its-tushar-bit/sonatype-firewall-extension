@@ -164,6 +164,9 @@ public class RootOrganizationConfigMigratorTest
     addMonitoringRoleNotification(sourcePolicy);
     tempEntity.newPolicyTag(sourcePolicy.getId(), sourceOrgTag.getId());
 
+    Policy sourcePolicyWithoutNotifications = tempEntity.newPolicy(sourceOrg.getId(),
+        "sourcePolicyWithoutNotifications");
+
     Organization otherOrg = tempEntity.newOrganization("otherOrg");
     Policy otherPolicy1 = tempEntity.newPolicy(otherOrg.getId(), policyName);
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver(otherPolicy1.getId(), otherOrg.getId());
@@ -176,6 +179,8 @@ public class RootOrganizationConfigMigratorTest
     // sourcePolicy was moved
     sourcePolicy = policyDAO.getById(sourcePolicy.getId());
     assertThat(sourcePolicy.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
+    sourcePolicyWithoutNotifications = policyDAO.getById(sourcePolicyWithoutNotifications.getId());
+    assertThat(sourcePolicyWithoutNotifications.getOwnerId(), is(Organization.ROOT_ORGANIZATION_ID));
     // email notifications were removed from sourcePolicy, all other actions were preserved
     List<Action> actions = sourcePolicy.getActions().get(BuildStageType.ID);
     assertThat(actions, hasSize(1));

@@ -224,28 +224,32 @@ public class RootOrganizationConfigMigrator
 
   private void removeEmailNotifications(Policy policy) {
     Map<String, List<Action>> actionsByStageType = policy.getActions();
-    for (Entry<String, List<Action>> entry : actionsByStageType.entrySet()) {
-      List<Action> actions = entry.getValue();
-      Iterator<Action> actionIter = actions.iterator();
+    if (actionsByStageType != null) {
+      for (Entry<String, List<Action>> entry : actionsByStageType.entrySet()) {
+        List<Action> actions = entry.getValue();
+        Iterator<Action> actionIter = actions.iterator();
+        while (actionIter.hasNext()) {
+          Action action = actionIter.next();
+          if (Action.ID_NOTIFY.equals(action.getActionTypeId())
+              && !NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
+            actionIter.remove();
+          }
+        }
+      }
+      policy.setActions(actionsByStageType);
+    }
+
+    List<NotifyAction> monitoringActions = policy.getMonitorNotifyActions();
+    if (monitoringActions != null) {
+      Iterator<NotifyAction> actionIter = monitoringActions.iterator();
       while (actionIter.hasNext()) {
-        Action action = actionIter.next();
-        if (Action.ID_NOTIFY.equals(action.getActionTypeId())
-            && !NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
+        NotifyAction action = actionIter.next();
+        if (!NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
           actionIter.remove();
         }
       }
+      policy.setMonitorNotifyActions(monitoringActions);
     }
-    policy.setActions(actionsByStageType);
-
-    List<NotifyAction> monitoringActions = policy.getMonitorNotifyActions();
-    Iterator<NotifyAction> actionIter = monitoringActions.iterator();
-    while (actionIter.hasNext()) {
-      NotifyAction action = actionIter.next();
-      if (!NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
-        actionIter.remove();
-      }
-    }
-    policy.setMonitorNotifyActions(monitoringActions);
   }
 
   private void migratePolicies(Organization sourceOrg) {

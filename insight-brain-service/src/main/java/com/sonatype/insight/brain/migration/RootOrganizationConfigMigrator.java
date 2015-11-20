@@ -249,7 +249,11 @@ public class RootOrganizationConfigMigrator
   }
 
   private void migratePolicies(Organization sourceOrg) {
+    log.debug("Migrating policies...");
+
     for (Policy sourcePolicy : policyDAO.getByOwnerId(sourceOrg.getId())) {
+      log.debug("Moving policy {} to root org.", sourcePolicy.getName());
+
       // Delete all policies with the same name
       for (Policy sameNamePolicy : policyDAO.getByName(sourcePolicy.getName())) {
         if (sourcePolicy.getId().equals(sameNamePolicy.getId())) {
@@ -275,7 +279,11 @@ public class RootOrganizationConfigMigrator
   }
 
   private void migrateLabels(Organization sourceOrg) {
+    log.debug("Migrating labels...");
+
     for (Label sourceLabel : labelDAO.getByOwnerId(sourceOrg.getId())) {
+      log.debug("Moving label {} to root org.", sourceLabel.getLabel());
+
       // Move the source label to root org.
       // We need to move it before deleting other labels with the same name because
       // we have to move the ComponentLabels for the labels we delete and the source label
@@ -317,7 +325,11 @@ public class RootOrganizationConfigMigrator
   }
 
   private void migrateLicenseThreatGroups(Organization sourceOrg) {
+    log.debug("Migrating license threat groups...");
+
     for (LicenseThreatGroup sourceLTG : ltgDAO.getByOwnerId(sourceOrg.getId())) {
+      log.debug("Moving license threat group {} to root org.", sourceLTG.getName());
+
       // Move sourceLTG to root org.
       // We need to move it before deleting other LTGs with the same name because
       // we have to move the references for the LTGs we delete and the sourceLTG
@@ -358,7 +370,11 @@ public class RootOrganizationConfigMigrator
   }
 
   private void migrateTags(Organization sourceOrg) {
+    log.debug("Migrating tags...");
+
     for (Tag sourceTag : tagDAO.getByOrganizationId(sourceOrg.getId())) {
+      log.debug("Moving tag {} to root org.", sourceTag.getName());
+
       // Move sourceTag to root org.
       // We need to move it before deleting other tags with the same name because
       // we have to move the references for the tags we delete and the sourceTag
@@ -402,8 +418,12 @@ public class RootOrganizationConfigMigrator
   }
 
   private void migratePolicyMonitoring(Organization sourceOrg) {
+    log.debug("Migrating policy monitoring...");
+
     PolicyMonitoring sourcePolicyMonitoring = policyMonitoringDAO.getByOwnerId(sourceOrg.getId());
     if (sourcePolicyMonitoring != null) {
+      log.debug("Moving policy monitoring for stage type id {} to root org.", sourcePolicyMonitoring.getStageTypeId());
+
       // Delete all monitorings of the same stage as sourcePolicyMonitoring
       for (PolicyMonitoring sameStagePolicyMonitoring : policyMonitoringDAO.getByStageTypeId(sourcePolicyMonitoring
           .getStageTypeId())) {

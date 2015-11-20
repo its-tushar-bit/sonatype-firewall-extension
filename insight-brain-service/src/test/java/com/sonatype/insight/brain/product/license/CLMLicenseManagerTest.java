@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -22,13 +21,9 @@ import com.sonatype.insight.license.model.CLMEnforcementPoint;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.sonatype.licensing.LicensingException;
-import org.sonatype.licensing.product.ProductLicenseKey;
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -38,7 +33,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class CLMLicenseManagerTest
     extends AbstractComponentTest
@@ -54,35 +48,6 @@ public class CLMLicenseManagerTest
 
   private void installLicense() throws IOException, LicensingException {
     clmLicenseManager.installLicense(new ByteArrayInputStream(new byte[0]));
-  }
-
-  @Test
-  public void testPopulateLicenseCacheHandlesMissingEnforcementPointsProperty() throws Exception {
-    // Mock a case where ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS is not set in the license (e.g. Firewall).
-    final ProductLicenseManager mockProductLicenseManager = mock(ProductLicenseManager.class);
-
-    final LicenseFingerprinter mockLicenseFingerprinter = mock(LicenseFingerprinter.class);
-    final ProductLicenseKey mockProductLicenseKey = mock(ProductLicenseKey.class);
-    when(mockProductLicenseManager.getLicenseDetails()).thenReturn(mockProductLicenseKey);
-
-    final Properties keyProperties = new Properties();
-    final int applicationLimit = -1;
-    keyProperties.setProperty(ProductLicenseDetails.PROPERTY_APPLICATION_LIMIT, applicationLimit + "");
-    keyProperties.setProperty(ProductLicenseDetails.PROPERTY_VERSION, "1");
-    keyProperties.setProperty(ProductLicenseDetails.PROPERTY_PRODUCTS, ProductLicenseDetails.PRODUCT_FIREWALL);
-    when(mockProductLicenseKey.getProperties()).thenReturn(keyProperties);
-
-    when(mockProductLicenseKey.getExpirationDate()).thenReturn(new Date());
-
-    // trigger call to populateLicenseCache()
-    final CLMLicenseManager clmLicenseManagerWithMockMgr = new CLMLicenseManager(mockProductLicenseManager,
-        mockLicenseFingerprinter);
-
-    // any error in populateLicenseCache() will clear the license cache, which would cause the applicationLimit to be 0.
-    assertThat(clmLicenseManagerWithMockMgr.getApplicationCountLimit(), is(applicationLimit));
-
-    assertThat(clmLicenseManagerWithMockMgr.getProducts(), contains(ProductLicenseDetails.PRODUCT_FIREWALL));
-    assertThat(clmLicenseManagerWithMockMgr.getEnforcementPoints().size(), is(0));
   }
 
   @Test

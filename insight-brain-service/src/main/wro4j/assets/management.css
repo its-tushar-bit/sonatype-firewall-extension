@@ -828,11 +828,11 @@ ul.tri-pane.left {
   }
 }
 
-root-org-migrate {
+root-organization-migrate {
   display: block;
   margin: 5px 50px 5px 25px;
 }
-.dashboard-content root-org-migrate {
+.dashboard-content root-organization-migrate {
   margin: 0px;
 }
 

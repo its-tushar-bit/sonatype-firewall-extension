@@ -67,6 +67,10 @@ public class OperationalDataStoreProvider
     return databaseConfig;
   }
 
+  public static boolean isDatabaseInMemory() {
+    return databaseConfig == null;
+  }
+
   public static EntityManagerFactory getJPAEntityManagerFactory() {
     if (!isInitialized) {
       init(null /* databaseConfig */);

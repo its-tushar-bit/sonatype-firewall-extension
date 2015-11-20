@@ -16,7 +16,7 @@ public class H2DatabaseUtil
 {
   private static final String H2_URL_PREFIX = "jdbc:h2:";
 
-  static File getDatabasePath(DatabaseConfig databaseConfig) {
+  public static File getDatabasePath(DatabaseConfig databaseConfig) {
     String url = databaseConfig.getUrl();
     if (!url.startsWith(H2_URL_PREFIX)) {
       throw new IllegalArgumentException("Not an H2 database URL: '" + url + "'");

@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -44,6 +47,8 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,6 +59,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -471,6 +477,57 @@ public class RootOrganizationConfigMigratorTest
 
     // Should not throw an exception
     migrator.migrate();
+  }
+
+  @Test
+  public void testBackup() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try {
+      // Create an on-disk database
+      File dbDir = new File(tempDir.getRoot(), "ods");
+      DatabaseConfig odsDatabaseConfig = new DatabaseConfig();
+      odsDatabaseConfig.setDriverClassName("org.h2.Driver");
+      odsDatabaseConfig.setUrl("jdbc:h2:" + dbDir.getAbsolutePath()
+          + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+      odsDatabaseConfig.setUsername("sa");
+      odsDatabaseConfig.setPassword("");
+      odsDatabaseConfig.setMaxConnections(50);
+      OperationalDataStoreProvider.init(odsDatabaseConfig);
+
+      // Migration will fail because the source org id is invalid.
+      // Verify that a backup was created.
+      File backupDir = migrator.getDbBackupDir();
+      migrationUtils.setSourceOrganizationId("Not a valid org id");
+      try {
+        migrator.migrate();
+        fail("Expected exception");
+      }
+      catch (NotFoundException expected) {
+        assertThat(backupDir.isDirectory(), is(true));
+        assertThat(new File(backupDir, "ods-db-backup.zip").isFile(), is(true));
+      }
+
+      // Running the migration again should fail because a backup already exists (i.e. the previous migration failed).
+      try {
+        migrator.migrate();
+        fail("Expected exception");
+      }
+      catch (IllegalStateException expected) {
+        assertThat(expected.getMessage(),
+            startsWith("Cannot migrate config for root organization. The backup directory "));
+      }
+
+      // Delete the backup dir, fix the source org id and try again.
+      // Migration should succeed and there should be no backup left on disk.
+      new FileCleaner().delete(backupDir);
+      createSourceOrg();
+      migrator.migrate();
+      assertThat(backupDir.exists(), is(false));
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   private Organization createSourceOrg() throws IOException {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,6 +18,8 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.NotifyAction;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -29,6 +32,9 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.db.H2DatabaseBackup;
+import com.sonatype.insight.brain.db.H2DatabaseUtil;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -48,6 +54,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,13 +142,56 @@ public class RootOrganizationConfigMigrator
 
     checkRootOrgIsEmpty();
 
+    createBackup();
+
     Organization sourceOrg = orgDAO.getByIdNotNull(migrationUtils.getSourceOrganizationId());
     migrate(sourceOrg);
 
     migrationUtils.setMigrated();
+    deleteBackup();
 
     log.info("Migrated root organization config in {} ms.", System.currentTimeMillis() - start);
     return true;
+  }
+
+  private void createBackup() {
+    if (OperationalDataStoreProvider.isDatabaseInMemory()) {
+      return;
+    }
+
+    File dbBackupDir = getDbBackupDir();
+    if (dbBackupDir.exists()) {
+      throw new IllegalStateException(
+          "Cannot migrate config for root organization. The backup directory '"
+              + dbBackupDir.getAbsolutePath()
+              + "' already exists, indicating that a previous migration failed. Please contact support for further assistance.");
+    }
+
+    H2DatabaseBackup h2DatabaseBackup = new H2DatabaseBackup();
+    h2DatabaseBackup.backup(OperationalDataStoreProvider.getDatabaseConfig(),
+        OperationalDataStoreProvider.getDataSource(), dbBackupDir);
+  }
+
+  private void deleteBackup() {
+    if (OperationalDataStoreProvider.isDatabaseInMemory()) {
+      return;
+    }
+
+    File dbBackupDir = getDbBackupDir();
+    try {
+      new FileCleaner().delete(dbBackupDir);
+    }
+    catch (FileDeletionException e) {
+      throw new RuntimeException("Cannot delete db backup created for root organization config migration: "
+          + e.getMessage(), e);
+    }
+  }
+
+  @VisibleForTesting
+  File getDbBackupDir() {
+    File databasePath = H2DatabaseUtil.getDatabasePath(OperationalDataStoreProvider.getDatabaseConfig());
+    File databaseDir = databasePath.getParentFile();
+    return new File(databaseDir, "backup");
   }
 
   private void checkRootOrgIsEmpty() {
@@ -160,7 +210,8 @@ public class RootOrganizationConfigMigrator
     }
   }
 
-  private void migrate(Organization sourceOrg) {
+  @VisibleForTesting
+  void migrate(Organization sourceOrg) {
     log.info("Migrating config for root organization from template (source) organization: {} (ID: {}).",
         sourceOrg.getName(), sourceOrg.getId());
 

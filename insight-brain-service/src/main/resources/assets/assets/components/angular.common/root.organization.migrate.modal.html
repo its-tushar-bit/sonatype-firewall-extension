@@ -1,0 +1,50 @@
+<div id="root-organization-migrate-modal">
+  <div class="modal-header">
+    <h3><i class="sonatype-glyphicons medium root-org"></i>Migrate to Root</h3>
+  </div>
+  <div load-wrapper="vm.loadError" reload="vm.doLoad()">
+    <div ng-if="!vm.organizations" class="modal-body">
+      <i class='icon-time'></i> Loading
+    </div>
+    <div ng-if="vm.waitingForReload" class="modal-body">
+      <p>Root organization has been enabled.  The page will reload in a moment, or <a id="reload-app-link" href='#' ng-click='vm.reloadApp()'>refresh</a> now</p>
+    </div>
+    <div ng-if="vm.organizations && !vm.waitingForReload">
+      <form name="rootOrganizationMigrateForm" ng-submit="vm.selectTemplate()">
+        <div class="modal-body">
+          <p>How do you want to use the Root Organization? Populate it with some existing organization data, or start from scratch.</p>
+          <div class="control-group">
+            <label class="control-label">Migrate By:</label>
+            <div class="controls">
+              <label class="radio">
+                <input id="select-organization-radio-button" type="radio" ng-model="vm.migrateSelection" value="selectOrganization"/>
+                Selecting an existing Organization to promote to the Root.
+              </label>
+              <label class="radio">
+                <input id="empty-root-radio-button" type="radio" ng-model="vm.migrateSelection" value="none"/>
+                Doing nothing. Existing organizations will inherit from blank Root.
+              </label>
+            </div>
+          </div>
+          <div clm-control-group for="migrate-organization" label="Organization to Promote">
+            <select id="migrate-organization" ng-required="true" ng-model="vm.organization" ng-disabled="vm.migrateSelection !== 'selectOrganization'" ng-options="organization.name for organization in vm.organizations">
+              <option value="" selected>-- Select Organization --</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" ng-class="{ error : vm.error }">
+          <div ng-if="vm.error" class="section with-icon">
+            {{ vm.error }}
+          </div>
+          <button id="root-org-migrate-continue" ng-if="!vm.error" class="btn btn-primary" type="submit" ng-disabled="vm.migrateSelection === 'selectOrganization' && !vm.organization">
+            Continue
+          </button>
+          <button id="root-org-migrate-retry" ng-if="vm.error" class="btn btn-error" type="submit" ng-disabled="vm.migrateSelection === 'selectOrganization' && !vm.organization">
+            Retry
+          </button>
+          <button id="root-org-migrate-cancel" class="btn" type="button" ng-click="$dismiss()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

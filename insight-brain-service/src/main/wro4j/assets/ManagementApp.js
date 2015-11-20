@@ -13,7 +13,7 @@
 (function() {
   'use strict';
 
-  var managementModule = angular.module('ManagementModule', ['ui.router'], ['$stateProvider', function($stateProvider) {
+  var managementModule = angular.module('ManagementModule', ['ui.router', 'root.organization.migrate'], ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management', {
       url: '/management',
       templateUrl: '../assets/management.html?' + clmBuildTimestamp,

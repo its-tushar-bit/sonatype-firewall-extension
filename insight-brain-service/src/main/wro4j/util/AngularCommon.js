@@ -1113,31 +1113,6 @@ var AngularStateUtils = {
       }
     };
   });
-  
-  angularCommon.service('root.org.migrate', ['ProductFeatures', function (ProductFeatures) {
-    return {
-      show: ProductFeatures.isAvailable('root-org-migrate')
-    };
-  }]);
-
-  angularCommon.directive('rootOrgMigrate', function () {
-    return {
-      templateUrl: 'components/angular.common/root.org.migrate.directive.html',
-      scope: {},
-      controllerAs: 'vm',
-      controller: ['$scope', 'root.org.migrate', function ($scope, rootOrgMigrate) {
-        var vm = this;
-
-        vm.migrateRoot = undefined;
-
-        $scope.$watch(function () {
-          return rootOrgMigrate.show;
-        }, function (showRoot) {
-          vm.migrateRoot = showRoot;
-        });
-      }]
-    };
-  });
 }());
 
 (function() {

@@ -29,7 +29,7 @@
   }
 
   var dashboardModule = angular.module('DashboardModule', ['ui.router', 'Stores', 'AngularCommon', 'ComponentModule',
-    'FilterModule', 'ComponentDisplay'],
+    'FilterModule', 'ComponentDisplay', 'root.organization.migrate'],
     // To avoid hacking dependency order, states must be declared with their parent.
     // Fixed https://github.com/angular-ui/ui-router/pull/492
     ['$stateProvider', function($stateProvider) {

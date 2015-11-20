@@ -660,6 +660,7 @@
                 <include>wro4j/lib/angular-${angularjs.version}/angular-sanitize.js</include>
                 <include>wro4j/lib/ui-bootstrap-tpls-*.js</include>
                 <include>resources/assets/assets/**/*.js</include>
+                <include>wro4j/**/*.module.js</include>
                 <include>wro4j/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>

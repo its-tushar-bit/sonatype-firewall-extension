@@ -1,0 +1,14 @@
+<div>
+  <div id="root-org-migrate-banner" ng-if="vm.migrationNeeded && !vm.migrationDone && vm.permitted" class="alert alert-warn">
+    <div>
+      This release of IQ server introduces the Root Organization. You may select one of your existing Organizations
+      to promote as your Root Organization. The policy configuration of your chosen Organization will migrate to the Root,
+      and it will become the parent to your other Organizations. You may also choose to work with a blank Root Organization.
+      It is strongly recommended that you back up your IQ Server before proceeding.
+    </div>
+    <button class="btn btn-primary" ng-click="vm.doMigrate()">Get Started</button>
+  </div>
+  <div id="root-org-migrate-configured-banner" ng-if="!vm.migrationDone && !vm.migrationNeeded && vm.permitted" class="alert alert-info">
+    Root organization has been configured, and will be available once the server is restarted.
+  </div>
+</div>

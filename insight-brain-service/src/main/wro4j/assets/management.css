@@ -835,3 +835,17 @@ root-org-migrate {
 .dashboard-content root-org-migrate {
   margin: 0px;
 }
+
+#root-organization-migrate-modal .control-group {
+  margin-top:20px;
+}
+
+#root-organization-migrate-modal .radio {
+  font-family: Proxima Nova Regular; font-size: 14px; line-height: 22px;
+}
+
+#root-organization-migrate-modal .sonatype-glyphicons.root-org::before {
+  vertical-align: middle;
+  margin-right: 5px;
+  padding-bottom: 3px;
+}

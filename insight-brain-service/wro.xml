@@ -183,6 +183,10 @@
     <js>/util/PermissionService.js</js>
     <js>/util/BootstrapAddonsModule.js</js>
     <js>/util/Validators.js</js>
+    <js>/util/root.organization.migrate.module.js</js>
+    <js>/util/root.organization.migrate.directive.js</js>
+    <js>/util/root.organization.migrate.modal.controller.js</js>
+    <js>/util/root.organization.migrate.modal.service.js</js>
   </group>
 
   <group name='style'>

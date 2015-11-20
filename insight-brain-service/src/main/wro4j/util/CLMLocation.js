@@ -206,6 +206,13 @@
          */
         getAuditReportSummary: function(repositoryId) {
           return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryId) + '/report/summary';
+        },
+
+        /**
+         * @Since 1.18
+         */
+        getRootOrganizationConfigMigrationUrl: function(organizationId) {
+          return baseUrl.get() + '/rest/migrate/root' + (organizationId ? '/' + organizationId : '');
         }
       };
     }

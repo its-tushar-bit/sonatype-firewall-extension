@@ -11,8 +11,8 @@
 
   productFeatureModule.service('ProductFeatures', ['$http', 'CLMLocations', function($http, CLMLocations) {
     var promise = null, productFeatures = null;
-    function load() {
-      if (promise) {
+    function load(forceReload) {
+      if (!forceReload && promise) {
         return promise;
       }
 

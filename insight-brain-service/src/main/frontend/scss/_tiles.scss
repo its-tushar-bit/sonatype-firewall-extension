@@ -306,5 +306,135 @@
         }
       }
     }
+
+/*
+  ##Access Tiles
+```
+<div class="tile">
+  <h2><i class="fa fa-key size-20px slate"></i>Access</h2>
+
+  <div class="sub-header">Access List sub-header</div>
+   <div class="simple-list">
+    <h4 class="subsection-header">Subsection Header</h4>
+    <div class="empty-list">Empty List</div>
+  </div>
+  <div class="simple-list">
+    <h4 class="subsection-header">Subsection Header
+      <button id="add-role-button" class="btn btn-tertiary">
+        <i class="fa fa-plus"></i>Add Role
+      </button>
+    </h4>
+    <table class="access-list">
+      <tr class="simple clickable" style="vertical-align: middle">
+        <td class="role">Clickable Row</td>
+        <td class="members">
+          <span>
+            <span class="list-within-list">
+              <i class="fa fa-user size-16px slate"></i>
+              <span>Test User1</span>
+              <i class="fa fa-user size-16px slate"></i>
+              <span>Test User2</span>  
+            </span>
+          </span>
+        </td>
+        <td>
+          <i class="fa fa-chevron-right"></i>
+        </td>
+      </tr>
+    </table>
+    <table class="access-list">
+      <tr class="simple" style="vertical-align: middle">
+        <td class="role">Non-Clickable Row</td>
+        <td class="members">
+          <span>
+            <span class="list-within-list">
+              <i class="fa fa-user size-16px slate"></i>
+              <span>Test User1</span>
+              <i class="fa fa-user size-16px slate"></i>
+              <span>Test User2</span>  
+            </span>
+          </span>
+        </td>
+        <td>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+```
+*/
+    .access-list {
+      top: 1px solid $grey-3;
+      width: 100%;
+
+      tr {
+        position: relative;
+        border-bottom: 1px solid $grey-1;
+
+        td {
+          font-size: 14px;
+          line-height: 16px;
+          @extend .semi-bold;
+        }
+
+        .role {
+          padding-top: 12px;
+          vertical-align: top;
+          padding-left: 8px;
+          padding-right: 24px;
+          min-width: 140px;
+        }
+
+        .members {
+          width: 100%;
+          padding-top: 10.0px;
+          vertical-align: bottom;
+
+          .list-within-list {
+            white-space: nowrap;
+            padding-bottom: 12px;
+            display: inline-block;
+
+            i {
+              margin-right: 8px;
+            }
+            span {
+              margin-right: 15px;
+            }
+          }
+        }
+
+        td:last-child {
+          padding-top: 0px;
+          vertical-align: middle;
+          padding-left: 24px;
+          padding-right: 12px;
+
+          > .fa-chevron-right {
+            font-size: 12px;
+            top: calc(50% - 6.5px);
+            width: 7px;
+            right: 12px;
+            color: $slate;
+            vertical-align: middle;
+          }
+        }
+
+        &.simple {
+          height: 40px;
+        }
+
+        &.clickable:hover {
+          border-bottom-color: $grey-4;
+          cursor: pointer;
+
+          td {
+            > .fa-chevron-right {
+              color: $off-black;
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -85,8 +85,16 @@ public abstract class AbstractFunctionalTest
   @BeforeClass
   public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
+    /*
+     * Temporary workaround to an issue when running tests with phantomjs driver < 2.0.0. The issue is that the 
+     * phantomjs browser does not render the app/org summary page properly. All items outside of the default scroll 
+     * state are not accessible. So here we increase the height of the browser so the items are accessible by the tests.
+     * Note, it may be necessary to adjust the height as we add more items to this test. 
+     * The real solution is to upgrade to phantomjs 2.0.0. Currently as of 11/16/2015 there are no linux binaries for 
+     * phantomjs 2.0.0. For more details see: https://github.com/jakoch/phantomjs-installer/issues/12    
+     */
     if (WebDriverRunner.isPhantomjs()) {
-      driver.manage().window().setSize(new Dimension(1366, 2000));
+      driver.manage().window().setSize(new Dimension(1366, 3000));
     }
     if (!(driver instanceof PageTweakingWebDriver)) {
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));

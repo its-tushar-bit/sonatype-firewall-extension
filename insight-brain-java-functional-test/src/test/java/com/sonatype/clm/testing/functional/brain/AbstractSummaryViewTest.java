@@ -10,11 +10,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.AccessTileList;
+import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
@@ -24,12 +28,17 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -102,6 +111,11 @@ public abstract class AbstractSummaryViewTest
   }
 
   @Test
+  public void testTile_default() {
+    testLabelTile_no_labels();
+    testAccessTile_no_local_access();
+  }
+  
   public void testLabelTile_no_labels() {
     int hierarchySize = getHierarchySize(currentOwner.getId());
 
@@ -125,8 +139,32 @@ public abstract class AbstractSummaryViewTest
       list.elements().shouldBe(empty);
     }
   }
+  
+  public void testAccessTile_no_local_access() {
 
+    int hierarchySize = getHierarchySize(currentOwner.getId());
+    AccessTile accessTile = new AccessTile();
+    accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText(currentOwner.getName()));
+    accessTile.newButton().shouldBe(visible, enabled);
+    accessTile.accessLists().shouldHaveSize(hierarchySize);
 
+    // scroll to the access tile
+    OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+
+    for (int i = 0; i < accessTile.accessLists().size(); i++) {
+      AccessTileList list = accessTile.accessList(i);
+
+      if (i == 0) {
+        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+        list.emptyDescriptor().should(exist);
+
+      } else {
+        list.ownerName().shouldNotBe(visible);
+        list.emptyDescriptor().shouldNotBe(visible);
+      }
+    }
+  }
+  
   @Test
   public void testTiles_Local() {
 
@@ -134,13 +172,24 @@ public abstract class AbstractSummaryViewTest
     localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 1", Color.black));
     localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 2", "With Subtitle", Color.blue));
 
-    List<LicenseThreatGroup> localLTGs = new ArrayList<>();
-    localLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
-    localLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
+    List<LicenseThreatGroup> locaLTGs = new ArrayList<>();
+    locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
+    locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
+    
+    User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");
+    RoleDAO roleDAO = new RoleDAO();
+    List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
+    Role writeRole = tempEntity.newRole("Write Only", false, Permission.WRITE);
+    tempEntity.newMembershipMapping(currentOwner.getId(), writeRole.getId(), testUser.getUsername());
+    Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
+    tempEntity.newMembershipMapping(currentOwner.getId(), readRole.getId(), "Group", MemberType.GROUP);
+    roleList.add(readRole);
+    roleList.add(writeRole);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     testLabelTile_Local(localLabels);
-    testLTGTile_Local(localLTGs);
+    testLTGTile_Local(locaLTGs);
+    testAccessTile_Local(testUser);
   }
 
   private void testLabelTile_Local(List<Label> localLabels) {
@@ -227,12 +276,53 @@ public abstract class AbstractSummaryViewTest
     }
   }
 
+  private void testAccessTile_Local(User testUser) {
+
+    int hierarchySize = getHierarchySize(currentOwner.getId());
+    AccessTile accessTile = new AccessTile();
+    accessTile.accessLists().shouldHaveSize(hierarchySize);
+
+    // scroll to the access tile
+    OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+
+    for (int i = 0; i < accessTile.accessLists().size(); i++) {
+      AccessTileList list = accessTile.accessList(i);
+      list.emptyDescriptor().shouldNotBe(visible);
+
+      if (i == 0) {
+        list.elements().shouldHaveSize(2);
+        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+
+        AccessTileListElement readOnly = list.element(0);
+        readOnly.chevron().shouldBe(visible);
+        readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
+        readOnly.groupIcon().shouldBe(visible);
+        readOnly.members().shouldBe(visible).shouldHave(text("Group"));
+
+
+        AccessTileListElement writeOnly = list.element(1);
+        writeOnly.chevron().shouldBe(visible);
+        writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
+        writeOnly.userIcon().shouldBe(visible);
+        writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+
+      } else {
+        list.ownerName().shouldNotBe(visible);
+        list.elements().shouldHaveSize(0);
+      }
+    }
+  }
 
   @Test
   public void testTiles_Inherited() {
     List<List<Label>> inheritedLabels = new ArrayList<>();
     List<List<LicenseThreatGroup>> inheritedLTGs = new ArrayList<>();
-
+    User testUser = tempEntity.newUser("testUser", "Inherited Test", "User", "testuser@sonatype.com");
+    Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
+    Role writeRole = tempEntity.newRole("Write Only", false, Permission.WRITE);
+    RoleDAO roleDAO = new RoleDAO();
+    List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
+    
     List<Owner> parentOwners = new ArrayList<>();
     
     for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
@@ -250,12 +340,16 @@ public abstract class AbstractSummaryViewTest
         ltgs.add(tempEntity.newLicenseThreatGroup(owner.getId(), "Temp License 2 - " + owner.getName(), 1));
 
         inheritedLTGs.add(ltgs);
+
+        tempEntity.newMembershipMapping(owner.getId(), writeRole.getId(), testUser.getUsername());
+        tempEntity.newMembershipMapping(owner.getId(), readRole.getId(), "Group", MemberType.GROUP);
       }
     }
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     testLabelTile_Inherited(inheritedLabels, parentOwners);
     testLTGTile_Inherited(inheritedLTGs, parentOwners);
+    testAccessTile_Inherited(testUser, parentOwners);
   }
 
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
@@ -386,6 +480,43 @@ public abstract class AbstractSummaryViewTest
 
           actualLTG.chevron().shouldBe(visible);
         }
+      }
+    }
+  }
+
+  private void testAccessTile_Inherited(User testUser, List<Owner> parentOwners) {
+
+    int hierarchySize = getHierarchySize(currentOwner.getId());
+    AccessTile accessTile = new AccessTile();
+    accessTile.accessLists().shouldHaveSize(hierarchySize);
+
+    // scroll to the access tile
+    OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
+
+    for (int i = 0; i < accessTile.accessLists().size(); i++) {
+      AccessTileList list = accessTile.accessList(i);
+
+      if (i == 0) {
+        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
+        list.emptyDescriptor().should(exist);
+
+      } else {
+        list.emptyDescriptor().shouldNotBe(visible);
+        list.ownerName().shouldBe(visible)
+            .shouldHave(AccessTile.inheritedText(parentOwners.get(i - 1).getName()));
+        list.elements().shouldHaveSize(2);
+
+        AccessTileListElement readOnly = list.element(0);
+        readOnly.chevron().shouldNotBe(visible);
+        readOnly.role().shouldBe(visible).shouldHave(text("Read Only"));
+        readOnly.groupIcon().shouldBe(visible);
+        readOnly.members().shouldBe(visible).shouldHave(text("Group"));
+
+        AccessTileListElement writeOnly = list.element(1);
+        writeOnly.chevron().shouldNotBe(visible);
+        writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
+        writeOnly.userIcon().shouldBe(visible);
+        writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
       }
     }
   }

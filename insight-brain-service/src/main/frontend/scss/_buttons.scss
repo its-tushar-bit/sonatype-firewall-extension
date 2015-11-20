@@ -14,6 +14,9 @@
   <div>
     <button class='btn btn-error'><i class='fa fa-retry'></i>Error</button> <button class='btn btn-error' disabled='true'>Error</button> <a href='#' class='btn btn-error'>Error</a> <a href='#' class='btn btn-error disabled'>Error</a> 
   </div>
+  <div>
+    <button class='btn btn-icon-only'><i class='fa fa-arrow-right'></i></button>
+  </div>
   ```
 */
 .btn {
@@ -35,7 +38,7 @@
 
   vertical-align: middle;
 
-  > .fa {
+  &:not(.btn-icon-only) > .fa {
     margin-right: 8px;
   }
 
@@ -109,11 +112,17 @@
       background-color: $fail-active;
     }
   }
+
+  &.btn-icon-only {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+  }
 }
 
 // For now we scope min-width to new elements
 .root-container, .clm-modal {
-  .btn {
+  .btn:not(.btn-icon-only) {
     min-width: 100px;
   }
 }

@@ -7,7 +7,10 @@
   'use strict';
 
   angular.module('owner.manager.module',
-      ['Stores', 'Labels', 'Tags', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule', 'utility'])
+      [
+        'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
+        'utility'
+      ])
       .config([
         '$stateProvider', function($stateProvider) {
           var ownerTypes = [
@@ -107,7 +110,27 @@
               '@management': {
                 controller: 'application.category.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/category/application.category.editor.view.html?' + clmBuildTimestamp,
+                templateUrl: 'owner.manager/category/application.category.editor.view.html?' + clmBuildTimestamp
+              }
+            }
+          }).state('management.edit.organization.create-license-threat-group', {
+            parent: 'management.edit.organization',
+            url: '/licenseThreatGroup',
+            views: {
+              '@management': {
+                controller: 'license.threat.group.editor.controller',
+                controllerAs: 'vm',
+                templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' + clmBuildTimestamp
+              }
+            }
+          }).state('management.edit.organization.edit-license-threat-group', {
+            parent: 'management.edit.organization',
+            url: '/licenseThreatGroup/{licenseThreatGroupId}',
+            views: {
+              '@management': {
+                controller: 'license.threat.group.editor.controller',
+                controllerAs: 'vm',
+                templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' + clmBuildTimestamp
               }
             }
           });

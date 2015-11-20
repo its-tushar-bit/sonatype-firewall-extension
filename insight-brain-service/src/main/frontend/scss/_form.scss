@@ -42,6 +42,16 @@
           some inline stuff
         </div>
       </div>
+      <div class="inline-fields">
+        <div class="field">
+          <label for='inlinefield1'>Inline input 1</label>
+          <input type='text' id='inlinefield1' class='ng-valid'>
+        </div>
+        <div class="field">
+          <label for='inlinefield2'>Inline input 2</label>
+          <input type='text' id='inlinefield2' class='ng-valid'>
+        </div>
+      </div>
     </div>
   </form>
   ```
@@ -86,6 +96,22 @@
       .field-right {
         float: right;
         margin-top: 4px;
+      }
+    }
+
+    .inline-fields {
+      &:nth-child(n + 2) {
+        margin-top: 20px;
+      }
+
+      .field{
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 0;
+
+        &:nth-child(n + 2) {
+          margin-left: 32px;
+        }
       }
     }
 

@@ -1,0 +1,62 @@
+<div class="double-column-picker">
+  <table>
+    <tr class="filter-row">
+      <td colspan="2">
+        <div class="td-container">
+          <i class="fa fa-filter size-16px size-fw"></i>
+          <input ng-model="vm.search[vm.itemNameParam]" placeholder="{{::vm.filterPlaceholder}}"/>
+        </div>
+      </td>
+    </tr>
+    <tr class="info-row">
+      <td>
+        <div class="td-container">
+          <div class="title">{{::vm.leftColumnName}}</div>
+          <div class="tools">
+            <label class="checkbox">
+              <input type="checkbox" ng-model="vm.checkAllLeft" ng-change="vm.checkAll(false, vm.checkAllLeft)"/>
+              <span>all</span>
+            </label>
+            <button class="btn btn-tertiary btn-icon-only" type="button" ng-click="vm.moveItems(false)"
+                    ng-disabled="!vm.areAnyItemsChecked(false)">
+              <i class="fa fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="td-container">
+          <div class="title">{{::vm.rightColumnName}}</div>
+          <div class="tools">
+            <label class="checkbox">
+              <input type="checkbox" ng-model="vm.checkAllRight" ng-change="vm.checkAll(true, vm.checkAllRight)"/>
+              <span>all</span>
+            </label>
+            <button class="btn btn-tertiary btn-icon-only" type="button" ng-click="vm.moveItems(true)"
+                    ng-disabled="!vm.areAnyItemsChecked(true)">
+              <i class="fa fa-arrow-left"></i></button>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="list-row">
+      <td>
+        <div class="td-container available-list">
+          <label class="checkbox" title="{{item[vm.itemNameParam]}}"
+                 ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam">
+            <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(false)"/>
+            <span>{{item[vm.itemNameParam]}}</span>
+          </label>
+        </div>
+      </td>
+      <td>
+        <div class="td-container picked-list">
+          <label class="checkbox" title="{{item[vm.itemNameParam]}}"
+                 ng-repeat="item in vm.list | filter: vm.listFilter(true)| orderBy: vm.itemNameParam">
+            <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(true)"/>
+            <span>{{item[vm.itemNameParam]}}</span>
+          </label>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>

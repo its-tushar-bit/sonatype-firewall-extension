@@ -5,10 +5,11 @@
  */
 (function(angular) {
   'use strict';
-  function LicenseThreatGroupTileController($http, CLMAppLocations) {
+  function LicenseThreatGroupTileController($http, CLMAppLocations, SameOwnerStateNavigationService) {
     var vm = this;
     vm.ownerName = undefined;
     vm.applicableLicenseGroups = undefined;
+    vm.editLTG = editLTG;
     vm.error = undefined;
     vm.doLoad = doLoad;
 
@@ -28,9 +29,15 @@
 
       delete vm.error;
     }
+
+    function editLTG(licenseThreatGroupId, isInherited) {
+      if (!isInherited) {
+        SameOwnerStateNavigationService.goEdit('edit-license-threat-group', {licenseThreatGroupId: licenseThreatGroupId});
+      }
+    }
   }
 
-  LicenseThreatGroupTileController.$inject = ['$http', 'CLMAppLocations'];
+  LicenseThreatGroupTileController.$inject = ['$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'];
 
   angular.module('owner.manager.module').controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController);
 

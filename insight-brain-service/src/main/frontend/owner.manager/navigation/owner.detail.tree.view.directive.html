@@ -87,23 +87,27 @@
       </a>
     </div>
     <div class="tree-view-group">
-      <a class="tree-view-item" ng-click="vm.ltgState.isExpanded = !vm.ltgState.isExpanded">
+      <a class="tree-view-item"
+         ng-click="vm.ltgState.isExpanded = vm.state.$current.name.endsWith('license-threat-group') ? true : !vm.ltgState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
-                ng-class="{ expand: !vm.ltgState.isExpanded, collapse: vm.ltgState.isExpanded }"></span>
+                ng-class="{ expand: !vm.ltgState.isExpanded && !vm.state.$current.name.endsWith('license-threat-group'),
+                            collapse: vm.ltgState.isExpanded || vm.state.$current.name.endsWith('license-threat-group')}"></span>
         </div>
         <i class="fa fa-book size-16px size-fw tree-view-icon"></i><!--
         -->License Threat Groups
       </a>
       <a class="tree-view-item"
-         ng-if="vm.ltgState.isExpanded"
+         ng-if="!vm.isApp && (vm.ltgState.isExpanded || vm.state.$current.name.endsWith('license-threat-group'))"
+         ui-sref=".create-license-threat-group"
          ui-sref-active="selected">
         <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
         -->New License Threat Group
       </a>
       <a class="tree-view-item"
-         ng-if="vm.ltgState.isExpanded"
+         ng-if="vm.ltgState.isExpanded || vm.state.$current.name.endsWith('license-threat-group')"
          ng-repeat="licenseThreatGroup in vm.details.licenseThreatGroups"
+         ui-sref=".edit-license-threat-group({ licenseThreatGroupId: licenseThreatGroup.id })"
          ui-sref-active="selected">
         <i class="fa fa-book size-16px size-fw threat-level-{{licenseThreatGroup.threatLevel}} tree-view-icon"></i><!--
         -->{{ licenseThreatGroup.name }}

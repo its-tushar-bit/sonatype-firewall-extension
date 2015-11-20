@@ -402,8 +402,18 @@ public class RootOrganizationConfigMigrator
 
         // Move policy-tag associations from sameNameTag to sourceTag
         for (PolicyTag policyTag : policyTagDAO.getByTagId(sameNameTag.getId())) {
-          PolicyTag newPolicyTag = new PolicyTag(policyTag.getPolicyId(), sourceTag.getId());
-          policyTagDAO.insert(newPolicyTag);
+          // The database has a foreign key constraint from policy_tag.policy_id to policy.policy_id,
+          // which means there shouldn't be any PolicyTags that link tags to inexistent policies.
+          // Still, I found a customer database that contains such orphan PolicyTags associations.
+          // The only way I could get a database in the same state was by creating the foreign key constraint using
+          // NOCHECK.
+          // We know that this customer had problems with the database in the past and that they tried to fix it
+          // themselves, so there is a good chance these orphan associations were caused by the customer db "fixing".
+          Policy policy = policyDAO.getById(policyTag.getPolicyId());
+          if (policy != null) {
+            PolicyTag newPolicyTag = new PolicyTag(policyTag.getPolicyId(), sourceTag.getId());
+            policyTagDAO.insert(newPolicyTag);
+          }
           policyTagDAO.delete(policyTag);
         }
 

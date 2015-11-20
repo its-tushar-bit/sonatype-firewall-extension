@@ -11,7 +11,7 @@ import java.util.Iterator;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
-import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -203,10 +203,9 @@ public class TestInsightBrainService
     new FileCleaner().delete(config.getSonatypeWork());
 
     // Create file indicating the root org is available
-    File migratedFile = new File(getWorkDir(), RootOrganizationConfigMigrationService.MIGRATED_FILE);
-    if (!(migratedFile.getParentFile().mkdirs() && migratedFile.createNewFile())) {
-      throw new IllegalStateException("Failed to create " + migratedFile.getAbsolutePath());
-    }
+    RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils = new RootOrganizationConfigMigrationUtils(
+        new InsightWork(insightConfig));
+    rootOrganizationConfigMigrationUtils.setMigrated();
 
     env.addServerLifecycleListener(new ServerLifecycleListener()
     {

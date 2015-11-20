@@ -56,6 +56,10 @@ public class PolicyDAO
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(ownerId));
   }
 
+  public List<Policy> getByOwnerId(TransactionContext tx, String ownerId) {
+    return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(tx, ownerId));
+  }
+
   public List<Policy> getAll() {
     try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
       return getAll(tx);
@@ -94,7 +98,7 @@ public class PolicyDAO
       throw new InvalidPolicyException("A policy with name '" + existingPolicy.getName() + "' already exists");
     }
 
-    validateNameWithinHierarchy(tx, ownerId, policy.getName());
+    validateNameWithinHierarchy(tx, ownerId, policy);
 
     // Allocate unique ids to constraints
     for (Constraint constraint : policy.getConstraints()) {
@@ -135,7 +139,7 @@ public class PolicyDAO
 
     Policy existingPolicyById = PolicyInternal.toPolicy(policyInternalDAO.getByIdNotNull(tx, policy.getId()));
 
-    validateNameWithinHierarchy(tx, ownerId, policy.getName());
+    validateNameWithinHierarchy(tx, ownerId, policy);
 
     // Allocate ids to new constraints
     for (Constraint constraint : policy.getConstraints()) {
@@ -227,30 +231,30 @@ public class PolicyDAO
     return false;
   }
 
-  private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final String name)
+  private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final Policy policy)
       throws InvalidPolicyException
   {
     Owner owner = ownerDAO.getById(tx, ownerId);
 
-    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), name);
-    validateNameWithinHierarchyDown(tx, owner, name);
+    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), policy);
+    validateNameWithinHierarchyDown(tx, owner, policy);
   }
 
-  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, String name)
+  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, Policy policy)
       throws InvalidPolicyException
   {
     if (parentId == null) {
       return; // no parent, we're done
     }
     Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
-    if (policyInternalDAO.getByOwnerIdAndName(tx, parentOrganization.getId(), name) != null) {
+    if (policyInternalDAO.getByOwnerIdAndName(tx, parentOrganization.getId(), policy.getName()) != null) {
       throw new InvalidPolicyException("A policy with the same name already exists for organization '"
           + parentOrganization.getName() + "'");
     }
-    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
+    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), policy);
   }
 
-  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, String name)
+  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, Policy policy)
       throws InvalidPolicyException
   {
     if (!owner.canHaveChildren()) {
@@ -258,12 +262,17 @@ public class PolicyDAO
     }
     List<Owner> childOwners = ownerDAO.getChildOwners(tx, owner);
     for (Owner childOwner : childOwners) {
-      if (policyInternalDAO.getByOwnerIdAndName(tx, childOwner.getId(), name) != null) {
+      PolicyInternal otherPolicy = policyInternalDAO.getByOwnerIdAndName(tx, childOwner.getId(), policy.getName());
+      if (otherPolicy != null && !otherPolicy.getId().equals(policy.getId())) {
         throw new InvalidPolicyException("A policy with the same name already exists for " + childOwner.getType()
             + " '" + childOwner.getName() + "'");
       }
 
-      validateNameWithinHierarchyDown(tx, childOwner, name);
+      validateNameWithinHierarchyDown(tx, childOwner, policy);
     }
+  }
+
+  public List<Policy> getByName(String name) {
+    return PolicyInternal.toPolicies(policyInternalDAO.getByName(name));
   }
 }

@@ -15,10 +15,10 @@ import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.TestCLMServer;
 
@@ -59,7 +59,7 @@ public abstract class AbstractFunctionalTest
 
   public static CLMLicenseManager clmLicenseManager;
 
-  protected static RootOrganizationConfigMigrationService service;
+  protected static RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   protected static TestCLMServer testCLMServer;
 
@@ -92,8 +92,8 @@ public abstract class AbstractFunctionalTest
       WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
     }
 
-    Mockito.when(service.isMigrated()).thenReturn(true);
-    Mockito.when(service.isMigrationScheduled()).thenReturn(false);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
   }
 
   @AfterClass
@@ -116,8 +116,8 @@ public abstract class AbstractFunctionalTest
         bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
         bind(CLMLicenseManager.class).toInstance(clmLicenseManager);
 
-        service = Mockito.mock(RootOrganizationConfigMigrationService.class);
-        bind(RootOrganizationConfigMigrationService.class).toInstance(service);
+        rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
+        bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
       }
     });
   }

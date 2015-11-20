@@ -11,9 +11,8 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 /**
  * Provides means to inspect the available features of the server.
@@ -24,14 +23,14 @@ public class FeaturesService
 {
   private final CLMLicenseManager licenseManager;
 
-  private RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService;
+  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   @Inject
-  public FeaturesService(CLMLicenseManager licenseManager, InsightConfig config,
-      RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService)
+  public FeaturesService(CLMLicenseManager licenseManager,
+      RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.licenseManager = licenseManager;
-    this.rootOrganizationConfigMigrationService = rootOrganizationConfigMigrationService;
+    this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
   }
 
   /**
@@ -44,10 +43,10 @@ public class FeaturesService
       addVersionSpecificFeatures(features);
       addLicenseSpecificFeatures(features);
 
-      if (rootOrganizationConfigMigrationService.isMigrated()) {
+      if (rootOrganizationConfigMigrationUtils.isMigrated()) {
         features.add(Feature.ROOT_ORG);
       }
-      else if (!rootOrganizationConfigMigrationService.isMigrationScheduled()) {
+      else if (!rootOrganizationConfigMigrationUtils.isMigrationScheduled()) {
         features.add(Feature.ROOT_ORG_MIGRATE);
       }
     }

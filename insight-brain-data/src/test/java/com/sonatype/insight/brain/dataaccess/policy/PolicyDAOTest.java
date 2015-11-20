@@ -612,4 +612,13 @@ public class PolicyDAOTest
     assertThat(policies, hasSize(1));
     assertThat(policies.get(0).getId(), is(appPolicy.getId()));
   }
+
+  @Test
+  public void testUpdateMovePolicyUpInHierarchy() throws Exception {
+    Policy policy = tempEntity.newPolicy(application.getId(), "My policy");
+
+    // Should not complain about name clashes
+    policy.setOwnerId(application.getOrganizationId());
+    policyDAO.update(policy);
+  }
 }

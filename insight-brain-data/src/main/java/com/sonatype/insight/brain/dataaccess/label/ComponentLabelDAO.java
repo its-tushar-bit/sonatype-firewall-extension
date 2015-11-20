@@ -32,6 +32,12 @@ public class ComponentLabelDAO
     return getList(tx, sQuery, labelId);
   }
 
+  public List<ComponentLabel> getByLabelId(String labelId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByLabelId(tx, labelId);
+    }
+  }
+
   public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndHash(tx, ownerId, hash);

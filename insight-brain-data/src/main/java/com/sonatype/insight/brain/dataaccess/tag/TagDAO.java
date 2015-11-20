@@ -88,6 +88,13 @@ public class TagDAO
         " WHERE policyTag.tagId=tag.id AND policyTag.policyId=?1";
     return getList(sQuery, policyId);
   }
+
+  public List<Tag> getByName(String name) {
+    name = NameHelper.normalize(name);
+    String sQuery = "SELECT entity FROM Tag entity" + //
+        " WHERE entity.nameLowercaseNoWhitespace=?1";
+    return getList(sQuery, name);
+  }
   
   private void validateColor(Color color) {
     if (color == null) {

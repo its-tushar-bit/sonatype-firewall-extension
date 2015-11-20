@@ -130,6 +130,14 @@ public class PolicyWaiverDAO
 
   @Override
   public void update(TransactionContext tx, PolicyWaiver entity) {
-    throw new UnsupportedOperationException();
+    PolicyWaiver other = getByHashAndPolicyIdAndOwnerId(tx, entity.getHash(), entity.getPolicyId(), entity.getOwnerId());
+    if (other != null && !other.getId().equals(entity.getId())) {
+      throw new BadRequestException("A policy waiver for the same hash, policy and owner already exists.");
+    }
+    if (entity.getComment() != null && entity.getComment().length() > 1000) {
+      throw new BadRequestException("Comment length must not exceed 1000 characters.");
+    }
+
+    super.update(tx, entity);
   }
 }

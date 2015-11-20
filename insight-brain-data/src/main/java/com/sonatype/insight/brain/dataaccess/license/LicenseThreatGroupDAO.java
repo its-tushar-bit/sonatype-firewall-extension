@@ -49,6 +49,13 @@ public class LicenseThreatGroupDAO
     }
   }
 
+  public List<LicenseThreatGroup> getByName(String name) {
+    name = NameHelper.normalize(name);
+    String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
+        " WHERE entity.nameLowercaseNoWhitespace=?1";
+    return getList(sQuery, name);
+  }
+
   public List<LicenseThreatGroup> getByOwnerIdAndLicenseId(String ownerId, String licenseId) {
     String sQuery = "SELECT licenseThreatGroup" + //
         " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //

@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -62,14 +63,17 @@ public class OrganizationServiceTest
 
   @Test
   public void testGetAll() throws Exception {
-    RootOrganizationConfigMigrationService service = Mockito.mock(RootOrganizationConfigMigrationService.class);
-    Mockito.when(service.isMigrated()).thenReturn(false);
+    RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils = Mockito
+        .mock(RootOrganizationConfigMigrationUtils.class);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
 
-    List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(), service).getAll();
+    List<Organization> orgs = new OrganizationService(null, null, null, new OrganizationDAO(),
+        rootOrganizationConfigMigrationUtils).getAll();
     assertThat(orgs, hasSize(0));
 
-    Mockito.when(service.isMigrated()).thenReturn(true);
-    OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(), service);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    OrganizationService organizationService = new OrganizationService(null, null, null, new OrganizationDAO(),
+        rootOrganizationConfigMigrationUtils);
 
     orgs = organizationService.getAll();
     assertThat(orgs, hasSize(1));

@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,39 +24,33 @@ public class RootOrganizationConfigMigrationResourceTest
 {
   private Organization org;
 
+  private RootOrganizationConfigMigrationUtils migrationUtils;
+
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     org = tempEntity.newOrganization();
-    getMigratedFile().delete();
+    InsightWork insightWork = new InsightWork(getCLMServer().getConfiguration());
+    migrationUtils = new RootOrganizationConfigMigrationUtils(insightWork);
+    migrationUtils.clean();
   }
 
   @After
   public void tearDown() throws IOException {
-    getMigrateFile().delete();
-    FileUtils.fileWrite(getMigratedFile(), "");
+    migrationUtils.clean();
+    migrationUtils.setMigrated();
   }
 
   @Test
   public void testSetRootOrganizationTemplate() throws Exception {
     HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH, org.getId()).post();
     assertResponseStatus(204, response);
-    assertTrue(getMigrateFile().isFile());
+    assertTrue(migrationUtils.isMigrationScheduled());
   }
 
   @Test
   public void testSetRootOrganizationEmptyTemplate() throws Exception {
     HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH).post();
     assertResponseStatus(204, response);
-    assertTrue(getMigratedFile().isFile());
-  }
-
-  private File getMigratedFile() {
-    return new File(getCLMServer().getConfiguration().getSonatypeWork(),
-        RootOrganizationConfigMigrationService.MIGRATED_FILE);
-  }
-
-  private File getMigrateFile() {
-    return new File(getCLMServer().getConfiguration().getSonatypeWork(),
-        RootOrganizationConfigMigrationService.MIGRATE_FILE);
+    assertTrue(migrationUtils.isMigrated());
   }
 }

@@ -1,0 +1,400 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.migration;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.NotifyAction;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
+import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.ConditionType;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.service.InsightConfig;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Migrates the "config" from a selected organization to the root organization.
+ * The config includes:
+ * - policies
+ * - policy monitoring
+ * - labels
+ * - license threat groups
+ * - application categories (aka tags)
+ * 
+ * Not migrated:
+ * - applications
+ * - policy notifications and policy monitoring notifications that use email addresses (they are simply removed)
+ * - security/access configuration
+ * - component labels
+ * - license overrides
+ * - SV overrides
+ * - policy waivers
+ * 
+ * @since 1.18
+ */
+@Named
+public class RootOrganizationConfigMigrator
+{
+  private static final Logger log = LoggerFactory.getLogger(RootOrganizationConfigMigrator.class);
+
+  static final String ROOT_ORG_NOT_EMPTY_MESSAGE = "Cannot migrate root organization config because the root organization has %s.";
+
+  private final InsightConfig config;
+
+  private final RootOrganizationConfigMigrationUtils migrationUtils;
+
+  private ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
+
+  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+
+  private LabelDAO labelDAO = new LabelDAO();
+
+  private LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+
+  private LicenseThreatGroupLicenseDAO ltglDAO = new LicenseThreatGroupLicenseDAO();
+
+  private OrganizationDAO orgDAO = new OrganizationDAO();
+
+  private OwnerDAO ownerDAO = new OwnerDAO();
+
+  private PolicyDAO policyDAO = new PolicyDAO();
+
+  private PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
+  private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+
+  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+
+  private TagDAO tagDAO = new TagDAO();
+
+  @Inject
+  public RootOrganizationConfigMigrator(InsightConfig config, RootOrganizationConfigMigrationUtils migrationUtils)
+  {
+    this.config = config;
+    this.migrationUtils = migrationUtils;
+  }
+
+  boolean migrate() throws IOException {
+    long start = System.currentTimeMillis();
+    log.debug("Migrating config for root organization...");
+
+    if (migrationUtils.isMigrated()) {
+      log.debug("Root organization config already migrated.");
+      return false;
+    }
+
+    if (config.isShowRootOrganization()) {
+      log.info("Root organization is visible. No migration for root organization configuration if the root organization is visible.");
+      migrationUtils.setMigrated();
+      return false;
+    }
+
+    if (!migrationUtils.isMigrationScheduled()) {
+      log.debug("Root organization config migration was not configured yet.");
+      return false;
+    }
+
+    checkRootOrgIsEmpty();
+
+    Organization sourceOrg = orgDAO.getByIdNotNull(migrationUtils.getSourceOrganizationId());
+    migrate(sourceOrg);
+
+    migrationUtils.setMigrated();
+
+    log.info("Migrated root organization config in {} ms.", System.currentTimeMillis() - start);
+    return true;
+  }
+
+  private void checkRootOrgIsEmpty() {
+    // Don't check for license threat groups because the root org can have the default license thread groups.
+    if (!policyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).isEmpty()) {
+      throw new RuntimeException(String.format(ROOT_ORG_NOT_EMPTY_MESSAGE, "policies"));
+    }
+    if (policyMonitoringDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID) != null) {
+      throw new RuntimeException(String.format(ROOT_ORG_NOT_EMPTY_MESSAGE, "policy monitoring"));
+    }
+    if (!labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).isEmpty()) {
+      throw new RuntimeException(String.format(ROOT_ORG_NOT_EMPTY_MESSAGE, "labels"));
+    }
+    if (!tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID).isEmpty()) {
+      throw new RuntimeException(String.format(ROOT_ORG_NOT_EMPTY_MESSAGE, "application categories"));
+    }
+  }
+
+  private void migrate(Organization sourceOrg) {
+    log.info("Migrating config for root organization from template (source) organization: {} (ID: {}).",
+        sourceOrg.getName(), sourceOrg.getId());
+
+    migratePolicyMonitoring(sourceOrg);
+    migrateLabels(sourceOrg);
+    migrateLicenseThreatGroups(sourceOrg);
+    migrateTags(sourceOrg);
+    migratePolicies(sourceOrg);
+  }
+
+  private void removeEmailNotifications(Policy policy) {
+    Map<String, List<Action>> actionsByStageType = policy.getActions();
+    for (Entry<String, List<Action>> entry : actionsByStageType.entrySet()) {
+      List<Action> actions = entry.getValue();
+      Iterator<Action> actionIter = actions.iterator();
+      while (actionIter.hasNext()) {
+        Action action = actionIter.next();
+        if (Action.ID_NOTIFY.equals(action.getActionTypeId())
+            && !NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
+          actionIter.remove();
+        }
+      }
+    }
+    policy.setActions(actionsByStageType);
+
+    List<NotifyAction> monitoringActions = policy.getMonitorNotifyActions();
+    Iterator<NotifyAction> actionIter = monitoringActions.iterator();
+    while (actionIter.hasNext()) {
+      NotifyAction action = actionIter.next();
+      if (!NotifyActionType.TARGET_TYPE_ROLE.equals(action.getTargetType())) {
+        actionIter.remove();
+      }
+    }
+    policy.setMonitorNotifyActions(monitoringActions);
+  }
+
+  private void migratePolicies(Organization sourceOrg) {
+    for (Policy sourcePolicy : policyDAO.getByOwnerId(sourceOrg.getId())) {
+      // Delete all policies with the same name
+      for (Policy sameNamePolicy : policyDAO.getByName(sourcePolicy.getName())) {
+        if (sourcePolicy.getId().equals(sameNamePolicy.getId())) {
+          // Same policy
+          continue;
+        }
+
+        // Move the waivers of the sameNamePolicy to the sourcePolicy
+        for (PolicyWaiver policyWaiver : policyWaiverDAO.getByPolicyId(sameNamePolicy.getId())) {
+          policyWaiver.setPolicyId(sourcePolicy.getId());
+          policyWaiverDAO.update(policyWaiver);
+        }
+        // Delete the sameNamePolicy
+        policyDAO.delete(sameNamePolicy);
+      }
+
+      // Move the sourcePolicy to root org
+      sourcePolicy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      removeEmailNotifications(sourcePolicy);
+      // Remove email notifications from sourcePolicy
+      policyDAO.update(sourcePolicy);
+    }
+  }
+
+  private void migrateLabels(Organization sourceOrg) {
+    for (Label sourceLabel : labelDAO.getByOwnerId(sourceOrg.getId())) {
+      // Move the source label to root org.
+      // We need to move it before deleting other labels with the same name because
+      // we have to move the ComponentLabels for the labels we delete and the source label
+      // must be already applicable in those contexts.
+      sourceLabel.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      // The label name may collide with other labels, so we temporarily change it here
+      // and restore it after all labels with the same name are deleted.
+      String sourceLabelName = sourceLabel.getLabel();
+      String sourceLabelNameLowercase = sourceLabel.getLabelLowercase();
+      sourceLabel.setLabel(sourceLabel.getId());
+      labelDAO.update(sourceLabel);
+
+      // Delete all labels with the same name and move references to sourceLabel
+      for (Label sameNameLabel : labelDAO.getByLabelLowercase(sourceLabelNameLowercase)) {
+        if (sourceLabel.getId().equals(sameNameLabel.getId())) {
+          // Same label
+          continue;
+        }
+
+        // Move component-label associations from sameNameLabel to sourceLabel
+        for (ComponentLabel componentLabel : componentLabelDAO.getByLabelId(sameNameLabel.getId())) {
+          componentLabel.setLabelId(sourceLabel.getId());
+          componentLabelDAO.update(componentLabel);
+        }
+
+        // Update policy conditions that use sameNameLabel to sourceLabel
+        Owner sameNameLabelOwner = ownerDAO.getById(sameNameLabel.getOwnerId());
+        updateChildPolicies(sameNameLabelOwner, ConditionTypes.LabelConditionType, sameNameLabel.getId(),
+            sourceLabel.getId());
+
+        // Delete the sameNameLabel
+        labelDAO.delete(sameNameLabel);
+      }
+
+      // Restore the label name
+      sourceLabel.setLabel(sourceLabelName);
+      labelDAO.update(sourceLabel);
+    }
+  }
+
+  private void migrateLicenseThreatGroups(Organization sourceOrg) {
+    for (LicenseThreatGroup sourceLTG : ltgDAO.getByOwnerId(sourceOrg.getId())) {
+      // Move sourceLTG to root org.
+      // We need to move it before deleting other LTGs with the same name because
+      // we have to move the references for the LTGs we delete and the sourceLTG
+      // must be already applicable in those contexts.
+      sourceLTG.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      // The label name may collide with other LTGs, so we temporarily change it here
+      // and restore it after all LTGs with the same name are deleted.
+      String sourceLTGName = sourceLTG.getName();
+      sourceLTG.setName(sourceLTG.getId());
+      ltgDAO.update(sourceLTG);
+
+      // Move the LTG-License associations
+      for (LicenseThreatGroupLicense ltgl : ltglDAO.getByLicenseThreatGroupId(sourceLTG.getId())) {
+        ltgl.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+        ltglDAO.update(ltgl);
+      }
+
+      // Delete all LTGs with the same name and move references to sourceLTG
+      for (LicenseThreatGroup sameNameLTG : ltgDAO.getByName(sourceLTGName)) {
+        if (sourceLTG.getId().equals(sameNameLTG.getId())) {
+          // Same license threat group
+          continue;
+        }
+
+        // Update policy conditions that use sameNameLTG to use sourceLTG
+        Owner sameNameLTGOwner = ownerDAO.getById(sameNameLTG.getOwnerId());
+        updateChildPolicies(sameNameLTGOwner, ConditionTypes.LicenseThreatGroupConditionType, sameNameLTG.getId(),
+            sourceLTG.getId());
+
+        // Delete the sameNameLTG
+        ltgDAO.delete(sameNameLTG);
+      }
+
+      // Restore the LTG name
+      sourceLTG.setName(sourceLTGName);
+      ltgDAO.update(sourceLTG);
+    }
+  }
+
+  private void migrateTags(Organization sourceOrg) {
+    for (Tag sourceTag : tagDAO.getByOrganizationId(sourceOrg.getId())) {
+      // Move sourceTag to root org.
+      // We need to move it before deleting other tags with the same name because
+      // we have to move the references for the tags we delete and the sourceTag
+      // must be already applicable in those contexts.
+      sourceTag.setOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+      // The tag name may collide with other tags, so we temporarily change it here
+      // and restore it after all tags with the same name are deleted.
+      String sourceTagName = sourceTag.getName();
+      sourceTag.setName(sourceTag.getId());
+      tagDAO.update(sourceTag);
+
+      // Delete all tags with the same name and move references to sourceTag
+      for (Tag sameNameTag : tagDAO.getByName(sourceTagName)) {
+        if (sourceTag.getId().equals(sameNameTag.getId())) {
+          // Same tag
+          continue;
+        }
+
+        // Move application-tag associations from sameNameTag to sourceTag
+        for (ApplicationTag appTag : appTagDAO.getByTagId(sameNameTag.getId())) {
+          ApplicationTag newAppTag = new ApplicationTag(appTag.getApplicationId(), sourceTag.getId());
+          appTagDAO.insert(newAppTag);
+          appTagDAO.delete(appTag);
+        }
+
+        // Move policy-tag associations from sameNameTag to sourceTag
+        for (PolicyTag policyTag : policyTagDAO.getByTagId(sameNameTag.getId())) {
+          PolicyTag newPolicyTag = new PolicyTag(policyTag.getPolicyId(), sourceTag.getId());
+          policyTagDAO.insert(newPolicyTag);
+          policyTagDAO.delete(policyTag);
+        }
+
+        // Delete the sameNameTag
+        tagDAO.delete(sameNameTag);
+      }
+
+      // Restore the tag name
+      sourceTag.setName(sourceTagName);
+      tagDAO.update(sourceTag);
+    }
+  }
+
+  private void migratePolicyMonitoring(Organization sourceOrg) {
+    PolicyMonitoring sourcePolicyMonitoring = policyMonitoringDAO.getByOwnerId(sourceOrg.getId());
+    if (sourcePolicyMonitoring != null) {
+      // Delete all monitorings of the same stage as sourcePolicyMonitoring
+      for (PolicyMonitoring sameStagePolicyMonitoring : policyMonitoringDAO.getByStageTypeId(sourcePolicyMonitoring
+          .getStageTypeId())) {
+        if (sourcePolicyMonitoring.getId().equals(sameStagePolicyMonitoring.getId())) {
+          // Same monitoring
+          continue;
+        }
+
+        policyMonitoringDAO.delete(sameStagePolicyMonitoring);
+      }
+
+      sourcePolicyMonitoring.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      policyMonitoringDAO.update(sourcePolicyMonitoring);
+    }
+  }
+
+  private void updateChildPolicies(Owner owner, ConditionType conditionType, String oldValue, String newValue) {
+    for (Policy policy : getChildPolicies(owner)) {
+      List<Constraint> constraints = policy.getConstraints();
+      for (Constraint constraint : constraints) {
+        for (Condition condition : constraint.getConditions()) {
+          if (conditionType.getId().equals(condition.getConditionTypeId()) && oldValue.equals(condition.getValue())) {
+            condition.setValue(newValue);
+            policy.setConstraints(constraints);
+            policyDAO.update(policy);
+          }
+        }
+      }
+    }
+  }
+
+  private List<Policy> getChildPolicies(Owner owner) {
+    List<Policy> policies = new ArrayList<>();
+    policies.addAll(policyDAO.getByOwnerId(owner.getId()));
+
+    if (!owner.canHaveChildren()) {
+      return policies;
+    }
+
+    for (Owner childOwner : ownerDAO.getChildOwners(owner)) {
+      policies.addAll(getChildPolicies(childOwner));
+    }
+    return policies;
+  }
+}

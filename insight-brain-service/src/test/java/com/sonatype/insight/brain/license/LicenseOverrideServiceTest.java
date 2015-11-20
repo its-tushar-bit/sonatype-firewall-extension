@@ -12,10 +12,10 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.license.LicenseOverrideService.LicenseOverrideByOwner;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -44,7 +44,7 @@ public class LicenseOverrideServiceTest
   @Inject
   private CurrentUser currentUser;
 
-  private RootOrganizationConfigMigrationService rootOrganizationMigrationService;
+  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   private void testGetAppliedLicenseOverrides_hierarchyHideRoot(final Owner owner) {
     testGetAppliedLicenseOverrides_hierarchyHideRoot(owner, owner.getId());
@@ -62,14 +62,14 @@ public class LicenseOverrideServiceTest
 
   @Before
   public void setup() {
-    rootOrganizationMigrationService = Mockito.mock(RootOrganizationConfigMigrationService.class);
+    rootOrganizationConfigMigrationUtils = Mockito.mock(RootOrganizationConfigMigrationUtils.class);
     service = new LicenseOverrideService(work, new OwnerDAO(), currentUser, new LicenseOverrideDAO(),
-        rootOrganizationMigrationService);
+        rootOrganizationConfigMigrationUtils);
   }
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchyHideRoot_App() {
-    Mockito.when(rootOrganizationMigrationService.isMigrated()).thenReturn(false);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
 
     final Application app = tempEntity.newApplicationWithParent("test");
     testGetAppliedLicenseOverrides_hierarchyHideRoot(app, app.getPublicId());
@@ -77,7 +77,7 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchyHideRoot_Repository() {
-    Mockito.when(rootOrganizationMigrationService.isMigrated()).thenReturn(false);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
 
     testGetAppliedLicenseOverrides_hierarchyHideRoot(tempEntity.newRepository());
   }
@@ -98,7 +98,7 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_App() {
-    Mockito.when(rootOrganizationMigrationService.isMigrated()).thenReturn(true);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
 
     final Application app = tempEntity.newApplicationWithParent("test");
     testGetAppliedLicenseOverrides_hierarchy(app, app.getPublicId());
@@ -106,7 +106,7 @@ public class LicenseOverrideServiceTest
 
   @Test
   public void testGetAppliedLicenseOverrides_hierarchy_Repository() {
-    Mockito.when(rootOrganizationMigrationService.isMigrated()).thenReturn(true);
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
 
     testGetAppliedLicenseOverrides_hierarchy(tempEntity.newRepository());
   }

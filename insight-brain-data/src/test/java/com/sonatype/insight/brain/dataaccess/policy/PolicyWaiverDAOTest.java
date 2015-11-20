@@ -73,13 +73,15 @@ public class PolicyWaiverDAOTest
     assertNotNull(policyWaiver);
     assertPolicyWaiver(truncatedHash, policyId, ownerId, comment, createTime, policyWaiver);
 
-    // Update is not allowed
-    try {
-      dao.update(policyWaiver);
-      fail("Expected UnsupportedOperationException, updates to PolicyWaiver are not allowed");
-    }
-    catch (UnsupportedOperationException expected) {
-    }
+    // Update
+    String updateComment = "Updated comment";
+    policyWaiver.setComment(updateComment);
+    dao.update(policyWaiver);
+
+    // Read
+    policyWaiver = dao.getById(policyWaiver.getId());
+    assertNotNull(policyWaiver);
+    assertPolicyWaiver(truncatedHash, policyId, ownerId, updateComment, createTime, policyWaiver);
 
     // Delete
     dao.delete(policyWaiver);
@@ -202,6 +204,73 @@ public class PolicyWaiverDAOTest
     }
 
     dao.delete(policyWaiver1);
+  }
+
+  @Test
+  public void testUpdate_CommentTooLong() throws Exception {
+    Policy policy = tempEntity.newPolicy(application.getId(), "name");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    String comment = StringUtils.repeat("X", 1001);
+    policyWaiver.setComment(comment);
+
+    try {
+      dao.update(policyWaiver);
+      fail("Expected exception");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("Comment length must not exceed 1000 characters.", expected.getMessage());
+    }
+
+    comment = comment.substring(0, 1000);
+    policyWaiver.setComment(comment);
+    dao.update(policyWaiver);
+    policyWaiver = dao.getById(policyWaiver.getId());
+    assertThat(policyWaiver.getComment(), is(comment));
+  }
+
+  @Test
+  public void testUpdate_Duplicate_ComponentLevel() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String hash1 = "11111111111111111111";
+    String hash2 = "11111111111111111112";
+    Policy policy = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest");
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    tempEntity.newWaiver(hash1, policyId, ownerId);
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId);
+
+    policyWaiver2.setHash(hash1);
+    try {
+      dao.update(policyWaiver2);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("A policy waiver for the same hash, policy and owner already exists.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testUpdate_Duplicate_PolicyLevel() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy1 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest1");
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "PolicyWaiverDAOTest2");
+    String policyId1 = policy1.getId();
+    String policyId2 = policy2.getId();
+    String ownerId = organization.getId();
+    tempEntity.newWaiver(policyId1, ownerId);
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policyId2, ownerId);
+
+    policyWaiver2.setPolicyId(policyId1);
+    try {
+      dao.update(policyWaiver2);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException expected) {
+      assertEquals("A policy waiver for the same hash, policy and owner already exists.", expected.getMessage());
+    }
   }
 
   @Test

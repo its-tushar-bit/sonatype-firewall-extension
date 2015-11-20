@@ -10,7 +10,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -34,15 +34,15 @@ public class FeatureServiceTest
 
   private CLMLicenseManager licenseManager;
 
-  private RootOrganizationConfigMigrationService rootOrgMigrationService;
+  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
     licenseManager = mock(CLMLicenseManager.class);
-    rootOrgMigrationService = mock(RootOrganizationConfigMigrationService.class);
+    rootOrganizationConfigMigrationUtils = mock(RootOrganizationConfigMigrationUtils.class);
     binder.bind(CLMLicenseManager.class).toInstance(licenseManager);
-    binder.bind(RootOrganizationConfigMigrationService.class).toInstance(rootOrgMigrationService);
+    binder.bind(RootOrganizationConfigMigrationUtils.class).toInstance(rootOrganizationConfigMigrationUtils);
   }
 
   @Test
@@ -53,7 +53,7 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithoutPolicyMonitoring() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(false);
     Set<Feature> features = featuresService.getFeatures();
@@ -65,7 +65,7 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithPolicyMonitoring() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasPolicyMonitoring()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
@@ -77,7 +77,7 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithoutDashboard() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasDashboard()).thenReturn(false);
     Set<Feature> features = featuresService.getFeatures();
@@ -89,7 +89,7 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithDashboard() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     when(licenseManager.hasDashboard()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
@@ -101,7 +101,7 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithRootMigrated() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
     assertTrue(features.contains(Feature.ROOT_ORG));
@@ -110,7 +110,7 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithoutRootMigrated() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(false);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     when(licenseManager.isValid()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
     assertTrue(features.contains(Feature.ROOT_ORG_MIGRATE));
@@ -119,8 +119,8 @@ public class FeatureServiceTest
 
   @Test
   public void testGetFeatures_WithRootMigratedScheduled() {
-    when(rootOrgMigrationService.isMigrated()).thenReturn(false);
-    when(rootOrgMigrationService.isMigrationScheduled()).thenReturn(true);
+    when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
+    when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
     when(licenseManager.isValid()).thenReturn(true);
     Set<Feature> features = featuresService.getFeatures();
     assertFalse(features.contains(Feature.ROOT_ORG_MIGRATE));

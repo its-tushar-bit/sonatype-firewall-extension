@@ -70,6 +70,13 @@ public class PolicyInternalDAO
     return get(tx, sQuery, ownerId, name);
   }
 
+  List<PolicyInternal> getByName(String name) {
+    name = NameHelper.normalize(name);
+    String sQuery = "SELECT entity FROM PolicyInternal entity" + //
+        " WHERE entity.nameLowercaseNoWhitespace=?1";
+    return getList(sQuery, name);
+  }
+
   List<PolicyInternal> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM PolicyInternal entity";
     return getList(tx, sQuery);

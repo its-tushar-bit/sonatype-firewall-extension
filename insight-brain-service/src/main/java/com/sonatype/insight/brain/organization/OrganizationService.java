@@ -16,6 +16,7 @@ import javax.ws.rs.PathParam;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -46,23 +47,23 @@ public class OrganizationService
 
   private final FileCleaner fileCleaner;
 
-  private RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService;
+  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   @Inject
   public OrganizationService(final InsightWork work, final ApplicationCleaner applicationCleaner,
       final FileCleaner fileCleaner, final OrganizationDAO organizationDAO,
-      final RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService)
+      final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
     this.fileCleaner = fileCleaner;
     this.organizationDAO = organizationDAO;
-    this.rootOrganizationConfigMigrationService = rootOrganizationConfigMigrationService;
+    this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
   public List<Organization> getAll() {
-    return organizationDAO.getAll(rootOrganizationConfigMigrationService.isMigrated());
+    return organizationDAO.getAll(rootOrganizationConfigMigrationUtils.isMigrated());
   }
 
   @Authorize(permission = Permission.WRITE)

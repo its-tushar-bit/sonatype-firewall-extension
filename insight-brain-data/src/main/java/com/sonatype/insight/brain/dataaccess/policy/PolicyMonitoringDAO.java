@@ -52,6 +52,12 @@ public class PolicyMonitoringDAO
     return get(tx, sQuery, ownerId);
   }
 
+  public List<PolicyMonitoring> getByStageTypeId(String stageTypeId) {
+    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
+        " WHERE entity.stageTypeId=?1";
+    return getList(sQuery, stageTypeId);
+  }
+
   @Override
   public void insert(TransactionContext tx, PolicyMonitoring entity) {
     PolicyMonitoring other = getByOwnerId(tx, entity.getOwnerId());

@@ -29,6 +29,7 @@ public class DataMigrator
   private final LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator;
   private final BomAuditGAVMigrator bomAuditMigrator;
   private final SecurityAuditGAVMigrator securityAuditMigrator;
+  private final RootOrganizationConfigMigrator rootOrganizationConfigMigrator;
 
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator, PolicyMigrator policyMigrator,
@@ -36,7 +37,7 @@ public class DataMigrator
       ProcureRemovalMigrator procureRemovalMigrator, NullHashModifiedMigrator modifiedMigrator,
       PolicyDroolsCodeMigrator policyDroolsCodeMigrator, DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator,
       LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator, BomAuditGAVMigrator bomAuditMigrator,
-      SecurityAuditGAVMigrator securityAuditMigrator)
+      SecurityAuditGAVMigrator securityAuditMigrator, RootOrganizationConfigMigrator rootOrganizationConfigMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
@@ -49,6 +50,7 @@ public class DataMigrator
     this.licenseOverrideAuditMigrator = licenseOverrideAuditMigrator;
     this.bomAuditMigrator = bomAuditMigrator;
     this.securityAuditMigrator = securityAuditMigrator;
+    this.rootOrganizationConfigMigrator = rootOrganizationConfigMigrator;
   }
 
   /**
@@ -66,5 +68,6 @@ public class DataMigrator
     licenseOverrideAuditMigrator.migrate();
     bomAuditMigrator.migrate();
     securityAuditMigrator.migrate();
+    rootOrganizationConfigMigrator.migrate();
   }
 }

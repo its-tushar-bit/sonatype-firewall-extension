@@ -109,4 +109,9 @@ public class Organization
   public String getParentOwnerId() {
     return parentOrganizationId;
   }
+
+  @Override
+  public String toString() {
+    return "Organization [id=" + id + ", name=" + name + "]";
+  }
 }

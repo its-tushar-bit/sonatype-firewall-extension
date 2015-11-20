@@ -18,11 +18,11 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
+import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.organization.RootOrganizationConfigMigrationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -48,17 +48,18 @@ public class LicenseOverrideService
 
   private final OwnerDAO ownerDAO;
 
-  private RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService;
+  private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   @Inject
   public LicenseOverrideService(final InsightWork work, final OwnerDAO ownerDAO, final CurrentUser currentUser,
-      final LicenseOverrideDAO licenseOverrideDAO, final RootOrganizationConfigMigrationService rootOrganizationConfigMigrationService)
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.work = work;
     this.currentUser = currentUser;
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.ownerDAO = ownerDAO;
-    this.rootOrganizationConfigMigrationService = rootOrganizationConfigMigrationService;
+    this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -140,7 +141,7 @@ public class LicenseOverrideService
     result.licenseOverridesByOwner = new ArrayList<>();
 
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
-      if (owner.getParentOwnerId() == null && !rootOrganizationConfigMigrationService.isMigrated()) {
+      if (owner.getParentOwnerId() == null && !rootOrganizationConfigMigrationUtils.isMigrated()) {
         break;
       }
       LicenseOverrideByOwner licenseOverrideByOwner = new LicenseOverrideByOwner();

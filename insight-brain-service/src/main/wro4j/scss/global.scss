@@ -135,7 +135,7 @@ form label {
     </div>
   ```
 */
-p {
+p + p {
   margin-top: 16px;
 }
 p + h2, ul + h2 {

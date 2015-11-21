@@ -98,7 +98,7 @@ public class PolicyEvaluateResourceTest
   private Application app;
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", "{scanId}").parameter(appId, scanId)
+    return restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
         .body(stage);
   }
 

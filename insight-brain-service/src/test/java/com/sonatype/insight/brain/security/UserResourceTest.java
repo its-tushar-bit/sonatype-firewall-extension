@@ -49,8 +49,8 @@ public class UserResourceTest
   }
 
   private HttpRequest findRequest(OwnerType ownerType, String ownerId, String query) {
-    return restRequest().path("{ownerType}/{ownerId}/query").query("q", "{pattern}")
-        .parameter(ownerType, ownerId, query);
+    return restRequest().path("{ownerType}/{ownerId}/query").query("q", query)
+        .parameter(ownerType, ownerId);
   }
 
   private List<User> fromResponse(HttpResponse response) {

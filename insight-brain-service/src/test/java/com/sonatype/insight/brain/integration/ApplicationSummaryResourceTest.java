@@ -29,7 +29,7 @@ public class ApplicationSummaryResourceTest
   }
 
   private HttpRequest summaryRequest(Goal goal) {
-    return restRequest().query(ApplicationSummaryResource.GOAL_PARAM, "{goal}").parameter(goal);
+    return restRequest().query(ApplicationSummaryResource.GOAL_PARAM, goal);
   }
 
   @Test

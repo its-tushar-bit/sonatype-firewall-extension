@@ -11,7 +11,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.BomAudit;
@@ -50,8 +49,8 @@ public class LicenseOverrideResourceTest
   }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId, ComponentIdentifier componentIdentifier) {
-    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).query("componentIdentifier", "{compId}")
-        .parameter(ownerType, ownerId, ComponentIdentifierAdapter.toJson(componentIdentifier));
+    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).query("componentIdentifier", componentIdentifier)
+        .parameter(ownerType, ownerId);
   }
 
   @Test

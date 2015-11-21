@@ -36,13 +36,13 @@ public class CIComponentInfoResourceTest
 
   protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType, final String ownerId, final String hash,
       final ComponentIdentifier componentIdentifier) {
-    return restRequest().path(CIComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId).subpath().
+    return restRequest().path(CIComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId).
         query("hash", hash).query("componentIdentifier", componentIdentifier);
   }
 
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
     return restRequest().path(CIComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
-        .subpath().query("componentIdentifier", componentIdentifier);
+        .query("componentIdentifier", componentIdentifier);
   }
 
   @Before

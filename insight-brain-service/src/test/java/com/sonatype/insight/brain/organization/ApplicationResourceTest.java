@@ -47,8 +47,8 @@ public class ApplicationResourceTest
   }
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", "{scanId}")
-        .parameter(appId, scanId).body(stage);
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(appId).body(stage);
   }
 
   @Test

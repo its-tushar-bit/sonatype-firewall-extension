@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -32,12 +31,11 @@ public class ReleaseGraphResourceTest
   private File reportDir;
 
   private HttpRequest getRequest(String appId, String scanId) {
-    return restRequest().path(ReleaseGraphResource.RESOURCE_PATH).parameter(appId, scanId).subpath();
+    return restRequest().path(ReleaseGraphResource.RESOURCE_PATH).parameter(appId, scanId);
   }
 
   private HttpRequest addCoords(HttpRequest request, ComponentIdentifier componentIdentifier) {
-    return request.query("componentIdentifier", "{compId}").parameter(
-        ComponentIdentifierAdapter.toJson(componentIdentifier));
+    return request.query("componentIdentifier", componentIdentifier);
   }
 
   private HttpRequest addCoords(HttpRequest request, String groupId, String artifactId, String version) {

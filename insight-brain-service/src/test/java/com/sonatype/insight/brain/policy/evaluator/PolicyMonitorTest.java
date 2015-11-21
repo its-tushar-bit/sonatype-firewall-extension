@@ -386,8 +386,8 @@ public class PolicyMonitorTest
   private PolicyEvaluationResult evaluatePolicy(String applicationPublicId, String scanId, Stage stage)
       throws Exception
   {
-    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", "{scanId}")
-        .parameter(applicationPublicId, scanId).body(stage).post();
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(applicationPublicId).body(stage).post();
     assertResponseStatus(200, response);
     PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
     assertThat(policyEval, is(notNullValue()));

@@ -31,7 +31,7 @@ public class ScanResourceTest
   }
 
   private HttpRequest uploadRequest(String appPublicId, String stageId, String resource) {
-    return restRequest().query("stageId", "{stageId}").parameter(appPublicId, stageId)
+    return restRequest().query("stageId", stageId).parameter(appPublicId)
         .part("file", resource, getClass().getResource("/" + getClass().getSimpleName() + "/" + resource));
   }
 

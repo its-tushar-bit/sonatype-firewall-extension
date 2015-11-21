@@ -33,10 +33,9 @@ public class CIComponentInfoResource
 
   private static final String COMPONENT_DETAILS_PATH = "{ownerType: application|repository}/{ownerId}";
 
-  public static final String LICENSES_PATH = "licenses/{ownerType: application|repository}/{ownerId}";
+  public static final String LICENSES_PATH = COMPONENT_DETAILS_PATH + "/licenses";
 
-  public static final String VULNERABILITIES_PATH =
-      "vulnerabilities/{ownerType: application|organization|repository}/{ownerId}";
+  public static final String VULNERABILITIES_PATH = COMPONENT_DETAILS_PATH + "/vulnerabilities";
 
   private final ComponentInfoService componentInfoService;
 

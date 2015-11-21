@@ -107,7 +107,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -198,7 +198,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -277,7 +277,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -344,7 +344,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -426,7 +426,7 @@
         licenseOverridesByOwner[2].licenseOverride = licenseOverridesByOwner[1].licenseOverride;
         licenseOverridesByOwner[1].licenseOverride = licenseOverridesByOwner[0].licenseOverride = null;
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -449,7 +449,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -518,7 +518,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -592,7 +592,7 @@
       beforeEach(inject(function($controller, $httpBackend, SelectedComponent) {
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                 encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
@@ -654,7 +654,7 @@
         inject(function ($controller, $httpBackend, SelectedComponent) {
           $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')).respond(LicenseGroupMockData.getLicensesData());
 
-          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/bom1-12345678?componentIdentifier=' +
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
                   encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats(declared, observed, selected));
 
           $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +

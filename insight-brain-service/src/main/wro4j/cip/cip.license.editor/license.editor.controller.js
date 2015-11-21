@@ -135,8 +135,8 @@
       promises.push($http.get(CLM.path + 'rest/license?filterSynthetic=true'));
 
       // Component licenses
-      promises.push($http.get(CLM.path + 'rest/' + clmEndpoint.type + '/componentDetails/licenses/' +
-              OwnerContext.ownerType + '/' + OwnerContext.ownerId + '?componentIdentifier=' +
+      promises.push($http.get(CLM.path + 'rest/' + clmEndpoint.type + '/componentDetails/' +
+              OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/licenses?componentIdentifier=' +
               encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))));
 
       if (OwnerContext.ownerType !== 'repository') {

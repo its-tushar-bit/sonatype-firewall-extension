@@ -128,7 +128,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', "AFL-1.2"));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -219,7 +219,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, null, null));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -298,7 +298,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, null, null));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -365,7 +365,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, null, null));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -442,7 +442,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(applied);
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -465,7 +465,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', "AFL"));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -534,7 +534,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides('OVERRIDDEN', "AFL-1.2", null, null));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -608,7 +608,7 @@
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
             respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
             encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats());
 
         $controller('LicenseEditorController', {
@@ -670,7 +670,7 @@
                   encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).
                   respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/licenses/application/app1?componentIdentifier=' +
+          $httpBackend.expectGET(SpecUtil.toRegExp(CLM.path + 'rest/ci/componentDetails/application/app1/licenses?componentIdentifier=' +
                   encodeURIComponent(JSON.stringify(SelectedComponent.componentIdentifier)))).respond(getLicenseWithThreats(declared, observed, selected));
 
           $controller('LicenseEditorController', {

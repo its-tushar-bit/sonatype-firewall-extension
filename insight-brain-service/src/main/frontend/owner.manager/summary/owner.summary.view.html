@@ -7,6 +7,7 @@
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-left">
+          <li><a id="select-contact-link" ng-click='vm.selectContact(vm.owner)'><span><i class="fa fa-user fa-fw"/>Select Contact</span></a></li>
           <li><a ng-click='vm.edit()' id="app-org-link"><span><i class="fa fa-pencil fa-fw"/>Edit {{:: vm.getShortTypeName()}} Name / Icon</span></a></li>
           <li><a id="eval-ahc-link"><i class="fa fa-upload fa-fw"/><span>Evaluate AhcService</span></a></li>
           <li><a id="import-policies-link"><i class="fa fa-download fa-fw"/><span>Import Policies</span></a></li>

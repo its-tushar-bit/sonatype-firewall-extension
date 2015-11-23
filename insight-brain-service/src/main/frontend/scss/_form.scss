@@ -97,6 +97,22 @@
         float: right;
         margin-top: 4px;
       }
+      &.form-horizontal {
+        input[type='text'] + button {
+          margin-left: 8px;
+        }
+      }
+    }
+
+    h3 {
+      margin-top: 0px;
+      color: $off-black;
+      .fa {
+        margin-right: 8px;
+      }
+      .grey-4 {
+        color: $grey-4;
+      }
     }
 
     .inline-fields {
@@ -132,6 +148,11 @@
     &.disabled {
       color: $grey-4;
     }
+  }
+
+  .sub-label {
+    margin-top: -6px;
+    margin-bottom: 7px;
   }
 
   input[type=text], input[type=number], input[type=email], input[type=password] {
@@ -232,16 +253,8 @@
     font-size: 14px;
     display: block;
     cursor: pointer;
-    margin-top: -3px;
+    margin-bottom: 0px;
     padding-left: 24px;
-    margin-bottom: 4px;
-
-    &:first-child {
-      margin-top: -5px;
-    }
-    &:last-child {
-      margin-bottom: 0px;
-    }
 
     // Monochrome radio button to override native implementation. Native is hidden and pseudo selectors on the label's
     // text's span build a monochrome circle

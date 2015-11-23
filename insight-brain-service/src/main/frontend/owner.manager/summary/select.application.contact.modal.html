@@ -1,0 +1,41 @@
+<div id="select-application-contact-modal" ng-show="!vm.deleteMode">
+  <div class="clm-modal-header">
+    <h2>
+      <i class="fa size-20px fa-user slate"></i>Select Application Contact
+    </h2>
+  </div>
+  <form class="clm-form" role="form" name="vm.selectContactForm" ng-submit="vm.isDirty() && vm.updateContact()" form-mask="Updating">
+    <div class="clm-modal-body">
+      <div class="section">
+        <h3 id="current-contact">
+          <i class="fa size-18px fa-user slate"></i><span ng-class="{'grey-4': !vm.owner.contact}">{{vm.owner.contact ? vm.owner.contact.displayName : '(None)'}}</span>
+        </h3>
+        <div class="field form-horizontal">
+          <label for="user-search-input">Search Users</label>
+          <div class="sub-label">uses ‘*’ as wildcard (ex. ‘Asim*’ matches ‘Asimov’)</div>
+          <input id="user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
+                 focus-input="true" ng-keyup="$event.keyCode == 13 && vm.query && vm.search()" clm-input/><!--
+       --><button id="user-search-button" class="btn" type="button" ng-click="vm.search()" ng-disabled="!vm.query">Search</button>
+        </div>
+        <div class="field" ng-if="!vm.searchError">
+          <label for="contact-selector" ng-if="vm.users">Results</label>
+          <association-editor id="contact-selector" selected="vm.selected" items="vm.users" description="displayName" icon="fa-user" is-radio-button="true"/>
+        </div>
+      </div>
+    </div>
+    <div class="clm-modal-footer" submit-wrapper="vm.submitError" retry="vm.updateContact()">
+      <div ng-if="vm.searchError" class="section with-icon">
+        <i class="fa fa-warning"></i> {{ vm.searchError }}
+      </div><!--
+   --><button class="btn btn-primary" type="submit" submit-validation submit-dirty="vm.isDirty()" submit-type="update">
+      Update
+    </button><!--
+   --><button class="btn" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">
+      Cancel
+    </button><!--
+   --><button id="remove-contact-button" class='btn btn-tertiary' type="button" ng-click="vm.removeContact()" ng-if="vm.owner.contact">
+      <i class="fa fa-fw fa-trash"></i>Remove Contact
+    </button>
+    </div>
+  </form>
+</div>

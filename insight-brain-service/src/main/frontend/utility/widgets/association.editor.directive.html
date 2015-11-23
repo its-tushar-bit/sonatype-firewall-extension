@@ -2,35 +2,38 @@
   <table id="association-editor" class="association-editor">
     <tr ng-if="vm.items.length < 10" class="association-editor-row" ng-repeat="item in vm.items">
       <td><!--
-    --><label class="checkbox">
-        <input type="checkbox" ng-model="item[vm.checkboxParam]">
-        <span>
-          <hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon>
-          <i ng-if="vm.icon !== 'hexagon'" class="fa" ng-class="icon"></i>
-          <p class="description">{{::item[vm.description] }}</p> 
-        </span>
-      </label>
+     --><label ng-class="{radio: vm.isRadioButton, checkbox: !vm.isRadioButton}">
+          <input type="checkbox" ng-model="item[vm.checkboxParam]" ng-if="!vm.isRadioButton">
+          <input type="radio" name="items" ng-if="vm.isRadioButton" ng-value="item" ng-model="vm.selected"/>
+          <span>
+            <hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon>
+            <i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i><!--
+         --><p class="description">{{::item[vm.description] }}</p>
+          </span>
+        </label>
       </td>
     </tr>
     <tr class="association-editor-row" ng-repeat="item in vm.items"
         ng-if="vm.items.length >= 10 && $index < vm.ceil(vm.items.length / 2)" ng-init="$secondColumnIndex = $index + vm.ceil(vm.items.length / 2)">
       <td><!--
-    --><label class="checkbox">
-          <input type="checkbox" ng-model="item[vm.checkboxParam]">
+     --><label ng-class="{radio: vm.isRadioButton, checkbox: !vm.isRadioButton}">
+          <input type="checkbox" ng-model="item[vm.checkboxParam]" ng-if="!vm.isRadioButton">
+          <input type="radio" name="items" ng-if="vm.isRadioButton" ng-value="item" ng-model="vm.selected"/>
           <span>
             <hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon>
-            <i ng-if="vm.icon !== 'hexagon'" class="fa" ng-class="icon"></i>
-            <p class="description">{{::item[vm.description] }}</p> 
+            <i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i><!--
+         --><p class="description">{{::item[vm.description] }}</p>
           </span>
         </label>
       </td>
       <td ng-if="$secondColumnIndex < vm.items.length"><!--
-    --><label class="checkbox">
-          <input type="checkbox" ng-model="vm.items[$secondColumnIndex][vm.checkboxParam]">
+     --><label ng-class="{radio: vm.isRadioButton, checkbox: !vm.isRadioButton}">
+          <input type="checkbox" ng-model="vm.items[$secondColumnIndex][vm.checkboxParam]" ng-if="!vm.isRadioButton">
+          <input type="radio" name="items" ng-if="vm.isRadioButton" ng-value="vm.items[$secondColumnIndex]" ng-model="vm.selected"/>
           <span>
             <hexagon ng-if="vm.icon === 'hexagon'" class="{{::vm.items[$secondColumnIndex].color }} size-16px"></hexagon>
-            <i ng-if="vm.icon !== 'hexagon'" class="fa" ng-class="icon"></i>
-            <p class="description">{{::vm.items[$secondColumnIndex][vm.description] }}</p> 
+            <i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::vm.items[$secondColumnIndex].color || 'slate'}}"></i><!--
+         --><p class="description">{{::vm.items[$secondColumnIndex][vm.description] }}</p>
           </span>
         </label>
       </td>

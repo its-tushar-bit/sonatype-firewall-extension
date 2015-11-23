@@ -11,8 +11,10 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.RemoveModal;
+import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -31,10 +33,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -54,15 +60,55 @@ public class ApplicationSummaryViewTest
     super.init(application);
   }
 
-  // This is rudimentary as CLM-4836 deals with editing the contact
   @Test
   public void testApplicationContact() {
-    User user = tempEntity.newUser();
-    Application testApp = tempEntity.newApplication("testApp", "testApp", application.getOrganizationId(), user.getUsername());
-    refresh();
-    super.init(testApp);
-    String contactDisplayName = user.calculateDisplayName();
-    OwnerSummaryPage.SummaryTile.contact().shouldHave(text(contactDisplayName));
+    User tempUser = tempEntity.newUser();
+    OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
+    // open and close the contact modal
+    ActionDropDown.actionButton().click();
+    ActionDropDown.selectContact().shouldBe(visible).click();
+    SelectContactModal.body().shouldBe(visible);
+    SelectContactModal.header().shouldHave(SelectContactModal.headerText());
+    SelectContactModal.users().shouldHaveSize(0);
+    SelectContactModal.searchButton().shouldBe(disabled);
+    SelectContactModal.cancelButton().shouldBe(visible).click();
+    SelectContactModal.body().shouldNotBe(visible);
+    OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
+    // wildcard search returns all users
+    ActionDropDown.actionButton().click();
+    ActionDropDown.selectContact().click();
+    SelectContactModal.searchBox().shouldBe(visible).val("*");
+    SelectContactModal.searchButton().shouldBe(enabled).click();
+    SelectContactModal.users().shouldHaveSize(2).shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
+    // wildcard suffix search narrows search results
+    SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
+    SelectContactModal.searchButton().click();
+    SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
+    // update contact
+    SelectContactModal.updateButton().shouldHave(disabledClass());
+    SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
+    SelectContactModal.updateButton().shouldNotHave(disabledClass()).click();
+    SelectContactModal.body().shouldNotBe(visible);
+    OwnerSummaryPage.SummaryTile.contact().shouldHave(text(tempUser.calculateDisplayName()));
+    // attempt removal but cancel out of confirmation dialog
+    ActionDropDown.actionButton().click();
+    ActionDropDown.selectContact().shouldBe(visible).click();
+    SelectContactModal.currentUserLabel().shouldHave(text(tempUser.calculateDisplayName()));
+    SelectContactModal.searchBox().val("preserves modal state");
+    SelectContactModal.removeButton().shouldBe(visible, enabled).click();
+    SelectContactModal.body().shouldNotBe(visible);
+    RemoveModal.body().shouldBe(visible).shouldHave(RemoveModal.bodyText(tempUser.calculateDisplayName()));
+    RemoveModal.header().shouldHave(RemoveModal.headerText("Contact"));
+    RemoveModal.cancelButton().click();
+    RemoveModal.body().shouldNotBe(visible);
+    SelectContactModal.body().shouldBe(visible);
+    SelectContactModal.searchBox().shouldHave(value("preserves modal state"));
+    // remove contact
+    SelectContactModal.removeButton().click();
+    RemoveModal.continueButton().click();
+    RemoveModal.body().shouldNotBe(visible);
+    SelectContactModal.body().shouldNotBe(visible);
+    OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
   }
 
   @Override

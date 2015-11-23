@@ -15,7 +15,8 @@ describe('delete.modal.controller.spec.js', function() {
       $scope: scope,
       resourceType: 'foo',
       resourceName: 'bar',
-      resource: resource
+      resource: resource,
+      saveOnDelete: false
     });
     $timeout = _$timeout_;
   }));

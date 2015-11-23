@@ -1,14 +1,15 @@
 <div id="delete-modal">
   <div class="clm-modal-header">
     <h2>
-      <i class="fa size-20px fa-trash"></i> Delete {{ ::vm.resourceType }}
+      <i class="fa size-20px fa-trash"></i> {{vm.saveOnDelete ? 'Remove' : 'Delete'}} {{ ::vm.resourceType }}
     </h2>
   </div>
-  <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="Deleting">
+  <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="{{vm.saveOnDelete ? 'Removing' : 'Deleting'}}">
     <div class="clm-modal-body">
       <div ng-if="!vm.error" class="clm-alert alert">
         <i class="fa fa-warning"></i>
-        <span>You are about to permanently remove {{ ::vm.resourceName }}. This action cannot be undone.</span>
+        <span ng-if="!vm.saveOnDelete">You are about to permanently remove {{ ::vm.resourceName }}. This action cannot be undone.</span>
+        <span ng-if="vm.saveOnDelete">You are about to remove {{ ::vm.resourceName }}.</span>
       </div>
     </div>
     <div class="clm-modal-footer" ng-class="{ error : vm.error }">

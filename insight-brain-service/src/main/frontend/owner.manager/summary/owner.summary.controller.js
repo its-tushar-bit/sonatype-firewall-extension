@@ -7,7 +7,7 @@
   'use strict';
 
   function OwnerSummaryController($state, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
-                                  CLMLocations, StageTypeStore, DeleteModalService)
+                                  CLMLocations, StageTypeStore, DeleteModalService, SelectApplicationContactService)
   {
     var vm = this;
 
@@ -21,6 +21,7 @@
     vm.getResourceTypeName = getResourceTypeName;
     vm.openReport = openReport;
     vm.goToParentView = goToParentView;
+    vm.selectContact = selectContact;
 
     var siblings,
         isApp = $state.current.name.indexOf('application') !== -1,
@@ -68,6 +69,10 @@
       OwnerEditor.open(vm.owner, type, siblings);
     }
 
+    function selectContact(owner) {
+      SelectApplicationContactService.open(owner);
+    }
+
     function deleteOwner() {
       DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function() {
         vm.goToParentView();
@@ -103,7 +108,7 @@
 
   OwnerSummaryController.$inject = [
     '$state', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore', 'CLMLocations',
-    'StageTypeStore', 'DeleteModalService'
+    'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService'
   ];
 
   angular//

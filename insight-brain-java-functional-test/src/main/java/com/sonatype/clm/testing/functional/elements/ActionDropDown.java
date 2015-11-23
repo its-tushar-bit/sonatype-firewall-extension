@@ -25,6 +25,10 @@ public class ActionDropDown
     return root().find(".dropdown-menu");
   }
 
+  public static SelenideElement selectContact() {
+    return root().find("#select-contact-link");
+  }
+
   public static SelenideElement editOwner() {
     return root().find("#app-org-link");
   }

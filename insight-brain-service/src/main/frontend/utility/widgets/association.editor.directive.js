@@ -13,7 +13,9 @@
         items: '=',
         checkboxParam: '@',
         icon: '@',
-        description: '@'
+        description: '@',
+        isRadioButton: '@',
+        selected: '='
       },
       replace: true,
       templateUrl: 'utility/widgets/association.editor.directive.html',

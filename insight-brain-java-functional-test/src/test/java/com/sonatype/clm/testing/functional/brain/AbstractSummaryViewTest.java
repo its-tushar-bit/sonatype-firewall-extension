@@ -423,7 +423,7 @@ public abstract class AbstractSummaryViewTest
 
 
     DeleteModal.root().shouldBe(visible);
-    DeleteModal.deleteButton().click();
+    DeleteModal.continueButton().click();
 
     // Modal should be hidden 800 ms after delete REST call is successful
     DeleteModal.root().shouldNotBe(visible);

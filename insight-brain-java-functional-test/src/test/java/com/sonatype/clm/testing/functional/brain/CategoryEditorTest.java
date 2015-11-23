@@ -149,7 +149,7 @@ public class CategoryEditorTest
     // when
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
     // then
-    DeleteModal.deleteButton().shouldBe(visible).click();
+    DeleteModal.continueButton().shouldBe(visible).click();
     // then the modal should be hidden 800 ms after delete REST call is successful
     DeleteModal.root().shouldNotBe(visible);
 

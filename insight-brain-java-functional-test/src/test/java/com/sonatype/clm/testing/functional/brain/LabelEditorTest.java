@@ -179,7 +179,7 @@ public class LabelEditorTest
     refreshOrOpen(LabelEditorPage.urlToEdit("organization", app.getOrganizationId(), label.getId()));
     // when
     LabelEditorPage.deleteButton().shouldBe(visible).click();
-    DeleteModal.deleteButton().shouldBe(visible).click();
+    DeleteModal.continueButton().shouldBe(visible).click();
     // then the modal should be hidden 800 ms after delete REST call is successful
     DeleteModal.root().shouldNotBe(visible);
 

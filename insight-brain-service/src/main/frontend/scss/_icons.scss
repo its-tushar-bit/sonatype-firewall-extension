@@ -45,7 +45,7 @@ $font-families: ('sonatype-icons', 'sonatype-glyphicons');
     #{$property}: $grey-2;
   }
 
-  &.grey {
+  &.grey, &.slate {
     #{$property}: $slate;
   }
 
@@ -200,7 +200,7 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
 ```
 */
 
-.fa-tag {
+.fa {
   @include icon-colours(color);
 }
 

@@ -33,7 +33,7 @@ public class DeleteModal
     return root().$(".clm-modal-body");
   }
 
-  public static SelenideElement deleteButton() {
+  public static SelenideElement continueButton() {
     return root().$(".btn-primary");
   }
 

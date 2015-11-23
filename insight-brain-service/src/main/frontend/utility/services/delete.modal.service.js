@@ -11,7 +11,7 @@
       deleteResource: DeleteResource
     };
 
-    function DeleteResource(resourceType, resourceName, resource) {
+    function DeleteResource(resourceType, resourceName, resource, saveOnDelete) {
       return $modal.open({
         animation: false,
         backdrop: 'static',
@@ -28,6 +28,9 @@
           },
           resourceName: function() {
             return resourceName;
+          },
+          saveOnDelete: function() {
+            return saveOnDelete;
           }
         }
       }).result;

@@ -105,7 +105,6 @@ public class RootOrganizationConfigMigratorTest
     File workDir = tempDir.newFolder();
     workDir.mkdirs();
     config.setSonatypeWork(workDir.getAbsolutePath());
-    config.setShowRootOrganization(false);
 
     work = new InsightWork(config);
     migrationUtils = new RootOrganizationConfigMigrationUtils(work);

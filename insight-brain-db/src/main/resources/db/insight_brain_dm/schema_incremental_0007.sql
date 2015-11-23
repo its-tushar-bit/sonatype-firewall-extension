@@ -1,4 +1,4 @@
--- Since 1.17.0
+-- Since 1.18.0
 SET SCHEMA insight_brain_dm;
 
 ALTER TABLE license

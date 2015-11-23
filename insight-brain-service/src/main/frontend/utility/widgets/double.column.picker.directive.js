@@ -35,6 +35,9 @@
         }, function(isPristine) {
           if (isPristine) {
             scope.vm.search = '';
+            scope.vm.checkAllRight = false;
+            scope.vm.checkAllLeft = false;
+
             scope.vm.list.forEach(function(item) {
               item.checked = false;
             });

@@ -1,0 +1,223 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
+import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.DoubleColumnPickerListItem;
+import com.sonatype.clm.testing.functional.elements.LTGThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
+import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+
+import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+
+public class LTGEditorTest
+    extends AbstractFunctionalTest
+{
+  private Organization organization;
+
+  private LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+
+  private LicenseDAO licenseDAO = new LicenseDAO();
+
+  private LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
+
+
+  @BeforeClass
+  public static void beforeClass() {
+    refreshOrOpen(OrganizationManagementPage.URL);
+    loginAsAdmin();
+  }
+
+  @Before
+  public void init() {
+    organization = tempEntity.newOrganization();
+    refreshOrOpen(OwnerSummaryPage.url("organization", organization.getId()));
+  }
+
+  @Test
+  public void testCreateLTG() {
+    String ltgName = "Test LTG";
+
+    SummaryTile.addLTGButton().click();
+    assertNewLTGStateIsCorrect();
+    LTGEditorPage.ltgName().val("$$$"); // invalid characters
+    PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();
+    LTGEditorPage.saveButton().shouldHave(disabledClass());
+
+    LTGEditorPage.ltgName().val(ltgName);
+    PopoverViolations.on(LTGEditorPage.ltgName()).shouldNotExist();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(disabledClass()).click();
+
+    assertNewLTGStateIsCorrect();
+    LicenseThreatGroup ltg = ltgDAO.getByOwnerIdAndName(organization.getId(), ltgName);
+    assertThat(ltg, notNullValue());
+    assertThat(ltg.getName(), is(ltgName));
+    assertThat(ltg.getThreatLevel(), is(LTGEditorPage.DEFAULT_THREAT_LEVEL));
+    assertThat(ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId()), empty());
+  }
+
+  @Test
+  public void testEditLTG() {
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId(), "original name", 1);
+    refresh();
+
+    SummaryTile.localLTG(ltg.getName()).click();
+    assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToEdit(organization.getId(), ltg.getId())));
+    LTGEditorPage.title().shouldHave(text("Edit"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original name"));
+    assertThreatLevelSelectorDefaultState(1);
+    assertDoubleColumnPickerDefaultState();
+    LTGEditorPage.saveButton().shouldHave(disabledClass());
+
+    LTGEditorPage.ltgName().val("updated name");
+    changeThreatLevel(6);
+    pickFirstThreeLicenses();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(disabledClass()).click();
+
+    LTGEditorPage.title().shouldHave(text("Edit"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
+    LTGThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
+    DoubleColumnPicker.pickedItems().shouldHaveSize(3);
+    LTGEditorPage.saveButton().shouldHave(disabledClass());
+
+    List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
+
+    ltg = ltgDAO.getById(ltg.getId());
+    assertThat(ltg, notNullValue());
+    assertThat(ltg.getName(), is("updated name"));
+    assertThat(ltg.getThreatLevel(), is(6));
+    assertThat(includedLicenses.size(), is(3));
+
+    for (int i = 0; i < includedLicenses.size(); i++) {
+      DoubleColumnPicker.pickedItem(i).name().shouldHave(
+          text(licenseDAO.getById(includedLicenses.get(i).getLicenseId()).getLongDisplayName()));
+    }
+
+    testDeleteLTG(ltg);
+  }
+
+  public void testDeleteLTG(LicenseThreatGroup ltg) {
+    LTGEditorPage.deleteButton().shouldBe(visible, enabled).click();
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(DeleteModal.headerText("License Threat Group"));
+    DeleteModal.body().shouldHave(DeleteModal.bodyText(ltg.getName()));
+
+    DeleteModal.continueButton().click();
+    DeleteModal.root().shouldNotBe(visible);
+
+    assertNewLTGStateIsCorrect();
+    assertThat(ltgDAO.getById(ltg.getId()), is(nullValue()));
+  }
+
+  private void assertNewLTGStateIsCorrect() {
+    assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToCreate(organization.getId())));
+    LTGEditorPage.title().shouldHave(text("New"));
+    LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
+    assertDoubleColumnPickerDefaultState();
+    LTGEditorPage.saveButton().shouldHave(disabledClass());
+  }
+
+  private void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {
+    LTGThreatLevelSelector.root().shouldBe(visible);
+    LTGThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
+    LTGThreatLevelSelector.threatLevelList().shouldBe(visible);
+    LTGThreatLevelSelector.threatLevelListItems().shouldHaveSize(LTGEditorPage.NUM_THREAT_LEVELS);
+
+    for (int i = 0; i < LTGEditorPage.NUM_THREAT_LEVELS; i++) {
+      LTGThreatLevelSelector.threatLevelListItem(i).shouldBe(visible);
+      assertThat(Integer.parseInt(LTGThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
+    }
+
+    LTGThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
+        .click();
+  }
+
+  private void assertDoubleColumnPickerDefaultState() {
+    DoubleColumnPicker.root().shouldBe(visible);
+
+    DoubleColumnPicker.filter().shouldBe(visible);
+    assertThat(DoubleColumnPicker.filter().val(), isEmptyOrNullString());
+
+    DoubleColumnPicker.checkAllLeft().shouldBe(visible).shouldNotBe(selected);
+    DoubleColumnPicker.checkAllRight().shouldBe(visible).shouldNotBe(selected);
+
+    DoubleColumnPicker.pickCheckedItemsButton().shouldBe(disabled);
+    DoubleColumnPicker.unpickCheckedItemsButton().shouldBe(disabled);
+
+    DoubleColumnPicker.availableItemList().shouldBe(visible);
+    DoubleColumnPicker.pickedItemList().shouldBe(visible);
+
+    DoubleColumnPicker.pickedItems().shouldBe(CollectionCondition.empty);
+    DoubleColumnPicker.availableItems().shouldHaveSize(licenseDAO.getAll().size());
+  }
+
+  private void changeThreatLevel(int threatLevel) {
+    LTGThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
+    LTGThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
+    assertThat(Integer.parseInt(LTGThreatLevelSelector.selectedThreatLevel().text()), is(threatLevel));
+  }
+
+  private void pickFirstThreeLicenses() {
+    int initialSize = DoubleColumnPicker.availableItems().size();
+    List<String> pickedLicenseNames = new ArrayList<>();
+
+    for (int i = 0; i < 3; i++) {
+      DoubleColumnPicker.availableItem(i).checkbox().click();
+      pickedLicenseNames.add(DoubleColumnPicker.availableItem(i).name().text());
+    }
+
+    DoubleColumnPicker.pickCheckedItemsButton().shouldBe(enabled).click();
+
+    DoubleColumnPicker.availableItems().shouldHaveSize(initialSize - 3);
+    DoubleColumnPicker.pickedItems().shouldHaveSize(3);
+    DoubleColumnPicker.pickCheckedItemsButton().shouldBe(disabled);
+    DoubleColumnPicker.unpickCheckedItemsButton().shouldBe(enabled);
+
+    for (int i = 0; i < 3; i++) {
+      DoubleColumnPicker.pickedItem(i).checkbox().shouldBe(selected);
+      DoubleColumnPicker.pickedItem(i).name().shouldBe(pickedLicenseNames.get(i));
+    }
+  }
+}

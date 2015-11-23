@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" submit-validation
+        <button id="save-ltg-button" class="btn btn-primary" type="submit" submit-validation
                 submit-dirty="vm.isLTGDirty()" submit-type="vm.dirtyLTG.id ? 'update' : 'create'">
           {{vm.dirtyLTG.id ? 'Update' : 'Create'}}
         </button><!--

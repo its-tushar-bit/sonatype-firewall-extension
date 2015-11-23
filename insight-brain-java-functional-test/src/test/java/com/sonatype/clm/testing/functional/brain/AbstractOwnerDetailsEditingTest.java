@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup.OwnerDetailTreeViewItem;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
+import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -17,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.WebDriverRunner;
@@ -39,6 +41,8 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   private Label label;
 
+  private LicenseThreatGroup ltg;
+
   private Tag category;
 
   @BeforeClass
@@ -52,6 +56,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     label = tempEntity.newLabel(currentOwner.getId());
 
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
+      ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId());
       category = tempEntity.newTag(currentOwner.getId());
     }
 
@@ -135,6 +140,22 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_COLLAPSE_CLASS);
+
+    if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
+      detailGroup.items().shouldHaveSize(3);
+      detailGroup.item(1).root().shouldBe(visible).click();
+      detailGroup.item(1).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
+      assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToCreate(currentOwner.getPublicId())));
+
+      back();
+
+      detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ltg.getName())).click();
+      detailGroup.item(2).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
+      assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToEdit(currentOwner.getPublicId(), ltg.getId())));
+
+      back();
+    }
+
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
   }

@@ -41,6 +41,10 @@ public class OwnerSummaryPage
       return $("#add-label-button");
     }
 
+    public static SelenideElement addLTGButton() {
+      return $("#add-ltg-button");
+    }
+
     public static SelenideElement addCategoryButton() {
       return $("#add-category-button");
     }
@@ -53,14 +57,18 @@ public class OwnerSummaryPage
       return $$("#owner-pill-app-categories ul div.title").findBy(text(categoryName));
     }
 
+    public static SelenideElement localLTG(String ltgName) {
+      return $$("#owner-pill-ltgs ul div.threat-group-title").findBy(text(ltgName));
+    }
+
     public static ErrorBox error() {
       return new ErrorBox(root().find(".clm-alert.alert-error"));
     }
-    
+
     public static SelenideElement appCategoriesButton() {
       return root().find("#owner-app-categories-button");
     }
-    
+
     public static SelenideElement policyButton() {
       return root().find("#owner-policy-button");
     }
@@ -76,6 +84,6 @@ public class OwnerSummaryPage
     public static SelenideElement accessButton() {
       return root().find("#owner-access-button");
     }
-    
+
   }
 }

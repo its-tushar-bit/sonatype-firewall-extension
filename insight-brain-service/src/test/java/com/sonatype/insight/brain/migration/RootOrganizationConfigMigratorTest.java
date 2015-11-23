@@ -128,6 +128,15 @@ public class RootOrganizationConfigMigratorTest
     // Hide root org, should not do any migration.
     config.setShowRootOrganization(false);
     assertThat(migrator.migrate(), is(false));
+    assertThat(migrationUtils.isMigrated(), is(true));
+  }
+
+  @Test
+  public void testMigrate_FreshInstall() throws Exception {
+    assertThat(migrationUtils.isMigrated(), is(false));
+
+    assertThat(migrator.migrate(), is(false));
+    assertThat(migrationUtils.isMigrated(), is(true));
   }
 
   @Test
@@ -498,6 +507,9 @@ public class RootOrganizationConfigMigratorTest
       odsDatabaseConfig.setPassword("");
       odsDatabaseConfig.setMaxConnections(50);
       OperationalDataStoreProvider.init(odsDatabaseConfig);
+      // Create an organization only to make it look like this is not a fresh install (that would not require a
+      // migration).
+      tempEntity.newOrganization();
 
       // Migration will fail because the source org id is invalid.
       // Verify that a backup was created.

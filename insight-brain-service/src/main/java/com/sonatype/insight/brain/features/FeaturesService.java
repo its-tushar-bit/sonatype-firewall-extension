@@ -14,6 +14,9 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Provides means to inspect the available features of the server.
  * 
@@ -21,6 +24,8 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
  */
 public class FeaturesService
 {
+  private static final Logger log = LoggerFactory.getLogger(FeaturesService.class);
+
   private final CLMLicenseManager licenseManager;
 
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
@@ -50,6 +55,7 @@ public class FeaturesService
         features.add(Feature.ROOT_ORG_MIGRATE);
       }
     }
+    log.debug("Found features: {}", features);
     return features;
   }
 

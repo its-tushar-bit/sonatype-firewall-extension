@@ -30,13 +30,13 @@
           title: 'Licenses',
           directive: 'cip-license-editor',
           matchedOnly: true
-        },{
-          title: 'Labels',
-          directive: 'cip-label-editor',
-          matchedOnly: true
         }, {
           title: 'Vulnerabilities',
           directive: 'cip-vulnerability-editor',
+          matchedOnly: true
+        }, {
+          title: 'Labels',
+          directive: 'cip-label-editor',
           matchedOnly: true
         }];
 

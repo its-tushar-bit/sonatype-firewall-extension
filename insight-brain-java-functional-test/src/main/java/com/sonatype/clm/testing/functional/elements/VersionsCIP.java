@@ -76,4 +76,12 @@ public class VersionsCIP
   public static SelenideElement identificationSource() {
     return artifactTable().find("#artifactInfoIdentificatonSource td:last-child");
   }
+
+  public static SelenideElement selectComponentMessage() {
+    return $("#select-component");
+  }
+
+  public static SelenideElement unknownComponentMessage() {
+    return $("div[ng-if='isUnknown']");
+  }
 }

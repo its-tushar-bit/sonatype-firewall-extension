@@ -173,7 +173,7 @@ public class RepositoryReportTest
     testPolicyCIP();
     testLabelsCIP();
 
-    testHiddenCIPTabs();
+    testUnknownComponentCIP();
   }
 
   private void setupHDSResponse() throws IOException {
@@ -183,12 +183,15 @@ public class RepositoryReportTest
         FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetailsList.json")), 200);
   }
 
-  private void testHiddenCIPTabs() {
+  private void testUnknownComponentCIP() {
     // Open CIP for unknown component
     RepositoryReportPage.Table.row(5).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
 
     RepositoryReportPage.Table.cipTab("Component Info").shouldBe(visible);
+    VersionsCIP.selectComponentMessage().shouldNotBe(visible);
+    VersionsCIP.unknownComponentMessage().shouldBe(visible);
+
     RepositoryReportPage.Table.cipTab("Policy").shouldBe(visible);
     RepositoryReportPage.Table.cipTab("Labels").shouldNotBe(visible);
     RepositoryReportPage.Table.cipTab("Licenses").shouldNotBe(visible);

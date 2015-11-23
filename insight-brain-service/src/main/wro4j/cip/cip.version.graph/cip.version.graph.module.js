@@ -27,7 +27,7 @@
           Coordinates.set('maven', { groupId: newComponent.groupId, artifactId: newComponent.artifactId, version: newComponent.version});
         }
         else {
-          Coordinates.set(null, null); // reset
+          Coordinates.set(null, {}); // unknown
         }
         Properties.setHash(newComponent.hash);
         Properties.setFilename(getFilename(newComponent.pathname));

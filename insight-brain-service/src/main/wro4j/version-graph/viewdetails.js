@@ -44,7 +44,7 @@
       return result;
     }
     search = search.substring(1).split('&');
-    angular.forEach(search, function(item, index) {
+    angular.forEach(search, function(item) {
       var field = item.split('=');
       result[decode(field[0])] = decode(field[1]);
     });
@@ -53,7 +53,7 @@
 
   function transformPolicyAlerts(alerts) {
     var retval = [];
-    angular.forEach(alerts, function(alert, alertIndex) {
+    angular.forEach(alerts, function(alert) {
       var threat;
       if (alert.trigger.threatLevel > 7) {
         threat = 4;
@@ -220,7 +220,7 @@
 
         promises.push($http.get(Brain[clmEndpoint.type].getComponentUrl('application', appId, identifier.format, hash, matchState, proprietary, identifier.coordinates), {
           headers: {
-            "Accept": "application/json"
+            'Accept': 'application/json'
           }
         }));
         if (clmEndpoint.showContext) {
@@ -233,7 +233,7 @@
           $scope.data.declaredLicenses = toLicenseNames($scope.data.declaredLicenses);
           $scope.data.overriddenLicenses = toLicenseNames($scope.data.overriddenLicenses);
           $scope.data.policyAlerts = transformPolicyAlerts($scope.data.policyAlerts);
-          angular.forEach($scope.data.securityVulnerabilities, function(item, index) {
+          angular.forEach($scope.data.securityVulnerabilities, function(item) {
             if (item.severity !== null) {
               item.severity = Math.floor(item.severity);
             }
@@ -268,10 +268,10 @@
       };
       $scope.getSvUrl = function(item) {
         if (item.source === 'osvdb') {
-          return "http://osvdb.org/" + item.refId;
+          return 'http://osvdb.org/' + item.refId;
         }
         else if (item.source === 'cve') {
-          return "http://cve.mitre.org/cgi-bin/cvename.cgi?name=" + item.refId;
+          return 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + item.refId;
         }
       };
       $scope.getSvName = function(issue) {

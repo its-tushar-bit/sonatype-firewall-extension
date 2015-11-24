@@ -1,14 +1,24 @@
 <div>
   <div id="root-org-migrate-banner" ng-if="vm.migrationNeeded && !vm.migrationDone && vm.permitted" class="alert alert-warn">
-    <div>
-      This release of IQ server introduces the Root Organization. You may select one of your existing Organizations
-      to promote as your Root Organization. The policy configuration of your chosen Organization will migrate to the Root,
-      and it will become the parent to your other Organizations. You may also choose to work with a blank Root Organization.
-      It is strongly recommended that you back up your IQ Server before proceeding.
-    </div>
+    <p>
+      The <a target="_blank" href="http://links.sonatype.com/products/clm/doc/root-org/{{vm.majorMinorVersion}}">
+      Root Organization</a> for setting global policy is now available. Creating the Root Organization is a one time
+      process, and occurs when IQ Server is restarted.
+    </p>
+    <ul>
+      <li>It is strongly recommended that you choose an existing organization to act as a template for the configuration
+        of the Root Organization.</li>
+      <li>You may create an empty Root Organization. This choice is discouraged because once the Root Organization is
+        created, moving policy from existing organizations or applications becomes a manual task.</li>
+      <li><a target="_blank" href="http://links.sonatype.com/products/clm/doc/backup/{{vm.majorMinorVersion}}">
+        Backup the IQ Server</a> and read the
+        <a target="_blank" href="http://links.sonatype.com/products/clm/doc/upgrade/{{vm.majorMinorVersion}}">
+          upgrade instructions</a> before proceeding.</li>
+    </ul>
     <button class="btn btn-primary" ng-click="vm.doMigrate()">Get Started</button>
   </div>
-  <div id="root-org-migrate-configured-banner" ng-if="!vm.migrationDone && !vm.migrationNeeded && vm.permitted" class="alert alert-info">
-    Root organization has been configured, and will be available once the server is restarted.
+  <div id="root-org-migrate-configured-banner" ng-if="!vm.migrationDone && !vm.migrationNeeded && vm.permitted"
+       class="alert alert-info">
+    The Root Organization is now configured. You must restart the IQ Server to create the Root Organization.
   </div>
 </div>

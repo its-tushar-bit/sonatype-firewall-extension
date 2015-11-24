@@ -1,6 +1,6 @@
 <div id="root-organization-migrate-modal">
   <div class="modal-header">
-    <h3><i class="sonatype-glyphicons medium root-org"></i>Migrate to Root</h3>
+    <h3><i class="sonatype-glyphicons medium root-org"></i>Configure the Root Organization</h3>
   </div>
   <div load-wrapper="vm.loadError" reload="vm.doLoad()">
     <div ng-if="!vm.organizations" class="modal-body">
@@ -12,24 +12,29 @@
     <div ng-if="vm.organizations && !vm.waitingForReload">
       <form name="rootOrganizationMigrateForm" ng-submit="vm.selectTemplate()">
         <div class="modal-body">
-          <p>How do you want to use the Root Organization? Populate it with some existing organization data, or start from scratch.</p>
+          <p>
+            Make sure you have <a target="_blank" href="http://links.sonatype.com/products/clm/doc/backup/{{vm.majorMinorVersion}}">backed
+            up the IQ Server</a> and read the <a target="_blank" href="http://links.sonatype.com/products/clm/doc/upgrade/{{vm.majorMinorVersion}}">
+            upgrade instructions</a> before proceeding. You are about to permanently change your configuration by adding the
+            Root Organization to the top of the system hierarchy; there is no undo for this change.
+          </p>
           <div class="control-group">
-            <label class="control-label">Migrate By:</label>
+            <label class="control-label">Configure the Root Organization by:</label>
             <div class="controls">
               <label class="radio">
                 <input id="select-organization-radio-button" type="radio" ng-model="vm.migrateSelection" value="selectOrganization"/>
-                Selecting an existing Organization to promote to the Root.
+                Copying the configuration of an existing organization to the Root Organization. This includes policies, labels, license threat groups, tags, and policy monitoring but not security settings.
               </label>
+              <div id="migrate-organization-wrapper">
+                <select id="migrate-organization" ng-required="vm.migrateSelection == 'selectOrganization'" ng-model="vm.organization" ng-disabled="vm.migrateSelection !== 'selectOrganization'" ng-options="organization.name for organization in vm.organizations">
+                  <option value="" selected>-- Select Organization --</option>
+                </select>
+              </div>
               <label class="radio">
                 <input id="empty-root-radio-button" type="radio" ng-model="vm.migrateSelection" value="none"/>
-                Doing nothing. Existing organizations will inherit from blank Root.
+                Creating an empty Root Organization. This choice is discouraged because once the Root Organization is created, moving policy from existing organizations or applications becomes a manual task.
               </label>
             </div>
-          </div>
-          <div clm-control-group for="migrate-organization" label="Organization to Promote">
-            <select id="migrate-organization" ng-required="true" ng-model="vm.organization" ng-disabled="vm.migrateSelection !== 'selectOrganization'" ng-options="organization.name for organization in vm.organizations">
-              <option value="" selected>-- Select Organization --</option>
-            </select>
           </div>
         </div>
         <div class="modal-footer" ng-class="{ error : vm.error }">

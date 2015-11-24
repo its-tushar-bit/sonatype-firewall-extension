@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, clmBuildTimestamp*/
+/*global angular, clmBuildTimestamp, clmServerVersion*/
 (function() {
   'use strict';
 
@@ -21,6 +21,7 @@
           vm.migrationDone = undefined;
           vm.migrationNeeded = undefined;
           vm.permitted = undefined;
+          vm.majorMinorVersion = clmServerVersion.split('.').splice(0, 2).join('.');
 
           function doLoad() {
             vm.migrationDone = ProductFeatures.isAvailable('root-org');

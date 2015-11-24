@@ -839,6 +839,14 @@
     table-layout: fixed;
     width: 620px;
 
+    &.disabled {
+      border: 1px solid $grey-3;
+
+      .title {
+        color: $grey-4;
+      }
+    }
+
     .filter-row {
       border-bottom: 1px solid $grey-4;
       height: 32px;
@@ -967,8 +975,13 @@
       border-top: 1px solid $grey-4;
       border-left: 1px solid $grey-4;
       border-bottom: 1px solid $grey-4;
-    }
 
+      &.disabled {
+        cursor: not-allowed;
+        text-decoration: none;
+        opacity: 0.6;
+      }
+    }
     &.caret-button {
       border: 1px solid $grey-4;
 
@@ -978,6 +991,15 @@
         border-left: 5px solid transparent;
         margin-top: 13px;
         margin-left: 0;
+      }
+
+      &.disabled {
+        cursor: not-allowed;
+        border: 1px solid $grey-3;
+
+        .caret {
+          border-top: 6px solid $grey-3;
+        }
       }
     }
   }

@@ -427,11 +427,15 @@
     &.disabled {
       input[type=checkbox] {
         & + span:before {
-          border-color: $grey-3;
+          border-color: $grey-4;
         }
 
         &:checked + span:after {
           color: $grey-3;
+        }
+
+        & + span {
+          color: $slate;
         }
       }
     }

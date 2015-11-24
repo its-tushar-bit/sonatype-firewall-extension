@@ -14,7 +14,8 @@
         filterPlaceholder: '@',
         leftColumnName: '@',
         rightColumnName: '@',
-        itemNameParam: '@'
+        itemNameParam: '@',
+        disabled: '=?ngDisabled'
       },
       templateUrl: 'utility/widgets/double.column.picker.directive.html',
       controller: 'DoubleColumnPickerController',

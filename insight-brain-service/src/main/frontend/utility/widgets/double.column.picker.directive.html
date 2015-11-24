@@ -1,5 +1,5 @@
 <div class="double-column-picker">
-  <table>
+  <table ng-class="{disabled: vm.disabled}">
     <tr class="filter-row">
       <td colspan="2">
         <div class="td-container">
@@ -13,12 +13,12 @@
         <div class="td-container">
           <div class="title">{{::vm.leftColumnName}}</div>
           <div class="tools">
-            <label class="checkbox">
-              <input type="checkbox" ng-model="vm.checkAllLeft" ng-change="vm.checkAll(false, vm.checkAllLeft)"/>
+            <label class="checkbox" ng-class="{disabled: vm.disabled}">
+              <input type="checkbox" ng-model="vm.checkAllLeft" ng-change="vm.checkAll(false, vm.checkAllLeft)" ng-disabled="vm.disabled"/>
               <span>all</span>
             </label>
             <button class="btn btn-tertiary btn-icon-only" type="button" ng-click="vm.moveItems(false)"
-                    ng-disabled="!vm.areAnyItemsChecked(false)">
+                    ng-disabled="vm.disabled || !vm.areAnyItemsChecked(false)">
               <i class="fa fa-arrow-right"></i></button>
           </div>
         </div>
@@ -27,12 +27,12 @@
         <div class="td-container">
           <div class="title">{{::vm.rightColumnName}}</div>
           <div class="tools">
-            <label class="checkbox">
-              <input type="checkbox" ng-model="vm.checkAllRight" ng-change="vm.checkAll(true, vm.checkAllRight)"/>
+            <label class="checkbox" ng-class="{disabled: vm.disabled}">
+              <input type="checkbox" ng-model="vm.checkAllRight" ng-change="vm.checkAll(true, vm.checkAllRight)" ng-disabled="vm.disabled"/>
               <span>all</span>
             </label>
             <button class="btn btn-tertiary btn-icon-only" type="button" ng-click="vm.moveItems(true)"
-                    ng-disabled="!vm.areAnyItemsChecked(true)">
+                    ng-disabled="vm.disabled || !vm.areAnyItemsChecked(true)">
               <i class="fa fa-arrow-left"></i></button>
           </div>
         </div>
@@ -41,18 +41,18 @@
     <tr class="list-row">
       <td>
         <div class="td-container available-list">
-          <label class="checkbox" title="{{item[vm.itemNameParam]}}"
+          <label class="checkbox" title="{{item[vm.itemNameParam]}}"  ng-class="{disabled: vm.disabled}"
                  ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam">
-            <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(false)"/>
+            <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(false)" ng-disabled="vm.disabled"/>
             <span>{{item[vm.itemNameParam]}}</span>
           </label>
         </div>
       </td>
       <td>
         <div class="td-container picked-list">
-          <label class="checkbox" title="{{item[vm.itemNameParam]}}"
+          <label class="checkbox" title="{{item[vm.itemNameParam]}}"  ng-class="{disabled: vm.disabled}"
                  ng-repeat="item in vm.list | filter: vm.listFilter(true)| orderBy: vm.itemNameParam">
-            <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(true)"/>
+            <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(true)" ng-disabled="vm.disabled"/>
             <span>{{item[vm.itemNameParam]}}</span>
           </label>
         </div>

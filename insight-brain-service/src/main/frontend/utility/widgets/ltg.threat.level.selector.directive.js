@@ -10,12 +10,23 @@
     return {
       restrict: 'E',
       scope: {
-        threatLevelModel: '=ngModel'
+        threatLevelModel: '=ngModel',
+        disabled: '=?ngDisabled'
       },
       templateUrl: 'utility/widgets/ltg.threat.level.selector.directive.html',
       controller: 'LTGThreatLevelSelectorController',
       controllerAs: 'vm',
-      bindToController: true
+      bindToController: true,
+      link: function(scope, element) {
+        scope.$watch('vm.disabled', function(isDisabled) {
+          if (isDisabled) {
+            element.find('a').removeAttr('data-toggle');
+          }
+          else {
+            element.find('a').attr('data-toggle', 'dropdown');
+          }
+        });
+      }
     };
   }
 

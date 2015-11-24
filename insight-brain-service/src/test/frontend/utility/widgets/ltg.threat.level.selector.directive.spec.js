@@ -12,7 +12,8 @@ describe('ltg.threat.level.selector.directive.spec.js', function() {
 
     SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/ltg.threat.level.selector.directive.html');
 
-    element = $compile('<ltg-threat-level-selector ng-model="testLevel"></ltg-threat-level-selector>')(scope);
+    element = $compile('<ltg-threat-level-selector ng-model="testLevel" ng-disabled="disabled"></ltg-threat-level-selector>')(scope);
+    scope.disabled = false;
     scope.testLevel = 0;
     $httpBackend.flush();
   }));
@@ -35,5 +36,25 @@ describe('ltg.threat.level.selector.directive.spec.js', function() {
       expect(Array.prototype.slice.apply(element.find('a.selected-threat-level').get(0).classList,
           [0])).toContain('threat-level-' + i);
     }
+  });
+
+  it('Directive properly removes data-toggle when disabled', function() {
+    var scope = element.scope(),
+        vm = element.isolateScope().vm;
+
+    element.find('a').each(function(index, anchor) {
+      expect(anchor.getAttribute('data-toggle')).toBe('dropdown');
+    });
+
+    expect(vm.disabled).toBeFalsy();
+
+    scope.disabled = true;
+    scope.$apply();
+
+    expect(vm.disabled).toBeTruthy();
+
+    element.find('a').each(function(index, anchor) {
+      expect(anchor.getAttribute('data-toggle')).toBeNull();
+    });
   });
 });

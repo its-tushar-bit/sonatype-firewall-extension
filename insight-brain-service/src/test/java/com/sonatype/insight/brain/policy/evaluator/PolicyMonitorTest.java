@@ -242,11 +242,11 @@ public class PolicyMonitorTest
 
     // Evaluate the policy. Only the developer should receive a notification.
     evaluatePolicy(app.getPublicId(), scanId, stage);
-    assertNotifications(notificationsDeveloper, 1, 5000);
-    notificationsDeveloper.clear();
     assertNotifications(notificationsMonitor1, 0, 5000);
-    assertNotifications(notificationsMonitor2, 0, 1);
-    assertNotifications(notificationsMonitor3, 0, 1);
+    assertNotifications(notificationsMonitor2, 0, 0);
+    assertNotifications(notificationsMonitor3, 0, 0);
+    assertNotifications(notificationsDeveloper, 1, 0);
+    notificationsDeveloper.clear();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     PolicyEvaluation policyEvaluation1 = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
@@ -267,9 +267,9 @@ public class PolicyMonitorTest
       assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
-    assertNotifications(notificationsMonitor1, 0, 1);
-    assertNotifications(notificationsMonitor2, 0, 1);
-    assertNotifications(notificationsMonitor3, 0, 1);
+    assertNotifications(notificationsMonitor1, 0, 0);
+    assertNotifications(notificationsMonitor2, 0, 0);
+    assertNotifications(notificationsMonitor3, 0, 0);
 
     // Modify policy3 and run the monitor again. There should be a new policy evaluation, but no notifications
     // because policy3 does not have notifications for monitoring.
@@ -285,9 +285,9 @@ public class PolicyMonitorTest
       assertThat(policyViolation.getNotificationsString(), is(nullValue()));
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
-    assertNotifications(notificationsMonitor1, 0, 1);
-    assertNotifications(notificationsMonitor2, 0, 1);
-    assertNotifications(notificationsMonitor3, 0, 1);
+    assertNotifications(notificationsMonitor1, 0, 0);
+    assertNotifications(notificationsMonitor2, 0, 0);
+    assertNotifications(notificationsMonitor3, 0, 0);
 
     // Modify policy1 and run the monitor again. Only the first monitor email should receive a notification.
     policy1.setName(policy1.getName() + "Updated");
@@ -307,10 +307,10 @@ public class PolicyMonitorTest
       }
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
-    assertNotifications(notificationsMonitor1, 1, 5000);
+    assertNotifications(notificationsMonitor2, 0, 0);
+    assertNotifications(notificationsMonitor3, 0, 0);
+    assertNotifications(notificationsMonitor1, 1, 0);
     notificationsMonitor1.clear();
-    assertNotifications(notificationsMonitor2, 0, 5000);
-    assertNotifications(notificationsMonitor3, 0, 5000);
 
     // Modify policy2 and run the monitor again. Only the second monitor email should receive a notification.
     policy2.setName(policy2.getName() + "Updated");
@@ -330,9 +330,9 @@ public class PolicyMonitorTest
       }
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
-    assertNotifications(notificationsMonitor1, 0, 5000);
-    assertNotifications(notificationsMonitor2, 1, 5000);
-    assertNotifications(notificationsMonitor3, 0, 5000);
+    assertNotifications(notificationsMonitor1, 0, 0);
+    assertNotifications(notificationsMonitor2, 1, 0);
+    assertNotifications(notificationsMonitor3, 0, 0);
     notificationsMonitor2.clear();
 
     // Modify policy4 and run the monitor again. Only the forth monitor email should receive a notification
@@ -353,9 +353,9 @@ public class PolicyMonitorTest
       }
     }
     assertNotifications(notificationsDeveloper, 0, 5000);
-    assertNotifications(notificationsMonitor1, 0, 5000);
-    assertNotifications(notificationsMonitor2, 0, 5000);
-    assertNotifications(notificationsMonitor3, 1, 5000);
+    assertNotifications(notificationsMonitor1, 0, 0);
+    assertNotifications(notificationsMonitor2, 0, 0);
+    assertNotifications(notificationsMonitor3, 1, 0);
     notificationsMonitor3.clear();
   }
 

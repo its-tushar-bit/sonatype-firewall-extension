@@ -109,8 +109,7 @@ public class UserInterfaceLinksResource
   public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.AUDIT_REPORT_ASSET_PATH).path("index.html")
-        .replaceQuery("repositoryId={repositoryId}");
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/repository/{repositoryId}/report");
 
     return redirect(uriBuilder.build(repositoryId));
   }
@@ -145,7 +144,7 @@ public class UserInterfaceLinksResource
   }
 
   /**
-   * Gets the releative URL to the stable hyperlink for the repository audit report for a given rm/repository
+   * Gets the relative URL to the stable hyperlink for the repository audit report for a given rm/repository
    *
    * @since 1.17
    */

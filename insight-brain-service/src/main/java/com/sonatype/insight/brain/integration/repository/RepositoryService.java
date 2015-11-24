@@ -665,4 +665,14 @@ public class RepositoryService
 
     return pathname;
   }
+
+  /**
+   * @since 1.18.0
+   */
+  @Authorize(permission = Permission.READ)
+  public Repository getRepositoryById(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+    checkLicenseFeature();
+
+    return repositoryDAO.getByIdNotNull(repositoryId);
+  }
 }

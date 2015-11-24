@@ -171,6 +171,7 @@
   <group name='report'>
     <js>/report/ReportController.js</js>
     <js>/report/ReportViolationsController.js</js>
+    <js>/report/repository.report.controller.js</js>
   </group>
 
   <group name='util'>

@@ -213,6 +213,20 @@
          */
         getRootOrganizationConfigMigrationUrl: function(organizationId) {
           return baseUrl.get() + '/rest/migrate/root' + (organizationId ? '/' + organizationId : '');
+        },
+
+        /**
+         * @since 1.18
+         */
+        getRepositoryReportUrl: function(repositoryId) {
+          return baseUrl.get() + '/audit-report/index.html?repositoryId=' + repositoryId;
+        },
+
+        /**
+         * @since 1.18
+         */
+        getRepositoryInfoUrl: function(repositoryId) {
+          return baseUrl.get() + '/rest/repositories/' + repositoryId;
         }
       };
     }

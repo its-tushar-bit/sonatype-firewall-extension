@@ -1577,6 +1577,25 @@ public class RepositoryServiceTest
     assertRepositoryReportDetail(reportDetails.get(idx), pathname2, null, 0, true);
   }
 
+  @Test
+  public void testGetRepositoryById() {
+    Repository repository = tempEntity.newRepository();
+
+    Repository actual = repositoryService.getRepositoryById(repository.getId());
+    assertThat(actual.getPublicId(), is(repository.getPublicId()));
+  }
+
+  @Test
+  public void testGetRepositoryById_unknownId() throws Exception {
+    try {
+      repositoryService.getRepositoryById("foobar");
+      fail("Did not throw exception");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
+    }
+  }
+
   private void createRepositoryPolicyViolation(final Repository repository, final String pathname,
       int... threatLevels)
   {

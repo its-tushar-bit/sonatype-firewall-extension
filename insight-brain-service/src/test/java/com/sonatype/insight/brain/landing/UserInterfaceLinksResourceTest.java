@@ -66,6 +66,6 @@ public class UserInterfaceLinksResourceTest
     String url = UserInterfaceLinksResource.getRepositoryReportUrl("repo id");
     assertThat(url, is(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/report"));
     HttpResponse response = get(UserInterfaceLinksResource.REPO_REPORT_PATH, "repo id");
-    assertRedirect(response, "audit-report/index.html?repositoryId=repo+id");
+    assertRedirect(response, "assets/index.html#/repository/repo%20id/report");
   }
 }

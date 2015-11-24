@@ -225,4 +225,25 @@ public class RepositoryServiceAuthzTest
     grantWritePermission();
     repositoryService.removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
   }
+
+  @Test
+  public void testGetRepositoryById_Authorized() {
+    Repository repo = createRepository();
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.getRepositoryById(repo.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRepositoryById_Unauthenticated() {
+    repositoryService.getRepositoryById("repository-id");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRepositoryById_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.getRepositoryById(repo.getId());
+  }
 }

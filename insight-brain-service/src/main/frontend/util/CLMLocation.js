@@ -199,6 +199,20 @@
         },
         getNotificationViewedUrl: function() {
           return baseUrl.get() + '/rest/product/notifications/viewed';
+        },
+
+        /**
+         * @since 1.18
+         */
+        getRepositoryReportUrl: function(repositoryId) {
+          return baseUrl.get() + '/audit-report/index.html?repositoryId=' + repositoryId;
+        },
+
+        /**
+         * @since 1.18
+         */
+        getRepositoryInfoUrl: function(repositoryId) {
+          return baseUrl.get() + '/rest/repositories/' + repositoryId;
         }
       };
     }

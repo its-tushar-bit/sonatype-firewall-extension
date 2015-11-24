@@ -79,7 +79,7 @@ public class PolicyEvaluationSummaryService
 
   private void validateLicensed() {
     if (!licenseManager.hasQuality()) {
-      throw new InvalidLicenseException("Invalid license for the Quality feature");
+      throw new InvalidLicenseException();
     }
   }
 }

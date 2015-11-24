@@ -211,7 +211,7 @@ public class CLMLicenseManager
         msg = "CLM is not licensed!";
       }
       log.error(msg);
-      throw new InvalidLicenseException(msg);
+      throw new InvalidLicenseException();
     }
   }
 
@@ -233,11 +233,10 @@ public class CLMLicenseManager
     }
 
     if (enforcementPoints.size() == 1) {
-      throw new InvalidLicenseException("The enforcement point " + enforcementPoints.iterator().next()
-          + " is not licensed!");
+      throw new InvalidLicenseException();
     }
 
-    throw new InvalidLicenseException("None of the enforcement points " + enforcementPoints + " is licensed!");
+    throw new InvalidLicenseException();
   }
 
   public Set<String> getProducts() {

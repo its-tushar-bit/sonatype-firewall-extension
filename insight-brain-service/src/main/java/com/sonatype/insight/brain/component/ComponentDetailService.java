@@ -234,7 +234,7 @@ public class ComponentDetailService
 
   private void validateDashboardLicensed() {
     if (!licenseManager.hasDashboard()) {
-      throw new InvalidLicenseException("Your CLM license does not enable the dashboard feature");
+      throw new InvalidLicenseException();
     }
   }
 }

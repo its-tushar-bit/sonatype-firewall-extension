@@ -56,7 +56,7 @@ public class DashboardUtils
 
   void validateDashboardLicensed() {
     if (!licenseManager.hasDashboard()) {
-      throw new InvalidLicenseException("Invalid license for the Dashboard feature");
+      throw new InvalidLicenseException();
     }
   }
 

@@ -104,7 +104,7 @@ public class PolicyEvaluationSummaryServiceTest
       fail("Expected exception " + InvalidLicenseException.class.getSimpleName());
     }
     catch (InvalidLicenseException e) {
-      assertThat(e.getMessage(), is("Invalid license for the Quality feature"));
+      assertThat(e.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
     }
   }
 }

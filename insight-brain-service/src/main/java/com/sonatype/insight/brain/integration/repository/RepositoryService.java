@@ -120,7 +120,7 @@ public class RepositoryService
 
   private void checkLicenseFeature() {
     if (!licenseManager.hasRepositoryFirewall()) {
-      throw new InvalidLicenseException("Your product license does not support the repository firewall feature.");
+      throw new InvalidLicenseException();
     }
   }
 

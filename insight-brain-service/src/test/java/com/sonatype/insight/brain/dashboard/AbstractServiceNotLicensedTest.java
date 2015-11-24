@@ -24,6 +24,6 @@ abstract public class AbstractServiceNotLicensedTest
 
   @Before
   public void setup() {
-    doThrow(new InvalidLicenseException("test")).when(dashboardUtils).validateDashboardLicensed();
+    doThrow(new InvalidLicenseException()).when(dashboardUtils).validateDashboardLicensed();
   }
 }

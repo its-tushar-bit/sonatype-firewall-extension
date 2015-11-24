@@ -16,7 +16,9 @@ public class InvalidLicenseException
 {
   private static final long serialVersionUID = 1308434983601088106L;
 
-  public InvalidLicenseException(String msg) {
-    super(msg);
+  public static final String INVALID_LICENSE_MSG = "Your IQ Server license does not enable this feature.";
+
+  public InvalidLicenseException() {
+    super(INVALID_LICENSE_MSG);
   }
 }

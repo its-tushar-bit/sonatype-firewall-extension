@@ -236,7 +236,7 @@ public class RepositoryServiceTest
       fail("Expected exception");
     }
     catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
+      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
     }
   }
 
@@ -394,7 +394,7 @@ public class RepositoryServiceTest
       fail("Expected exception");
     }
     catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
+      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
     }
   }
 
@@ -1357,7 +1357,7 @@ public class RepositoryServiceTest
       fail("Expected exception");
     }
     catch (InvalidLicenseException expected) {
-      assertThat(expected.getMessage(), is("Your product license does not support the repository firewall feature."));
+      assertThat(expected.getMessage(), is(InvalidLicenseException.INVALID_LICENSE_MSG));
     }
   }
 

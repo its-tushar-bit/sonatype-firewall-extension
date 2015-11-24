@@ -1,7 +1,7 @@
 <div id="select-application-contact-modal" ng-show="!vm.deleteMode">
   <div class="clm-modal-header">
     <h2>
-      <i class="fa size-20px fa-user slate"></i>Select Application Contact
+      <i class="fa size-20px fa-user slate"></i>Select Contact
     </h2>
   </div>
   <form class="clm-form" role="form" name="vm.selectContactForm" ng-submit="vm.isDirty() && vm.updateContact()" form-mask="Updating">
@@ -19,7 +19,8 @@
         </div>
         <div class="field" ng-if="!vm.searchError">
           <label for="contact-selector" ng-if="vm.users">Results</label>
-          <association-editor id="contact-selector" selected="vm.selected" items="vm.users" description="displayName" icon="fa-user" is-radio-button="true"/>
+          <span ng-if="vm.users.length === 0">No results</span>
+          <association-editor id="contact-selector" ng-if="vm.users.length > 0" selected="vm.selected" items="vm.users" description="displayName" icon="fa-user" is-radio-button="true"/>
         </div>
       </div>
     </div>
@@ -28,13 +29,13 @@
         <i class="fa fa-warning"></i> {{ vm.searchError }}
       </div><!--
    --><button class="btn btn-primary" type="submit" submit-validation submit-dirty="vm.isDirty()" submit-type="update">
-      Update
+      Select
     </button><!--
    --><button class="btn" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">
       Cancel
     </button><!--
    --><button id="remove-contact-button" class='btn btn-tertiary' type="button" ng-click="vm.removeContact()" ng-if="vm.owner.contact">
-      <i class="fa fa-fw fa-trash"></i>Remove Contact
+      <i class="fa fa-fw fa-trash"></i>Clear Contact
     </button>
     </div>
   </form>

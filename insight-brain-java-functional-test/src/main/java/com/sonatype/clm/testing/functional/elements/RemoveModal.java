@@ -12,7 +12,7 @@ import static com.codeborne.selenide.Condition.text;
 public class RemoveModal extends DeleteModal
 {
   public static Condition headerText(String resourceType) {
-    return text("Remove " + resourceType);
+    return text("Clear " + resourceType);
   }
 
   public static Condition bodyText(String resourceName) {

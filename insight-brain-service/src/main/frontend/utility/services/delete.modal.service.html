@@ -1,7 +1,7 @@
 <div id="delete-modal">
   <div class="clm-modal-header">
     <h2>
-      <i class="fa size-20px fa-trash"></i> {{vm.saveOnDelete ? 'Remove' : 'Delete'}} {{ ::vm.resourceType }}
+      <i class="fa size-20px fa-trash"></i> {{vm.saveOnDelete ? 'Clear' : 'Delete'}} {{ ::vm.resourceType }}
     </h2>
   </div>
   <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="{{vm.saveOnDelete ? 'Removing' : 'Deleting'}}">

@@ -16,7 +16,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class SelectContactModal
 {
   public static Condition headerText() {
-    return text("Select Application Contact");
+    return text("Select Contact");
   }
 
   public static SelenideElement root() {

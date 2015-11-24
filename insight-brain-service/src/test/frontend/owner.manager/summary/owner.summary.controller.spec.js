@@ -8,6 +8,7 @@ describe('owner.summary.controller.js', function() {
         $timeout,
         $httpBackend,
         CLMLocations,
+        CLMAppLocations,
         stageTypeStoreDefer,
         mockState,
         mockWindow,
@@ -16,10 +17,11 @@ describe('owner.summary.controller.js', function() {
         deleteOwnerDefer,
         mockDeleteService;
 
-    beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {
+    beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_, StageTypeStore) {
           $timeout = _$timeout_;
           $httpBackend = _$httpBackend_;
           CLMLocations = _CLMLocations_;
+          CLMAppLocations = _CLMAppLocations_;
           stageTypeStoreDefer = $q.defer();
           deleteOwnerDefer = $q.defer();
           mockDeleteService = {
@@ -30,6 +32,7 @@ describe('owner.summary.controller.js', function() {
           
           spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
           spyOn(StageTypeStore, 'getDashboardStages').andReturn(stageTypeStoreDefer.promise);
+          spyOn(CLMAppLocations, 'isApplication').andReturn(isApp);
 
           mockState = {
             current: {

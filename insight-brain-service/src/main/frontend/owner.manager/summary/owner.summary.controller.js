@@ -7,11 +7,12 @@
   'use strict';
 
   function OwnerSummaryController($state, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
-                                  CLMLocations, StageTypeStore, DeleteModalService, SelectApplicationContactService)
+                                  CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService, SelectApplicationContactService)
   {
     var vm = this;
 
     vm.error = undefined;
+    vm.isApp = CLMAppLocations.isApplication();
     vm.owner = undefined;
     vm.stages = undefined;
     vm.doLoad = doLoad;
@@ -24,20 +25,19 @@
     vm.selectContact = selectContact;
 
     var siblings,
-        isApp = $state.current.name.indexOf('application') !== -1,
-        stateIdField = isApp ? 'applicationPublicId' : 'organizationId',
-        idField = isApp ? 'publicId' : 'id',
-        type = isApp ? 'application' : 'organization',
+        stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
+        idField = vm.isApp ? 'publicId' : 'id',
+        type = vm.isApp ? 'application' : 'organization',
         id = $state.params[stateIdField];
 
     vm.doLoad();
 
     function doLoad() {
       var promises = [
-        ( isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get']()
+        ( vm.isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get']()
       ];
 
-      if (isApp) {
+      if (vm.isApp) {
         promises.push(StageTypeStore.getDashboardStages());
         promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
       }
@@ -50,7 +50,7 @@
           }
         });
 
-        if (isApp) {
+        if (vm.isApp) {
           vm.stages = results[1];
           vm.applicationSummary = results[2].data;
         }
@@ -80,11 +80,11 @@
     }
 
     function getShortTypeName() {
-      return isApp ? 'App' : 'Org';
+      return vm.isApp ? 'App' : 'Org';
     }
     
     function getResourceTypeName() {
-      return isApp ? 'Application' : 'Organization';
+      return vm.isApp ? 'Application' : 'Organization';
     }
 
     function openReport(stage) {
@@ -97,7 +97,7 @@
     }
 
     function goToParentView() {
-      if (!isApp) {
+      if (!vm.isApp) {
         $state.go('management.view.organization', {organizationId: vm.owner.parentOrganizationId});
       } 
       else {
@@ -108,7 +108,7 @@
 
   OwnerSummaryController.$inject = [
     '$state', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore', 'CLMLocations',
-    'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService'
+    'CLMAppLocations', 'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService'
   ];
 
   angular//

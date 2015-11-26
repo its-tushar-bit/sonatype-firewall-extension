@@ -129,4 +129,12 @@ public class PolicyViolationDAO
         " ORDER BY entity.policyId";
     return getList(sQuery, evaluationId, hash);
   }
+
+  public int replacePolicyId(String fromPolicyId, String toPolicyId) {
+    String sQuery = "UPDATE PolicyViolation entity" + //
+        " SET entity.policyId=?2" + //
+        " WHERE entity.policyId=?1";
+    Query query = createQuery(sQuery, fromPolicyId, toPolicyId);
+    return query.executeUpdate();
+  }
 }

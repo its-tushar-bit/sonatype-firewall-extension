@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
@@ -106,6 +107,8 @@ public class RootOrganizationConfigMigrator
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
+  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
@@ -262,7 +265,7 @@ public class RootOrganizationConfigMigrator
     log.debug("Migrating policies...");
 
     for (Policy sourcePolicy : policyDAO.getByOwnerId(sourceOrg.getId())) {
-      log.debug("Moving policy {} to root org.", sourcePolicy.getName());
+      log.debug("Moving policy {} (ID: {}) to root org.", sourcePolicy.getName(), sourcePolicy.getId());
 
       // Delete all policies with the same name
       for (Policy sameNamePolicy : policyDAO.getByName(sourcePolicy.getName())) {
@@ -271,11 +274,20 @@ public class RootOrganizationConfigMigrator
           continue;
         }
 
+        log.debug("Will remove policy {} (ID: {}) from owner ID {}.", sameNamePolicy.getName(), sameNamePolicy.getId(),
+            sameNamePolicy.getOwnerId());
+
         // Move the waivers of the sameNamePolicy to the sourcePolicy
         for (PolicyWaiver policyWaiver : policyWaiverDAO.getByPolicyId(sameNamePolicy.getId())) {
           policyWaiver.setPolicyId(sourcePolicy.getId());
           policyWaiverDAO.update(policyWaiver);
         }
+
+        // Move the policy violations of the sameNamePolicy to the sourcePolicy
+        int movedViolationCount = policyViolationDAO.replacePolicyId(sameNamePolicy.getId(), sourcePolicy.getId());
+        log.debug("Moved {} policy violations from policy ID {} to policy ID {}.", movedViolationCount,
+            sameNamePolicy.getId(), sourcePolicy.getId());
+
         // Delete the sameNamePolicy
         policyDAO.delete(sameNamePolicy);
       }

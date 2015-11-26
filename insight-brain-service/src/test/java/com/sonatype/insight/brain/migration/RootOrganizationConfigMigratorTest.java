@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
@@ -36,7 +37,9 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -92,6 +95,8 @@ public class RootOrganizationConfigMigratorTest
   private ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
 
   private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+
+  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   private TagDAO tagDAO = new TagDAO();
 
@@ -171,6 +176,7 @@ public class RootOrganizationConfigMigratorTest
     addMonitoringEmailNotification(sourcePolicy);
     addMonitoringRoleNotification(sourcePolicy);
     tempEntity.newPolicyTag(sourcePolicy.getId(), sourceOrgTag.getId());
+    PolicyViolation sourcePolicyViolation = newPolicyViolation(sourceOrg, sourcePolicy);
 
     Policy sourcePolicyWithoutNotifications = tempEntity.newPolicy(sourceOrg.getId(),
         "sourcePolicyWithoutNotifications");
@@ -178,8 +184,10 @@ public class RootOrganizationConfigMigratorTest
     Organization otherOrg = tempEntity.newOrganization("otherOrg");
     Policy otherPolicy1 = tempEntity.newPolicy(otherOrg.getId(), policyName);
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver(otherPolicy1.getId(), otherOrg.getId());
+    PolicyViolation policyViolation1 = newPolicyViolation(otherOrg, otherPolicy1);
     Policy otherPolicy2 = tempEntity.newPolicy(otherOrg.getId(), policyName + " something else");
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver(otherPolicy2.getId(), otherOrg.getId());
+    PolicyViolation policyViolation2 = newPolicyViolation(otherOrg, otherPolicy2);
     addEmailNotification(otherPolicy2, BuildStageType.ID);
     addMonitoringEmailNotification(otherPolicy2);
 
@@ -199,11 +207,16 @@ public class RootOrganizationConfigMigratorTest
     List<NotifyAction> monitoringActions = sourcePolicy.getMonitorNotifyActions();
     assertThat(monitoringActions, hasSize(1));
     assertThat(monitoringActions.get(0).getTargetType(), is(NotifyActionType.TARGET_TYPE_ROLE));
-    // otherPolicy1 was deleted and its waiver was moved to sourcePolicy
+    // sourcePolicyViolation was not changed
+    sourcePolicyViolation = policyViolationDAO.getById(sourcePolicyViolation.getId());
+    assertThat(sourcePolicyViolation.getPolicyId(), is(sourcePolicy.getId()));
+    // otherPolicy1 was deleted and its waiver and its policy violation were moved to sourcePolicy
     assertThat(policyDAO.getById(otherPolicy1.getId()), is(nullValue()));
     policyWaiver1 = policyWaiverDAO.getById(policyWaiver1.getId());
     assertThat(policyWaiverDAO.getById(policyWaiver1.getId()).getPolicyId(), is(sourcePolicy.getId()));
-    // otherPolicy2 and its waiver are unchanged
+    policyViolation1 = policyViolationDAO.getById(policyViolation1.getId());
+    assertThat(policyViolation1.getPolicyId(), is(sourcePolicy.getId()));
+    // otherPolicy2, its waiver and its policy violation are unchanged
     otherPolicy2 = policyDAO.getById(otherPolicy2.getId());
     assertThat(otherPolicy2.getOwnerId(), is(otherOrg.getId()));
     assertThat(policyWaiverDAO.getById(policyWaiver2.getId()).getPolicyId(), is(otherPolicy2.getId()));
@@ -213,6 +226,14 @@ public class RootOrganizationConfigMigratorTest
     monitoringActions = otherPolicy2.getMonitorNotifyActions();
     assertThat(monitoringActions, hasSize(1));
     assertThat(monitoringActions.get(0).getTarget(), is("test@sonatype.com"));
+    policyViolation2 = policyViolationDAO.getById(policyViolation2.getId());
+    assertThat(policyViolation2.getPolicyId(), is(otherPolicy2.getId()));
+  }
+
+  private PolicyViolation newPolicyViolation(Organization org, Policy policy) {
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    return tempEntity.newPolicyViolation(policyEvaluation, policy);
   }
 
   @Test

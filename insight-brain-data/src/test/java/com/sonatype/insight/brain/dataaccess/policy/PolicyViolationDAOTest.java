@@ -274,4 +274,25 @@ public class PolicyViolationDAOTest
     assertThat(policyViolations, hasSize(1));
     assertThat(policyViolations.get(0).getId(), is(activeViolation.getId()));
   }
+  
+  @Test
+  public void testReplacePolicyId() {
+    Policy fromPolicy = tempEntity.newPolicy(applicationId, "From Policy");
+    Policy toPolicy = tempEntity.newPolicy(applicationId, "To Policy");
+    Policy otherPolicy = tempEntity.newPolicy(applicationId, "Other Policy");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scanId");
+    PolicyViolation fromPolicyViolation = tempEntity.newPolicyViolation(evaluation, fromPolicy);
+    PolicyViolation toPolicyViolation = tempEntity.newPolicyViolation(evaluation, toPolicy);
+    PolicyViolation otherPolicyViolation = tempEntity.newPolicyViolation(evaluation, otherPolicy);
+
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    dao.replacePolicyId(fromPolicy.getId(), toPolicy.getId());
+
+    fromPolicyViolation = dao.getById(fromPolicyViolation.getId());
+    assertThat(fromPolicyViolation.getPolicyId(), is(toPolicy.getId()));
+    toPolicyViolation = dao.getById(toPolicyViolation.getId());
+    assertThat(toPolicyViolation.getPolicyId(), is(toPolicy.getId()));
+    otherPolicyViolation = dao.getById(otherPolicyViolation.getId());
+    assertThat(otherPolicyViolation.getPolicyId(), is(otherPolicy.getId()));
+  }
 }

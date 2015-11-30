@@ -267,7 +267,10 @@
             $scope.data.securityVulnerabilities[index].severity;
       };
       $scope.getSvUrl = function(item) {
-        if (item.source === 'osvdb') {
+        if (item.url) {
+          return item.url;
+        }
+        else if (item.source === 'osvdb') {
           return 'http://osvdb.org/' + item.refId;
         }
         else if (item.source === 'cve') {

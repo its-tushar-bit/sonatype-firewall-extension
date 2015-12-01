@@ -71,7 +71,7 @@ public class OrganizationSummaryViewTest
         list.ownerName().shouldBe(visible).shouldHave(text("Local"));
         list.emptyDescriptor().shouldBe(visible).shouldHave(text("No local threat groups defined"));
         list.elements().shouldBe(empty);
-      } 
+      }
       else {
         list.ownerName().shouldBe(visible);
         list.emptyDescriptor().shouldNotBe(visible);

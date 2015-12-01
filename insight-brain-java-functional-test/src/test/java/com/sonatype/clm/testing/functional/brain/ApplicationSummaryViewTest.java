@@ -164,17 +164,17 @@ public class ApplicationSummaryViewTest
     LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
     ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
     ltgTile.newButton().shouldNotBe(visible);
-    
+
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
     for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
-                                               
+
       if (i != hierarchySize - 1) {
         list.ownerName().shouldNotBe(visible);
         list.emptyDescriptor().shouldNotBe(visible);
         list.elements().shouldBe(empty);
-      } 
+      }
       else {
         list.ownerName().shouldBe(visible);
         list.emptyDescriptor().shouldNotBe(visible);

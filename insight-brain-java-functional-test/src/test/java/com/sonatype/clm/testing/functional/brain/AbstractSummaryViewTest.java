@@ -114,7 +114,7 @@ public abstract class AbstractSummaryViewTest
     testLabelTile_no_labels();
     testAccessTile_no_local_access();
   }
-  
+
   public void testLabelTile_no_labels() {
     int hierarchySize = getHierarchySize(currentOwner.getId());
 
@@ -138,7 +138,7 @@ public abstract class AbstractSummaryViewTest
       list.elements().shouldBe(empty);
     }
   }
-  
+
   public void testAccessTile_no_local_access() {
 
     int hierarchySize = getHierarchySize(currentOwner.getId());
@@ -157,13 +157,14 @@ public abstract class AbstractSummaryViewTest
         list.ownerName().shouldBe(visible).shouldHave(text("Local"));
         list.emptyDescriptor().should(exist);
 
-      } else {
+      }
+      else {
         list.ownerName().shouldNotBe(visible);
         list.emptyDescriptor().shouldNotBe(visible);
       }
     }
   }
-  
+
   @Test
   public void testTiles_Local() {
 
@@ -174,7 +175,7 @@ public abstract class AbstractSummaryViewTest
     List<LicenseThreatGroup> locaLTGs = new ArrayList<>();
     locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
     locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 2", 1));
-    
+
     User testUser = tempEntity.newUser("testUser", "Test", "User", "testuser@sonatype.com");
     RoleDAO roleDAO = new RoleDAO();
     List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
@@ -305,7 +306,8 @@ public abstract class AbstractSummaryViewTest
         writeOnly.userIcon().shouldBe(visible);
         writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
 
-      } else {
+      }
+      else {
         list.ownerName().shouldNotBe(visible);
         list.elements().shouldHaveSize(0);
       }
@@ -321,9 +323,9 @@ public abstract class AbstractSummaryViewTest
     Role writeRole = tempEntity.newRole("Write Only", false, Permission.WRITE);
     RoleDAO roleDAO = new RoleDAO();
     List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
-    
+
     List<Owner> parentOwners = new ArrayList<>();
-    
+
     for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
       List<LicenseThreatGroup> ltgs = new ArrayList<>();
       List<Label> labels = new ArrayList<>();
@@ -499,7 +501,8 @@ public abstract class AbstractSummaryViewTest
         list.ownerName().shouldBe(visible).shouldHave(text("Local"));
         list.emptyDescriptor().should(exist);
 
-      } else {
+      }
+      else {
         list.emptyDescriptor().shouldNotBe(visible);
         list.ownerName().shouldBe(visible)
             .shouldHave(AccessTile.inheritedText(parentOwners.get(i - 1).getName()));

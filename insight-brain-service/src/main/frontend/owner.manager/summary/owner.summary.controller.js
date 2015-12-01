@@ -7,7 +7,8 @@
   'use strict';
 
   function OwnerSummaryController($state, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
-                                  CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService, SelectApplicationContactService)
+                                  CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
+                                  SelectApplicationContactService)
   {
     var vm = this;
 
@@ -56,7 +57,7 @@
         }
 
         if (!vm.owner) {
-          vm.error = 'Could not find an ' + type + ' with ID ' +  id + '.';
+          vm.error = 'Could not find an ' + type + ' with ID ' + id + '.';
         }
       }, function(error) {
         vm.error = error;
@@ -82,7 +83,7 @@
     function getShortTypeName() {
       return vm.isApp ? 'App' : 'Org';
     }
-    
+
     function getResourceTypeName() {
       return vm.isApp ? 'Application' : 'Organization';
     }
@@ -99,10 +100,10 @@
     function goToParentView() {
       if (!vm.isApp) {
         $state.go('management.view.organization', {organizationId: vm.owner.parentOrganizationId});
-      } 
+      }
       else {
         $state.go('management.view.organization', {organizationId: vm.owner.organizationId});
-      }     
+      }
     }
   }
 

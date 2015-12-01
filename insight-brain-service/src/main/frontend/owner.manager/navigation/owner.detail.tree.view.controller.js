@@ -19,6 +19,7 @@
     vm.error = undefined;
     vm.categoryState = {isExpanded: vm.state.$current.name.endsWith('category')};
     vm.labelState = {isExpanded: vm.state.$current.name.endsWith('label')};
+    vm.policyState = {isExpanded: vm.state.$current.name.endsWith('policy')};
     vm.ltgState = {isExpanded: vm.state.$current.name.endsWith('license-threat-group')};
 
     vm.doLoad();

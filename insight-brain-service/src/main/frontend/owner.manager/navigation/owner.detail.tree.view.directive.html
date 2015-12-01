@@ -37,25 +37,29 @@
       </a>
     </div>
     <div class="tree-view-group">
-      <a class="tree-view-item" ng-click="vm.policyState.isExpanded = !vm.policyState.isExpanded">
+      <a class="tree-view-item"
+         ng-click="vm.policyState.isExpanded = vm.state.$current.name.endsWith('policy') ? true : !vm.policyState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
-                ng-class="{ expand: !vm.policyState.isExpanded, collapse: vm.policyState.isExpanded }"></span>
+                ng-class="{ expand: !vm.policyState.isExpanded && !vm.state.$current.name.endsWith('policy'),
+                            collapse: vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy') }"></span>
         </div>
         <i class="fa fa-university size-16px size-fw tree-view-icon"></i><!--
         -->Policies
       </a>
       <a class="tree-view-item"
-         ng-if="vm.policyState.isExpanded"
+         ng-if="vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy')"
+         ui-sref=".create-policy"
          ui-sref-active="selected">
         <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
         -->New Policy
       </a>
       <a class="tree-view-item"
-         ng-if="vm.policyState.isExpanded"
+         ng-if="vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy')"
+         ui-sref=".policy({ policyId: policy.id })"
          ng-repeat="policy in vm.details.policies"
          ui-sref-active="selected">
-        <i class="fa fa-university size-16px size-fw tree-view-icon"></i><!--
+        <i class="fa fa-university size-16px policy-threat-level-background threat-level-{{policy.threatLevel}} tree-view-icon"></i><!--
         -->{{ policy.name }}
       </a>
     </div>

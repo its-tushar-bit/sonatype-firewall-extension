@@ -457,6 +457,12 @@ $threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
         ("moderate", #444, $moderate-color, (1, 2, 3)),
         ("none", #FFF, $none-color, (0));
 
+
+$policy-threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
+        ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
+        ("moderate", #444, $moderate-color, (1, 2, 3)),
+        ("none", #FFF, $none-color, (0));
+
 /*
   #z-indexes
   Gathered here for better visibility

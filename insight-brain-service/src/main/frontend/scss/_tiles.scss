@@ -155,6 +155,10 @@
   &.summary-tile {
     margin: 8px 24px 0px 8px;
 
+    h2 {
+      padding-bottom: 8px;
+    }
+
     .sub-header {
       font-size: 12px;
       font-weight: bold;

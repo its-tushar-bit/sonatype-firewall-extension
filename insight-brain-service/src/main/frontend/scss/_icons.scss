@@ -250,3 +250,23 @@ $icon-map: ("sonatype-icons","double-chevron-right", '\e600'),
     }
   }
 }
+
+.fa-university.policy-threat-level-background {
+  color: $white;
+  text-align: center;
+
+  &.size-16px {
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
+    line-height: 16px;
+  }
+
+  @each $threat in $policy-threat-levels {
+    @each $threatLevel in nth($threat, 4) {
+      &.threat-level-#{$threatLevel} {
+        background-color: nth($threat, 3);
+      }
+    }
+  }
+}

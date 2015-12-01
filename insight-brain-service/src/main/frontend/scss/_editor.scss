@@ -24,16 +24,54 @@
     </div>
     </div>
   </div>
+  <div class="tile tile-editor-container">
+    <div class="editor-section">
+      <div class="editor-section-header">Subsection 1</div>
+      <form name="editor" role="form" class="clm-form">
+          <div class="section">
+            <div class="field">
+              <label for="editor-field2">Input Field - <span class="optional">optional</span></label>
+              <input type="text" name="theField" id="editor-field2" clm-input>
+            </div>
+          </div>
+      </form>
+    </div>
+    <div class="editor-section">
+      <div class="editor-section-header">Subsection 2</div>
+      <form name="editor" role="form" class="clm-form">
+          <div class="section">
+            <div class="field">
+              <label for="editor-field3">Input Field - <span class="optional">optional</span></label>
+              <input type="text" name="theField" id="editor-field3" clm-input>
+            </div>
+          </div>
+      </form>
+    </div>
+  </div>
   ```
 */
 .tile-editor-container {
   padding: 8px;
+
+  &.padded-tile {
+    margin: 8px 24px 0px 8px;
+  }
 
   .tile {
     h2 {
       border-bottom: 1px solid $grey-4;
       padding-bottom: 8px;
       margin-bottom: 20px;
+    }
+  }
+
+  .editor-section {
+    .editor-section-header {
+      @extend .semi-bold;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid $grey-4;
+      text-transform: uppercase;
     }
   }
   

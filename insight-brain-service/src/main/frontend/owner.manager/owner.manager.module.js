@@ -80,6 +80,26 @@
                   templateUrl: 'owner.manager/label/label.editor.view.html?' + clmBuildTimestamp
                 }
               }
+            }).state('management.edit.' + ownerType.name + '.policy', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/policy/{policyId}',
+              views: {
+                '@management': {
+                  controller: 'policy.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/policy/policy.editor.view.html?' + clmBuildTimestamp
+                }
+              }
+            }).state('management.edit.' + ownerType.name + '.create-policy', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/policy',
+              views: {
+                '@management': {
+                  controller: 'policy.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/policy/policy.editor.view.html?' + clmBuildTimestamp
+                }
+              }
             });
           });
 

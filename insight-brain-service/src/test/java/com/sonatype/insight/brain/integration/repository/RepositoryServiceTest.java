@@ -1597,7 +1597,7 @@ public class RepositoryServiceTest
     RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
     assertNotNull(actual.repository);
     assertThat(actual.repository.getPublicId(), is(repository.getPublicId()));
-    assertNull(actual.repository);
+    assertNull(actual.oldestEvalTimestamp);
   }
 
   @Test

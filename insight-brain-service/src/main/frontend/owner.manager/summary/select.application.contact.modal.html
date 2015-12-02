@@ -11,11 +11,12 @@
           <i class="fa size-18px fa-user slate"></i><span ng-class="{'grey-4': !vm.owner.contact}">{{vm.owner.contact ? vm.owner.contact.displayName : '(None)'}}</span>
         </h3>
         <div class="field form-horizontal">
-          <label for="user-search-input">Search Users</label>
+          <label for="user-search-input" id="user-search-input-label">Search Users</label>
           <div class="sub-label">uses ‘*’ as wildcard (ex. ‘Asim*’ matches ‘Asimov’)</div>
           <input id="user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
                  focus-input="true" ng-keyup="$event.keyCode == 13 && vm.query && vm.search()" clm-input/><!--
-       --><button id="user-search-button" class="btn" type="button" ng-click="vm.search()" ng-disabled="!vm.query">Search</button>
+       --><button id="user-search-button" class="btn" type="button" ng-click="vm.search()" ng-disabled="!vm.query">Search</button><!--
+       --><div ng-if="vm.searchError" class="section with-icon warning"><i class="fa fa-warning"></i> Search failed. {{vm.searchError}}</div>
         </div>
         <div class="field" ng-if="!vm.searchError">
           <label for="contact-selector" ng-if="vm.users">Results</label>
@@ -24,19 +25,20 @@
         </div>
       </div>
     </div>
-    <div class="clm-modal-footer" submit-wrapper="vm.submitError" retry="vm.updateContact()">
-      <div ng-if="vm.searchError" class="section with-icon">
-        <i class="fa fa-warning"></i> {{ vm.searchError }}
-      </div><!--
-   --><button class="btn btn-primary" type="submit" submit-validation submit-dirty="vm.isDirty()" submit-type="update">
-      Select
-    </button><!--
+    <div class="clm-modal-footer" ng-class="{ error : vm.submitError }">
+      <div ng-if="vm.submitError" class="section with-icon"><i class="fa fa-warning"></i> {{vm.submitError}}</div><!--
+   --><button ng-if="!vm.submitError" class="btn btn-primary" type="submit" submit-validation submit-dirty="vm.isDirty()" submit-type="update">
+        Select
+      </button><!--
+   --><button ng-if="vm.submitError" class="btn btn-error" type="submit" ng-disabled="!vm.isDirty()">
+        <i class="fa fa-refresh"></i>Retry
+      </button><!--
    --><button class="btn" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">
       Cancel
-    </button><!--
+      </button><!--
    --><button id="remove-contact-button" class='btn btn-tertiary' type="button" ng-click="vm.removeContact()" ng-if="vm.owner.contact">
-      <i class="fa fa-fw fa-trash"></i>Clear Contact
-    </button>
+        <i class="fa fa-fw fa-trash"></i>Clear Contact
+      </button>
     </div>
   </form>
 </div>

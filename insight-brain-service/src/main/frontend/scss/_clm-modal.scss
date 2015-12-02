@@ -68,6 +68,10 @@
     border-left: $external-border;
     border-right: $external-border;
     padding: 24px 12px;
+
+    #user-search-input-label {
+      line-height: 16px;
+    }
   }
 
   .clm-modal-footer {

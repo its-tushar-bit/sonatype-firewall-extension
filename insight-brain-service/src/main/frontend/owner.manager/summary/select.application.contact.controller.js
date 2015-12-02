@@ -23,6 +23,7 @@
 
     function search() {
       delete vm.searchError;
+      delete vm.submitError;
       delete vm.selected;
       $http.get(CLMAppLocations.getFindUsersUrl(), {
         params : {
@@ -48,7 +49,7 @@
       FormMaskDelay.wrap($scope, owner.$save()).then(function() {
         $scope.$close();
       }, function(error) {
-        vm.submitError = error;
+        vm.submitError = Messages.getHttpErrorMessage(error);
       });
     }
 

@@ -670,9 +670,25 @@ public class RepositoryService
    * @since 1.18.0
    */
   @Authorize(permission = Permission.READ)
-  public Repository getRepositoryById(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+  public RepositoryDTO getRepositoryById(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     checkLicenseFeature();
 
-    return repositoryDAO.getByIdNotNull(repositoryId);
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.repository = repositoryDAO.getByIdNotNull(repositoryId);
+
+    Date evaluationTime = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(
+        repositoryId);
+
+    if (evaluationTime != null) {
+      repositoryDTO.oldestEvalTimestamp = evaluationTime.getTime();
+    }
+
+    return repositoryDTO;
+  }
+
+  public static class RepositoryDTO
+  {
+    public Long oldestEvalTimestamp;
+    public Repository repository;
   }
 }

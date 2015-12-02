@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
+import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -77,6 +78,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1580,9 +1582,22 @@ public class RepositoryServiceTest
   @Test
   public void testGetRepositoryById() {
     Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), new Date());
 
-    Repository actual = repositoryService.getRepositoryById(repository.getId());
-    assertThat(actual.getPublicId(), is(repository.getPublicId()));
+    RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
+    assertNotNull(actual.repository);
+    assertThat(actual.repository.getPublicId(), is(repository.getPublicId()));
+    assertThat(actual.oldestEvalTimestamp, is(repositoryComponent.getLastEvaluationTime().getTime()));
+  }
+
+  @Test
+  public void testGetRepositoryById_noEvaluation() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
+    assertNotNull(actual.repository);
+    assertThat(actual.repository.getPublicId(), is(repository.getPublicId()));
+    assertNull(actual.repository);
   }
 
   @Test

@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
+import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
 
 /**
@@ -35,7 +36,7 @@ public class RepositoryResource
   }
 
   @GET
-  public Repository getRepository(@PathParam("repositoryId") String repositoryId) {
+  public RepositoryDTO getRepository(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getRepositoryById(repositoryId);
   }
 }

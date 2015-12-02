@@ -145,4 +145,14 @@ public class RepositoryComponentDAOTest
     policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
     assertThat(policyViolation.isActive(), is(false));
   }
+
+  @Test
+  public void testGetOldestComponentEvaluationTimeByRepositoryId() {
+    Date oldest = new Date();
+    tempEntity.newRepositoryComponent(repository.getId(), new Date(oldest.getTime() + 1000));
+    tempEntity.newRepositoryComponent(repository.getId(), oldest);
+    tempEntity.newRepositoryComponent(repository.getId(), new Date(oldest.getTime() + 2000));
+
+    assertThat(dao.getOldestComponentEvaluationTimeByRepositoryId(repository.getId()), is(oldest));
+  }
 }

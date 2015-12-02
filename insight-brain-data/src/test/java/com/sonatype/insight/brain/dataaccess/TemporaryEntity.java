@@ -1060,6 +1060,11 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, "path");
   }
 
+  public RepositoryComponent newRepositoryComponent(String repositoryId, Date evalTime)
+  {
+    return newRepositoryComponent(repositoryId, "path" + evalTime.getTime(), null, null, evalTime);
+  }
+
   public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname) {
     return newRepositoryComponent(repositoryId, pathname, null, null);
   }
@@ -1067,9 +1072,15 @@ public class TemporaryEntity
   public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname, Date quarantineTime,
       Date unquarantineTime)
   {
+    return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date());
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname, Date quarantineTime,
+      Date unquarantineTime, Date evalTime)
+  {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(), "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+        IdentificationSource.SONATYPE.getId(), evalTime, true /* canBeQuarantined */);
     repositoryComponent.setQuarantineTime(quarantineTime);
     repositoryComponent.setUnquarantineTime(unquarantineTime);
     repositoryComponentDAO.insert(repositoryComponent);

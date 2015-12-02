@@ -19,8 +19,8 @@
 
     function doLoad() {
       delete vm.error;
-      $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).success(function (repository) {
-        vm.repository = repository;
+      $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).success(function (data) {
+        vm.repository = data.repository;
       }).error(function () {
         vm.error = arguments;
       });

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -13,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public class RepositoryResourceTest
@@ -29,9 +31,10 @@ public class RepositoryResourceTest
   public void testGetRepository() throws Exception {
     HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH).parameter(repo.getId()).get();
     assertResponseStatus(200, response);
-    Repository actual = response.getBody(Repository.class);
+    RepositoryDTO actual = response.getBody(RepositoryDTO.class);
 
-    assertThat(actual.getId(), is(repo.getId()));
-    assertThat(actual.getPublicId(), is(repo.getPublicId()));
+    assertNotNull(actual.repository);
+    assertThat(actual.repository.getId(), is(repo.getId()));
+    assertThat(actual.repository.getPublicId(), is(repo.getPublicId()));
   }
 }

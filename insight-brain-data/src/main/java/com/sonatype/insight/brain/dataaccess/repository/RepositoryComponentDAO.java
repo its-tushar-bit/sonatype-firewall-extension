@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -80,6 +81,16 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1 AND entity.quarantineTime IS NOT NULL AND entity.unquarantineTime IS NULL";
 
     return getList(tx, sQuery, repositoryId);
+  }
+
+  public Date getOldestComponentEvaluationTimeByRepositoryId(String repositoryId) {
+    String sQuery = "SELECT MIN(entity.lastEvaluationTime) FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1";
+
+    Date oldest = getSingle(Date.class, sQuery, repositoryId);
+
+    //converting from a Timestamp to a Date object for happy comparisons
+    return oldest != null ? new Date(oldest.getTime()) : null;
   }
 
   @Override

@@ -45,7 +45,7 @@ public class UserInterfaceLinksResource
 
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
 
-  public static final String REPO_REPORT_PATH = "repository/{repositoryId}/report";
+  public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
 
   private final BaseUrl baseUrl;
 
@@ -105,11 +105,11 @@ public class UserInterfaceLinksResource
   }
 
   @GET
-  @Path(REPO_REPORT_PATH)
+  @Path(REPO_RESULT_PATH)
   public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/repository/{repositoryId}/report");
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" + REPO_RESULT_PATH);
 
     return redirect(uriBuilder.build(repositoryId));
   }
@@ -149,7 +149,7 @@ public class UserInterfaceLinksResource
    * @since 1.17
    */
   public static String getRepositoryReportUrl(String repositoryId) {
-    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(REPO_REPORT_PATH).build(repositoryId)
+    return UriBuilder.fromPath(UserInterfaceLinksResource.RESOURCE_PATH).path(REPO_RESULT_PATH).build(repositoryId)
         .toString();
   }
 }

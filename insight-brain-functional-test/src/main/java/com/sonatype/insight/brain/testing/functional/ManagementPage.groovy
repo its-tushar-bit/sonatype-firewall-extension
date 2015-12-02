@@ -14,7 +14,7 @@ class ManagementPage
 {
   static url = "assets/index.html#/management"
 
-  static at = { title == 'CLM Management' || title == 'CLM' }
+  static at = { title == 'IQ Management' || title == 'IQ' }
 
   static content = {
     mainModule { module MainModule }

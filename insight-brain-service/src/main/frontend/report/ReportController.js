@@ -18,12 +18,12 @@
         }
       });
       $stateProvider.state('repository-report', {
-        url: '/repository/{repositoryId}/report',
+        url: '/repository/{repositoryId}/result',
         controller: 'repository.report.controller',
         controllerAs: 'vm',
         templateUrl: 'report-assets/report/repository.report.html?' + clmBuildTimestamp,
         data : {
-          title : 'Repository Report'
+          title : 'Repository Results'
         }
       });
     }

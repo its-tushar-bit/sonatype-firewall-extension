@@ -64,8 +64,8 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToRepositoryReport() throws Exception {
     String url = UserInterfaceLinksResource.getRepositoryReportUrl("repo id");
-    assertThat(url, is(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/report"));
-    HttpResponse response = get(UserInterfaceLinksResource.REPO_REPORT_PATH, "repo id");
-    assertRedirect(response, "assets/index.html#/repository/repo%20id/report");
+    assertThat(url, is(UserInterfaceLinksResource.RESOURCE_PATH + "/repository/repo%20id/result"));
+    HttpResponse response = get(UserInterfaceLinksResource.REPO_RESULT_PATH, "repo id");
+    assertRedirect(response, "assets/index.html#/repository/repo%20id/result");
   }
 }

@@ -349,7 +349,7 @@ public class RepositoryServiceTest
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
-    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/repository/" + repository.getId() + "/report"));
+    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/repository/" + repository.getId() + "/result"));
     assertThat(policyEvaluationSummary.getQuarantinedComponentCount(), is(1));
   }
 

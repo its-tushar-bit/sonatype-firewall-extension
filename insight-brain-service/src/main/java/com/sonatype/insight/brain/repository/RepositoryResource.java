@@ -15,7 +15,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
-import com.sonatype.insight.brain.model.repository.Repository;
 
 /**
  * @since 1.18.0

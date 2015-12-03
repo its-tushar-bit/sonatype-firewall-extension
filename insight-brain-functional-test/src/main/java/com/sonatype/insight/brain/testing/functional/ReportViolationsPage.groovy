@@ -15,7 +15,7 @@ class ReportViolationsPage
 {
   static url = "assets/index.html#/reports/violations"
 
-  static at = { title == 'IQ Report Violations' || title == 'IQ' }
+  static at = { title == 'IQ Server - Report Violations' || title == 'IQ Server -' }
 
   static content = {
     mainModule { module MainModule }

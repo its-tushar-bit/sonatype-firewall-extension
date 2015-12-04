@@ -1090,8 +1090,9 @@ public class TemporaryEntity
   public RepositoryComponent newRepositoryComponent(String repositoryId, MatchState matchState,
       ComponentIdentifier identifier)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, UUID.randomUUID().toString(),
-        new Date(), "hash", identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date(),
+    String pathname = uuid();
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(),
+        pathname.substring(0, 20), identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date(),
         true /* canBeQuarantined */);
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;

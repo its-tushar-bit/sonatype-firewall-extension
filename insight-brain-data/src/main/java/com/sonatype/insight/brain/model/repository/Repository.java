@@ -37,6 +37,9 @@ public class Repository
   @Column(name = "quarantine_enabled")
   private boolean quarantineEnabled = false;
 
+  @Column(name = "format")
+  private String format;
+
   public Repository() {
   }
 
@@ -110,5 +113,13 @@ public class Repository
   @JsonIgnore
   public OwnerType getType() {
     return OwnerType.REPOSITORY;
+  }
+
+  public String getFormat() {
+    return format;
+  }
+
+  public void setFormat(String format) {
+    this.format = format;
   }
 }

@@ -37,4 +37,11 @@ public class RepositoryResourceTest
     assertThat(actual.repository.getId(), is(repo.getId()));
     assertThat(actual.repository.getPublicId(), is(repo.getPublicId()));
   }
+
+  @Test
+  public void testReevaluateRepository() throws Exception {
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH + "/evaluate").parameter(repo.getId())
+        .post();
+    assertResponseStatus(204, response);
+  }
 }

@@ -428,6 +428,7 @@ CREATE TABLE repository (
   public_id varchar(500) NOT NULL,
   enabled bool DEFAULT true NOT NULL,
   quarantine_enabled bool DEFAULT false NOT NULL,
+  format varchar(50),
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
   CONSTRAINT repository_uk UNIQUE KEY (repository_manager_id, public_id),
   CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id)

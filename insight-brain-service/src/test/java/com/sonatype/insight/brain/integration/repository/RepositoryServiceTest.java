@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.repository.RepositoryReportDetail;
@@ -66,6 +67,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -1150,8 +1152,8 @@ public class RepositoryServiceTest
 
     // Prepare request and mock the HDS request
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
-    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven", "path",
-        hash));
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", "path", hash));
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.UNKNOWN,
@@ -1370,12 +1372,14 @@ public class RepositoryServiceTest
     hdsRequest.components = new ArrayList<>();
     for (RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest : serviceRequest.components) {
       String hash = HashHelper.truncateHash(componentEvaluationDataRequest.hash);
-      hdsRequest.components.add(new RepositoryComponentEvaluationDataRequest(componentEvaluationDataRequest.format,
-          componentEvaluationDataRequest.pathname, hash));
+      String pathname = componentEvaluationDataRequest.pathname
+          .substring(componentEvaluationDataRequest.pathname.startsWith("/") ? 1 : 0);
+      hdsRequest.components
+          .add(new RepositoryComponentEvaluationDataRequest(componentEvaluationDataRequest.format, pathname, hash));
     }
     when(
         (quarantine ? quarantineHdsClient : auditHdsClient).post(eq(ComponentEvaluationDataList.class),
-            eq(RepositoryService.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest))).thenReturn(hdsResult);
+        eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash,
@@ -1604,6 +1608,47 @@ public class RepositoryServiceTest
   public void testGetRepositoryById_unknownId() throws Exception {
     try {
       repositoryService.getRepositoryById("foobar");
+      fail("Did not throw exception");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
+    }
+  }
+
+  @Test
+  public void testReevaluateTest() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+
+    ComponentEvaluationDataList response = new ComponentEvaluationDataList();
+    ComponentEvaluationData component = new ComponentEvaluationData();
+    component.hash = repositoryComponent.getHash();
+    component.observedLicenses = Collections.emptySet();
+    component.declaredLicenses = Collections.emptySet();
+    component.matchState = MatchState.UNKNOWN.getId();
+    response.components.add(component);
+    Mockito.when(auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+        Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+
+    Date beforeEvaluation = new Date();
+    repositoryService.reevaluateRepository(repository.getId());
+
+    for (int i = 0; i < 100; i++) {
+      Date lastEvaluationTime = repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0)
+          .getLastEvaluationTime();
+      if (beforeEvaluation.before(lastEvaluationTime)) {
+        return;
+      }
+      Thread.sleep(10);
+    }
+    fail("Last evaluation time was not updated");
+  }
+
+  @Test
+  public void testReevaluateTest_unknownId() throws Exception {
+    try {
+      repositoryService.reevaluateRepository("foobar");
       fail("Did not throw exception");
     }
     catch (NotFoundException e) {

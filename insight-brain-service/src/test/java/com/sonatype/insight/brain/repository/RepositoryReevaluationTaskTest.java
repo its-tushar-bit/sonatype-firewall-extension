@@ -1,0 +1,220 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.repository;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+public class RepositoryReevaluationTaskTest
+    extends AbstractComponentTest
+{
+  private RepositoryReevaluationTask task;
+
+  private Repository repository;
+
+  @Inject
+  private ComponentDetailsLoader componentDetailsLoader;
+
+  @Inject
+  private ComponentPolicyEvaluator componentPolicyEvaluator;
+
+  @Inject
+  private Policy policy;
+
+  @Inject
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
+  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private FirewallAuditHdsClient auditHdsClient;
+
+  private RepositoryComponent unknownComponent;
+
+  private RepositoryComponent component;
+
+  private ComponentIdentifier claimedIdentifier = ComponentIdentifier.createMavenCoordinates("com", "claimed", "3.0");
+
+  private ComponentIdentifier newIdentifier = ComponentIdentifier.createMavenCoordinates("com", "new-component", "2.0");
+
+  private ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+  private Map<String, AtomicInteger> activeReevaluations;
+
+  /*
+   * Setup:
+   * - Existing repository, one unknown component no violations, one component with a violation & quarantined
+   * - New policy that both components will violate when reevaluated
+   * - New claim for the unknown component
+   */
+  @Before
+  public void setup() throws Exception {
+    auditHdsClient = Mockito.mock(FirewallAuditHdsClient.class);
+    repository = tempEntity.newRepository();
+
+    component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("org", "known", "1.0.0"));
+    component.setQuarantineTime(new Date());
+    repositoryComponentDAO.update(component);
+    unknownComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+
+    tempEntity.newRepositoryPolicyViolation(component, 1, true, "old");
+
+    // policy things should violate
+    policy = createPolicy();
+
+    tempEntity.newClaimedComponent(component.getHash(), claimedIdentifier);
+    tempEntity.newWaiver(unknownComponent.getHash(), policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+
+    activeReevaluations = new HashMap<>();
+    activeReevaluations.put(repository.getId(), new AtomicInteger());
+
+    task = new RepositoryReevaluationTask(repository, new RepositoryPolicyEvaluator(componentPolicyEvaluator,
+        repositoryComponentDAO, repositoryPolicyViolationDAO, auditHdsClient, null, componentDetailsLoader),
+        executorService, activeReevaluations);
+    createHdsResponse();
+  }
+
+  /*
+   * Both components should be known, one still quarantined, old policy violation gone, 2 new policy violations
+   */
+  @Test
+  public void testTask() throws Exception {
+    Date timeBeforeReevaluation = new Date();
+    task.run();
+    executorService.shutdown();
+    executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+    List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(components, hasSize(2));
+    assertHasComponent(components, component.getPathname(), MatchState.EXACT, "claimed", claimedIdentifier, true,
+        timeBeforeReevaluation);
+    assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT, "Sonatype", newIdentifier, false,
+        timeBeforeReevaluation);
+
+    try (TransactionContext tx = repositoryPolicyViolationDAO.createTransactionContext()) {
+      List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
+          repository.getId());
+      assertThat(violations, hasSize(2));
+      assertHasViolation(violations, component.getPathname(), policy.getName(), policy.getThreatLevel(),
+          claimedIdentifier, false);
+      assertHasViolation(violations, unknownComponent.getPathname(), policy.getName(), policy.getThreatLevel(),
+          newIdentifier, true);
+    }
+  }
+
+  private static void assertHasViolation(List<RepositoryPolicyViolation> violations, String pathname, String policyName,
+      int threatLevel, ComponentIdentifier componentIdentifier, boolean waived)
+  {
+    for (RepositoryPolicyViolation violation : violations) {
+      if (violation.getPathname().equals(pathname) && violation.getPolicyName().equals(policyName)) {
+        assertThat(violation.getThreatLevel(), is(threatLevel));
+        assertThat(violation.getComponentIdentifier(), is(componentIdentifier));
+        assertThat(violation.isWaived(), is(waived));
+        return;
+      }
+    }
+    fail("Failed to locate component " + pathname);
+
+  }
+
+  private static void assertHasComponent(List<RepositoryComponent> components, String pathname, MatchState matchState,
+      String identificationSource, ComponentIdentifier componentIdentifier, boolean quarantined, Date timeBeforeReevaluation)
+  {
+    for (RepositoryComponent component : components) {
+      if (component.getPathname().equals(pathname)) {
+        assertThat(component.getMatchStateId(), is(matchState.getId()));
+        assertThat(component.getComponentIdentifier(), is(componentIdentifier));
+        assertThat(component.isQuarantined(), is(quarantined));
+        assertThat(component.getLastEvaluationTime(), greaterThan(timeBeforeReevaluation));
+        return;
+      }
+    }
+    fail("Failed to locate component " + pathname);
+  }
+
+  private void createHdsResponse() throws Exception {
+    ComponentEvaluationDataList response = new ComponentEvaluationDataList();
+    response.components.add(
+        createComponentResponse(component.getHash(), component.getComponentIdentifier(), MatchState.EXACT.getId(), 0));
+    response.components
+        .add(createComponentResponse(unknownComponent.getHash(), newIdentifier, MatchState.EXACT.getId(), 1));
+
+    Mockito.when(auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+        Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+  }
+
+  private ComponentEvaluationData createComponentResponse(String hash, ComponentIdentifier identifier,
+      String matchState, int index)
+  {
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+
+    componentEvaluationData.requestIndex = index;
+    componentEvaluationData.hash = hash;
+    componentEvaluationData.componentIdentifier = identifier;
+    componentEvaluationData.declaredLicenses = Collections.emptySet();
+    componentEvaluationData.observedLicenses = Collections.emptySet();
+    componentEvaluationData.matchState = matchState;
+    componentEvaluationData.securityVulnerabilities = Collections
+        .singletonList(new SecurityVulnerability("cve", "CVE-2015-1234", 9.0f));
+
+    return componentEvaluationData;
+  }
+
+  private Policy createPolicy() {
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "new", 9);
+    Constraint constraintOrg = new Constraint(null, "Constraint Name Org", LogicalOperator.AND);
+    constraintOrg.addCondition(new Condition(CoordinatesConditionType.ID, "match", "com"));
+    policy.setConstraints(Collections.singletonList(constraintOrg));
+
+    new PolicyDAO().update(policy);
+    return policy;
+  }
+}

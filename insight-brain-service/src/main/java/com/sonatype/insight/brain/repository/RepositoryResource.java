@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -37,5 +38,11 @@ public class RepositoryResource
   @GET
   public RepositoryDTO getRepository(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getRepositoryById(repositoryId);
+  }
+
+  @POST
+  @Path("evaluate")
+  public void reevaluateRepository(@PathParam("repositoryId") String repositoryId) {
+    repositoryService.reevaluateRepository(repositoryId);
   }
 }

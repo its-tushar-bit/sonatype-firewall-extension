@@ -246,4 +246,25 @@ public class RepositoryServiceAuthzTest
     login();
     repositoryService.getRepositoryById(repo.getId());
   }
+
+  @Test
+  public void testReevaluateRepository_Authorized() {
+    Repository repo = createRepository();
+
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.reevaluateRepository(repo.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testReevaluateRepository_Unauthenticated() {
+    repositoryService.reevaluateRepository("repository-id");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testReevaluateRepository_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.reevaluateRepository(repo.getId());
+  }
 }

@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -480,22 +482,18 @@ public class RepositoryService
 
   private final Executor reevalExecutor = createReevaluationExecutor();
 
-  private final Map<String, AtomicInteger> reevaluations = new HashMap<>();
+  private final ConcurrentMap<String, AtomicInteger> reevaluations = new ConcurrentHashMap<>();
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     checkLicenseFeature();
 
-    synchronized (reevaluations) {
-      if (reevaluations.get(repositoryId) == null) {
-        reevaluations.put(repositoryId, new AtomicInteger(0));
-
-        reevalExecutor.execute(new RepositoryReevaluationTask(repositoryDAO.getByIdNotNull(repositoryId),
-            repositoryPolicyEvaluator, reevalExecutor, reevaluations));
-      }
-      else {
-        log.debug("Skipping, reevaluation for repository {} is already in progress", repositoryId);
-      }
+    if (reevaluations.putIfAbsent(repositoryId, new AtomicInteger()) == null) {
+      reevalExecutor.execute(new RepositoryReevaluationTask(repositoryDAO.getByIdNotNull(repositoryId),
+          repositoryPolicyEvaluator, reevalExecutor, reevaluations));
+    }
+    else {
+      log.debug("Skipping, reevaluation for repository {} is already in progress", repositoryId);
     }
   }
 

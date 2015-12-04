@@ -101,9 +101,7 @@ public class RepositoryReevaluationTask
       }
       finally {
         if (activeTasks.decrementAndGet() == 0) {
-          synchronized (reevaluations) {
-            reevaluations.remove(repository.getId());
-          }
+          reevaluations.remove(repository.getId());
         }
       }
     }

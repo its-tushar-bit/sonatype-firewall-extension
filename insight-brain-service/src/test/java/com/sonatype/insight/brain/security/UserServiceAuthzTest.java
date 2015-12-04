@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -60,62 +61,83 @@ public class UserServiceAuthzTest
   }
 
   @Test
-  public void testFindMembersForGlobalRoles_Authorized() {
+  public void testFindMembersForRoles_Global_Authorized() {
     grantConfigureSystemPermission();
-    FindMembersDTO findMembersDTO = userService.findMembersForGlobalRoles("*", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testFindMembersForGlobalRoles_Unauthorized() {
+  public void testFindMembersForRoles_Global_Unauthorized() {
     login();
-    userService.findMembersForGlobalRoles("*", false /* groupsEnabled */);
+    userService.findMembersForRoles(OwnerType.GLOBAL, null, "*", false /* groupsEnabled */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testFindMembersForGlobalRoles_Unauthenticated() {
-    userService.findMembersForGlobalRoles("*", false /* groupsEnabled */);
+  public void testFindMembersForRoles_Global_Unauthenticated() {
+    userService.findMembersForRoles(OwnerType.GLOBAL, null, "*", false /* groupsEnabled */);
   }
 
   @Test
-  public void testFindMembersForNonGlobalRoles_Application_Authorized() {
+  public void testFindMembersForRoles_RepositoryContainer_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.REPOSITORY_CONTAINER,
+        null, "*", false /* groupsEnabled */);
+    assertThat(findMembersDTO.getError(), is(nullValue()));
+    assertThat(findMembersDTO.getMembers(), is(not(empty())));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testFindMembersForRoles_RepositoryContainer_Unauthorized() {
+    login();
+    userService.findMembersForRoles(OwnerType.REPOSITORY_CONTAINER,null, "*", false /* groupsEnabled */);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testFindMembersForRoles_RepositoryContainer_Unauthenticated() {
+    userService.findMembersForRoles(OwnerType.REPOSITORY_CONTAINER, null, "*", false /* groupsEnabled */);
+  }
+
+  @Test
+  public void testFindMembersForRoles_Application_Authorized() {
     grantWritePermission(app.getId());
-    FindMembersDTO findMembersDTO = userService.findMembersForNonGlobalRoles(OwnerType.APPLICATION,
+    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.APPLICATION,
         app.getPublicId(), "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testFindMembersForNonGlobalRoles_Application_Unauthorized() {
+  public void testFindMembersForRoles_Application_Unauthorized() {
     login();
-    userService.findMembersForNonGlobalRoles(OwnerType.APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
+    userService.findMembersForRoles(OwnerType.APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testFindMembersForNonGlobalRoles_Application_Unauthenticated() {
-    userService.findMembersForNonGlobalRoles(OwnerType.APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
+  public void testFindMembersForRoles_Application_Unauthenticated() {
+    userService.findMembersForRoles(OwnerType.APPLICATION, app.getPublicId(), "*", false /* groupsEnabled */);
   }
 
   @Test
-  public void testFindMembersForNonGlobalRoles_Organization_Authorized() {
+  public void testFindMembersForRoles_Organization_Authorized() {
     grantWritePermission(org.getId());
-    FindMembersDTO findMembersDTO = userService.findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(),
+    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(),
         "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testFindMembersForNonGlobalRoles_Organization_Unauthorized() {
+  public void testFindMembersForRoles_Organization_Unauthorized() {
     login();
-    userService.findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
+    userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testFindMembersForNonGlobalRoles_Organization_Unauthenticated() {
-    userService.findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
+  public void testFindMembersForRoles_Organization_Unauthenticated() {
+    userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
   }
 
   @Test

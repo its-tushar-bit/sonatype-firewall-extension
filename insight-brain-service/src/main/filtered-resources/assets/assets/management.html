@@ -46,6 +46,19 @@
             </div>
           </a>
         </div>
+        <div class="tree-view-organization-group">
+          <a class="tree-view-item"
+             ng-class="{ selected : $state.includes('management.repositories') }"
+             ui-sref="management.repositories.security">
+            <div class="twisty-container">
+                <span class="twisty empty"></span>
+            </div><!--
+           --><img class="tree-view-icon" src="img/icon_repository.png"><!--
+           --><span>
+                Repositories
+              </span>
+          </a>
+        </div>
         <div class="tree-view-organization-group"
              ng-repeat="organization in organizations | orderBy:'name'"
              ng-if="organization.isVisible">

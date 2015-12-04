@@ -39,6 +39,14 @@ public class UserResource
 
   public static final String RESET_PASSWORD_PATH = "/{userId}/reset";
 
+  private static final String OWNER_TYPE_SEGMENT = "{ownerType: global|application|organization}";
+
+  private static final String SINGLETON_OWNER_TYPE_SEGMENT = "{ownerType: repository_container}";
+
+  private static final String MEMBERS_FOR_OWNER_ROLES = OWNER_TYPE_SEGMENT + "/{ownerId}/query";
+
+  private static final String MEMBERS_FOR_SINGLETON_OWNER_ROLES = SINGLETON_OWNER_TYPE_SEGMENT + "/query";
+
   private final UserService userService;
 
   @Inject
@@ -47,30 +55,31 @@ public class UserResource
   }
 
   /**
-   * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
+   * Retrieves a list of users that can be used to assign role-to-user memberships for a given application/organization
+   * or at global level.
    */
   @GET
-  @Path("{ownerType: application|organization}/{ownerId}/query")
+  @Path(MEMBERS_FOR_OWNER_ROLES)
   @Produces(MediaType.APPLICATION_JSON)
   public FindMembersDTO findMembersForNonGlobalRoles(@PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId, @QueryParam("q") String query,
       @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
   {
-    return userService.findMembersForNonGlobalRoles(ownerType, ownerId, query, groupsEnabled);
+    return userService.findMembersForRoles(ownerType, ownerId, query, groupsEnabled);
   }
 
   /**
-   * Retrieves a list of users that can be used to assign role-to-user memberships for global roles.
-   * 
-   * @since 1.15.0
+   * Retrieves a list of users that can be used to assign role-to-user memberships for singleton owner types.
+   *
+   * @since 1.18.0
    */
   @GET
-  @Path("global/{notUsed}/query")
+  @Path(MEMBERS_FOR_SINGLETON_OWNER_ROLES)
   @Produces(MediaType.APPLICATION_JSON)
-  public FindMembersDTO findMembersForGlobalRoles(@QueryParam("q") String query,
-      @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
+  public FindMembersDTO findMembersForRepositoryRoles(@PathParam("ownerType") OwnerType ownerType,
+      @QueryParam("q") String query, @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
   {
-    return userService.findMembersForGlobalRoles(query, groupsEnabled);
+    return userService.findMembersForRoles(ownerType, null, query, groupsEnabled);
   }
 
   @GET

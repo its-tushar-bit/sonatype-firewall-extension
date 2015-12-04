@@ -19,19 +19,34 @@
         return $state.current.name.indexOf('organization') !== -1;
       }
 
+      function isRepositories() {
+        return $state.current.name.indexOf('repositories') !== -1;
+      }
+
       function getServicePath() {
-        return isApplication() ? 'application' : isOrganization() ? 'organization' : 'global';
+        return isApplication() ? 'application' : isOrganization() ? 'organization' :
+            isRepositories() ? 'repository_container' : 'global';
       }
 
       function getServicePathWithId() {
         var id = getId(),
-            path = id === 'global' ? 'global' : getServicePath();
-        return path + '/' + id;
+            path = getServicePath();
+
+        // Repositories do not need to be associated with an ID.
+        if (['repository_container'].indexOf(path) > -1) {
+          return path;
+        }
+        // New triggers global service path
+        else if (id === '_new_') {
+          return 'global/global';
+        }
+        else {
+          return path + '/' + id;
+        }
       }
 
       var getId = function() {
-        var id = isApplication() ? appId.encoded() : isOrganization() ? orgId.encoded() : 'global';
-        return id === '_new_' ? 'global' : id;
+        return isApplication() ? appId.encoded() : isOrganization() ? orgId.encoded() : 'global';
       };
 
       return {

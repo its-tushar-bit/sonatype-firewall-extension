@@ -55,11 +55,21 @@ public class UserService
     this.userDirectory = userDirectory;
   }
 
+  // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
+  FindMembersDTO findMembersForRoles(OwnerType ownerType, String ownerId, String query, boolean groupsEnabled) {
+    if (OwnerType.GLOBAL.equals(ownerType)) {
+      return findMembersForGlobalRoles(query, groupsEnabled);
+    }
+    else {
+      return findMembersForNonGlobalRoles(ownerType, ownerId, query, groupsEnabled);
+    }
+  }
+
   /**
    * Retrieves a list of users that can be used to assign role-to-user memberships for an application or organization.
    */
   @Authorize(permission = Permission.WRITE)
-  FindMembersDTO findMembersForNonGlobalRoles(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+  protected FindMembersDTO findMembersForNonGlobalRoles(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId, String query, boolean groupsEnabled)
   {
     return findMembers(query, groupsEnabled);
@@ -69,7 +79,7 @@ public class UserService
    * Retrieves a list of users that can be used to assign role-to-user memberships for global roles.
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  FindMembersDTO findMembersForGlobalRoles(String query, boolean groupsEnabled) {
+  protected FindMembersDTO findMembersForGlobalRoles(String query, boolean groupsEnabled) {
     return findMembers(query, groupsEnabled);
   }
 

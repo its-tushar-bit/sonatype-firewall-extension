@@ -22,6 +22,23 @@ class OrganizationSpec
     cleanAppsAndOrgs()
   }
 
+  def "Shows the default Repositories group"() {
+    when: "We navigate to the Owner Management"
+    OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
+
+    then: "the Repositories group is shown"
+    ownerManagementPage.ownerTreeView.organizations.size() == 1
+    ownerManagementPage.ownerTreeView.organization('Repositories').displayed
+
+    when: "the Repositories group is selected"
+    ownerManagementPage.ownerTreeView.organization('Repositories').treeViewElement.click()
+
+    then: "you are navigated to the Repositories security page"
+    RepositoriesPage repositoriesPage = at RepositoriesPage
+    repositoriesPage.repositoriesName.displayed
+    repositoriesPage.repositoriesName.text() == "Repositories"
+  }
+
   def "Can create a new Organization"() {
     when: 'We click the root Organization'
       OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
@@ -59,7 +76,7 @@ class OrganizationSpec
       waitFor { policies.displayed }
 
     and: 'and the newly created Org appears in the list of Organizations'
-    ownerManagementPage.ownerTreeView.organizations.size() == 1
+    ownerManagementPage.ownerTreeView.organizations.size() == 2
     ownerManagementPage.ownerTreeView.organization('New Organization').displayed
   }
 
@@ -68,7 +85,7 @@ class OrganizationSpec
       editOrg('New Organization Updated')
 
     then: 'the list is updated'
-    ownerTreeView.organizations.size() == 1
+    ownerTreeView.organizations.size() == 2
     ownerTreeView.organization('New Organization Updated').displayed
       organizationName.text() == 'New Organization Updated'
   }
@@ -85,16 +102,16 @@ class OrganizationSpec
 
     then: 'the list of Orgs is now empty'
       at OwnerManagementPage
-      waitFor { ownerTreeView.organizations.size() == 0 }
+      waitFor { ownerTreeView.organizations.size() == 1 }
   }
 
-  def "When adding new Organizations, they are listed alphabetically"() {
+  def "When adding new Organizations, they are listed alphabetically with Repositories first"() {
     when: 'we add multiple Organizations'
     createOrganization('Z')
     createOrganization('A')
 
-    then: 'they are listed alphabetically'
-    ownerTreeView.organizations.collect { it.organizationName.text() } == ['A', 'Z']
+    then: 'they are listed alphabetically with Repositories first'
+    ownerTreeView.organizations.collect { it.organizationName.text() } == ['Repositories', 'A', 'Z']
   }
 
   def "Can add a new Policy"() {

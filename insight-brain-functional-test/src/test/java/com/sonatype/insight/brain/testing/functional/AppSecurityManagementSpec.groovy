@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroupMappingType
 import com.sonatype.insight.brain.configuration.ldap.LdapUserMapping
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO
 import com.sonatype.insight.brain.model.Application
+import com.sonatype.insight.brain.model.repository.RepositoryContainer
 import com.sonatype.insight.brain.model.security.Permission
 
 class AppSecurityManagementSpec
@@ -16,7 +17,7 @@ class AppSecurityManagementSpec
 {
   String orgId
 
-  String appPublicId
+  static String appPublicId
 
   def setupSpec() {
     createUser()
@@ -31,6 +32,7 @@ class AppSecurityManagementSpec
 
     grantPermissions(getUsername(), orgId, Permission.READ)
     grantPermissions(getUsername(), app.getId(), Permission.WRITE, Permission.READ)
+    grantPermissions(getUsername(), RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.WRITE, Permission.READ)
     loginAsUserVia(OwnerManagementPage)
   }
 
@@ -66,17 +68,34 @@ class AppSecurityManagementSpec
       waitFor { tabs.securityTab.role("Owner").displayed }
   }
 
-  def 'Can directly enter role members when group search is disabled'() {
-    given: 'an LDAP server with group search disabled'
+  def "validate repository roles"() {
+    when: "Navigating to Repositories"
+    RepositoriesPage repositoriesPage = to RepositoriesPage;
+
+    then: "see the security tab shown and active"
+    waitFor { repositoriesPage.tabs.securityTabButton.displayed }
+    waitFor { repositoriesPage.tabs.securityTab.displayed }
+    repositoriesPage.tabs.securityTab.role("Application Evaluator").displayed
+    repositoriesPage.tabs.securityTab.role("Component Evaluator").displayed
+    repositoriesPage.tabs.securityTab.role("Developer").displayed
+    repositoriesPage.tabs.securityTab.role("Owner").displayed
+  }
+
+  def 'Can directly enter role members when group search is disabled'(boolean isSetup, String ownerTypeName,
+    Closure ownerToClosure)
+  {
+    setup: 'an LDAP server with group search disabled'
+    if (isSetup) {
       String serverId = temporaryEntity.newLdapServer('LDAP').id
       temporaryEntity.newLdapConnection(serverId)
       LdapUserMapping userMapping = temporaryEntity.newLdapUserMapping(serverId)
       userMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC)
       userMapping.setDynamicGroupSearchEnabled(false)
       new LdapUserMappingDAO().update(userMapping)
+    }
 
-    when: 'navigating to the security tab of some application'
-      to ApplicationPage, appPublicId
+    when: 'navigating to the security tab of some ownerTypeName'
+      ownerToClosure()
       waitFor { tabs.securityTabButton.displayed }
       tabs.securityTabButton.click()
 
@@ -143,5 +162,11 @@ class AppSecurityManagementSpec
 
     and: 'the added member is shown in the list'
       roleRow.memberNames == ['admin']
+
+    where:
+    isSetup | ownerTypeName  | ownerToClosure
+    true    | 'application'  | { to ApplicationPage, appPublicId }
+    false   | 'repositories' | { to RepositoriesPage }
+
   }
 }

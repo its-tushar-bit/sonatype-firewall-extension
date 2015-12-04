@@ -241,6 +241,11 @@ a:focus {
   transition: all .1s linear;
 }
 
+.editor-image:hover .display-image.read-only {
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+
 .header-name-editor {
   padding-top: 10px;
   margin-bottom: 10px;
@@ -273,8 +278,12 @@ a:focus {
   display: inline-block;
 }
 
-.inline-editor.head .editable, .inline-editor.head input {
+.inline-editor.head .editable, .inline-editor.head input, .inline-editor.head .read-only {
   font-size: 40px;
+}
+
+.inline-editor.head .read-only {
+  line-height: normal;
 }
 
 .inline-editor .editable.editable-click, .inline-editor .editable.editable-click:hover {
@@ -571,7 +580,7 @@ ul.tri-pane.left {
   font-family: Proxima Nova Bold, sans-serif;
 }
 
-#applicationEditor, #organizationEditor {
+#applicationEditor, #organizationEditor, #repositories-editor {
   margin: 0 15px;
 }
 

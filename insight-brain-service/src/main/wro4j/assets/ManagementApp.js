@@ -7,7 +7,10 @@
 (function() {
   'use strict';
   angular.module('managementApp',
-    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'RoleModule', 'LdapConfiguration']);
+      [
+        'MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'RoleModule',
+        'LdapConfiguration', 'repository.manager.module'
+      ]);
 }());
 
 (function() {

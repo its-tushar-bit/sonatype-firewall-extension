@@ -89,7 +89,8 @@ public class UserServiceTest
     final String clmUserName = "clm-test-user";
 
     // Make sure the clm user is not in LDAP
-    final FindMembersDTO findMembersDTO = userService.findMembersForGlobalRoles(clmUserName, false /* groupsEnabled */);
+    final FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, clmUserName, false /* groupsEnabled */);
     final List<Member> dtoMembers = findMembersDTO.getMembers();
     final Member[] members = dtoMembers.toArray(new Member[dtoMembers.size()]);
     assertThat(members, emptyArray());
@@ -123,7 +124,8 @@ public class UserServiceTest
     final String clmAndLdapUserName = "johndoe";
 
     // Check LDAP for the user
-    FindMembersDTO findMembersDTO = userService.findMembersForGlobalRoles("John Doe", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, "John Doe", false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, clmAndLdapUserName, "John Doe", "test.user@company.com", "LDAP");
 
     // Create the same user in CLM
@@ -162,7 +164,7 @@ public class UserServiceTest
   @Test
   public void testFindMembersForGlobalRoles_EmptyQuery() {
     try {
-      userService.findMembersForGlobalRoles("" /* query */, false /* groupsEnabled */);
+      userService.findMembersForRoles(OwnerType.GLOBAL, null, "" /* query */, false /* groupsEnabled */);
     }
     catch (BadRequestException expected) {
       assertThat(expected.getMessage(), is("No search term specified."));
@@ -173,8 +175,7 @@ public class UserServiceTest
   public void testFindMembersForNonGlobalRoles_EmptyQuery() {
     Organization org = tempEntity.newOrganization();
     try {
-      userService
-          .findMembersForNonGlobalRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */, false /* groupsEnabled */);
+      userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */, false /* groupsEnabled */);
     }
     catch (BadRequestException expected) {
       assertThat(expected.getMessage(), is("No search term specified."));
@@ -184,14 +185,15 @@ public class UserServiceTest
   @Test
   public void testFindCLMUsers() throws Exception {
     FindMembersDTO findMembersDTO = userService
-        .findMembersForGlobalRoles(User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
+        .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
-    findMembersDTO = userService.findMembersForGlobalRoles(
+    findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null,
         User.ADMIN_USERNAME.substring(0, User.ADMIN_USERNAME.length() - 1) + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
-    findMembersDTO = userService.findMembersForGlobalRoles("nobody-has-such-a-name-really*", false /* groupsEnabled */);
+    findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, "nobody-has-such-a-name-really*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), nullValue());
     assertThat(findMembersDTO.getMembers(), is(notNullValue()));
     assertThat(findMembersDTO.getMembers(), hasSize(0));
@@ -206,13 +208,14 @@ public class UserServiceTest
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    FindMembersDTO findMembersDTO = userService.findMembersForGlobalRoles("John Doe", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, "John Doe", false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, "johndoe", "John Doe", "test.user@company.com", "LDAP");
 
     tempEntity.newUser("johndoe");
 
     // Test shading. johndoe loaded from "/UserServiceTest/ldap_users.ldif" should not be returned
-    findMembersDTO = userService.findMembersForGlobalRoles("John Doe", false /* groupsEnabled */);
+    findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, "John Doe", false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, "johndoe", "John Doe", "johndoe@void.com", "CLM");
   }
 
@@ -225,7 +228,8 @@ public class UserServiceTest
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    FindMembersDTO findMembersDTO = userService.findMembersForGlobalRoles("Alpha", true /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, "Alpha", true /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.GROUP, "Alpha", "Alpha", null, "LDAP");
   }
 
@@ -238,7 +242,8 @@ public class UserServiceTest
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedLdapServer.getPort());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    FindMembersDTO findMembersDTO = userService.findMembersForGlobalRoles("Beta", true /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, "Beta", true /* groupsEnabled */);
     List<Member> members = findMembersDTO.getMembers();
     assertThat(members, is(notNullValue()));
     assertThat("Found members:" + members, members, hasSize(2));
@@ -251,7 +256,7 @@ public class UserServiceTest
   public void testNoLdapConnection() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     FindMembersDTO findMembersDTO = userService
-        .findMembersForGlobalRoles(User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
+        .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
 
     // Should not try to use Ldap until server is added and configured
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
@@ -259,7 +264,8 @@ public class UserServiceTest
     tempEntity.newLdapConnection(ldapServer.getId());
     tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    findMembersDTO = userService.findMembersForGlobalRoles(User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
+    findMembersDTO = userService
+        .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
     assertMember(findMembersDTO, "LDAP error, displaying local users only.", MemberType.USER, User.ADMIN_USERNAME,
         "Admin BuiltIn", "admin@localhost", "CLM");
   }

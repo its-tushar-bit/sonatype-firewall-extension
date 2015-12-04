@@ -166,6 +166,11 @@
     <js>/policy/LicenseThreatGroupsController.js</js>
     <js>/policy/PolicyController.js</js>
     <js>/policy/TagController.js</js>
+    <group-ref>repository</group-ref>
+  </group>
+
+  <group name='repository'>
+    <js>/repository.manager/repository.manager.module.js</js>
   </group>
 
   <group name='report'>

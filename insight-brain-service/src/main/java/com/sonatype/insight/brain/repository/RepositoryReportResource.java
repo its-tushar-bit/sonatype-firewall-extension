@@ -17,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
 
+import com.yammer.metrics.annotation.Timed;
+
 /**
  * @since 1.17.0
  */
@@ -42,6 +44,7 @@ public class RepositoryReportResource
   @GET
   @Path(SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId)
   {
     return repositoryService.getReportSummary(repositoryId);
@@ -67,6 +70,7 @@ public class RepositoryReportResource
   @GET
   @Path(DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId) {
     return repositoryService.getReportDetails(repositoryId);
   }
@@ -77,6 +81,7 @@ public class RepositoryReportResource
   @GET
   @Path(POLICY_THREAT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public RepositoryPolicyThreatDTO getPolicyThreats(@PathParam("repositoryId") final String repositoryId,
       @PathParam("pathname") final String pathname)
   {

@@ -34,10 +34,33 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   .brand {
-    padding: 8px 19px 6px 21px;
     color: #FFFFFF;
-    text-shadow: none;
+    font-weight: normal;
     line-height: 24px;
+    margin-left: 0px;
+    padding: 8px 19px 6px 8px;
+    text-shadow: none;
+    white-space: nowrap;
+
+    & img {
+      margin-right: 8px;
+    }
+
+    & > div {
+      margin-right:10px;
+      margin-top:-3px;
+    }
+
+    & > div > div:first-child {
+      font-family: Proxima Nova Semibold;
+      font-size: 18px;
+      line-height: normal;
+    }
+
+    & > div > div:last-child {
+      font-size: 11px;
+      margin-top: -3px;
+    }
   }
 
   .navbar-inner {

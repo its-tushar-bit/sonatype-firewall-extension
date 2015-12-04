@@ -30,7 +30,7 @@ class MainHeaderSpec
 
     expect: "version is shown"
       waitFor { mainModule.version.displayed }
-      waitFor { mainModule.version.text() == props["version"] }
+      waitFor { mainModule.version.text().contains(props["version"]) }
   }
 
   def "dashboard icon shown when licensed"() {

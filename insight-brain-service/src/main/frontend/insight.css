@@ -101,11 +101,6 @@ input[type="file"] {
   text-decoration: none;
 }
 
-.navbar .brand {
-  margin-left: 0px;
-  white-space: nowrap;
-}
-
 .header-centered {
   text-align: center;
 }

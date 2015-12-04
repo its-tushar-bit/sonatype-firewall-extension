@@ -36,11 +36,13 @@
 <div class="header navbar">
   <div class="navbar-inner">
     <div class="container-fluid">
-      <span class="title brand">
-        <img src="img/sonatype-24.png" style="float:left;" alt="Logo" height="24" width="24"/>
-        <span>&nbsp;Nexus {{productEdition}} IQ Server</span>
-        <span class="navbar-version">{{getServerVersion()}}</span>
-      </span>
+      <div class="title brand">
+        <img src="img/sonatype-24.png" class="pull-left" alt="Logo">
+        <div>
+          <div>Nexus IQ Server</div>
+          <div class="navbar-version">{{productEdition}} {{getServerVersion()}}</div>
+        </div>
+      </div>
       <div class="pull-right">
         <div id="system-configuration-menu" class="header-dropdown-menu" ng-if="hasAnyPermission()">
           <div class="dropdown pull-right">

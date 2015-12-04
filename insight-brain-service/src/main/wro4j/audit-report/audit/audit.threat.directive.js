@@ -22,7 +22,7 @@
         shortName: 'Name',
         field: 'policyName',
         sortable: true,
-        width: 220,
+        width: 215,
         styleFn: function(row, cell, value, columnDef, dataContext) {
           return 'nopad ' + scoreStyler(row, cell, value, columnDef, dataContext);
         },
@@ -120,7 +120,7 @@
         field: 'quarantined',
         sortable: true,
         filterable: false,
-        width: 55,
+        width: 60,
         styleFn: function () {
           return 'middle';
         },

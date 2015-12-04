@@ -31,9 +31,15 @@ import com.sonatype.insight.brain.utils.IdUtils;
 @Path(MembershipMappingResource.RESOURCE_PATH)
 public class MembershipMappingResource
 {
-  public static final String RESOURCE_PATH = "rest/membershipMapping/{ownerType: global|application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/membershipMapping";
 
-  public static final String ROLE_PATH = "role/{roleId}";
+  public static final String APPLICABLE_MAPPINGS_PATH = "{ownerType: global|application|organization}/{ownerId}";
+
+  public static final String SINGLETON_APPLICABLE_MAPPINGS_PATH = "{ownerType: repository_container}";
+
+  public static final String ROLE_PATH = APPLICABLE_MAPPINGS_PATH + "/role/{roleId}";
+
+  public static final String SINGLETON_ROLE_PATH = SINGLETON_APPLICABLE_MAPPINGS_PATH + "/role/{roleId}";
 
   private final MembershipMappingService membershipMappingService;
 
@@ -47,6 +53,7 @@ public class MembershipMappingResource
    * mappings inherited from parent organizations).
    */
   @GET
+  @Path(APPLICABLE_MAPPINGS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicableMembershipMappings getApplicableMembershipMappings(
       @PathParam("ownerType") final OwnerType ownerType, @PathParam("ownerId") final String ownerId)
@@ -68,5 +75,28 @@ public class MembershipMappingResource
     Map<String, List<Member>> membersByRoleId = new HashMap<>();
     membersByRoleId.put(roleId, members);
     membershipMappingService.setMembershipMappings(ownerType, internalOwnerId, membersByRoleId);
+  }
+
+  /**
+   * @since 1.18
+   */
+  @GET
+  @Path(SINGLETON_APPLICABLE_MAPPINGS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final OwnerType ownerType)
+  {
+    return getApplicableMembershipMappings(ownerType, null);
+  }
+
+  /**
+   * @since 1.18
+   */
+  @PUT
+  @Path(SINGLETON_ROLE_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public void setMembershipMappingForRole(@PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("roleId") final String roleId, final List<Member> members)
+  {
+    setMembershipMappingForRole(ownerType, null, roleId, members);
   }
 }

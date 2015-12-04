@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
@@ -67,8 +68,17 @@ public class MembershipMappingResourceTest
     return super.restRequest().path(MembershipMappingResource.RESOURCE_PATH);
   }
 
+  private HttpResponse get(OwnerType ownerType) throws Exception {
+    return restRequest().path(MembershipMappingResource.SINGLETON_APPLICABLE_MAPPINGS_PATH).parameter(ownerType).get();
+  }
+
   private HttpResponse get(OwnerType ownerType, String ownerId) throws Exception {
-    return restRequest().parameter(ownerType, ownerId).get();
+    return restRequest().path(MembershipMappingResource.APPLICABLE_MAPPINGS_PATH).parameter(ownerType, ownerId).get();
+  }
+
+  private HttpResponse put(OwnerType ownerType, String roleId, Member... members) throws Exception {
+    return restRequest().path(MembershipMappingResource.SINGLETON_ROLE_PATH).parameter(ownerType, roleId).body(members)
+        .put();
   }
 
   private HttpResponse put(OwnerType ownerType, String ownerId, String roleId, Member... members) throws Exception {
@@ -185,6 +195,97 @@ public class MembershipMappingResourceTest
     assertMembersByOwner(membersByOwner, org, getMembersForUsers());
 
     membersByOwner = membersByRole.membersByOwner.get(2);
+    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers());
+  }
+
+  @Test
+  public void testCRUD_RepositoryContainerRoles() throws Exception {
+    // Initial state
+    HttpResponse response = get(OwnerType.REPOSITORY_CONTAINER);
+    assertResponseStatus(200, response);
+    ApplicableMembershipMappings applicable = response.getBody(ApplicableMembershipMappings.class);
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+
+    List<Role> appRoles = roleDAO.getApplicationRoles();
+    assertThat(applicable.membersByRole, hasSize(appRoles.size()));
+    for (int i = 0; i < appRoles.size(); i++) {
+      MembersByRole membersByRole = applicable.membersByRole.get(i);
+      Role role = appRoles.get(i);
+      assertThat(membersByRole.roleId, is(role.getId()));
+      assertThat(membersByRole.roleName, is(role.getName()));
+      assertThat(membersByRole.roleDescription, is(role.getDescription()));
+      assertThat(membersByRole.membersByOwner, is(notNullValue()));
+      assertThat(membersByRole.membersByOwner.size(), is(2));
+      assertThat(membersByRole.membersByOwner.get(0).ownerId, is(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+      assertThat(membersByRole.membersByOwner.get(0).members, is(notNullValue()));
+      assertThat(membersByRole.membersByOwner.get(1).ownerId, is(org.getParentOrganizationId()));
+    }
+
+    // Create
+    response = put(OwnerType.REPOSITORY_CONTAINER, appRoles.get(0).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.ORGANIZATION, org.getParentOrganizationId(), appRoles.get(0).getId(),
+        newMember(MemberType.USER, userC.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read for created data
+    response = get(OwnerType.REPOSITORY_CONTAINER);
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+    assertThat(applicable.membersByRole, hasSize(appRoles.size()));
+
+    MembersByRole membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId, is(appRoles.get(0).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(2));
+    MembersByOwner membersByOwner = membersByRole.membersByOwner.get(0);
+    assertMembersByOwner(membersByOwner, RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+
+    // Check the parent org
+    Organization parentOrg = organizationDAO.getById(org.getParentOrganizationId());
+    membersByOwner = membersByRole.membersByOwner.get(1);
+    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
+
+    // Update
+    response = put(OwnerType.REPOSITORY_CONTAINER, appRoles.get(0).getId(),
+        newMember(MemberType.USER, userA.getUsername()));
+    assertResponseStatus(204, response);
+    response = put(OwnerType.REPOSITORY_CONTAINER, appRoles.get(1).getId(),
+        newMember(MemberType.USER, userB.getUsername()));
+    assertResponseStatus(204, response);
+
+    // Read for updated data
+    response = get(OwnerType.REPOSITORY_CONTAINER);
+    assertResponseStatus(200, response);
+    applicable = response.getBody(ApplicableMembershipMappings.class);
+    assertThat(applicable, is(notNullValue()));
+    assertThat(applicable.membersByRole, is(notNullValue()));
+    assertThat(applicable.membersByRole, hasSize(appRoles.size()));
+
+    membersByRole = applicable.membersByRole.get(0);
+    assertThat(membersByRole.roleId, is(appRoles.get(0).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(2));
+
+    membersByOwner = membersByRole.membersByOwner.get(0);
+    assertMembersByOwner(membersByOwner, RepositoryContainer.SINGLETON, getMembersForUsers(userA));
+
+    membersByOwner = membersByRole.membersByOwner.get(1);
+    assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers(userC));
+
+    membersByRole = applicable.membersByRole.get(1);
+    assertThat(membersByRole.roleId, is(appRoles.get(1).getId()));
+    assertThat(membersByRole.membersByOwner, is(notNullValue()));
+    assertThat(membersByRole.membersByOwner, hasSize(2));
+    membersByOwner = membersByRole.membersByOwner.get(0);
+    assertMembersByOwner(membersByOwner, RepositoryContainer.SINGLETON, getMembersForUsers(userB));
+
+    membersByOwner = membersByRole.membersByOwner.get(1);
     assertMembersByOwner(membersByOwner, parentOrg, getMembersForUsers());
   }
 

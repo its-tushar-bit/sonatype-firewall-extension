@@ -229,8 +229,7 @@ class ContextResolver
         case GLOBAL:
           return GLOBAL_CONTEXT;
         case REPOSITORY_CONTAINER:
-          // We don't need support for Repository Container here
-          break;
+          return resolveContextIdsForOwner(RepositoryContainer.REPOSITORY_CONTAINER_ID);
       }
     }
     throw new IllegalArgumentException("Cannot resolve context from " + parameters);

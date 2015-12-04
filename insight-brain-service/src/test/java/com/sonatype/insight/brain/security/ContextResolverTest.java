@@ -182,4 +182,15 @@ public class ContextResolverTest
         contains(RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID,
             MembershipMapping.GLOBAL_CONTEXT_ID));
   }
+
+  @Test
+  public void testResolveContextIds_RepositoryContainer() {
+    Map<AuthzContext.Key, Object> parameters = new HashMap<>();
+    parameters.put(AuthzContext.Key.ID, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    parameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY_CONTAINER);
+    assertThat(
+        resolver.resolveContextIds(parameters),
+        contains(RepositoryContainer.REPOSITORY_CONTAINER_ID, Organization.ROOT_ORGANIZATION_ID,
+            MembershipMapping.GLOBAL_CONTEXT_ID));
+  }
 }

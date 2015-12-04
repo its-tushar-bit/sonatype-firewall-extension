@@ -449,6 +449,8 @@ $critical-color: #DB2852;
 $severe-color: #F2862F;
 $moderate-color: #F5C649;
 $none-color: #0047b2;
+$low-color: $dark-blue;
+$policy-none-color: $light-blue;
 $ignore-color: #0081c2;
 $unspecified-color: #9D9D9D;
 
@@ -460,8 +462,9 @@ $threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
 
 $policy-threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
         ("severe", #FFF, $severe-color, (4, 5, 6, 7)),
-        ("moderate", #444, $moderate-color, (1, 2, 3)),
-        ("none", #FFF, $none-color, (0));
+        ("moderate", #444, $moderate-color, (2, 3)),
+        ("low", #444, $low-color, (1)),
+        ("none", #FFF, $policy-none-color, (0));
 
 /*
   #z-indexes

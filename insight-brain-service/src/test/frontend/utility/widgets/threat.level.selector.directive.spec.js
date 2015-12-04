@@ -1,4 +1,4 @@
-describe('ltg.threat.level.selector.directive.spec.js', function() {
+describe('threat.level.selector.directive.spec.js', function() {
   var $compile,
       $httpBackend,
       element;
@@ -10,9 +10,9 @@ describe('ltg.threat.level.selector.directive.spec.js', function() {
     $compile = _$compile_;
     $httpBackend = _$httpBackend_;
 
-    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/ltg.threat.level.selector.directive.html');
+    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/threat.level.selector.directive.html');
 
-    element = $compile('<ltg-threat-level-selector ng-model="testLevel" ng-disabled="disabled"></ltg-threat-level-selector>')(scope);
+    element = $compile('<threat-level-selector ng-model="testLevel" threat-type="ltg" ng-disabled="disabled"></threat-level-selector>')(scope);
     scope.disabled = false;
     scope.testLevel = 0;
     $httpBackend.flush();
@@ -22,7 +22,7 @@ describe('ltg.threat.level.selector.directive.spec.js', function() {
     expect(element.find('.dropdown-menu li').length).toBe(11);
     element.find('.dropdown-menu li a').each(function(index) {
       // We convert classList in an array since it is a DOMTokentList. Jasmine allows array-like objects as of v2.3.4.
-      expect(Array.prototype.slice.apply(this.classList, [0])).toContain('threat-level-' + (10 - index));
+      expect(Array.prototype.slice.apply(this.classList, [0])).toContain('ltg-threat-level-' + (10 - index));
     });
   });
 
@@ -34,27 +34,7 @@ describe('ltg.threat.level.selector.directive.spec.js', function() {
       isolatedScope.$apply();
 
       expect(Array.prototype.slice.apply(element.find('a.selected-threat-level').get(0).classList,
-          [0])).toContain('threat-level-' + i);
+          [0])).toContain('ltg-threat-level-' + i);
     }
-  });
-
-  it('Directive properly removes data-toggle when disabled', function() {
-    var scope = element.scope(),
-        vm = element.isolateScope().vm;
-
-    element.find('a').each(function(index, anchor) {
-      expect(anchor.getAttribute('data-toggle')).toBe('dropdown');
-    });
-
-    expect(vm.disabled).toBeFalsy();
-
-    scope.disabled = true;
-    scope.$apply();
-
-    expect(vm.disabled).toBeTruthy();
-
-    element.find('a').each(function(index, anchor) {
-      expect(anchor.getAttribute('data-toggle')).toBeNull();
-    });
   });
 });

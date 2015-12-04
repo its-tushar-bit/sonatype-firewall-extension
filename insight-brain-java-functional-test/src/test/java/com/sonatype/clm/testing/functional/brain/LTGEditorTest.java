@@ -11,7 +11,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
-import com.sonatype.clm.testing.functional.elements.LTGThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -113,7 +113,7 @@ public class LTGEditorTest
 
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
-    LTGThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
+    ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
     LTGEditorPage.saveButton().shouldHave(disabledClass());
 
@@ -157,17 +157,17 @@ public class LTGEditorTest
   }
 
   private void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {
-    LTGThreatLevelSelector.root().shouldBe(visible);
-    LTGThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-    LTGThreatLevelSelector.threatLevelList().shouldBe(visible);
-    LTGThreatLevelSelector.threatLevelListItems().shouldHaveSize(LTGEditorPage.NUM_THREAT_LEVELS);
+    ThreatLevelSelector.root().shouldBe(visible);
+    ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
+    ThreatLevelSelector.threatLevelList().shouldBe(visible);
+    ThreatLevelSelector.threatLevelListItems().shouldHaveSize(LTGEditorPage.NUM_THREAT_LEVELS);
 
     for (int i = 0; i < LTGEditorPage.NUM_THREAT_LEVELS; i++) {
-      LTGThreatLevelSelector.threatLevelListItem(i).shouldBe(visible);
-      assertThat(Integer.parseInt(LTGThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
+      ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible);
+      assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
     }
 
-    LTGThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
+    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
         .click();
   }
 
@@ -191,9 +191,9 @@ public class LTGEditorTest
   }
 
   private void changeThreatLevel(int threatLevel) {
-    LTGThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-    LTGThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
-    assertThat(Integer.parseInt(LTGThreatLevelSelector.selectedThreatLevel().text()), is(threatLevel));
+    ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
+    ThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
+    assertThat(Integer.parseInt(ThreatLevelSelector.selectedThreatLevel().text()), is(threatLevel));
   }
 
   private void pickFirstThreeLicenses() {

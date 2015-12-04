@@ -10,10 +10,10 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class LTGThreatLevelSelector
+public class ThreatLevelSelector
 {
   public static SelenideElement root() {
-    return $("ltg-threat-level-selector");
+    return $("threat-level-selector");
   }
 
   public static SelenideElement selectedThreatLevel() {

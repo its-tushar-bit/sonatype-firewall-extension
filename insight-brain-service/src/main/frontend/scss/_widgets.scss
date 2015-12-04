@@ -941,26 +941,26 @@
 
   ```html
   <span class="threat-level-selector dropdown">
-    <a class="selected-threat-level threat-level-background threat-level-5" data-toggle="dropdown">5</a><!--
+    <a class="selected-threat-level threat-level-background ltg-threat-level-5" data-toggle="dropdown">5</a><!--
     --><a class="caret-button" data-toggle="dropdown"><span class="caret"></span></a>
     <ul class="dropdown-menu">
-      <li><a class="threat-level-background threat-level-10">10</a></li>
-      <li><a class="threat-level-background threat-level-9">9</a></li>
-      <li><a class="threat-level-background threat-level-8">8</a></li>
-      <li><a class="threat-level-background threat-level-7">7</a></li>
-      <li><a class="threat-level-background threat-level-6">6</a></li>
-      <li><a class="threat-level-background threat-level-5">5</a></li>
-      <li><a class="threat-level-background threat-level-4">4</a></li>
-      <li><a class="threat-level-background threat-level-3">3</a></li>
-      <li><a class="threat-level-background threat-level-2">2</a></li>
-      <li><a class="threat-level-background threat-level-1">1</a></li>
-      <li><a class="threat-level-background threat-level-0">0</a></li>
+      <li><a class="threat-level-background ltg-threat-level-10">10</a></li>
+      <li><a class="threat-level-background ltg-threat-level-9">9</a></li>
+      <li><a class="threat-level-background ltg-threat-level-8">8</a></li>
+      <li><a class="threat-level-background ltg-threat-level-7">7</a></li>
+      <li><a class="threat-level-background ltg-threat-level-6">6</a></li>
+      <li><a class="threat-level-background ltg-threat-level-5">5</a></li>
+      <li><a class="threat-level-background ltg-threat-level-4">4</a></li>
+      <li><a class="threat-level-background ltg-threat-level-3">3</a></li>
+      <li><a class="threat-level-background ltg-threat-level-2">2</a></li>
+      <li><a class="threat-level-background ltg-threat-level-1">1</a></li>
+      <li><a class="threat-level-background ltg-threat-level-0">0</a></li>
     </ul>
   </span>
   ```
 */
 
-.ltg-threat-level-selector {
+.threat-level-selector {
   a {
     width: 30px;
     display: inline-block;
@@ -1007,9 +1007,17 @@
     color: $white;
     @extend .semi-bold;
 
+    @each $threat in $policy-threat-levels {
+      @each $threatLevel in nth($threat, 4) {
+        &.policy-threat-level-#{$threatLevel} {
+          background-color: nth($threat, 3);
+        }
+      }
+    }
+
     @each $threat in $threat-levels {
       @each $threatLevel in nth($threat, 4) {
-        &.threat-level-#{$threatLevel} {
+        &.ltg-threat-level-#{$threatLevel} {
           background-color: nth($threat, 3);
         }
       }

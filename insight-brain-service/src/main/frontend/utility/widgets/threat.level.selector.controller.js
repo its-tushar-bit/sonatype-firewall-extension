@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LTGThreatLevelSelectorController() {
+  function ThreatLevelSelectorController() {
     var vm = this;
 
     vm.threatLevels = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
@@ -17,6 +17,6 @@
     }
   }
 
-  angular.module('utility').controller('LTGThreatLevelSelectorController', LTGThreatLevelSelectorController);
+  angular.module('utility').controller('threat.level.selector.controller', ThreatLevelSelectorController);
 
 }(angular));

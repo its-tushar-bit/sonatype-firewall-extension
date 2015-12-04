@@ -52,17 +52,22 @@ public class RepositoryReevaluationTask
       Iterator<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId())
           .iterator();
 
+      int componentCount = 0;
       final AtomicInteger activeTasks = reevaluations.get(repository.getId());
       while (repositoryComponents.hasNext()) {
         RepositoryComponentEvaluationDataRequestList request = createEvaluationRequest(repositoryComponents);
+        componentCount += request.components.size();
 
         activeTasks.incrementAndGet();
 
         executor.execute(new PolicyEvaluationTask(request, activeTasks));
       }
+      log.debug("Enqueued {} components of repository {}:{} ({}) for re-evaluation", componentCount,
+          repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
     }
     catch (Exception e) {
-      log.error("An error occured while re-evaluating repository {}", repository.getId(), e);
+      log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
+          repository.getPublicId(), repository.getId(), e);
     }
   }
 
@@ -97,11 +102,14 @@ public class RepositoryReevaluationTask
         repositoryPolicyEvaluator.evaluate(repository, request, false);
       }
       catch (Exception e) {
-        log.error("An error occured while re-evaluating repository {}", repository.getId(), e);
+        log.error("An error occured while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
+            repository.getPublicId(), repository.getId(), e);
       }
       finally {
         if (activeTasks.decrementAndGet() == 0) {
           reevaluations.remove(repository.getId());
+          log.debug("Completed re-evaluation of repository {}:{} ({})", repository.getRepositoryManagerId(),
+              repository.getPublicId(), repository.getId());
         }
       }
     }

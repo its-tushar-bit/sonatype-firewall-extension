@@ -152,9 +152,8 @@ public class RepositoryService
   public void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
     checkLicenseFeature();
 
-    String enableDisableMessage = enable ? "Enabling" : "Disabling";
-    log.debug("{} repository {} for repositoryManagerInstanceId {}", enableDisableMessage, repositoryPublicId,
-        repositoryManagerInstanceId);
+    log.debug("{} audit for repository {}:{}", enable ? "Enabling" : "Disabling", repositoryManagerInstanceId,
+        repositoryPublicId);
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
         repositoryManagerInstanceId, repositoryPublicId);
@@ -162,6 +161,9 @@ public class RepositoryService
       repository = new Repository(null, repositoryPublicId);
     }
     setEnabled(repositoryManagerInstanceId, repository, enable);
+
+    log.info("{} audit for repository {}:{} ({})", enable ? "Enabled" : "Disabled", repositoryManagerInstanceId,
+        repositoryPublicId, repository.getId());
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -189,8 +191,8 @@ public class RepositoryService
   {
     checkLicenseFeature();
 
-    log.debug("Setting quarantine to {} for repository {} repositoryManagerInstanceId {}", enabled, repositoryPublicId,
-        repositoryManagerInstanceId);
+    log.debug("{} quarantine for repository {}:{}", enabled ? "Enabling" : "Disabling", repositoryManagerInstanceId,
+        repositoryPublicId);
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
@@ -201,9 +203,8 @@ public class RepositoryService
 
     setQuarantine(repository, enabled);
 
-    String enabledState = enabled ? "enabled" : "disabled";
-    log.info("Quarantine is {} for repository {} repositoryManagerId {}", enabledState, repositoryPublicId,
-        repositoryManagerInstanceId);
+    log.info("{} quarantine for repository {}:{} ({})", enabled ? "Enabled" : "Disabled", repositoryManagerInstanceId,
+        repositoryPublicId, repository.getId());
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -217,11 +218,11 @@ public class RepositoryService
   {
     checkLicenseFeature();
 
-    log.debug("Evaluating components for repository {} with quarantine {} for repositoryManagerInstanceId {}",
-        repositoryPublicId, withQuarantine, repositoryManagerInstanceId);
-
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+
+    log.debug("Evaluating components for repository {}:{} ({}) with quarantine {}", repositoryManagerInstanceId,
+        repositoryPublicId, repository.getId(), withQuarantine);
 
     return evaluateComponents(repository, componentEvaluationDataRequestList, withQuarantine);
   }
@@ -268,8 +269,16 @@ public class RepositoryService
 
     if (!repository.isEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
         || repository.getFormat() == null) {
+      if (!repository.isEnabled()) {
+        log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
+            repository.getPublicId(), repository.getId());
+      }
       repository.setEnabled(true);
       if (withQuarantine) {
+        if (!repository.isQuarantineEnabled()) {
+          log.info("Enabled quarantine for repository {}:{} ({})", repository.getRepositoryManagerId(),
+              repository.getPublicId(), repository.getId());
+        }
         // If this is for quarantine make sure it's enabled in IQ
         repository.setQuarantineEnabled(true);
       }
@@ -290,9 +299,10 @@ public class RepositoryService
     
     RepositoryComponentEvaluationDataList result = repositoryPolicyEvaluator.evaluate(repository,
         componentEvaluationDataRequestList, withQuarantine);
-    log.debug("Evaluated {} components with quarantine {} for repository id {} in {} ms.",
-        componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getId(),
-        System.currentTimeMillis() - start);
+
+    log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) in {} ms.",
+        componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
+        repository.getPublicId(), repository.getId(), System.currentTimeMillis() - start);
 
     return result;
   }
@@ -300,9 +310,10 @@ public class RepositoryService
   public RepositoryReportSummary getReportSummary(String repositoryId) {
     checkLicenseFeature();
 
-    log.debug("Get report summary for repository {}", repositoryId);
-
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+
+    log.debug("Get report summary for repository {}:{} ({})", repository.getRepositoryManagerId(),
+        repository.getPublicId(), repositoryId);
 
     return getReportSummary(repository);
   }
@@ -365,11 +376,12 @@ public class RepositoryService
 
   public List<RepositoryReportDetail> getReportDetails(final String repositoryId)
   {
-    log.debug("Get report details for repository {}", repositoryId);
-
     checkLicenseFeature();
 
     final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+
+    log.debug("Get report details for repository {}:{} ({})", repository.getRepositoryManagerId(),
+        repository.getPublicId(), repository.getId());
 
     return getReportDetails(repository);
   }
@@ -488,12 +500,16 @@ public class RepositoryService
   public void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     checkLicenseFeature();
 
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     if (reevaluations.putIfAbsent(repositoryId, new AtomicInteger()) == null) {
-      reevalExecutor.execute(new RepositoryReevaluationTask(repositoryDAO.getByIdNotNull(repositoryId),
-          repositoryPolicyEvaluator, reevalExecutor, reevaluations));
+      log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
+          repository.getPublicId(), repositoryId);
+      reevalExecutor.execute(new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor,
+          reevaluations));
     }
     else {
-      log.debug("Skipping, reevaluation for repository {} is already in progress", repositoryId);
+      log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",
+          repository.getRepositoryManagerId(), repository.getPublicId(), repositoryId);
     }
   }
 

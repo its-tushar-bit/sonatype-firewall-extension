@@ -1,0 +1,9 @@
+<span class="dropdown-selector dropdown">
+  <a class="selected-item" ng-class="{disabled: vm.disabled}" data-toggle="dropdown">{{vm.currentlySelectedText()}}<span
+          class="caret"></span></a>
+  <ul class="dropdown-menu">
+    <li ng-repeat="item in vm.options" ng-click="vm.selectItem(item)">
+      <a>{{item[vm.optionNameParam]}}</a>
+    </li>
+  </ul>
+</span>

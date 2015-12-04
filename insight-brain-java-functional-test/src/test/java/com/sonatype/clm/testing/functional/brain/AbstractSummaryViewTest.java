@@ -96,6 +96,7 @@ public abstract class AbstractSummaryViewTest
     ActionDropDown.menu().shouldNotBe(visible);
     ActionDropDown.actionButton().click();
     ActionDropDown.menu().shouldBe(visible);
+    ActionDropDown.actionButton().click();
   }
 
   @Test

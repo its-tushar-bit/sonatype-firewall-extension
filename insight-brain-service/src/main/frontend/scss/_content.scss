@@ -201,6 +201,10 @@ body {
   &.with-icon {
     margin-top: -4px;
     margin-bottom: 19px;
+
+    > .fa {
+      margin-right: 8px;
+    }
   }
 }
 .sub-section {

@@ -5,12 +5,15 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.RemoveModal;
@@ -19,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -30,23 +34,30 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.*;
+import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class ApplicationSummaryViewTest
     extends AbstractSummaryViewTest
 {
+  @Rule
+  public TemporaryFolder tmpDir = new TemporaryFolder();
 
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";
 
@@ -224,5 +235,75 @@ public class ApplicationSummaryViewTest
     appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
     appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
     appliedCategoryList.element(0).chevron().shouldNotBe(visible);
+  }
+
+  @Override
+  @Test
+  public void testActionDropDown() {
+    super.testActionDropDown();
+
+    testEvaluateApplicationBinary();
+  }
+
+  private void testEvaluateApplicationBinary() {
+    File tempFile = null;
+
+    try {
+      tempFile = tmpDir.newFile("mockApplicationBinary.war");
+    }
+    catch (IOException e) {
+      fail("Could not create temporary mock binary to evaluate. " + e.getMessage());
+    }
+    finally {
+      if (tempFile != null) {
+        testCLMServer.getInsightServer().setResponseForURI("rest/application/analysis",
+            "{\"scanId\": \"blah\", \"timeToReport\": 0}", 200);
+        testCLMServer.getInsightServer().setResponseForURI("rest/application/analysis/blah",
+            getClass().getResource("/AppEvalReport/report.zip"), 200);
+
+        ActionDropDown.actionButton().click();
+        ActionDropDown.evaluateBinaryButton().shouldBe(visible).click();
+
+        EvaluateApplicationModal.root().shouldBe(visible);
+        EvaluateApplicationModal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
+        EvaluateApplicationModal.stageDropdown().selectedItem().shouldBe(
+            EvaluateApplicationModal.defaultStageText()).click();
+        EvaluateApplicationModal.stageDropdown().listItems().shouldHaveSize(4);
+
+        EvaluateApplicationModal.stageDropdown().listItem(2).shouldHave(text(StageTypes.RELEASE.getName()));
+        EvaluateApplicationModal.stageDropdown().listItem(2).click();
+        EvaluateApplicationModal.stageDropdown().selectedItem().shouldBe(text(StageTypes.RELEASE.getName()));
+
+        EvaluateApplicationModal.notifyRadioButtons().yes().shouldBe(visible, selected);
+        EvaluateApplicationModal.notifyRadioButtons().no().shouldBe(visible).shouldNotBe(selected);
+
+        EvaluateApplicationModal.cancelButton().shouldBe(visible, enabled);
+        EvaluateApplicationModal.uploadButton().shouldBe(visible, enabled).click();
+
+        EvaluateApplicationModal.bundleFileName().shouldBe(text(tempFile.getName()));
+        EvaluateApplicationModal.bundleAppName().shouldBe(text(application.getName()));
+        EvaluateApplicationModal.bundleStageName().shouldBe(text(StageTypes.RELEASE.getName()));
+
+        // Give a maximum of 1 minute for the file to be uploaded
+        EvaluateApplicationModal.evaluateBundleStatus().waitUntil(text("Done"), 60000);
+
+        EvaluateApplicationModal.closeButton().shouldBe(visible, enabled);
+
+        PolicyEvaluation policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(
+            application.getId(), StageTypes.RELEASE.getId());
+
+        assertThat(policyEvaluations, notNullValue());
+
+        EvaluateApplicationModal.viewReportButton().shouldBe(visible, enabled).click();
+
+        Selenide.switchTo().window(1);
+
+        assertThat(WebDriverRunner.getWebDriver().getCurrentUrl(),
+            equalTo(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.getScanId())));
+
+        WebDriverRunner.getWebDriver().close();
+        Selenide.switchTo().window(0);
+      }
+    }
   }
 }

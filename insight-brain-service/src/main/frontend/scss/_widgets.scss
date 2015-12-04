@@ -1043,3 +1043,66 @@
     }
   }
 }
+
+/*
+  ## Dropdown Selector
+
+  ```html
+  <span class="dropdown-selector dropdown">
+    <a class="selected-item disabled" data-toggle="dropdown">Disabled<span class="caret"></span></a>
+    <ul class="dropdown-menu">
+      <li><a>Option 1</a></li>
+      <li><a>Option 2</a></li>
+      <li><a>Option 3</a></li>
+    </ul>
+  </span>
+  <br>
+  <span class="dropdown-selector dropdown">
+    <a class="selected-item" data-toggle="dropdown">None<span class="caret"></span></a>
+    <ul class="dropdown-menu">
+      <li><a>Option 1</a></li>
+      <li><a>Option 2</a></li>
+      <li><a>Option 3</a></li>
+    </ul>
+  </span>
+  <br>
+  ```
+*/
+
+.dropdown-selector {
+  .selected-item,
+  .selected-item:hover {
+    width: 240px;
+    height: 22px;
+    line-height: 22px;
+    padding: 4px 34px 4px 8px;
+    position: relative;
+    border: 1px solid $grey-4;
+    z-index: $zindexDropdown + 1;
+    display: block;
+    color: $slate;
+    text-decoration: none;
+
+    .caret {
+      border-top: 6px solid $grey-4;
+      border-right: 5px solid transparent;
+      border-left: 5px solid transparent;
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+    }
+
+    &.disabled {
+      cursor: not-allowed;
+      border: 1px solid $grey-3;
+
+      .caret {
+        border-top: 6px solid $grey-3;
+      }
+    }
+  }
+
+  .dropdown-menu {
+    box-shadow: -4px 4px 10px 0 $slate;
+  }
+}

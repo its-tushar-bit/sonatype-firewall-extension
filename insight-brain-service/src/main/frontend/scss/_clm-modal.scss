@@ -225,6 +225,23 @@
   width: 400px;
 }
 
+#evaluate-application-modal {
+  p {
+    margin-top: 0;
+  }
+
+  table {
+    td:not(:first-child) {
+      padding-left: 10px;
+    }
+  }
+
+  .progress {
+    margin-bottom: 6px;
+    margin-top: 7px;
+  }
+}
+
 .loginPanel {
   z-index: $zindex-login-modal;
 }

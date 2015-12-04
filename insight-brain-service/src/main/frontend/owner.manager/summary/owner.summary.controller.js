@@ -6,9 +6,9 @@
 (function(angular) {
   'use strict';
 
-  function OwnerSummaryController($state, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
+  function OwnerSummaryController($state, $scope, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
                                   CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
-                                  SelectApplicationContactService)
+                                  SelectApplicationContactService, EvaluateApplicationModalService)
   {
     var vm = this;
 
@@ -18,6 +18,7 @@
     vm.stages = undefined;
     vm.doLoad = doLoad;
     vm.edit = edit;
+    vm.evaluateApp = evaluateApp;
     vm.deleteOwner = deleteOwner;
     vm.getShortTypeName = getShortTypeName;
     vm.getResourceTypeName = getResourceTypeName;
@@ -32,6 +33,16 @@
         id = $state.params[stateIdField];
 
     vm.doLoad();
+
+    if (vm.isApp) {
+      $scope.$on('reload.app.report.data', function() {
+        $http.get(CLMLocations.getApplicationSummaryUrl(id)).then(function(result) {
+          vm.applicationSummary = result.data;
+        }, function(error) {
+          vm.error = error;
+        });
+      });
+    }
 
     function doLoad() {
       var promises = [
@@ -68,6 +79,10 @@
 
     function edit() {
       OwnerEditor.open(vm.owner, type, siblings);
+    }
+
+    function evaluateApp() {
+      EvaluateApplicationModalService.open(vm.owner);
     }
 
     function selectContact(owner) {
@@ -108,8 +123,9 @@
   }
 
   OwnerSummaryController.$inject = [
-    '$state', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore', 'CLMLocations',
-    'CLMAppLocations', 'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService'
+    '$state', '$scope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore',
+    'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService',
+    'evaluate.application.modal.service'
   ];
 
   angular//

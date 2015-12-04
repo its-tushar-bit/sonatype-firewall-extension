@@ -37,6 +37,10 @@ public class ActionDropDown
     return root().find("#delete-owner-link");
   }
 
+  public static SelenideElement evaluateBinaryButton() {
+    return $("#eval-binary-link");
+  }
+
   public static SelenideElement actionButton() {
     return root().find("button");
   }

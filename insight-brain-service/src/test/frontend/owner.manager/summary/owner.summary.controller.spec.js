@@ -50,6 +50,7 @@ describe('owner.summary.controller.js', function() {
           };
 
           vm = $controller('OwnerSummaryController', {
+            $scope: {$on: angular.noop},
             $state: mockState,
             $window: mockWindow,
             DeleteModalService: mockDeleteService

@@ -45,7 +45,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -172,7 +172,7 @@ public class RepositoryReevaluationTaskTest
         assertThat(component.getMatchStateId(), is(matchState.getId()));
         assertThat(component.getComponentIdentifier(), is(componentIdentifier));
         assertThat(component.isQuarantined(), is(quarantined));
-        assertThat(component.getLastEvaluationTime(), greaterThan(timeBeforeReevaluation));
+        assertThat(component.getLastEvaluationTime(), is(greaterThanOrEqualTo(timeBeforeReevaluation)));
         return;
       }
     }

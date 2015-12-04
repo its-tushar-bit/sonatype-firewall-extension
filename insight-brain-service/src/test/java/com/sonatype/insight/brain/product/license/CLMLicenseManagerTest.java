@@ -325,4 +325,13 @@ public class CLMLicenseManagerTest
     assertThat(summary, is(notNullValue()));
     assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_LIFECYCLE));
   }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionFirewall() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.productEdition, is(CLMLicenseManager.PRODUCT_FIREWALL));
+  }
 }

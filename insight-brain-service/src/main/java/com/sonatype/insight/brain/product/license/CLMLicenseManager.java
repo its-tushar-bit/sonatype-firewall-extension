@@ -45,6 +45,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_LIFECYCLE = "Lifecycle";
 
+  public static final String PRODUCT_FIREWALL = "Firewall";
+
   public static final String PRODUCT_AUDITOR = "Auditor";
 
 
@@ -257,6 +259,9 @@ public class CLMLicenseManager
   private String getProductEdition() {
     if (hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       return(PRODUCT_LIFECYCLE);
+    }
+    else if (hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
+      return(PRODUCT_FIREWALL);
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
       return(PRODUCT_PRO_PLUS);

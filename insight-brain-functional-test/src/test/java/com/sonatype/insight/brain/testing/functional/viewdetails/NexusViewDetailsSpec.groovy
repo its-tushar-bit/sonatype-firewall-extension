@@ -53,7 +53,7 @@ class NexusViewDetailsSpec
       String gav = [JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_GROUP_ID],
                     JUNIT.componentIdentifier.coordinates[ComponentIdentifier.MAVEN_ARTIFACT_ID],
                     JUNIT.componentIdentifier.coordinates[ComponentIdentifier.VERSION]].join(' : ')
-      sectionHeaders[0] == "CLM Details for ${gav} in the context of CLM Application ${app.name}"
+      sectionHeaders[0] == "Component Details for ${gav} in the context of IQ Application ${app.name}"
       sectionHeaders[1] == 'Policy Violations'
       sectionHeaders[2] == 'License Analysis'
       sectionHeaders[3] == 'Security Issues'

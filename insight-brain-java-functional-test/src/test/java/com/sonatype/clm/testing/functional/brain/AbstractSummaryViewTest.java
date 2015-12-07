@@ -322,8 +322,6 @@ public abstract class AbstractSummaryViewTest
     User testUser = tempEntity.newUser("testUser", "Inherited Test", "User", "testuser@sonatype.com");
     Role readRole = tempEntity.newRole("Read Only", false, Permission.READ);
     Role writeRole = tempEntity.newRole("Write Only", false, Permission.WRITE);
-    RoleDAO roleDAO = new RoleDAO();
-    List<Role> roleList = new ArrayList<>(roleDAO.getApplicationRoles());
 
     List<Owner> parentOwners = new ArrayList<>();
 

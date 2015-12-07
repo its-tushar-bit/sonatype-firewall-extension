@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,8 @@ public class DiagnosticsCli
   }
 
   public void run(Parameters params) throws Exception {
+    Locale.setDefault(Locale.ENGLISH);
+
     File ods = new File(params.getWorkDirectory(), "data/ods").getAbsoluteFile();
     File h2 = new File(ods.getPath() + ".h2.db");
     if (!h2.isFile()) {
@@ -100,7 +103,8 @@ public class DiagnosticsCli
   private void logRowCounts(Connection connection) throws Exception {
     log.info("Row counts:");
     String[] tables = { "organization", "application", "policy", "policy_evaluation", "policy_violation",
-        "first_occurrence_policy_violation", "application_component" };
+        "first_occurrence_policy_violation", "application_component", "repository_manager", "repository",
+        "repository_component", "repository_policy_violation" };
     for (String table : tables) {
       try (Statement statement = connection.createStatement()) {
         ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table);
@@ -108,19 +112,32 @@ public class DiagnosticsCli
           log.info("  {}: {}", table, result.getLong(1));
         }
       }
+      catch (SQLException e) {
+        if (e.getMessage().contains(" not found")) {
+          continue;
+        }
+        log.error("  {}", table, e);
+      }
     }
   }
 
   private void logTableSizes(Connection connection) throws Exception {
     log.info("Table sizes:");
     String[] tables = { "organization", "application", "policy", "policy_evaluation", "policy_violation",
-        "first_occurrence_policy_violation", "application_component" };
+        "first_occurrence_policy_violation", "application_component", "repository_manager", "repository",
+        "repository_component", "repository_policy_violation" };
     for (String table : tables) {
       try (Statement statement = connection.createStatement()) {
         ResultSet result = statement.executeQuery("SELECT DISK_SPACE_USED('" + table + "')");
         while (result.next()) {
           log.info("  {}: {}", table, result.getLong(1));
         }
+      }
+      catch (SQLException e) {
+        if (e.getMessage().contains(" not found")) {
+          continue;
+        }
+        log.error("  {}", table, e);
       }
     }
   }

@@ -48,6 +48,9 @@
     if (typeof row === 'number') {
       me.show({ row : row, cell : 1 });
     }
+    else {
+      me.grid.setSelectedRows([]);
+    }
   };
 
   ComponentInformationPanelPlugin.prototype.rowChangedFn = function() {

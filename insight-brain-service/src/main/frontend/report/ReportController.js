@@ -21,7 +21,7 @@
         url: '/repository/{repositoryId}/result',
         controller: 'repository.report.controller',
         controllerAs: 'vm',
-        templateUrl: 'report-assets/report/repository.report.html?' + clmBuildTimestamp,
+        templateUrl: 'report/report/repository.report.html?' + clmBuildTimestamp,
         data : {
           title : 'Repository Results'
         }

@@ -2,9 +2,47 @@
   <div style="width: 990px;margin-top:50px">
     <div load-wrapper2="vm.error" reload="vm.doLoad()" error-message="Unable to load repository data." loading="!vm.repository">
       <h3 id='report-title'>
-        Repository results for <em>{{vm.repository.publicId}}</em>
+        <div id="report-title-left">
+          <div>
+            Repository results for <em>{{vm.repository.publicId}}</em>
+          </div>
+          <div ng-if="vm.repository.oldestEvalTimestamp" class="last-eval" ng-attr-title="{{vm.repository.oldestEvalTimestamp | date:'medium'}}">
+            Oldest evaluation {{vm.repository.oldestEvalTimestamp | ago}}
+          </div>
+        </div>
+        <div id="report-title-right">
+          <button class="btn btn-primary" title="Re-evaluate Policy" ng-click="vm.reEvaluatePolicy()">
+            <i class="icon-white icon-refresh"></i>
+          </button>
+        </div>
       </h3>
       <div id='evaluation-report-container' expandable-iframe='vm.reportUrl'></div>
     </div>
   </div>
+  <script type='text/ng-template' id='repository-reevaluate-modal-template'>
+    <div id="repository-reevaluate-modal">
+      <div class="modal-header">
+        <h3>Re-evaluate policy</h3>
+      </div>
+      <div class="modal-body">
+        <span>Note that re-evaluating policy could be a time consuming operation depending on the size of the
+          repository. If you choose to proceed, this modal will immediately be dismissed while the re-evaluation
+          runs in the background, updating the results as it progresses. So be sure to refresh the page to
+          view the updated results and watch out for the oldest evaluation time to tell whether the re-evaluation
+          completed.</span>
+      </div>
+      <div class="modal-footer" ng-class="{ error : vm.error }">
+        <div ng-if="vm.error">
+          {{ vm.error }}
+        </div>
+        <button id="perform-re-evaluate" ng-if="!vm.error" ng-disabled="vm.submitActive" class="btn btn-primary" ng-click="vm.reEvaluatePolicy()">
+          Re-evaluate
+        </button>
+        <button id="perform-re-evaluate-retry" ng-if="vm.error" ng-disabled="vm.submitActive" class="btn btn-error" ng-click="vm.reEvaluatePolicy()">
+          Retry
+        </button>
+        <button id="close-re-evaluate" ng-disabled="vm.submitActive" class="btn" type="button" ng-click="$dismiss()">Cancel</button>
+      </div>
+    </div>
+  </script>
 </div>

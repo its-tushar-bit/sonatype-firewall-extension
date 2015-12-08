@@ -79,6 +79,7 @@
     <css>/scss/policy-editor.scss</css>
     <css>/scss/main-header.scss</css>
     <css>/scss/roles.scss</css>
+    <css>/scss/reports.scss</css>
   </group>
 
   <group name='css'>
@@ -176,6 +177,8 @@
   <group name='report'>
     <js>/report/ReportController.js</js>
     <js>/report/ReportViolationsController.js</js>
+    <js>/report/repository.reevaluate.modal.controller.js</js>
+    <js>/report/repository.reevaluate.service.js</js>
     <js>/report/repository.report.controller.js</js>
   </group>
 

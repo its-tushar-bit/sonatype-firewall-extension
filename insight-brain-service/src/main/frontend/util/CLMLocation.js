@@ -213,6 +213,13 @@
          */
         getRepositoryInfoUrl: function(repositoryId) {
           return baseUrl.get() + '/rest/repositories/' + repositoryId;
+        },
+
+        /**
+         * @since 1.18
+         */
+        getRepositoryEvaluateUrl: function(repositoryId) {
+          return baseUrl.get() + '/rest/repositories/' + repositoryId + '/evaluate';
         }
       };
     }

@@ -1,0 +1,18 @@
+#report-title-left {
+  float: left;
+
+  .last-eval {
+    color: grey;
+    font-size: 12px;
+  }
+}
+#report-title-right {
+  text-align: right;
+  float: right;
+
+  .re-eval-alert {
+    display: inline;
+    padding: 2px 5px;
+    vertical-align: middle;
+  }
+}

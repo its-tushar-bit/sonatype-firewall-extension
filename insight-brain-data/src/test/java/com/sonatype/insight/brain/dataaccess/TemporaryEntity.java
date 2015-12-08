@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.configuration.ldap.LdapAuthenticationMethod;
@@ -741,9 +742,16 @@ public class TemporaryEntity
   }
 
   public Policy newPolicy(String ownerId, String name, int threatLevel) {
+    return newPolicy(ownerId, name, threatLevel, null, null);
+  }
+
+  public Policy newPolicy(String ownerId, String name, int threatLevel, Action action, String stageTypeId) {
     Policy policy = new Policy(null /* id */, name);
     policy.setOwnerId(ownerId);
     policy.setThreatLevel(threatLevel);
+    if (action != null && stageTypeId != null) {
+      policy.addAction(stageTypeId, action);
+    }
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);

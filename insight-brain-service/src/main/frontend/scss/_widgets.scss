@@ -1114,3 +1114,64 @@
     box-shadow: -4px 4px 10px 0 $slate;
   }
 }
+
+/*
+  ## Sort Column
+
+  ```html
+  <table class="policy-list">
+    <tr class="simple">
+      <th sort-column="name" class="selected-column">
+        <a class="sort-col">
+          <i class="fa fa-caret-up up"></i>
+          <i class="fa fa-caret-down"></i>
+           <span>
+            <span class="header-text">Column 1</span>
+          </span>
+        </a>
+      </th>
+      <th sort-column="name">
+        <a class="sort-col">
+          <i class="fa fa-caret-up"></i>
+          <i class="fa fa-caret-down"></i>
+          <span>
+            <span class="header-text">Column 2</span>
+          </span>
+        </a>
+      </th>
+    </tr>
+  </table>
+  ```
+*/
+.sort-col {
+  position: relative;
+  color: $slate;
+
+  &:hover, &:active, &:visited, &:link, &:focus {
+    color: $slate;
+    text-decoration: none;
+  }
+
+  .header-text {
+    margin-left: 16px;
+  }
+
+  .fa-caret-up {
+    position: absolute;
+    line-height: 7px;
+    top: 1px;
+  }
+  .fa-caret-down {
+    position: absolute;
+    line-height: 7px;
+    top: 8px;
+  }
+
+  .fa {
+    color: $grey-4;
+
+    &.up, &.down {
+      color: $slate;
+    }
+  }
+}

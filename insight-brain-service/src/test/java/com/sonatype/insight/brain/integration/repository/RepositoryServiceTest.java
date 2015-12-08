@@ -63,6 +63,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.inject.Binder;
+import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1618,7 +1619,8 @@ public class RepositoryServiceTest
   @Test
   public void testReevaluateTest() throws Exception {
     Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
+        DateUtils.addDays(new Date(), -1));
 
     ComponentEvaluationDataList response = new ComponentEvaluationDataList();
     ComponentEvaluationData component = new ComponentEvaluationData();
@@ -1637,7 +1639,7 @@ public class RepositoryServiceTest
     for (int i = 0; i < 100; i++) {
       Date lastEvaluationTime = repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0)
           .getLastEvaluationTime();
-      if (beforeEvaluation.before(lastEvaluationTime)) {
+      if (!beforeEvaluation.after(lastEvaluationTime)) {
         return;
       }
       Thread.sleep(10);

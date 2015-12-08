@@ -12,6 +12,17 @@
   module.service('PermissionService', [
     '$http', 'CLMAppLocations', '$q', function($http, CLMAppLocations, $q) {
       return {
+        isContextAuthorized: function (permissions, ownerType, ownerId) {
+          var deferred = $q.defer();
+
+          $http.put(CLMAppLocations.getPermissionContextTestUrl(ownerType, ownerId), permissions).then(function(data) {
+            deferred.resolve(permissions.length === data.data.length);
+          }, function() {
+            deferred.reject(arguments);
+          });
+
+          return deferred.promise;
+        },
         isAuthorized: function(permissions, globalContext) {
           var deferred = $q.defer();
 

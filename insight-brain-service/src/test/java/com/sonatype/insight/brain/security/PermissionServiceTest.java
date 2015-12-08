@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -117,6 +118,42 @@ public class PermissionServiceTest
     assertPermissions(
         service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
             EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
+  }
+
+  @Test
+  public void validateReadWritePermission_RepositoryContainerContext_AuthenticatedAsAdmin() {
+    prepareMocks(User.ADMIN_USERNAME);
+
+    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), true,
+        Permission.READ, Permission.WRITE);
+  }
+
+  @Test
+  public void validateReadWritePermission_RepositoryContainerContext_AuthenticatedAsNonAdmin() {
+    User user = tempEntity.newUser();
+
+    prepareMocks(user.getUsername());
+
+    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), false,
+        Permission.READ, Permission.WRITE);
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, user.getUsername());
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, user.getUsername());
+
+    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), true,
+        Permission.READ, Permission.WRITE);
+  }
+
+  @Test
+  public void validateReadWritePermission_RepositoryContainerContext_Unauthenticated() {
+    prepareMocks(null);
+
+    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), false,
+        Permission.READ, Permission.WRITE);
   }
 
   private void assertPermissions(Set<Permission> permissions, boolean match, Permission... expectedPermissions) {

@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -28,7 +29,11 @@ import org.apache.shiro.SecurityUtils;
 @Named
 public class PermissionResource
 {
-  public static final String RESOURCE_PATH = "/rest/user/permissions/{ownerType: global|application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "/rest/user/permissions";
+
+  public static final String OWNER_CONTEXT_PATH = "/{ownerType: global|application|organization}/{ownerId}";
+
+  public static final String SINGLETON_OWNER_CONTEXT_PATH = "/{ownerType: repository_container}";
 
   private final PermissionService permissionService;
 
@@ -38,6 +43,7 @@ public class PermissionResource
   }
 
   @PUT
+  @Path(OWNER_CONTEXT_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Set<Permission> validatePermission(@PathParam("ownerType") final OwnerType ownerType,
@@ -48,5 +54,15 @@ public class PermissionResource
     }
 
     return permissionService.hasPermissions(SecurityUtils.getSubject(), ownerType, ownerId, permissions);
+  }
+
+  @PUT
+  @Path(SINGLETON_OWNER_CONTEXT_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Set<Permission> validatePermission(@PathParam("ownerType") final OwnerType ownerType,
+      Set<Permission> permissions)
+  {
+    return validatePermission(ownerType, RepositoryContainer.REPOSITORY_CONTAINER_ID, permissions);
   }
 }

@@ -16,13 +16,14 @@
 (function() {
   'use strict';
 
-  var managementModule = angular.module('ManagementModule', ['ui.router', 'root.organization.migrate'], ['$stateProvider', function($stateProvider) {
+  var managementModule = angular.module('ManagementModule', ['ui.router', 'root.organization.migrate',
+      'PermissionServiceModule'], ['$stateProvider', function($stateProvider) {
     $stateProvider.state('management', {
       url: '/management',
       templateUrl: '../assets/management.html?' + clmBuildTimestamp,
       controller: 'ManagementController',
-      data : {
-        title : 'Management'
+      data: {
+        title: 'Management'
       }
     });
   }]);
@@ -39,7 +40,8 @@
 
   managementModule.controller('OwnerTreeViewController', [
     '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore', 'ProductFeatures',
-    function($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore, ProductFeatures) {
+    'PermissionService',
+    function($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore, ProductFeatures, PermissionService) {
       var organizations, applications, organizationWatcher, applicationWatcher,
           lastOrganizations = [], lastApplications = [];
 
@@ -295,13 +297,15 @@
 
         var loadPromises = [
           organizationStore.refresh(),
-          applicationStore.refresh()
+          applicationStore.refresh(),
+          PermissionService.isContextAuthorized(['READ'], 'repository_container')
         ];
 
         $q.all(loadPromises).then(function(results) {
           $scope.organizations = [];
           organizations = results[0];
           applications = results[1];
+          $scope.showRepositories = results[2];
 
           organizationsCollectionChanged();
           applicationsCollectionChanged();

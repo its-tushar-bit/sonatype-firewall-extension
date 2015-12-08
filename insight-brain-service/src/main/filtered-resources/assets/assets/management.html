@@ -46,7 +46,7 @@
             </div>
           </a>
         </div>
-        <div class="tree-view-organization-group">
+        <div class="tree-view-organization-group" ng-if="showRepositories">
           <a class="tree-view-item"
              ng-class="{ selected : $state.includes('management.repositories') }"
              ui-sref="management.repositories.security">

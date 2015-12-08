@@ -23,7 +23,12 @@ public class PermissionResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PermissionResource.RESOURCE_PATH);
+    return super.restRequest().path(PermissionResource.RESOURCE_PATH, PermissionResource.OWNER_CONTEXT_PATH);
+  }
+
+  protected HttpRequest singleOwnerRequest() {
+    return super.restRequest().path(PermissionResource.RESOURCE_PATH, PermissionResource.SINGLETON_OWNER_CONTEXT_PATH);
+
   }
 
   @Test
@@ -43,5 +48,24 @@ public class PermissionResourceTest
     assertResponseStatus(200, response);
     List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
     Assert.assertFalse(permissions.contains(Permission.CONFIGURE_SYSTEM));
+  }
+
+  @Test
+  public void testValidatePermission_AdminUserWithAdminPerm() throws Exception {
+    HttpResponse response = singleOwnerRequest().parameter(OwnerType.REPOSITORY_CONTAINER)
+        .body(EnumSet.of(Permission.READ)).put();
+    assertResponseStatus(200, response);
+    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
+    Assert.assertTrue(permissions.contains(Permission.READ));
+  }
+
+  @Test
+  public void testValidatePermission_NonAdminUserWithAdminPerm() throws Exception {
+    tempEntity.newUser("testNonAdminUser");
+    HttpResponse response = singleOwnerRequest().parameter(OwnerType.REPOSITORY_CONTAINER)
+        .body(EnumSet.of(Permission.READ)).auth("testNonAdminUser", "secret").put();
+    assertResponseStatus(200, response);
+    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
+    Assert.assertFalse(permissions.contains(Permission.READ));
   }
 }

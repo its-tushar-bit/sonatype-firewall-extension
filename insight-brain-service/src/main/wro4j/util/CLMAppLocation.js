@@ -152,6 +152,17 @@
           return baseUrl.get() + '/rest/user/permissions/' + (global ? 'global/global' : getServicePathWithId());
         },
 
+        /*
+         * @since 1.18.0
+         */
+        getPermissionContextTestUrl : function(ownerType, ownerId) {
+          var path = ownerType;
+          if (ownerId) {
+            path += '/' + ownerId;
+          }
+          return baseUrl.get() + '/rest/user/permissions/' + path;
+        },
+
         isApplication: isApplication,
         isOrganization: isOrganization,
         isGlobal: function() {

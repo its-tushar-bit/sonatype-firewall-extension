@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +38,11 @@ public class PermissionService
         case ORGANIZATION:
           contextMap = Collections.singletonMap(Key.ORGANIZATION_ID, new ContextParameter(Key.ORGANIZATION_ID, ownerId,
               false));
+          break;
+        case REPOSITORY_CONTAINER:
+          contextMap = new HashMap<>();
+          contextMap.put(AuthzContext.Key.ID, new ContextParameter(Key.ID, ownerId, false));
+          contextMap.put(AuthzContext.Key.TYPE, new ContextParameter(Key.TYPE, OwnerType.REPOSITORY_CONTAINER, false));
           break;
         default:
           contextMap = Collections.emptyMap();

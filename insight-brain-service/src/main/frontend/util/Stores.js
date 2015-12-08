@@ -167,6 +167,23 @@
     }
   ]);
 
+  storesModule.service('PolicyHierarchyStore', [
+    'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
+      var policyStoreTemplate = {
+        template: {
+          threatLevel: 5,
+          constraints: [],
+          actions: {}
+        },
+        getUrl: CLMAppLocations.getApplicablePolicies,
+        field: 'policiesByOwner',
+        storeField: 'policies'
+      };
+
+      return CachedHierarchyStore.get(policyStoreTemplate);
+    }
+  ]);
+
   /* A service which allows stores to be cached by a key, or if not provided the entity id.
    * Stores and their contents will be cached across the SPA.
    * configuration is the same as Resource except:

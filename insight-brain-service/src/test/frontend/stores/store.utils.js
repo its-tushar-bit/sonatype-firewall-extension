@@ -1,6 +1,7 @@
 var StoreUtils = function() {
   var me = {
-    createMockStore: createMockStore
+    createMockStore: createMockStore,
+    createMockHierarchyStoreData: createMockHierarchyStoreData
   };
 
   function createMockStore(storeName) {
@@ -53,6 +54,14 @@ var StoreUtils = function() {
         promises[promiseName].reject(value);
       };
     }
+  }
+
+  function createMockHierarchyStoreData(data, field) {
+    data[field].forEach(function(owner) {
+      owner.store = {create: jasmine.createSpy()};
+    });
+
+    return data[field];
   }
 
   return me;

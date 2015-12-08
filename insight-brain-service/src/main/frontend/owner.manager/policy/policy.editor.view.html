@@ -12,21 +12,50 @@
     </ul>
 </div>
 <div id="policy-editor" class="tile-editor-container">
-  <div class="tile">
-    <div id="policy-edit-summary" class="editor-section">
-      <div class="editor-section-header">Summary</div>
-    </div>
-    <div id="policy-edit-inheritance" class="editor-section">
-      <div class="editor-section-header">Inheritance</div>
-    </div>
-    <div id="policy-edit-constraints" class="editor-section">
-      <div class="editor-section-header">Constraints</div>
-    </div>
-    <div id="policy-edit-actions" class="editor-section">
-      <div class="editor-section-header">Actions and Notifications</div>
-    </div>
-    <div id="policy-edit-create" class="editor-footer">
-      <button class="btn btn-primary">Create</button>
-    </div>
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
+    <form name="vm.policyEditor" class="clm-form" role="form" ng-submit="vm.save()" novalidate form-mask mask-attach-to-body>
+      <div id="policy-edit-summary" class="editor-section">
+        <div class="editor-section-header">Summary</div>
+        <div class="section">
+          <div class="inline-fields">
+            <div class="field">
+              <label for="editor-policy-name">Policy Name</label>
+              <input id="editor-policy-name" type="text" name="policy" required
+                     ng-model="vm.dirtyPolicy.name"
+                     ng-maxlength="60"
+                     focus-input="true"
+                     valid-name-characters
+                     is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id"
+                     messages="{duplicate: 'Name is already in use'}"
+                     clm-input>
+            </div>
+            <div class="field">
+              <label for="editor-policy-threat-level">Threat Level</label>
+              <threat-level-selector id="editor-policy-threat-level"
+                                     ng-model='vm.dirtyPolicy.threatLevel' threat-type="policy"></threat-level-selector>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="policy-edit-inheritance" class="editor-section">
+        <div class="editor-section-header">Inheritance</div>
+      </div>
+      <div id="policy-edit-constraints" class="editor-section">
+        <div class="editor-section-header">Constraints</div>
+      </div>
+      <div id="policy-edit-actions" class="editor-section">
+        <div class="editor-section-header">Actions and Notifications</div>
+      </div>
+      <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+        <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyPolicy.isDirty()"
+                submit-type="vm.dirtyPolicy.id ? 'update' : 'create'">
+          {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}
+        </button><!--
+        --><button id="delete-policy-button" class='btn btn-tertiary' type="button"
+                ng-click="vm.deletePolicy()" ng-if="vm.dirtyPolicy && !vm.dirtyPolicy.$new">
+          <i class="fa fa-fw fa-trash"></i>Delete Policy
+        </button>
+      </div>
+    </form>
   </div>
 </div>

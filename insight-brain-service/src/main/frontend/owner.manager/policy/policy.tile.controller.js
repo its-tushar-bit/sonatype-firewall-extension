@@ -11,7 +11,7 @@
     vm.ownerName = undefined;
     vm.policiesByOwner = undefined;
     vm.error = undefined;
-    vm.actionStages = []
+    vm.actionStages = [];
     vm.editPolicy = editPolicy;
 
     vm.doLoad = doLoad;

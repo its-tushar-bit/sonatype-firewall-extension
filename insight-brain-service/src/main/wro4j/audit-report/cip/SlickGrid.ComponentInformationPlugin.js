@@ -19,6 +19,15 @@
     var me = this;
     me.grid = grid;
 
+    me.scope.$watch(function () {
+      return me.selectedComponent.get();
+    }, function () {
+      if (!me.selectedComponent.get()) {
+        me.grid.removeCellCssStyles('popout');
+        me.grid.setSelectedRows([]);
+      }
+    });
+
     grid.onClick.subscribe(function(e, args) {
       me.toggle(args.row);
     });
@@ -47,9 +56,6 @@
 
     if (typeof row === 'number') {
       me.show({ row : row, cell : 1 });
-    }
-    else {
-      me.grid.setSelectedRows([]);
     }
   };
 

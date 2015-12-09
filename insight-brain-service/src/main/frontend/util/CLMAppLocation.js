@@ -84,8 +84,8 @@
           return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
         },
 
-        getPolicyUrl: function() {
-          return baseUrl.get() + '/rest/policy/' + getServicePathWithId();
+        getPolicyUrl: function(ownerType, ownerId) {
+          return baseUrl.get() + '/rest/policy/' + (ownerType || getServicePath()) + '/' + (ownerId || getId());
         },
 
         getEntitiesUrl: function() {

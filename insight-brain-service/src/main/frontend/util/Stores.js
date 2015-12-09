@@ -176,6 +176,7 @@
           actions: {}
         },
         getUrl: CLMAppLocations.getApplicablePolicies,
+        crudUrl: CLMAppLocations.getPolicyUrl,
         field: 'policiesByOwner',
         storeField: 'policies'
       };

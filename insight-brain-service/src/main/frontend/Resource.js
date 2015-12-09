@@ -51,7 +51,7 @@
         $http.get(config.url, { params: config.params }).success(function(data) {
           if (localDeferred === storeDeferred) {
             var result = [];
-            
+
             if (config.dataProperty) {
               data = data[config.dataProperty];
             }
@@ -467,7 +467,11 @@
         $http.get(config.url, { params: config.params }).success(function (data) {
           if (storeDeferred === myDeferred) {
             angular.forEach(data[config.field], function (owner) {
-              var ownerStore = CLMResource.getStore(storeConfig);
+              if (config.crudUrl) {
+                storeConfig.url = config.crudUrl(owner.ownerType, owner.ownerId);
+              }
+
+              var ownerStore = CLMResource.getStore(angular.copy(storeConfig));
               owner[config.storeField] = ownerStore.set(owner[config.storeField]);
               // note a consumer attempting to get/refresh on the store will not have good results 
               owner.store = ownerStore;

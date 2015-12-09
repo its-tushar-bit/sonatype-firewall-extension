@@ -114,7 +114,7 @@ public class ScanConfiguration
 
   private boolean isScanItem(final RepositoryItem item) {
     final String path = item.getPath();
-    if (path.endsWith("-sonatype-clm-scan.xml.gz")) {
+    if (path.endsWith("-sonatype-clm-scan.xml.gz") || path.endsWith("-nexus-iq-scan.xml.gz")) {
       return true;
     }
     return false;

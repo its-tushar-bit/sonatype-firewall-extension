@@ -29,11 +29,11 @@ import org.apache.shiro.SecurityUtils;
 @Named
 public class PermissionResource
 {
-  public static final String RESOURCE_PATH = "/rest/user/permissions";
+  public static final String RESOURCE_PATH = "rest/user/permissions";
 
-  public static final String OWNER_CONTEXT_PATH = "/{ownerType: global|application|organization}/{ownerId}";
+  public static final String OWNER_CONTEXT_PATH = "{ownerType: global|application|organization}/{ownerId}";
 
-  public static final String SINGLETON_OWNER_CONTEXT_PATH = "/{ownerType: repository_container}";
+  public static final String SINGLETON_OWNER_CONTEXT_PATH = "{ownerType: repository_container}";
 
   private final PermissionService permissionService;
 

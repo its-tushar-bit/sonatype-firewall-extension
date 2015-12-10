@@ -9,32 +9,31 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class LTGEditorPage
+public class PolicyEditorPage
 {
   public static final int DEFAULT_THREAT_LEVEL = 5;
 
-  public static String urlToEdit(String ownerId, String licenseThreatGroupId) {
-    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/licenseThreatGroup/" +
-        licenseThreatGroupId;
+  public static String urlToEdit(String ownerType, String ownerId, String policyId) {
+    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/policy/" + policyId;
   }
 
-  public static String urlToCreate(String ownerId) {
-    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/licenseThreatGroup";
+  public static String urlToCreate(String ownerType, String ownerId) {
+    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/policy";
   }
 
   public static SelenideElement title() {
-    return $("#ltg-editor").$("h2");
+    return $("#policy-editor-summary h2");
   }
 
-  public static SelenideElement ltgName() {
-    return $("#editor-ltg-name");
+  public static SelenideElement policyName() {
+    return $("#editor-policy-name");
   }
 
   public static SelenideElement saveButton() {
-    return $("#save-ltg-button");
+    return $("#save-policy-button");
   }
 
   public static SelenideElement deleteButton() {
-    return $("#delete-ltg-button");
+    return $("#delete-policy-button");
   }
 }

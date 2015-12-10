@@ -12,6 +12,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class ThreatLevelSelector
 {
+  public static final int NUM_THREAT_LEVELS = 11;
+
   public static SelenideElement root() {
     return $("threat-level-selector");
   }

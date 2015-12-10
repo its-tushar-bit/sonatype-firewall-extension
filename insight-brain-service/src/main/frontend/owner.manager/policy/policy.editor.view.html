@@ -1,12 +1,12 @@
-<div id="policy-editor-summary" class="tile summary-tile">
+<div id="policy-editor-summary" class="tile summary-tile" load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
     <h2>
       <i class="fa size-20px fa-university slate">
-      </i>Edit Policy
+      </i>{{::vm.dirtyPolicy.id ? 'Edit' : 'New'}} Policy
     </h2>
     <ul class="nav nav-pills">
       <li class="active"><a data-toggle="pill" id="policy-summary-button" data-target="#policy-edit-summary">Summary</a></li>
       <li><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
-      <li><a data-toggle="pill" id="policy-constraints-labels-button" data-target="#policy-edit-constraints">Constraints</a></li>
+      <li><a data-toggle="pill" id="policy-constraints-button" data-target="#policy-edit-constraints">Constraints</a></li>
       <li><a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions and Notifications</a></li>
       <li><a data-toggle="pill" id="policy-create-button" data-target="#policy-edit-create">Create</a></li>
     </ul>
@@ -47,7 +47,7 @@
         <div class="editor-section-header">Actions and Notifications</div>
       </div>
       <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyPolicy.isDirty()"
+        <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyPolicy.isDirty()"
                 submit-type="vm.dirtyPolicy.id ? 'update' : 'create'">
           {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}
         </button><!--

@@ -160,9 +160,9 @@ public class LTGEditorTest
     ThreatLevelSelector.root().shouldBe(visible);
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
     ThreatLevelSelector.threatLevelList().shouldBe(visible);
-    ThreatLevelSelector.threatLevelListItems().shouldHaveSize(LTGEditorPage.NUM_THREAT_LEVELS);
+    ThreatLevelSelector.threatLevelListItems().shouldHaveSize(ThreatLevelSelector.NUM_THREAT_LEVELS);
 
-    for (int i = 0; i < LTGEditorPage.NUM_THREAT_LEVELS; i++) {
+    for (int i = 0; i < ThreatLevelSelector.NUM_THREAT_LEVELS; i++) {
       ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible);
       assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
     }

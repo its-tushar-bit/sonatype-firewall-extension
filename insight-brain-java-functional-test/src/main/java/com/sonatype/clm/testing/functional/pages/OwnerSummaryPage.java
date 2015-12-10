@@ -49,6 +49,10 @@ public class OwnerSummaryPage
       return $("#add-category-button");
     }
 
+    public static SelenideElement addPolicyButton() {
+      return $("#add-policy-button");
+    }
+
     public static SelenideElement localLabel(String labelName) {
       return $$("#owner-pill-comp-labels  ul div.title").findBy(text(labelName));
     }
@@ -59,6 +63,10 @@ public class OwnerSummaryPage
 
     public static SelenideElement localLTG(String ltgName) {
       return $$("#owner-pill-ltgs ul div.threat-group-title").findBy(text(ltgName));
+    }
+
+    public static SelenideElement localPolicy(String policyName) {
+      return $$("#owner-pill-policy table tr").findBy(text(policyName));
     }
 
     public static ErrorBox error() {

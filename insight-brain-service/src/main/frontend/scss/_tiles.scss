@@ -91,7 +91,7 @@
 
 .tile-scroll-container {
   margin : 8px;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: visible;
   width: calc(100% - 16px);
   height: calc(100% - 152px);

@@ -11,7 +11,7 @@
       <li><a data-toggle="pill" id="policy-create-button" data-target="#policy-edit-create">Create</a></li>
     </ul>
 </div>
-<div id="policy-editor" class="tile-editor-container">
+<div id="policy-editor" class="tile-editor-container tile-scroll-container">
   <div class="tile" load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
     <form name="vm.policyEditor" class="clm-form" role="form" ng-submit="vm.save()" novalidate form-mask mask-attach-to-body>
       <div id="policy-edit-summary" class="editor-section">

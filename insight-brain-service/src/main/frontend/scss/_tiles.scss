@@ -90,11 +90,11 @@
 }
 
 .tile-scroll-container {
-  padding : 8px;
+  margin : 8px;
   overflow-y: scroll;
   overflow-x: visible;
   width: calc(100% - 16px);
-  height: calc(100% - 175px);
+  height: calc(100% - 152px);
   //required for scrollspy
   position: relative;
 }
@@ -153,7 +153,7 @@
   }
 
   &.summary-tile {
-    margin: 8px 24px 0px 8px;
+    margin: 8px 8px 0px 8px;
 
     h2 {
       padding-bottom: 8px;

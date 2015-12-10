@@ -26,11 +26,14 @@
       </div>
       <form ng-submit="vm.reEvaluatePolicy()" form-mask="Starting evaluation">
         <div class="clm-modal-body">
-          <span>Note that re-evaluating policy could be a time consuming operation depending on the size of the
-            repository. If you choose to proceed, this modal will immediately be dismissed while the re-evaluation
-            runs in the background, updating the results as it progresses. So be sure to refresh the page to
-            view the updated results and watch out for the oldest evaluation time to tell whether the re-evaluation
-            completed.</span>
+          <span>
+            Note: Re-evaluating policy can be a time-consuming process depending on repository size. If you proceed,
+            the re-evaluation will run in the background and update the results as it progresses.
+          </span>
+          <p>
+            To view updated results, click the browser’s refresh button. The oldest evaluation time will be updated as
+            the re-evaluation progresses.
+          </p>
         </div>
         <div class="clm-modal-footer" ng-class="{ error : vm.error }">
           <div ng-if="vm.error" class="section with-icon">

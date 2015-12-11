@@ -140,6 +140,9 @@ public abstract class AbstractSummaryViewTest
 
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
+    // scroll to the labels tile
+    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
+    
     for (int i = 0; i < labelTile.labelLists().size(); i++) {
       TileSimpleList list = labelTile.labelList(i);
 
@@ -244,6 +247,9 @@ public abstract class AbstractSummaryViewTest
     int hierarchySize = getHierarchySize(currentOwner.getId());
     LabelTile labelTile = new LabelTile();
     labelTile.labelLists().shouldHaveSize(hierarchySize);
+
+    // scroll to the labels tile
+    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
 
     for (int i = 0; i < labelTile.labelLists().size(); i++) {
       TileSimpleList list = labelTile.labelList(i);
@@ -466,6 +472,9 @@ public abstract class AbstractSummaryViewTest
     LabelTile labelTile = new LabelTile();
     assertThat(inheritedLabels.size(), equalTo(parentOwners.size()));
     labelTile.labelLists().shouldHaveSize(parentOwners.size() + 1);
+
+    // scroll to the labels tile
+    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
 
     for (int i = 0; i < labelTile.labelLists().size(); i++) {
       TileSimpleList list = labelTile.labelList(i);

@@ -71,7 +71,7 @@ public abstract class AbstractFunctionalTest
     try {
       testCLMServer.start();
       Configuration.baseUrl = "http://localhost:" + testCLMServer.getCLMServer().getPort() + "/";
-      Configuration.reportsFolder = "target/selenide/reports";
+      Configuration.reportsFolder = "target/selenide-reports";
     }
     catch (Throwable e) {
       e.printStackTrace();

@@ -14,12 +14,14 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -51,6 +53,8 @@ class TagService
 
   private final OwnerDAO ownerDAO;
 
+  private final PolicyDAO policyDAO;
+
   private final PolicyTagDAO policyTagDAO;
 
   private final ApplicationDAO applicationDAO;
@@ -59,11 +63,14 @@ class TagService
 
   @Inject
   public TagService(ApplicationService applicationService, ApplicationTagDAO applicationTagDAO, TagDAO tagDAO,
-      OwnerDAO ownerDAO, PolicyTagDAO policyTagDAO, ApplicationDAO applicationDAO, OrganizationDAO organizationDAO) {
+                    OwnerDAO ownerDAO, PolicyTagDAO policyTagDAO, ApplicationDAO applicationDAO,
+                    OrganizationDAO organizationDAO, PolicyDAO policyDAO)
+  {
     this.applicationService = applicationService;
     this.applicationTagDAO = applicationTagDAO;
     this.tagDAO = tagDAO;
     this.ownerDAO = ownerDAO;
+    this.policyDAO = policyDAO;
     this.policyTagDAO = policyTagDAO;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -194,6 +201,11 @@ class TagService
     return tagDAO.getByPolicyId(policyId);
   }
 
+  /**
+   * @deprecated The new UI uses {@link #updatePolicyTags(String, String, List)} to manage {@link PolicyTag}. This can
+   * be removed after the completion of CLM-4528
+   */
+  @Deprecated
   @Authorize(permission = Permission.WRITE)
   public Tag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag)
   {
@@ -203,6 +215,49 @@ class TagService
     return tagDAO.getById(tagId);
   }
 
+  List<Tag> updatePolicyTags(String policyId, final List<Tag> newTags) {
+    final Policy policy = policyDAO.getByIdNotNull(policyId);
+    return updatePolicyTags(policy.getOwnerId(), policyId, newTags);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  List<Tag> updatePolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
+                             String policyId, final List<Tag> newTags)
+  {
+    try (TransactionContext tx = policyTagDAO.createTransactionContext()) {
+      tx.begin();
+
+      final List<PolicyTag> existingPolicyTags = policyTagDAO.getByPolicyId(tx, policyId);
+      for (PolicyTag existingPolicyTag : existingPolicyTags) {
+        boolean tagFound = false;
+        for (Tag newTag : newTags) {
+          if (existingPolicyTag.getTagId().equals(newTag.getId())) {
+            tagFound = true;
+            newTags.remove(newTag);
+            break;
+          }
+        }
+        if (!tagFound) {
+          policyTagDAO.delete(tx, existingPolicyTag);
+        }
+      }
+
+      for (Tag newTag : newTags) {
+        PolicyTag policyTag = new PolicyTag(policyId, newTag.getId());
+        policyTagDAO.insert(tx, policyTag);
+      }
+
+      tx.commit();
+    }
+
+    return tagDAO.getByPolicyId(policyId);
+  }
+
+  /**
+   * @deprecated The new UI uses {@link #updatePolicyTags(String, String, List)} to manage {@link PolicyTag}. This can
+   * be removed after the completion of CLM-4528
+   */
+  @Deprecated
   @Authorize(permission = Permission.WRITE)
   public void deletePolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId,
       String tagId)

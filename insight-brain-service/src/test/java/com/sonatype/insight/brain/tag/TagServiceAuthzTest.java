@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -158,6 +159,23 @@ public class TagServiceAuthzTest
     grantWritePermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tagService.addPolicyTag(org.getId(), policyId, tag);
+  }
+
+  @Test
+  public void testUpdatePolicyTags_Authorized() throws Exception {
+    grantWritePermission(org.getId());
+    tagService.updatePolicyTags(org.getId(), policyId, new ArrayList<Tag>());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyTags_Unauthorized() throws Exception {
+    login();
+    tagService.updatePolicyTags(org.getId(), policyId, new ArrayList<Tag>());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyTags_Unauthenticated() throws Exception {
+    tagService.updatePolicyTags(org.getId(), policyId, new ArrayList<Tag>());
   }
 
   @Test(expected = UnauthorizedException.class)

@@ -158,7 +158,7 @@
         },
 
         getPolicyTagUrl : function(policyId) {
-          return baseUrl.get() + '/rest/appliedTag/policy/' + policyId + '?orgId=' + getId();
+          return baseUrl.get() + '/rest/appliedTag/policy/' + policyId;
         },
 
         getPermissionTestUrl : function(global) {

@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,6 +31,9 @@ public class PolicyTagResourceTest
 
     String policyId = tempEntity.newPolicy(org.getId(), "PolicyTagResourceTest").getId();
 
+    Tag tagOne = tempEntity.newTag(org.getId(), "tag one");
+    Tag tagTwo = tempEntity.newTag(org.getId(), "tag two");
+
     HttpRequest request = restRequest().path(PolicyTagResource.RESOURCE_PATH).query("orgId", org.getId())
         .parameter(policyId);
 
@@ -38,14 +45,13 @@ public class PolicyTagResourceTest
     assertThat(tags.length, is(0));
 
     // Add
-    Tag tag = tempEntity.newTag(org.getId(), "tag name");
-    response = request.body(tag).post();
+    response = request.body(tagOne).post();
     assertResponseStatus(200, response);
     Tag policyTag = response.getBody(Tag.class);
     assertThat(policyTag, is(notNullValue()));
     assertThat(policyTag.getId(), is(notNullValue()));
-    assertThat(policyTag.getId(), is(tag.getId()));
-    assertThat(policyTag.getName(), is("tag name"));
+    assertThat(policyTag.getId(), is(tagOne.getId()));
+    assertThat(policyTag.getName(), is("tag one"));
     assertThat(policyTag.getOrganizationId(), is(org.getId()));
 
     // Get
@@ -54,10 +60,19 @@ public class PolicyTagResourceTest
     tags = response.getBody(Tag[].class);
     assertThat(tags, is(notNullValue()));
     assertThat(tags.length, is(1));
-    assertTag(tag, tags[0]);
+    assertTag(tagOne, tags[0]);
+
+    // Update
+    List<Tag> updatedTags = Collections.singletonList(tagTwo);
+    response = request.body(updatedTags).put();
+    assertResponseStatus(200, response);
+    tags = response.getBody(Tag[].class);
+    assertThat(tags, is(notNullValue()));
+    assertThat(tags.length, is(1));
+    assertTag(tagTwo, tags[0]);
 
     // Delete
-    response = request.subpath("{tagId}").parameter(tag.getId()).delete();
+    response = request.subpath("{tagId}").parameter(tagTwo.getId()).delete();
     assertResponseStatus(204, response);
 
     // Get

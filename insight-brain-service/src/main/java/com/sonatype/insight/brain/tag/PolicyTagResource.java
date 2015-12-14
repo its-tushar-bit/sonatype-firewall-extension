@@ -12,12 +12,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.google.inject.Inject;
@@ -46,6 +48,11 @@ public class PolicyTagResource
     return tagService.getPolicyTags(orgId, policyId);
   }
 
+  /**
+   * @deprecated The new UI uses {@link #updatePolicyTags(String, List)} to manage {@link PolicyTag}. This can be
+   * removed after the completion of CLM-4528
+   */
+  @Deprecated
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -53,6 +60,24 @@ public class PolicyTagResource
     return tagService.addPolicyTag(orgId, policyId, tag);
   }
 
+  /**
+   * Replace all existing {@link PolicyTag} with the list of {@link Tag} passed in
+   *
+   * @since 1.18.0
+   */
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<Tag> updatePolicyTags(@PathParam("policyId") String policyId, List<Tag> tags)
+  {
+    return tagService.updatePolicyTags(policyId, tags);
+  }
+
+  /**
+   * @deprecated The new UI uses {@link #updatePolicyTags(String, List)} to manage {@link PolicyTag}. This can be
+   * removed after the completion of CLM-4528
+   */
+  @Deprecated
   @DELETE
   @Path("{tagId}")
   public void deletePolicyTag(@QueryParam("orgId") String orgId, @PathParam("policyId") String policyId,

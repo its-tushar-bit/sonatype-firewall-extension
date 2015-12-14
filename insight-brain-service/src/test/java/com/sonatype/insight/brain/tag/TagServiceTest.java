@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,6 +57,26 @@ public class TagServiceTest
     assertThat(tags.get(0).getDescription(), is(tag.getDescription()));
     assertThat(tags.get(0).getColor(), is(tag.getColor()));
     assertThat(tags.get(0).getOrganizationId(), is(tag.getOrganizationId()));
+  }
+
+  @Test
+  public void testUpdatePolicyTags() {
+    Organization organization = tempEntity.newOrganization();
+    Policy policy = tempEntity.newPolicy(organization.getId(), "testUpdatePolicyTags_Policy");
+    Tag tagOne = tempEntity.newTag(organization.getId());
+    Tag tagTwo = tempEntity.newTag(organization.getId());
+    Tag tagThree = tempEntity.newTag(organization.getId());
+    tempEntity.newPolicyTag(policy.getId(), tagOne.getId());
+    tempEntity.newPolicyTag(policy.getId(), tagTwo.getId());
+
+    List<Tag> updatedPolicyTags = new ArrayList<>();
+    updatedPolicyTags.add(tagTwo);
+    updatedPolicyTags.add(tagThree);
+
+    updatedPolicyTags = tagService.updatePolicyTags(organization.getId(), policy.getId(), updatedPolicyTags);
+    assertThat(updatedPolicyTags, hasSize(2));
+    assertTagInList(updatedPolicyTags, tagTwo);
+    assertTagInList(updatedPolicyTags, tagThree);
   }
 
   /**

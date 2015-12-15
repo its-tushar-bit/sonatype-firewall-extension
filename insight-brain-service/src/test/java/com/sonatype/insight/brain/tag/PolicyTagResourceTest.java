@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.tag;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

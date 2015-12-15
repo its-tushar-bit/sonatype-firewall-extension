@@ -442,7 +442,7 @@
   ]);
 
   module.service('HierarchyStore', [
-    '$http', '$q', 'CLMResource', function($http, $q, CLMResource) {
+    '$http', '$q', 'CLMResource', 'CLMAppLocations', function($http, $q, CLMResource, CLMAppLocations) {
       function getErrorFn(deferred) {
         return function(data, status, headers, config) {
           deferred.reject({
@@ -472,7 +472,8 @@
             if (storeDeferred === myDeferred) {
               angular.forEach(data[config.field], function(owner) {
                 if (config.crudUrl) {
-                  storeConfig.url = config.crudUrl(owner.ownerType, owner.ownerId);
+                  storeConfig.url = config.crudUrl(owner.ownerType,
+                      owner.ownerType === 'application' ? CLMAppLocations.getEntityId() : owner.ownerId);
                 }
 
                 var ownerStore = CLMResource.getStore(angular.copy(storeConfig));

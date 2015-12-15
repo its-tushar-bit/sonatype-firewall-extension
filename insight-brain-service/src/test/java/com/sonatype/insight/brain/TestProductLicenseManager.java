@@ -146,7 +146,8 @@ public class TestProductLicenseManager
 
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
-    private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION };
+    private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_FIREWALL };
 
     private Set<CLMEnforcementPoint> enforcementPoints = new HashSet<>();
 

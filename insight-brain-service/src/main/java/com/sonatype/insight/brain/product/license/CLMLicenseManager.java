@@ -339,8 +339,7 @@ public class CLMLicenseManager
         features.add(FEATURE_POLICY_MONITORING);
         features.add(FEATURE_DASHBOARD);
       }
-      if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)
-          || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
+      if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
         features.add(FEATURE_REPOSITORY_FIREWALL);
       }
     }

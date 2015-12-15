@@ -205,7 +205,7 @@ public class CLMLicenseManagerTest
   public void testHasRepositoryFirewall_NexusLifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     installLicense();
-    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(true));
+    assertThat(clmLicenseManager.hasRepositoryFirewall(), is(false));
   }
 
   @Test

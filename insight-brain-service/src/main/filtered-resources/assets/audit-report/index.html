@@ -33,25 +33,27 @@
                 <div class="label_sml"><span class="value_sml">{{percentKnownComponents}}%</span> OF ALL COMPONENTS ARE OPEN SOURCE</div>
               </span>
             </div>
-            <div class="span21" tooltip="A policy alert advises you of components that violate one or more policies within the application." tooltip-placement="bottom">
-              <div id="policyViolationContainer" class="violation-container" ng-if="policyViolationCount > 0">
-                <div class="value_lrg pval">
-                  <span class="pv-red" ng-if="criticalComponentCount">
-                    <span class="bdg">{{criticalComponentCount}}</span>
-                  </span>
-                  <span class="pv-orange" ng-if="severeComponentCount">
-                    <span class="bdg">{{severeComponentCount}}</span>
-                  </span>
-                  <span class="pv-yellow" ng-if="moderateComponentCount">
-                    <span class="bdg">{{moderateComponentCount}}</span>
-                  </span>
+            <div class="span21">
+              <div class="violation-container" tooltip="A policy alert advises you of components that violate one or more policies within the application." tooltip-placement="bottom">
+                <div id="policyViolationContainer" ng-if="policyViolationCount > 0">
+                  <div class="value_lrg pval">
+                    <span class="pv-red" ng-if="criticalComponentCount">
+                      <span class="bdg">{{criticalComponentCount}}</span>
+                    </span>
+                    <span class="pv-orange" ng-if="severeComponentCount">
+                      <span class="bdg">{{severeComponentCount}}</span>
+                    </span>
+                    <span class="pv-yellow" ng-if="moderateComponentCount">
+                      <span class="bdg">{{moderateComponentCount}}</span>
+                    </span>
+                  </div>
+                  <div class="label_med">POLICY ALERT{{policyViolationCount > 0 ? 'S' : ''}}</div>
+                  <div class="label_sml">AFFECTING <span class="value_sml">{{affectedComponentCount}}</span> COMPONENT{{affectedComponentCount > 0 ? 'S' : ''}}</div>
                 </div>
-                <div class="label_med">POLICY ALERT{{policyViolationCount > 0 ? 'S' : ''}}</div>
-                <div class="label_sml">AFFECTING <span class="value_sml">{{affectedComponentCount}}</span> COMPONENT{{affectedComponentCount > 0 ? 'S' : ''}}</div>
-              </div>
-              <div class="violation-container" ng-if="policyViolationCount === 0">
-                <div class="value_lrg pval">0</div>
-                <div class="label_med">POLICY ALERTS</div>
+                <div class="violation-container" ng-if="policyViolationCount === 0">
+                  <div class="value_lrg pval">0</div>
+                  <div class="label_med">POLICY ALERTS</div>
+                </div>
               </div>
               <div id="quarantineContainer" class="violation-container">
                 <div class="value_lrg">

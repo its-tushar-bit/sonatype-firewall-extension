@@ -119,6 +119,6 @@ public class LdapConfigurationTest
     LdapConfigurationPage.deleteButton().click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
     LdapConfigurationPage.root().should(disappear);
-    Selenide.Wait().until(notUrlPredicate(LdapConfigurationPage.URL));
+    waitUntilNotUrl(LdapConfigurationPage.URL);
   }
 }

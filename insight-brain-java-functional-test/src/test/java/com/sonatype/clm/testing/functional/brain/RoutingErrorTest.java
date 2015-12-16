@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizationNode;
 import com.sonatype.clm.testing.functional.elements.RoutingErrorBox;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -31,6 +32,7 @@ public class RoutingErrorTest
   @Before
   public void before() {
     refreshOrOpen(OrganizationManagementPage.URL);
+    RootOrganizationNode.treeViewElement().shouldBe(Condition.visible);
   }
 
   @Test

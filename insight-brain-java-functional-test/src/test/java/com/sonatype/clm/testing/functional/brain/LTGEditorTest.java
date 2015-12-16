@@ -99,7 +99,7 @@ public class LTGEditorTest
     refresh();
 
     SummaryTile.localLTG(ltg.getName()).click();
-    assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToEdit(organization.getId(), ltg.getId())));
+    waitUntilUrl(LTGEditorPage.urlToEdit(organization.getId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
@@ -148,7 +148,7 @@ public class LTGEditorTest
   }
 
   private void assertNewLTGStateIsCorrect() {
-    assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToCreate(organization.getId())));
+    waitUntilUrl(LTGEditorPage.urlToCreate(organization.getId()));
     LTGEditorPage.title().shouldHave(text("New"));
     LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
@@ -201,7 +201,7 @@ public class LTGEditorTest
     List<String> pickedLicenseNames = new ArrayList<>();
 
     for (int i = 0; i < 3; i++) {
-      DoubleColumnPicker.availableItem(i).checkbox().click();
+      DoubleColumnPicker.availableItem(i).checkbox().shouldBe(visible).click();
       pickedLicenseNames.add(DoubleColumnPicker.availableItem(i).name().text());
     }
 

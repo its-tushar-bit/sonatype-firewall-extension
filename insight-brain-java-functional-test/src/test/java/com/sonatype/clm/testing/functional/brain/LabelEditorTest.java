@@ -184,14 +184,10 @@ public class LabelEditorTest
     DeleteModal.root().shouldNotBe(visible);
 
     String createLabelUrl = LabelEditorPage.urlToCreate("organization", app.getOrganizationId());
-    assertThat(currentUrl(), containsString(createLabelUrl));
+    waitUntilUrl(createLabelUrl);
 
     label = labelDAO.getById(label.getId());
     assertThat(label, is(nullValue()));
-  }
-
-  private String currentUrl() {
-    return WebDriverRunner.getWebDriver().getCurrentUrl();
   }
 
   private void assertInitialStateIsCorrect() {

@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -159,11 +160,13 @@ public class ApplicationSummaryViewTest
       ActionDropDown.reportLink(i).followLink();
       Selenide.switchTo().window(1);
 
-      assertThat(WebDriverRunner.getWebDriver().getCurrentUrl(),
-          equalTo(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.get(i).getScanId())));
+      waitUntilUrl(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.get(i).getScanId()));
 
       WebDriverRunner.getWebDriver().close();
       Selenide.switchTo().window(0);
+
+      waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
       ActionDropDown.actionButton().click();
     }
   }
@@ -298,8 +301,7 @@ public class ApplicationSummaryViewTest
 
         Selenide.switchTo().window(1);
 
-        assertThat(WebDriverRunner.getWebDriver().getCurrentUrl(),
-            equalTo(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.getScanId())));
+        waitUntilUrl(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.getScanId()));
 
         WebDriverRunner.getWebDriver().close();
         Selenide.switchTo().window(0);

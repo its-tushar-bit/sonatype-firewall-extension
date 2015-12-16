@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ApplicationCategoryEditorPage
 {
   public static String urlToEdit(String ownerId) {
-    return "new/assets/index.html#/management/application/" + ownerId + "/categories/edit";
+    return "new/assets/index.html#/management/edit/application/" + ownerId + "/category";
   }
 
   public static SelenideElement root() {

@@ -72,8 +72,8 @@ public class DoubleColumnPicker
       return root.$("span");
     }
 
-    public SelenideElement checkbox() {
-      return root.$("input[type='checkbox']");
+    public Checkbox checkbox() {
+      return new Checkbox(root);
     }
   }
 }

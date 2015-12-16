@@ -48,8 +48,6 @@ public class ApplicationCategoryEditorTest
 
   private static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private TagDAO tagDAO = new TagDAO();
-
   private Application application;
 
   @BeforeClass
@@ -108,12 +106,15 @@ public class ApplicationCategoryEditorTest
 
     ApplicationCategoryEditorPage.updateButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
 
+    // Refresh page to ensure values are propagated to server
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
+    category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
+    category2Item = ApplicationCategoryEditorPage.associationEditor().item(1, 0);
 
     category1Item.checkBox().shouldBe(selected);
-    assertThat(getApplicableCategoryByName(application.getId(), category1.getName()), is(not(nullValue())));
+    category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     category2Item.checkBox().shouldNotBe(selected);
-    assertThat(getApplicableCategoryByName(application.getId(), category2.getName()), is(nullValue()));
+    category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
   }
 
   @Test
@@ -156,17 +157,20 @@ public class ApplicationCategoryEditorTest
     // select the items in the first row
     AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
     AssociationEditorElement category6Item = ApplicationCategoryEditorPage.associationEditor().item(0, 1);
-    category1Item.checkBox().click();
-    category6Item.checkBox().click();
+    category1Item.checkBox().shouldBe(visible).click();
+    category6Item.checkBox().shouldBe(visible).click();
 
     ApplicationCategoryEditorPage.updateButton().shouldBe(enabled).shouldNotHave(CLM.disabledClass()).click();
 
+    // Refresh page to ensure values are propagated to server
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
+    category1Item = ApplicationCategoryEditorPage.associationEditor().item(0, 0);
+    category6Item = ApplicationCategoryEditorPage.associationEditor().item(0, 1);
 
     category1Item.checkBox().shouldBe(selected);
-    assertThat(getApplicableCategoryByName(application.getId(), category1.getName()), is(not(nullValue())));
+    category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     category6Item.checkBox().shouldBe(selected);
-    assertThat(getApplicableCategoryByName(application.getId(), category6.getName()), is(not(nullValue())));
+    category6Item.description().shouldBe(visible).shouldHave(text(category6.getName()));
 
     // make sure the remaining items aren't selected and haven't been applied
     for (int i = 1; i < 5; i++) {
@@ -174,18 +178,6 @@ public class ApplicationCategoryEditorTest
       AssociationEditorElement secondItem = ApplicationCategoryEditorPage.associationEditor().item(i, 1);
       firstItem.checkBox().shouldNotBe(selected);
       secondItem.checkBox().shouldNotBe(selected);
-      assertThat(getApplicableCategoryByName(application.getId(), categories.get(i).getName()), is(nullValue()));
-      assertThat(getApplicableCategoryByName(application.getId(), categories.get(i + 5).getName()), is(nullValue()));
     }
   }
-
-  private Tag getApplicableCategoryByName(String applicationId, String categoryName) {
-    for (Tag tag : tagDAO.getByApplicationId(applicationId)) {
-      if (categoryName.equals(tag.getName())) {
-        return tag;
-      }
-    }
-    return null;
-  }
-
 }

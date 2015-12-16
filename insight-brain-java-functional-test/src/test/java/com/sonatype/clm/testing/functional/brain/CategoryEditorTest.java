@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import com.codeborne.selenide.WebDriverRunner;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -32,7 +31,6 @@ import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Color.dark_red;
 import static com.sonatype.insight.brain.model.Color.light_green;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -153,14 +151,10 @@ public class CategoryEditorTest
     // then the modal should be hidden 800 ms after delete REST call is successful
     DeleteModal.root().shouldNotBe(visible);
 
-    assertThat(currentUrl(), containsString(CategoryEditorPage.urlToCreate(org.getId())));
+    waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
 
     category = tagDAO.getById(category.getId());
     assertThat(category, is(nullValue()));
-  }
-
-  private String currentUrl() {
-    return WebDriverRunner.getWebDriver().getCurrentUrl();
   }
 
   private void assertInitialStateIsCorrect() {

@@ -85,16 +85,14 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.items().shouldHaveSize(3);
       detailGroup.item(1).root().shouldBe(visible).click();
       detailGroup.item(1).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
-      assertThat(WebDriverRunner.url(),
-          endsWith(CategoryEditorPage.urlToCreate(currentOwner.getPublicId())));
+      waitUntilUrl(CategoryEditorPage.urlToCreate(currentOwner.getPublicId()));
 
       back();
 
       detailGroup.item(2).root().shouldBe(visible).shouldHave(text(category.getName())).click();
       detailGroup.item(2).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
       detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
-      assertThat(WebDriverRunner.url(),
-          endsWith(CategoryEditorPage.urlToEdit(currentOwner.getPublicId(), category.getId())));
+      waitUntilUrl(CategoryEditorPage.urlToEdit(currentOwner.getPublicId(), category.getId()));
 
       back();
     }
@@ -119,16 +117,15 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.items().shouldHaveSize(3);
     detailGroup.item(1).root().shouldBe(visible).click();
     detailGroup.item(1).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
-    assertThat(WebDriverRunner.url(),
-        endsWith(LabelEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId())));
+    waitUntilUrl(LabelEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId()));
 
     back();
 
     detailGroup.item(2).root().shouldBe(visible).shouldHave(text(label.getLabel())).click();
     detailGroup.item(2).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
     detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(label.getColor().toString()));
-    assertThat(WebDriverRunner.url(), endsWith(LabelEditorPage.urlToEdit(currentOwner.getType().toString(),
-        currentOwner.getPublicId(), label.getId())));
+    waitUntilUrl(
+        LabelEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), label.getId()));
 
     back();
 
@@ -145,13 +142,13 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.items().shouldHaveSize(3);
       detailGroup.item(1).root().shouldBe(visible).click();
       detailGroup.item(1).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
-      assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToCreate(currentOwner.getPublicId())));
+      waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getPublicId()));
 
       back();
 
       detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ltg.getName())).click();
       detailGroup.item(2).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
-      assertThat(WebDriverRunner.url(), endsWith(LTGEditorPage.urlToEdit(currentOwner.getPublicId(), ltg.getId())));
+      waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getPublicId(), ltg.getId()));
 
       back();
     }

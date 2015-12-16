@@ -32,6 +32,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.relocated.common.base.Predicate;
+import com.google.relocated.common.base.Predicates;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -62,6 +63,16 @@ public abstract class AbstractFunctionalTest
   protected static RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   protected static TestCLMServer testCLMServer;
+
+  private static Predicate<WebDriver> urlEqualsPredicate(final String url) {
+    return new Predicate<WebDriver>()
+    {
+      @Override
+      public boolean apply(WebDriver input) {
+        return url.equals(WebDriverRunner.url()) || (Configuration.baseUrl + url).equals(WebDriverRunner.url());
+      }
+    };
+  }
 
   static {
     productLicenseManager = new TestProductLicenseManager();
@@ -182,15 +193,12 @@ public abstract class AbstractFunctionalTest
     }
   }
 
-  protected static Predicate<WebDriver> notUrlPredicate(final String url) {
-    return new Predicate<WebDriver>()
-    {
+  protected static void waitUntilUrl(final String url) {
+    Selenide.Wait().withMessage("Url did not become " + url).until(urlEqualsPredicate(url));
+  }
 
-      @Override
-      public boolean apply(WebDriver input) {
-        return !url.equals(WebDriverRunner.url());
-      }
-    };
+  protected static void waitUntilNotUrl(final String url) {
+    Selenide.Wait().withMessage("Url did not switch from " + url).until(Predicates.not(urlEqualsPredicate(url)));
   }
 
   protected static void clearAlerts() {

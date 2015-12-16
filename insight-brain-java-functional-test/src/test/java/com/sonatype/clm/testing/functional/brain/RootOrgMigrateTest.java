@@ -107,6 +107,8 @@ public class RootOrgMigrateTest
     RootOrgMigrateModal.organizationSelect().shouldBe(Condition.visible).selectOption(ORG_NAME);
     RootOrgMigrateModal.continueButton().shouldBe(Condition.enabled).click();
 
+    RootOrgMigrateModal.root().shouldNotBe(Condition.visible);
+
     Mockito.verify(rootOrganizationConfigMigrationUtils).setSourceOrganizationId(org.getId());
 
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);

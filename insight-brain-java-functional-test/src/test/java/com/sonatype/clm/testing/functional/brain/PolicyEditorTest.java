@@ -105,8 +105,7 @@ public class PolicyEditorTest
 
 
   private void assertNewPolicyStateIsCorrect() {
-    assertThat(WebDriverRunner.url(),
-        endsWith(PolicyEditorPage.urlToCreate(organization.getType().toString(), organization.getId())));
+    waitUntilUrl(PolicyEditorPage.urlToCreate(organization.getType().toString(), organization.getId()));
     PolicyEditorPage.title().shouldHave(text("New"));
 
     assertNewPolicyStateIsCorrect_summarySection();
@@ -130,8 +129,7 @@ public class PolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy) {
-    assertThat(WebDriverRunner.url(),
-        endsWith(PolicyEditorPage.urlToEdit(organization.getType().toString(), organization.getId(), policy.getId())));
+    waitUntilUrl(PolicyEditorPage.urlToEdit(organization.getType().toString(), organization.getId(), policy.getId()));
     PolicyEditorPage.title().shouldHave(text("Edit"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy);

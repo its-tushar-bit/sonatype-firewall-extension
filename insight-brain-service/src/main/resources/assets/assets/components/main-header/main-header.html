@@ -159,7 +159,7 @@
                     <div class="alert alert-danger">{{errorText}}</div>
                   </li>
                   <li ng-if="!errorText && !loading" ng-repeat="notification in notifications" ng-click="openDetail(notification); $event.stopPropagation();" class="notification-link" ng-class="{'viewed': notification.viewed, 'selected': selectedNotification == notification}">
-                    <div class="notification-age">{{notification.age}}</div>
+                    <div class="notification-age">{{notification.age ? notification.age : '&nbsp;'}}</div>
                     <div class="notification-age-label">{{notification.ageQualifier}}</div>
                     <div class="notification-text">{{notification.summaryText}}</div>
                   </li>

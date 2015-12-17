@@ -126,15 +126,13 @@
       'registerCoordsViewDetailsListener': function (listener) {
         waitOnInjector(['Coordinates', 'OwnerContext', 'Properties', '$rootScope', function (Coordinates, OwnerContext, Properties, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
-            var coordinates = [],
-                origVersion;
+            var coordinates = [];
 
             angular.forEach(Coordinates.get(), function (value, field) {
               coordinates.push(field);
 
               if ('version' === field) {
                 coordinates.push(version);
-                origVersion = value;
               }
               else {
                 coordinates.push(value);
@@ -142,8 +140,8 @@
             });
 
             listener(OwnerContext.ownerId, Coordinates.getFormat(), coordinates,
-                    version === origVersion ? Properties.getHash() : null,
-                    version === origVersion ? Properties.getMatchState() : null,
+                    Properties.getHash(),
+                    Properties.getMatchState(),
                     Properties.getProprietary());
           });
         }]);

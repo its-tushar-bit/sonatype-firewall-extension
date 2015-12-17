@@ -14,7 +14,7 @@
         return properties.filename;
       },
       getHash : function () {
-        return Coordinates.isOriginalVersion() ? properties.hash : null;
+        return properties.hash;
       },
       getMatchState : function () {
         return Coordinates.isOriginalVersion() ? properties.matchState : null;

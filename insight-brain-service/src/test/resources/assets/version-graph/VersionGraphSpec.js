@@ -130,7 +130,7 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
-      it('Selected', inject(function (Coordinates, Properties) {
+      it('Selected', inject(function (Coordinates) {
         var gav = {
           groupId : 'gid',
           artifactId : 'aid',
@@ -141,17 +141,14 @@ var clmEndpointTemplate = {
           version : '2'
         };
         Coordinates.set('maven', gav);
-        Properties.setHash('abcd');
 
         Coordinates.setSelected(sel);
         expect(Coordinates.get()).toEqual(gav);
         expect(Coordinates.getSelected()).toEqual(sel);
-        expect(Properties.getHash()).toEqual(null);
 
         Coordinates.setSelected(angular.extend({}, sel, { version : gav.version }));
         expect(Coordinates.getSelected()).toEqual(gav);
         expect(Coordinates.getFormat()).toEqual('maven');
-        expect(Properties.getHash()).toEqual('abcd');
       }));
 
       it('Insight.setGAV', inject(function (Coordinates, Properties) {
@@ -446,9 +443,10 @@ var clmEndpointTemplate = {
         });
         scope.$apply(function () {
           Coordinates.setSelected({ groupId : 'foo', artifactId : 'bar', version : '2' });
+          Properties.setHash('abcd');
         });
         $httpBackend.flush();
-        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven', null, null, true, {
+        expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith('application', 'myFirstApp', 'maven', 'abcd', null, true, {
           groupId : 'foo',
           artifactId : 'bar',
           version : '2'
@@ -603,10 +601,11 @@ var clmEndpointTemplate = {
         expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '1.0.0', 'sources', 'jar', 'abcd', 'similar', true);
       });
 
-      it('different version selected', inject(function (Coordinates) {
+      it('different version selected', inject(function (Coordinates, Properties) {
         Coordinates.setSelected({ version : '2.0.0' });
+        Properties.setHash('1234');
         scope.$emit('viewDetails', '2.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', null, null, true);
+        expect(listener).toHaveBeenCalledWith('myapp', 'org.group', 'stuff', '2.0.0', 'sources', 'jar', '1234', null, true);
       }));
     });
 
@@ -624,9 +623,11 @@ var clmEndpointTemplate = {
         expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '1.0.0'], 'abcd', 'similar', true);
       }));
 
-      it('different version selected', inject(function ($rootScope) {
+      it('different version selected', inject(function (Coordinates, Properties) {
+        Coordinates.setSelected({ version : '2.0.0' });
+        Properties.setHash('1234');
         scope.$emit('viewDetails', '2.0.0');
-        expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '2.0.0'], null, null, true);
+        expect(listener).toHaveBeenCalledWith('myapp', 'maven', ['groupId', 'org.group', 'artifactId', 'stuff', 'classifier', 'sources', 'extension', 'jar', 'version', '2.0.0'], '1234', null, true);
       }));
     });
 
@@ -634,7 +635,7 @@ var clmEndpointTemplate = {
       var scope = null,
           parentScope = null;
 
-      beforeEach(inject(function ($compile, $rootScope, Coordinates) {
+      beforeEach(inject(function ($compile, $rootScope, Coordinates, Properties) {
         spyOn(Insight, 'ComponentInformation').andReturn(undefined);
 
         parentScope = $rootScope.$new();
@@ -712,6 +713,7 @@ var clmEndpointTemplate = {
           "securityThreats": ["Moderate", "Severe"]
         }, {
           "componentIdentifier" : { "coordinates" : { "version" : "5.0.28" } },
+          "hash": "caee9b1866f734373bdb",
           "popularity": 67,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["NOT-PROVIDED"],
@@ -784,6 +786,7 @@ var clmEndpointTemplate = {
           "securityThreats": ["Moderate", "Severe"]
         }, {
           "componentIdentifier" : { "coordinates" : { "version" : "5.5.23" } },
+          "hash" : "b98a1711908a4641301a",
           "popularity": 100,
           "majorRevisionStep": false,
           "observedLicenseThreats": ["LIBERAL"],
@@ -794,8 +797,9 @@ var clmEndpointTemplate = {
         }];
 
         Coordinates.set('maven', {
-          version : '5.0.24'
+          version : '5.0.28'
         });
+        Properties.setHash('abcd');
 
         $compile('<div graph="componentDetails"></div>')(parentScope);
         parentScope.$apply();
@@ -805,9 +809,14 @@ var clmEndpointTemplate = {
         parentScope.$destroy();
       });
 
-      it('Version Click', inject(function (Coordinates) {
+      it('Version Click', inject(function (Coordinates, Properties) {
          Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.5.23');
          expect(Coordinates.getSelected()).toEqual({ "version" : "5.5.23" });
+         expect(Properties.getHash()).toEqual("b98a1711908a4641301a");
+
+         Insight.ComponentInformation.mostRecentCall.args[0].versionClick('5.0.28');
+         expect(Coordinates.getSelected()).toEqual({ "version" : "5.0.28" });
+         expect(Properties.getHash()).toEqual("abcd");
       }));
 
       it('Double Version Click', inject(function ($rootScope) {

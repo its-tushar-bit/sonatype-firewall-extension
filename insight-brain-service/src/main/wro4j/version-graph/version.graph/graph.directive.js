@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  angular.module('version.graph').directive('graph', ['Coordinates', function (Coordinates) {
+  angular.module('version.graph').directive('graph', ['Coordinates', 'Properties', function (Coordinates, Properties) {
     return {
       scope : {
         versions : '=graph'
@@ -22,8 +22,8 @@
         scope.$watch('versions', function (versions) {
           if (versions) {
             $.each(versions, function(index, component) {
-              if (component.version === Coordinates.get().version) {
-                component.hash = Coordinates.get().hash;
+              if (component.componentIdentifier.coordinates.version === Coordinates.get().version) {
+                component.hash = Properties.getHash();
                 return false;
               }
             });
@@ -40,6 +40,7 @@
                   $.each(versions, function(index, component) {
                     if (component.componentIdentifier.coordinates.version === version) {
                       Coordinates.setSelected(component.componentIdentifier.coordinates);
+                      Properties.setHash(component.hash);
                       return false;
                     }
                   });

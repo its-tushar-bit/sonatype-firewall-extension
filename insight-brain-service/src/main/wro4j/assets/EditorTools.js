@@ -137,7 +137,7 @@
       };
 
       $scope.getReportUrl = function() {
-        if ($scope.evaluationStatus.scanId) {
+        if ($scope.evaluationStatus && $scope.evaluationStatus.scanId) {
           return 'index.html#/reports/' + encodeURIComponent($scope.evaluationStatus.applicationPublicId) + '/' + $scope.evaluationStatus.scanId;
         }
         return '';

@@ -20,12 +20,12 @@ public class DoubleColumnPicker
     return root().$(".filter-row input");
   }
 
-  public static SelenideElement checkAllLeft() {
-    return root().$$(".info-row .tools input").get(0);
+  public static Checkbox checkAllLeft() {
+    return new Checkbox(root().$$(".info-row .tools label.checkbox").get(0));
   }
 
-  public static SelenideElement checkAllRight() {
-    return root().$$(".info-row .tools input").get(1);
+  public static Checkbox checkAllRight() {
+    return new Checkbox(root().$$(".info-row .tools label.checkbox").get(1));
   }
 
   public static SelenideElement pickCheckedItemsButton() {

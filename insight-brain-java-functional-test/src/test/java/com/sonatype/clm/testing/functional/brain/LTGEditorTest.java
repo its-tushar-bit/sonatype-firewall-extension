@@ -212,7 +212,7 @@ public class LTGEditorTest
 
     for (int i = 0; i < 3; i++) {
       DoubleColumnPicker.pickedItem(i).checkbox().shouldBe(selected);
-      DoubleColumnPicker.pickedItem(i).name().shouldBe(pickedLicenseNames.get(i));
+      DoubleColumnPicker.pickedItem(i).name().shouldHave(text(pickedLicenseNames.get(i)));
     }
   }
 }

@@ -16,7 +16,6 @@ import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileApp
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -35,8 +34,6 @@ import static com.sonatype.insight.brain.model.Color.blue;
 import static com.sonatype.insight.brain.model.Color.light_green;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ApplicationCategoryEditorTest

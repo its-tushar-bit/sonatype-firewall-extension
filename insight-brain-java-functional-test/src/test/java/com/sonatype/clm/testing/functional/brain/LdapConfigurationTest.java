@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.pages.LdapConnectionConfigurationPage
 import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;

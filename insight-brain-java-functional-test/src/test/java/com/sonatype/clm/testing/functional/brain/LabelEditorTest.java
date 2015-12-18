@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.label.Label;
 
-import com.codeborne.selenide.WebDriverRunner;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -32,7 +31,6 @@ import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Color.dark_red;
 import static com.sonatype.insight.brain.model.Color.light_green;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;

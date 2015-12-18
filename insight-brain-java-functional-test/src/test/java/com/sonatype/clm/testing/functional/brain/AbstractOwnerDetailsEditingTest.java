@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -32,7 +31,6 @@ import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
 
 public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest

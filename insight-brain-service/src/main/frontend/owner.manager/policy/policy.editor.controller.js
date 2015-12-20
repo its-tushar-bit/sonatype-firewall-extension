@@ -6,10 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorController($scope, $stateParams, PolicyHierarchyStore, DeleteModalService, formMaskDelay,
-                                  SameOwnerStateNavigationService)
+  function PolicyEditorController($q, $http, $scope, $stateParams, PolicyHierarchyStore, DeleteModalService,
+                                  formMaskDelay, SameOwnerStateNavigationService, CLMAppLocations)
   {
     var vm = this,
+        originalCategoryArray,
+        originalHasPolicyCategories,
         createPolicy;
 
     vm.dirtyPolicy = undefined;
@@ -18,8 +20,13 @@
     vm.deletePolicy = deletePolicy;
     vm.loadError = undefined;
     vm.save = save;
+    vm.isPolicyDirty = isPolicyDirty;
     vm.siblings = [];
+    vm.categories = undefined;
+    vm.isApp = CLMAppLocations.isApplication();
+    vm.hasPolicyCategories = false;
     vm.submitError = undefined;
+    vm.ownerName = undefined;
 
     vm.doLoad();
 
@@ -30,14 +37,25 @@
     }
 
     function doLoad() {
-      PolicyHierarchyStore.get().then(function(store) {
-        createPolicy = store[0].store.create;
+      var promises = [
+        PolicyHierarchyStore.get()
+      ];
+
+      if (!vm.isApp) {
+        promises.push($http.get(CLMAppLocations.getTagsUrl()));
+        if ($stateParams.policyId) {
+          promises.push($http.get(CLMAppLocations.getPolicyTagUrl($stateParams.policyId)));
+        }
+      }
+      $q.all(promises).then(function(results) {
+        createPolicy = results[0][0].store.create;
+        vm.ownerName = results[0][0].ownerName;
 
         if (!$stateParams.policyId) {
           vm.dirtyPolicy = createPolicy();
         }
 
-        store.forEach(function(owner, index) {
+        results[0].forEach(function(owner, index) {
           vm.siblings = vm.siblings.concat(owner.policies);
 
           if ($stateParams.policyId && index === 0) {
@@ -50,6 +68,21 @@
           }
         });
 
+        vm.categories = [];
+        if (!vm.isApp) {
+          vm.hasPolicyCategories = results[2] !== undefined && results[2].data.length > 0;
+          var appliedCategoriesById = vm.hasPolicyCategories ? results[2].data.map(function(category) {
+            return category.id;
+          }) : [];
+          vm.categories = results[1].data.tagsByOwner[0].tags;
+          vm.categories.forEach(function(category) {
+            category.isApplied = appliedCategoriesById.indexOf(category.id) > -1;
+          });
+
+          originalHasPolicyCategories = vm.hasPolicyCategories;
+          originalCategoryArray = angular.copy(vm.categories);
+        }
+
         if (!vm.dirtyPolicy) {
           vm.loadError = 'Unable to locate Policy.';
         }
@@ -61,27 +94,49 @@
     }
 
     function save() {
-      if (vm.policyEditor.$valid && vm.dirtyPolicy.isDirty()) {
-        var isNew = vm.dirtyPolicy.$new;
-        delete vm.submitError;
+      function submitErrorHandler(error) {
+        vm.submitError = error;
+      }
 
-        formMaskDelay.wrap($scope, vm.dirtyPolicy.$save()).then(function() {
+      if (vm.policyEditor.$valid && vm.isPolicyDirty()) {
+        var savePolicy = vm.dirtyPolicy.$save().then(function() {
           if (isNew) {
             vm.siblings.push(vm.dirtyPolicy);
             vm.dirtyPolicy = createPolicy();
           }
+  
+          return vm.isApp ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
+              vm.hasPolicyCategories ? appliedCategories : []);
+        }, submitErrorHandler);
+        
+        var isNew = vm.dirtyPolicy.$new;
+        delete vm.submitError;
 
-          vm.policyEditor.$setPristine();
-        }, function(error) {
-          vm.submitError = error;
+        var appliedCategories = vm.categories.filter(function(category) {
+          return category.isApplied;
         });
+
+        formMaskDelay.wrap($scope, savePolicy).then(function() {
+          originalCategoryArray = angular.copy(vm.categories);
+          originalHasPolicyCategories = vm.hasPolicyCategories;
+          vm.policyEditor.$setPristine();
+        }, submitErrorHandler);
       }
+    }
+
+    function isInheritanceSectionDirty() {
+      return !vm.isApp && ((vm.hasPolicyCategories && !angular.equals(originalCategoryArray, vm.categories)) ||
+          (originalHasPolicyCategories !== vm.hasPolicyCategories));
+    }
+
+    function isPolicyDirty() {
+      return vm.dirtyPolicy.isDirty() || isInheritanceSectionDirty();
     }
   }
 
   PolicyEditorController.$inject = [
-    '$scope', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService', 'FormMaskDelay',
-    'SameOwnerStateNavigationService'
+    '$q', '$http', '$scope', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService', 'FormMaskDelay',
+    'SameOwnerStateNavigationService', 'CLMAppLocations'
   ];
 
   angular

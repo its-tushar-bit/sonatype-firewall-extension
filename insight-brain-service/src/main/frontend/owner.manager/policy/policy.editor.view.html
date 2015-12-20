@@ -5,7 +5,7 @@
     </h2>
     <ul class="nav nav-pills">
       <li class="active"><a data-toggle="pill" id="policy-summary-button" data-target="#policy-edit-summary">Summary</a></li>
-      <li><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
+      <li ng-if="!vm.isApp"><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
       <li><a data-toggle="pill" id="policy-constraints-button" data-target="#policy-edit-constraints">Constraints</a></li>
       <li><a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions and Notifications</a></li>
       <li><a data-toggle="pill" id="policy-create-button" data-target="#policy-edit-create">Create</a></li>
@@ -37,8 +37,29 @@
           </div>
         </div>
       </div>
-      <div id="policy-edit-inheritance" class="editor-section">
+      <div ng-if="!vm.isApp" id="policy-edit-inheritance" class="editor-section">
         <div class="editor-section-header">Inheritance</div>
+        <div class="section">
+          <div class="inline-fields">
+            <div class="field">
+              <label for="editor-policy-inherit">This Policy Inherits to</label>
+              <div id="editor-policy-inherit" class="editor-policy-inherit">
+                <label class="radio">
+                  <input type="radio" name="policy-inherit" ng-model="vm.hasPolicyCategories" ng-value="false">
+                  <span>All Applications in {{ vm.ownerName}}</span>
+                </label>
+                <label class="radio">
+                  <input type="radio" ng-disabled="vm.categories.length === 0" name="policy-inherit"
+                         ng-model="vm.hasPolicyCategories" ng-value="true">
+                  <span>Applications of the specified Application Categories in {{ vm.ownerName}}</span>
+                </label>
+                <association-editor ng-show="vm.hasPolicyCategories" id="associated-categories" items="vm.categories"
+                                    checkbox-param="isApplied"
+                                    description="name" icon="hexagon"/>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div id="policy-edit-constraints" class="editor-section">
         <div class="editor-section-header">Constraints</div>
@@ -47,7 +68,7 @@
         <div class="editor-section-header">Actions and Notifications</div>
       </div>
       <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.dirtyPolicy.isDirty()"
+        <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.isPolicyDirty()"
                 submit-type="vm.dirtyPolicy.id ? 'update' : 'create'">
           {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}
         </button><!--

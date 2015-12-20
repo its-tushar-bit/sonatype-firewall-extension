@@ -8,16 +8,18 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.tag.Tag;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -28,32 +30,37 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static com.sonatype.insight.brain.model.Color.blue;
+import static com.sonatype.insight.brain.model.Color.red;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class PolicyEditorTest
+public abstract class AbstractPolicyEditorTest
     extends AbstractFunctionalTest
 {
-  private Organization organization;
+  private Owner currentOwner;
+
+  protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
   private PolicyDAO policyDAO = new PolicyDAO();
 
   @BeforeClass
-  public static void beforeClass() {
+  public static void boot() {
     refreshOrOpen(OrganizationManagementPage.URL);
     loginAsAdmin();
   }
 
-  @Before
-  public void init() {
-    organization = tempEntity.newOrganization();
-    refreshOrOpen(OwnerSummaryPage.url("organization", organization.getId()));
+  protected void init(Owner currentOwner) {
+    this.currentOwner = currentOwner;
+    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test
   public void testCreatePolicy() {
+    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     SummaryTile.addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
@@ -62,18 +69,28 @@ public class PolicyEditorTest
 
   @Test
   public void testEditPolicy() {
-    Policy policy = tempEntity.newPolicy(organization.getId(), "original name", 1);
+    Policy policy = tempEntity.newPolicy(currentOwner.getId(), "original name", 1);
+    Tag category1 = null;
+    Tag category2 = null;
+    if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      category1 = tempEntity.newTag(currentOwner.getId(), "Cat_1", blue);
+      category2 = tempEntity.newTag(currentOwner.getId(), "Cat_2", red);
+      tempEntity.newPolicyTag(policy.getId(), category1.getId());
+    }
+
     refresh();
 
     SummaryTile.localPolicy(policy.getName()).click();
-    assertEditPolicyStateIsCorrect(policy);
+    assertEditPolicyStateIsCorrect(policy, category1, category2);
 
     testEditPolicy_summarySection();
+    testEditPolicy_inheritanceSection();
     testDeletePolicy(policyDAO.getById(policy.getId()));
   }
 
   private void testEditPolicy_summarySection() {
-    PolicyEditorPage.policyName().val("updated name");
+    SummarySection summary = PolicyEditorPage.summarySection();
+    summary.policyName().val("updated name");
     PolicyEditorPage.saveButton().shouldNotHave(disabledClass()).click();
 
     changeThreatLevel(6);
@@ -82,7 +99,7 @@ public class PolicyEditorTest
     refresh();
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
-    PolicyEditorPage.policyName().shouldBe(visible).shouldHave(value("updated name"));
+    summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     PolicyEditorPage.saveButton().shouldHave(disabledClass());
   }
@@ -101,41 +118,45 @@ public class PolicyEditorTest
     assertThat(policyDAO.getById(policy.getId()), is(nullValue()));
   }
 
-
   private void assertNewPolicyStateIsCorrect() {
-    waitUntilUrl(PolicyEditorPage.urlToCreate(organization.getType().toString(), organization.getId()));
+    waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId()));
     PolicyEditorPage.title().shouldHave(text("New"));
 
     assertNewPolicyStateIsCorrect_summarySection();
+    assertNewPolicyStateIsCorrect_inheritanceSection();
 
     PolicyEditorPage.saveButton().shouldHave(disabledClass());
     PolicyEditorPage.deleteButton().shouldNot(exist);
   }
 
   private void assertNewPolicyStateIsCorrect_summarySection() {
-    PolicyEditorPage.policyName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    SummarySection summary = PolicyEditorPage.summarySection();
+    summary.policyName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
 
-    PolicyEditorPage.policyName().val("$$$"); // invalid characters
-    PopoverViolations.on(PolicyEditorPage.policyName()).shouldShowInvalidCharactersError();
+    summary.policyName().val("$$$"); // invalid characters
+    PopoverViolations.on(summary.policyName()).shouldShowInvalidCharactersError();
 
-    PolicyEditorPage.policyName().val("Acceptable Name");
-    PopoverViolations.on(PolicyEditorPage.policyName()).shouldNotExist();
+    summary.policyName().val("Acceptable Name");
+    PopoverViolations.on(summary.policyName()).shouldNotExist();
 
-    PolicyEditorPage.policyName().clear();
+    summary.policyName().clear();
 
     assertThreatLevelSelectorState(PolicyEditorPage.DEFAULT_THREAT_LEVEL);
   }
 
-  private void assertEditPolicyStateIsCorrect(Policy policy) {
-    waitUntilUrl(PolicyEditorPage.urlToEdit(organization.getType().toString(), organization.getId(), policy.getId()));
+  private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2) {
+    waitUntilUrl(
+        PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), policy.getId()));
     PolicyEditorPage.title().shouldHave(text("Edit"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy);
+    assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2);
     PolicyEditorPage.saveButton().shouldHave(disabledClass());
   }
 
   private void assertEditPolicyStateIsCorrect_summarySection(Policy policy) {
-    PolicyEditorPage.policyName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(
+    SummarySection summary = PolicyEditorPage.summarySection();
+    summary.policyName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(
         value(policy.getName()));
     assertThreatLevelSelectorState(policy.getThreatLevel());
   }
@@ -160,4 +181,10 @@ public class PolicyEditorTest
     ThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
     assertThat(Integer.parseInt(ThreatLevelSelector.selectedThreatLevel().text()), is(threatLevel));
   }
+
+  protected abstract void assertNewPolicyStateIsCorrect_inheritanceSection();
+
+  protected abstract void testEditPolicy_inheritanceSection();
+
+  protected abstract void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2);
 }

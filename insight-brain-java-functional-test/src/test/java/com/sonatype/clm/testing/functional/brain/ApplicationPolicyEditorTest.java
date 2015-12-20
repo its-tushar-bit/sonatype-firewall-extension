@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+
+import com.sonatype.clm.testing.functional.elements.InheritanceSection;
+import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.tag.Tag;
+
+import org.junit.Before;
+
+import static com.codeborne.selenide.Condition.visible;
+
+public class ApplicationPolicyEditorTest extends AbstractPolicyEditorTest
+{
+
+  private static final String YE_OLE_APPLICATION = "Ye Ole Application";
+
+  private Application application;
+
+  @Before
+  public void init() {
+    application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION,
+        YE_OLE_ORGANIZATION);
+
+    super.init(application);
+  }
+
+  protected void assertNewPolicyStateIsCorrect_inheritanceSection() {
+    assertInheritanceSectionDoesNotExist();
+  }
+
+  protected void testEditPolicy_inheritanceSection() {
+    assertInheritanceSectionDoesNotExist();
+  }
+
+  protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2) {
+    assertInheritanceSectionDoesNotExist();
+  }
+
+  private void assertInheritanceSectionDoesNotExist() {
+    InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
+    inheritance.root.shouldNotBe(visible);
+    PolicyEditorPage.inhertancePill().shouldNotBe(visible);
+  }
+}

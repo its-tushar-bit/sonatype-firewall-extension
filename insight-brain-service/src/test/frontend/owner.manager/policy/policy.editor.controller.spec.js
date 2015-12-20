@@ -6,142 +6,223 @@ describe('policy.editor.controller.spec.js', function() {
 
   beforeEach(module('ResourceModule'));
 
-  var vm,
-      scope,
-      $timeout,
-      deleteServiceResourceDefer,
-      mockDeleteService,
-      SameOwnerStateNavigationService = {
-        goEdit: angular.noop
-      },
-      mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
-      mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyResourceMockData.getApplicablePolicies(),
-          'policiesByOwner'),
-      mockPolicy = ResourceUtils().createMockResource();
+  function createTests(type, owner) {
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_) {
-    scope = $rootScope.$new();
-    $timeout = _$timeout_;
+    var vm,
+        scope,
+        $timeout,
+        deleteServiceResourceDefer,
+        isApp = type === 'application',
+        mockDeleteService,
+        mockCategoryOwners,
+        mockPolicyTags,
+        $httpBackend,
+        $controller,
+        SameOwnerStateNavigationService = {
+          goEdit: angular.noop
+        },
+        mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
+        mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyResourceMockData.getApplicablePolicies(),
+            'policiesByOwner'),
+        mockPolicy = ResourceUtils().createMockResource();
 
-    deleteServiceResourceDefer = $q.defer();
+    beforeEach(inject(function($rootScope, $q, _$timeout_, _$controller_, _$httpBackend_, CLMAppLocations) {
+      scope = $rootScope.$new();
+      $timeout = _$timeout_;
+      $httpBackend = _$httpBackend_;
+      $controller = _$controller_;
 
-    mockDeleteService = {
-      deleteResource: function() {
-        return deleteServiceResourceDefer.promise;
-      }
-    };
-  }));
+      deleteServiceResourceDefer = $q.defer();
 
-  it('Creates new on load', inject(function($controller) {
-    vm = $controller('policy.editor.controller', {$scope: scope});
-    mockPolicyStore.resolveGet(mockPolicyStoreData);
+      mockDeleteService = {
+        deleteResource: function() {
+          return deleteServiceResourceDefer.promise;
+        }
+      };
+      mockCLMAppLocations = {
+        isApplication: function() {
+          return isApp;
+        },
+        getEntityId: function() {
+          return isApp ? owner.publicId : owner.id;
+        },
+        getTagsUrl: CLMAppLocations.getTagsUrl,
+        getPolicyTagUrl: CLMAppLocations.getPolicyTagUrl
+      };
 
-    $timeout.flush();
+      mockCategoryOwners = TagResourceMockData.getTagsUrl();
+      mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
+      spyOn(CLMAppLocations, 'isApplication').andReturn(isApp);
 
-    expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
-  }));
 
-  it('Captures siblings', inject(function($controller) {
-    vm = $controller('policy.editor.controller', {$scope: scope});
+    }))
 
-    mockPolicyStore.resolveGet(mockPolicyStoreData);
-    $timeout.flush();
-
-    expect(vm.siblings.length).toBe(1);
-    expect(vm.siblings).toContain(mockPolicyStoreData[0].policies[0]);
-  }));
-
-  it('Updates siblings list after creating new', inject(function($controller) {
-    vm = $controller('policy.editor.controller', {$scope: scope});
-
-    mockPolicyStore.resolveGet(mockPolicyStoreData);
-    $timeout.flush();
-
-    mockPolicy.$new = true;
-    mockPolicy.isDirty = function() {
-      return true;
-    };
-
-    vm.dirtyPolicy = mockPolicy;
-    vm.policyEditor = {
-      $valid: true,
-      $setPristine: angular.noop
-    };
-
-    vm.save();
-    mockPolicy.resolveSave();
-    $timeout.flush();
-
-    // mask delay
-    $timeout.flush();
-
-    expect(vm.siblings.length).toBe(2);
-    expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
-    expect(vm.siblings).toContain(mockPolicy);
-  }));
-
-  it('Finds match with URL parameter', inject(function($controller) {
-    vm = $controller('policy.editor.controller',
-        {$scope: scope, $stateParams: {policyId: '456'}});
-    mockPolicy.id = '456';
-
-    mockPolicyStore.resolveGet([{policies: [mockPolicy, {id: '123'}], store: {create: angular.noop}}]);
-    $timeout.flush();
-
-    expect(vm.dirtyPolicy.$clone).toHaveBeenCalled();
-    expect(vm.dirtyPolicy.id).toBe('456');
-  }));
-
-  it('Errors if no match found', inject(function($controller) {
-    vm = $controller('policy.editor.controller',
-        {$scope: scope, $stateParams: {policyId: '456'}});
-
-    mockPolicyStore.resolveGet([{policies: [{id: '123'}, {id: '123'}], store: {create: angular.noop}}]);
-    $timeout.flush();
-
-    expect(vm.dirtyPolicy).toBeUndefined();
-    expect(vm.loadError).toBe('Unable to locate Policy.');
-  }));
-
-  it('Unsuccessful save sets error message', inject(function($controller) {
-    vm = $controller('policy.editor.controller', {$scope: scope});
-
-    mockPolicyStore.resolveGet(mockPolicyStoreData);
-    $timeout.flush();
-
-    mockPolicy.isDirty = function() {
-      return true;
-    };
-
-    vm.dirtyPolicy = mockPolicy;
-    vm.policyEditor = {
-      $valid: true
-    };
-
-    vm.save();
-    mockPolicy.rejectSave('dagnabbit');
-
-    $timeout.flush();
-    expect(vm.submitError).toBe('dagnabbit');
-  }));
-
-  it('After delete goes to create new policy', inject(function($controller) {
-    spyOn(SameOwnerStateNavigationService, 'goEdit');
-    vm = $controller('policy.editor.controller', {
-      $scope: scope,
-      SameOwnerStateNavigationService: SameOwnerStateNavigationService,
-      $stateParams: {policyId: '1'},
-      DeleteModalService: mockDeleteService
+    afterEach(function() {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
     });
 
-    mockPolicy.id = '1';
-    mockPolicyStore.resolveGet([{policies: [mockPolicy, {id: '123'}], store: {create: angular.noop}}]);
-    $timeout.flush();
+    it('Creates new on load', inject(function($controller) {
 
-    vm.deletePolicy();
-    deleteServiceResourceDefer.resolve();
-    $timeout.flush();
+      vm = $controller('policy.editor.controller', {$scope: scope});
+      mockPolicyStore.resolveGet(mockPolicyStoreData);
 
-    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-policy');
-  }));
+      resolveLoadData(isApp, undefined);
+
+      expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
+    }));
+
+    it('Captures siblings', inject(function($controller) {
+      vm = $controller('policy.editor.controller', {$scope: scope});
+
+      resolveLoadData(mockPolicyStoreData, undefined);
+
+      expect(vm.siblings.length).toBe(1);
+      expect(vm.siblings).toContain(mockPolicyStoreData[0].policies[0]);
+    }));
+
+    it('Updates siblings list after creating new', inject(function($controller) {
+      vm = $controller('policy.editor.controller', {$scope: scope});
+
+      resolveLoadData(mockPolicyStoreData, undefined);
+
+      mockPolicy.$new = true;
+      mockPolicy.isDirty = function() {
+        return true;
+      };
+
+      vm.dirtyPolicy = mockPolicy;
+      vm.policyEditor = {
+        $valid: true,
+        $setPristine: angular.noop
+      };
+
+      mockPolicyStoreData[0].store.create.andReturn({id: 123})
+
+      vm.save();
+      resolveSaveData('123');
+
+      // mask delay
+      $timeout.flush();
+
+      expect(vm.siblings.length).toBe(2);
+      expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
+      expect(vm.siblings).toContain(mockPolicy);
+    }));
+
+    it('Finds match with URL parameter', inject(function($controller) {
+      vm = $controller('policy.editor.controller',
+          {$scope: scope, $stateParams: {policyId: '456'}});
+      mockPolicy.id = '456';
+
+      resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
+          '123');
+
+      expect(vm.dirtyPolicy.$clone).toHaveBeenCalled();
+      expect(vm.dirtyPolicy.id).toBe('456');
+    }));
+
+    it('Errors if no match found', inject(function($controller) {
+      vm = $controller('policy.editor.controller',
+          {$scope: scope, $stateParams: {policyId: '456'}});
+
+      resolveLoadData([{policies: [{id: '123'}, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
+          '123');
+
+      expect(vm.dirtyPolicy).toBeUndefined();
+      expect(vm.loadError).toBe('Unable to locate Policy.');
+    }));
+
+    it('Unsuccessful save sets error message', inject(function($controller) {
+      vm = $controller('policy.editor.controller', {$scope: scope});
+
+      resolveLoadData(mockPolicyStoreData);
+
+      mockPolicy.isDirty = function() {
+        return true;
+      };
+
+      vm.dirtyPolicy = mockPolicy;
+      vm.policyEditor = {
+        $valid: true
+      };
+
+      vm.save();
+      mockPolicy.rejectSave('dagnabbit');
+
+      $timeout.flush();
+      expect(vm.submitError).toBe('dagnabbit');
+    }));
+
+    it('After delete goes to create new policy', inject(function($controller) {
+      spyOn(SameOwnerStateNavigationService, 'goEdit');
+      vm = $controller('policy.editor.controller', {
+        $scope: scope,
+        SameOwnerStateNavigationService: SameOwnerStateNavigationService,
+        $stateParams: {policyId: '1'},
+        DeleteModalService: mockDeleteService
+      });
+
+      mockPolicy.id = '1';
+      resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
+          '123');
+
+      vm.deletePolicy();
+      deleteServiceResourceDefer.resolve();
+      $timeout.flush();
+
+      expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-policy');
+    }));
+
+    it('Properly loads categories', inject(function($controller) {
+      vm = $controller('policy.editor.controller',
+          {$scope: scope, $stateParams: {policyId: '456'}});
+      mockPolicy.id = '456';
+
+      resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
+          '123');
+
+      if (!isApp) {
+        expect(vm.ownerName).toEqual(owner.name);
+        expect(vm.categories.length).toBe(2);
+        expect(vm.categories.length).toEqual(mockCategoryOwners.tagsByOwner[0].tags.length);
+        var mockOrgCategories = mockCategoryOwners.tagsByOwner[0].tags;
+        vm.categories.forEach(function(category, index) {
+          expect(category.name).toEqual(mockOrgCategories[index].name);
+          expect(category.id).toEqual(mockOrgCategories[index].id);
+          expect(category.color).toEqual(mockOrgCategories[index].color);
+        });
+        expect(vm.categories.length).toBe(mockPolicyTags.length);
+        expect(vm.hasPolicyCategories).toBeTruthy();
+      } else {
+        expect(vm.categories.length).toBe(0);
+        expect(vm.hasPolicyCategories).toBeFalsy();
+      }
+    }));
+
+    function resolveLoadData(policyStoreData, policyId) {
+      mockPolicyStore.resolveGet(policyStoreData);
+      if (!isApp) {
+        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(mockCategoryOwners);
+        if (policyId) {
+          $httpBackend.expectGET(mockCLMAppLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
+        }
+        $httpBackend.flush();
+      }
+      $timeout.flush();
+    }
+
+    function resolveSaveData(policyId) {
+      mockPolicy.resolveSave();
+      if (!isApp) {
+        $httpBackend.expectPUT(mockCLMAppLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
+      }
+      $timeout.flush();
+      if (!isApp) {
+        $httpBackend.flush();
+      }
+    }
+  }
+
+  OwnerUtils.runTestsForOwnerTypes(createTests);
 });

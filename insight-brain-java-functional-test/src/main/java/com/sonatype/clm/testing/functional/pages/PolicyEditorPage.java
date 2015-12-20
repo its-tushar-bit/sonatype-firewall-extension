@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.InheritanceSection;
+import com.sonatype.clm.testing.functional.elements.SummarySection;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -25,15 +28,23 @@ public class PolicyEditorPage
     return $("#policy-editor-summary h2");
   }
 
-  public static SelenideElement policyName() {
-    return $("#editor-policy-name");
-  }
-
   public static SelenideElement saveButton() {
     return $("#save-policy-button");
   }
 
   public static SelenideElement deleteButton() {
     return $("#delete-policy-button");
+  }
+
+  public static SelenideElement inhertancePill() {
+    return $("#policy-inheritance-button");
+  }
+
+  public static SummarySection summarySection() {
+    return new SummarySection();
+  }
+
+  public static InheritanceSection inheritanceSection() {
+    return new InheritanceSection();
   }
 }

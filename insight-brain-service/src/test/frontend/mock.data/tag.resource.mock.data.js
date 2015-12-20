@@ -62,6 +62,12 @@ var TagResourceMockData = {
       ]
     };
   },
+  getPolicyTagUrl: function(policyId) {
+    return [
+      {id: 'appCategoryId_1', ownerId: "orgownerid", name: 'Category 1', description: 'Category1'},
+      {id: 'appCategoryId_2', ownerId: "orgownerid", name: 'Category 2', description: 'Category2'},
+    ];
+  },
   getApplicableOrganizationTags: function(orgId) {
     return [
       {

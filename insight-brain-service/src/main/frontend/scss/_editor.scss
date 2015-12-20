@@ -10,12 +10,12 @@
         <i class="fa size-16px fa-tag outline"></i> Edit component
       </h2>
       <form name="editor" role="form" class="clm-form">
-          <div class="section">
-            <div class="field">
-              <label for="editor-field">Input Field - <span class="optional">optional</span></label>
-              <input type="text" name="theField" id="editor-field" clm-input>
-            </div>
+        <div class="section">
+          <div class="field">
+            <label for="editor-field">Input Field - <span class="optional">optional</span></label>
+            <input type="text" name="theField" id="editor-field" clm-input>
           </div>
+        </div>
         <div class="editor-footer">
           <button class="btn btn-primary" type="submit">Create</button><!--   
         --><button class='btn btn-tertiary' type="button" disabled>Reset</button>
@@ -73,6 +73,19 @@
       margin-bottom: 20px;
       border-bottom: 1px solid $grey-4;
       text-transform: uppercase;
+    }
+
+    #editor-policy-inherit {
+      label {
+        color: $slate;
+      }
+      
+      label.radio {
+        margin-bottom: 8px;
+      }
+      .association-editor-wrapper {
+        margin-left: 22px;
+      }
     }
   }
   

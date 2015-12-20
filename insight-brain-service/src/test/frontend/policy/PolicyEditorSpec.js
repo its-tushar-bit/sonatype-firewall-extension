@@ -483,7 +483,7 @@ describe('PolicyEditor.js', function() {
       });
 
       $httpBackend.expectPUT(SpecUtil.toRegExp(CLMAppLocations.getPolicyUrl())).respond(testScope.policy);
-      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1')).respond(204);
+      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(undefined).substring(0, CLMAppLocations.getPolicyTagUrl(undefined).indexOf('?')) + '/tagId1?orgId=null')).respond(204);
       $httpBackend.expectPOST(SpecUtil.toRegExp(CLMAppLocations.getPolicyTagUrl(undefined))).respond(200);
       scope.savePolicy();
       $httpBackend.flush();

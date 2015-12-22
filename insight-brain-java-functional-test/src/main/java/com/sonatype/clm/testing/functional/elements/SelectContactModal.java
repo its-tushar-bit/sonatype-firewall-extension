@@ -59,10 +59,10 @@ public class SelectContactModal
     return root().$(".btn-tertiary");
   }
 
-  public static SelenideElement userRadio(final String usersName) {
+  public static Radio userRadio(final String usersName) {
     SelenideElement td = root().findAll(By.tagName("td")).findBy(text(usersName));
     if (td != null) {
-      return td.find("input");
+      return new Radio(td.find("label.radio"));
     }
     return null;
   }

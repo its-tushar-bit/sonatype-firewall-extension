@@ -193,6 +193,17 @@ public abstract class AbstractFunctionalTest
     }
   }
 
+  protected static void switchToWindow(final int index) {
+    Selenide.Wait().until(new Predicate<WebDriver>()
+    {
+      @Override
+      public boolean apply(WebDriver driver) {
+        return driver.getWindowHandles().size() > index;
+      }
+    });
+    Selenide.switchTo().window(index);
+  }
+
   protected static void waitUntilUrl(final String url) {
     Selenide.Wait().withMessage("Url did not become " + url).until(urlEqualsPredicate(url));
   }

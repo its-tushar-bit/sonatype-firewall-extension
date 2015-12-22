@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.Rule;
@@ -157,12 +156,12 @@ public class ApplicationSummaryViewTest
           ActionDropDown.reportLinkText(stages.get(i).getName()));
 
       ActionDropDown.reportLink(i).followLink();
-      Selenide.switchTo().window(1);
+      switchToWindow(1);
 
       waitUntilUrl(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.get(i).getScanId()));
 
       WebDriverRunner.getWebDriver().close();
-      Selenide.switchTo().window(0);
+      switchToWindow(0);
 
       waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
 
@@ -298,12 +297,12 @@ public class ApplicationSummaryViewTest
 
         EvaluateApplicationModal.viewReportButton().shouldBe(visible, enabled).click();
 
-        Selenide.switchTo().window(1);
+        switchToWindow(1);
 
         waitUntilUrl(ActionDropDown.reportLinkUrl(application.getPublicId(), policyEvaluations.getScanId()));
 
         WebDriverRunner.getWebDriver().close();
-        Selenide.switchTo().window(0);
+        switchToWindow(0);
       }
     }
   }

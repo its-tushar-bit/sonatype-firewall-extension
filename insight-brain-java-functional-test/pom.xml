@@ -24,7 +24,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <trimStackTrace>false</trimStackTrace>
           <systemPropertyVariables>
+            <slowmo.enable>true</slowmo.enable>
             <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
           </systemPropertyVariables>
         </configuration>

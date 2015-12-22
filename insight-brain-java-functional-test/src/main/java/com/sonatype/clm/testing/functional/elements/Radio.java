@@ -40,7 +40,8 @@ public class Radio
     for (Condition condition : conditions) {
       if (Condition.selected.equals(condition)) {
         input().shouldBe(condition);
-      } else {
+      }
+      else {
         label().shouldBe(condition);
       }
     }
@@ -55,7 +56,8 @@ public class Radio
     for (Condition condition : conditions) {
       if (Condition.selected.equals(condition)) {
         input().shouldNotBe(condition);
-      } else {
+      }
+      else {
         label().shouldNotBe(condition);
       }
     }
@@ -70,7 +72,8 @@ public class Radio
     for (Condition condition : conditions) {
       if (Condition.selected.equals(condition)) {
         input().shouldHave(condition);
-      } else {
+      }
+      else {
         label().shouldHave(condition);
       }
     }

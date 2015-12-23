@@ -45,6 +45,10 @@ public class OwnerSummaryPage
       return $("#add-ltg-button");
     }
 
+    public static SelenideElement addRoleButton() {
+      return $("#add-role-button");
+    }
+
     public static SelenideElement addCategoryButton() {
       return $("#add-category-button");
     }
@@ -67,6 +71,10 @@ public class OwnerSummaryPage
 
     public static SelenideElement localPolicy(String policyName) {
       return $$("#owner-pill-policy table tr").findBy(text(policyName));
+    }
+
+    public static SelenideElement localAccessRole(String roleName) {
+      return $$("#owner-pill-access table td.role").findBy(text(roleName));
     }
 
     public static ErrorBox error() {
@@ -92,6 +100,5 @@ public class OwnerSummaryPage
     public static SelenideElement accessButton() {
       return root().find("#owner-access-button");
     }
-
   }
 }

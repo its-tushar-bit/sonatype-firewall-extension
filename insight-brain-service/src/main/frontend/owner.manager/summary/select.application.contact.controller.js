@@ -56,7 +56,9 @@
     function removeContact() {
       owner.contactInternalName = null;
       vm.deleteMode = true;
-      DeleteModalService.deleteResource('Contact', vm.owner.contact.displayName, vm.owner, true).then(function() {
+      DeleteModalService.deleteCustom('Clear Contact', 'You are about to remove ' + vm.owner.contact.displayName + '.', 'Removing', function() {
+        return vm.owner.$save();
+      }).then(function() {
         $scope.$close();
       }, function(error) {
         vm.error = error;

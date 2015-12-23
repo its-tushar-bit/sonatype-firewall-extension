@@ -11,6 +11,8 @@ import static com.codeborne.selenide.Condition.cssClass;
 
 public class CLM
 {
+  public static final Condition INITIAL_VALUE_CLASS = cssClass("initial-value");
+
   public static Condition disabledClass() {
     return cssClass("disabled");
   }

@@ -6,11 +6,14 @@
 (function(angular) {
   'use strict';
 
-  function AccessTileController($http, CLMAppLocations) {
+  function AccessTileController($http, CLMAppLocations, SameOwnerStateNavigationService, LocalRoleService) {
     var vm = this;
     vm.ownerName = undefined;
     vm.membersByRole = undefined;
     vm.error = undefined;
+    vm.rolesWithoutLocalMembersExist = undefined;
+    vm.addAccess = addAccess;
+    vm.editAccess = editAccess;
     vm.doLoad = doLoad;
     vm.filterRolesWithMembers = filterRolesWithMembers;
 
@@ -29,6 +32,7 @@
         });
 
         vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
+        vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(vm.membersByRole).length > 0;
       }, function() {
         vm.error = arguments[0];
       });
@@ -41,9 +45,21 @@
         return role.membersByOwner[index].members.length > 0;
       };
     }
+
+    function editAccess(roleId, inherited) {
+      if (!inherited) {
+        SameOwnerStateNavigationService.goEdit('edit-access', { roleId: roleId });
+      }
+    }
+
+    function addAccess() {
+      if (vm.rolesWithoutLocalMembersExist) {
+        SameOwnerStateNavigationService.goEdit('add-access');
+      }
+    }
   }
 
-  AccessTileController.$inject = ['$http', 'CLMAppLocations'];
+  AccessTileController.$inject = ['$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'local.role.service'];
 
   angular //
       .module('owner.manager.module') //

@@ -19,7 +19,7 @@ describe('select.application.contact.controller.spec.js', function() {
       $timeout = _$timeout_;
       deleteServiceResourceDefer = $q.defer();
       mockDeleteService = {
-        deleteResource: function() {
+        deleteCustom: function() {
           return deleteServiceResourceDefer.promise;
         }
       }

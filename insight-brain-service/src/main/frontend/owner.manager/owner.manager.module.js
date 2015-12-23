@@ -100,6 +100,26 @@
                   templateUrl: 'owner.manager/policy/policy.editor.view.html?' + clmBuildTimestamp
                 }
               }
+            }).state('management.edit.' + ownerType.name + '.add-access', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/access',
+              views: {
+                '@management': {
+                  controller: 'access.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+                }
+              }
+            }).state('management.edit.' + ownerType.name + '.edit-access', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/access/{roleId}',
+              views: {
+                '@management': {
+                  controller: 'access.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+                }
+              }
             });
           });
 

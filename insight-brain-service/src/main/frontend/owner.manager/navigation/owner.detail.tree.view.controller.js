@@ -7,7 +7,7 @@
   'use strict';
 
   function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMAppLocations, ApplicationStore,
-                                         OrganizationStore)
+                                         OrganizationStore, LocalRoleService)
   {
     var vm = this;
 
@@ -16,7 +16,9 @@
     vm.ownerName = undefined;
     vm.details = undefined;
     vm.doLoad = doLoad;
+    vm.rolesWithoutLocalMembersExist = undefined;
     vm.error = undefined;
+    vm.accessState = {isExpanded: vm.state.$current.name.endsWith('access')};
     vm.categoryState = {isExpanded: vm.state.$current.name.endsWith('category')};
     vm.labelState = {isExpanded: vm.state.$current.name.endsWith('label')};
     vm.policyState = {isExpanded: vm.state.$current.name.endsWith('policy')};
@@ -37,6 +39,9 @@
         });
 
         vm.details = results[1].data;
+        var allMembersByRoles = vm.details.roles.membersByRole;
+        vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
+        vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
         if (!vm.ownerName) {
           vm.error = 'Could not find an ' + (vm.isApp ? 'application' : 'organization') + ' with ID ' +
@@ -53,7 +58,7 @@
   }
 
   OwnerDetailTreeViewController.$inject = [
-    '$scope', '$q', '$http', '$state', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore'
+    '$scope', '$q', '$http', '$state', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore', 'local.role.service'
   ];
 
   angular //

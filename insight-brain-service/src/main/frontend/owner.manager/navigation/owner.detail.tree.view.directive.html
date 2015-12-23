@@ -118,26 +118,36 @@
       </a>
     </div>
     <div class="tree-view-group">
-      <a class="tree-view-item" ng-click="vm.accessState.isExpanded = !vm.accessState.isExpanded">
+      <a class="tree-view-item" ng-click="vm.accessState.isExpanded = vm.state.$current.name.endsWith('access') ? true : !vm.accessState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
-                ng-class="{ expand: !vm.accessState.isExpanded, collapse: vm.accessState.isExpanded }"></span>
+                ng-class="{ expand: !vm.accessState.isExpanded && !vm.state.$current.name.endsWith('access'),
+                            collapse: vm.accessState.isExpanded || vm.state.$current.name.endsWith('access')}"></span>
         </div>
         <i class="fa fa-key size-16px size-fw tree-view-icon"></i><!--
         -->Access
       </a>
       <a class="tree-view-item"
-         ng-if="vm.accessState.isExpanded"
+         ng-if="(vm.accessState.isExpanded || vm.state.$current.name.endsWith('access')) && vm.rolesWithoutLocalMembersExist"
+         ui-sref=".add-access"
          ui-sref-active="selected">
         <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
-        -->New Role
+        -->Add Role
+      </a>
+      <a class="tree-view-item disabled"
+         ng-if="(vm.accessState.isExpanded || vm.state.$current.name.endsWith('access')) && !vm.rolesWithoutLocalMembersExist"
+         data-tooltip="All of the available roles are already associated with {{ vm.ownerName }}." data-tooltip-placement="top"
+         data-tooltip-append-to-body="true">
+        <i class="fa fa-plus size-16px size-fw tree-view-icon"></i><!--
+        -->Add Role
       </a>
       <a class="tree-view-item"
          ng-if="vm.accessState.isExpanded"
-         ng-repeat="role in vm.details.roles"
+         ng-repeat="membersByRole in vm.details.roles"
+         ui-sref=".edit-access({ roleId: membersByRole.roleId })"
          ui-sref-active="selected">
-        <i class="fa fa-key size-16px size-fw tree-view-icon"></i><!--
-        -->{{ role.name }}
+        <i class="fa fa-puzzle-piece size-16px size-fw tree-view-icon"></i><!--
+        -->{{ membersByRole.roleName }}
       </a>
     </div>
   </div>

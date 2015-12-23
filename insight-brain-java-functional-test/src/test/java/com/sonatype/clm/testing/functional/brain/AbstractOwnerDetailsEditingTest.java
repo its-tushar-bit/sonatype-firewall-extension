@@ -5,20 +5,25 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup.OwnerDetailTreeViewItem;
+import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.BeforeClass;
@@ -29,12 +34,14 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
 public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest
 {
+  private final static List<Role> ROLES = new RoleDAO().getApplicationRoles();
   private Owner currentOwner;
 
   private Label label;
@@ -57,6 +64,8 @@ public abstract class AbstractOwnerDetailsEditingTest
       ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId());
       category = tempEntity.newTag(currentOwner.getId());
     }
+
+    tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(0).getId(), "admin");
 
     open(OwnerDetailsEditingPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
@@ -159,6 +168,28 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_COLLAPSE_CLASS);
+
+    detailGroup.items().shouldHaveSize(3);
+    detailGroup.item(1).root().shouldBe(visible).click();
+    detailGroup.item(1).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
+    waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner.getType().toString(), currentOwner.getPublicId()));
+
+    back();
+
+    detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
+    detailGroup.item(2).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
+    detailGroup.item(2).icon().shouldBe(visible);
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(),
+        currentOwner.getPublicId(), ROLES.get(0).getId()));
+
+    for (int i = 1; i < ROLES.size(); i++) {
+      tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(i).getId(), "admin");
+    }
+    refresh();
+    detailGroup.item(1).root().shouldBe(visible).shouldHave(disabledClass());
+
+    back();
+
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
   }

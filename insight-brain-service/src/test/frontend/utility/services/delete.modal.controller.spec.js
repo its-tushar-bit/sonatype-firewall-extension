@@ -4,19 +4,25 @@ describe('delete.modal.controller.spec.js', function() {
   var vm,
       resource = ResourceUtils().createMockResource(),
       $timeout,
-      scope;
+      scope,
+      continueAction,
+      continueActionDeferred;
 
   beforeEach(inject(function($controller, $rootScope, $q, _$timeout_) {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy();
-
+    continueActionDeferred = $q.defer();
+    continueAction = jasmine.createSpy().andReturn(continueActionDeferred.promise);
 
     vm = $controller('DeleteModalController', {
       $scope: scope,
       resourceType: 'foo',
       resourceName: 'bar',
       resource: resource,
-      saveOnDelete: false
+      headerText: null,
+      bodyText: null,
+      maskText: null,
+      continueAction: null
     });
     $timeout = _$timeout_;
   }));
@@ -45,4 +51,48 @@ describe('delete.modal.controller.spec.js', function() {
 
     expect(vm.error).toBe('qux');
   });
+
+  it('calls custom continue action', function() {
+    inject(function($controller) {
+      vm = $controller('DeleteModalController', {$scope: scope,
+        resourceType: null,
+        resourceName: null,
+        resource: null,
+        headerText: 'header',
+        bodyText: 'body',
+        maskText: 'mask',
+        continueAction: continueAction});
+    });
+    vm.deleteResource();
+    expect(continueAction).toHaveBeenCalled();
+    expect(vm.headerText).toBe('header');
+    expect(vm.bodyText).toBe('body');
+    expect(vm.maskText).toBe('mask');
+
+    continueActionDeferred.resolve();
+    $timeout.flush();
+
+    expect(vm.error).toBeUndefined();
+  });
+
+  it('handles a delete error from custom action', function() {
+    inject(function($controller) {
+      vm = $controller('DeleteModalController', {$scope: scope,
+        resourceType: null,
+        resourceName: null,
+        resource: null,
+        headerText: 'header',
+        bodyText: 'body',
+        maskText: 'mask',
+        continueAction: continueAction});
+    });
+    vm.deleteResource();
+    expect(continueAction).toHaveBeenCalled();
+
+    continueActionDeferred.reject('qux');
+    $timeout.flush();
+
+    expect(vm.error).toBe('qux');
+  });
+
 });

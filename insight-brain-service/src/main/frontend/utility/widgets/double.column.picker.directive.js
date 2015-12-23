@@ -11,6 +11,7 @@
       restrict: 'E',
       scope: {
         list: '=',
+        hideFilter: '@',
         filterPlaceholder: '@',
         leftColumnName: '@',
         rightColumnName: '@',

@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 
 /**
  * @since 1.18.0
@@ -22,5 +23,5 @@ public class OwnerDetailsDTO
   public List<Policy> policies;
   public List<Label> labels;
   public List<LicenseThreatGroup> licenseThreatGroups;
-  public List<Role> roles;
+  public ApplicableMembershipMappings roles;
 }

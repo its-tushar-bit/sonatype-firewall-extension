@@ -11,12 +11,13 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
-import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -24,7 +25,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,7 +40,6 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -101,7 +100,7 @@ public class LTGEditorTest
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
-    assertDoubleColumnPickerDefaultState();
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
     LTGEditorPage.saveButton().shouldHave(disabledClass());
 
     LTGEditorPage.ltgName().val("updated name");
@@ -150,7 +149,7 @@ public class LTGEditorTest
     LTGEditorPage.title().shouldHave(text("New"));
     LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
-    assertDoubleColumnPickerDefaultState();
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
     LTGEditorPage.saveButton().shouldHave(disabledClass());
   }
 
@@ -167,25 +166,6 @@ public class LTGEditorTest
 
     ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
         .click();
-  }
-
-  private void assertDoubleColumnPickerDefaultState() {
-    DoubleColumnPicker.root().shouldBe(visible);
-
-    DoubleColumnPicker.filter().shouldBe(visible);
-    assertThat(DoubleColumnPicker.filter().val(), isEmptyOrNullString());
-
-    DoubleColumnPicker.checkAllLeft().shouldBe(visible).shouldNotBe(selected);
-    DoubleColumnPicker.checkAllRight().shouldBe(visible).shouldNotBe(selected);
-
-    DoubleColumnPicker.pickCheckedItemsButton().shouldBe(disabled);
-    DoubleColumnPicker.unpickCheckedItemsButton().shouldBe(disabled);
-
-    DoubleColumnPicker.availableItemList().shouldBe(visible);
-    DoubleColumnPicker.pickedItemList().shouldBe(visible);
-
-    DoubleColumnPicker.pickedItems().shouldBe(CollectionCondition.empty);
-    DoubleColumnPicker.availableItems().shouldHaveSize(licenseDAO.getAll().size());
   }
 
   private void changeThreatLevel(int threatLevel) {

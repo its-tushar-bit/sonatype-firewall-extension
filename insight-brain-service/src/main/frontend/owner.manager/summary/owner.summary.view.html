@@ -250,7 +250,9 @@
         </div>
         <div class="simple-list" ng-repeat="memberOwner in vm.membersByRole[0].membersByOwner">
           <h4 class="subsection-header" ng-if="!memberOwner.inherited">Local
-            <button id="add-role-button" class="btn btn-tertiary">
+            <button id="add-role-button" ng-class="{disabled: !vm.rolesWithoutLocalMembersExist}" class="btn btn-tertiary"
+                    data-tooltip="{{ vm.rolesWithoutLocalMembersExist ? '' : 'All of the available roles are already associated with ' + vm.ownerName + '.' }}"
+                    data-tooltip-placement="top" data-tooltip-append-to-body="true" ng-click="vm.addAccess()">
               <i class="fa fa-plus"></i>Add Role
             </button>
           </h4>
@@ -263,10 +265,10 @@
           </div>
           <table class="access-list" ng-if="memberOwner.hasMembers">
             <tr class="simple" ng-class="{'clickable' : !memberOwner.inherited}"
-                ng-repeat="role in vm.membersByRole | filter:vm.filterRolesWithMembers($parent.$index)">
+                ng-repeat="role in vm.membersByRole | filter:vm.filterRolesWithMembers($parent.$index)" ng-click="vm.editAccess(role.roleId, memberOwner.inherited)">
               <td class="role">{{role.roleName}}</td>
               <td class="members">
-                <span ng-repeat="member in role.membersByOwner[$parent.$index].members" >
+                <span ng-repeat="member in role.membersByOwner[$parent.$index].members">
                   <span class="list-within-list">
                     <i class="fa size-16px slate" ng-class="{'fa-user' : member.type === 'USER', 'fa-users' : member.type === 'GROUP' }"></i>
                     <span>{{member.displayName}}</span>  

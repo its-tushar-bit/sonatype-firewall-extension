@@ -50,7 +50,7 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.licenseThreatGroups, hasSize(1));
     assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId(), is(licenseThreatGroup.getId()));
 
-    assertThat(ownerDetailsDTO.roles, hasSize(new RoleDAO().getApplicationRoles().size()));
+    assertThat(ownerDetailsDTO.roles.membersByRole, hasSize(new RoleDAO().getApplicationRoles().size()));
   }
 
   @Test
@@ -74,6 +74,6 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.licenseThreatGroups, hasSize(1));
     assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId(), is(licenseThreatGroup.getId()));
 
-    assertThat(ownerDetailsDTO.roles, hasSize(new RoleDAO().getApplicationRoles().size()));
+    assertThat(ownerDetailsDTO.roles.membersByRole, hasSize(new RoleDAO().getApplicationRoles().size()));
   }
 }

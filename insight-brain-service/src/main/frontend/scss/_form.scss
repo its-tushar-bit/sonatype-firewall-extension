@@ -110,7 +110,7 @@
         }
       }
       .warning {
-        margin-top: 12px;
+        margin-top: 10px;
         margin-bottom:4px;
         line-height: 14px;
         color: $fail-fg;
@@ -899,4 +899,18 @@
       border-color: $dark-green
     }
   }
+}
+
+#access-editor-role {
+  margin-top: -177px;
+  margin-bottom: 118px;
+  
+  &.space-for-error {
+    margin-top:-202px;
+    margin-bottom: 141px;
+  }
+}
+
+#access-editor-search-form.prop-down {
+  margin-top: 99px;
 }

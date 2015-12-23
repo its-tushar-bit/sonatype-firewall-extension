@@ -13,13 +13,13 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.MembershipMappingService;
 
 /**
  * @since 1.18.0
@@ -35,17 +35,17 @@ class SidebarService
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final RoleDAO roleDAO;
+  private final MembershipMappingService membershipMappingService;
 
   @Inject
   public SidebarService(final TagDAO tagDAO, final PolicyDAO policyDAO, final LabelDAO labelDAO,
-      final LicenseThreatGroupDAO licenseThreatGroupDAO, final RoleDAO roleDAO)
+      final LicenseThreatGroupDAO licenseThreatGroupDAO, final MembershipMappingService membershipMappingService)
   {
     this.tagDAO = tagDAO;
     this.policyDAO = policyDAO;
     this.labelDAO = labelDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
-    this.roleDAO = roleDAO;
+    this.membershipMappingService = membershipMappingService;
   }
 
 
@@ -64,7 +64,7 @@ class SidebarService
     ownerDetailsDTO.policies = policyDAO.getByOwnerId(internalOwnerId);
     ownerDetailsDTO.labels = labelDAO.getByOwnerId(internalOwnerId);
     ownerDetailsDTO.licenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(internalOwnerId);
-    ownerDetailsDTO.roles = roleDAO.getApplicationRoles();
+    ownerDetailsDTO.roles = membershipMappingService.getApplicableMembershipMappings(ownerType, internalOwnerId);
 
     return ownerDetailsDTO;
   }

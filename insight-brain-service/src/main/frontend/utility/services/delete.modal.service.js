@@ -8,10 +8,11 @@
 
   function DeleteModalService($modal) {
     var service = {
-      deleteResource: DeleteResource
+      deleteResource: DeleteResource,
+      deleteCustom: DeleteCustom
     };
 
-    function DeleteResource(resourceType, resourceName, resource, saveOnDelete) {
+    function DeleteResource(resourceType, resourceName, resource) {
       return $modal.open({
         animation: false,
         backdrop: 'static',
@@ -29,8 +30,37 @@
           resourceName: function() {
             return resourceName;
           },
-          saveOnDelete: function() {
-            return saveOnDelete;
+          headerText: angular.noop,
+          bodyText: angular.noop,
+          maskText: angular.noop,
+          continueAction: angular.noop
+        }
+      }).result;
+    }
+
+    function DeleteCustom(headerText, bodyText, maskText, continueAction) {
+      return $modal.open({
+        animation: false,
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'clm-modal delete-modal',
+        controller: 'DeleteModalController as vm',
+        templateUrl: 'utility/services/delete.modal.service.html',
+        resolve: {
+          resource: angular.noop,
+          resourceType: angular.noop,
+          resourceName: angular.noop,
+          headerText: function() {
+            return headerText;
+          },
+          bodyText: function() {
+            return bodyText;
+          },
+          maskText: function() {
+            return maskText;
+          },
+          continueAction: function() {
+            return continueAction;
           }
         }
       }).result;

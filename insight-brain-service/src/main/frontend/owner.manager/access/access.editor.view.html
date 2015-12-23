@@ -1,0 +1,47 @@
+<div id="access-editor" class="tile-editor-container">
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.availableRoles" reload="vm.retry()">
+    <h2>
+      <i class="fa fa-puzzle-piece size-20px"></i>{{vm.isNew ? 'Add Role' : vm.role.roleName}}
+    </h2>
+
+    <form id="access-editor-search-form" name="vm.accessEditorSearch" class="clm-form" role="form" ng-class="{'prop-down': vm.isNew}" novalidate ng-submit="vm.search()">
+      <div class="section">
+        <div class="field form-horizontal">
+          <label for="access-user-search-input">Search Users</label>
+          <div class="sub-label">use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)</div>
+          <input id="access-user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
+                  clm-input required/><!--
+       --><button id="user-search-button" class="btn" type="submit" submit-validation submit-dirty="vm.query"
+                  submit-type="search">Search</button><!--
+       --><div ng-if="vm.searchError" class="section with-icon warning"><i class="fa fa-warning"></i>Search failed. {{vm.searchError}}</div>
+        </div>
+      </div>
+    </form>
+
+    <form name="vm.accessEditor" class="clm-form" role="form" novalidate form-mask mask-attach-to-body ng-submit="vm.save()">
+      <div class="section">
+        <div class="field" id="access-editor-role" ng-if="vm.isNew" ng-class="{'space-for-error': vm.searchError}">
+          <label for="access-role-name" ng-if="true">Role</label><!-- bogus ng-if to fix IE9 combobox rendering -->
+          <dropdown-selector id="access-role-name" ng-model="vm.role" options="vm.availableRoles"
+                             option-name-param="roleName" required
+                             empty-option-string="-- Select Role --"></dropdown-selector>
+        </div>
+        <div class="field">
+          <label for="access-associated-users">Associated Users</label>
+          <double-column-picker id="access-associated-users" list="vm.members" hide-filter="true" left-column-name="Available"
+                                right-column-name="Associated" item-name-param="displayName"></double-column-picker>
+        </div>
+      </div>
+      <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.retry()">
+        <button type="submit" id="save-access-role-button" class="btn btn-primary" submit-validation submit-dirty="vm.isValid()"
+                submit-type="vm.isNew ? 'add' : 'update'">
+          {{vm.isNew ? 'Add' : 'Update'}}
+        </button><!--
+        --><button id="remove-role-button" class='btn btn-tertiary' type="button"
+                   ng-click="vm.removeRole()" ng-if="!vm.isNew">
+        <i class="fa fa-fw fa-trash"></i>Remove Role
+      </button>
+      </div>
+    </form>
+  </div>
+</div>

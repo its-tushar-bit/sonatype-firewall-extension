@@ -14,7 +14,7 @@
 
     function currentlySelectedText() {
       if (vm.selectedModel) {
-        return vm.selectedModel[vm.optionNameParam];
+        return vm.optionNameParam ? vm.selectedModel[vm.optionNameParam] : vm.selectedModel;
       }
       else {
         return vm.emptyOptionString ? vm.emptyOptionString : '-- None --';

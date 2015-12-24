@@ -12,7 +12,7 @@
       scope: {
         selectedModel: '=ngModel',
         options: '=',
-        optionNameParam: '@',
+        optionNameParam: '@?',
         emptyOptionString: '@?',
         disabled: '=?ngDisabled'
       },

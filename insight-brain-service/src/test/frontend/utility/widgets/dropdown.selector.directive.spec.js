@@ -1,54 +1,107 @@
 describe('dropdown.selector.directive.spec.js', function() {
-  var element;
+  var element,
+      $httpBackend;
 
   beforeEach(module('utility'));
-  beforeEach(inject(function($compile, $rootScope, $httpBackend) {
-    var scope = $rootScope.$new();
 
-    SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
+  afterEach(function() {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
 
-    scope = angular.extend(scope, {
-      testModel: null,
-      optionNameParam: 'name',
-      options: [{name: 'cherry'}, {name: 'orange'}, {name: 'raspberry'}],
-      emptyOptionString: null,
-      disabled: false
+  describe('with Object Options', function() {
+    beforeEach(inject(function($compile, $rootScope, _$httpBackend_) {
+      var scope = $rootScope.$new();
+      $httpBackend = _$httpBackend_;
+
+      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
+
+      scope = angular.extend(scope, {
+        testModel: null,
+        optionNameParam: 'name',
+        options: [{name: 'cherry'}, {name: 'orange'}, {name: 'raspberry'}],
+        emptyOptionString: null,
+        disabled: false
+      });
+
+      element = $compile('<dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
+          'empty-option-string="{{emptyOptionString}}" option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
+
+      $httpBackend.flush();
+    }));
+
+    it('Directive creates full list of options', function() {
+      var scope = element.scope();
+
+      expect(element.find('.selected-item').text()).toEqual('-- None --');
+
+      expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
+      element.find('.dropdown-menu li a').each(function(index) {
+        expect(this.text).toEqual(scope.options[index].name);
+      });
     });
 
-    element = $compile('<dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
-        'empty-option-string="{{emptyOptionString}}" option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
+    it('Directive displays custom empty selection string', function() {
+      var scope = element.scope();
+      scope.emptyOptionString = 'Nothing is Selected';
+      scope.$digest();
 
-    $httpBackend.flush();
-  }));
+      expect(element.find('.selected-item').text()).toEqual('Nothing is Selected');
+    });
 
-  it('Directive creates full list of options', function() {
-    var scope = element.scope();
+    it('Directive properly selects items', function() {
+      var isolatedScope = element.isolateScope(),
+          vm = isolatedScope.vm;
 
-    expect(element.find('.selected-item').text()).toEqual('-- None --');
+      for (var i = 0; i < vm.options.length; i++) {
+        vm.selectItem(vm.options[i]);
+        isolatedScope.$apply();
 
-    expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
-    element.find('.dropdown-menu li a').each(function(index) {
-      expect(this.text).toEqual(scope.options[index].name);
+        expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
+      }
     });
   });
 
-  it('Directive displays custom empty selection string', function() {
-    var scope = element.scope();
-    scope.emptyOptionString = 'Nothing is Selected';
-    scope.$digest();
+  describe('with String Options', function() {
+    beforeEach(inject(function($compile, $rootScope, _$httpBackend_) {
+      var scope = $rootScope.$new();
+      $httpBackend = _$httpBackend_;
 
-    expect(element.find('.selected-item').text()).toEqual('Nothing is Selected');
-  });
+      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
 
-  it('Directive properly selects items', function() {
-    var isolatedScope = element.isolateScope(),
-        vm = isolatedScope.vm;
+      scope = angular.extend(scope, {
+        testModel: null,
+        options: ['cherry', 'orange', 'raspberry']
+      });
 
-    for (var i = 0; i < vm.options.length; i++) {
-      vm.selectItem(vm.options[i]);
-      isolatedScope.$apply();
+      element = $compile('<dropdown-selector ng-model="testModel" options="options"></dropdown-selector>')(scope);
 
-      expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
-    }
+      $httpBackend.flush();
+    }));
+
+    it('Directive creates full list of string options', function() {
+      var scope = element.scope();
+
+      expect(element.find('.selected-item').text()).toEqual('-- None --');
+
+      expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
+      element.find('.dropdown-menu li a').each(function(index) {
+        expect(this.text).toEqual(scope.options[index]);
+      });
+    });
+
+    it('Directive properly selects string options', function() {
+      var isolatedScope = element.isolateScope(),
+          vm = isolatedScope.vm;
+
+      expect(vm.optionNameParam).toBeUndefined();
+
+      for (var i = 0; i < vm.options.length; i++) {
+        vm.selectItem(vm.options[i]);
+        isolatedScope.$apply();
+
+        expect(element.find('.selected-item').text()).toEqual(vm.options[i]);
+      }
+    });
   });
 });

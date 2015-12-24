@@ -3,7 +3,7 @@
           class="caret"></span></a>
   <ul class="dropdown-menu">
     <li ng-repeat="item in vm.options" ng-click="vm.selectItem(item)">
-      <a>{{item[vm.optionNameParam]}}</a>
+      <a>{{vm.optionNameParam ? item[vm.optionNameParam] : item}}</a>
     </li>
   </ul>
 </span>

@@ -24,18 +24,57 @@ import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 public class RestClientFactory
 {
 
-  public RestClient newRestClient(Configuration config) {
-    return new RestClient(config);
+  public RestClient newRestCIClient(Configuration config) {
+    return new RestCIClient(config);
   }
 
-  public static class RestClient
+  public RestClient newRestCLIClient(Configuration config) {
+    return new RestCLIClient(config);
+  }
+
+  /**
+   * @since 1.19.0
+   */
+  public static class RestCLIClient
+      extends RestClient
   {
 
-    private final Configuration config;
+    RestCLIClient(Configuration config) {
+      super(config);
+    }
+
+    @Override
+    public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
+      return new ScanClient(config, appId).uploadCLIScan(scanFile);
+    }
+  }
+
+  /**
+   * @since 1.19.0
+   */
+  public static class RestCIClient
+      extends RestClient
+  {
+    RestCIClient(final Configuration config) {
+      super(config);
+    }
+
+    @Override
+    public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
+      return new ScanClient(config, appId).uploadCIScan(scanFile);
+    }
+  }
+
+  public static abstract class RestClient
+  {
+
+    protected final Configuration config;
 
     RestClient(Configuration config) {
       this.config = config;
     }
+
+    public abstract ScanReceipt uploadScan(String appId, File scanFile) throws IOException;
 
     public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
       return new ConfigurationClient(config).getApplicationsForApplicationEvaluation();
@@ -43,10 +82,6 @@ public class RestClientFactory
 
     public ProprietaryConfig getProprietaryConfiguration() throws IOException {
       return new ConfigurationClient(config).getProprietaryConfiguration();
-    }
-
-    public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
-      return new ScanClient(config, appId).uploadCIScan(scanFile);
     }
 
     public PolicyEvaluationResult evaluatePolicy(String appId, String scanId, String stageId) throws IOException {

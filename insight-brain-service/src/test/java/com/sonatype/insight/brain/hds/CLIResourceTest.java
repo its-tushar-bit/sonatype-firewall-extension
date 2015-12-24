@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.hds;
 
 import com.sonatype.insight.brain.HttpRequest;
 
-public class CIResourceAuthzTest
-    extends AbstractScanResourceAuthzTest
+public class CLIResourceTest
+    extends AbstractScanResourceTest
 {
 
   @Override
-  protected HttpRequest scanRequest() {
-    return restRequest().path(CIResource.RESOURCE_PATH, CIResource.SCAN_PATH).parameter(app.getPublicId());
+  protected HttpRequest scanRequest(String appId) {
+    return restRequest().path(CLIResource.RESOURCE_PATH, CLIResource.SCAN_PATH).parameter(appId);
   }
-
 }

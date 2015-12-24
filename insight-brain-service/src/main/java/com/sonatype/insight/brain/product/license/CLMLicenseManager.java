@@ -37,6 +37,8 @@ public class CLMLicenseManager
 
   private static final String FEATURE_DASHBOARD = "DASHBOARD";
 
+  private static final String FEATURE_CLI_SCAN = "CLI_SCAN";
+
   private static final String FEATURE_QUALITY = "QUALITY";
 
   private static final String FEATURE_REPOSITORY_FIREWALL = "REPOSITORY_FIREWALL";
@@ -153,6 +155,10 @@ public class CLMLicenseManager
 
   public boolean hasDashboard() {
     return hasFeature(FEATURE_DASHBOARD);
+  }
+
+  public boolean hasCLIScanning() {
+    return hasFeature(FEATURE_CLI_SCAN);
   }
 
   /**
@@ -327,6 +333,7 @@ public class CLMLicenseManager
       if (!isLegacyNexusClmLicense(enforcementPoints)) {
         features.add(FEATURE_POLICY_MONITORING);
         features.add(FEATURE_DASHBOARD);
+        features.add(FEATURE_CLI_SCAN);
       }
     }
     else {
@@ -338,6 +345,7 @@ public class CLMLicenseManager
           || products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
         features.add(FEATURE_POLICY_MONITORING);
         features.add(FEATURE_DASHBOARD);
+        features.add(FEATURE_CLI_SCAN);
       }
       if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
         features.add(FEATURE_REPOSITORY_FIREWALL);

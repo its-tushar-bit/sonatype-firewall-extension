@@ -38,7 +38,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private final Scanner scanner;
 
-  private final RestClientFactory restClientFactory;
+  protected final RestClientFactory restClientFactory;
 
   public AbstractPolicyEvaluator(Scanner scanner, RestClientFactory restClientFactory) {
     this.scanner = scanner;
@@ -46,7 +46,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   }
 
   public void run(P params) throws ExitException {
-    RestClient restClient = restClientFactory.newRestClient(newHttpClientConfig(params));
+    RestClient restClient = createClient(newHttpClientConfig(params));
 
     validateServerAccess(params, restClient);
 
@@ -239,6 +239,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     processResults(params, receipt, eval, outcome, restClient);
 
     return eval;
+  }
+
+  protected RestClient createClient(Configuration configuration) {
+    return restClientFactory.newRestCIClient(configuration);
   }
 
   protected abstract void processResults(P params, ScanReceipt receipt, PolicyEvaluationResult eval,

@@ -141,6 +141,7 @@ public class SecurityModule
     manager.createChain("/rest/application/validate/*", filters);
     manager.createChain("/rest/policy/*/evaluate", filters);
     manager.createChain("/rest/ci/scan/*", filters);
+    manager.createChain("/rest/cli/scan/*", filters);
     manager.createChain("/rest/rm/scan/*", filters);
     manager.createChain("/rest/config/proprietary", filters);
     manager.createChain("/rest/policy/stages", filters); // licensed build stages

@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,5 +70,10 @@ public class PolicyEvaluator
         throw new ExitException(params.isIgnoreSystemErrors(), e);
       }
     }
+  }
+
+  @Override
+  protected RestClient createClient(Configuration configuration) {
+    return restClientFactory.newRestCLIClient(configuration);
   }
 }

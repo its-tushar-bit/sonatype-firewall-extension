@@ -159,7 +159,7 @@ public class PolicyEvaluatorTest
     binder.bind(RestClientFactory.class).toInstance(restClientFactory);
     httpConfig = ArgumentCaptor.forClass(Configuration.class);
     restClient = mock(RestClient.class);
-    when(restClientFactory.newRestClient(httpConfig.capture())).thenReturn(restClient);
+    when(restClientFactory.newRestCIClient(httpConfig.capture())).thenReturn(restClient);
   }
 
   @Test

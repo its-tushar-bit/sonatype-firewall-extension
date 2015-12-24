@@ -36,16 +36,19 @@ public class ScanClient
   }
 
   public ScanReceipt uploadCIScan(final File scanFile) throws IOException {
-    final Result result = path("rest/ci/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
-    return handleUpload(result);
+    return handleUpload("rest/ci/scan", scanFile);
+  }
+
+  public ScanReceipt uploadCLIScan(final File scanFile) throws IOException {
+    return handleUpload("rest/cli/scan", scanFile);
   }
 
   public ScanReceipt uploadRepoManScan(final File scanFile) throws IOException {
-    final Result result = path("rest/rm/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
-    return handleUpload(result);
+    return handleUpload("rest/rm/scan", scanFile);
   }
 
-  private ScanReceipt handleUpload(Result result) throws IOException {
+  private ScanReceipt handleUpload(String url, File scanFile) throws IOException {
+    final Result result = path(url, appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
     final int status = result.status();
     if (status >= 300) {
       throw new HttpResponseException(status, result.message());

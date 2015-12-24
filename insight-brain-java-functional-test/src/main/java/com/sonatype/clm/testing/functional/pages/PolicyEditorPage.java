@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.InheritanceSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 
@@ -42,6 +43,10 @@ public class PolicyEditorPage
 
   public static SummarySection summarySection() {
     return new SummarySection();
+  }
+
+  public static ConstraintSection constraintSection() {
+    return new ConstraintSection();
   }
 
   public static InheritanceSection inheritanceSection() {

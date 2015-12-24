@@ -10,7 +10,7 @@
                                   formMaskDelay, SameOwnerStateNavigationService, CLMAppLocations)
   {
     var vm = this,
-        originalCategoryArray,
+        originalCategories,
         originalHasPolicyCategories,
         createPolicy;
 
@@ -47,15 +47,33 @@
           promises.push($http.get(CLMAppLocations.getPolicyTagUrl($stateParams.policyId)));
         }
       }
+
       $q.all(promises).then(function(results) {
-        createPolicy = results[0][0].store.create;
-        vm.ownerName = results[0][0].ownerName;
+        loadPolicy(results[0]);
+
+        vm.categories = [];
+        if (!vm.isApp) {
+          loadCategories(results[1].data.tagsByOwner, results[2] && results[2].data);
+        }
+
+        if (!vm.dirtyPolicy) {
+          vm.loadError = 'Unable to locate Policy.';
+        }
+      }, function(error) {
+        vm.loadError = error;
+      });
+
+      delete vm.loadError;
+
+      function loadPolicy(policyHierarchy) {
+        createPolicy = policyHierarchy[0].store.create;
+        vm.ownerName = policyHierarchy[0].ownerName;
 
         if (!$stateParams.policyId) {
           vm.dirtyPolicy = createPolicy();
         }
 
-        results[0].forEach(function(owner, index) {
+        policyHierarchy.forEach(function(owner, index) {
           vm.siblings = vm.siblings.concat(owner.policies);
 
           if ($stateParams.policyId && index === 0) {
@@ -67,30 +85,21 @@
             });
           }
         });
+      }
 
-        vm.categories = [];
-        if (!vm.isApp) {
-          vm.hasPolicyCategories = results[2] !== undefined && results[2].data.length > 0;
-          var appliedCategoriesById = vm.hasPolicyCategories ? results[2].data.map(function(category) {
-            return category.id;
-          }) : [];
-          vm.categories = results[1].data.tagsByOwner[0].tags;
-          vm.categories.forEach(function(category) {
-            category.isApplied = appliedCategoriesById.indexOf(category.id) > -1;
-          });
+      function loadCategories(categoriesByOwner, availableCategories) {
+        vm.hasPolicyCategories = Boolean(availableCategories && availableCategories.length > 0);
+        var appliedCategoriesById = vm.hasPolicyCategories ? availableCategories.map(function(category) {
+          return category.id;
+        }) : [];
+        vm.categories = categoriesByOwner[0].tags;
+        vm.categories.forEach(function(category) {
+          category.isApplied = appliedCategoriesById.indexOf(category.id) > -1;
+        });
 
-          originalHasPolicyCategories = vm.hasPolicyCategories;
-          originalCategoryArray = angular.copy(vm.categories);
-        }
-
-        if (!vm.dirtyPolicy) {
-          vm.loadError = 'Unable to locate Policy.';
-        }
-      }, function(error) {
-        vm.loadError = error;
-      });
-
-      delete vm.loadError;
+        originalHasPolicyCategories = vm.hasPolicyCategories;
+        originalCategories = angular.copy(vm.categories);
+      }
     }
 
     function save() {
@@ -104,11 +113,11 @@
             vm.siblings.push(vm.dirtyPolicy);
             vm.dirtyPolicy = createPolicy();
           }
-  
+
           return vm.isApp ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
               vm.hasPolicyCategories ? appliedCategories : []);
         }, submitErrorHandler);
-        
+
         var isNew = vm.dirtyPolicy.$new;
         delete vm.submitError;
 
@@ -117,7 +126,7 @@
         });
 
         formMaskDelay.wrap($scope, savePolicy).then(function() {
-          originalCategoryArray = angular.copy(vm.categories);
+          originalCategories = angular.copy(vm.categories);
           originalHasPolicyCategories = vm.hasPolicyCategories;
           vm.policyEditor.$setPristine();
         }, submitErrorHandler);
@@ -125,7 +134,7 @@
     }
 
     function isInheritanceSectionDirty() {
-      return !vm.isApp && ((vm.hasPolicyCategories && !angular.equals(originalCategoryArray, vm.categories)) ||
+      return !vm.isApp && ((vm.hasPolicyCategories && !angular.equals(originalCategories, vm.categories)) ||
           (originalHasPolicyCategories !== vm.hasPolicyCategories));
     }
 
@@ -139,8 +148,8 @@
     'SameOwnerStateNavigationService', 'CLMAppLocations'
   ];
 
-  angular
-      .module('owner.manager.module')
+  angular //
+      .module('owner.manager.module') //
       .controller('policy.editor.controller', PolicyEditorController);
 
 }(angular));

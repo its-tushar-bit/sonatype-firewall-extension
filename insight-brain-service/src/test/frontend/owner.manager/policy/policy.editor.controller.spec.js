@@ -11,6 +11,7 @@ describe('policy.editor.controller.spec.js', function() {
     var vm,
         scope,
         $timeout,
+        CLMAppLocations,
         deleteServiceResourceDefer,
         isApp = type === 'application',
         mockDeleteService,
@@ -26,11 +27,13 @@ describe('policy.editor.controller.spec.js', function() {
             'policiesByOwner'),
         mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function($rootScope, $q, _$timeout_, _$controller_, _$httpBackend_, CLMAppLocations) {
+    beforeEach(inject(function($rootScope, $q, _$timeout_, _$controller_, _$httpBackend_, _CLMAppLocations_)
+    {
       scope = $rootScope.$new();
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       $controller = _$controller_;
+      CLMAppLocations = _CLMAppLocations_;
 
       deleteServiceResourceDefer = $q.defer();
 
@@ -39,23 +42,12 @@ describe('policy.editor.controller.spec.js', function() {
           return deleteServiceResourceDefer.promise;
         }
       };
-      mockCLMAppLocations = {
-        isApplication: function() {
-          return isApp;
-        },
-        getEntityId: function() {
-          return isApp ? owner.publicId : owner.id;
-        },
-        getTagsUrl: CLMAppLocations.getTagsUrl,
-        getPolicyTagUrl: CLMAppLocations.getPolicyTagUrl
-      };
 
       mockCategoryOwners = TagResourceMockData.getTagsUrl();
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
       spyOn(CLMAppLocations, 'isApplication').andReturn(isApp);
-
-
-    }))
+      spyOn(CLMAppLocations, 'getEntityId').andReturn(isApp ? owner.publicId : owner.id);
+    }));
 
     afterEach(function() {
       $httpBackend.verifyNoOutstandingExpectation();
@@ -63,11 +55,9 @@ describe('policy.editor.controller.spec.js', function() {
     });
 
     it('Creates new on load', inject(function($controller) {
-
       vm = $controller('policy.editor.controller', {$scope: scope});
-      mockPolicyStore.resolveGet(mockPolicyStoreData);
 
-      resolveLoadData(isApp, undefined);
+      resolveLoadData(mockPolicyStoreData, undefined);
 
       expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
     }));
@@ -194,7 +184,8 @@ describe('policy.editor.controller.spec.js', function() {
         });
         expect(vm.categories.length).toBe(mockPolicyTags.length);
         expect(vm.hasPolicyCategories).toBeTruthy();
-      } else {
+      }
+      else {
         expect(vm.categories.length).toBe(0);
         expect(vm.hasPolicyCategories).toBeFalsy();
       }
@@ -202,20 +193,22 @@ describe('policy.editor.controller.spec.js', function() {
 
     function resolveLoadData(policyStoreData, policyId) {
       mockPolicyStore.resolveGet(policyStoreData);
+
       if (!isApp) {
-        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(mockCategoryOwners);
+        $httpBackend.expectGET(CLMAppLocations.getTagsUrl()).respond(mockCategoryOwners);
         if (policyId) {
-          $httpBackend.expectGET(mockCLMAppLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
+          $httpBackend.expectGET(CLMAppLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
         }
         $httpBackend.flush();
       }
+
       $timeout.flush();
     }
 
     function resolveSaveData(policyId) {
       mockPolicy.resolveSave();
       if (!isApp) {
-        $httpBackend.expectPUT(mockCLMAppLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
+        $httpBackend.expectPUT(CLMAppLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
       }
       $timeout.flush();
       if (!isApp) {

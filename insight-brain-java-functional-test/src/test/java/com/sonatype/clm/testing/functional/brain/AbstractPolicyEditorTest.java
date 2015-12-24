@@ -5,8 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
@@ -17,6 +23,9 @@ import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -64,20 +73,38 @@ public abstract class AbstractPolicyEditorTest
     SummaryTile.addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
-    // TODO: Edit data and save needs CLM-5287 Policy editor - constraints section
+    // TODO: Edit data and save needs CLM-5806 - Add Constraints Section
   }
 
   @Test
   public void testEditPolicy() {
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "original name", 1);
+
+    Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
+    constraint1.addCondition(new Condition("AgeInDays", "older than", "730"));
+    Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
+        LogicalOperator.AND);
+    constraint2.addCondition(new Condition("License Threat Group", "is",
+        tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG", 5).getId()));
+    constraint2.addCondition(
+        new Condition("Label", "is", tempEntity.newLabel(currentOwner.getId(), "my Label").getId()));
+    Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
+        LogicalOperator.OR);
+    constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
+    constraint3.addCondition(new Condition("Coordinates", "do not match", "blah:blah:blah"));
+
+    policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
+
     Tag category1 = null;
     Tag category2 = null;
+
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       category1 = tempEntity.newTag(currentOwner.getId(), "Cat_1", blue);
       category2 = tempEntity.newTag(currentOwner.getId(), "Cat_2", red);
       tempEntity.newPolicyTag(policy.getId(), category1.getId());
     }
 
+    policyDAO.update(policy);
     refresh();
 
     SummaryTile.localPolicy(policy.getName()).click();
@@ -85,6 +112,7 @@ public abstract class AbstractPolicyEditorTest
 
     testEditPolicy_summarySection();
     testEditPolicy_inheritanceSection();
+    testEditPolicy_constraintSection(policy.getConstraints());
     testDeletePolicy(policyDAO.getById(policy.getId()));
   }
 
@@ -93,6 +121,7 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().val("updated name");
     PolicyEditorPage.saveButton().shouldNotHave(disabledClass()).click();
 
+    FormMask.root().shouldBe(visible).shouldNotBe(visible);
     changeThreatLevel(6);
     PolicyEditorPage.saveButton().shouldNotHave(disabledClass()).click();
 
@@ -102,6 +131,52 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     PolicyEditorPage.saveButton().shouldHave(disabledClass());
+  }
+
+  private void testEditPolicy_constraintSection(List<Constraint> constraints) {
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+    constraintSection.createConstraintButton().shouldBe(visible, enabled);
+
+    // Test Summaries
+    constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
+
+    ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
+    constraintSummary1.name().shouldHave(text(constraints.get(0).getName()));
+
+    List<Condition> conditions = constraints.get(0).getConditions();
+    constraintSummary1.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
+    constraintSummary1.conditions().shouldHaveSize(conditions.size());
+
+    constraintSummary1.condition(0).shouldHave(text("Age older than 2 Years"));
+
+    ConstraintSection.ConstraintSummary constraintSummary2 = constraintSection.constraintSummary(1);
+    constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
+
+    conditions = constraints.get(1).getConditions();
+    constraintSummary2.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
+    constraintSummary2.conditions().shouldHaveSize(conditions.size());
+
+    constraintSummary2.condition(0).shouldHave(text("License Threat Group is my LTG"));
+    constraintSummary2.condition(1).shouldHave(text("Label is my Label"));
+
+    ConstraintSection.ConstraintSummary constraintSummary3 = constraintSection.constraintSummary(2);
+    constraintSummary3.name().shouldHave(text(constraints.get(2).getName()));
+
+    conditions = constraints.get(2).getConditions();
+    constraintSummary3.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(2).getOperator().toString()));
+    constraintSummary3.conditions().shouldHaveSize(conditions.size());
+
+    constraintSummary3.condition(0).shouldHave(text("Relative Popularity (Percentage) less than 50"));
+    constraintSummary3.condition(1).shouldHave(text("Coordinates (GAV) do not match blah:blah:blah"));
+
+    // Test Editing
+    // TODO: CLM-5806 - Add Constraints Section
   }
 
   private void testDeletePolicy(Policy policy) {

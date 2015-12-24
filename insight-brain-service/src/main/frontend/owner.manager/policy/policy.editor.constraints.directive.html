@@ -1,0 +1,27 @@
+<div load-wrapper="vm.loadError" loading="!vm.conditionTypes" reload="vm.doLoad()">
+  <div class="constraint" ng-repeat="constraint in vm.constraints">
+    <div class="constraint-summary">
+      <div class="button-container">
+        <button class='btn btn-tertiary btn-icon-only edit-constraint-button' type="button"><!--
+        --><i class="fa fa-pencil"></i>
+        </button>
+        <button class='btn btn-tertiary btn-icon-only delete-constraint-button' type="button"><!--
+        --><i class="fa fa-trash"></i>
+        </button>
+      </div>
+      <div class="constraint-summary-name">{{constraint.name}}</div>
+      <div class="constraint-summary-subheader" ng-if="constraint.conditions.length > 1">is in violation if <b>{{constraint.operator
+        === "OR" ? "any" : "all"}}</b> of the following are true:
+      </div>
+      <div class="constraint-summary-subheader" ng-if="constraint.conditions.length <= 1">is in violation if the
+        following is true:
+      </div>
+      <div class="constraint-summary-condition" ng-repeat="condition in constraint.conditions">
+        {{:: vm.conditionString(condition)}}
+      </div>
+    </div>
+  </div>
+  <button id="add-constraint-button" class='btn' type="button">
+    <i class="fa fa-plus"></i>Create Constraint
+  </button>
+</div>

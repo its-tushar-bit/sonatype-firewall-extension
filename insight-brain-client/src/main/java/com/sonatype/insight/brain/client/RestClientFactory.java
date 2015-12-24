@@ -46,7 +46,7 @@ public class RestClientFactory
     }
 
     public ScanReceipt uploadScan(String appId, File scanFile) throws IOException {
-      return new ScanClient(config, appId).uploadCiScan(scanFile);
+      return new ScanClient(config, appId).uploadCIScan(scanFile);
     }
 
     public PolicyEvaluationResult evaluatePolicy(String appId, String scanId, String stageId) throws IOException {

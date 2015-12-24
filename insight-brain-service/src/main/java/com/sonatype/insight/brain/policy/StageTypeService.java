@@ -56,10 +56,10 @@ public class StageTypeService
   public StageTypeService(final CLMLicenseManager licenseManager) {
     this.licenseManager = licenseManager;
     contextFilterMap.put(ALL_CONTEXT, Predicates.<StageType>alwaysTrue());
-    contextFilterMap.put(CI_CONTEXT, new CiFilter());
+    contextFilterMap.put(CI_CONTEXT, new CIFilter());
     contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
-    contextFilterMap.put(QA_CONTEXT, new CiFilter());
-    contextFilterMap.put(RM_CONTEXT, new CiFilter());
+    contextFilterMap.put(QA_CONTEXT, new CIFilter());
+    contextFilterMap.put(RM_CONTEXT, new CIFilter());
     contextFilterMap.put(MAVEN_CONTEXT, new BuildFilter());
     contextFilterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
   }
@@ -154,7 +154,7 @@ public class StageTypeService
     return ordered;
   }
 
-  class CiFilter
+  class CIFilter
       implements Predicate<StageType>
   {
     @Override

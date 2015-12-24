@@ -257,7 +257,7 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testGetLicensedStages_ContextCi() throws Exception {
+  public void testGetLicensedStages_ContextCI() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     ConfigurationClient client = new ConfigurationClient(config);
 

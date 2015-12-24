@@ -115,7 +115,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_RiskRemediation_ContextCi() throws Exception {
+  public void testGetLicensedStageTypes_RiskRemediation_ContextCI() throws Exception {
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 

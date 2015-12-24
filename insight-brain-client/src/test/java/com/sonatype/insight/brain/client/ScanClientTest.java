@@ -37,19 +37,19 @@ public class ScanClientTest
   }
 
   @Test
-  public void testUploadCiScan_AllGood() throws Exception {
+  public void testUploadCIScan_AllGood() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
-    ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCiScan(tmpDir.newFile("scan.xml.gz"));
+    ScanReceipt receipt = new ScanClient(config, APP_ID).uploadCIScan(tmpDir.newFile("scan.xml.gz"));
     assertEquals("SCAN-ID", receipt.getScanId());
     assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID", receipt.getReportUrl());
     assertEquals("ui/links/application/ScanClientTest_AppId/report/SCAN-ID/pdf", receipt.getPdfUrl());
   }
 
   @Test
-  public void testUploaCiScan_InvalidAppId() throws Exception {
+  public void testUploaCIScan_InvalidAppId() throws Exception {
     Configuration config = getCLMServer().getClientConfiguration();
     try {
-      new ScanClient(config, "invalid-id").uploadCiScan(tmpDir.newFile("scan.xml.gz"));
+      new ScanClient(config, "invalid-id").uploadCIScan(tmpDir.newFile("scan.xml.gz"));
       fail("Upload should have failed due to invalid app ID");
     }
     catch (HttpResponseException e) {

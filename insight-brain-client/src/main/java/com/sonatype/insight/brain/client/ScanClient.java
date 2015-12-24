@@ -35,7 +35,7 @@ public class ScanClient
     this.appId = UrlUtils.encodeUrlComponent(appId);
   }
 
-  public ScanReceipt uploadCiScan(final File scanFile) throws IOException {
+  public ScanReceipt uploadCIScan(final File scanFile) throws IOException {
     final Result result = path("rest/ci/scan", appId).put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
     return handleUpload(result);
   }

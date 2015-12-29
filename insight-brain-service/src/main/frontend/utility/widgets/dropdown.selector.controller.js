@@ -10,7 +10,6 @@
     var vm = this;
 
     vm.currentlySelectedText = currentlySelectedText;
-    vm.selectItem = selectItem;
 
     function currentlySelectedText() {
       if (vm.selectedModel) {
@@ -19,10 +18,6 @@
       else {
         return vm.emptyOptionString ? vm.emptyOptionString : '-- None --';
       }
-    }
-
-    function selectItem(item) {
-      vm.selectedModel = item;
     }
   }
 

@@ -19,7 +19,19 @@
       templateUrl: 'utility/widgets/dropdown.selector.directive.html',
       controller: 'dropdown.selector.controller',
       controllerAs: 'vm',
-      bindToController: true
+      bindToController: true,
+      require: 'ngModel',
+      link: function(scope, element, attr, ctrl) {
+        scope.vm.selectItem = selectItem;
+
+        ctrl.$viewChangeListeners.push(function() {
+          scope.$eval(attr.ngChange);
+        });
+
+        function selectItem(item) {
+          ctrl.$setViewValue(item);
+        }
+      }
     };
   }
 

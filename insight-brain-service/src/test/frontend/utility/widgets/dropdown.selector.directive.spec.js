@@ -21,11 +21,13 @@ describe('dropdown.selector.directive.spec.js', function() {
         optionNameParam: 'name',
         options: [{name: 'cherry'}, {name: 'orange'}, {name: 'raspberry'}],
         emptyOptionString: null,
+        onSelect: jasmine.createSpy(),
         disabled: false
       });
 
       element = $compile('<dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
-          'empty-option-string="{{emptyOptionString}}" option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
+          'ng-change="onSelect(testModel)" empty-option-string="{{emptyOptionString}}" ' +
+          'option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
 
       $httpBackend.flush();
     }));
@@ -50,7 +52,8 @@ describe('dropdown.selector.directive.spec.js', function() {
     });
 
     it('Directive properly selects items', function() {
-      var isolatedScope = element.isolateScope(),
+      var scope = element.scope(),
+          isolatedScope = element.isolateScope(),
           vm = isolatedScope.vm;
 
       for (var i = 0; i < vm.options.length; i++) {
@@ -58,6 +61,7 @@ describe('dropdown.selector.directive.spec.js', function() {
         isolatedScope.$apply();
 
         expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
+        expect(scope.onSelect).toHaveBeenCalledWith(vm.options[i]);
       }
     });
   });

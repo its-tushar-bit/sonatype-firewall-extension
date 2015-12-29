@@ -37,7 +37,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -76,11 +76,11 @@ public class LTGEditorTest
     assertNewLTGStateIsCorrect();
     LTGEditorPage.ltgName().val("$$$"); // invalid characters
     PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();
-    LTGEditorPage.saveButton().shouldHave(disabledClass());
+    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
 
     LTGEditorPage.ltgName().val(ltgName);
     PopoverViolations.on(LTGEditorPage.ltgName()).shouldNotExist();
-    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(disabledClass()).click();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED_CLASS).click();
 
     assertNewLTGStateIsCorrect();
     LicenseThreatGroup ltg = ltgDAO.getByOwnerIdAndName(organization.getId(), ltgName);
@@ -101,18 +101,18 @@ public class LTGEditorTest
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
-    LTGEditorPage.saveButton().shouldHave(disabledClass());
+    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
 
     LTGEditorPage.ltgName().val("updated name");
     changeThreatLevel(6);
     pickFirstThreeLicenses();
-    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(disabledClass()).click();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED_CLASS).click();
 
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
-    LTGEditorPage.saveButton().shouldHave(disabledClass());
+    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
 
     List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
 
@@ -150,7 +150,7 @@ public class LTGEditorTest
     LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
-    LTGEditorPage.saveButton().shouldHave(disabledClass());
+    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
   }
 
   private void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {

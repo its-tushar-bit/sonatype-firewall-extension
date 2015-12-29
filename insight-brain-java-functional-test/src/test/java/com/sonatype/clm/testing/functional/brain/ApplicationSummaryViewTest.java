@@ -47,7 +47,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -95,9 +95,9 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchButton().click();
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
-    SelectContactModal.updateButton().shouldHave(disabledClass());
+    SelectContactModal.updateButton().shouldHave(DISABLED_CLASS);
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
-    SelectContactModal.updateButton().shouldNotHave(disabledClass()).click();
+    SelectContactModal.updateButton().shouldNotHave(DISABLED_CLASS).click();
     SelectContactModal.body().shouldNotBe(visible);
     OwnerSummaryPage.SummaryTile.contact().shouldHave(text(tempUser.calculateDisplayName()));
     // attempt removal but cancel out of confirmation dialog

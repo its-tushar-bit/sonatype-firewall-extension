@@ -40,7 +40,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
-import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static com.sonatype.insight.brain.model.Color.blue;
 import static com.sonatype.insight.brain.model.Color.red;
 import static org.hamcrest.Matchers.is;
@@ -119,18 +119,18 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("updated name");
-    PolicyEditorPage.saveButton().shouldNotHave(disabledClass()).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
 
     FormMask.root().shouldBe(visible).shouldNotBe(visible);
     changeThreatLevel(6);
-    PolicyEditorPage.saveButton().shouldNotHave(disabledClass()).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
 
     refresh();
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
     summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
-    PolicyEditorPage.saveButton().shouldHave(disabledClass());
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
   }
 
   private void testEditPolicy_constraintSection(List<Constraint> constraints) {
@@ -200,7 +200,7 @@ public abstract class AbstractPolicyEditorTest
     assertNewPolicyStateIsCorrect_summarySection();
     assertNewPolicyStateIsCorrect_inheritanceSection();
 
-    PolicyEditorPage.saveButton().shouldHave(disabledClass());
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
     PolicyEditorPage.deleteButton().shouldNot(exist);
   }
 
@@ -226,7 +226,7 @@ public abstract class AbstractPolicyEditorTest
 
     assertEditPolicyStateIsCorrect_summarySection(policy);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2);
-    PolicyEditorPage.saveButton().shouldHave(disabledClass());
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
   }
 
   private void assertEditPolicyStateIsCorrect_summarySection(Policy policy) {

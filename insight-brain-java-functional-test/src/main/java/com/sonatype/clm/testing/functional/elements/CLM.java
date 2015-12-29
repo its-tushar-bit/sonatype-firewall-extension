@@ -13,7 +13,5 @@ public class CLM
 {
   public static final Condition INITIAL_VALUE_CLASS = cssClass("initial-value");
 
-  public static Condition disabledClass() {
-    return cssClass("disabled");
-  }
+  public static final Condition DISABLED_CLASS = cssClass("disabled");
 }

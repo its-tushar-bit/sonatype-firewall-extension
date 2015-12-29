@@ -36,7 +36,7 @@ import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.INITIAL_VALUE_CLASS;
-import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup.OwnerDetailTreeViewItem.SELECTED_CLASS;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.contains;
@@ -81,15 +81,15 @@ public class AccessEditorTest
     String roleName = AccessEditorPage.roleDropdown().listItem(1).text();
     assertThat(getMembershipMappings(organization.getId(), roleName), is(empty()));
     AccessEditorPage.roleDropdown().listItem(1).click();
-    AccessEditorPage.saveButton().shouldHave(disabledClass());
-    AccessEditorPage.searchButton().shouldHave(disabledClass());
+    AccessEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    AccessEditorPage.searchButton().shouldHave(DISABLED_CLASS);
     AccessEditorPage.searchBox().val("*");
     AccessEditorPage.searchButton().shouldBe(enabled).click();
     DoubleColumnPicker.availableItems().shouldHaveSize(1);
     DoubleColumnPicker.checkAllLeft().click();
-    AccessEditorPage.saveButton().shouldHave(disabledClass());
+    AccessEditorPage.saveButton().shouldHave(DISABLED_CLASS);
     DoubleColumnPicker.pickCheckedItemsButton().click();
-    AccessEditorPage.saveButton().shouldNotHave(disabledClass()).click();
+    AccessEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
     FormMask.root().shouldBe(visible).shouldNotBe(visible);
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
     OwnerDetailTreeView.accessGroup().item(2).root().shouldHave(text(roleName));
@@ -124,7 +124,7 @@ public class AccessEditorTest
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
     // shouldn't submit on enter. Assert by checking that 'save' button is still enabled
     AccessEditorPage.searchBox().pressEnter();
-    AccessEditorPage.saveButton().shouldNotHave(disabledClass()).click();
+    AccessEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
     FormMask.root().shouldBe(visible).shouldNotBe(visible);
     assertCommonInitialStateIsCorrect();
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
@@ -143,7 +143,7 @@ public class AccessEditorTest
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3); // access, add role, current
     DoubleColumnPicker.checkAllRight().click();
     DoubleColumnPicker.unpickCheckedItemsButton().click();
-    AccessEditorPage.saveButton().shouldNotHave(disabledClass()).click();
+    AccessEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
     DeleteModal.body().shouldBe(visible);
     DeleteModal.body().shouldHave(AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), "application"));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
@@ -193,9 +193,9 @@ public class AccessEditorTest
 
   private void assertCommonInitialStateIsCorrect() {
     AccessEditorPage.searchBox().shouldHave(value("")).shouldHave(INITIAL_VALUE_CLASS);
-    AccessEditorPage.searchButton().shouldHave(disabledClass());
+    AccessEditorPage.searchButton().shouldHave(DISABLED_CLASS);
     DoubleColumnPicker.availableItemList().shouldBe(empty);
-    AccessEditorPage.saveButton().shouldHave(disabledClass());
+    AccessEditorPage.saveButton().shouldHave(DISABLED_CLASS);
   }
 
   private List<MembershipMapping> getMembershipMappings(final String ownersId, final String roleName) {

@@ -34,7 +34,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
-import static com.sonatype.clm.testing.functional.elements.CLM.disabledClass;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
@@ -186,7 +186,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(i).getId(), "admin");
     }
     refresh();
-    detailGroup.item(1).root().shouldBe(visible).shouldHave(disabledClass());
+    detailGroup.item(1).root().shouldBe(visible).shouldHave(DISABLED_CLASS);
 
     back();
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,8 +17,13 @@ import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
@@ -45,11 +51,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -723,6 +731,61 @@ public abstract class AbstractSummaryViewTest
           .shouldHave(failIcon()).shouldHave(fail())
           .shouldNotHave(warnIcon()).shouldNotHave(warn());
     }
+  }
+  
+  @Test
+  public void testImportPolicy() {
+    String filePath = new File(getClass().getResource("/policyExport/samplePolicy.json").getFile()).getAbsolutePath();
+
+    ActionDropDown.actionButton().click();
+    ActionDropDown.importPoliciesButton().shouldBe(visible).click();
+
+    ImportPolicyModal.root().shouldBe(visible);
+    ImportPolicyModal.importButton().shouldBe(visible, disabled);
+
+    ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);
+
+    // Give a maximum of 2 seconds for the file to be loaded
+    ImportPolicyModal.importButton().waitUntil(enabled, 2000).click();
+    // verify mask and wait for it to go away
+    FormMask.seeAndWaitForDismissal();
+
+    // scroll to the labels tile
+    OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
+    LabelTile labelTile = new LabelTile();
+    labelTile.labelList(0);
+    TileSimpleList list = labelTile.labelList(0);
+    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    list.elements().shouldHaveSize(1);
+    TileSimpleListElement actualLabel = list.element(0);
+    actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
+
+    // scroll to the ltgs
+    OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
+    LicenseThreatGroupTile ltgTile = new LicenseThreatGroupTile();
+    ThreatGroupTileSimpleList threatGroupTileSimpleList = ltgTile.ltgList(0);
+    threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
+    threatGroupTileSimpleList.elements().shouldHaveSize(1);
+    threatGroupTileSimpleList.element(0).name().shouldBe(visible).shouldHave(text("Test LTG"));
+    
+    // scroll to the policy tile
+    OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
+    PolicyTile policyTile = new PolicyTile();
+    PolicyTileList policyList = policyTile.policyList(0);
+    policyList.emptyDescriptor().shouldNotBe(visible);
+    policyList.elements().shouldHaveSize(2); // 1 element plus header
+    policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
+    PolicyTileListElement policyElement = policyList.element(1);
+    policyElement.name().shouldBe(visible).shouldHave(text("Test"));
+    policyElement.proxy().shouldBe(visible).shouldHave(text("warn"));
+
+    // scroll to the application categories tile
+    OwnerSummaryPage.SummaryTile.appCategoriesButton().shouldBe(visible).click();
+    CategoryTile categoryTile = OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? 
+        new CategoryTileOrgContext() : new CategoryTileAppContext();
+    TileSimpleList categoryList = categoryTile.categoryList(0);
+    categoryList.elements().shouldBe(empty);
+    categoryList.emptyDescriptor().shouldBe(visible).shouldHave(categoryTile.emptyListDescriptorText());
   }
 
   protected int getHierarchySize(String ownerId) {

@@ -1,5 +1,6 @@
 describe('label.tile.controller.spec.js', function() {
   var vm,
+      scope,
       $httpBackend,
       CLMAppLocations;
 
@@ -7,11 +8,14 @@ describe('label.tile.controller.spec.js', function() {
     $provide.value('$cookies', {});
   }));
 
-  beforeEach(inject(function($controller, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function($rootScope, $controller, _$httpBackend_, _CLMAppLocations_) {
+        scope = $rootScope.$new();
         $httpBackend = _$httpBackend_;
         CLMAppLocations = _CLMAppLocations_;
 
-        vm = $controller('LabelTileController');
+        vm = $controller('LabelTileController', {
+          $scope: scope
+        });
       }
   ));
 

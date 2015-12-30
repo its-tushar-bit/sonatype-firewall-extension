@@ -8,7 +8,8 @@
 
   function OwnerSummaryController($state, $scope, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
                                   CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
-                                  SelectApplicationContactService, EvaluateApplicationModalService)
+                                  SelectApplicationContactService, EvaluateApplicationModalService,
+                                  ImportPolicyModalService)
   {
     var vm = this;
 
@@ -19,6 +20,7 @@
     vm.doLoad = doLoad;
     vm.edit = edit;
     vm.evaluateApp = evaluateApp;
+    vm.importPolicy = importPolicy;
     vm.deleteOwner = deleteOwner;
     vm.getShortTypeName = getShortTypeName;
     vm.getResourceTypeName = getResourceTypeName;
@@ -85,6 +87,10 @@
       EvaluateApplicationModalService.open(vm.owner);
     }
 
+    function importPolicy() {
+      ImportPolicyModalService.open();
+    }
+
     function selectContact(owner) {
       SelectApplicationContactService.open(owner);
     }
@@ -125,7 +131,7 @@
   OwnerSummaryController.$inject = [
     '$state', '$scope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore',
     'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService',
-    'evaluate.application.modal.service'
+    'evaluate.application.modal.service', 'import.policy.modal.service'
   ];
 
   angular//

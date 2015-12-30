@@ -1,5 +1,6 @@
 describe('policy.tile.controller.spec.js', function() {
   var vm,
+      scope,
       $httpBackend,
       $timeout,
       CLMAppLocations,
@@ -9,14 +10,17 @@ describe('policy.tile.controller.spec.js', function() {
     $provide.value('$cookies', {});
   }));
 
-  beforeEach(inject(function($q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_, StageTypeStore) {
+  beforeEach(inject(function($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_, StageTypeStore) {
+        scope = $rootScope.$new();
         $httpBackend = _$httpBackend_;
         $timeout = _$timeout_;
         CLMAppLocations = _CLMAppLocations_;
         stageTypeStoreDefer = $q.defer();
         spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
         spyOn(StageTypeStore, 'getActionStages').andReturn(stageTypeStoreDefer.promise);
-        vm = $controller('policy.tile.controller');
+        vm = $controller('policy.tile.controller', {
+          $scope: scope
+        });
       }
   ));
 

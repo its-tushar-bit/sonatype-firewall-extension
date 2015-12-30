@@ -37,6 +37,28 @@
 </div>
 ```
 
+##CLM Modal Warning
+
+```
+<div class='modal-backdrop'>
+</div>
+<div class='clm-modal'>
+  <div class='clm-modal-header'>
+    <h2>A Modal Title</h2>
+  </div>
+  <div class='clm-modal-body'>
+    Your content
+    <div class="clm-alert alert">
+      <i class="fa fa-warning"></i>
+      Are you sure you really want to do this?
+    </div>
+  </div>
+  <div class='clm-modal-footer'>
+    <button class='btn btn-primary'>Save</button> <button class='btn'>Cancel</button>
+  </div>
+</div>
+```
+
  */
 .modal-backdrop {
   background-color: rgba($off-black, 0.4) !important;

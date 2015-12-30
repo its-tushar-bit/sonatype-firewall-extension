@@ -6,23 +6,26 @@
 (function(angular) {
   'use strict';
 
-  function PolicyTileController($q, $http, CLMAppLocations, StageTypeStore, SameOwnerStateNavigationService) {
+  function PolicyTileController($scope, $q, $http, CLMAppLocations, StageTypeStore, SameOwnerStateNavigationService) {
     var vm = this;
     vm.ownerName = undefined;
     vm.policiesByOwner = undefined;
     vm.error = undefined;
-    vm.actionStages = [];
+    vm.actionStages = undefined;
     vm.editPolicy = editPolicy;
 
     vm.doLoad = doLoad;
 
     vm.doLoad();
 
+    $scope.$on('policy.imported', doLoad);
+
     function doLoad() {
       $q.all([
         $http.get(CLMAppLocations.getApplicablePolicies()),
         StageTypeStore.getActionStages()
       ]).then(function(results) {
+        vm.actionStages = [];
         vm.policiesByOwner = results[0].data.policiesByOwner;
         vm.policiesByOwner.forEach(function(policyOwner, index) {
           policyOwner.inherited = index > 0;
@@ -47,8 +50,9 @@
     }
   }
 
-  PolicyTileController.$inject = ['$q', '$http', 'CLMAppLocations', 'StageTypeStore', 
-                                  'SameOwnerStateNavigationService'];
+  PolicyTileController.$inject = [
+    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore', 'SameOwnerStateNavigationService'
+  ];
 
   angular //
       .module('owner.manager.module') //

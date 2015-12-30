@@ -7,16 +7,21 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
-public class FormMask
+public class ImportPolicyModal
 {
-  public static SelenideElement root() {
-    return $(".form-mask");
-  }
+  public static final String ROOT_SELECTOR = "#import-policy-dialog";
   
-  public static SelenideElement seeAndWaitForDismissal() {                                                                                                       
-    return root().shouldBe(visible).shouldNotBe(visible);  
+  public static SelenideElement root() {
+    return $(ROOT_SELECTOR);
+  }
+
+  public static SelenideElement fileInput() {
+    return $(ROOT_SELECTOR + " #importFile");
+  }
+
+  public static SelenideElement importButton(){
+    return $(ROOT_SELECTOR + " #import-policy-upload");
   }
 }

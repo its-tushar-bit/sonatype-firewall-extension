@@ -41,6 +41,10 @@ public class ActionDropDown
     return $("#eval-binary-link");
   }
 
+  public static SelenideElement importPoliciesButton() {
+    return $("#import-policies-link");
+  }
+
   public static SelenideElement actionButton() {
     return root().find("button");
   }

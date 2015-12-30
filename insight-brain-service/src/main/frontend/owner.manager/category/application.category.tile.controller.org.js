@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileControllerOrg($http, CLMAppLocations, SameOwnerStateNavigationService) {
+  function ApplicationCategoryTileControllerOrg($scope, $http, CLMAppLocations, SameOwnerStateNavigationService) {
     var vm = this;
 
     vm.appCategoryOwners = [];
@@ -18,9 +18,12 @@
 
     vm.doLoad();
 
+    $scope.$on('policy.imported', doLoad);
+
     function doLoad() {
       if (vm.isOrg) {
         $http.get(CLMAppLocations.getTagsUrl()).then(function(result) {
+          vm.appCategoryOwners = [];
           result.data.tagsByOwner.forEach(function(owner, index) {
             vm.appCategoryOwners.push(owner);
 
@@ -46,7 +49,9 @@
     }
   }
 
-  ApplicationCategoryTileControllerOrg.$inject = ['$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'];
+  ApplicationCategoryTileControllerOrg.$inject = [
+    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'
+  ];
 
   angular //
       .module('owner.manager.module') //

@@ -1,0 +1,33 @@
+<div id='import-policy-dialog' class="clm-modal">
+  <div class='clm-modal-header'>
+    <h2>Import Policy</h2>
+  </div>
+  <form class="clm-form" name='importPolicy' action='{{vm.ieImportPolicyUrl()}}' enctype='multipart/form-data'
+        method='post' ng-upload form-mask>
+    <div class="clm-modal-body">
+      <div class="section">
+        <div class="field">
+          <label for="importFile">Policies File</label>
+          <input type='file' file-model='vm.importFile' id='importFile' name='file' accept=".json">
+        </div>
+      </div>
+      <div ng-if="!vm.error" class="clm-alert alert">
+        <i class="fa fa-warning"></i>
+        <span><strong>Note:</strong> Importing policies is <strong>destructive</strong> and will replace
+            existing policies and license threat groups</span>
+      </div>
+    </div>
+    <div class='clm-modal-footer' ng-class="{error: vm.error}">
+      <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i>{{vm.error}}</div>
+      <button ng-if="!vm.error" id='import-policy-upload' class='btn btn-primary' type='button'
+              ng-disabled='!vm.importFile' ng-click='vm.doSubmit()'>Import
+      </button>
+      <button ng-if="vm.error" class="btn btn-error" type="submit" ng-click="vm.retry()"><i class="fa fa-refresh"></i>Retry
+      </button>
+      <button id='import-policy-cancel' class='btn' type='button' ng-click='$close()'>Cancel
+      </button>
+    </div>
+    <input type='submit' upload-submit='vm.uploaded(content, completed)' class='hide' name="submitFile"/>
+    <input type='hidden' name='{{vm.csrfTokenName}}' value='{{vm.csrfTokenValue}}'/>
+  </form>
+</div>

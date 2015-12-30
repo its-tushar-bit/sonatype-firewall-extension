@@ -5,6 +5,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
 
   function createTests(type, storeName, owner) {
     var vm,
+        scope,
         $httpBackend,
         $timeout,
         isApp = type === 'application',
@@ -12,7 +13,8 @@ describe('application.category.tile.controller.app.spec.js', function() {
         mockCLMAppLocations,
         mockApplicationStore = StoreUtils().createMockStore('ApplicationStore');
 
-    beforeEach(inject(function($controller, _$httpBackend_, _$timeout_, _CLMLocations_) {
+    beforeEach(inject(function($rootScope, $controller, _$httpBackend_, _$timeout_, _CLMLocations_) {
+          scope = $rootScope.$new();
           $httpBackend = _$httpBackend_;
           $timeout = _$timeout_;
           CLMLocations = _CLMLocations_;
@@ -27,7 +29,8 @@ describe('application.category.tile.controller.app.spec.js', function() {
           };
 
           vm = $controller('ApplicationCategoryTileControllerApp', {
-            CLMAppLocations: mockCLMAppLocations
+            CLMAppLocations: mockCLMAppLocations,
+            $scope: scope
           });
         }
     ));

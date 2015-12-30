@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileControllerApp($q, $http, ApplicationStore, CLMAppLocations, CLMLocations) {
+  function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations) {
     var vm = this;
 
     vm.appliedCategories = undefined;
@@ -16,6 +16,8 @@
     vm.ownerName = undefined;
 
     vm.doLoad();
+
+    $scope.$on('policy.imported', doLoad);
 
     function doLoad() {
       if (vm.isApp) {
@@ -43,7 +45,9 @@
     }
   }
 
-  ApplicationCategoryTileControllerApp.$inject = ['$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'];
+  ApplicationCategoryTileControllerApp.$inject = [
+    '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'
+  ];
 
   angular //
       .module('owner.manager.module') //

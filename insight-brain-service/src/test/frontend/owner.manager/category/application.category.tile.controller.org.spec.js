@@ -5,11 +5,13 @@ describe('application.category.tile.controller.org.spec.js', function() {
 
   function createTests(type, storeName, owner) {
     var vm,
+        scope,
         $httpBackend,
         isOrg = type === 'organization',
         mockCLMAppLocations;
 
-    beforeEach(inject(function($controller, _$httpBackend_, CLMAppLocations) {
+    beforeEach(inject(function($rootScope, $controller, _$httpBackend_, CLMAppLocations) {
+      scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
 
       mockCLMAppLocations = {
@@ -20,7 +22,8 @@ describe('application.category.tile.controller.org.spec.js', function() {
       };
 
       vm = $controller('ApplicationCategoryTileControllerOrg', {
-        CLMAppLocations: mockCLMAppLocations
+        CLMAppLocations: mockCLMAppLocations,
+        $scope: scope
       });
     }));
 

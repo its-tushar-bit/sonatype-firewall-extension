@@ -3,7 +3,8 @@
     <label for="license-input" firefox-input-click class='btn btn-primary'>
       <i class='icon-white icon-plus-sign'></i>&nbsp;{{ license ? 'Update' : 'Install' }} License
     </label>
-    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file" on-file-change="onFileChanged()" manual-file-clear/>
+    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file"
+           on-file-change="onFileChanged()" manual-file-clear ng-click="clearValue()"/>
     <input type='submit' upload-submit="installLicense(content, completed)" ng-show='false' />
     <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
   </form>

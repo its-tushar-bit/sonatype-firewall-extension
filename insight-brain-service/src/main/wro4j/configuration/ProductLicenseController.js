@@ -91,7 +91,9 @@
             showLicense();
           }
           else {
-            $scope.clearValue();
+            if ($scope.clearValue) {
+              $scope.clearValue();
+            }
             $timeout(function() {
               showError(content);
             }, 0);
@@ -139,7 +141,8 @@
       restrict: 'A',
       link: function(scope, elem) {
         scope.clearValue = function() {
-          elem.attr('value', '');
+          elem.wrap('<form>').closest('form').get(0).reset();
+          elem.unwrap();
         };
       }
     };

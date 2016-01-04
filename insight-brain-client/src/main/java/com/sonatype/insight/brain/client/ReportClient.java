@@ -15,7 +15,6 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 
 import org.apache.http.client.HttpResponseException;
-import org.codehaus.plexus.util.IOUtil;
 
 public final class ReportClient
     extends AbstractClient
@@ -57,8 +56,9 @@ public final class ReportClient
     byte[] data = result.data();
     FileOutputStream fos = new FileOutputStream(bundleFile);
     try {
-      IOUtil.copy(data, fos);
-    } finally {
+      fos.write(data);
+    }
+    finally {
       fos.close();
     }
   }

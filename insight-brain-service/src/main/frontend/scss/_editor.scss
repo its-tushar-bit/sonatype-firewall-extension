@@ -134,11 +134,11 @@
 
         .button-container {
           position: absolute;
-          top: 8px;
+          top: 0;
           right: 0;
 
           button:not(:last-child) {
-            margin-right: 4px;
+            margin-right: 7px;
           }
         }
 
@@ -154,7 +154,7 @@
         }
         
         .constraint-summary-condition {
-          padding-left: 7px;
+          padding-left: 10px;
         }
       }
     }

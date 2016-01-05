@@ -57,7 +57,7 @@
             title = 'Unable to ' + (submitType ? submitType : 'save') + ': fields with invalid or missing data.';
           }
 
-          element.tooltip({container: element}).attr('title', title).tooltip('fixTitle');
+          element.tooltip({container: 'body'}).attr('title', title).tooltip('fixTitle');
         }
       }
     };

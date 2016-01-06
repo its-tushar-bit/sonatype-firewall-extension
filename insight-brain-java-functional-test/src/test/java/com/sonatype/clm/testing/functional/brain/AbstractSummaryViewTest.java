@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

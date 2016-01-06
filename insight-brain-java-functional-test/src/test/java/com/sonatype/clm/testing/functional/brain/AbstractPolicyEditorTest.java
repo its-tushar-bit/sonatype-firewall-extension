@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

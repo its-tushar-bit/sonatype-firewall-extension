@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.utils;
 
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Assert;
 
 import static com.codeborne.selenide.Condition.disabled;

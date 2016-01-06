@@ -36,6 +36,7 @@ public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
     super.init(organization);
   }
 
+  @Override
   protected void assertNewPolicyStateIsCorrect_inheritanceSection() {
     InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
 
@@ -48,6 +49,7 @@ public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
     inheritance.associationEditor().root().shouldNotBe(visible);
   }
 
+  @Override
   protected void testEditPolicy_inheritanceSection() {
     InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();
@@ -81,6 +83,7 @@ public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
     inheritance.associationEditor().item(1, 0).checkBox().shouldBe(selected);
   }
 
+  @Override
   protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2) {
     InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
 

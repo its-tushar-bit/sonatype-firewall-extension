@@ -30,14 +30,17 @@ public class ApplicationPolicyEditorTest extends AbstractPolicyEditorTest
     super.init(application);
   }
 
+  @Override
   protected void assertNewPolicyStateIsCorrect_inheritanceSection() {
     assertInheritanceSectionDoesNotExist();
   }
 
+  @Override
   protected void testEditPolicy_inheritanceSection() {
     assertInheritanceSectionDoesNotExist();
   }
 
+  @Override
   protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2) {
     assertInheritanceSectionDoesNotExist();
   }

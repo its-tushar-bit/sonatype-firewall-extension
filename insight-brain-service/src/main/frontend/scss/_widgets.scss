@@ -516,7 +516,6 @@
 
 /*
   ## Dropdown
-
   ```
     <div class="clm-dropdown pull-right">
       <button class="btn btn-default dropdown-toggle" type="button" id="actionMenu" data-toggle="dropdown">
@@ -524,7 +523,11 @@
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-left">
-        <li> <i class="fa fa-pencil" /> Edit App Name / Icon</li>
+        <li><a><span><i class="fa fa-pencil"></i> Edit App Name / Icon</span></a></li>
+        <li class="divider"></li>
+        <li><a><i class="fa fa-upload fa-fw"></i><span>Evaluate Binary</span></a></li>
+        <li><a class="link"><i class="fa fa-external-link fa-fw"></i><span>Report</span></a></li>
+        <li><a class="link" class="disabled"><i class="fa fa-external-link fa-fw"></i><span>Report Disabled</span></a></li>
       </ul>
     </div>
   ```
@@ -544,6 +547,12 @@
     }
   }
 
+/*
+ * Note: IE, 9, 10, and 11 have issues triggering the pseudo active class when there are nested child elements inside
+ * an anchor tag. There is a workaround for ie 11 and that is to create a :before pseudo element on the anchor tag. This
+ * essentially wraps the anchor allowing for the active class to be triggered.
+ *
+ */
   .dropdown-menu {
     padding: 8px 0px 8px 0px;
     background: $off-white;
@@ -556,12 +565,14 @@
       vertical-align: middle;
 
       a {
+        position: relative; // ie 11 workaround, see note above
         line-height: 32px;
         height: 32px;
         padding: 0px 12px 0px 12px;
         border-top: 1px solid $off-white;
         border-bottom: 1px solid $off-white;
         color: inherit;
+        background: $off-white;
         @extend .semi-bold;
 
         &.link {
@@ -570,40 +581,61 @@
             cursor: default;
 
             &:hover {
-              background: $off-white;
-              border-bottom: 1px solid $light-blue;
+              color: $light-blue;
             }
           }
 
           &:not(.disabled) {
             color: $link-blue;
 
-            &:hover {
-              background: $off-white;
-              border-bottom: 1px solid $link-blue;
+            &:hover:not(:active) {
+              color: $link-blue;
+              text-decoration: underline;
             }
+            &:active {
+              color: $deep-blue;
+              text-decoration: none;
+            }
+          }
+          .fa-external-link {
+            margin-bottom: 2px;
+            vertical-align: middle;
           }
         }
 
-        span {
-          display: inline-block;
-          vertical-align: middle;
+        &:not(.link) {
+          &:active {
+            background: $grey-1;
+            color: $off-black;
+          }
+          &:hover:not(:active) {
+            color: $off-black;
+          }
         }
-        &:active {
-          background: $grey-1;
-          border-top: 1px solid $grey-4;
-          border-bottom: 1px solid $grey-4;
-          color: $slate;
-        }
-        &:hover {
-          color: $slate;
-          background: $off-white;
-          border-bottom: 1px solid $grey-4;
+        &:hover, &:focus {
+          filter: none; // bootstrap override
         }
       }
+
+      a:before { // ie 11 workaround, see note above
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      } 
+      
       .fa {
         margin-right: 8px;
         width: 12px;
+      }
+      &.divider {
+        margin: 8px 12px 8px 12px;
+        border: none;
+        background-color: $grey-4;
+        height: 1px;
       }
 
     }

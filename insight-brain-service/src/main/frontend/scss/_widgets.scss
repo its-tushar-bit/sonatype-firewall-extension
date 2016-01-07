@@ -1214,3 +1214,16 @@ dropdown-selector {
     }
   }
 }
+
+age-in-days-input {
+  > input[type="number"].age-input {
+    width: 105px;
+    margin-right: 4px;
+    vertical-align: initial;
+    display: inline-block;
+  }
+  > dropdown-selector {
+    width: 83px;
+    display: inline-block;
+  }
+}

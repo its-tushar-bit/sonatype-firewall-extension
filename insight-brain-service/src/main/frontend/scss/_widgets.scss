@@ -161,6 +161,9 @@
     @extend .semi-bold;
     color: $slate;
     margin-bottom: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     a {
       color: $link-blue;

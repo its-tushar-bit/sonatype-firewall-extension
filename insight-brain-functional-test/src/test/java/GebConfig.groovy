@@ -94,13 +94,8 @@ environments {
 
   // see https://github.com/detro/ghostdriver
   phantom {
-    String phantomJsBinary
-    new File('../insight-brain-service/target/phantomjs-maven-plugin').eachFileRecurse { File file ->
-      if (file.isFile() && file.name.matches('phantomjs(.exe)?')) {
-        phantomJsBinary = file.absolutePath
-        return false
-      }
-    }
+    String phantomJsBinary = System.getProperty("phantomjs.binary", null)
+
     driver = {
       DesiredCapabilities capabilities = DesiredCapabilities.phantomjs()
       if (phantomJsBinary) {

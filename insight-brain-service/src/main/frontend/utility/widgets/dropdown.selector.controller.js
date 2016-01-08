@@ -6,20 +6,46 @@
 (function(angular) {
   'use strict';
 
-  function DropdownSelectorController() {
+  function DropdownSelectorController($scope, $element) {
     var vm = this;
 
-    vm.currentlySelectedText = currentlySelectedText;
+    vm.parseSelectedModel = parseSelectedModel;
+    vm.optionModelMap = undefined;
+    vm.optionViewMap = undefined;
 
-    function currentlySelectedText() {
-      if (vm.selectedModel) {
-        return vm.optionNameParam ? vm.selectedModel[vm.optionNameParam] : vm.selectedModel;
-      }
-      else {
-        return vm.emptyOptionString ? vm.emptyOptionString : '-- None --';
+    if (vm.optionValueParam || vm.optionNameParam) {
+      $scope.$watch('vm.options', buildOptionMaps, true);
+      buildOptionMaps();
+    }
+
+    function buildOptionMaps() {
+      vm.optionModelMap = {};
+      vm.optionViewMap = {};
+
+      vm.options.forEach(function(option) {
+        if (vm.optionValueParam) {
+          vm.optionModelMap[option[vm.optionValueParam]] = option;
+        }
+
+        if (vm.optionNameParam) {
+          vm.optionViewMap[option[vm.optionNameParam]] = option;
+        }
+      });
+
+      if (vm.optionValueParam && vm.formatSelectedModel) {
+        // Re-run formatter with updated map
+        var ctrl = $element.controller('ngModel');
+        ctrl.$setViewValue(vm.formatSelectedModel(ctrl.$modelValue));
       }
     }
+
+    function parseSelectedModel(viewValue) {
+      var selected = vm.optionNameParam ? vm.optionViewMap[viewValue] : viewValue;
+      return vm.optionValueParam ? selected[vm.optionValueParam] : selected;
+    }
   }
+
+  DropdownSelectorController.$inject = ['$scope', '$element'];
 
   angular.module('utility').controller('dropdown.selector.controller', DropdownSelectorController);
 

@@ -20,7 +20,7 @@ describe('dropdown.selector.directive.spec.js', function() {
         testModel: null,
         optionNameParam: 'name',
         options: [{name: 'cherry'}, {name: 'orange'}, {name: 'raspberry'}],
-        emptyOptionString: null,
+        emptyOptionString: 'Nothing is Selected',
         onSelect: jasmine.createSpy(),
         disabled: false
       });
@@ -35,20 +35,12 @@ describe('dropdown.selector.directive.spec.js', function() {
     it('Directive creates full list of options', function() {
       var scope = element.scope();
 
-      expect(element.find('.selected-item').text()).toEqual('-- None --');
+      expect(element.find('.selected-item').text()).toEqual('Nothing is Selected');
 
       expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
       element.find('.dropdown-menu li a').each(function(index) {
         expect(this.text).toEqual(scope.options[index].name);
       });
-    });
-
-    it('Directive displays custom empty selection string', function() {
-      var scope = element.scope();
-      scope.emptyOptionString = 'Nothing is Selected';
-      scope.$digest();
-
-      expect(element.find('.selected-item').text()).toEqual('Nothing is Selected');
     });
 
     it('Directive properly selects items', function() {
@@ -63,6 +55,16 @@ describe('dropdown.selector.directive.spec.js', function() {
         expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
         expect(scope.onSelect).toHaveBeenCalledWith(vm.options[i]);
       }
+    });
+
+    it('Directive properly re-parses option maps when options change', function() {
+      var scope = element.scope(),
+          vm = element.isolateScope().vm;
+
+      expect(vm.optionViewMap['testOption']).toBeUndefined();
+      scope.options.push({name: 'testOption'});
+      scope.$digest();
+      expect(angular.equals(vm.optionViewMap['testOption'], {name: 'testOption'})).toBeTruthy();
     });
   });
 
@@ -105,6 +107,43 @@ describe('dropdown.selector.directive.spec.js', function() {
         isolatedScope.$apply();
 
         expect(element.find('.selected-item').text()).toEqual(vm.options[i]);
+      }
+    });
+  });
+
+  describe('with Track By', function() {
+    beforeEach(inject(function($compile, $rootScope, _$httpBackend_) {
+      var scope = $rootScope.$new();
+      $httpBackend = _$httpBackend_;
+
+      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
+
+      scope = angular.extend(scope, {
+        testModel: 1,
+        optionNameParam: 'name',
+        options: [{id: 1, name: 'cherry'}, {id: 2, name: 'orange'}, {id: 3, name: 'raspberry'}],
+        optionValueParam: 'id'
+      });
+
+      element = $compile('<dropdown-selector ng-model="testModel" options="options" option-value-param="{{optionValueParam}}" ' +
+          'option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
+
+      $httpBackend.flush();
+    }));
+
+    it('Directive set view Model, based on option value param', function() {
+      var scope = element.scope(),
+          isolatedScope = element.isolateScope(),
+          vm = isolatedScope.vm;
+
+      expect(element.find('.selected-item').text()).toEqual('cherry');
+
+      for (var i = 0; i < vm.options.length; i++) {
+        vm.selectItem(vm.options[i]);
+        isolatedScope.$apply();
+
+        expect(element.find('.selected-item').text()).toEqual(vm.options[i].name);
+        expect(scope.testModel).toEqual(vm.options[i].id);
       }
     });
   });

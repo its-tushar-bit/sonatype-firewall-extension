@@ -16,6 +16,7 @@ import spock.lang.Unroll
 /**
  * @since 1.7
  */
+// com.sonatype.clm.testing.functional.brain.LdapConfigurationTest implements a subset of theses tests, see PR #1669
 @Stepwise
 class LdapConfigurationSpec
     extends BaseSpec

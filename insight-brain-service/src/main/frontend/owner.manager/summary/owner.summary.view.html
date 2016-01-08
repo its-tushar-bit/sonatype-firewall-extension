@@ -156,13 +156,26 @@
                 ng-click="vm.editPolicy(policy.id, ownerPolicyList.inherited)">
               <td class="threat-name" colspan="2"><span class='threat-legend threat policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
               <td ng-repeat="action in vm.actionStages">
-                <i ng-class="{'fa fa-exclamation-triangle warn' : policy.actions[action][0].actionTypeId === 'warn', 
+                <i ng-class="{'fa fa-exclamation-triangle warn' : policy.actions[action][0].actionTypeId === 'warn',
                   'fa fa-exclamation-circle fail' : policy.actions[action][0].actionTypeId === 'fail'}"></i><!--
                 -->{{policy.actions[action][0].actionTypeId || 'no action'}}
               </td>
               <td><i class="fa fa-chevron-right"></i></td>
             </tr>
           </table>
+        </div>
+        <div class="simple-list" id="continuous-monitoring">
+          <h4 class="subsection-header">
+            Continuous monitoring
+          </h4>
+          <ul>
+            <li class="simple clickable" same-owner-edit-sref="monitoring">
+              <div class="title">
+                {{::vm.monitoredStage.stageName}}
+              </div>
+              <i class="fa fa-chevron-right"></i>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

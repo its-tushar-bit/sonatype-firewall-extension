@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
+import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -112,8 +113,18 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_COLLAPSE_CLASS);
+    testMonitoring(detailGroup);
     detailGroup.twisty().click();
     detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
+  }
+
+  private void testMonitoring(OwnerDetailTreeViewGroup detailGroup) {
+    OwnerDetailTreeViewItem monitoredStage = detailGroup.item(detailGroup.items().size() - 1);
+    monitoredStage.icon().shouldBe(visible);
+    monitoredStage.root().shouldBe(visible).click();
+    monitoredStage.root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
+    waitUntilUrl(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+    back();
   }
 
   private void testRouting_ComponentLabels(OwnerDetailTreeViewGroup detailGroup) {

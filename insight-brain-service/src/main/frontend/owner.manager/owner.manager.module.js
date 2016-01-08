@@ -120,6 +120,16 @@
                   templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
                 }
               }
+            }).state('management.edit.' + ownerType.name + '.monitoring', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/monitoring',
+              views: {
+                '@management': {
+                  controller: 'monitored.stage.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/policy/monitored.stage.editor.view.html?' + clmBuildTimestamp
+                }
+              }
             });
           });
 

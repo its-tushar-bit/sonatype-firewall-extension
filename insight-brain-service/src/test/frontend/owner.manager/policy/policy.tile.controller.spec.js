@@ -1,14 +1,24 @@
 describe('policy.tile.controller.spec.js', function() {
+
+  beforeEach(module('Policy'));
+
+  beforeEach(module('owner.manager.module', function($provide) {
+    $provide.value('$cookies', {});
+  }));
+
   var vm,
       scope,
       $httpBackend,
       $timeout,
       CLMAppLocations,
-      stageTypeStoreDefer;
+      stageTypeStoreDefer,
+      MonitoredStageService,
+      mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore');
 
-  beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
-  }));
+  beforeEach(inject(['monitored.stage.service', function(_MonitoredStageService_) {
+        MonitoredStageService = _MonitoredStageService_;
+      }]
+  ));
 
   beforeEach(inject(function($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_, StageTypeStore) {
         scope = $rootScope.$new();
@@ -32,9 +42,11 @@ describe('policy.tile.controller.spec.js', function() {
   it('Properly Loading Owner Policies', function() {
     $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
     resolveStageTypeStore(MockData.getDashboardStageData());
+    spyOn(MonitoredStageService, 'getMonitoredStage').andReturn({ stageName: 'Develop', stageTypeId: 'develop' });
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     $httpBackend.flush();
     $timeout.flush();
-    
+
     expect(vm.ownerName).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[0].ownerName);
     expect(vm.policiesByOwner.length).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner.length);
     vm.policiesByOwner.forEach(function(owner, ownerIndex) {
@@ -44,6 +56,19 @@ describe('policy.tile.controller.spec.js', function() {
         expect(policy.actions).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions);
       });
     });
+    expect(vm.monitoredStage.stageName).toBe('Develop');
+  });
+
+  it('Uses the placeholder value for monitored stage if one is not inherited', function() {
+    spyOn(MonitoredStageService, 'getMonitoredStage').andReturn(undefined);
+    spyOn(MonitoredStageService, 'createInheritOrNoMonitorOption').andReturn({stageName: 'Do not monitor'});
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    $httpBackend.flush();
+    $timeout.flush();
+
+    expect(vm.monitoredStage.stageName).toBe('Do not monitor');
   });
 
   it('Missing Owner Policies', function() {
@@ -63,7 +88,7 @@ describe('policy.tile.controller.spec.js', function() {
     expect(vm.error).toBeUndefined();
 
   });
-  
+
   function resolveStageTypeStore(value) {
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
     stageTypeStoreDefer.resolve(value);

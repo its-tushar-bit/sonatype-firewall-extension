@@ -26,7 +26,7 @@ public class PolicyTile
   }
 
   public ElementsCollection policyLists() {
-    return root.$$(".simple-list");
+    return root.$$(".simple-list:not(#continuous-monitoring)");
   }
 
   public PolicyTileList policyList(int num) {

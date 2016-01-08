@@ -1,0 +1,33 @@
+describe('monitored.stage.service.spec.js', function() {
+
+  var monitoredStageService,
+      stages = [{stageTypeId: 'Develop', stageName: 'Develop'}, {stageTypeId: 'Deploy', stageName: 'Deploy'}];
+
+  beforeEach(module('owner.manager.module', function($provide) {
+    $provide.value('$cookies', {});
+  }));
+
+  beforeEach(inject([
+    'monitored.stage.service', function(_MonitoredStageService_) {
+      monitoredStageService = _MonitoredStageService_;
+    }
+  ]));
+
+  it('Inherit option takes value from parent...', function() {
+    var policyMonitoringByOwner = [{}, {ownerName: 'Sonatype', policyMonitoring: {stageTypeId: 'Deploy'}}];
+    var result = monitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner, stages);
+    expect(result.stageName).toBe('Inherit from Sonatype (Deploy)');
+  });
+
+  it('... even if that option is "not monitored"', function() {
+    var policyMonitoringByOwner = [{}, {ownerName: 'The Parent'}, {ownerName: 'root'}];
+    var result = monitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner, stages);
+    expect(result.stageName).toBe('Inherit from The Parent (Do not monitor)');
+  });
+
+  it('No inheritance for root org, just the plain "not monitored"', function() {
+    var policyMonitoringByOwner = [{}];
+    var result = monitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner, stages);
+    expect(result.stageName).toBe('Do not monitor');
+  });
+});

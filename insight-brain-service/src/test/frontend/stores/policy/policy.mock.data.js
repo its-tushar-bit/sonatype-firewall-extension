@@ -212,5 +212,17 @@ var PolicyTileMockData = {
         }
       ]
     };
+  },
+  getPolicyMonitoring: function() {
+    return {
+      data: {
+        policyMonitoringByOwner: [
+          {
+            ownerName: 'testApp',
+            policyMonitoring: {stageTypeId: 'release'}
+          }
+        ]
+      }
+    };
   }
 };

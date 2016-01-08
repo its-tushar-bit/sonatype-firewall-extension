@@ -6,12 +6,15 @@
 (function(angular) {
   'use strict';
 
-  function PolicyTileController($scope, $q, $http, CLMAppLocations, StageTypeStore, SameOwnerStateNavigationService) {
+  function PolicyTileController($scope, $q, $http, CLMAppLocations, StageTypeStore, SameOwnerStateNavigationService,
+                                PolicyMonitoringStore, MonitoredStageService)
+  {
     var vm = this;
     vm.ownerName = undefined;
     vm.policiesByOwner = undefined;
     vm.error = undefined;
     vm.actionStages = undefined;
+    vm.monitoredStage = undefined;
     vm.editPolicy = editPolicy;
 
     vm.doLoad = doLoad;
@@ -23,7 +26,8 @@
     function doLoad() {
       $q.all([
         $http.get(CLMAppLocations.getApplicablePolicies()),
-        StageTypeStore.getActionStages()
+        StageTypeStore.getActionStages(),
+        PolicyMonitoringStore.getApplicable()
       ]).then(function(results) {
         vm.actionStages = [];
         vm.policiesByOwner = results[0].data.policiesByOwner;
@@ -32,10 +36,18 @@
         });
 
         vm.ownerName = vm.policiesByOwner[0].ownerName;
-        
-        results[1].forEach(function(actionStage) {
+
+        var stages = results[1];
+        stages.forEach(function(actionStage) {
           vm.actionStages.push(actionStage.stageTypeId);
         });
+
+        var policyMonitoringByOwner = results[2].data.policyMonitoringByOwner;
+        vm.monitoredStage = MonitoredStageService.getMonitoredStage(policyMonitoringByOwner[0].policyMonitoring,
+            stages);
+        if (!vm.monitoredStage) {
+          vm.monitoredStage = MonitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner, stages);
+        }
       }, function(error) {
         vm.error = error;
       });
@@ -51,7 +63,8 @@
   }
 
   PolicyTileController.$inject = [
-    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore', 'SameOwnerStateNavigationService'
+    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore',
+    'SameOwnerStateNavigationService', 'PolicyMonitoringStore', 'monitored.stage.service'
   ];
 
   angular //

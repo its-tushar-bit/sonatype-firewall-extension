@@ -18,17 +18,26 @@ var StoreUtils = function() {
     me.resolveRefresh = resolvePromise('refresh');
     me.rejectRefresh = rejectPromise('refresh');
 
+    me.resolveGetApplicable = resolvePromise('getApplicable');
+    me.resolveSave = resolvePromise('save');
+    me.resolveRemove = resolvePromise('remove');
+
     beforeEach(inject([
       storeName, '$q', function(store, $q) {
         promises = {
           get: $q.defer(),
+          getApplicable: $q.defer(),
+          save: $q.defer(),
+          remove: $q.defer(),
           refresh: $q.defer()
         };
 
         for (var key in promises) {
           if (promises.hasOwnProperty(key)) {
             spyOn(promises[key].promise, 'then').andCallThrough();
-            spyOn(store, key).andReturn(promises[key].promise);
+            if (store.hasOwnProperty(key)) {
+              spyOn(store, key).andReturn(promises[key].promise);
+            }
           }
         }
       }

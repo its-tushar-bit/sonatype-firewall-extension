@@ -73,6 +73,10 @@ public class OwnerSummaryPage
       return $$("#owner-pill-policy table tr").findBy(text(policyName));
     }
 
+    public static SelenideElement monitoredStage() {
+      return $("#continuous-monitoring div.title");
+    }
+
     public static SelenideElement localAccessRole(String roleName) {
       return $$("#owner-pill-access table td.role").findBy(text(roleName));
     }

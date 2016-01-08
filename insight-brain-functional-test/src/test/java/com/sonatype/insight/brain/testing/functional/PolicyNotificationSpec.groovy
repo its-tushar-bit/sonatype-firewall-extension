@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO
+import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.testing.functional.modules.ActionModule
 import com.sonatype.insight.brain.testing.functional.modules.ImportPolicyModule
 import com.sonatype.insight.brain.testing.functional.modules.NotificationsModule
@@ -78,7 +80,7 @@ extends BaseSpec {
     waitFor { notificationModal.roleSelect.displayed }
     int roleOptionsSize = notificationModal.roleOptions.size()
     String firstRole = notificationModal.roleOptions[1].text()
-    notificationModal.roleSelect.value('0')
+    notificationModal.roleSelect = 'Application Evaluator'
     notificationModal.addRoleButton.click()
 
     then: 'Role is shown in the list of notified roles'
@@ -96,9 +98,11 @@ extends BaseSpec {
     when: 'Last role is added'
     NotificationsModule notificationModal = notificationModal
     waitFor { notificationModal.roleSelect.displayed }
-    while (notificationModal.roleOptions.size() > 1) {
-      notificationModal.roleSelect.value('0');
-      notificationModal.addRoleButton.click()
+    for (Role role : new RoleDAO().getApplicationRoles()) {
+      if (role.getName() != 'Application Evaluator') {
+        notificationModal.roleSelect = role.getName()
+        notificationModal.addRoleButton.click()
+      }
     }
 
     then: 'Role selector is disabled'

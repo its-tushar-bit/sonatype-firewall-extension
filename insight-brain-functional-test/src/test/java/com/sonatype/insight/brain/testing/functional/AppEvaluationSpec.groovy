@@ -54,7 +54,7 @@ extends BaseSpec {
     orgPage.tools.appEvalButton.click()
     waitFor { orgPage.tools.appEval.application.displayed }
     orgPage.tools.appEval.application.value('AppEvaluationApp1')
-    orgPage.tools.appEval.stage.value('3')
+    orgPage.tools.appEval.stage.value('string:release')
     orgPage.tools.appEval.file.value(
         new File(getClass().getResource('/AppEvaluationSpec/some.file').toURI()).getAbsoluteFile().getAbsolutePath())
     waitFor { !orgPage.tools.appEval.upload.disabled }
@@ -111,7 +111,7 @@ extends BaseSpec {
     waitFor { appPage.tools.appEval.dialog.displayed }
 
     and: 'an application is selected'
-    waitFor { appPage.tools.appEval.application.value() == '1' }
+    waitFor { appPage.tools.appEval.application.value() == 'string:AppEvaluationApp2' }
     appPage.tools.appEval.getSelectedApplicationOption() == "AppEvaluationApp2"
 
     and: 'Four choices are available for the stage'
@@ -130,7 +130,7 @@ extends BaseSpec {
     appPage.tools.appEvalButton.displayed
     appPage.tools.appEvalButton.click()
     waitFor { appPage.tools.appEval.stage.displayed }
-    appPage.tools.appEval.stage.value('3')
+    appPage.tools.appEval.stage.value('string:release')
     // integrating the file input with Angular is, interesting, populating this last to check UI responds
     // properly/immediately
     appPage.tools.appEval.file.value(

@@ -2,15 +2,17 @@ describe('import.policy.modal.controller.spec.js', function() {
   var scope,
       vm,
       $httpBackend,
+      $timeout,
       CLMAppLocations;
 
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {});
   }));
 
-  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _$timeout_, _CLMAppLocations_) {
     scope = $rootScope.$new();
     $httpBackend = _$httpBackend_;
+    $timeout = _$timeout_;
     CLMAppLocations = _CLMAppLocations_;
 
     vm = $controller('import.policy.modal.controller',
@@ -77,5 +79,42 @@ describe('import.policy.modal.controller.spec.js', function() {
 
       expect(vm.error).toBeUndefined();
     });
-  })
+
+    describe('IE9', function () {
+      it('Error', inject(function ($window) {
+        $window.FileReader = null;
+        validateInitialState();
+
+        vm.doSubmit();
+
+        // Progress notification
+        vm.uploaded('Please wait...', false);
+        expect(vm.error).toBeFalsy();
+
+        vm.uploaded('Error', true);
+        scope.$apply();
+
+        expect(vm.error).toEqual('Error');
+      }));
+
+      it('Successful', inject(function ($window) {
+        scope.$close = jasmine.createSpy('close');
+        $window.FileReader = null;
+        validateInitialState();
+
+        vm.doSubmit();
+
+        // Progress notification
+        vm.uploaded('Please wait...', false);
+        expect(vm.error).toBeFalsy();
+
+        vm.uploaded('', true);
+        scope.$apply();
+        $timeout.flush();
+
+        expect(scope.$close).toHaveBeenCalled();
+        expect(vm.error).toBeFalsy();
+      }));
+    });
+  });
 });

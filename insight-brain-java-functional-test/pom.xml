@@ -70,7 +70,7 @@
     <dependency>
       <groupId>com.sonatype.clm.testing</groupId>
       <artifactId>selenide-shaded</artifactId>
-      <version>2.25</version>
+      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

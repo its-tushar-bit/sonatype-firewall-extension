@@ -120,7 +120,7 @@
                   templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
                 }
               }
-            }).state('management.edit.' + ownerType.name + '.monitoring', {
+            }).state('management.edit.' + ownerType.name + '.monitor-policy', {
               parent: 'management.edit.' + ownerType.name,
               url: '/monitoring',
               views: {

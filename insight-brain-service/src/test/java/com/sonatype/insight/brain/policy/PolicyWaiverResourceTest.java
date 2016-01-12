@@ -135,7 +135,7 @@ public class PolicyWaiverResourceTest
   }
 
   @Test
-  public void testGetPolicyWaiversByHash() throws Exception {
+  public void testGetPolicyWaiversByHash_Application() throws Exception {
     testGetPolicyWaiversByHash(tempEntity.newApplicationWithParent("PolicyWaiverResourceTest_AppId1"));
   }
 

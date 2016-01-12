@@ -43,7 +43,8 @@ public class PolicyWaiverResource
 {
   public static final String SERVICE_BASEPATH = "rest/policyWaiver/";
 
-  public static final String RESOURCE_PATH = SERVICE_BASEPATH + "{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = SERVICE_BASEPATH
+      + "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
@@ -128,17 +129,17 @@ public class PolicyWaiverResource
   @Path("applicable/context/{policyId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public ApplicableContext getApplicableContexts(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("ownerId") String applicationPublicId,
-      @PathParam("policyId") String policyId)
+  public ApplicableContext getApplicableContexts(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+                                                 @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                                 @PathParam("policyId") String policyId)
   {
     Policy policy = new PolicyDAO().getByIdNotNull(policyId);
+    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    String ownerId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
     ApplicableContext context = null;
     boolean foundPolicyInHierarchy = false;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      ApplicableContext currentContext = new ApplicableContext(owner.getPublicId(), owner.getName(), owner.getType());
+      ApplicableContext currentContext = new ApplicableContext(getRestOwnerId(owner), owner.getName(), owner.getType());
       if (context != null) {
         currentContext.setChildren(new ArrayList<ApplicableContext>());
         currentContext.getChildren().add(context);
@@ -153,11 +154,16 @@ public class PolicyWaiverResource
     }
 
     if (!foundPolicyInHierarchy) {
-      throw new NotFoundException("Cannot find a policy with ID " + policyId + " for application public ID "
-          + applicationPublicId);
+      Owner owner = ownerDAO.getById(ownerId);
+      throw new NotFoundException(
+          "Cannot find a policy with ID " + policyId + " for " + owner.getType() + " public ID " + owner.getPublicId());
     }
 
     return context;
+  }
+
+  private static String getRestOwnerId(Owner owner) {
+    return OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId();
   }
 
   /**
@@ -169,14 +175,15 @@ public class PolicyWaiverResource
     public List<WaiversByOwner> waiversByOwner = new ArrayList<>();
 
     void add(Owner owner, List<PolicyWaiverDTO> waivers) {
+      String ownerId = getRestOwnerId(owner);
       if (waivers == null || waivers.isEmpty()) {
         return;
       }
       for (PolicyWaiver waiver : waivers) {
-        waiver.setOwnerId(owner.getPublicId());
+        waiver.setOwnerId(ownerId);
       }
       WaiversByOwner wbo = new WaiversByOwner();
-      wbo.ownerId = owner.getPublicId();
+      wbo.ownerId = ownerId;
       wbo.ownerName = owner.getName();
       wbo.ownerType = owner.getType();
       wbo.waivers = waivers;

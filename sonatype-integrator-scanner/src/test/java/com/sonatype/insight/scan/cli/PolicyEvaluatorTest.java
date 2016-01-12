@@ -29,6 +29,7 @@ import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanSummary;
 import com.sonatype.insight.scan.model.io.ScanReader;
+import com.sonatype.insight.scan.model.io.ScanWriter;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
@@ -312,7 +313,7 @@ public class PolicyEvaluatorTest
     assertNotNull(summary.getClientInfo().getProperty("java.version"));
     ScanConfiguration config = scan.getConfiguration();
     assertNotNull(config);
-    assertEquals("com.sonatype", config.getString("", "proprietaryPackages"));
+    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryPackages"));
     assertEquals(1, scan.getItems().size());
     ScanItem jar = scan.getItems().get(0);
     assertEquals("artifact.jar", jar.getPath());
@@ -344,7 +345,7 @@ public class PolicyEvaluatorTest
     assertNotNull(scan);
     ScanConfiguration config = scan.getConfiguration();
     assertNotNull(config);
-    assertEquals("com.sonatype", config.getString("", "proprietaryPackages"));
+    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryPackages"));
     assertEquals(1, scan.getItems().size());
     ScanItem jar = scan.getItems().get(0);
     assertEquals("artifact.jar", jar.getPath());
@@ -375,7 +376,7 @@ public class PolicyEvaluatorTest
     assertNotNull(scan);
     ScanConfiguration config = scan.getConfiguration();
     assertNotNull(config);
-    assertEquals("com.sonatype.*", config.getString("", "proprietaryRegexes"));
+    assertEquals(ScanWriter.PROPERTY_MASKED, config.getString("", "proprietaryRegexes"));
     assertEquals(1, scan.getItems().size());
     ScanItem jar = scan.getItems().get(0);
     assertEquals("artifact.jar", jar.getPath());

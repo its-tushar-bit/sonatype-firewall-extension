@@ -105,34 +105,8 @@
       };
     }
 
-    function load(deferredProvider) {
-      tableNode.empty().append('<div class="alert alert-info fade in" style="width:50%;margin:20px auto;padding:5px"><strong>Loading...</strong></div>');
-      deferredProvider.get().done(function(data) {
-        if (data) {
-          postDataLoad(data);
-        }
-        else {
-          getErrorFn(function() {
-            load(deferredProvider);
-          })();
-        }
-      }).fail(getErrorFn(function() {
-            load(deferredProvider);
-          }));
-    }
-
     if ($.isArray(data)) {
       postDataLoad({aaData: data});
-    }
-    else if (typeof data === 'string') {
-      load({
-        get: function() {
-          return $.getJSON(data);
-        }
-      });
-    }
-    else if (typeof data === 'object') {
-      load(data);
     }
     else {
       window.console.log('Unable to load: ' + data);

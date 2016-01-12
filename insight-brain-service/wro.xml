@@ -362,9 +362,12 @@
     <js>/audit-report/slickgrid/slick.grid.tipsy.js</js>
 
     <group-ref>repository-cip</group-ref>
-    <js>/audit-report/audit/audit.js</js>
-    <js>/audit-report/audit/audit.threat.directive.js</js>
-    <js>/audit-report/audit/owner.context.service.js</js>
-    <js>/audit-report/audit/repository.violation.table.filter.directive.js</js>
+    <js>/audit-report/audit.module/audit.module.js</js>
+    <js>/audit-report/audit.module/audit.summary.controller.js</js>
+    <js>/audit-report/audit.module/coverage.donut.directive.js</js>
+    <js>/audit-report/audit.module/reevaluator.controller.js</js>
+    <js>/audit-report/audit.module/audit.threat.directive.js</js>
+    <js>/audit-report/audit.module/owner.context.service.js</js>
+    <js>/audit-report/audit.module/repository.violation.table.filter.directive.js</js>
   </group>
 </groups>

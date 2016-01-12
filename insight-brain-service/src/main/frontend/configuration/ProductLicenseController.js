@@ -18,7 +18,7 @@
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
       $scope.isAuthorized = isAuthorized;
       $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-      $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+      $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
 
       $scope.doLoad = function() {
         if (isAuthorized) {

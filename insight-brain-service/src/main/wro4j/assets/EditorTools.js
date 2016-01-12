@@ -29,7 +29,7 @@
             StageTypeStore, $q) {
       $scope.currentState = 'init';
       $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-      $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+      $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
 
       function setError(message) {
         //there are certain cases where the browser will not give us an error
@@ -309,7 +309,7 @@
     $scope.btnDisabled = true;
     $scope.importPolicyUrl = clmAppLocations.getIeImportPolicyUrl();
     $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-    $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+    $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
 
     $timeout(fileCheck, 100);
 
@@ -371,7 +371,7 @@
           $scope.alerts = [];
           $scope.hasRobotSource = false;
           $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-          $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+          $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
 
           $scope.pushAlert = function(obj) {
             $scope.alerts.length = 0;

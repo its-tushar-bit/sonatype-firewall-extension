@@ -3,7 +3,9 @@ describe('policy.tile.controller.spec.js', function() {
   beforeEach(module('Policy'));
 
   beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   var vm,

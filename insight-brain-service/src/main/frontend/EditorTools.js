@@ -29,7 +29,7 @@
             StageTypeStore, $q) {
       $scope.currentState = 'init';
       $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-      $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+      $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
 
       function setError(message) {
         $scope.requestActive = false;

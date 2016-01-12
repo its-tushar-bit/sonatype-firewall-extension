@@ -1,6 +1,8 @@
 describe('owner.editor.service.spec.js', function () {
   beforeEach(module('owner.manager.module', function ($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   beforeEach(inject(function ($modal) {

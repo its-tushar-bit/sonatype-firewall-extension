@@ -13,7 +13,7 @@
     $scope.icon = {};
 
     $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-    $scope.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+    $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
     $scope.ownerType = ownerType;
     $scope.siblings = siblings;
 

@@ -1,6 +1,8 @@
 describe('application.category.tile.controller.app.spec.js', function() {
   beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   function createTests(type, storeName, owner) {

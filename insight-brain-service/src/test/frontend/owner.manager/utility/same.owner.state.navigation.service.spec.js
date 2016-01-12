@@ -3,7 +3,9 @@ describe('same.owner.state.navigation.service.spec.js', function() {
       mockState;
 
   beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   beforeEach(function() {

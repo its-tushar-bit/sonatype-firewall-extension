@@ -14,7 +14,7 @@
 
     vm.bundle = undefined;
     vm.csrfTokenName = $http.defaults.xsrfHeaderName;
-    vm.csrfTokenValue = $cookies[$http.defaults.xsrfCookieName];
+    vm.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
     vm.doSubmit = doSubmit;
     vm.error = undefined;
     vm.evaluationState = undefined;

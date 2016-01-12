@@ -7,7 +7,9 @@ describe('evaluate.application.modal.controller.spec.js', function() {
       mockSelectedApplication;
 
   beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   beforeEach(inject(function($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {

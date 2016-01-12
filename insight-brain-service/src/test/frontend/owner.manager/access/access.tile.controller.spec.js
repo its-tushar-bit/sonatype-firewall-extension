@@ -4,7 +4,9 @@ describe('access.tile.controller.spec.js', function() {
       CLMAppLocations;
 
   beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   beforeEach(inject(function($controller, _$httpBackend_, _CLMAppLocations_) {

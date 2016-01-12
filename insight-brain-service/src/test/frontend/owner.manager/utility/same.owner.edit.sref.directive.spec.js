@@ -4,7 +4,9 @@ describe('same.owner.edit.sref.directive.spec.js', function() {
       SameOwnerStateNavigationService;
 
   beforeEach(module('owner.manager.module', function($provide) {
-    $provide.value('$cookies', {});
+    $provide.value('$cookies', {
+      get: angular.noop
+    });
   }));
 
   beforeEach(inject(function(_$compile_, _$rootScope_, _SameOwnerStateNavigationService_) {

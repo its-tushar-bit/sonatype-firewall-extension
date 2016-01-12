@@ -14,7 +14,7 @@
           <div>The waiver should be limited to:</div>
           <label class="radio" ng-repeat="waiverTarget in waiverTargets">
             <input type="radio" ng-model="waiver.ownerId" name="waiverSelectedTarget" ng-value="waiverTarget.id" ng-change="owner.type = waiverTarget.type">
-            {{waiverTarget.type == 'application' ? 'Application' : 'Organization'}} <em>{{waiverTarget.name}}</em>
+            {{waiverTarget.label}} <em>{{waiverTarget.name}}</em>
           </label>
         </div>
         <div id="add-waiver-apply" class="radio-container">
@@ -24,7 +24,7 @@
           </div>
           <label class="radio">
             <input type="radio" name="waiver-hash" ng-model="waiver.hash" value="{{component.hash}}">
-            Selected component (<em><span ng-repeat="part in component.displayName.parts">{{part.value}}</span></em>)
+            Selected component (<em><span>{{component.componentDisplayText}}</span></em>)
           </label>
           <label class="radio">
             <input type="radio" name="waiver-hash" ng-model="waiver.hash" ng-value="null">
@@ -93,7 +93,7 @@
       </div>
     </div>
   </script>
-  <div style="width:100%;text-align:right;margin-bottom:5px;" ng-if="isEdit()">
+  <div style="width:100%;text-align:right;margin-bottom:5px;">
     <button id="view-existing-waivers" class="btn" ng-click="viewWaivers()">View Existing Waivers</button>
   </div>
   <div class="cip-policy-wrapper">
@@ -103,7 +103,7 @@
           <th class="cip-policy-table-header">Policy/<em>Action</em></th>
           <th class="cip-policy-table-header">Constraint</th>
           <th class="cip-policy-table-header">Condition Value</th>
-          <th class="cip-policy-table-header" ng-if="isEdit()">Waivers</th>
+          <th class="cip-policy-table-header">Waivers</th>
         </tr>
       </thead>
       <tr ng-repeat="policyAlert in processedPolicyAlerts">
@@ -130,12 +130,12 @@
             <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
           </div>
         </td>
-        <td style="vertical-align:middle;" ng-if="isEdit()">
+        <td style="vertical-align:middle;">
           <button type="none" class="btn btn-primary" ng-click="waiveComponent(policyAlert)">Waive</button>
         </td>
       </tr>
       <tr ng-if="processedPolicyAlerts.length === 0">
-        <td colspan="{{:: isEdit() ? '4' : '3'}}"><b>No Policy Violations</b></td>
+        <td colspan="4"><b>No Policy Violations</b></td>
       </tr>
     </table>
   </div>

@@ -25,16 +25,18 @@ import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Filter;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Row;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Table;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.PolicyWaiverRow;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.FileUtils;
@@ -45,7 +47,10 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.present;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
@@ -54,8 +59,6 @@ import static com.codeborne.selenide.Selenide.open;
 public class RepositoryReportTest
     extends AbstractFunctionalTest
 {
-  private RepositoryManager repoManager;
-
   private Repository repo;
 
   private String criticalComponentHash;
@@ -68,9 +71,8 @@ public class RepositoryReportTest
 
   @Before
   public void before() {
-    repoManager = tempEntity.newRepositoryManager();
     // repositoryPublicId has a character requiring encoding
-    repo = tempEntity.newRepository(repoManager, "ce&ntral");
+    repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "ce&ntral");
   }
 
   @Test
@@ -137,7 +139,9 @@ public class RepositoryReportTest
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0."));
-    tempEntity.newRepositoryPolicyViolation(component, 10, false, "Extremely Bad");
+    Policy policy = tempEntity.newPolicy("Extremely Bad");
+    tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false, true,
+        policy.getId(), policy.getName(), component.getComponentIdentifier());
     criticalComponentHash = component.getHash();
 
     // one with multiple violations
@@ -149,6 +153,12 @@ public class RepositoryReportTest
     component.setQuarantineTime(new Date());
     new RepositoryComponentDAO().update(component);
     tempEntity.newRepositoryPolicyViolation(component, 10, false, "Extremely Bad");
+
+    // one waived
+    component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("waived", "component", "1.0."));
+    new RepositoryComponentDAO().update(component);
+    tempEntity.newRepositoryPolicyViolation(component, 10, true, "Extremely Bad but its cool");
 
     open(RepositoryReportPage.url(repo.getId()));
 
@@ -165,6 +175,7 @@ public class RepositoryReportTest
 
     testAllViolationsFilter();
     testQuarantinedFilter();
+    testWaivedFilter();
 
     setupHDSResponse();
     testLicenseCIP();
@@ -270,14 +281,41 @@ public class RepositoryReportTest
 
     WaiverCip.rows().shouldHaveSize(2);
 
-    PolicyWaiverRow row = WaiverCip.row(0);
-    row.waiveButton().shouldNotBe(visible); // editing is disabled
-    row.shouldBe(10, CRITICAL_ROW.policyName, new String[] { "aa c" }, new String[] { "Match State was exact" });
+    WaiverCip.row(0).shouldBe(10, CRITICAL_ROW.policyName, new String[]{"aa c"}, new String[]{"Match State was exact"});
 
-    row = WaiverCip.row(1);
-    row.waiveButton().shouldNotBe(visible); // editing is disabled
-    row.shouldBe(10, CRITICAL_ROW_SECONDARY.policyName, new String[] { "aa c" },
-        new String[] { "Match State was exact" });
+    WaiverCip.row(1).shouldBe(10, CRITICAL_ROW_SECONDARY.policyName, new String[]{"aa c"},
+        new String[]{"Match State was exact"});
+
+    WaiverCip.viewWaivers().shouldBe(visible).click();
+
+    ViewWaiversDialog.rows().shouldHaveSize(0);
+
+    ViewWaiversDialog.closeButton().click();
+
+    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
+
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
+    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible);
+    AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
+    AddWaiverDialog.scope(repo.getId()).shouldBe(visible).shouldBe(selected);
+
+        AddWaiverDialog.allComponents().shouldBe(visible);
+    AddWaiverDialog.selectedComponent().shouldBe(visible);
+
+    AddWaiverDialog.allComponents().shouldNotBe(selected);
+    AddWaiverDialog.selectedComponent().shouldBe(selected);
+
+    AddWaiverDialog.allComponents().setSelected(true);
+
+    AddWaiverDialog.comment().setValue("TEST COMMENT");
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+    AddWaiverDialog.root().should(disappear);
+
+    WaiverCip.viewWaivers().click();
+
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+
+    ViewWaiversDialog.closeButton().click();
 
     // close CIP
     RepositoryReportPage.Table.row(0).component().click();
@@ -334,8 +372,8 @@ public class RepositoryReportTest
     RepositoryReportPage.Summary.criticalCount().shouldBe(visible).shouldHave(text("2"));
     RepositoryReportPage.Summary.violatingComponentsCount().shouldBe(visible).shouldHave(text("4"));
 
-    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("5"));
-    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("83"));
+    RepositoryReportPage.Summary.identifiedCount().shouldBe(visible).shouldHave(text("6"));
+    RepositoryReportPage.Summary.identifiedPercent().shouldBe(visible).shouldHave(text("86"));
   }
 
   private void testUnknownMatchesFilter() {
@@ -360,7 +398,7 @@ public class RepositoryReportTest
     Filter.allViolationsButton().click();
     Filter.allViolations().shouldBe(Filter.active);
 
-    assertRows(CRITICAL_ROW, QUARANTINED, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
+    assertRows(CRITICAL_ROW, QUARANTINED, WAIVED_ROW, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
         UNKNOWN);
     resetFilter();
   }
@@ -370,6 +408,15 @@ public class RepositoryReportTest
     Filter.quarantinedViolations().shouldBe(Filter.active);
 
     assertRows(QUARANTINED);
+    resetFilter();
+  }
+
+
+  private void testWaivedFilter() {
+    Filter.waivedViolationsButton().click();
+    Filter.waivedViolations().shouldBe(Filter.active);
+
+    assertRows(WAIVED_ROW);
     resetFilter();
   }
 
@@ -434,6 +481,9 @@ public class RepositoryReportTest
 
   private final ExpectedRow IGNORED_ROW = new ExpectedRow(Table.ignoredScore, "Meh", "ignored : threat : 1.0", false,
       false);
+
+  private final ExpectedRow WAIVED_ROW = new ExpectedRow(Table.criticalThreat, "Extremely Bad but its cool",
+      "waived : component : 1.0", true, false);
 
   private static class ExpectedRow
   {

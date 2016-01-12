@@ -13,10 +13,6 @@
       return threatLevel > 7 ? 'red' : threatLevel > 3 ? 'orange' : threatLevel > 1 ? 'yellow' : threatLevel > 0 ? 'darkblue' : 'blue';
     };
 
-    $scope.isEdit = function() {
-      return OwnerContext.ownerType !== 'repository';
-    };
-
     function sortPolicyAlerts() {
       $scope.processedPolicyAlerts.sort(function(a, b) {
         return b.threatLevel - a.threatLevel;

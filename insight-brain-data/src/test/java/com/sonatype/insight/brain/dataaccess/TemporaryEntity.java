@@ -79,6 +79,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -772,6 +773,17 @@ public class TemporaryEntity
     policy.setOwnerId(ownerId);
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
+    policy.addConstraint(constraint);
+    return newPolicy(policy);
+  }
+
+  public Policy newPolicy(String name) {
+    Policy policy = new Policy(null, name);
+    policy.setThreatLevel(5);
+    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    Constraint constraint = new Constraint(null, "Constraint", LogicalOperator.AND);
+    //purposeful to generally not match anything
+    constraint.addCondition(new Condition(CoordinatesConditionType.ID, "match", "foobar"));
     policy.addConstraint(constraint);
     return newPolicy(policy);
   }

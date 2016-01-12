@@ -13,6 +13,13 @@
       $scope.component = SelectedComponent.get();
       $scope.waiverLoading = true;
 
+      if (!$scope.component.componentDisplayText && $scope.component.displayName &&
+          $scope.component.displayName.parts) {
+        $scope.component.displayName.parts.forEach(function(part) {
+          $scope.component.componentDisplayText += part;
+        });
+      }
+
       //get the tree of contexts, and flatten down into a list we can display properly
       $http.get(CLM.path + 'rest/policyWaiver/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
               '/applicable/context/' + $scope.policy.id).success(function(data) {
@@ -23,10 +30,13 @@
             });
           }
 
+          var type = context.type;
+
           $scope.waiverTargets.push({
             id : context.id,
             name : context.name,
-            type : context.type
+            type : type,
+            label : type === 'repository_container' ? '' : type.charAt(0).toUpperCase() + type.slice(1)
           });
         }
 

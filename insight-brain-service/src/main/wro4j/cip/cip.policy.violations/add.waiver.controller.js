@@ -15,8 +15,9 @@
 
       if (!$scope.component.componentDisplayText && $scope.component.displayName &&
           $scope.component.displayName.parts) {
+        $scope.component.componentDisplayText = '';
         $scope.component.displayName.parts.forEach(function(part) {
-          $scope.component.componentDisplayText += part;
+          $scope.component.componentDisplayText += part.value;
         });
       }
 

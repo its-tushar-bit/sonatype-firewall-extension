@@ -299,8 +299,10 @@ public class RepositoryReportTest
     AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
     AddWaiverDialog.scope(repo.getId()).shouldBe(visible).shouldBe(selected);
 
-        AddWaiverDialog.allComponents().shouldBe(visible);
+    AddWaiverDialog.allComponents().shouldBe(visible);
     AddWaiverDialog.selectedComponent().shouldBe(visible);
+    AddWaiverDialog.selectedComponent().parent().shouldHave(
+        text("Selected component (critical : threat : 1.0.)"));
 
     AddWaiverDialog.allComponents().shouldNotBe(selected);
     AddWaiverDialog.selectedComponent().shouldBe(selected);

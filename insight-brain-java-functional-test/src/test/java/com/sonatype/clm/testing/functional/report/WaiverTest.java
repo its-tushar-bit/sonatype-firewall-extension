@@ -255,6 +255,8 @@ public class WaiverTest
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
     AddWaiverDialog.root().should(appear);
     AddWaiverDialog.comment().shouldBe(visible);
+    AddWaiverDialog.selectedComponent().parent().shouldHave(
+        text("Selected component (ch.qos.logback : logback-access : 0.6)"));
   }
 
   private void createGavViolatingPolicy(String ownerId) {

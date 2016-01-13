@@ -5,16 +5,30 @@
     "Sonatype" is a trademark of Sonatype, Inc.
 
 -->
-Insight Brain
-=============
+# Nexus IQ Server #
 
 The on-premises server that customers run to evaluate policy against applications and review the results.
 
 See https://docs.sonatype.com/display/INSIGHT/Insight+Brain for more information
 
-Building
-========
+# Building #
 
-Standard Maven build.
+Standard Maven build, i.e. `mvn clean install`.
 
-Additional PermGen needs to be allocated to avoid a failing build during compilation.  `MAVEN_OPTS="-XX:MaxPermSize=128M"` has been successfully used.
+If using Java 7, additional PermGen needs to be allocated to avoid a failing build during compilation.
+`MAVEN_OPTS="-XX:MaxPermSize=192M"` has been successfully used.
+
+## Function Tests ##
+
+Add `-D skip-functional-test` to the `mvn` invocation to skip just the expensive functional tests but still run other
+unit/integration tests.
+
+Use `-D geb.env=firefox|chrome|phantom` to select the webdriver/browser for the Geb-based functional tests.
+
+Use `-D browser=firefox|chrome|phantomjs` to select the webdriver/browser for the Java-based functional tests.
+
+Use `-D slowmo.delay=<integer>` to enable "slow motion" for the functional tests where REST requests are delayed by the
+specified number of milliseconds on the server. This mode can help to expose bad tests that make invalid assumptions
+about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests too much that timeouts occur and is
+typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
+to not support this slow motion mode properly so other browsers should be used.

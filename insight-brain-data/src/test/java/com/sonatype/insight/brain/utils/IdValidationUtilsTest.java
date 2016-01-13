@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package utils;
+package com.sonatype.insight.brain.utils;
 
 import com.sonatype.insight.brain.utils.IdValidationUtils;
 import com.sonatype.insight.error.exception.BadRequestException;

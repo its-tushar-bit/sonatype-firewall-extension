@@ -20,7 +20,7 @@ describe('policy.editor.constraints.controller.spec.js', function() {
     spyOn(constraintStoreDefer.promise, 'then').andCallThrough();
     spyOn(ConstraintStore, 'get').andReturn(constraintStoreDefer.promise);
 
-    vm = $controller('policy.editor.constraints.controller');
+    vm = $controller('policy.editor.constraints.controller', {}, {constraints: []});
   }));
 
   it('Properly loads conditions', function() {
@@ -63,6 +63,69 @@ describe('policy.editor.constraints.controller.spec.js', function() {
       operator: 'is',
       value: 'ACKNOWLEDGED'
     })).toMatch('Security Vulnerability Status is Acknowledged');
+  });
+
+  it('Properly add/deletes conditions', function() {
+    resolveLoadData();
+
+    var constraint = {
+      id: 'beCarefulWithKnives',
+      operator: 'OR',
+      conditions: [
+        {
+          conditionTypeId: 'AgeInDays',
+          operator: 'older than',
+          value: '730'
+        },
+        {
+          conditionTypeId: 'SecurityVulnerabilityStatus',
+          operator: 'is',
+          value: 'ACKNOWLEDGED'
+        }
+      ]
+    };
+
+    vm.addCondition(constraint);
+    expect(constraint.conditions.length).toBe(3);
+    expect(constraint.conditions[2]).toEqual({
+      conditionTypeId: 'AgeInDays',
+      operator: 'older than',
+      value: null
+    });
+
+    vm.deleteCondition(constraint, 2);
+    expect(constraint.conditions.length).toBe(2);
+    expect(constraint.conditions[2]).toBeUndefined();
+  });
+
+  it('Properly add/deletes constraints', function() {
+    resolveLoadData();
+    vm.constraints = [
+      {
+        id: 'knife1',
+        operator: 'OR',
+        conditions: []
+      }, {
+        id: 'knife2',
+        operator: 'OR',
+        conditions: []
+      }
+    ];
+
+    vm.addConstraint();
+    expect(vm.constraints.length).toBe(3);
+    expect(vm.constraints[2].operator).toEqual('OR');
+    expect(vm.constraints[2].conditions.length).toBe(1);
+    expect(vm.constraints[2].conditions[0]).toEqual({
+      conditionTypeId: 'AgeInDays',
+      operator: 'older than',
+      value: null
+    });
+    expect(vm.editConstraintMap[vm.constraints[2].id]).toBeTruthy();
+
+    vm.deleteConstraint(2);
+    expect(vm.constraints.length).toBe(2);
+    expect(vm.constraints[2]).toBeUndefined();
   });
 
   function resolveLoadData() {

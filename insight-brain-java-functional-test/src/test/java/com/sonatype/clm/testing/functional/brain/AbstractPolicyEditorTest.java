@@ -10,6 +10,8 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
+import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
+import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
@@ -19,6 +21,7 @@ import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -32,6 +35,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -43,6 +47,8 @@ import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static com.sonatype.insight.brain.model.Color.blue;
 import static com.sonatype.insight.brain.model.Color.red;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
@@ -72,7 +78,30 @@ public abstract class AbstractPolicyEditorTest
     SummaryTile.addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
-    // TODO: Edit data and save needs CLM-5806 - Add Constraints Section
+    testCreatePolicy_summarySection();
+    testCreatePolicy_constraintSection();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+
+    Policy newPolicy = null;
+    for (Policy p : policyDAO.getByOwnerId(currentOwner.getId())) {
+      if (p.getName().equals("New Policy")) {
+        newPolicy = p;
+        break;
+      }
+    }
+
+    assertThat(newPolicy, is(notNullValue()));
+    assertThat(newPolicy.getConstraints(), is(notNullValue()));
+    assertThat(newPolicy.getConstraints().size(), is(1));
+    Constraint constraint = newPolicy.getConstraints().get(0);
+    assertThat(constraint.getName(), is("New Constraint"));
+    assertThat(constraint.getOperator(), is(LogicalOperator.OR));
+    assertThat(constraint.getConditions().size(), is(1));
+    Condition condition = constraint.getConditions().get(0);
+    assertThat(condition.getConditionTypeId(), is("AgeInDays"));
+    assertThat(condition.getOperator(), is("older than"));
+    assertThat(condition.getValue(), is(Integer.toString(3 * 365)));
   }
 
   @Test
@@ -94,6 +123,8 @@ public abstract class AbstractPolicyEditorTest
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
 
+    tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
+
     Tag category1 = null;
     Tag category2 = null;
 
@@ -111,7 +142,7 @@ public abstract class AbstractPolicyEditorTest
 
     testEditPolicy_summarySection();
     testEditPolicy_inheritanceSection();
-    testEditPolicy_constraintSection(policy.getConstraints());
+    testEditPolicy_constraintSection(policy);
     testDeletePolicy(policyDAO.getById(policy.getId()));
   }
 
@@ -132,11 +163,15 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
   }
 
-  private void testEditPolicy_constraintSection(List<Constraint> constraints) {
-    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
-    constraintSection.createConstraintButton().shouldBe(visible, enabled);
+  private void testEditPolicy_constraintSection(Policy policy) {
+    testEditPolicy_constraintSection_summaries(policy);
+    testEditPolicy_constraintSection_editors(policy);
+  }
 
-    // Test Summaries
+  private void testEditPolicy_constraintSection_summaries(Policy policy) {
+    List<Constraint> constraints = policy.getConstraints();
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+    constraintSection.addConstraintButton().shouldBe(visible, enabled);
     constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
 
     ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
@@ -147,6 +182,8 @@ public abstract class AbstractPolicyEditorTest
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
     constraintSummary1.conditions().shouldHaveSize(conditions.size());
+    constraintSummary1.deleteConstraintButton().shouldBe(visible, enabled);
+    constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary1.condition(0).shouldHave(text("Age older than 2 Years"));
 
@@ -158,6 +195,8 @@ public abstract class AbstractPolicyEditorTest
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
     constraintSummary2.conditions().shouldHaveSize(conditions.size());
+    constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
+    constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary2.condition(0).shouldHave(text("License Threat Group is my LTG"));
     constraintSummary2.condition(1).shouldHave(text("Label is my Label"));
@@ -170,12 +209,129 @@ public abstract class AbstractPolicyEditorTest
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(2).getOperator().toString()));
     constraintSummary3.conditions().shouldHaveSize(conditions.size());
+    constraintSummary3.deleteConstraintButton().shouldBe(visible, enabled);
+    constraintSummary3.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary3.condition(0).shouldHave(text("Relative Popularity (Percentage) less than 50"));
     constraintSummary3.condition(1).shouldHave(text("Coordinates (GAV) do not match blah:blah:blah"));
+  }
 
-    // Test Editing
-    // TODO: CLM-5806 - Add Constraints Section
+  private void testEditPolicy_constraintSection_editors(Policy policy) {
+    List<Constraint> constraints = policy.getConstraints();
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+
+    constraintSection.constraintEditors().shouldHaveSize(0);
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
+    constraintSection.constraintEditors().shouldHaveSize(1);
+
+    ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    constraintEdit.operator().selectedItem().shouldHave(text("all"));
+    constraintEdit.name().shouldHave(value(constraints.get(0).getName())).val("New Constraint Name");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+
+    policy = policyDAO.getById(policy.getId());
+    assertThat(policy.getConstraints().get(0).getName(), is("New Constraint Name"));
+
+    constraintEdit.conditions().shouldHaveSize(1);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    constraintEdit.ageCondition(0).deleteConditionButton().shouldBe(visible, disabled);
+    constraintEdit.ageCondition(0).value().age().shouldHave(value("2")).val("3");
+    constraintEdit.ageCondition(0).value().modifier().selectedItem().shouldHave(text("Years")).click();
+    constraintEdit.ageCondition(0).value().modifier().listItem(1).shouldHave(text("Months")).click();
+    constraintEdit.ageCondition(0).operator().selectedItem().shouldHave(text("older than")).click();
+    constraintEdit.ageCondition(0).operator().listItem(1).shouldHave(text("younger than")).click();
+    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.constraintsPill().click();
+
+    Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0).getConditions().get(0);
+    assertThat(updatedAgeCondition.getConditionTypeId(), is("AgeInDays"));
+    assertThat(updatedAgeCondition.getValue(), is(Integer.toString(3 * 30)));
+    assertThat(updatedAgeCondition.getOperator(), is("younger than"));
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
+    constraintEdit.conditions().shouldHaveSize(2);
+    constraintEdit.condition(1).type().selectedItem().shouldHave(text("Age")).click();
+    constraintEdit.condition(1).type().listItem(3).shouldHave(text("License Threat Group")).click();
+    constraintEdit.dropdownCondition(1).operator().selectedItem().shouldHave(text("is")).click();
+    constraintEdit.dropdownCondition(1).operator().listItem(1).shouldHave(text("is not")).click();
+    constraintEdit.dropdownCondition(1).value().selectedItem().shouldHave(text("my LTG")).click();
+    constraintEdit.dropdownCondition(1).value().listItem(1).shouldHave(text("my LTG 2")).click();
+    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.constraintsPill().click();
+
+    constraints = policyDAO.getById(policy.getId()).getConstraints();
+    assertThat(constraints.get(0).getConditions().size(), is(2));
+
+    Condition ltgCondition = constraints.get(0).getConditions().get(1);
+    assertThat(ltgCondition.getConditionTypeId(), is("License Threat Group"));
+    assertThat(ltgCondition.getValue(),
+        is(new LicenseThreatGroupDAO().getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId()));
+    assertThat(ltgCondition.getOperator(), is("is not"));
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
+    constraintEdit.conditions().shouldHaveSize(3);
+    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age")).click();
+    constraintEdit.condition(2).type().listItem(11).shouldHave(text("Coordinates (GAV)")).click();
+    constraintEdit.inputCondition(2).operator().selectedItem().shouldHave(text("match")).click();
+    constraintEdit.inputCondition(2).operator().listItem(1).shouldHave(text("do not match")).click();
+    constraintEdit.inputCondition(2).value().shouldBe(empty).val("com.eclipse.*");
+    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.constraintsPill().click();
+
+    constraints = policyDAO.getById(policy.getId()).getConstraints();
+    assertThat(constraints.get(0).getConditions().size(), is(3));
+
+    Condition coordinatesCondition = constraints.get(0).getConditions().get(2);
+    assertThat(coordinatesCondition.getConditionTypeId(), is("Coordinates"));
+    assertThat(coordinatesCondition.getValue(), is("com.eclipse.*"));
+    assertThat(coordinatesCondition.getOperator(), is("do not match"));
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Coordinates (GAV)")).click();
+    constraintEdit.condition(2).type().listItem(5).shouldHave(text("Security Vulnerability")).click();
+    constraintEdit.condition(2).operator().selectedItem().shouldHave(text("present")).click();
+    constraintEdit.condition(2).operator().listItem(1).shouldHave(text("absent")).click();
+    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.constraintsPill().click();
+
+    constraints = policyDAO.getById(policy.getId()).getConstraints();
+    assertThat(constraints.get(0).getConditions().size(), is(3));
+
+    Condition securityVulnerabilityCondition = constraints.get(0).getConditions().get(2);
+    assertThat(securityVulnerabilityCondition.getConditionTypeId(), is("SecurityVulnerability"));
+    assertThat(securityVulnerabilityCondition.getValue(), isEmptyOrNullString());
+    assertThat(securityVulnerabilityCondition.getOperator(), is("absent"));
+
+    constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
+    constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
+    constraintEdit.condition(2).deleteConditionButton().shouldBe(visible, enabled).click();
+    constraintEdit.conditions().shouldHaveSize(2);
+
+    constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
+    constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled).click();
+    constraintEdit.conditions().shouldHaveSize(1);
+
+    constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
+    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.constraintsPill().click();
+
+    constraints = policyDAO.getById(policy.getId()).getConstraints();
+    assertThat(constraints.get(0).getConditions().size(), is(1));
   }
 
   private void testDeletePolicy(Policy policy) {
@@ -190,6 +346,36 @@ public abstract class AbstractPolicyEditorTest
 
     assertNewPolicyStateIsCorrect();
     assertThat(policyDAO.getById(policy.getId()), is(nullValue()));
+  }
+
+  public void testCreatePolicy_summarySection() {
+    SummarySection summary = PolicyEditorPage.summarySection();
+    summary.policyName().val("New Policy");
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+
+    changeThreatLevel(6);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+  }
+
+  public void testCreatePolicy_constraintSection() {
+    ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
+    constraintSection.addConstraintButton().shouldBe(visible, enabled);
+
+    constraintSection.constraintEditors().shouldHaveSize(1);
+
+    ConstraintEditSection newConstraint = constraintSection.constraintEditor(0);
+    newConstraint.name().shouldBe(empty).val("New Constraint");
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    newConstraint.operator().selectedItem().shouldHave(text("any"));
+    newConstraint.conditions().shouldHaveSize(1);
+
+    AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
+    ageCondition.deleteConditionButton().shouldBe(visible, disabled);
+    ageCondition.type().selectedItem().shouldHave(text("Age"));
+    ageCondition.operator().selectedItem().shouldHave(text("older than"));
+    ageCondition.value().modifier().selectedItem().shouldHave(text("Years"));
+    ageCondition.value().age().shouldBe(empty).val("3");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS);
   }
 
   private void assertNewPolicyStateIsCorrect() {

@@ -30,8 +30,16 @@ public class ConstraintSection
     return new ConstraintSummary(rootSelector + "  .constraint:nth-child(" + (i + 1) + ") .constraint-summary");
   }
 
-  public SelenideElement createConstraintButton() {
-    return root.$("#add-constraint-button");
+  public ElementsCollection constraintEditors() {
+    return $$(rootSelector + " .constraint-editor");
+  }
+
+  public ConstraintEditSection constraintEditor(int i) {
+    return new ConstraintEditSection(rootSelector + "  .constraint:nth-child(" + (i + 1) + ") .constraint-editor", i);
+  }
+
+  public SelenideElement addConstraintButton() {
+    return $("#add-constraint-button");
   }
 
   public static class ConstraintSummary
@@ -59,12 +67,124 @@ public class ConstraintSection
       return $(rootSelector + " .constraint-summary-subheader");
     }
 
+    public SelenideElement editConstraintButton() {
+      return $(rootSelector + " .edit-constraint-button");
+    }
+
+    public SelenideElement deleteConstraintButton() {
+      return $(rootSelector + " .delete-constraint-button");
+    }
+
     public ElementsCollection conditions() {
       return $$(rootSelector + " .constraint-summary-condition");
     }
 
     public SelenideElement condition(int i) {
       return $(rootSelector + " .constraint-summary-condition:nth-child(" + (i + 4) + ")");
+    }
+  }
+
+  public static class ConstraintEditSection
+  {
+    private String rootSelector;
+
+    private int index;
+
+    public ConstraintEditSection(String rootSelector, int index) {
+      this.rootSelector = rootSelector;
+      this.index = index;
+    }
+
+    public SelenideElement name() {
+      return $("#editor-constraint-name-" + index);
+    }
+
+    public DropdownSelector operator() {
+      return new DropdownSelector($("#editor-constraint-operator-" + index));
+    }
+
+    public ElementsCollection conditions() {
+      return $$(rootSelector + " table tr.editor-condition");
+    }
+
+    public SelenideElement addConditiontButton() {
+      return $(rootSelector + " .add-condition-button");
+    }
+
+    public ConditionEditSection condition(int i) {
+      return new ConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+    }
+
+    public AgeConditionEditSection ageCondition(int i) {
+      return new AgeConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+    }
+
+    public DropdownConditionEditSection dropdownCondition(int i) {
+      return new DropdownConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+    }
+
+    public InputConditionEditSection inputCondition(int i) {
+      return new InputConditionEditSection(rootSelector + " table tr.editor-condition:nth-child(" + (i + 1) + ")");
+    }
+
+    public static class ConditionEditSection
+    {
+      protected String rootSelector;
+
+      public ConditionEditSection(String rootSelector) {
+        this.rootSelector = rootSelector;
+      }
+
+      public DropdownSelector type() {
+        return new DropdownSelector($(rootSelector + " .editor-condition-type"));
+      }
+
+      public DropdownSelector operator() {
+        return new DropdownSelector($(rootSelector + " .editor-condition-operator"));
+      }
+
+      public SelenideElement deleteConditionButton() {
+        return $(rootSelector + " .delete-condition-button");
+      }
+    }
+
+    public static class DropdownConditionEditSection
+        extends ConditionEditSection
+    {
+
+      public DropdownConditionEditSection(final String rootSelector) {
+        super(rootSelector);
+      }
+
+      public DropdownSelector value() {
+        return new DropdownSelector($(rootSelector + " .editor-condition-value"));
+      }
+    }
+
+    public static class AgeConditionEditSection
+        extends ConditionEditSection
+    {
+
+      public AgeConditionEditSection(final String rootSelector) {
+        super(rootSelector);
+      }
+
+      public AgeInput value() {
+        return new AgeInput(rootSelector + " .editor-condition-value");
+      }
+    }
+
+    public static class InputConditionEditSection
+        extends ConditionEditSection
+    {
+
+      public InputConditionEditSection(final String rootSelector) {
+        super(rootSelector);
+      }
+
+      public SelenideElement value() {
+        return $(rootSelector + " .editor-condition-value input");
+      }
     }
   }
 }

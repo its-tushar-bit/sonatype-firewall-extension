@@ -11,8 +11,24 @@
     var vm = this;
 
     vm.conditionString = conditionString;
+    vm.addConstraint = addConstraint;
+    vm.addCondition = addCondition;
+    vm.deleteCondition = deleteCondition;
+    vm.deleteConstraint = deleteConstraint;
+    vm.conditionTypesMap = undefined;
     vm.conditionTypes = undefined;
     vm.doLoad = doLoad;
+    vm.editConstraintMap = {};
+    vm.constraintOperatorOptions = [
+      {
+        operator: 'OR',
+        name: 'any'
+      }, {
+        operator: 'AND',
+        name: 'all'
+      }
+    ];
+    vm.updateConditionType = updateConditionType;
     vm.loadError = undefined;
 
     vm.doLoad();
@@ -63,7 +79,7 @@
           break;
       }
 
-      return vm.conditionTypes[condition.conditionTypeId].name + ' ' + operator + (value ? (' ' + value) : '');
+      return vm.conditionTypesMap[condition.conditionTypeId].name + ' ' + operator + (value ? (' ' + value) : '');
 
       function parseDays(days) {
         return days % 365 === 0 ? days / 365 + ' Years' : days % 30 === 0 ? days / 30 + ' Months' : days + ' Days';
@@ -72,7 +88,7 @@
       function getAvailableValue(valueParam) {
         var result = '';
 
-        vm.conditionTypes[condition.conditionTypeId].valueType.availableValues.some(function(availableValue) {
+        vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues.some(function(availableValue) {
           if (availableValue.id === condition.value) {
             result = availableValue[valueParam];
             return true;
@@ -86,20 +102,85 @@
     function doLoad() {
       ConstraintStore.get().then(function(constraintStore) {
         var typeValues = {};
-        vm.conditionTypes = {};
+        vm.conditionTypes = constraintStore[0];
+        vm.conditionTypesMap = {};
+
         constraintStore[1].forEach(function(typeValue) {
           typeValues[typeValue.id] = typeValue;
         });
 
-        constraintStore[0].forEach(function(type) {
+        vm.conditionTypes.forEach(function(type) {
           type.valueType = type.valueTypeId ? typeValues[type.valueTypeId] : null;
-          vm.conditionTypes[type.id] = type;
+          vm.conditionTypesMap[type.id] = type;
         });
+
+        if (vm.constraints.length === 0) {
+          vm.addConstraint();
+        }
       }, function(error) {
         vm.loadError = error;
       });
 
       delete vm.loadError;
+    }
+
+    function updateConditionType(condition, newConditionType) {
+      condition.conditionTypeId = newConditionType.id;
+      condition.operator = newConditionType.supportedOperators[0];
+      condition.value = null;
+
+      if (vm.conditionTypesMap[newConditionType.id].valueType) {
+        var availableValues = vm.conditionTypesMap[newConditionType.id].valueType.availableValues;
+
+        switch (vm.conditionTypesMap[newConditionType.id].valueType.dataType) {
+          case 'Integer':
+          case 'Float':
+            condition.value = 0;
+            break;
+          case 'String':
+            condition.value = '';
+            break;
+          default :
+            condition.value = (availableValues && availableValues.length > 0 &&
+            availableValues[0].id) ? availableValues[0].id : null;
+            break;
+        }
+      }
+    }
+
+    function deleteCondition(constraint, conditionIndex) {
+      constraint.conditions.splice(conditionIndex, 1);
+    }
+
+    function addCondition(constraint) {
+      var newCondition = {
+        conditionTypeId: 'AgeInDays',
+        operator: 'older than',
+        value: null
+      };
+
+      constraint.conditions.push(newCondition);
+    }
+
+    function deleteConstraint(constraintIndex) {
+      vm.constraints.splice(constraintIndex, 1);
+    }
+
+    function addConstraint() {
+      var newConstraint = {
+        id: '' + new Date().getTime(),
+        conditions: [
+          {
+            conditionTypeId: 'AgeInDays',
+            operator: 'older than',
+            value: null
+          }
+        ],
+        operator: 'OR'
+      };
+
+      vm.editConstraintMap[newConstraint.id] = true;
+      vm.constraints.push(newConstraint);
     }
   }
 

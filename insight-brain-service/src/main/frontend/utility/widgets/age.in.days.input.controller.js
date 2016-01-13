@@ -15,15 +15,17 @@
     vm.modifierTypes = [{name: 'Days', modifier: 1}, {name: 'Months', modifier: 30}, {name: 'Years', modifier: 365}];
 
     $scope.$watch('vm.modifier', function(newModifier, oldModifier) {
-      vm.ageInDaysModel = ((vm.ageInDaysModel / oldModifier) * newModifier).toString();
+      if (vm.ageInDaysModel) {
+        vm.ageInDaysModel = ((vm.ageInDaysModel / oldModifier) * newModifier).toString();
+      }
     });
 
     function getInitialModifier(days) {
-      return days === 0 ? 1 : days % 365 === 0 ? 365 : days % 30 === 0 ? 30 : 1;
+      return days ? days % 365 === 0 ? 365 : days % 30 === 0 ? 30 : 1 : 365;
     }
 
     function formatDaysToAge(days) {
-      return parseInt(days) / vm.modifier;
+      return days ? parseInt(days) / vm.modifier : days;
     }
 
     function parseAgeToDays(age) {

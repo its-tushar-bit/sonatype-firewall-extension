@@ -37,8 +37,16 @@ public class PolicyEditorPage
     return $("#delete-policy-button");
   }
 
+  public static SelenideElement constraintsPill() {
+    return $("#policy-constraints-button");
+  }
+
   public static SelenideElement inhertancePill() {
     return $("#policy-inheritance-button");
+  }
+
+  public static SelenideElement createPill() {
+    return $("#policy-create-button");
   }
 
   public static SummarySection summarySection() {

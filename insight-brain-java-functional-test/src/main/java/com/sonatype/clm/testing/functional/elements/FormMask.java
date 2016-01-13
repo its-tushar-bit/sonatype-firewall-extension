@@ -15,8 +15,18 @@ public class FormMask
   public static SelenideElement root() {
     return $(".form-mask");
   }
-  
-  public static SelenideElement seeAndWaitForDismissal() {                                                                                                       
-    return root().shouldBe(visible).shouldNotBe(visible);  
+
+  public static SelenideElement seeAndWaitForDismissal() {
+    SelenideElement mask = root();
+
+    try {
+      mask.shouldBe(visible);
+    }
+    catch (Throwable t) {
+      //ok the mask opened and closed before we got a chance to check
+      return mask;
+    }
+
+    return mask.shouldNotBe(visible);
   }
 }

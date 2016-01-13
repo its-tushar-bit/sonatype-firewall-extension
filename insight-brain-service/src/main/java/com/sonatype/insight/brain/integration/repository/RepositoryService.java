@@ -402,7 +402,7 @@ public class RepositoryService
         for (final RepositoryPolicyViolation violation : componentViolations) {
           details.add(RepositoryReportDetail.create(component, violation, highestThreatLevel));
           // like the CI report, we choose one of the violations and use it as the highest.
-          highestThreatLevel = false;
+          highestThreatLevel = violation.isWaived() ? highestThreatLevel : false;
         }
       }
       else {

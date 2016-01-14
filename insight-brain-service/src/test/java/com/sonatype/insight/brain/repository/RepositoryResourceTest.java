@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.repository;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -13,8 +16,10 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public class RepositoryResourceTest
@@ -28,20 +33,46 @@ public class RepositoryResourceTest
   }
 
   @Test
+  public void testGetRepositories() throws Exception {
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH).get();
+    assertResponseStatus(200, response);
+    RepositoriesDTO actual = response.getBody(RepositoriesDTO.class);
+
+    assertNotNull(actual.repositories);
+    assertThat(actual.repositories, hasSize(1));
+    RepositoryDTO actualRepo = actual.repositories.get(0);
+    assertThat(actualRepo.repository.getId(), is(repo.getId()));
+    assertThat(actualRepo.repository.getPublicId(), is(repo.getPublicId()));
+    assertThat(actualRepo.managerInstanceId,
+        is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId()));
+  }
+
+  @Test
   public void testGetRepository() throws Exception {
-    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH).parameter(repo.getId()).get();
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
+        .parameter(repo.getId()).get();
     assertResponseStatus(200, response);
     RepositoryDTO actual = response.getBody(RepositoryDTO.class);
 
     assertNotNull(actual.repository);
     assertThat(actual.repository.getId(), is(repo.getId()));
     assertThat(actual.repository.getPublicId(), is(repo.getPublicId()));
+    assertThat(actual.managerInstanceId,
+        is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId()));
   }
 
   @Test
   public void testReevaluateRepository() throws Exception {
-    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH + "/evaluate").parameter(repo.getId())
-        .post();
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_PATH)
+        .parameter(repo.getId()).post();
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testDeleteRepository() throws Exception {
+    HttpResponse deleteResponse = restRequest()
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH).parameter(repo.getId()).delete();
+    assertResponseStatus(204, deleteResponse);
+    assertNull(new RepositoryDAO().getById(repo.getId()));
   }
 }

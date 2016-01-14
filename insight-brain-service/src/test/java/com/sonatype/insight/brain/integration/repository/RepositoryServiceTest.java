@@ -1658,6 +1658,24 @@ public class RepositoryServiceTest
     }
   }
 
+  @Test
+  public void testDeleteRepository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    repositoryService.deleteRepository(repository.getId());
+    assertNull(repositoryDAO.getById(repository.getId()));
+  }
+
+  @Test
+  public void testDeleteRepository_unknownId() throws Exception {
+    try {
+      repositoryService.deleteRepository("foobar");
+      fail("Did not throw exception");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
+    }
+  }
+
   private void createRepositoryPolicyViolation(final Repository repository, final String pathname,
       int... threatLevels)
   {

@@ -10,6 +10,7 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -19,6 +20,11 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -266,5 +272,52 @@ public class RepositoryServiceAuthzTest
 
     login();
     repositoryService.reevaluateRepository(repo.getId());
+  }
+
+  @Test
+  public void testDeleteRepository_Authorized() {
+    Repository repo = createRepository();
+    grantWritePermission(repo.getId());
+    repositoryService.deleteRepository(repo.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteRepository_Unauthenticated() {
+    repositoryService.deleteRepository("repository-id");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteRepository_Unauthorized() {
+    Repository repo = createRepository();
+    login();
+    repositoryService.deleteRepository(repo.getId());
+  }
+
+  @Test
+  public void testGetRepositories_Authorized() {
+    Repository repository = createRepository();
+    grantReadPermission(repository.getId());
+    Repository repository2 = tempEntity.newRepository();
+    RepositoriesDTO repositories = repositoryService.getRepositories();
+    assertThat(repositories.repositories, hasSize(1));
+    assertThat(repositories.repositories.get(0).repository.getId(), equalTo(repository.getId()));
+    grantReadPermission(repository2.getId());
+    repositories = repositoryService.getRepositories();
+    assertThat(repositories.repositories, hasSize(2));
+  }
+
+  @Test
+  public void testGetRepositories_Unauthenticated() {
+    createRepository();
+    RepositoriesDTO repositories = repositoryService.getRepositories();
+    assertNull(repositories.repositories);
+  }
+
+  @Test
+  public void testGetRepositories_Unauthorized() {
+    createRepository();
+    login();
+    RepositoriesDTO repositories = repositoryService.getRepositories();
+    assertNull(repositories.repositories);
   }
 }

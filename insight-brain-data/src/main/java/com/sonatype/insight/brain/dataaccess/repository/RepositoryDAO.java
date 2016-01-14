@@ -191,6 +191,12 @@ public class RepositoryDAO
     return getList(tx, sQuery);
   }
 
+  public List<Repository> getAll() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx);
+    }
+  }
+
   public Repository getByIdNotNull(String id) {
     Repository repository = getById(id);
     if (repository == null) {

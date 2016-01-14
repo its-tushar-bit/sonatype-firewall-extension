@@ -51,6 +51,8 @@ import com.sonatype.insight.brain.repository.RepositoryReportResource.Repository
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -471,25 +473,39 @@ public class RepositoryService
   @Authorize(permission = Permission.READ)
   public RepositoryDTO getRepositoryById(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     checkLicenseFeature();
-
-    RepositoryDTO repositoryDTO = new RepositoryDTO();
-    repositoryDTO.repository = repositoryDAO.getByIdNotNull(repositoryId);
-
-    Date evaluationTime = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(
-        repositoryId);
-
+    RepositoryDTO repositoryDTO = convertRepository(repositoryDAO.getByIdNotNull(repositoryId));
+    Date evaluationTime = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repositoryId);
     if (evaluationTime != null) {
       repositoryDTO.oldestEvalTimestamp = evaluationTime.getTime();
     }
-
     return repositoryDTO;
   }
 
   public static class RepositoryDTO
   {
     public Long oldestEvalTimestamp;
+
+    public String managerInstanceId;
+
     public Repository repository;
   }
+
+  /**
+   * @since 1.19.0
+   */
+  public static class RepositoriesDTO
+  {
+    public List<RepositoryDTO> repositories;
+
+    // Needed for de-serialization
+    public RepositoriesDTO() {
+    }
+
+    public RepositoriesDTO(final List<RepositoryDTO> repositories) {
+      this.repositories = repositories;
+    }
+  }
+
 
 
   private final Executor reevalExecutor = createReevaluationExecutor();
@@ -521,5 +537,36 @@ public class RepositoryService
     executor.allowCoreThreadTimeOut(true);
 
     return executor;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void deleteRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+    checkLicenseFeature();
+    repositoryDAO.delete(repositoryDAO.getByIdNotNull(repositoryId));
+  }
+
+  public RepositoriesDTO getRepositories() {
+    List<Repository> repositories = getRepositoriesWithReadPermission();
+    if (repositories.isEmpty()) {
+      return new RepositoriesDTO();
+    }
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>(repositories.size());
+    for (Repository repository : repositories) {
+      repositoryDTOs.add(convertRepository(repository));
+    }
+    return new RepositoriesDTO(repositoryDTOs);
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY)
+  List<Repository> getRepositoriesWithReadPermission() {
+    return repositoryDAO.getAll();
+  }
+
+  private RepositoryDTO convertRepository(Repository repository) {
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.repository = repository;
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+    repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
+    return repositoryDTO;
   }
 }

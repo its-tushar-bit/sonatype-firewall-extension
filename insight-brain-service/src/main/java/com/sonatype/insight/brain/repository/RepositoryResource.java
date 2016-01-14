@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -15,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
+import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
 
 /**
@@ -26,7 +28,11 @@ import com.sonatype.insight.brain.integration.repository.RepositoryService.Repos
 public class RepositoryResource
 {
 
-  public static final String RESOURCE_PATH = "rest/repositories/{repositoryId}";
+  public static final String RESOURCE_PATH = "rest/repositories";
+
+  static final String REPOSITORY_PATH = "{repositoryId}";
+
+  static final String EVALUATE_PATH = REPOSITORY_PATH + "/evaluate";
 
   private RepositoryService repositoryService;
 
@@ -35,13 +41,31 @@ public class RepositoryResource
     this.repositoryService = repositoryService;
   }
 
+  /**
+   * @since 1.19.0
+   */
   @GET
+  public RepositoriesDTO getRepositories() {
+    return repositoryService.getRepositories();
+  }
+
+  @GET
+  @Path(REPOSITORY_PATH)
   public RepositoryDTO getRepository(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getRepositoryById(repositoryId);
   }
 
+  /**
+   * @since 1.19.0
+   */
+  @DELETE
+  @Path(REPOSITORY_PATH)
+  public void deleteRepository(@PathParam("repositoryId") String repositoryId) {
+    repositoryService.deleteRepository(repositoryId);
+  }
+
   @POST
-  @Path("evaluate")
+  @Path(EVALUATE_PATH)
   public void reevaluateRepository(@PathParam("repositoryId") String repositoryId) {
     repositoryService.reevaluateRepository(repositoryId);
   }

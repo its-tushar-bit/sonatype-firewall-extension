@@ -111,13 +111,15 @@ public class RepositoryComponentDAO
    * 
    * WARNING: This method bypasses the standard DAO delete(tx) method, so it has to match its implementation/behavior.
    */
-  public int deleteByRepositoryId(TransactionContext tx, String repositoryId) {
-    // Mark all violations for this repository as inactive.
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
-    for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
-        repositoryId)) {
-      policyViolation.setActive(false);
-      repositoryPolicyViolationDAO.update(tx, policyViolation);
+  public int deleteByRepositoryId(TransactionContext tx, String repositoryId, boolean updatePolicyViolations) {
+    if (updatePolicyViolations) {
+      // Mark all violations for this repository as inactive.
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+      for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
+          repositoryId)) {
+        policyViolation.setActive(false);
+        repositoryPolicyViolationDAO.update(tx, policyViolation);
+      }
     }
 
     // Delete all components.

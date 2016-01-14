@@ -134,7 +134,7 @@ public class RepositoryDAO
   private void onDisable(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isEnabled()) {
-      new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
+      new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId(), true /* updatePolicyViolations */);
     }
   }
 
@@ -167,12 +167,10 @@ public class RepositoryDAO
     }
 
     // Cascade to repository policy violations
-    // The deletion of repository components updates the policy violations. Deleting the violations before the
-    // components improves performance by ~10%.
     new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
 
     // Cascade to repository components
-    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
+    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId(), false /* updatePolicyViolations */);
 
     super.delete(tx, repository);
 

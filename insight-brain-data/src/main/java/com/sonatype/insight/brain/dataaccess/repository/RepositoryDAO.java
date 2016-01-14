@@ -167,16 +167,18 @@ public class RepositoryDAO
       licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
-    // Cascade to repository components
-    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
-
     // Cascade to repository policy violations
+    // The deletion of repository components updates the policy violations. Deleting the violations before the
+    // components improves performance by ~10%.
     RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(tx,
         repository.getId());
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
       repositoryPolicyViolationDAO.delete(tx, policyViolation);
     }
+
+    // Cascade to repository components
+    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());
 
     super.delete(tx, repository);
 

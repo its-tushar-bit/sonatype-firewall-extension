@@ -80,4 +80,16 @@ public class RepositoryPolicyViolationDAO
         " AND entity.active=true";
     return getList(tx, sQuery, repositoryId);
   }
+
+  /**
+   * Deletes all policy violations for a repository.
+   * 
+   * WARNING: This method bypasses the standard DAO delete(tx) method, so it has to match its implementation/behavior.
+   */
+  public int deleteByRepositoryId(TransactionContext tx, String repositoryId) {
+    String sQuery = "DELETE FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1";
+    Query query = createQuery(sQuery, repositoryId);
+    return query.executeUpdate(tx);
+  }
 }

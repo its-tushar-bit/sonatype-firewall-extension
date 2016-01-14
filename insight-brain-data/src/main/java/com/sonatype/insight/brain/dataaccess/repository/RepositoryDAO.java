@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -170,12 +169,7 @@ public class RepositoryDAO
     // Cascade to repository policy violations
     // The deletion of repository components updates the policy violations. Deleting the violations before the
     // components improves performance by ~10%.
-    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
-    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(tx,
-        repository.getId());
-    for (RepositoryPolicyViolation policyViolation : policyViolations) {
-      repositoryPolicyViolationDAO.delete(tx, policyViolation);
-    }
+    new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
 
     // Cascade to repository components
     new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId());

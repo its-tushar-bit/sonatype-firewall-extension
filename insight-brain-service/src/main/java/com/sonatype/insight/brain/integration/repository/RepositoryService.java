@@ -26,6 +26,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -96,6 +97,60 @@ public class RepositoryService
     if (!licenseManager.hasRepositoryFirewall()) {
       throw new InvalidLicenseException();
     }
+  }
+
+  /**
+   * @since 1.19.0
+   */
+  @Authorize(permission = Permission.WRITE)
+  public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname) {
+    checkLicenseFeature();
+
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
+    if (repositoryComponent == null) {
+      throw new NotFoundException("Cannot find a component with path " + pathname +
+          " in repository with ID " + repositoryId + ".");
+    }
+
+    if (!repositoryComponent.isQuarantined()) {
+      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId +
+          " is not quarantined.");
+    }
+
+    reevaluateComponent(repositoryComponent);
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
+    if (policyViolationsHaveFailedAction(repositoryPolicyViolations)) {
+      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId +
+          " has policy violations.");
+    }
+    // Retrieve the component again before saving as the re-evaluation may have changed the component
+    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
+    repositoryComponent.setUnquarantineTime(new Date());
+    repositoryComponentDAO.update(repositoryComponent);
+  }
+
+  private boolean policyViolationsHaveFailedAction(final List<RepositoryPolicyViolation> repositoryPolicyViolations) {
+    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
+      if (Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void reevaluateComponent(final RepositoryComponent repositoryComponent) {
+    Repository repository = repositoryDAO.getById(repositoryComponent.getRepositoryId());
+    RepositoryComponentEvaluationDataRequestList componentRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequest componentRequest = new RepositoryComponentEvaluationDataRequest();
+    componentRequest.format = repository.getFormat();
+    componentRequest.pathname = repositoryComponent.getPathname();
+    componentRequest.hash = repositoryComponent.getHash();
+    componentRequestList.components.add(componentRequest);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentRequestList, false);
   }
 
   public RepositoryPolicyThreatDTO getPolicyThreats(final String repositoryId, final String pathname) {

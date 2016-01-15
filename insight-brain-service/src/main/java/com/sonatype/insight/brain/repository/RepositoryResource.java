@@ -34,6 +34,8 @@ public class RepositoryResource
 
   static final String EVALUATE_PATH = REPOSITORY_PATH + "/evaluate";
 
+  static final String UNQUARANTINE_PATH = REPOSITORY_PATH + "/unquarantine/{pathname}";
+
   static final String EVALUATE_COMPONENT_PATH = EVALUATE_PATH + "/{hash}";
 
   private RepositoryService repositoryService;
@@ -41,6 +43,17 @@ public class RepositoryResource
   @Inject
   public RepositoryResource(RepositoryService repositoryService) {
     this.repositoryService = repositoryService;
+  }
+
+  /**
+   * @since 1.19.0
+   */
+  @POST
+  @Path(UNQUARANTINE_PATH)
+  public void unquarantineComponent(@PathParam("repositoryId") final String repositoryId,
+                                    @PathParam("pathname") final String pathname)
+  {
+    repositoryService.unquarantineComponent(repositoryId, pathname);
   }
 
   /**

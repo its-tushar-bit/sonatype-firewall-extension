@@ -11,6 +11,7 @@ import java.util.HashSet;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -38,6 +39,17 @@ public class RepositoryResourceTest
   @Before
   public void setup() {
     repo = tempEntity.newRepository();
+  }
+
+  @Test
+  public void testUnquarantineComponent() throws Exception {
+    String path = "path";
+    HttpResponse response = restRequest()
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
+        .parameter(repo.getId(), path).post();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText(), is("Cannot find a component with path " + path + " in repository with ID " +
+        repo.getId() + "."));
   }
 
   @Test

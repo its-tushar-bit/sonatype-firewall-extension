@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -30,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNull;
@@ -63,6 +65,38 @@ public class RepositoryServiceAuthzTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
+  }
+
+  @Test
+  public void testUnquarantineComponent_Authorized() {
+    String path = "path";
+    Repository repository = createRepository();
+
+    grantWritePermission(repository.getId());
+    try {
+      repositoryService.unquarantineComponent(repository.getId(), path);
+    }
+    catch (NotFoundException e) {
+      // We are testing access permissions and we don't care if the component exists
+      // This avoids the need to mock the HDS client for the permissions test
+      assertThat(e.getMessage(), is("Cannot find a component with path " + path + " in repository with ID " +
+          repository.getId() + "."));
+    }
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUnquarantineComponent_Unauthenticated() {
+    Repository repository = createRepository();
+
+    repositoryService.unquarantineComponent(repository.getId(), "path");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUnquarantineComponent_Unauthorized() {
+    Repository repository = createRepository();
+
+    login();
+    repositoryService.unquarantineComponent(repository.getId(), "path");
   }
 
   @Test

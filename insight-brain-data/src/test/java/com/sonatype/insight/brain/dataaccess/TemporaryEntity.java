@@ -1024,8 +1024,13 @@ public class TemporaryEntity
   }
 
   public Repository newRepository(String repositoryManagerInstanceId, String publicId) {
+    return newRepository(repositoryManagerInstanceId, publicId, null);
+  }
+
+  public Repository newRepository(String repositoryManagerInstanceId, String publicId, String format) {
     RepositoryManager repositoryManager = newRepositoryManager(repositoryManagerInstanceId);
     Repository repository = new Repository(repositoryManager.getId(), publicId);
+    repository.setFormat(format);
     repositoryDAO.insert(repository);
     return repository;
   }

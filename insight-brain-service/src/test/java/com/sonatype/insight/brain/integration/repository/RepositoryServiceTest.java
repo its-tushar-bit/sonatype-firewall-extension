@@ -141,6 +141,105 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testUnquarantineComponent_WasQuarantined() throws Exception {
+    String pathname = "path";
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
+
+    mockHdsRequestForComponent(repositoryComponent, true);
+
+    repositoryService.unquarantineComponent(repository.getId(), pathname);
+    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
+
+    assertThat(repositoryComponent.isQuarantined(), is(false));
+  }
+
+  @Test
+  public void testUnquarantineComponent_WasNotQuarantined() throws Exception {
+    String pathname = "path";
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), pathname, null, null);
+
+    mockHdsRequestForComponent(repositoryComponent, true);
+
+    try {
+      repositoryService.unquarantineComponent(repository.getId(), pathname);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(),
+          is("Component " + pathname + " in repository " + repository.getId() + " is not quarantined."));
+    }
+    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
+
+    assertThat(repositoryComponent.isQuarantined(), is(false));
+  }
+
+  @Test
+  public void testUnquarantineComponent_WithViolations() throws Exception {
+    String pathname = "path";
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
+
+    createQuarantiningPolicy(repository);
+    mockHdsRequestForComponent(repositoryComponent, true);
+
+    try {
+      repositoryService.unquarantineComponent(repository.getId(), pathname);
+      fail("Expected BadRequestException");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is("Component " + pathname + " in repository " + repository.getId() +
+          " has policy violations."));
+    }
+  }
+
+  @Test
+  public void testUnquarantineComponent_WithViolationsNotFailed() throws Exception {
+    String pathname = "path";
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
+
+    createQuarantiningPolicy(repository);
+    mockHdsRequestForComponent(repositoryComponent, false);
+
+    repositoryService.unquarantineComponent(repository.getId(), pathname);
+    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
+
+    assertThat(repositoryComponent.isQuarantined(), is(false));
+  }
+
+  private void mockHdsRequestForComponent(RepositoryComponent repositoryComponent, boolean withSecurityVulnerabilities)
+      throws Exception
+  {
+    // Prepare request and mock the HDS request
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", repositoryComponent.getPathname(),
+            repositoryComponent.getHash());
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+
+    List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
+    if (withSecurityVulnerabilities) {
+      securityVulnerabilities = createSecurityVulnerabilities();
+    }
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, repositoryComponent.getHash(),
+        MatchState.EXACT, 0 /* index */, Collections.<License>emptySet(), Collections.<License>emptySet(),
+        securityVulnerabilities, 0 /* popularity */));
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+  }
+
+  @Test
   public void testGetPolicyThreats() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     String pathname = "path1";

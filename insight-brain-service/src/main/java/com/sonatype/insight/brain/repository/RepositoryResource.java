@@ -69,4 +69,12 @@ public class RepositoryResource
   public void reevaluateRepository(@PathParam("repositoryId") String repositoryId) {
     repositoryService.reevaluateRepository(repositoryId);
   }
+
+  @POST
+  @Path("evaluate/{hash}")
+  public void reevaluateComponent(@PathParam("repositoryId") String repositoryId,
+                                  @PathParam("hash") String componentHash)
+  {
+    repositoryService.reevaluateComponent(repositoryId, componentHash);
+  }
 }

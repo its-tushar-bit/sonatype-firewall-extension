@@ -5,27 +5,37 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.io.IOException;
 import java.util.Date;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+@RunWith(MockitoJUnitRunner.class)
 public class RepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -38,12 +48,21 @@ public class RepositoryServiceAuthzTest
 
   private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
+  @Mock
+  private RepositoryPolicyEvaluator repositoryPolicyEvaluator;
+
   @After
   public void cleanup() {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
     if (repositoryManager != null) {
       repositoryManagerDAO.delete(repositoryManager);
     }
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
   }
 
   @Test
@@ -319,5 +338,30 @@ public class RepositoryServiceAuthzTest
     login();
     RepositoriesDTO repositories = repositoryService.getRepositories();
     assertNull(repositories.repositories);
+  }
+
+  @Test
+  public void testReevaluateComponent_Authorized() throws IOException {
+    Repository repo = createRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+
+    Mockito.when(repositoryPolicyEvaluator.evaluate(Mockito.eq(repo),
+        Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false))).thenReturn(null);
+
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.reevaluateComponent(repo.getId(), component.getHash());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testReevaluateComponent_Unauthenticated() {
+    repositoryService.reevaluateComponent("repository-id", "component-hash");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testReevaluateComponent_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.reevaluateComponent(repo.getId(), "some-hash");
   }
 }

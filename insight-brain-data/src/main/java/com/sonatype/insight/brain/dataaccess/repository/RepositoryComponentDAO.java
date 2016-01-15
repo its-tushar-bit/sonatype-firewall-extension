@@ -55,6 +55,13 @@ public class RepositoryComponentDAO
     return get(tx, sQuery, repositoryId, pathname);
   }
 
+  public List<RepositoryComponent> getByRepositoryIdAndHash(String repositoryId, String hash) {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.hash=?2";
+    return getList(sQuery, repositoryId, hash);
+  }
+
   public int getComponentCountByRepositoryId(String repositoryId) {
     String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" + //
         " WHERE component.repositoryId=?1";

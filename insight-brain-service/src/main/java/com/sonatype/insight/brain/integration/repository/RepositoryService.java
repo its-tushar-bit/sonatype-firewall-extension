@@ -569,4 +569,24 @@ public class RepositoryService
     repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
     return repositoryDTO;
   }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  public void reevaluateComponent(@AuthzContext(Key.REPOSITORY_ID) String repositoryId, String hash) {
+    checkLicenseFeature();
+
+    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+    List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
+    if (components.isEmpty()) {
+      throw new NotFoundException(
+          "Cannot find a repository component for hash " + hash + " in " + repository.getPublicId() + ".");
+    }
+
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    for (RepositoryComponent component : components) {
+      request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
+          component.getPathname(), component.getHash()));
+    }
+
+    repositoryPolicyEvaluator.evaluate(repository, request, false);
+  }
 }

@@ -1676,6 +1676,56 @@ public class RepositoryServiceTest
     }
   }
 
+  @Test
+  public void testReevaluateComponent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(),
+        DateUtils.addDays(new Date(), -1));
+
+    ComponentEvaluationDataList response = new ComponentEvaluationDataList();
+    ComponentEvaluationData component = new ComponentEvaluationData();
+    component.hash = repositoryComponent.getHash();
+    component.observedLicenses = Collections.emptySet();
+    component.declaredLicenses = Collections.emptySet();
+    component.matchState = MatchState.UNKNOWN.getId();
+    response.components.add(component);
+    Mockito.when(auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+        Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+        Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+
+    repositoryService.reevaluateComponent(repository.getId(), repositoryComponent.getHash());
+
+    RepositoryComponent actualComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+        repositoryComponent.getPathname());
+
+    assertTrue(actualComponent.getLastEvaluationTime().after(repositoryComponent.getLastEvaluationTime()));
+
+  }
+
+  @Test
+  public void testReevaluateComponent_unknownId() throws Exception {
+    try {
+      repositoryService.reevaluateRepository("foobar");
+      fail("Did not throw exception");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(), is("Cannot find a repository with ID foobar."));
+    }
+  }
+
+  @Test
+  public void testReevaluateComponent_unknownComponentPath() throws Exception {
+    Repository repo = tempEntity.newRepository();
+    try {
+      repositoryService.reevaluateComponent(repo.getId(), "missing-hash");
+      fail("Did not throw exception");
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage(),
+          is("Cannot find a repository component for hash missing-hash in " + repo.getPublicId() + "."));
+    }
+  }
+
   private void createRepositoryPolicyViolation(final Repository repository, final String pathname,
       int... threatLevels)
   {

@@ -5,12 +5,20 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
+import com.sonatype.clm.dto.model.License;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoriesDTO;
 import com.sonatype.insight.brain.integration.repository.RepositoryService.RepositoryDTO;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -74,5 +82,25 @@ public class RepositoryResourceTest
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH).parameter(repo.getId()).delete();
     assertResponseStatus(204, deleteResponse);
     assertNull(new RepositoryDAO().getById(repo.getId()));
+  }
+
+  @Test
+  public void testReevaluateRepositoryComponent() throws Exception {
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
+
+    // Setup the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<ComponentEvaluationData>();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = component.getHash();
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<License>();
+    componentEvaluationData.observedLicenses = new HashSet<License>();
+    hdsResult.components.add(componentEvaluationData);
+    getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
+
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH + "/evaluate/{hash}")
+        .parameter(repo.getId(), component.getHash()).post();
+    assertResponseStatus(204, response);
   }
 }

@@ -99,7 +99,8 @@ public class RepositoryResourceTest
     hdsResult.components.add(componentEvaluationData);
     getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
 
-    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH + "/evaluate/{hash}")
+    HttpResponse response = restRequest()
+        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_COMPONENT_PATH)
         .parameter(repo.getId(), component.getHash()).post();
     assertResponseStatus(204, response);
   }

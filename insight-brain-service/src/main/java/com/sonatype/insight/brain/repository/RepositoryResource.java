@@ -34,6 +34,8 @@ public class RepositoryResource
 
   static final String EVALUATE_PATH = REPOSITORY_PATH + "/evaluate";
 
+  static final String EVALUATE_COMPONENT_PATH = EVALUATE_PATH + "/{hash}";
+
   private RepositoryService repositoryService;
 
   @Inject
@@ -71,7 +73,7 @@ public class RepositoryResource
   }
 
   @POST
-  @Path("evaluate/{hash}")
+  @Path(EVALUATE_COMPONENT_PATH)
   public void reevaluateComponent(@PathParam("repositoryId") String repositoryId,
                                   @PathParam("hash") String componentHash)
   {

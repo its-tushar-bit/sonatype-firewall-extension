@@ -147,6 +147,8 @@ public class TagServiceAuthzTest
     tagService.getPolicyTags(org.getId(), policyId);
   }
 
+  /** @deprecated The tested method is deprecated */
+  @Deprecated
   @Test(expected = UnauthorizedException.class)
   public void testAddPolicyTag_Unauthorized() throws Exception {
     grantReadPermission(org.getId());
@@ -154,6 +156,8 @@ public class TagServiceAuthzTest
     tagService.addPolicyTag(org.getId(), policyId, tag);
   }
 
+  /** @deprecated The tested method is deprecated */
+  @Deprecated
   @Test
   public void testAddPolicyTag_Authorized() throws Exception {
     grantWritePermission(org.getId());
@@ -178,6 +182,8 @@ public class TagServiceAuthzTest
     tagService.updatePolicyTags(org.getId(), policyId, new ArrayList<Tag>());
   }
 
+  /** @deprecated The tested method is deprecated */
+  @Deprecated
   @Test(expected = UnauthorizedException.class)
   public void testDeletePolicyTag_Unauthorized() throws Exception {
     grantReadPermission(org.getId());
@@ -186,6 +192,8 @@ public class TagServiceAuthzTest
     tagService.deletePolicyTag(org.getId(), policyId, tag.getId());
   }
 
+  /** @deprecated The tested method is deprecated */
+  @Deprecated
   @Test
   public void testDeletePolicyTag_Authorized() throws Exception {
     grantWritePermission(org.getId());

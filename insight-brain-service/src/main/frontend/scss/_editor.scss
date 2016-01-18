@@ -127,20 +127,20 @@
     .constraint {
       padding-bottom: 8px;
 
+      .button-container {
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        button:not(:last-child) {
+          margin-right: 7px;
+        }
+      }
+
       .constraint-summary {
         padding-bottom: 6px;
         border-bottom: 1px solid $grey-1;
         position: relative;
-
-        .button-container {
-          position: absolute;
-          top: 0;
-          right: 0;
-
-          button:not(:last-child) {
-            margin-right: 7px;
-          }
-        }
 
         .constraint-summary-name {
           @extend .semi-bold;
@@ -152,11 +152,15 @@
         .constraint-summary-subheader {
           line-height: 18px;
         }
-        
+
         .constraint-summary-condition {
           padding-left: 10px;
         }
       }
+    }
+
+    .constraint-editor {
+      position: relative;
     }
 
     #add-constraint-button {

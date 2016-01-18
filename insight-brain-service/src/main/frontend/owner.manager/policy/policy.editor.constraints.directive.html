@@ -7,7 +7,7 @@
         --><i class="fa fa-pencil"></i>
         </button>
         <button class="btn btn-tertiary btn-icon-only delete-constraint-button" type="button"
-                ng-click="vm.deleteConstraint($index)"><!--
+                ng-click="vm.deleteConstraint($index)" ng-disabled="vm.constraints.length < 2"><!--
         --><i class="fa fa-trash"></i>
         </button>
       </div>
@@ -24,6 +24,12 @@
       </div>
     </div>
     <div class="constraint-editor" ng-if="vm.editConstraintMap[constraint.id]">
+      <div class="button-container">
+        <button class="btn btn-tertiary btn-icon-only delete-constraint-button" type="button"
+                ng-click="vm.deleteConstraint($index)"><!--
+        --><i class="fa fa-trash"></i>
+        </button>
+      </div>
       <div class="section">
         <div class="field">
           <label for="editor-constraint-name-{{$index}}">Constraint Name</label>
@@ -48,10 +54,9 @@
           <table>
             <tr class="editor-condition" ng-repeat="condition in constraint.conditions">
               <td>
-                <dropdown-selector class="editor-condition-type"
-                                   ng-init="conditionTypeCopy = vm.conditionTypesMap[condition.conditionTypeId]"
-                                   ng-model="conditionTypeCopy" options="vm.conditionTypes" option-name-param="name"
-                                   ng-change="vm.updateConditionType(condition, conditionTypeCopy)"></dropdown-selector>
+                <dropdown-selector class="editor-condition-type" ng-model="condition.conditionTypeId"
+                                   option-value-param="id" options="vm.conditionTypes" option-name-param="name"
+                                   ng-change="vm.updateConditionType(condition)"></dropdown-selector>
               </td>
               <td>
                 <dropdown-selector class="editor-condition-operator" ng-model="condition.operator"

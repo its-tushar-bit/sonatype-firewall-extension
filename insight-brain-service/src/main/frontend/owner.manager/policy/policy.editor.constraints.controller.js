@@ -124,15 +124,15 @@
       delete vm.loadError;
     }
 
-    function updateConditionType(condition, newConditionType) {
-      condition.conditionTypeId = newConditionType.id;
-      condition.operator = newConditionType.supportedOperators[0];
+    function updateConditionType(condition) {
+      var conditionType = vm.conditionTypesMap[condition.conditionTypeId];
+      condition.operator = conditionType.supportedOperators[0];
       condition.value = null;
 
-      if (vm.conditionTypesMap[newConditionType.id].valueType) {
-        var availableValues = vm.conditionTypesMap[newConditionType.id].valueType.availableValues;
+      if (conditionType.valueType) {
+        var availableValues = conditionType.valueType.availableValues;
 
-        switch (vm.conditionTypesMap[newConditionType.id].valueType.dataType) {
+        switch (conditionType.valueType.dataType) {
           case 'Integer':
           case 'Float':
             condition.value = 0;
@@ -141,8 +141,7 @@
             condition.value = '';
             break;
           default :
-            condition.value = (availableValues && availableValues.length > 0 &&
-            availableValues[0].id) ? availableValues[0].id : null;
+            condition.value = (availableValues && availableValues.length > 0) ? availableValues[0].id : null;
             break;
         }
       }

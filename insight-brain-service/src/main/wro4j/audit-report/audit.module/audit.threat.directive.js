@@ -212,5 +212,5 @@
     };
   }
 
-  angular.module('Audit').directive('auditThreat', auditThreat);
+  angular.module('audit').directive('auditThreat', auditThreat);
 }());

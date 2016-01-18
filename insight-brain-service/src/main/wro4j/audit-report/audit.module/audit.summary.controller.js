@@ -38,5 +38,5 @@
   }
   AuditSummaryController.$inject = ['$scope', '$http', '$window', 'OwnerContext', 'CLMLocations'];
 
-  angular.module('Audit').controller('AuditSummaryController', AuditSummaryController);
+  angular.module('audit').controller('audit.summary.controller', AuditSummaryController);
 }());

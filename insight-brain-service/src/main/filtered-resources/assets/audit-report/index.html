@@ -20,9 +20,9 @@
     <script src="audit-report.js?{build.timestamp}"></script>
     <script src="../cip/cip.js?{build.timestamp}"></script>
   </head>
-  <body ng-app="Audit" id="audit-report" ng-cloak>
+  <body ng-app="audit" id="audit-report" ng-cloak>
     <div>
-      <div ng-controller="AuditSummaryController">
+      <div ng-controller="audit.summary.controller">
         <div id="summary" load-wrapper2="error" reload="doLoad()" error-message="Unable to load summary data." loading="loadActive">
           <div class="row">
             <div class="span5">

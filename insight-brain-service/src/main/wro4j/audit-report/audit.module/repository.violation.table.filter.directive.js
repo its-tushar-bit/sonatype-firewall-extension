@@ -50,5 +50,5 @@
     };
   }
 
-  angular.module('Audit').directive('repositoryViolationTableFilter', repositoryViolationTableFilter);
+  angular.module('audit').directive('repositoryViolationTableFilter', repositoryViolationTableFilter);
 }());

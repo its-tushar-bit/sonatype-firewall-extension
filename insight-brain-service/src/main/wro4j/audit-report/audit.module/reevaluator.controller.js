@@ -24,5 +24,5 @@
   }
   ReevaluatorController.$inject = ['$scope', '$http', '$window'];
 
-  angular.module('Audit').controller('ReevaluatorController', ReevaluatorController);
+  angular.module('audit').controller('ReevaluatorController', ReevaluatorController);
 }());

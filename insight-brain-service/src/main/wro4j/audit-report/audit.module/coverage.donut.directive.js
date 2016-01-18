@@ -23,5 +23,5 @@
     };
   }
 
-  angular.module('Audit').directive('coverageDonut', CoverageDonut);
+  angular.module('audit').directive('coverageDonut', CoverageDonut);
 }());

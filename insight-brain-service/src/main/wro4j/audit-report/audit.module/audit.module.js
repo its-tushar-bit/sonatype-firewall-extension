@@ -11,5 +11,8 @@ window.CLM = {
 (function () {
   'use strict';
 
-  angular.module('Audit', ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation', 'component.information.panel']);
+  angular.module('audit', [
+    'AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
+    'component.information.panel'
+  ]);
 }());

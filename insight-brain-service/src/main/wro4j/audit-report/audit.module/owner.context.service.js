@@ -31,5 +31,5 @@
   }
   OwnerContext.$inject = ['$window'];
 
-  angular.module('Audit').service('OwnerContext', OwnerContext);
+  angular.module('audit').service('OwnerContext', OwnerContext);
 }());

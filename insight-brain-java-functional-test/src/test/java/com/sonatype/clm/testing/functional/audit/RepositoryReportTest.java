@@ -330,8 +330,6 @@ public class RepositoryReportTest
     AddWaiverDialog.allComponents().shouldNotBe(selected);
     AddWaiverDialog.selectedComponent().shouldBe(selected);
 
-    AddWaiverDialog.allComponents().setSelected(true);
-
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
 

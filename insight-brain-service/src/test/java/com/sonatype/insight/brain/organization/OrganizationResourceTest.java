@@ -82,7 +82,7 @@ public class OrganizationResourceTest
     defaultIconByteArray = loadDefaultIcon();
     response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
         .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
 
     // Get icon
     iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();
@@ -107,7 +107,7 @@ public class OrganizationResourceTest
     // Update icon
     response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
         .part("hasRobotSource", "false").post();
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
 
     // now create related objects to test delete cascades
 
@@ -172,11 +172,11 @@ public class OrganizationResourceTest
 
     HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is(""));
+    assertThat(response.getBodyText(), is("null"));
 
     response = request.noCsrfToken().post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+    assertThat(response.getBodyText(), is("\"Invalid cross-site request forgery token\""));
   }
 
   private byte[] loadDefaultIcon() throws IOException {

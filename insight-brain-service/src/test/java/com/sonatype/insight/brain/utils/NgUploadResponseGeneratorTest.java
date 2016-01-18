@@ -1,0 +1,152 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.utils;
+
+import java.util.concurrent.Callable;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.sonatype.insight.brain.policy.PolicyImportResult;
+import com.sonatype.insight.brain.security.AntiCsrfFilter;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+/**
+ * @since 1.19.0
+ */
+public class NgUploadResponseGeneratorTest
+{
+  private final AntiCsrfFilter antiCsrfFilter = mock(AntiCsrfFilter.class);
+
+  private final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator(false);
+
+  private final String csrfToken = "csrfToken";
+
+  private final HttpHeaders httpHeaders = mock(HttpHeaders.class);
+
+  private NgUploadResponseGenerator ngUploadResponseGenerator;
+
+  @Before
+  public void setup() {
+    ngUploadResponseGenerator = new NgUploadResponseGenerator(errorResponseGenerator, antiCsrfFilter);
+  }
+
+  @Test
+  public void run_CallsAntiCsrfFilter() throws Exception {
+    final Callable<Void> callable = new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception {
+        return null;
+      }
+    };
+    ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
+    verify(antiCsrfFilter).validate(csrfToken, httpHeaders);
+
+    ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
+    verify(antiCsrfFilter, times(2)).validate(csrfToken, httpHeaders);
+  }
+
+  @Test
+  public void run_RespondAjaxRequest() throws Exception {
+    final String stringResult = "foo";
+    final PolicyImportResult pojoResult = new PolicyImportResult();
+    pojoResult.ownerName = "foo";
+
+    Callable<Object> callable = new NgUploadResponseResult(stringResult);
+    Response response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
+    assertThat(response.getStatus(), is(200));
+    assertThat((String) response.getEntity(), is(stringResult));
+
+    callable = new NgUploadResponseResult(pojoResult);
+    response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
+    assertThat(response.getStatus(), is(200));
+    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.APPLICATION_JSON));
+    assertThat((PolicyImportResult) response.getEntity(), is(pojoResult));
+
+    callable = new NgUploadResponseResult(null);
+    response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
+    assertThat(response.getStatus(), is(200));
+    assertThat(response.getMetadata().getFirst("Content-Type"), is(nullValue()));
+    assertThat(response.getEntity(), is(nullValue()));
+  }
+
+  @Test
+  public void run_FailAjaxRequest() throws Exception {
+    final String exceptionMessage = "foo";
+
+    Callable<Object> callable = new NgUploadResponseResult(new BadRequestException(exceptionMessage));
+    try {
+      ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
+      fail("Ajax request should bubble exception");
+    }
+    catch (BadRequestException e) {
+      assertThat(e.getMessage(), is(exceptionMessage));
+    }
+  }
+
+  @Test
+  public void run_RespondIFrameRequest() throws Exception {
+    final String stringResult = "foo";
+    final PolicyImportResult pojoResult = new PolicyImportResult();
+    pojoResult.ownerName = "foo";
+
+    Callable<Object> callable = new NgUploadResponseResult(stringResult);
+    Response response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
+    assertThat(response.getStatus(), is(200));
+    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.TEXT_PLAIN));
+    assertThat((String) response.getEntity(), is(JsonUtils.format(stringResult)));
+
+    callable = new NgUploadResponseResult(pojoResult);
+    response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
+    assertThat(response.getStatus(), is(200));
+    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.TEXT_PLAIN));
+    assertThat((String) response.getEntity(), is(JsonUtils.format(pojoResult)));
+  }
+
+  @Test
+  public void run_FailIFrameRequest() throws Exception {
+    final String exceptionMessage = "foo";
+
+    Callable<Object> callable = new NgUploadResponseResult(new BadRequestException(exceptionMessage));
+    Response response = ngUploadResponseGenerator.run(csrfToken, httpHeaders, true, callable);
+    assertThat(response.getStatus(), is(200));
+    assertThat(response.getMetadata().getFirst("Content-Type").toString(), is(MediaType.TEXT_PLAIN));
+    assertThat((String) response.getEntity(), is(JsonUtils.format(exceptionMessage)));
+  }
+
+  private static class NgUploadResponseResult
+      implements Callable<Object>
+  {
+    private Object result;
+
+    public NgUploadResponseResult(Object result) {
+      this.result = result;
+    }
+
+    @Override
+    public Object call() throws Exception {
+      if (result instanceof Exception) {
+        throw (Exception) result;
+      }
+      return result;
+    }
+  }
+}

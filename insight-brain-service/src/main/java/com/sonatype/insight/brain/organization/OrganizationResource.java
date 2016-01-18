@@ -20,6 +20,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -31,10 +32,11 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -55,11 +57,13 @@ public class OrganizationResource
   private final InsightWork work;
 
   @Inject
-  public OrganizationResource(final InsightWork work, final HdsClient client, final BaseUrl baseUrl,
-      final OrganizationService organizationService, ErrorResponseGenerator errorResponseGenerator,
-      AntiCsrfFilter antiCsrfFilter)
+  public OrganizationResource(final InsightWork work,
+                              final HdsClient client,
+                              final BaseUrl baseUrl,
+                              final OrganizationService organizationService,
+                              final NgUploadResponseGenerator ngUploadResponseGenerator)
   {
-    super(client, baseUrl, errorResponseGenerator, antiCsrfFilter);
+    super(client, baseUrl, ngUploadResponseGenerator);
     this.work = work;
     this.organizationService = organizationService;
   }
@@ -128,29 +132,35 @@ public class OrganizationResource
   /**
    * This is one of two service methods used for editing and adding icons. This method is used for AJAX calls since
    * its return type is a JSON object.
-   * 
+   *
    * @since 1.6
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH)
   @Authorize(permission = Permission.WRITE)
-  public void setIcon(
-      @FormDataParam("organizationId") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
-      @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
-      @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail) throws IOException
+  public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                          @Context HttpHeaders headers,
+                          @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
+                          @FormDataParam("hasRobotSource") boolean hasRobotSource,
+                          @FormDataParam("robotHash") String robotHash,
+                          @FormDataParam("file") InputStream uploadedInputStream,
+                          @FormDataParam("file") FormDataContentDisposition fileDetail,
+                          @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
-        fileDetail);
+    return super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
+        fileDetail, csrfToken, headers, noFormData);
   }
 
   /**
+   * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
+   *
    * This is one of two service methods used for editing and adding icons. This method is used by angular ng-upload
    * and returns an empty string for success and the error message otherwise
-   * 
-   * @since 1.6
+   *
+   * @return String containing an error message, if any
    */
+  @Deprecated
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH_SYNC)
@@ -158,19 +168,20 @@ public class OrganizationResource
   @AuthzErrorMsg
   public String setIconSync(
       @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @FormDataParam("organizationId") @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
+      @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail)
+      @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
   {
-    return super.setIconSync(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash,
-        uploadedInputStream, fileDetail, csrfToken, headers);
+    Response response = super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash,
+        uploadedInputStream, fileDetail, csrfToken, headers, true);
+    return (String) response.getEntity();
   }
 
   /**
    * Deletes an organization and associated policies, license threat groups, labels and waivers. Also deletes all
    * applications under the organization.
-   * 
+   *
    * @since 1.6
    */
   @DELETE

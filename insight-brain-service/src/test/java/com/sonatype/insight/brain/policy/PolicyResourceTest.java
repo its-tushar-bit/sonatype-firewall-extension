@@ -427,7 +427,8 @@ public class PolicyResourceTest
   @Test
   public void testImportOfNonJsonPolicyFile() throws Exception{
     Organization org = tempEntity.newOrganization();
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import").body("garbage").put();
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
+        .part("file", "garbage.png", "garbage").post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain " +
         "it is a properly formatted policy import json file?"));
@@ -437,7 +438,7 @@ public class PolicyResourceTest
   public void testImportOfJsonFileIncorrectFormat() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
-        .body("{\"notPolicy\":\"anything\"}").put();
+        .part("file", "notPolicy.json", "{\"notPolicy\":\"anything\"}").post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain "
         + "it is a properly formatted policy import json file?"));
@@ -477,7 +478,8 @@ public class PolicyResourceTest
 
     // Import
     Organization toOrg = tempEntity.newOrganization();
-    response = restRequest(OwnerType.ORGANIZATION, toOrg.getId()).path("import").body(policyExportResult).put();
+    response = restRequest(OwnerType.ORGANIZATION, toOrg.getId()).path("import")
+        .part("file", "policyExportResult.json", policyExportResult).post();
     assertResponseStatus(200, response);
     PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
     assertThat(policyImportResult, is(notNullValue()));
@@ -505,7 +507,8 @@ public class PolicyResourceTest
 
     // Import
     Application toApp = tempEntity.newApplicationWithParent("ToAppPublicId");
-    response = restRequest(OwnerType.APPLICATION, toApp.getPublicId()).path("import").body(policyExportResult).put();
+    response = restRequest(OwnerType.APPLICATION, toApp.getPublicId()).path("import")
+        .part("file", "policyExportResult.json", policyExportResult).post();
     assertResponseStatus(200, response);
     PolicyImportResult policyImportResult = response.getBody(PolicyImportResult.class);
     assertThat(policyImportResult, is(notNullValue()));

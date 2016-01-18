@@ -17,20 +17,18 @@
     $scope.ownerType = ownerType;
     $scope.siblings = siblings;
 
-    $scope.iconUploadUrl = CLMAppLocations.getAddIconSyncUrl(ownerType);
+    $scope.iconUploadUrl = CLMAppLocations.getAddIconUrl(ownerType);
 
     var deferred;
 
-    $scope.fileUploadComplete = function(content, completed) {
-      if (completed) {
-        if (content) {
-          deferred.reject(content);
-        }
-        else {
-          deferred.resolve($scope.dirtyOwner);
-        }
-        deferred = null;
+    $scope.fileUploadComplete = function(content) {
+      if (angular.isString(content) && content) {
+        deferred.reject(content);
       }
+      else {
+        deferred.resolve($scope.dirtyOwner);
+      }
+      deferred = null;
     };
 
     $scope.save = function() {
@@ -50,12 +48,7 @@
           var formData = new FormData(form[0]);
           deferred = $q.defer();
 
-          $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData, {
-            headers: {
-              'Content-Type': undefined
-            },
-            transformRequest: angular.identity
-          }).then(function() {
+          $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData).then(function() {
             deferred.resolve(result);
           }, function(error) {
             deferred.reject(error);
@@ -65,7 +58,7 @@
         }
         else {
           deferred = $q.defer();
-          form.find('*[upload-submit]').click();
+          form.submit();
         }
         return deferred.promise;
       })).then(function(updatedOwner) {

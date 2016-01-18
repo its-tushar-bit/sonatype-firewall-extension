@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -23,9 +23,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -42,6 +44,7 @@ import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
@@ -70,15 +73,20 @@ public class PolicyResource
 
   private final AntiCsrfFilter antiCsrfFilter;
 
+  private final NgUploadResponseGenerator ngUploadResponseGenerator;
+
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
   @Inject
-  public PolicyResource(PolicyImportExport policyImportExport, ErrorResponseGenerator errorResponseGenerator,
-      AntiCsrfFilter antiCsrfFilter)
+  public PolicyResource(PolicyImportExport policyImportExport,
+                        ErrorResponseGenerator errorResponseGenerator,
+                        AntiCsrfFilter antiCsrfFilter,
+                        NgUploadResponseGenerator ngUploadResponseGenerator)
   {
     this.policyImportExport = policyImportExport;
     this.errorResponseGenerator = errorResponseGenerator;
     this.antiCsrfFilter = antiCsrfFilter;
+    this.ngUploadResponseGenerator = ngUploadResponseGenerator;
   }
 
   @GET
@@ -208,15 +216,28 @@ public class PolicyResource
     }
   }
 
-  @PUT
+  @POST
   @Path("import")
-  @Produces(MediaType.APPLICATION_JSON)
-  public PolicyImportResult importPolicies(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") String ownerId, @Context HttpServletRequest servletRequest) throws IOException
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public Response importPolicies(@PathParam("ownerType") final OwnerType ownerType,
+                                 @PathParam("ownerId") final String ownerId,
+                                 @FormDataParam("file") final InputStream is,
+                                 @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                                 @Context HttpHeaders headers,
+                                 @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    return importPolicies(ownerType, ownerId, servletRequest.getInputStream());
+    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<PolicyImportResult>() {
+      @Override
+      public PolicyImportResult call() throws Exception {
+        return importPolicies(ownerType, ownerId, is);
+      }
+    });
   }
 
+  /**
+   * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
+   */
+  @Deprecated
   @POST
   @Path("import/ie")
   @Consumes(MediaType.MULTIPART_FORM_DATA)

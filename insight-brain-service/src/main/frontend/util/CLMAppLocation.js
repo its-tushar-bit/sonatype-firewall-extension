@@ -10,7 +10,8 @@
   var locationModule = angular.module('CLMAppLocation', ['CommonServices', 'ui.router']);
 
   locationModule.factory('CLMAppLocations', [
-    'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', function(appId, orgId, $state, baseUrl) {
+    'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window',
+    function(appId, orgId, $state, baseUrl, $window) {
       function isApplication() {
         return $state.current.name.indexOf('application') !== -1;
       }
@@ -98,12 +99,7 @@
 
         getAddIconUrl: function(ownerType) {
           var servicePath = (ownerType) ? window.encodeURIComponent(ownerType) : getServicePath();
-          return baseUrl.get() + '/rest/' + servicePath +  '/icon';
-        },
-
-        getAddIconSyncUrl: function(ownerType) {
-          var servicePath = (ownerType) ? window.encodeURIComponent(ownerType) : getServicePath();
-          return baseUrl.get() + '/rest/' + servicePath + '/icon/sync';
+          return baseUrl.get() + '/rest/' + servicePath +  '/icon' + (!$window.FormData ? '?noFormData=true' : '');
         },
 
         getEntityId: getId,
@@ -138,11 +134,8 @@
         },
 
         getImportPolicyUrl : function () {
-          return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/import';
-        },
-
-        getIeImportPolicyUrl : function () {
-          return this.getImportPolicyUrl() + '/ie';
+          return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/import' +
+              (!$window.FormData ? '?noFormData=true' : '');
         },
 
         getPolicyMonitoringUrl: function() {

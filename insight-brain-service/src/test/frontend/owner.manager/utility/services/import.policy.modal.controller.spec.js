@@ -28,29 +28,7 @@ describe('import.policy.modal.controller.spec.js', function() {
 
   describe('Policy Import', function() {
     beforeEach(inject(function($window) {
-      
-      $window.FileReader = function() {
-
-        this.readAsText = function() {
-          this.onload();
-        };
-      };
-      var original = angular.element;
-      spyOn(angular, 'element').andCallFake(function(selector) {
-        if (selector === '#importFile') {
-          return [
-            {
-              files: [
-                {
-                  name: 'testfile'
-                }
-              ],
-              value: '{}'
-            }
-          ];
-        }
-        return original(selector);
-      });
+      $window.FormData = angular.noop;
     }));
 
     function validateInitialState() {
@@ -61,7 +39,7 @@ describe('import.policy.modal.controller.spec.js', function() {
     it('Test import failure', function() {
       validateInitialState();
 
-      $httpBackend.expectPUT(CLMAppLocations.getImportPolicyUrl()).respond(500, 'Some failure');
+      $httpBackend.expectPOST(CLMAppLocations.getImportPolicyUrl()).respond(500, 'Some failure');
 
       vm.doSubmit();
       $httpBackend.flush();
@@ -72,7 +50,7 @@ describe('import.policy.modal.controller.spec.js', function() {
     it('Test import success', function() {
       validateInitialState();
 
-      $httpBackend.expectPUT(CLMAppLocations.getImportPolicyUrl()).respond({
+      $httpBackend.expectPOST(CLMAppLocations.getImportPolicyUrl()).respond({
         ownerName: 'test'
       });
 
@@ -84,16 +62,12 @@ describe('import.policy.modal.controller.spec.js', function() {
 
     describe('IE9', function () {
       it('Error', inject(function ($window) {
-        $window.FileReader = null;
+        $window.FormData = null;
         validateInitialState();
 
         vm.doSubmit();
 
-        // Progress notification
-        vm.uploaded('Please wait...', false);
-        expect(vm.error).toBeFalsy();
-
-        vm.uploaded('Error', true);
+        vm.uploaded('Error');
         scope.$apply();
 
         expect(vm.error).toEqual('Error');
@@ -101,16 +75,12 @@ describe('import.policy.modal.controller.spec.js', function() {
 
       it('Successful', inject(function ($window) {
         scope.$close = jasmine.createSpy('close');
-        $window.FileReader = null;
+        $window.FormData = null;
         validateInitialState();
 
         vm.doSubmit();
 
-        // Progress notification
-        vm.uploaded('Please wait...', false);
-        expect(vm.error).toBeFalsy();
-
-        vm.uploaded('', true);
+        vm.uploaded();
         scope.$apply();
         $timeout.flush();
 

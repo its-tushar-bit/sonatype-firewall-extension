@@ -59,7 +59,7 @@
         },
 
         getLicenseUploadUrl: function() {
-          return baseUrl.get() + '/rest/product/license' + (!$window.FormData ? '?forceSuccess=true' : '');
+          return baseUrl.get() + '/rest/product/license' + (!$window.FormData ? '?noFormData=true' : '');
         },
 
         evaluatePolicyUrl: function(applicationPublicId, scanId) {

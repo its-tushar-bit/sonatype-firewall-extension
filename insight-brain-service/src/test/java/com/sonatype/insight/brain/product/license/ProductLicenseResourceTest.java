@@ -43,11 +43,11 @@ public class ProductLicenseResourceTest
     getTestProductLicenseManager().forceInstallLicenseFailure(true);
 
     // IE is expecting a 200 response back, so we need to validate the error
-    HttpResponse response = uploadLicense(licenseRequest().query("forceSuccess", true));
+    HttpResponse response = uploadLicense(licenseRequest().query("noFormData", true));
     assertResponseStatus(200, response);
 
-    assertEquals("The provided license file is invalid. Please verify you selected the correct file."
-        + " If the problem persists, please contact our support team.", response.getBodyText());
+    assertEquals("\"The provided license file is invalid. Please verify you selected the correct file."
+        + " If the problem persists, please contact our support team.\"", response.getBodyText());
   }
 
   @Test
@@ -67,9 +67,9 @@ public class ProductLicenseResourceTest
     assertResponseStatus(401, response);
 
     response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce").query(
-        "forceSuccess", true));
+        "noFormData", true));
     assertResponseStatus(200, response);
-    assertEquals("Invalid cross-site request forgery token", response.getBodyText());
+    assertEquals("\"Invalid cross-site request forgery token\"", response.getBodyText());
   }
 
   @Test

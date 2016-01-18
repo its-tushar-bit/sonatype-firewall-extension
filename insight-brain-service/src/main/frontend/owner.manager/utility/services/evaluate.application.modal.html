@@ -51,7 +51,7 @@
   </div>
   <div ng-show="vm.evaluationState != 'loading' && vm.evaluationState != 'polling'">
     <form class="clm-form" name='evaluateBundle' action='{{vm.uploadBundleUrl()}}' enctype='multipart/form-data'
-          method='post' ng-upload>
+          method='post' ng-upload="vm.uploaded(content)">
       <div class="clm-modal-body">
         <div class="section">
           <div class="field">
@@ -93,7 +93,6 @@
         <button id='evaluate-bundle-cancel' class='btn' type='button' ng-click='$close()'>Cancel
         </button>
       </div>
-      <input type='submit' upload-submit='vm.uploaded(content, completed)' class='hide'/>
       <input type='hidden' name='{{vm.csrfTokenName}}' value='{{vm.csrfTokenValue}}'/>
     </form>
   </div>

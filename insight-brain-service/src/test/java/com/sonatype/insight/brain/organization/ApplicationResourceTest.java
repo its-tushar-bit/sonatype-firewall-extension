@@ -145,7 +145,7 @@ public class ApplicationResourceTest
     defaultIconByteArray = loadDefaultIcon();
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
 
     // Test Get Icon (from added application)
     iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH).parameter(applicationPublicId)
@@ -164,7 +164,7 @@ public class ApplicationResourceTest
     // Test icon update
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
         .part("hasRobotSource", "false").post();
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
 
     // Verify invalid name fails
     application.setName("Invalid Name !!!!!");
@@ -195,7 +195,7 @@ public class ApplicationResourceTest
         .part("applicationId", application.getId()).part("hasRobotSource", "false")
         .part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
-    Assert.assertEquals("", response.getBodyText());
+    Assert.assertEquals("null", response.getBodyText());
 
     iconBytes = IconUtils.loadInvalidIcon();
 
@@ -204,7 +204,7 @@ public class ApplicationResourceTest
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
     Assert.assertEquals(
-        "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
+        "\"defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.\"",
         response.getBodyText());
   }
 
@@ -217,11 +217,11 @@ public class ApplicationResourceTest
 
     HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is(""));
+    assertThat(response.getBodyText(), is("null"));
 
     response = request.noCsrfToken().post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
+    assertThat(response.getBodyText(), is("\"Invalid cross-site request forgery token\""));
   }
 
   private byte[] loadDefaultIcon() throws IOException {

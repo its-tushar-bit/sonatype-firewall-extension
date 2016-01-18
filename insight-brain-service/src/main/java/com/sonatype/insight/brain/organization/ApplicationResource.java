@@ -25,6 +25,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -45,8 +46,8 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
@@ -86,12 +87,15 @@ public class ApplicationResource
   private ApplicationService applicationService;
 
   @Inject
-  public ApplicationResource(final InsightWork work, final BaseUrl baseUrl, final HdsClient client,
-      final ScanPolicyEvaluator scanPolicyEvaluator, final ApplicationAdapter applicationAdapter,
-      final ApplicationService applicationService, ErrorResponseGenerator errorResponseGenerator,
-      AntiCsrfFilter antiCsrfFilter)
+  public ApplicationResource(final InsightWork work,
+                             final BaseUrl baseUrl,
+                             final HdsClient client,
+                             final ScanPolicyEvaluator scanPolicyEvaluator,
+                             final ApplicationAdapter applicationAdapter,
+                             final ApplicationService applicationService,
+                             final NgUploadResponseGenerator ngUploadResponseGenerator)
   {
-    super(client, baseUrl, errorResponseGenerator, antiCsrfFilter);
+    super(client, baseUrl, ngUploadResponseGenerator);
     this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.applicationAdapter = applicationAdapter;
@@ -218,22 +222,28 @@ public class ApplicationResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH)
   @Authorize(permission = Permission.WRITE)
-  public void setIcon(
-      @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
-      @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail) throws IOException
+  public Response setIcon(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                          @Context HttpHeaders headers,
+                          @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+                          @FormDataParam("hasRobotSource") boolean hasRobotSource,
+                          @FormDataParam("robotHash") String robotHash,
+                          @FormDataParam("file") InputStream uploadedInputStream,
+                          @FormDataParam("file") FormDataContentDisposition fileDetail,
+                          @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
-        fileDetail);
+    return super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
+        fileDetail, csrfToken, headers, noFormData);
   }
 
   /**
+   * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
+   *
    * This is one of two service methods used for editing and adding icons. This method is used by angular ng-upload
    * and returns an empty string for success and the error message otherwise
    * 
    * @return String containing an error message, if any
    */
+  @Deprecated
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(ICON_PATH_SYNC)
@@ -244,10 +254,11 @@ public class ApplicationResource
       @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
       @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail)
+      @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
   {
-    return super.setIconSync(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash,
-        uploadedInputStream, fileDetail, csrfToken, headers);
+    Response response = super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash,
+        uploadedInputStream, fileDetail, csrfToken, headers, true);
+    return (String) response.getEntity();
   }
 
   @POST

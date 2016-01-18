@@ -18,7 +18,7 @@
     vm.doSubmit = doSubmit;
     vm.error = undefined;
     vm.uploaded = uploaded;
-    vm.ieImportPolicyUrl = ieImportPolicyUrl;
+    vm.importPolicyUrl = importPolicyUrl;
     
     function setError(message, retryFunction) {
       vm.retry = retryFunction ? retryFunction : vm.retry;
@@ -31,44 +31,24 @@
       }
     }
 
-    function ieImportPolicyUrl() {
+    function importPolicyUrl() {
       if (vm.importFile) {
-        return CLMAppLocations.getIeImportPolicyUrl();
+        return CLMAppLocations.getImportPolicyUrl();
       }
     }
 
     function doSubmit() {
       delete vm.error;
-      var fileElement = angular.element('#importFile')[0];
+      var form = $('form[name=importPolicy]');
 
-      if ($window.FileReader) {
-        var reader = new $window.FileReader();
-
-        reader.onload = function() {
-
-          formMaskDelay.wrap($scope, $http.put(CLMAppLocations.getImportPolicyUrl(), reader.result, {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })).then(function() {
-            $rootScope.$broadcast('policy.imported');
-            $scope.$close();
-          }, function(error) {
-            setError(Messages.getHttpErrorMessage(error), doSubmit);
-          });
-        };
-
-        reader.onerror = function() {
-          setError(reader.error.message, doSubmit);
-        };
-
-        try {
-          reader.readAsText(fileElement.files[0]);
-        }
-        catch (err) {
-          // FF throws an exception in some instances
-          setError(err.message, doSubmit);
-        }
+      if ($window.FormData) {
+        var formData = new FormData(form[0]);
+        formMaskDelay.wrap($scope, $http.post(CLMAppLocations.getImportPolicyUrl(), formData)).then(function() {
+          $rootScope.$broadcast('policy.imported');
+          $scope.$close();
+        }, function(error) {
+          setError(Messages.getHttpErrorMessage(error), doSubmit);
+        });
       }
       else {
         // IE9 case, trigger ng-upload
@@ -79,19 +59,17 @@
         }, function(error) {
           setError(Messages.getHttpErrorMessage(error), doSubmit);
         });
-       $('form[name=importPolicy]').find('input[name=submitFile]').trigger('click');
+        form.submit();
       }
     }
 
     // Handler for ng-upload progress
-    function uploaded(content, complete) {
-      if (complete) {
-        if (content.length === 0) {
-          ieDeferred.resolve();
-        }
-        else {
-          ieDeferred.reject(content);
-        }
+    function uploaded(content) {
+      if (angular.isString(content)) {
+        ieDeferred.reject(content);
+      }
+      else {
+        ieDeferred.resolve();
       }
     }
   }

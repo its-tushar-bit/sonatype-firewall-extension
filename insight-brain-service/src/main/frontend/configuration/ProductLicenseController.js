@@ -69,35 +69,28 @@
         if ($window.FormData) {
           var form = new FormData();
           form.append('file', $('#license-input')[0].files[0]);
-          $http.post($scope.uploadUrl, form, {
-            headers : {
-              'Content-Type' : undefined
-            },
-            transformRequest: angular.identity
-          }).success(function () {
+          $http.post($scope.uploadUrl, form).success(function() {
             showLicense();
           }).error(function () {
             showError(Messages.getHttpErrorMessage(arguments));
           });
         }
         else {
-          $('input[type=submit]').trigger('click');
+          $('#license-form').submit();
         }
       };
 
-      $scope.installLicense = function(content, completed) {
-        if (completed) {
-          if (content.length === 0) {
-            showLicense();
+      $scope.uploadCompleted = function(content) {
+        if (angular.isString(content) && content) {
+          if ($scope.clearValue) {
+            $scope.clearValue();
           }
-          else {
-            if ($scope.clearValue) {
-              $scope.clearValue();
-            }
-            $timeout(function() {
-              showError(content);
-            }, 0);
-          }
+          $timeout(function() {
+            showError(content);
+          }, 0);
+        }
+        else {
+          showLicense();
         }
       };
 

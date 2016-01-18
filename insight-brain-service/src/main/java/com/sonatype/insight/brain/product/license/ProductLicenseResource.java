@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.product.license;
 
 import java.io.InputStream;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,9 +20,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.product.license.CLMLicenseManager.LicenseSummary;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -35,36 +38,32 @@ public class ProductLicenseResource
 
   private final ProductLicenseService productLicenseService;
 
-  private final AntiCsrfFilter antiCsrfFilter;
+  private final NgUploadResponseGenerator ngUploadResponseGenerator;
 
   @Inject
-  public ProductLicenseResource(ProductLicenseService productLicenseService, AntiCsrfFilter antiCsrfFilter) {
+  public ProductLicenseResource(ProductLicenseService productLicenseService,
+                                NgUploadResponseGenerator ngUploadResponseGenerator)
+  {
     this.productLicenseService = productLicenseService;
-    this.antiCsrfFilter = antiCsrfFilter;
+    this.ngUploadResponseGenerator = ngUploadResponseGenerator;
   }
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
-  public String installLicense(@FormDataParam("file") InputStream is,
-      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @QueryParam("forceSuccess") boolean forceSuccess)
+  public Response installLicense(@FormDataParam("file") final InputStream is,
+                                 @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                                 @Context HttpHeaders headers,
+                                 @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    try {
-      antiCsrfFilter.validate(csrfToken, headers);
-      productLicenseService.installLicense(is);
-      // Note an empty string triggers success in the UI
-      return "";
-    }
-    catch (Exception e) {
-      // IE<10 will only work in case of a 200 response, otherwise the response gets junked and replaced with some local
-      // error page which then fails to load because of cross site scripting probs
-      if (forceSuccess) {
-        return e.getMessage();
+    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        productLicenseService.installLicense(is);
+        return null;
       }
-      throw e;
-    }
+    });
   }
 
   @DELETE

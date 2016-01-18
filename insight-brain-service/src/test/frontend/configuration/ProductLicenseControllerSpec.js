@@ -151,7 +151,7 @@ describe('ProductLicenseController', function() {
 
       expect(eulaModal.hasClass('in')).toBeTruthy();
 
-      scope.installLicense([], true);
+      scope.uploadCompleted([]);
 
       expect(eulaModal.hasClass('in')).toBeFalsy();
       expect(licenseInstalledModal.hasClass('in')).toBeTruthy();
@@ -172,13 +172,13 @@ describe('ProductLicenseController', function() {
 
       expect(eulaModal.hasClass('in')).toBeTruthy();
 
-      scope.installLicense([1], true);
+      scope.uploadCompleted('fail');
 
       $timeout.flush();
 
       expect(eulaModal.hasClass('in')).toBeFalsy();
       expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
-      expect(dialogSpy).toHaveBeenCalledWith(jasmine.any(Object));
+      expect(dialogSpy).toHaveBeenCalledWith('fail');
       expect(scope.clearValue).toHaveBeenCalled();
     }));
 

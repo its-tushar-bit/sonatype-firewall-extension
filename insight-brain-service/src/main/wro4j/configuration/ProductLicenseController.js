@@ -86,7 +86,8 @@
       };
 
       $scope.installLicense = function(content, completed) {
-        if (completed) {
+        if (completed && content) {
+          content = angular.fromJson(content);
           if (content.length === 0) {
             showLicense();
           }

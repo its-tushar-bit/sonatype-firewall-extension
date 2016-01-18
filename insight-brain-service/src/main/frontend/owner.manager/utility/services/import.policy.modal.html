@@ -2,8 +2,8 @@
   <div class='clm-modal-header'>
     <h2>Import Policy</h2>
   </div>
-  <form class="clm-form" name='importPolicy' action='{{vm.ieImportPolicyUrl()}}' enctype='multipart/form-data'
-        method='post' ng-upload form-mask="Importing">
+  <form class="clm-form" name='importPolicy' action='{{vm.importPolicyUrl()}}' enctype='multipart/form-data'
+        method='post' ng-upload='vm.uploaded(content)' form-mask="Importing">
     <div class="clm-modal-body">
       <div class="section">
         <div class="field">
@@ -27,7 +27,6 @@
       <button id='import-policy-cancel' class='btn' type='button' ng-click='$close()'>Cancel
       </button>
     </div>
-    <input type='submit' upload-submit='vm.uploaded(content, completed)' class='hide' name="submitFile"/>
     <input type='hidden' name='{{vm.csrfTokenName}}' value='{{vm.csrfTokenValue}}'/>
   </form>
 </div>

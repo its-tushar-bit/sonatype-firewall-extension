@@ -117,12 +117,7 @@
         if ($window.FormData) {
           var form = new FormData();
           form.append('file', fileElement.files[0]);
-          $http.post(getBundleUploadUrl(), form, {
-            headers : {
-              'Content-Type' : undefined
-            },
-            transformRequest: angular.identity
-          }).success(function (data) {
+          $http.post(getBundleUploadUrl(), form).success(function(data) {
             $scope.pollingUrl = CLMLocations.getEvaluationStatusUrl($scope.bundle.applicationPublicId, data.ticketId);
             doPoll();
           }).error(function () {

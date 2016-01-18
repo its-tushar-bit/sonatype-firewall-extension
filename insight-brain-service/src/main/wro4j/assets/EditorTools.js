@@ -316,35 +316,23 @@
     $scope.doSubmit = function () {
       $scope.requestActive = true;
       $scope.error = null;
+      var form = $('form[name=importPolicy]');
 
-      if ($window.FileReader) {
-        var reader = new $window.FileReader();
-
-        reader.onload = function () {
-          $http.put(clmAppLocations.getImportPolicyUrl(), reader.result, {
-            headers : {
-              'Content-Type' : 'application/json'
-            }
-          }).success(function (data) {
-            $scope.$close(data);
-          }).error(function () {
-            setError(messages.getHttpErrorMessage(arguments));
-          });
-        };
-
-        reader.onerror = function () {
-          setError(reader.error.message);
-        };
-
-        try {
-          reader.readAsText(fileElement.files[0]);
-        } catch (err) {
-          // FF throws an exception in some instances
-          setError(err.message);
-        }
+      if ($window.FormData) {
+        var formData = new FormData(form[0]);
+        $http.post(clmAppLocations.getImportPolicyUrl(), formData, {
+          headers: {
+            'Content-Type': undefined
+          },
+          transformRequest: angular.identity
+        }).success(function (data) {
+          $scope.$close(data);
+        }).error(function () {
+          setError(messages.getHttpErrorMessage(arguments));
+        });
       } else {
         // IE9 case, trigger ng-upload
-        $('form[name=importPolicy]').find('input[type=submit]').trigger('click');
+        form.find('input[type=submit]').trigger('click');
       }
     };
 
@@ -379,7 +367,8 @@
           };
 
           $scope.iconUploadComplete = function(content, completed) {
-            if (completed) {
+            if (completed && content) {
+              content = angular.fromJson(content);
               $scope.submitActive = false;
               $scope.isUploadingIcon = false;
               if (content.length === 0) {

@@ -97,12 +97,7 @@
       if ($window.FormData) {
         var form = new FormData();
         form.append('file', fileElement.files[0]);
-        $http.post(vm.uploadBundleUrl(), form, {
-          headers: {
-            'Content-Type': undefined
-          },
-          transformRequest: angular.identity
-        }).success(function(data) {
+        $http.post(vm.uploadBundleUrl(), form).success(function(data) {
           vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, data.ticketId);
           doPoll();
         }).error(function() {
@@ -113,7 +108,7 @@
       }
       else {
         // IE9 case, trigger ng-upload
-        $('form[name=evaluateBundle]').find('input[type=submit]').trigger('click');
+        $('form[name=evaluateBundle]').submit();
       }
     }
 
@@ -164,26 +159,13 @@
     }
 
     // Handler for ng-upload progress
-    function uploaded(content, completed) {
-      if (!completed || content.length === 0) {
-        return;
-      }
-
-      vm.error = null;
-      var response;
-      try {
-        response = angular.fromJson(content);
-      }
-      catch (e) {
-        response = content;
-      }
-
-      if (angular.isString(response)) {
+    function uploaded(content) {
+      if (angular.isString(content)) {
         vm.evaluationState = 'ready';
-        setError(response, doSubmit);
+        setError(content, doSubmit);
       }
       else {
-        vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.ticketId);
+        vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, content.ticketId);
         doPoll();
       }
     }

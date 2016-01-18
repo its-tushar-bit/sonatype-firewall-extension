@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.Callable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
@@ -21,12 +22,11 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import org.apache.http.HttpResponse;
@@ -47,20 +47,18 @@ abstract class AbstractResourceWithIcon
 
   private final BaseUrl baseUrl;
 
-  private final ErrorResponseGenerator errorResponseGenerator;
+  private final NgUploadResponseGenerator ngUploadResponseGenerator;
 
-  private final AntiCsrfFilter antiCsrfFilter;
-
-  protected AbstractResourceWithIcon(HdsClient client, BaseUrl baseUrl, ErrorResponseGenerator errorResponseGenerator,
-      AntiCsrfFilter antiCsrfFilter)
+  protected AbstractResourceWithIcon(HdsClient client,
+                                     BaseUrl baseUrl,
+                                     NgUploadResponseGenerator ngUploadResponseGenerator)
   {
     this.client = client;
     this.baseUrl = baseUrl;
-    this.errorResponseGenerator = errorResponseGenerator;
-    this.antiCsrfFilter = antiCsrfFilter;
+    this.ngUploadResponseGenerator = ngUploadResponseGenerator;
   }
 
-  protected void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
+  private void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
       InputStream uploadedInputStream, FormDataContentDisposition fileDetail) throws IOException
   {
     if (hasRobotSource) {
@@ -112,20 +110,24 @@ abstract class AbstractResourceWithIcon
     }
   }
 
-  protected String setIconSync(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
-      InputStream uploadedInputStream, FormDataContentDisposition fileDetail, String csrfToken, HttpHeaders headers)
+  protected Response setIcon(final String ownerId,
+                             final File iconDir,
+                             final boolean hasRobotSource,
+                             final String robotHash,
+                             final InputStream uploadedInputStream,
+                             final FormDataContentDisposition fileDetail,
+                             String csrfToken,
+                             HttpHeaders headers,
+                             boolean noFormData) throws Exception
   {
-    String errorMessage = "";
-    try {
-      antiCsrfFilter.validate(csrfToken, headers);
-      setIcon(ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail);
-    }
-    catch (Exception e) {
-      log.error(e.getMessage(), e);
-      errorMessage = errorResponseGenerator.mapException(e).getMessageBody();
-    }
-
-    return errorMessage;
+    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<Void>()
+    {
+      @Override
+      public Void call() throws Exception {
+        setIcon(ownerId, iconDir, hasRobotSource, robotHash, uploadedInputStream, fileDetail);
+        return null;
+      }
+    });
   }
 
   protected Response generateIcon(final String hashcode, final HttpServletRequest req) throws IOException {

@@ -61,6 +61,6 @@ public class OrganizationResourceAuthzTest
     request.auth(authorized.getUsername(), authorized.getPassword());
     response = request.post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is(""));
+    assertThat(response.getBodyText(), is("null"));
   }
 }

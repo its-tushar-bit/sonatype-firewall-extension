@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular */
+/*global angular, angularDebug*/
 window.CLM = {
   path: '../'
 };
@@ -18,7 +18,12 @@ window.CLM = {
   }
   init.$inject = ['$rootScope', 'component.update.service'];
 
+  function config($compileProvider) {
+    $compileProvider.debugInfoEnabled(angularDebug);
+  }
+  config.$inject = ['$compileProvider'];
+
   angular.module('audit',
           ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-              'component.information.panel']).run(init);
+              'component.information.panel']).run(init).config(config);
 }());

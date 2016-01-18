@@ -203,6 +203,13 @@ var clmBuildTimestamp = '${build.timestamp}';
       }
 
       return url;
+    },
+
+    /**
+     * @since version 1.19.0
+     */
+    'getComponentReevaluationUrl': function (owner, hash) {
+      return basePath + 'rest/repositories/' + owner.ownerId + '/evaluate/' + hash;
     }
   };
 }());

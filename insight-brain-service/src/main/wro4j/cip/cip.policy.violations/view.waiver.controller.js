@@ -42,6 +42,7 @@
       $scope.appError = null;
       $http['delete'](CLM.path + 'rest/policyWaiver/' + waiver.type + '/' + waiver.ownerId + '/' +
               waiver.id).success(function() {
+        $scope.$emit('component.data.changed', waiver.hash);
         $scope.waivers.splice($scope.waivers.indexOf(waiver), 1);
       }).error(handleHttpError);
     };

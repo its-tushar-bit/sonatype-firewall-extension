@@ -23,13 +23,12 @@
       $scope.processedPolicyAlerts = null;
       $scope.error = null;
 
-      PolicyViolations.get().then(function (policyThreats) {
+      return PolicyViolations.get().then(function (policyThreats) {
         $scope.processedPolicyAlerts = policyThreats;
         sortPolicyAlerts();
       }, function (err) {
         $scope.error = err;
       });
-      return;
     };
 
     $scope.waiveComponent = function(policyAlert) {
@@ -55,6 +54,10 @@
       });
     };
     $scope.alerts = [];
+
+    $scope.$on('component.evaluation.updated', function(event, hash, promises) {
+      promises.push($scope.doLoad());
+    });
 
     $scope.$watch(function () {
       return SelectedComponent.get();

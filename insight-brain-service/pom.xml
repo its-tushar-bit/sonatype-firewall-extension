@@ -29,6 +29,7 @@
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id.new>test-cip-assets-new</jasmine.cip.id.new>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
+    <jasmine.audit.id>test-audit-assets</jasmine.audit.id>
     <jasmine.version.graph.id.new>test-version-graph-assets-new</jasmine.version.graph.id.new>
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
     <jasmine.view.details.id.new>test-view-details-assets-new</jasmine.view.details.id.new>
@@ -593,6 +594,50 @@
             </configuration>
           </execution>
           <execution>
+            <id>${jasmine.audit.id}</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <preloadSources>
+                <source>resources/assets/cip/cip-test-util.js</source>
+                <include>wro4j/lib/jquery/jquery-1.8.3.min.js</include>
+                <include>wro4j/lib/bootstrap/bootstrap-2.3.1.min.js</include>
+                <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
+                <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>wro4j/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>wro4j/cip/cip-loader.js</include>
+              </preloadSources>
+              <sourceIncludes>
+                <include>brain-client/*.js</include>
+                <include>wro4j/cip/**/*module.js</include>
+                <include>wro4j/cip/**/*.js</include>
+                <include>wro4j/version-graph/**/*app.js</include>
+                <include>wro4j/version-graph/**/*module.js</include>
+                <include>wro4j/version-graph/**/*.js</include>
+                <include>wro4j/audit-report/**/*module.js</include>
+                <include>wro4j/audit-report/**/*.js</include>
+                <include>wro4j/util/AngularCommon.js</include>
+                <include>wro4j/util/CLMAppLocation.js</include>
+                <include>wro4j/util/CLMLocation.js</include>
+                <include>wro4j/util/HttpInterceptors.js</include>
+                <include>wro4j/lib/ui-bootstrap-tpls-*.js</include>
+                <include>wro4j/lib/datepicker/bootstrap-datepicker.js</include>
+              </sourceIncludes>
+              <sourceExcludes>
+                <exclude>wro4j/lib/bootstrap-sass-official/**/*.js</exclude>
+              </sourceExcludes>
+              <specIncludes>
+                <include>resources/assets/SpecUtil.js</include>
+                <include>resources/assets/**/lib/*.js</include>
+                <include>resources/assets/**/*MockData.js</include>
+                <include>resources/assets/audit-report/*.js</include>
+              </specIncludes>
+              <junitXmlReportFileName>TEST-audit.xml</junitXmlReportFileName>
+            </configuration>
+          </execution>
+          <execution>
             <id>${jasmine.brain.id.new}</id>
             <phase>test</phase>
             <goals>
@@ -1135,6 +1180,12 @@
       <id>test-cip</id>
       <properties>
         <jasmine.cip.id>default-cli</jasmine.cip.id>
+      </properties>
+    </profile>
+    <profile>
+      <id>test-audit</id>
+      <properties>
+        <jasmine.audit.id>default-cli</jasmine.audit.id>
       </properties>
     </profile>
     <profile>

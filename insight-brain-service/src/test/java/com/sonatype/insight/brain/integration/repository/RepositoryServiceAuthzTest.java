@@ -251,20 +251,20 @@ public class RepositoryServiceAuthzTest
   public void testGetReportDetails_Authorized() {
     Repository repo = createRepository();
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.getReportDetails(repo.getId());
+    repositoryService.getReportDetails(repo.getId(), null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetReportDetails_Unauthenticated() {
     Repository repo = createRepository();
-    repositoryService.getReportDetails(repo.getId());
+    repositoryService.getReportDetails(repo.getId(), null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetReportDetails_Unauthorized() {
     grantWritePermission();
     Repository repo = createRepository();
-    repositoryService.getReportDetails(repo.getId());
+    repositoryService.getReportDetails(repo.getId(), null);
   }
 
   @Test

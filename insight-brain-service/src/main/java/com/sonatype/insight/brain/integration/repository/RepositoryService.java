@@ -431,7 +431,7 @@ public class RepositoryService
     return policyEvaluationSummary;
   }
 
-  public List<RepositoryReportDetail> getReportDetails(final String repositoryId)
+  public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash)
   {
     checkLicenseFeature();
 
@@ -440,14 +440,23 @@ public class RepositoryService
     log.debug("Get report details for repository {}:{} ({})", repository.getRepositoryManagerId(),
         repository.getPublicId(), repository.getId());
 
-    return getReportDetails(repository);
+    return getReportDetails(repository, hash);
   }
 
   @Authorize(permission = Permission.READ)
-  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository) {
+  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository,
+                                                String hash)
+  {
     final List<RepositoryReportDetail> details = new ArrayList<>();
 
-    final List<RepositoryComponent> componentList = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    final List<RepositoryComponent> componentList;
+    if (hash == null) {
+      componentList = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    }
+    else {
+      componentList = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
+    }
+
     for (final RepositoryComponent component : componentList) {
 
       final List<RepositoryPolicyViolation> componentViolations = repositoryPolicyViolationDAO

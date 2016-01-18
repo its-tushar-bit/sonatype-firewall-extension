@@ -10,9 +10,15 @@ window.CLM = {
 
 (function () {
   'use strict';
+  
+  function init($rootScope, ComponentUpdateService) {
+    $rootScope.$on('component.data.changed', function (event, hash) {
+      ComponentUpdateService.update(hash);
+    });
+  }
+  init.$inject = ['$rootScope', 'component.update.service'];
 
-  angular.module('audit', [
-    'AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-    'component.information.panel'
-  ]);
+  angular.module('audit',
+          ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
+              'component.information.panel']).run(init);
 }());

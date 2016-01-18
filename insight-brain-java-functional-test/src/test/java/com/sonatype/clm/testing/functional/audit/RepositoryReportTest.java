@@ -8,8 +8,11 @@ package com.sonatype.clm.testing.functional.audit;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
@@ -28,12 +31,15 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -49,6 +55,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.present;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -60,6 +67,8 @@ public class RepositoryReportTest
     extends AbstractFunctionalTest
 {
   private Repository repo;
+
+  private Policy policy;
 
   private String criticalComponentHash;
 
@@ -73,6 +82,17 @@ public class RepositoryReportTest
   public void before() {
     // repositoryPublicId has a character requiring encoding
     repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "ce&ntral");
+
+    policy = tempEntity.newPolicy("Extremely Bad");
+    policy.setThreatLevel(10);
+    Constraint constraint = new Constraint();
+    constraint.setName("foo");
+    com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
+        MatchStateConditionType.ID, "is", MatchState.EXACT.toString());
+    constraint.setConditions(Collections.singletonList(condition));
+    policy.setConstraints(Collections.singletonList(constraint));
+    new PolicyDAO().update(policy);
+
   }
 
   @Test
@@ -139,7 +159,7 @@ public class RepositoryReportTest
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0."));
-    Policy policy = tempEntity.newPolicy("Extremely Bad");
+
     tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false, true,
         policy.getId(), policy.getName(), component.getComponentIdentifier());
     criticalComponentHash = component.getHash();
@@ -241,7 +261,7 @@ public class RepositoryReportTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestPolicyThreat().shouldHave(text("NA"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text(String.valueOf(policy.getThreatLevel())));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
     VersionsCIP.securityCount().shouldHave(text("3"));
     VersionsCIP.matchState().shouldHave(text("exact"));
@@ -272,6 +292,8 @@ public class RepositoryReportTest
   }
 
   private void testPolicyCIP() {
+    // setup HDS
+    setupHdsFirewallResponse();
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
@@ -294,6 +316,7 @@ public class RepositoryReportTest
 
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
 
+    // Waive a policy violation
     AddWaiverDialog.scopeContainer().shouldBe(visible);
     AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible);
     AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
@@ -311,17 +334,29 @@ public class RepositoryReportTest
 
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+
     AddWaiverDialog.root().should(disappear);
+    ReportCip.policyTab().should(disappear);
 
-    WaiverCip.viewWaivers().click();
+    // Verify table has been updated and violation is waived
+    RepositoryReportPage.Table.rows().shouldHaveSize(5);
+    Filter.allViolationsButton().click();
+    RepositoryReportPage.Table.row(0).waived().should(exist).click();
 
+    // re-open CIP
+    RepositoryReportPage.Table.cipTab("Policy").click();
+
+    // remove waiver
+    WaiverCip.viewWaivers().should(appear).click();
     ViewWaiversDialog.rows().shouldHaveSize(1);
+    ViewWaiversDialog.row(0).removeButton().click();
 
-    ViewWaiversDialog.closeButton().click();
+    WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(appear).click();
+    ViewWaiversDialog.closeButton().should(appear).click();
 
-    // close CIP
-    RepositoryReportPage.Table.row(0).component().click();
+    // close CIP & reset filter
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
+    Filter.summaryViolationsButton().click();
   }
 
   private void testVulnerabilityCIP() throws IOException {
@@ -427,6 +462,18 @@ public class RepositoryReportTest
     Filter.summaryViolationsButton().click();
     Filter.allMatchState().shouldBe(Filter.active);
     Filter.summaryViolations().shouldBe(Filter.active);
+  }
+
+  private void setupHdsFirewallResponse() {
+    ComponentEvaluationData component = new ComponentEvaluationData();
+    component.componentIdentifier = ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0.");
+    component.declaredLicenses = Collections.emptySet();
+    component.observedLicenses = Collections.emptySet();
+    component.hash = criticalComponentHash;
+    component.matchState = MatchState.EXACT.toString();
+    ComponentEvaluationDataList response = new ComponentEvaluationDataList();
+    response.components.add(component);
+    testCLMServer.getInsightServer().setResponseForURI("rest/component/details/firewall", response, 200);
   }
 
   private static void assertRows(ExpectedRow... expectedRows) {

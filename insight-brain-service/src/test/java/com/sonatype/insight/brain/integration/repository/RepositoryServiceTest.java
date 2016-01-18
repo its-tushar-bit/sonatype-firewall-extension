@@ -1671,7 +1671,7 @@ public class RepositoryServiceTest
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     createRepositoryPolicyViolation(repositoryOther, pathname1, 6);
 
-    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId());
+    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null);
 
     assertThat(reportDetails.size(), is(4));
 
@@ -1681,6 +1681,30 @@ public class RepositoryServiceTest
     assertRepositoryReportDetail(reportDetails.get(idx++), pathname1, "policyName", 5, true);
     assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 5, false);
     assertRepositoryReportDetail(reportDetails.get(idx), pathname2, null, 0, true);
+  }
+
+  @Test
+  public void testGetReportDetails_byHash() throws Exception {
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository, "hash1");
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository, "hash1");
+    tempEntity.newRepositoryComponent(repository, "hash2");
+
+    // add violations for a different repository, which should not be included in current repo details
+    final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
+    tempEntity.newRepositoryComponent(repositoryOther, "hash1");
+
+    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), "hash1");
+
+    assertThat(reportDetails.size(), is(2));
+
+    for (RepositoryReportDetail detail : reportDetails) {
+      assertThat(detail.getHash(), is("hash1"));
+      assertTrue(detail.getPathname().equals(component1.getPathname())
+          || detail.getPathname().equals(component2.getPathname()));
+    }
   }
 
   @Test
@@ -1825,13 +1849,15 @@ public class RepositoryServiceTest
     }
   }
 
-  private void createRepositoryPolicyViolation(final Repository repository, final String pathname,
+  private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
+                                                              final String pathname,
       int... threatLevels)
   {
-    tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
     for (final int threatLevel : threatLevels) {
       tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, null);
     }
+    return component;
   }
 
   private void assertRepositoryReportDetail(final RepositoryReportDetail actualReportDetail,

@@ -208,6 +208,30 @@
             vm.grid.destroy();
           }
         });
+
+        $scope.$on('component.evaluation.updated', function (event, hash, promises) {
+          promises.push($http.get('/rest/repositories/' + OwnerContext.ownerId + '/report/details?hash=' + hash)
+            .success(function(data) {
+                var items = vm.grid.dataView.getItems(),
+                    maxId = -1;
+
+                vm.grid.dataView.beginUpdate();
+                for (var i = items.length - 1; i > -1; i--) {
+                  maxId = Math.max(maxId, items[i].id);
+                  if (items[i].hash === hash) {
+                    vm.grid.dataView.deleteItem(items[i].id);
+                  }
+                }
+
+                maxId++;
+                data.forEach(function (newItem) {
+                  newItem.policyName = newItem.policyName || 'No Violations';
+                  newItem.id = maxId++;
+                  vm.grid.dataView.addItem(newItem);
+                });
+                vm.grid.dataView.endUpdate();
+              }));
+        });
       }]
     };
   }

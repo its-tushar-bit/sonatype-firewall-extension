@@ -13,6 +13,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.integration.repository.RepositoryService;
@@ -71,8 +72,10 @@ public class RepositoryReportResource
   @Path(DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId) {
-    return repositoryService.getReportDetails(repositoryId);
+  public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId,
+                                                       @QueryParam("hash") String hash)
+  {
+    return repositoryService.getReportDetails(repositoryId, hash);
   }
 
   /**

@@ -13,7 +13,7 @@
       $scope.error = null;
       $scope.loadActive = true;
 
-      $http.get(CLMLocations.getAuditReportSummary(OwnerContext.ownerId)).success(function(data) {
+      return $http.get(CLMLocations.getAuditReportSummary(OwnerContext.ownerId)).success(function(data) {
         $scope.loadActive = false;
 
         $scope.knownComponentCount = data.knownComponentCount;
@@ -31,6 +31,10 @@
         $scope.error = arguments;
       });
     };
+
+    $scope.$on('component.evaluation.updated', function(event, hash, promises) {
+      promises.push($scope.doLoad());
+    });
 
     ($window.Insight = $window.Insight || {}).updateSummary = $scope.doLoad;
 

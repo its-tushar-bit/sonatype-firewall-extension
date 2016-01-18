@@ -1112,6 +1112,14 @@ public class TemporaryEntity
     return repositoryComponent;
   }
 
+  public RepositoryComponent newRepositoryComponent(Repository repository, String hash) {
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), uuid(), new Date(), hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), new Date(), true /* canBeQuarantined */);
+    repositoryComponentDAO.insert(repositoryComponent);
+    return repositoryComponent;
+  }
+
   public RepositoryComponent newRepositoryComponent(String repositoryId, MatchState matchState,
       ComponentIdentifier identifier)
   {

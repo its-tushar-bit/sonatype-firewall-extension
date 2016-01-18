@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.io.IOException;
 import java.util.Date;
 
 import javax.inject.Inject;
@@ -375,7 +374,7 @@ public class RepositoryServiceAuthzTest
   }
 
   @Test
-  public void testReevaluateComponent_Authorized() throws IOException {
+  public void testReevaluateComponent_Authorized() {
     Repository repo = createRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 

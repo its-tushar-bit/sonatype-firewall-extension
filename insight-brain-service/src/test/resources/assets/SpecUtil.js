@@ -1,3 +1,4 @@
+window.angularDebug = true; 
 window.CLM = {
   path: '../brain/'
 };

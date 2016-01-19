@@ -105,6 +105,7 @@
     function save() {
       function submitErrorHandler(error) {
         vm.submitError = error;
+        return $q.reject(error);
       }
 
       if (vm.policyEditor.$valid && vm.isPolicyDirty()) {

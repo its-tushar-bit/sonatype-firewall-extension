@@ -26,7 +26,7 @@
     <div class="constraint-editor" ng-if="vm.editConstraintMap[constraint.id]">
       <div class="button-container">
         <button class="btn btn-tertiary btn-icon-only delete-constraint-button" type="button"
-                ng-click="vm.deleteConstraint($index)"><!--
+                ng-click="vm.deleteConstraint($index)" ng-disabled="vm.constraints.length < 2"><!--
         --><i class="fa fa-trash"></i>
         </button>
       </div>

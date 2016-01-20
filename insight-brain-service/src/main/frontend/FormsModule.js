@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var applyInitialValue = function () {
+  var applyInitialValue = function() {
     return {
       restrict: 'E',
       require: '?ngModel',
@@ -45,6 +45,50 @@
       }
     };
   };
+
+  function applyInitialValueDropdown() {
+    return {
+      restrict: 'E',
+      require: '?ngModel',
+      link: function(scope, element, attrs, ngModelController) {
+        if (element.parents('.clm-form').length > 0) {
+          var initialValue;
+          element.addClass('initial-value');
+
+          if (ngModelController) {
+            var initialValueWatch = scope.$watch(function() {
+              return ngModelController.$viewValue;
+            }, function(viewValue) {
+              // viewValue is properly initialized once it is no longer 'NaN'
+              // Source: https://github.com/angular/angular.js/blob/v1.0.6/src/ng/directive/input.js#L879
+              if (initialValue === undefined && !(angular.isNumber(viewValue) && isNaN(viewValue))) {
+                initialValue = viewValue || '';
+                initialValueWatch();
+              }
+            });
+
+            scope.$watch(function() {
+              return ngModelController.$pristine;
+            }, function(isPristine) {
+              if (isPristine) {
+                initialValue = ngModelController.$viewValue || '';
+                element.addClass('initial-value');
+              }
+            });
+
+            ngModelController.$viewChangeListeners.push(function() {
+              if (ngModelController.$viewValue === initialValue) {
+                element.addClass('initial-value');
+              }
+              else {
+                element.removeClass('initial-value');
+              }
+            });
+          }
+        }
+      }
+    };
+  }
 
   var module = angular.module('FormsModule', ['AngularCommon'])
   /**
@@ -189,14 +233,18 @@
               element.popover('destroy');
             });
 
-            scope.$watch(form.$name + '.$submitted', function(isFormSubmitted) {
+            scope.$watch(function() {
+              return form.$submitted;
+            }, function(isFormSubmitted) {
               if (isFormSubmitted) {
                 updateValidationMessages(element, attrs, ctrl);
               }
             });
 
             // Update state whenever the $error state is changed
-            scope.$watch(form.$name + '.' + ctrl.$name + '.$error', function() {
+            scope.$watch(function() {
+              return form[ctrl.$name].$error;
+            }, function() {
               if (ctrl.$dirty) {
                 updateValidationMessages(element, attrs, ctrl);
               }
@@ -204,7 +252,9 @@
 
             // If $setPristine() is called the ctrl will not be $dirty, so
             // handle this case specifically
-            scope.$watch(form.$name + '.' + ctrl.$name + '.$pristine', function(newValue, oldValue) {
+            scope.$watch(function() {
+              return form[ctrl.$name].$pristine;
+            }, function(newValue, oldValue) {
               if (!oldValue && newValue) {
                 // If the form is set to pristine we can remove any existing popover
                 var currentPopover = element.data('popover');
@@ -339,4 +389,6 @@
 
   // The same for text areas
   module.directive('textarea', [applyInitialValue]);
+
+  module.directive('dropdownSelector', [applyInitialValueDropdown]);
 }());

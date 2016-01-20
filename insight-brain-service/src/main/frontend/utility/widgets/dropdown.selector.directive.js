@@ -21,8 +21,13 @@
       controller: 'dropdown.selector.controller',
       controllerAs: 'vm',
       bindToController: true,
-      require: 'ngModel',
-      link: function(scope, element, attr, ctrl) {
+      require: ['ngModel', '^form'],
+      link: function(scope, element, attr, ctrls) {
+        var ctrl = ctrls[0],
+            form = ctrls[1];
+
+        form.$addControl(ctrl);
+
         scope.vm.getSelectedViewValue = getSelectedViewValue;
         scope.vm.formatSelectedModel = formatSelectedModel;
         scope.vm.selectItem = selectItem;
@@ -33,6 +38,11 @@
 
         ctrl.$formatters.push(scope.vm.formatSelectedModel);
         ctrl.$parsers.push(scope.vm.parseSelectedModel);
+        ctrl.$isEmpty = isEmpty;
+
+        scope.$watch('vm.disabled', function(disabled) {
+          element[disabled ? 'addClass' : 'removeClass']('disabled');
+        });
 
         function getSelectedViewValue() {
           return ctrl.$viewValue;
@@ -47,8 +57,12 @@
             return scope.vm.optionNameParam ? modelValue[scope.vm.optionNameParam] : modelValue;
           }
           else {
-            return scope.vm.emptyOptionString || '-- None --';
+            return scope.vm.emptyOptionString || 'None Selected';
           }
+        }
+
+        function isEmpty(viewValue) {
+          return !viewValue || viewValue === (scope.vm.emptyOptionString || 'None Selected');
         }
 
         function selectItem(item) {

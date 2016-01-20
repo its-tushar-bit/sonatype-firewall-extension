@@ -25,9 +25,9 @@ describe('dropdown.selector.directive.spec.js', function() {
         disabled: false
       });
 
-      element = $compile('<dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
+      element = $compile('<form><dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
           'ng-change="onSelect(testModel)" empty-option-string="{{emptyOptionString}}" ' +
-          'option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
+          'option-name-param="{{optionNameParam}}"></dropdown-selector></form>')(scope).children();
 
       $httpBackend.flush();
     }));
@@ -80,7 +80,8 @@ describe('dropdown.selector.directive.spec.js', function() {
         options: ['cherry', 'orange', 'raspberry']
       });
 
-      element = $compile('<dropdown-selector ng-model="testModel" options="options"></dropdown-selector>')(scope);
+      element = $compile('<form><dropdown-selector ng-model="testModel" options="options"></dropdown-selector>' +
+          '</form>')(scope).children();
 
       $httpBackend.flush();
     }));
@@ -88,7 +89,7 @@ describe('dropdown.selector.directive.spec.js', function() {
     it('Directive creates full list of string options', function() {
       var scope = element.scope();
 
-      expect(element.find('.selected-item').text()).toEqual('-- None --');
+      expect(element.find('.selected-item').text()).toEqual('None Selected');
 
       expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
       element.find('.dropdown-menu li a').each(function(index) {
@@ -125,8 +126,8 @@ describe('dropdown.selector.directive.spec.js', function() {
         optionValueParam: 'id'
       });
 
-      element = $compile('<dropdown-selector ng-model="testModel" options="options" option-value-param="{{optionValueParam}}" ' +
-          'option-name-param="{{optionNameParam}}"></dropdown-selector>')(scope);
+      element = $compile('<form><dropdown-selector ng-model="testModel" options="options" option-value-param="{{optionValueParam}}" ' +
+          'option-name-param="{{optionNameParam}}"></dropdown-selector></form>')(scope).children();
 
       $httpBackend.flush();
     }));

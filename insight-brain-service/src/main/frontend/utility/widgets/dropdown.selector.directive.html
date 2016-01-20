@@ -1,9 +1,9 @@
-<span class="dropdown-selector dropdown">
-  <a class="selected-item" ng-class="{disabled: vm.disabled}" data-toggle="dropdown">{{vm.getSelectedViewValue()}}<span
-          class="caret"></span></a>
+<div class="dropdown-selector dropdown">
+  <a class="selected-item" ng-class="{disabled: vm.disabled, 'none-selected': !vm.selectedModel}"
+     data-toggle="dropdown">{{vm.getSelectedViewValue()}}<span class="caret"></span></a>
   <ul class="dropdown-menu">
     <li ng-repeat="item in vm.options" ng-click="vm.selectItem(item)">
       <a>{{vm.optionNameParam ? item[vm.optionNameParam] : item}}</a>
     </li>
   </ul>
-</span>
+</div>

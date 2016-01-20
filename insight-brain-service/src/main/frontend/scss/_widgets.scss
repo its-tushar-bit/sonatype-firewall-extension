@@ -628,8 +628,8 @@
         right: 0;
         bottom: 0;
         left: 0;
-      } 
-      
+      }
+
       .fa {
         margin-right: 8px;
         width: 12px;
@@ -1091,65 +1091,168 @@
   ## Dropdown Selector
 
   ```html
-  <span class="dropdown-selector dropdown">
-    <a class="selected-item disabled" data-toggle="dropdown">Disabled<span class="caret"></span></a>
-    <ul class="dropdown-menu">
-      <li><a>Option 1</a></li>
-      <li><a>Option 2</a></li>
-      <li><a>Option 3</a></li>
-    </ul>
-  </span>
-  <br>
-  <span class="dropdown-selector dropdown">
-    <a class="selected-item" data-toggle="dropdown">None<span class="caret"></span></a>
-    <ul class="dropdown-menu">
-      <li><a>Option 1</a></li>
-      <li><a>Option 2</a></li>
-      <li><a>Option 3</a></li>
-    </ul>
-  </span>
-  <br>
+  <dropdown-selector class="disabled">
+    <div class="dropdown-selector dropdown">
+      <a class="selected-item disabled" data-toggle="dropdown">Disabled<span class="caret"></span></a>
+      <ul class="dropdown-menu">
+        <li><a>Option 1</a></li>
+        <li><a>Option 2</a></li>
+        <li><a>Option 3</a></li>
+      </ul>
+    </div>
+  </dropdown-selector>
+  <dropdown-selector class="ng-invalid">
+    <div class="dropdown-selector dropdown">
+      <a class="selected-item" data-toggle="dropdown">Invalid<span class="caret"></span></a>
+      <ul class="dropdown-menu">
+        <li><a>Option 1</a></li>
+        <li><a>Option 2</a></li>
+        <li><a>Option 3</a></li>
+      </ul>
+    </div>
+  </dropdown-selector>
+  <dropdown-selector class="initial-value">
+    <div class="dropdown-selector dropdown">
+      <a class="selected-item" data-toggle="dropdown">Initial Value<span class="caret"></span></a>
+      <ul class="dropdown-menu">
+        <li><a>Option 1</a></li>
+        <li><a>Option 2</a></li>
+        <li><a>Option 3</a></li>
+      </ul>
+    </div>
+  </dropdown-selector>
+  <dropdown-selector class="ng-valid">
+    <div class="dropdown-selector dropdown">
+      <a class="selected-item" data-toggle="dropdown">Valid<span class="caret"></span></a>
+      <ul class="dropdown-menu">
+        <li><a>Option 1</a></li>
+        <li><a>Option 2</a></li>
+        <li><a>Option 3</a></li>
+      </ul>
+    </div>
+  </dropdown-selector>
+  <dropdown-selector class="ng-valid">
+    <div class="dropdown-selector dropdown open">
+      <a class="selected-item" data-toggle="dropdown">None Selected<span class="caret"></span></a>
+      <ul class="dropdown-menu">
+        <li><a>Option 1</a></li>
+        <li><a>Option 2</a></li>
+        <li><a>Option 3</a></li>
+      </ul>
+    </div>
+  </dropdown-selector>
   ```
 */
 dropdown-selector {
-  width: 217px;
+  width: 256px;
+  border: 1px solid $grey-4;
+  border-left-width: 4px;
+  vertical-align: middle;
+  display: inline-block;
+
+  &.wide {
+    width: 411px;
+  }
+
+  &.disabled {
+    border-color: $grey-3;
+    border-left-style: double;
+
+    &:hover,
+    &:hover .selected-item {
+      cursor: not-allowed;
+    }
+
+    .selected-item .caret {
+      border-top: 6px solid $grey-3;
+    }
+  }
+
+  &:not(.disabled) {
+    &.initial-value {
+      border-left-color: $valid-green;
+      border-left-style: double;
+    }
+
+    &.ng-valid {
+      border-left-color: $valid-green;
+    }
+
+    &.ng-invalid.ng-dirty {
+      border-color: $invalid-red;
+      border-left-style: solid;
+    }
+  }
+
   .dropdown-selector {
-    width: inherit;
+    &.open {
+      .selected-item,
+      .selected-item:hover {
+        color: $grey-4;
+      }
+    }
+
+    &:not(.open) .selected-item:not(.disabled):hover .caret {
+      border-top: 6px solid $slate;
+    }
 
     .selected-item,
     .selected-item:hover {
-      width: inherit;
+      display: block;
       height: 22px;
       line-height: 22px;
       padding: 4px 34px 4px 8px;
       position: relative;
-      border: 1px solid $grey-4;
       z-index: $zindexDropdown + 1;
-      display: block;
-      color: $slate;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      color: #333333;
       text-decoration: none;
 
-      .caret {
-        border-top: 6px solid $grey-4;
-        border-right: 5px solid transparent;
-        border-left: 5px solid transparent;
-        position: absolute;
-        right: 12px;
-        bottom: 12px;
-      }
-
-      &.disabled {
-        cursor: not-allowed;
-        border: 1px solid $grey-3;
-
-        .caret {
-          border-top: 6px solid $grey-3;
-        }
+      &.none-selected {
+        color: $grey-4;
       }
     }
 
+    .selected-item .caret {
+      border-top: 6px solid $grey-4;
+      border-right: 5px solid transparent;
+      border-left: 5px solid transparent;
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+    }
+
     .dropdown-menu {
-      box-shadow: -4px 4px 10px 0 $slate;
+      border-radius: 0;
+      border: 1px solid $grey-4;
+      background: $off-white;
+      margin: 0 0 0 -4px;
+      width: calc(100% + 3px);
+      min-width: 0px;
+      max-height: 300px; // 10 list items
+      overflow-y: auto;
+      box-shadow: -4px 6px 10px $slate;
+      padding: 0;
+
+      > li {
+        a {
+          padding: 0 11px 0 11px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          height: 30px;
+          line-height: 30px;
+          color: $slate;
+
+          &:hover {
+            color: $off-black;
+            background-color: inherit; // override bootstrap style
+            background-image: inherit;
+          }
+        }
+      }
     }
   }
 }

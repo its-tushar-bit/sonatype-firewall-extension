@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
+import com.yammer.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,7 @@ public class PolicyEvaluateResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
+  @Timed
   public PolicyEvaluationResult evaluate(
       @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
       final String applicationPublicId,

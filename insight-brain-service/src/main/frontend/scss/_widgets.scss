@@ -1227,6 +1227,7 @@ dropdown-selector {
     .dropdown-menu {
       border-radius: 0;
       border: 1px solid $grey-4;
+      border-collapse: separate;
       background: $off-white;
       margin: 0 0 0 -4px;
       width: calc(100% + 3px);

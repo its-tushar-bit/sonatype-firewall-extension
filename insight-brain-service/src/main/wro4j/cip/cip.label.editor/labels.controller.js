@@ -37,10 +37,8 @@
       var promises = [];
       promises.push($http.get(CLM.path + 'rest/label/component/' + OwnerContext.ownerType + '/' +
               OwnerContext.ownerId + '/' + SelectedComponent.get().hash));
-      if (OwnerContext.ownerType !== 'repository') {
-        promises.push($http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
-                '/applicable'));
-      }
+      promises.push($http.get(CLM.path + 'rest/label/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
+              '/applicable'));
 
       $q.all(promises).then(function (results) {
         $scope.itemLabels = flattenLabelList(results[0].data);

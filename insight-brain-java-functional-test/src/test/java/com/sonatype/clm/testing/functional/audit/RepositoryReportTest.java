@@ -10,12 +10,15 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
+import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
+import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
 import com.sonatype.clm.testing.functional.elements.LicenseCIP;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
@@ -31,14 +34,18 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -62,6 +69,8 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class RepositoryReportTest
     extends AbstractFunctionalTest
@@ -273,22 +282,64 @@ public class RepositoryReportTest
   }
 
   private void testLabelsCIP() {
-    Label applied = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.blue);
-    tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, applied.getId(), criticalComponentHash);
+    Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.blue);
+    Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.red);
+    tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elJunko.getId(), criticalComponentHash);
+    createPolicy(1, "Bad Label", LabelConditionType.ID, "is", elMagnifico.getId());
 
-    // open CIP
-    RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(visible);
-
-    RepositoryReportPage.Table.cipTab("Labels").click();
+    // open CIP to labels
+    openCIP(0, "Labels");
 
     LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.appliedLabel(0).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.blue));
-    LabelsCIP.availableLabelsContainer().shouldNotBe(present);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.blue)).action().should(exist);
 
-    // close CIP
-    RepositoryReportPage.Table.row(0).component().click();
+    LabelsCIP.availableLabels().shouldHaveSize(1);
+    LabelsCIP.availableLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.red)).action().click();
+
+    // Modal
+    AddLabelModal.root().shouldBe(visible);
+    AddLabelModal.scopes().shouldHaveSize(3);
+    AddLabelModal.radio(1).click();
+    AddLabelModal.saveButton().click();
+
+    AddLabelModal.root().shouldNotBe(visible);
+
+    // label persisted
+    assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash).size(), is(2));
+
+    // CIP should disappear
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
+
+    // new table row for the policy violation
+    Filter.allViolationsButton().click();
+    assertRow(RepositoryReportPage.Table.rowByName("Bad Label"),
+        new ExpectedRow(Table.ignoredScore, "Bad Label", "critical : threat : 1.0", false, false), false);
+
+    // re-open CIP
+    openCIP(0, "Labels");
+
+    // Remove the label we added
+    LabelsCIP.appliedLabels().shouldHaveSize(2);
+    LabelsCIP.appliedLabel(2).shouldHave(text("El Magnifico")).action().click();
+
+    // Confirmation modal
+    RemoveLabelModal.root().should(appear);
+    RemoveLabelModal.confirmButton().click();
+    RemoveLabelModal.root().should(disappear);
+
+    // backend check that it was removed
+    List<ComponentLabel> appliedLabels = new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(),
+        criticalComponentHash);
+    assertThat(appliedLabels.size(), is(1));
+    assertThat(appliedLabels.get(0).getLabelId(), is(elJunko.getId()));
+
+    // CIP should disappear
+    RepositoryReportPage.Table.cip().shouldNotBe(visible);
+    // Bad labels is gone
+    RepositoryReportPage.Table.rows().shouldHaveSize(7);
+
+    // reset filter
+    Filter.summaryViolationsButton().click();
   }
 
   private void testPolicyCIP() {
@@ -350,10 +401,10 @@ public class RepositoryReportTest
     ViewWaiversDialog.row(0).removeButton().click();
 
     WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(appear).click();
-    ViewWaiversDialog.closeButton().should(appear).click();
 
     // close CIP & reset filter
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
+    ViewWaiversDialog.closeButton().shouldBe(visible).click();
     Filter.summaryViolationsButton().click();
   }
 
@@ -507,6 +558,24 @@ public class RepositoryReportTest
     else {
       actualRow.quarantined().shouldNotBe(present);
     }
+  }
+
+  private static void openCIP(int row, String tab) {
+    RepositoryReportPage.Table.row(row).component().click();
+    RepositoryReportPage.Table.cip().shouldBe(visible);
+    RepositoryReportPage.Table.cipTab(tab).click();
+  }
+
+  private void createPolicy(int threatLevel, String name, String conditionType, String op, String value) {
+    Policy p = new Policy(null, name);
+    p.setThreatLevel(threatLevel);
+    p.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    Constraint constraint = new Constraint(null, name + " constraint", LogicalOperator.AND);
+    com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
+        conditionType, op, value);
+    constraint.setConditions(Collections.singletonList(condition));
+    p.setConstraints(Collections.singletonList(constraint));
+    tempEntity.newPolicy(p);
   }
 
   private ExpectedRow UNKNOWN;

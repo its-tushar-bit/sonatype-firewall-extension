@@ -1,9 +1,10 @@
 <div style='padding:5px' class='labelEditor' load-wrapper2="error" reload="doLoad()" error-message="Unable to load labels." loading="!error && !itemLabels">
   <div clm-alerts='alerts'></div>
-  <div id="available-labels" ng-if="ownerType !== 'repository'">
+  <div id="available-labels">
     <h5>Available <i class='icon-refresh' ng-click='doLoad()' spinner></i></h5>
     <div class='cip-label-container'>
-      <span ng-repeat='label in availableLabels  | filter:isApplied | orderBy:"label"' class='clmLabel {{label.color}}Label'>
+      <span ng-repeat="label in availableLabels | filter:isApplied | orderBy:'labelLowercase'"
+            class='clmLabel {{label.color}}Label'>
         <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
         <i class='icon-plus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='addLabel(label)'></i>
       </span>
@@ -12,9 +13,9 @@
   <div id="applied-labels">
     <h5>Applied <i class='icon-refresh' ng-click='doLoad()' spinner></i></h5>
     <div class='cip-label-container'>
-      <span ng-repeat='label in itemLabels' class='clmLabel {{label.color}}Label'>
+      <span ng-repeat="label in itemLabels | orderBy:'labelLowercase'" class='clmLabel {{label.color}}Label'>
         <span title='{{label.description || label.label}}' tip>{{label.label}}</span>&nbsp;
-        <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)' ng-if="ownerType !== 'repository'"></i>
+        <i class='icon-minus-sign' ng-class='{ "icon-white" : isWhite(label) }' ng-click='removeLabel(label)'></i>
       </span>
     </div>
   </div>
@@ -36,6 +37,7 @@
             <span ng-switch on="labelOwner.type">
               <span ng-switch-when="organization"><span>all of organization </span><strong>{{labelOwner.name}}</strong></span>
               <span ng-switch-when="application"><span>application </span><strong>{{labelOwner.name}}</strong></span>
+              <span ng-switch-default><strong>{{labelOwner.name}}</strong></span>
             </span>
           </label>
         </div>

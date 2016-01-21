@@ -144,6 +144,10 @@ public class RepositoryReportPage
       return $$("#componentTable > .slick-viewport > .grid-canvas > .slick-row");
     }
 
+    public static Row rowByName(String name) {
+      return new Row(rows().findBy(text(name)));
+    }
+
     public static SelenideElement cip() {
       return $("#informationPanel");
     }

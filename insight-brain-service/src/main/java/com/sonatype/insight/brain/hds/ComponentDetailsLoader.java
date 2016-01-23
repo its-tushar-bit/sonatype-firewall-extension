@@ -79,7 +79,9 @@ public class ComponentDetailsLoader
     // Get component details from the HDS, if not found locally
     if (componentDetails == null) {
       componentDetails = hdsSource.getDetails();
-      componentDetails.setHash(hash); // HDS does not set hash
+      if (StringUtils.isNotBlank(hash)) {
+        componentDetails.setHash(hash);
+      }
       if (StringUtils.isNotBlank(matchState)) {
         componentDetails.setMatchState(matchState);
       }

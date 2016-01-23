@@ -15,7 +15,7 @@
   <artifactId>insight-brain-java-functional-test</artifactId>
 
   <properties>
-    <exclude.tests>do-not-exclude</exclude.tests>
+    <it.includes>**/*Test.*</it.includes>
   </properties>
 
   <build>
@@ -24,6 +24,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <includes>
+            <include>${it.includes}</include>
+          </includes>
           <trimStackTrace>false</trimStackTrace>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>

@@ -15,7 +15,7 @@
   <artifactId>insight-brain-functional-test</artifactId>
 
   <properties>
-    <exclude.tests>do-not-exclude</exclude.tests>
+    <it.includes>**/*Spec.*</it.includes>
   </properties>
 
   <build>
@@ -55,10 +55,9 @@
           <excludes>
             <!-- Examples to be run as individual tests from Maven CLI or IDE. -->
             <exclude>**/example/**</exclude>
-            <exclude>${exclude.tests}</exclude>
           </excludes>
           <includes>
-            <include>**/*Spec.*</include>
+            <include>${it.includes}</include>
           </includes>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>

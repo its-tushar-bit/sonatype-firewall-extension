@@ -10,7 +10,8 @@
     return {
       restrict: 'E',
       scope: {
-        ageInDaysModel: '=ngModel'
+        ageInDaysModel: '=ngModel',
+        name: '@'
       },
       templateUrl: 'utility/widgets/age.in.days.input.directive.html',
       controller: 'age.in.days.input.controller',

@@ -1154,6 +1154,12 @@ dropdown-selector {
     width: 411px;
   }
 
+  &.no-options {
+    border: none !important;
+    text-align: center;
+    padding: 1px 1px 1px 4px;
+  }
+
   &.disabled {
     border-color: $grey-3;
     border-left-style: double;
@@ -1320,14 +1326,22 @@ dropdown-selector {
 }
 
 age-in-days-input {
-  > input[type="number"].age-input {
-    width: 105px;
-    margin-right: 4px;
-    vertical-align: initial;
-    display: inline-block;
-  }
-  > dropdown-selector {
-    width: 83px;
-    display: inline-block;
+  display: inline-block;
+  width: 261px;
+
+  .age-in-days-input {
+    width: inherit;
+    white-space: nowrap;
+
+    > input[type="number"].age-input {
+      width: calc(50% - 25px);
+      margin-right: 4px;
+      vertical-align: initial;
+      display: inline-block;
+    }
+    > dropdown-selector {
+      width: calc(50% - 9px);
+      display: inline-block;
+    }
   }
 }

@@ -14,6 +14,7 @@
         options: '=',
         optionNameParam: '@?', // One-time binding
         emptyOptionString: '@?',
+        noOptionsString: '@?',
         optionValueParam: '@?',
         disabled: '=?ngDisabled'
       },
@@ -43,6 +44,12 @@
         scope.$watch('vm.disabled', function(disabled) {
           element[disabled ? 'addClass' : 'removeClass']('disabled');
         });
+
+        if (scope.vm.noOptionsString) {
+          scope.$watch('vm.options.length', function(hasOptions) {
+            element[hasOptions ? 'removeClass' : 'addClass']('no-options');
+          });
+        }
 
         function getSelectedViewValue() {
           return ctrl.$viewValue;

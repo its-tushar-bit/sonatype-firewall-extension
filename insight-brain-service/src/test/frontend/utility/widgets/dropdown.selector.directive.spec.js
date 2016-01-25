@@ -21,13 +21,15 @@ describe('dropdown.selector.directive.spec.js', function() {
         optionNameParam: 'name',
         options: [{name: 'cherry'}, {name: 'orange'}, {name: 'raspberry'}],
         emptyOptionString: 'Nothing is Selected',
+        noOptionsString: 'No Berries Available',
         onSelect: jasmine.createSpy(),
         disabled: false
       });
 
       element = $compile('<form><dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
           'ng-change="onSelect(testModel)" empty-option-string="{{emptyOptionString}}" ' +
-          'option-name-param="{{optionNameParam}}"></dropdown-selector></form>')(scope).children();
+          'option-name-param="{{optionNameParam}}" no-options-string="{{noOptionsString}}"></dropdown-selector>' +
+          '</form>')(scope).children();
 
       $httpBackend.flush();
     }));
@@ -65,6 +67,17 @@ describe('dropdown.selector.directive.spec.js', function() {
       scope.options.push({name: 'testOption'});
       scope.$digest();
       expect(angular.equals(vm.optionViewMap['testOption'], {name: 'testOption'})).toBeTruthy();
+    });
+
+    it('Directive properly adds no-options class', function() {
+      var scope = element.scope();
+
+      expect(element.attr('class').split(' ')).not.toContain('no-options');
+      scope.options = [];
+      scope.$digest();
+      expect(element.attr('class').split(' ')).toContain('no-options');
+      expect(element.find('span.warning').length).toBe(1);
+      expect(element.find('span.warning').text()).toEqual('No Berries Available');
     });
   });
 

@@ -7,7 +7,7 @@
 (function(angular) {
   'use strict';
 
-  angular.module('utility', ['ngAria', 'CommonServices', 'FormsModule']).config([
+  angular.module('utility', ['ui.router.state', 'ngAria', 'CommonServices', 'FormsModule']).config([
     '$httpProvider', function($httpProvider) {
       $httpProvider.interceptors.push('form.data.http.interceptor');
     }

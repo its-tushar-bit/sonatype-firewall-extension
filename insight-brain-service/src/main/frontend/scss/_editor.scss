@@ -125,7 +125,13 @@
 
   #policy-edit-constraints {
     .constraint {
-      padding-bottom: 8px;
+      padding-left: 8px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid $grey-1;
+
+      &:not(:first-child) {
+        padding-top: 8px;
+      }
 
       .button-container {
         position: absolute;
@@ -138,8 +144,6 @@
       }
 
       .constraint-summary {
-        padding-bottom: 6px;
-        border-bottom: 1px solid $grey-1;
         position: relative;
 
         .constraint-summary-name {
@@ -157,6 +161,36 @@
           padding-left: 10px;
         }
       }
+
+      .constraint-editor {
+        padding-bottom: 2px;
+
+        .section {
+          margin: 0;
+        }
+
+        .constraint-operator {
+          display: inline-block;
+          width: 75px;
+          margin-right: 4px;
+        }
+
+        table {
+          margin-top: 12px;
+
+          td {
+            padding-bottom: 6px;
+
+            &:not(:last-child) {
+              padding-right: 6px;
+            }
+
+            .editor-condition-operator {
+              width: 125px;
+            }
+          }
+        }
+      }
     }
 
     .constraint-editor {
@@ -164,7 +198,7 @@
     }
 
     #add-constraint-button {
-      margin-top: 4px;
+      margin-top: 12px;
       margin-bottom: 21px;
     }
   }

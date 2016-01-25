@@ -1209,7 +1209,7 @@ dropdown-selector {
       line-height: 22px;
       padding: 4px 34px 4px 8px;
       position: relative;
-      z-index: $zindexDropdown + 1;
+      z-index: $zindexDropdown;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -1233,6 +1233,7 @@ dropdown-selector {
     .dropdown-menu {
       border-radius: 0;
       border: 1px solid $grey-4;
+      z-index: $zindexDropdown + 1;
       border-collapse: separate;
       background: $off-white;
       margin: 0 0 0 -4px;

@@ -229,7 +229,7 @@ public class InsightBrainService
         .append(databaseDir.getAbsolutePath())
         .append('/')
         .append(databaseName)
-        .append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000");
+        .append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=60000");
     if (cacheSizeInBytes != null) {
       urlBuilder.append(";CACHE_SIZE=").append(cacheSizeInBytes / 1024);
     }

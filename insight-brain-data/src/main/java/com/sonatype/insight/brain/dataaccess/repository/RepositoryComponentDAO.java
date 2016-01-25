@@ -15,12 +15,17 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.17
  */
 public class RepositoryComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryComponent>
 {
+  private static final Logger log = LoggerFactory.getLogger(RepositoryComponentDAO.class);
+
   @Override
   public RepositoryComponent getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
@@ -102,37 +107,35 @@ public class RepositoryComponentDAO
 
   @Override
   public void delete(TransactionContext tx, RepositoryComponent repositoryComponent) {
-    // Mark all violations for this component as inactive.
-    RepositoryPolicyViolationDAO policyViolationDAO = new RepositoryPolicyViolationDAO();
-    for (RepositoryPolicyViolation policyViolation : policyViolationDAO.getActiveByRepositoryIdAndPathname(tx,
-        repositoryComponent.getRepositoryId(), repositoryComponent.getPathname())) {
-      policyViolation.setActive(false);
-      policyViolationDAO.update(tx, policyViolation);
+    delete(tx, repositoryComponent, true /* updatePolicyViolations */);
+  }
+
+  public void delete(TransactionContext tx, RepositoryComponent repositoryComponent, boolean updatePolicyViolations) {
+    if (updatePolicyViolations) {
+      // Mark all violations for this component as inactive.
+      RepositoryPolicyViolationDAO policyViolationDAO = new RepositoryPolicyViolationDAO();
+      for (RepositoryPolicyViolation policyViolation : policyViolationDAO.getActiveByRepositoryIdAndPathname(tx,
+          repositoryComponent.getRepositoryId(), repositoryComponent.getPathname())) {
+        policyViolation.setActive(false);
+        policyViolationDAO.update(tx, policyViolation);
+      }
     }
 
     super.delete(tx, repositoryComponent);
   }
 
-  /**
-   * Deletes all components in a repository.
-   * 
-   * WARNING: This method bypasses the standard DAO delete(tx) method, so it has to match its implementation/behavior.
-   */
-  public int deleteByRepositoryId(TransactionContext tx, String repositoryId, boolean updatePolicyViolations) {
-    if (updatePolicyViolations) {
-      // Mark all violations for this repository as inactive.
-      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
-      for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
-          repositoryId)) {
-        policyViolation.setActive(false);
-        repositoryPolicyViolationDAO.update(tx, policyViolation);
-      }
+  public void delete(RepositoryComponent repositoryComponent, boolean updatePolicyViolations) {
+    long start = System.currentTimeMillis();
+
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      delete(tx, repositoryComponent, updatePolicyViolations);
+      tx.commit();
     }
 
-    // Delete all components.
-    String sQuery = "DELETE FROM RepositoryComponent entity" + //
-        " WHERE entity.repositoryId=?1";
-    Query query = createQuery(sQuery, repositoryId);
-    return query.executeUpdate(tx);
+    long duration = System.currentTimeMillis() - start;
+    if (duration > 1000) {
+      log.debug("Deleted repository component with id {} in {} ms.", repositoryComponent.getId(), duration);
+    }
   }
 }

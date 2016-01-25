@@ -11,12 +11,17 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.17
  */
 public class RepositoryPolicyViolationDAO
     extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
 {
+  private static final Logger log = LoggerFactory.getLogger(RepositoryPolicyViolationDAO.class);
+
   @Override
   protected RepositoryPolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
@@ -81,15 +86,15 @@ public class RepositoryPolicyViolationDAO
     return getList(tx, sQuery, repositoryId);
   }
 
-  /**
-   * Deletes all policy violations for a repository.
-   * 
-   * WARNING: This method bypasses the standard DAO delete(tx) method, so it has to match its implementation/behavior.
-   */
-  public int deleteByRepositoryId(TransactionContext tx, String repositoryId) {
-    String sQuery = "DELETE FROM RepositoryPolicyViolation entity" + //
-        " WHERE entity.repositoryId=?1";
-    Query query = createQuery(sQuery, repositoryId);
-    return query.executeUpdate(tx);
+  @Override
+  public void delete(RepositoryPolicyViolation entity) {
+    long start = System.currentTimeMillis();
+
+    super.delete(entity);
+
+    long duration = System.currentTimeMillis() - start;
+    if (duration > 1000) {
+      log.debug("Deleted repository policy violation with id {} in {} ms.", entity.getId(), duration);
+    }
   }
 }

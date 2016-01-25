@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -134,7 +135,26 @@ public class RepositoryDAO
   private void onDisable(TransactionContext tx, Repository repository) {
     Repository existingRepository = getById(tx, repository.getId());
     if (existingRepository.isEnabled()) {
-      new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId(), true /* updatePolicyViolations */);
+      // Mark all violations for this repository as inactive.
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+      for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO.getActiveByRepositoryId(tx,
+          repository.getId())) {
+        policyViolation.setActive(false);
+        repositoryPolicyViolationDAO.update(tx, policyViolation);
+      }
+
+      deleteRepositoryComponents(tx, repository);
+    }
+  }
+
+  /**
+   * Deletes all components from a repository, but it does not mark the policy violations as inactive.
+   */
+  private void deleteRepositoryComponents(TransactionContext tx, Repository repository) {
+    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(tx, repository.getId());
+    for (RepositoryComponent repositoryComponent : repositoryComponents) {
+      repositoryComponentDAO.delete(tx, repositoryComponent, false /* updatePolicyViolations */);
     }
   }
 
@@ -166,16 +186,29 @@ public class RepositoryDAO
       licenseOverrideDAO.delete(tx, licenseOverride);
     }
 
+    // We do not enroll the policy violation and component deletions in the transaction on purpose.
+    // This improves performance and keeps db operations (including commits) reasonably short, which means other
+    // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
+
     // Cascade to repository policy violations
-    new RepositoryPolicyViolationDAO().deleteByRepositoryId(tx, repository.getId());
+    RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getByRepositoryId(repository.getId());
+    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
+      repositoryPolicyViolationDAO.delete(repositoryPolicyViolation);
+    }
 
     // Cascade to repository components
-    new RepositoryComponentDAO().deleteByRepositoryId(tx, repository.getId(), false /* updatePolicyViolations */);
+    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    for (RepositoryComponent repositoryComponent : repositoryComponents) {
+      repositoryComponentDAO.delete(repositoryComponent, false /* updatePolicyViolations */);
+    }
 
     super.delete(tx, repository);
 
     long duration = System.currentTimeMillis() - start;
-    if (duration > 500) {
+    if (duration > 1000) {
       log.debug("Deleted repository {} with id {} in {} ms.", repository.getName(), repository.getId(), duration);
     }
   }

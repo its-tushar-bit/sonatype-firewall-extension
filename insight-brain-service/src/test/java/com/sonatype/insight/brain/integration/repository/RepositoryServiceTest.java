@@ -1667,20 +1667,26 @@ public class RepositoryServiceTest
     final String pathname3 = "pathname3";
     createRepositoryPolicyViolation(repository, pathname3, 5, 9);
 
+    // component with 1 violation that is waived
+    final String pathname4 = "pathname4";
+    createRepositoryPolicyViolation(repository, pathname4, true, 1);
+
     // add violations for a different repository, which should not be included in current repo details
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     createRepositoryPolicyViolation(repositoryOther, pathname1, 6);
 
     final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null);
 
-    assertThat(reportDetails.size(), is(4));
+    assertThat(reportDetails.size(), is(6));
 
     int idx = 0;
     // list should be sorted by 'threadLevel DESC', 'pathname ASC'
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 9, true);
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname1, "policyName", 5, true);
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 5, false);
-    assertRepositoryReportDetail(reportDetails.get(idx), pathname2, null, 0, true);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 9, true, false);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname1, "policyName", 5, true, false);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 5, false, false);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname4, "policyName", 1, true, true);
+    assertRepositoryReportDetail(reportDetails.get(idx++), pathname2, null, 0, true, false);
+    assertRepositoryReportDetail(reportDetails.get(idx), pathname4, null, 0, true, false);
   }
 
   @Test
@@ -1851,18 +1857,26 @@ public class RepositoryServiceTest
 
   private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
                                                               final String pathname,
-      int... threatLevels)
+                                                              int... threatLevels)
+  {
+    return createRepositoryPolicyViolation(repository, pathname, false, threatLevels);
+  }
+
+  private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
+                                                              final String pathname,
+                                                              final boolean waived,
+                                                              int... threatLevels)
   {
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
     for (final int threatLevel : threatLevels) {
-      tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, null);
+      tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, waived, null);
     }
     return component;
   }
 
   private void assertRepositoryReportDetail(final RepositoryReportDetail actualReportDetail,
       final String expectedPathname, final String expectedPolicyName, final int expectedThreatLevel,
-      final boolean expectedHighestThreatLevel)
+      final boolean expectedHighestThreatLevel, final boolean isWaived)
   {
     assertEquals(expectedPathname, actualReportDetail.getPathname());
     assertEquals(expectedPolicyName, actualReportDetail.getPolicyName());
@@ -1874,7 +1888,7 @@ public class RepositoryServiceTest
     assertEquals("g : a : v", actualReportDetail.getComponentDisplayText());
     assertEquals("maven", actualReportDetail.getComponentIdentifier().getFormat());
     assertFalse(actualReportDetail.isQuarantined());
-    assertFalse(actualReportDetail.isWaived());
+    assertEquals(isWaived, actualReportDetail.isWaived());
   }
 
   private Policy createQuarantiningPolicy(Repository repository) {

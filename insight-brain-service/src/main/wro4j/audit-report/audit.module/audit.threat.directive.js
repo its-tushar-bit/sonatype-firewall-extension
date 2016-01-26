@@ -12,6 +12,34 @@
     return encoder.text(text).html();
   }
 
+  function processData(data, idBase) {
+    data = data || [];
+    var componentWaivedMap = [], idx = idBase ? idBase : 0;
+
+    $.each(data, function(key, dataItem) {
+      if (dataItem.waived) {
+        componentWaivedMap[dataItem.pathname] = true;
+      }
+
+      //pseudo violation, marked as a not a violation, simply to get component in list
+      //checking for existing waived item so that we don't dump components that simply have
+      //no violations
+      //it is expected that items are sorted by threat level descending
+      if (!dataItem.policyName && componentWaivedMap[dataItem.pathname]) {
+        dataItem.pseudo = true;
+      }
+      else {
+        dataItem.pseudo = false;
+      }
+
+      dataItem.id = idx++;
+
+      dataItem.policyName = dataItem.policyName || 'No Violations';
+    });
+
+    return data;
+  }
+
   function createTable(data, $scope) {
     var columnGrouping = new Slick.ColumnGrouping({ columnId: 'policyName', style: 'scoreCol' }),
       scoreStyler = columnGrouping.getCellStyler(),
@@ -156,16 +184,7 @@
           return visible;
         }
       ],
-      dataProcessor: function(data) {
-        data = data || [];
-
-        $.each(data, function(key, dataItem) {
-          dataItem.id = key;
-          dataItem.policyName = dataItem.policyName || 'No Violations';
-        });
-
-        return data;
-      }
+      dataProcessor: processData
     });
   }
 
@@ -224,9 +243,8 @@
                 }
 
                 maxId++;
+                processData(data, maxId);
                 data.forEach(function (newItem) {
-                  newItem.policyName = newItem.policyName || 'No Violations';
-                  newItem.id = maxId++;
                   vm.grid.dataView.addItem(newItem);
                 });
                 vm.grid.dataView.endUpdate();

@@ -1051,7 +1051,13 @@ public class TemporaryEntity
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, int threatLevel, String pathname,
       ComponentIdentifier componentIdentifier)
   {
-    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, false, true, "policyId", "policyName",
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, false, componentIdentifier);
+  }
+
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, int threatLevel, String pathname,
+      boolean waived, ComponentIdentifier componentIdentifier)
+  {
+    return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, waived, true, "policyId", "policyName",
         componentIdentifier);
   }
 

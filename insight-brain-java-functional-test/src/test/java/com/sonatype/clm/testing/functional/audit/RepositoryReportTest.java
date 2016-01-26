@@ -188,7 +188,7 @@ public class RepositoryReportTest
     Filter.allMatchState().shouldBe(Filter.active);
     Filter.summaryViolations().shouldBe(Filter.active);
 
-    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, UNKNOWN);
+    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, UNKNOWN, NO_VIOLATION_ROW);
 
     testExactMatchesFilter();
     testUnknownMatchesFilter();
@@ -337,7 +337,7 @@ public class RepositoryReportTest
     ReportCip.policyTab().should(disappear);
 
     // Verify table has been updated and violation is waived
-    RepositoryReportPage.Table.rows().shouldHaveSize(5);
+    RepositoryReportPage.Table.rows().shouldHaveSize(7);
     Filter.allViolationsButton().click();
     RepositoryReportPage.Table.row(0).waived().should(exist).click();
 
@@ -424,7 +424,7 @@ public class RepositoryReportTest
     Filter.exactMatchStateButton().click();
     Filter.exactMatchState().shouldBe(Filter.active);
 
-    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW);
+    assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, NO_VIOLATION_ROW);
 
     resetFilter();
   }
@@ -531,6 +531,9 @@ public class RepositoryReportTest
 
   private final ExpectedRow WAIVED_ROW = new ExpectedRow(Table.criticalThreat, "Extremely Bad but its cool",
       "waived : component : 1.0", true, false);
+
+  private final ExpectedRow NO_VIOLATION_ROW = new ExpectedRow(Table.noThreat, "No violations",
+      "waived : component : 1.0", false, false);
 
   private static class ExpectedRow
   {

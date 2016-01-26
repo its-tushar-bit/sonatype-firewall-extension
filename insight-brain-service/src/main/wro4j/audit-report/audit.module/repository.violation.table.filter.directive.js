@@ -40,6 +40,9 @@
               filterArgs.highestThreatLevel = true;
               filterArgs.waived = false;
               break;
+            case 'all':
+              filterArgs.pseudo = false;
+              break;
           }
           vm.filterArgs = filterArgs;
         }

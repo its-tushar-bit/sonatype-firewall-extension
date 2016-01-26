@@ -465,10 +465,16 @@ public class RepositoryService
       boolean highestThreatLevel = true;
 
       if (componentViolations.size() > 0) {
+        boolean allWaived = true;
         for (final RepositoryPolicyViolation violation : componentViolations) {
           details.add(RepositoryReportDetail.create(component, violation, highestThreatLevel));
           // like the CI report, we choose one of the violations and use it as the highest.
           highestThreatLevel = violation.isWaived() ? highestThreatLevel : false;
+          allWaived = allWaived && violation.isWaived();
+        }
+        //if all violations of this component are waived, we still want to return a 'no violation' entry
+        if (allWaived) {
+          details.add(RepositoryReportDetail.create(component));
         }
       }
       else {
@@ -477,6 +483,7 @@ public class RepositoryService
     }
 
     // sort by threatLevel DESC, pathname ASC
+    // note the UI is dependant on this sort order
     Collections.sort(details, THREAT_LEVEL_DESC_PATHNAME_ASC);
 
     return details;

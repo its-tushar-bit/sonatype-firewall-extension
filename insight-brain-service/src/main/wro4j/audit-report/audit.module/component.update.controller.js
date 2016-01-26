@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  function ComponentUpdateController($scope, $rootScope, $http, $q, OwnerContext, hash) {
+  function ComponentUpdateController($scope, $rootScope, $http, $q, Messages, OwnerContext, hash) {
     var vm = this;
 
     vm.error = null;
@@ -33,8 +33,8 @@
       $rootScope.$broadcast('component.evaluation.updated', hash, promises);
       $q.all(promises).then(function () {
         $scope.$dismiss();
-      }, function () {
-        vm.error = arguments;
+      }, function (error) {
+        vm.error = Messages.getHttpErrorMessage(error);
       });
     }
 
@@ -45,11 +45,11 @@
         vm.reevaluated = true;
         updateComponent();
       }).error(function () {
-        vm.error = arguments;
+        vm.error = Messages.getHttpErrorMessage(arguments);
       });
     }
   }
-  ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'OwnerContext', 'hash'];
+  ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext', 'hash'];
 
   angular.module('audit').controller('component.update.controller', ComponentUpdateController);
 }());

@@ -37,7 +37,7 @@ describe('component.update.controller', function() {
   it('reevaluate error', inject(function ($httpBackend) {
     $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(404, 'failure');
     $httpBackend.flush();
-    expect(scope.vm.error).toEqual(['failure', 404, jasmine.any(Function), jasmine.any(Object)]);
+    expect(scope.vm.error).toEqual('failure');
 
     // ensure error is cleared
     scope.vm.doProcess();
@@ -54,7 +54,7 @@ describe('component.update.controller', function() {
 
     promise.reject('some failure');
     $timeout.flush();
-    expect(scope.vm.error).toEqual(['some failure']);
+    expect(scope.vm.error).toEqual('some failure');
 
     // ensure cleanup occurs
     scope.vm.doProcess();

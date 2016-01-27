@@ -55,7 +55,8 @@ public class ComponentLabelService
     AppliedLabels result = new AppliedLabels();
 
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.add(owner.getPublicId(), owner.getName(), owner.getType(),
+      String restOwnerId = ownerType == OwnerType.APPLICATION ? owner.getPublicId() : owner.getId();
+      result.add(restOwnerId, owner.getName(), owner.getType(),
           labelDAO.getByOwnerIdAndHash(owner.getId(), hash));
     }
 

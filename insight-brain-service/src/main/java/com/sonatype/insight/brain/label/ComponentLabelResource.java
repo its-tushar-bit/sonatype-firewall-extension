@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.label.Label;
 @Path(ComponentLabelResource.RESOURCE_PATH)
 public class ComponentLabelResource
 {
-  public static final String RESOURCE_PATH = "rest/label/component/{ownerType: application|organization|repository}/{ownerId}/{hash}";
+  public static final String RESOURCE_PATH = "rest/label/component/{ownerType: application|organization|repository|repository_container}/{ownerId}/{hash}";
 
   private final ComponentLabelService componentLabelService;
 

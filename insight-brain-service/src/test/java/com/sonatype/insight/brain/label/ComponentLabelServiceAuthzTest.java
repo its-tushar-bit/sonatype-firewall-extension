@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.label;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -40,6 +42,12 @@ public class ComponentLabelServiceAuthzTest
     componentLabelService.getComponentLabels(OwnerType.REPOSITORY, repository.getId(), "bad");
   }
 
+  @Test
+  public void testGetComponentLabelsForRepositoryContainer_Authorized() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    componentLabelService.getComponentLabels(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad");
+  }
+
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentLabelsForApplication_Unauthenticated() {
     componentLabelService.getComponentLabels(OwnerType.APPLICATION, app.getPublicId(), "bad");
@@ -53,6 +61,11 @@ public class ComponentLabelServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentLabelsForRepository_Unauthenticated() {
     componentLabelService.getComponentLabels(OwnerType.REPOSITORY, repository.getId(), "bad");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetComponentLabelsForRepositoryContainer_Unauthenticated() {
+    componentLabelService.getComponentLabels(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad");
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -73,6 +86,13 @@ public class ComponentLabelServiceAuthzTest
     componentLabelService.getComponentLabels(OwnerType.REPOSITORY, repository.getId(), "bad");
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testGetComponentLabelsForRepositoryContainer_Unauthorized() {
+    login();
+    componentLabelService.getComponentLabels(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad");
+  }
+
+
   @Test
   public void testSetComponentLabelForApplication_Authorized() {
     grantWritePermission(app.getId());
@@ -89,6 +109,23 @@ public class ComponentLabelServiceAuthzTest
     componentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bad", label);
   }
 
+  @Test
+  public void testSetComponentLabelForRepository_Authorized() {
+    grantWritePermission(repository.getId());
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    componentLabelService.setComponentLabel(OwnerType.REPOSITORY, repository.getId(), "bad", label);
+  }
+
+  @Test
+  public void testSetComponentLabelForRepositoryContainer_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    componentLabelService.setComponentLabel(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad", label);
+  }
+
+
   @Test(expected = UnauthenticatedException.class)
   public void testSetComponentLabelForApplication_Unauthenticated() {
     Label label = tempEntity.newLabel(org.getId());
@@ -99,6 +136,18 @@ public class ComponentLabelServiceAuthzTest
   public void testSetComponentLabelForOrganization_Unauthenticated() {
     Label label = tempEntity.newLabel(org.getId());
     componentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bad", label);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetComponentLabelForRepository_Unauthenticated() {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    componentLabelService.setComponentLabel(OwnerType.REPOSITORY, repository.getId(), "bad", label);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetComponentLabelForRepositoryContainer_Unauthenticated() {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    componentLabelService.setComponentLabel(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad", label);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -115,6 +164,22 @@ public class ComponentLabelServiceAuthzTest
 
     Label label = tempEntity.newLabel(org.getId());
     componentLabelService.setComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bad", label);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetComponentLabelForRepository_Unauthorized() {
+    grantReadPermission(repository.getId());
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    componentLabelService.setComponentLabel(OwnerType.REPOSITORY, repository.getId(), "bad", label);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetComponentLabelForRepositoryContainer_Unauthorized() {
+    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    componentLabelService.setComponentLabel(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad", label);
   }
 
   @Test
@@ -135,6 +200,24 @@ public class ComponentLabelServiceAuthzTest
     componentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bad", label.getId());
   }
 
+  @Test
+  public void testRemoveComponentLabelForRepository_Authorized() {
+    grantWritePermission(repository.getId());
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newComponentLabel(repository.getId(), label.getId(), "bad");
+    componentLabelService.deleteComponentLabel(OwnerType.REPOSITORY, repository.getId(), "bad", label.getId());
+  }
+
+  @Test
+  public void testRemoveComponentLabelForRepositoryContainer_Authorized() {
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, label.getId(), "bad");
+    componentLabelService.deleteComponentLabel(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad", label.getId());
+  }
+
   @Test(expected = UnauthenticatedException.class)
   public void testRemoveComponentLabelForApplication_Unauthenticated() {
     Label label = tempEntity.newLabel(org.getId());
@@ -147,6 +230,20 @@ public class ComponentLabelServiceAuthzTest
     Label label = tempEntity.newLabel(org.getId());
     tempEntity.newComponentLabel(org.getId(), label.getId(), "bad");
     componentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bad", label.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRemoveComponentLabelForRepository_Unauthenticated() {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newComponentLabel(repository.getId(), label.getId(), "bad");
+    componentLabelService.deleteComponentLabel(OwnerType.REPOSITORY, repository.getId(), "bad", label.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRemoveComponentLabelForRepositoryContainer_Unauthenticated() {
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, label.getId(), "bad");
+    componentLabelService.deleteComponentLabel(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad", label.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -165,5 +262,23 @@ public class ComponentLabelServiceAuthzTest
     Label label = tempEntity.newLabel(org.getId());
     tempEntity.newComponentLabel(org.getId(), label.getId(), "bad");
     componentLabelService.deleteComponentLabel(OwnerType.ORGANIZATION, org.getId(), "bad", label.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveComponentLabelForRepository_Unauthorized() {
+    grantReadPermission(repository.getId());
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newComponentLabel(repository.getId(), label.getId(), "bad");
+    componentLabelService.deleteComponentLabel(OwnerType.REPOSITORY, repository.getId(), "bad", label.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveComponentLabelForRepositoryContainer_Unauthorized() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, label.getId(), "bad");
+    componentLabelService.deleteComponentLabel(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, "bad", label.getId());
   }
 }

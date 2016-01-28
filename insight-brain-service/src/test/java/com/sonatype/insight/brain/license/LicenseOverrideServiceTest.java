@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.migration.RootOrganizationConfigMigrationUtils
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -82,6 +83,17 @@ public class LicenseOverrideServiceTest
     testGetAppliedLicenseOverrides_hierarchyHideRoot(tempEntity.newRepository());
   }
 
+  @Test
+  public void testGetAppliedLicenseOverrides_hierarchyHideRoot_RepositoryContainer() {
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
+    Owner owner = RepositoryContainer.SINGLETON;
+    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
+        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    assertThat(overrides.licenseOverridesByOwner, hasSize(1));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getId())));
+    assertThat(overrides.licenseOverridesByOwner, not(hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID))));
+  }
+
   private void testGetAppliedLicenseOverrides_hierarchy(final Owner owner) {
     testGetAppliedLicenseOverrides_hierarchy(owner, owner.getId());
   }
@@ -109,6 +121,17 @@ public class LicenseOverrideServiceTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
 
     testGetAppliedLicenseOverrides_hierarchy(tempEntity.newRepository());
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverrides_hierarchy_RepositoryContainer() {
+    Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
+    Owner owner = RepositoryContainer.SINGLETON;
+    final AppliedLicenseOverrides overrides = service.getAppliedLicenseOverrides(owner.getType(), owner.getId(),
+        JsonEncodedComponentIdentifier.copy(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    assertThat(overrides.licenseOverridesByOwner, hasSize(2));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(owner.getId())));
+    assertThat(overrides.licenseOverridesByOwner, hasItem(ownerId(Organization.ROOT_ORGANIZATION_ID)));
   }
 
   private Matcher<LicenseOverrideByOwner> ownerId(final String ownerId) {

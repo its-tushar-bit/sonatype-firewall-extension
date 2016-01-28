@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 
@@ -27,7 +28,6 @@ public class LicenseOverrideServiceAuthzTest
   private static final ComponentIdentifier COMPONENT_IDENTIFIER =
       ComponentIdentifier.createMavenCoordinates("g", "a", "1");
 
-
   @Inject
   private LicenseOverrideService licenseOverrideService;
 
@@ -41,6 +41,7 @@ public class LicenseOverrideServiceAuthzTest
     grantWritePermission(owner.getId());
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
+    tempEntity.register(override);
     licenseOverrideService.addLicenseOverride(owner.getType(), ownerId, override, null, mockRequest);
   }
 
@@ -57,6 +58,11 @@ public class LicenseOverrideServiceAuthzTest
   @Test
   public void testAddLicenseOverride_Authorized_Repository() throws Exception {
     testAddLicenseOverride_Authorized(repository);
+  }
+
+  @Test
+  public void testAddLicenseOverride_Authorized_RepositoryContainer() throws Exception {
+    testAddLicenseOverride_Authorized(RepositoryContainer.SINGLETON);
   }
 
   private void testAddLicenseOverride_Unauthorized(final Owner owner)
@@ -89,6 +95,11 @@ public class LicenseOverrideServiceAuthzTest
     testAddLicenseOverride_Unauthorized(repository);
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testAddLicenseOverride_Unauthorized_RepositoryContainer() throws Exception {
+    testAddLicenseOverride_Unauthorized(RepositoryContainer.SINGLETON);
+  }
+
   private void testAddLicenseOverride_Unauthenticated(final Owner owner) throws Exception {
     testAddLicenseOverride_Unauthenticated(owner, owner.getId());
   }
@@ -112,6 +123,11 @@ public class LicenseOverrideServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testAddLicenseOverride_Unauthenticated_Repository() throws Exception {
     testAddLicenseOverride_Unauthenticated(repository);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddLicenseOverride_Unauthenticated_RepositoryContainer() throws Exception {
+    testAddLicenseOverride_Unauthenticated(RepositoryContainer.SINGLETON);
   }
 
   private void testDeleteLicenseOverride_Authorized(final Owner owner) throws Exception {
@@ -141,6 +157,11 @@ public class LicenseOverrideServiceAuthzTest
     testDeleteLicenseOverride_Authorized(repository);
   }
 
+  @Test
+  public void testDeleteLicenseOverride_Authorized_RepositoryContainer() throws Exception {
+    testDeleteLicenseOverride_Authorized(RepositoryContainer.SINGLETON);
+  }
+
   private void testDeleteLicenseOverride_Unauthorized(final Owner owner) throws Exception {
     testDeleteLicenseOverride_Unauthorized(owner, owner.getId());
   }
@@ -148,8 +169,8 @@ public class LicenseOverrideServiceAuthzTest
   private void testDeleteLicenseOverride_Unauthorized(final Owner owner, final String ownerId) throws Exception {
     grantReadPermission(owner.getId());
 
-    LicenseOverride override = tempEntity.newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER,
-        LicenseOverrideStatus.CONFIRMED, (String) null);
+    LicenseOverride override = tempEntity
+        .newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
     licenseOverrideService.deleteLicenseOverride(owner.getType(), ownerId, override.getId(), null, mockRequest);
   }
 
@@ -166,6 +187,11 @@ public class LicenseOverrideServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testDeleteLicenseOverride_Unauthorized_Repository() throws Exception {
     testDeleteLicenseOverride_Unauthorized(repository);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteLicenseOverride_Unauthorized_RepositoryContainer() throws Exception {
+    testDeleteLicenseOverride_Unauthorized(RepositoryContainer.SINGLETON);
   }
 
   private void testDeleteLicenseOverride_Unauthenticated(final Owner owner) throws Exception {
@@ -193,6 +219,11 @@ public class LicenseOverrideServiceAuthzTest
     testDeleteLicenseOverride_Unauthenticated(repository);
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteLicenseOverride_Unauthenticated_RepositoryContainer() throws Exception {
+    testDeleteLicenseOverride_Unauthenticated(RepositoryContainer.SINGLETON);
+  }
+
   private void testGetAppliedLicenseOverrides_Authorized(final Owner owner) throws Exception {
     testGetAppliedLicenseOverrides_Authorized(owner, owner.getId());
   }
@@ -216,6 +247,11 @@ public class LicenseOverrideServiceAuthzTest
   @Test
   public void testGetAppliedLicenseOverrides_Authorized_Repository() throws Exception {
     testGetAppliedLicenseOverrides_Authorized(repository);
+  }
+
+  @Test
+  public void testGetAppliedLicenseOverrides_Authorized_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverrides_Authorized(RepositoryContainer.SINGLETON);
   }
 
   private void testGetAppliedLicenseOverrides_Unauthorized(final Owner owner) throws Exception {
@@ -243,6 +279,11 @@ public class LicenseOverrideServiceAuthzTest
     testGetAppliedLicenseOverrides_Unauthorized(repository);
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAppliedLicenseOverrides_Unauthorized_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverrides_Unauthorized(RepositoryContainer.SINGLETON);
+  }
+
   private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner) throws Exception {
     testGetAppliedLicenseOverrides_Unauthenticated(owner, owner.getId());
   }
@@ -267,5 +308,10 @@ public class LicenseOverrideServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetAppliedLicenseOverrides_Unauthenticated_Repository() throws Exception {
     testGetAppliedLicenseOverrides_Unauthenticated(repository);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAppliedLicenseOverrides_Unauthenticated_RepositoryContainer() throws Exception {
+    testGetAppliedLicenseOverrides_Unauthenticated(RepositoryContainer.SINGLETON);
   }
 }

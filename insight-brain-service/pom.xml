@@ -659,6 +659,7 @@
                 <source>frontend/lib/ngUpload/ng-upload.js</source>
                 <source>frontend/lib/d3/d3.js</source>
                 <source>frontend/lib/fuse.js/src/fuse.js</source>
+                <source>frontend/SpecUtil.js</source>
               </preloadSources>
               <sourceIncludes>
                 <include>frontend/**/*.module.js</include>
@@ -672,7 +673,6 @@
                 <exclude>frontend/policy/js/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
-                <include>frontend/SpecUtil.js</include>
                 <include>frontend/**/*utils.js</include>
                 <include>frontend/**/lib/*.js</include>
                 <include>frontend/**/*MockData.js</include>

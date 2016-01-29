@@ -33,7 +33,8 @@
         styleguideSrc: 'src/main/styleguide',
         generated: 'target/classes/assets-new',
         styleguide: 'target/styleguide',
-        temp: '.tmp'
+        temp: '.tmp',
+        templates: '**/*.tpl.html'
       },
       bower: {
         install: {
@@ -86,6 +87,7 @@
           cwd: '<%= config.frontend %>',
           src: [
             '**/*.{html,ttf,woff,woff2,png,gif,jpg}',
+            '!<%= config.templates %>',
             '!lib/*',
             'lib/**/*.{js,css,ttf,woff,woff2}',
             '!lib/**/test/*'
@@ -159,6 +161,18 @@
         },
         compiled_assets: {
           src: '<%= config.generated %>/policy/js/cip-loader.js'
+        }
+      },
+      html2js: {
+        options: {
+          base: '<%= config.frontend %>',
+          quoteChar: '\'',
+          useStrict: true,
+          module: 'templates'
+        },
+        build: {
+          src: ['<%= config.frontend %>/<%= config.templates %>'],
+          dest: '<%= config.temp %>/js/templates.module.js'
         }
       },
       jshint: {
@@ -297,6 +311,7 @@
             '<%= config.frontend %>/**/*.{html,eot,svg,ttf,woff,png,gif,js,jpg}'
           ],
           tasks: [
+            'configure_override:develop',
             'copy:develop',
             'copy:build',
             'template:build'
@@ -331,6 +346,7 @@
       'copy:build_cip',
       'copy:build_brain_client',
       'sass',
+      'html2js:build',
       'useminPrepare',
       'concat:generated',
       'uglify:generated',

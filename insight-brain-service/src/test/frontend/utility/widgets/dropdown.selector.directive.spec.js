@@ -14,7 +14,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       var scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
 
-      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
+      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
         testModel: null,
@@ -86,7 +86,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       var scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
 
-      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
+      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
         testModel: null,
@@ -130,7 +130,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       var scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
 
-      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.html');
+      SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
         testModel: 1,

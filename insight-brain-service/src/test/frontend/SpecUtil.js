@@ -1,6 +1,7 @@
 window.CLM = {
   path: '../brain/'
 };
+window.angularDebug = true;
 var SpecUtil = {
   setupProviders: function(applicationId, organizationId) {
     angular.module('ApplicationIdProvider', []).service('ApplicationId',function() {

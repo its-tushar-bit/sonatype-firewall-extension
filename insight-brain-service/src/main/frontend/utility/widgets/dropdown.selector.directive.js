@@ -18,7 +18,7 @@
         optionValueParam: '@?',
         disabled: '=?ngDisabled'
       },
-      templateUrl: 'utility/widgets/dropdown.selector.directive.html',
+      templateUrl: 'utility/widgets/dropdown.selector.directive.tpl.html',
       controller: 'dropdown.selector.controller',
       controllerAs: 'vm',
       bindToController: true,

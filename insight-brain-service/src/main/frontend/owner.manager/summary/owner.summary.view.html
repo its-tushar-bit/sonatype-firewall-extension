@@ -46,12 +46,14 @@
           <div class="sub-header">associated with {{vm.ownerName}}</div>
           <div class="simple-list">
             <h4 class="subsection-header">
-              <button same-owner-edit-sref="category" class="btn btn-tertiary">
+              <button class="btn btn-tertiary" ng-class="{disabled: !vm.areAnyCategoriesDefined}"
+                      data-tooltip="{{:: vm.areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
+                      data-tooltip-placement="top" data-tooltip-append-to-body="true" ng-click="vm.associateCategories()">
                 <i class="fa fa-pencil"></i>Associate App Categories
               </button>
             </h4>
             <div class="empty-list" ng-if="vm.appliedCategories.length <= 0"><!--
-            -->No application categories associated
+            -->No application categories {{vm.areAnyCategoriesDefined ? 'associated' : 'defined'}}
             </div>
             <ul>
               <li ng-class="category.description ? 'with-subtitle' : 'simple'"

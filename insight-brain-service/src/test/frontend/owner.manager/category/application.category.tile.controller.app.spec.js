@@ -48,11 +48,13 @@ describe('application.category.tile.controller.app.spec.js', function() {
 
         mockApplicationStore.resolveGet([owner]);
         $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(mockAppliedTags);
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
         $timeout.flush();
         $httpBackend.flush();
 
         expect(vm.ownerName).toEqual(owner.name);
         expect(vm.appliedCategories.length).toEqual(mockAppliedTags.length);
+        expect(vm.areAnyCategoriesDefined).toBeFalsy();
         vm.appliedCategories.forEach(function(category, index) {
           expect(category).toEqual(mockAppliedTags[index]);
         });
@@ -61,6 +63,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
       it('Missing App Info', function() {
         mockApplicationStore.resolveGet([{}, {}]);
         $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(TagResourceMockData.getApplicationTagUrl());
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
         $timeout.flush();
         $httpBackend.flush();
 
@@ -71,6 +74,7 @@ describe('application.category.tile.controller.app.spec.js', function() {
             mockApplicationStore.resolveGet([owner]);
             $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(400,
                 'Bad Request');
+            $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
             $timeout.flush();
             $httpBackend.flush();
 

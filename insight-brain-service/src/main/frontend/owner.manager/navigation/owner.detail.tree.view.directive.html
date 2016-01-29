@@ -23,7 +23,12 @@
       <a class="tree-view-item"
          ng-if="vm.isApp && (vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category'))"
          ui-sref=".category"
-         ui-sref-active="selected">
+         ui-sref-active="selected"
+         ng-class="{disabled: !vm.areAnyCategoriesDefined}"
+         data-tooltip="{{:: vm.areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
+         data-tooltip-placement="top"
+         data-tooltip-append-to-body="true"
+         ng-click="vm.areAnyCategoriesDefined || $event.preventDefault()">
         <i class="fa fa-pencil size-16px size-fw tree-view-icon"></i><!--
         -->Associate App Categories
       </a>

@@ -10,13 +10,15 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
         $scope,
         $timeout,
         $httpBackend,
+        CLMLocations,
         CLMAppLocations,
         mockOwnerStore = StoreUtils().createMockStore(storeName);
 
-    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_) {
+    beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
       $scope = $rootScope.$new();
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
+      CLMLocations = _CLMLocations_;
       CLMAppLocations = _CLMAppLocations_;
 
       spyOn(CLMAppLocations, 'isApplication').andReturn(type === 'application');
@@ -36,31 +38,27 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     });
 
     it('Properly Loading Data', function() {
-      mockOwnerStore.resolveGet([owner]);
-      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(SidebarResourceMockData.getOwnerDetailsUrl());
-      $httpBackend.flush();
-      $timeout.flush();
+      resolveGet([owner], [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       expect(vm.ownerName).toBe(owner.name);
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
+
+      if (vm.isApp) {
+        expect(vm.areAnyCategoriesDefined).toBeFalsy()
+      }
     });
 
     it('Properly Detecting Details Loading Error', function() {
-      mockOwnerStore.resolveGet([owner]);
-      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(400, 'Bad Request');
-      $httpBackend.flush();
-      $timeout.flush();
+      resolveGet([owner], [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
+      expect(vm.error.data).toEqual('Bad Request');
     });
 
     it('Properly Displaying Owner Name Loading Error', function() {
-      mockOwnerStore.resolveGet([{}, {}]);
-      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(SidebarResourceMockData.getOwnerDetailsUrl());
-      $httpBackend.flush();
-      $timeout.flush();
+      resolveGet([{}, {}], [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       expect(vm.ownerName).toBeUndefined();
       expect(vm.error).toBe('Could not find an ' + type + ' with ID ' +
@@ -68,17 +66,20 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     });
 
     it('Properly Updating Data via broadcast', inject(function($rootScope) {
-      mockOwnerStore.resolveGet([owner]);
-      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(400, 'Bad Request');
-      $httpBackend.flush();
-      $timeout.flush();
+      resolveGet([owner], [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
+      expect(vm.error.data).toEqual('Bad Request');
 
       $rootScope.$broadcast('resource.data.modified');
       mockOwnerStore.resolveRefresh([owner]);
       $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(SidebarResourceMockData.getOwnerDetailsUrl());
+
+      if (vm.isApp) {
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())).respond([]);
+      }
+
       $httpBackend.flush();
       $timeout.flush();
 
@@ -86,6 +87,18 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
     }));
+
+    function resolveGet(ownerData, detailsDataArray) {
+      mockOwnerStore.resolveGet(ownerData);
+      $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
+
+      if (vm.isApp) {
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())).respond([]);
+      }
+
+      $httpBackend.flush();
+      $timeout.flush();
+    }
   }
 
   OwnerUtils.runTestsForOwnerTypes(createTests);

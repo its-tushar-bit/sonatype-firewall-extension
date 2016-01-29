@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
@@ -198,8 +199,27 @@ public class ApplicationSummaryViewTest
   @Override
   @Test
   public void testApplicationCategoryTile() {
+    testApplicationCategoryTile_noneDefined();
+
+    Tag category = tempEntity.newTag(application.getParentOwnerId(), "Test Tag", Color.blue);
+    refresh();
+
     testApplicationCategoryTile_Empty();
-    testApplicationCategoryTile_WithAppliedCategory();
+    testApplicationCategoryTile_WithAppliedCategory(category);
+  }
+
+  private void testApplicationCategoryTile_noneDefined() {
+    CategoryTile categoryTile = new CategoryTileAppContext();
+    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
+    categoryTile.newButton().shouldBe(visible).shouldHave(categoryTile.buttonText()).shouldHave(CLM.DISABLED_CLASS);
+
+    categoryTile.categoryLists().shouldHaveSize(1);
+
+    TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
+
+    appliedCategoryList.emptyDescriptor().shouldBe(visible)
+        .shouldHave(CategoryTileAppContext.NO_CATEGORIES_DEFINED);
+    appliedCategoryList.elements().shouldBe(empty);
   }
 
   private void testApplicationCategoryTile_Empty() {
@@ -216,8 +236,7 @@ public class ApplicationSummaryViewTest
     appliedCategoryList.elements().shouldBe(empty);
   }
 
-  private void testApplicationCategoryTile_WithAppliedCategory() {
-    Tag category = tempEntity.newTag(application.getParentOwnerId(), "Test Tag", Color.blue);
+  private void testApplicationCategoryTile_WithAppliedCategory(Tag category) {
     tempEntity.newApplicationTag(application.getId(), category.getId());
 
     refresh();

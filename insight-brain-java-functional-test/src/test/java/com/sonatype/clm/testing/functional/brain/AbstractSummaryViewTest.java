@@ -784,7 +784,9 @@ public abstract class AbstractSummaryViewTest
         new CategoryTileOrgContext() : new CategoryTileAppContext();
     TileSimpleList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
-    categoryList.emptyDescriptor().shouldBe(visible).shouldHave(categoryTile.emptyListDescriptorText());
+    categoryList.emptyDescriptor().shouldBe(visible).shouldHave(
+        OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? categoryTile
+            .emptyListDescriptorText() : CategoryTileAppContext.NO_CATEGORIES_DEFINED);
   }
 
   protected int getHierarchySize(String ownerId) {

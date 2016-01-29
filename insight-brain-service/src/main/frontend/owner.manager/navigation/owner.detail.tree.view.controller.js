@@ -6,11 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMAppLocations, ApplicationStore,
+  function OwnerDetailTreeViewController($scope, $q, $http, $state, CLMLocations, CLMAppLocations, ApplicationStore,
                                          OrganizationStore, LocalRoleService)
   {
     var vm = this;
 
+    vm.areAnyCategoriesDefined = undefined;
     vm.isApp = CLMAppLocations.isApplication();
     vm.state = $state;
     vm.ownerName = undefined;
@@ -27,10 +28,16 @@
     vm.doLoad();
 
     function doLoad() {
-      $q.all([
+      var promises = [
         (vm.isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get'](),
         $http.get(CLMAppLocations.getOwnerDetailsUrl())
-      ]).then(function(results) {
+      ];
+
+      if (vm.isApp) {
+        promises.push($http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())));
+      }
+
+      $q.all(promises).then(function(results) {
         results[0].some(function(candidate) {
           if (candidate[vm.isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
             vm.ownerName = candidate.name;
@@ -42,6 +49,10 @@
         var allMembersByRoles = vm.details.roles.membersByRole;
         vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
+
+        if (vm.isApp) {
+          vm.areAnyCategoriesDefined = results[2].data.length > 0;
+        }
 
         if (!vm.ownerName) {
           vm.error = 'Could not find an ' + (vm.isApp ? 'application' : 'organization') + ' with ID ' +
@@ -58,7 +69,8 @@
   }
 
   OwnerDetailTreeViewController.$inject = [
-    '$scope', '$q', '$http', '$state', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore', 'local.role.service'
+    '$scope', '$q', '$http', '$state', 'CLMLocations', 'CLMAppLocations', 'ApplicationStore', 'OrganizationStore',
+    'local.role.service'
   ];
 
   angular //

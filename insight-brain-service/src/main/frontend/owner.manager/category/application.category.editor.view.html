@@ -1,5 +1,6 @@
 <div id="application-category-editor" class="tile-editor-container">
-  <div class="tile" load-wrapper="vm.loadError" loading="!vm.ownerName && !vm.categories" reload="vm.doLoad()">
+  <div class="tile" load-wrapper="vm.loadError" loading="!vm.ownerName && !vm.categories" reload="vm.doLoad()"
+       ng-if="!vm.categories || vm.categories.length > 0">
     <h2>
       <hexagon class="outline size-20px"></hexagon><!--
         -->{{vm.ownerName}} Application Categories
@@ -22,5 +23,12 @@
         </button>
       </div>
     </form>
+  </div>
+  <div ng-if="vm.categories && vm.categories.length === 0">
+    <div class="clm-alert alert alert-error">
+      <div>
+        <i class="fa fa-warning"></i>No application categories defined.
+      </div>
+    </div>
   </div>
 </div>

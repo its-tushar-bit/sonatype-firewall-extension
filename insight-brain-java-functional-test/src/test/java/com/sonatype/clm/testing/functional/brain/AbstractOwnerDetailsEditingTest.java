@@ -8,10 +8,12 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup.OwnerDetailTreeViewItem;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
@@ -43,6 +45,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     extends AbstractFunctionalTest
 {
   private final static List<Role> ROLES = new RoleDAO().getApplicationRoles();
+
   private Owner currentOwner;
 
   private Label label;
@@ -101,6 +104,26 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.item(2).root().shouldHave(OwnerDetailTreeViewItem.SELECTED_CLASS);
       detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
       waitUntilUrl(CategoryEditorPage.urlToEdit(currentOwner.getPublicId(), category.getId()));
+
+      back();
+    }
+    else {
+      detailGroup.items().shouldHaveSize(2);
+      detailGroup.item(1).root().shouldBe(visible).shouldHave(CLM.DISABLED_CLASS).click();
+
+      // Click should not redirect
+      waitUntilUrl(OwnerDetailsEditingPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
+
+      tempEntity.newTag(currentOwner.getParentOwnerId());
+      refresh();
+
+      detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_EXPAND_CLASS);
+      detailGroup.twisty().click();
+      detailGroup.twisty().shouldBe(visible).shouldHave(OwnerDetailTreeViewGroup.TWISTY_COLLAPSE_CLASS);
+      detailGroup.items().shouldHaveSize(2);
+      detailGroup.item(1).root().shouldBe(visible).shouldNotHave(CLM.DISABLED_CLASS).click();
+
+      waitUntilUrl(ApplicationCategoryEditorPage.urlToEdit(currentOwner.getPublicId()));
 
       back();
     }

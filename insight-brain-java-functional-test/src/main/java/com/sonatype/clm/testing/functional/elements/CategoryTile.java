@@ -40,6 +40,8 @@ public abstract class CategoryTile
   public static class CategoryTileAppContext
       extends CategoryTile
   {
+    public static final Condition NO_CATEGORIES_DEFINED = Condition.text("No application categories defined");
+
     @Override
     public Condition subHeaderText(String ownerName) {
       return Condition.text("associated with " + ownerName);

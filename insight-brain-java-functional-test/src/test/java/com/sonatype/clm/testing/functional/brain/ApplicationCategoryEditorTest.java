@@ -61,14 +61,11 @@ public class ApplicationCategoryEditorTest
   }
 
   @Test
-  public void testEmptyCategories() {
-    CategoryTile categoryTile = new CategoryTileAppContext();
-    
-    categoryTile.newButton().click();
-    ApplicationCategoryEditorPage.title().shouldHave(text(YE_OLE_APPLICATION));
-    ApplicationCategoryEditorPage.associationEditor().root().shouldBe(visible);
-    ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(0);
-    ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED_CLASS);
+  public void testNoCategories() {
+    refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
+    ApplicationCategoryEditorPage.errorBox().root().shouldBe(visible);
+    ApplicationCategoryEditorPage.errorBox().message()
+        .shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
   }
 
   @Test

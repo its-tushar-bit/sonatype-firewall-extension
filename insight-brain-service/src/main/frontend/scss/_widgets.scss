@@ -264,7 +264,7 @@
 
       &.disabled {
         color: $grey-4;
-        cursor: default;
+        cursor: not-allowed;
 
         .inverse {
           background-color: $grey-4;

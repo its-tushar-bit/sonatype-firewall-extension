@@ -861,3 +861,17 @@ root-organization-migrate {
 #migrate-organization-wrapper {
   margin-left: 18px;
 }
+
+table.table-repositories th {
+  line-height: 30px;
+}
+
+table.table-repositories a, a:hover, a:active, a:focus, a:visited {
+  text-decoration: none;
+  color: #36424e;
+}
+
+table.table-repositories img {
+  padding-bottom: 4px;
+  padding-right: 6px;
+}

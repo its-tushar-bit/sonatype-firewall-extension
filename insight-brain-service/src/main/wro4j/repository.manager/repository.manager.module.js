@@ -7,13 +7,19 @@
 (function(angular) {
   'use strict';
 
-  angular.module('repository.manager.module', [])
+  angular.module('repository.manager.module', ['ui.router', 'CLMLocation', 'AngularCommon'])
       .config(['$stateProvider', function($stateProvider) {
         $stateProvider.state('management.repositories', {
           parent: 'management',
           url: '/repositories',
           controller: angular.noop,
           templateUrl: '../assets/repository/manager/state/repositories.manager.view.html?' + clmBuildTimestamp
+        }).state('management.repositories.configuration', {
+          parent: 'management.repositories',
+          url: '/configuration',
+          controller: 'repository.manager.configuration.controller',
+          controllerAs: 'vm',
+          templateUrl: '../assets/repository/manager/state/repository.configuration.view.html?' + clmBuildTimestamp
         }).state('management.repositories.security', {
           parent: 'management.repositories',
           url: '/security',

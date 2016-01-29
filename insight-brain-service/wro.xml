@@ -172,6 +172,7 @@
 
   <group name='repository'>
     <js>/repository.manager/repository.manager.module.js</js>
+    <js>/repository.manager/repository.manager.configuration.controller.js</js>
   </group>
 
   <group name='report'>

@@ -1,0 +1,23 @@
+<div id="configuration" style='min-width:955px'>
+  <div load-wrapper2="vm.error" reload="vm.doLoad()" error-message="Unable to load repositories." loading="!vm.repositories">
+    <table class="table table-striped table-repositories" sortable="repository.publicId">
+      <thead>
+      <tr>
+        <th sort-columns="repository.publicId">REPOSITORY</th>
+        <th sort-columns="managerInstanceId,repository.publicId">REPOSITORY MANAGER</th>
+        <th sort-columns="repository.enabled,repository.publicId" sort-inverted="true" width="50%">STATUS</th>
+      </tr>
+      </thead>
+      <tr ng-repeat="repository in vm.repositories | orderBy:getSortField()">
+        <td>{{::repository.repository.publicId}}</td>
+        <td>{{::repository.managerInstanceId}}</td>
+        <td>
+          <img ng-src="../assets/img/icon_{{repository.repository.enabled ? 'green_check' : 'gray_x'}}.png"> {{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
+          <div class="btn-group hover-buttons floatRight">
+            <button type="button" class="btn btn-mini" title="Remove Repository" ng-click="vm.viewRemoveRepository(repository)"><i class="icon-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

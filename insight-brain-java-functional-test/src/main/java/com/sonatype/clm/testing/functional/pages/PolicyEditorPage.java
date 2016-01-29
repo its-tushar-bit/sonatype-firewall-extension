@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.ActionsNotificationsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.InheritanceSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
@@ -60,4 +61,9 @@ public class PolicyEditorPage
   public static InheritanceSection inheritanceSection() {
     return new InheritanceSection();
   }
+
+  public static ActionsNotificationsSection actionsNotificationsSection() {
+    return new ActionsNotificationsSection();
+  }
+
 }

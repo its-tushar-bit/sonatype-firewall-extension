@@ -67,6 +67,7 @@
       </div>
       <div id="policy-edit-actions" class="editor-section">
         <div class="editor-section-header">Actions and Notifications</div>
+        <policy-editor-actions actions="vm.dirtyPolicy.actions" monitor-notify-actions="vm.dirtyPolicy.monitorNotifyActions"></policy-editor-actions>
       </div>
       <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.isPolicyDirty()"

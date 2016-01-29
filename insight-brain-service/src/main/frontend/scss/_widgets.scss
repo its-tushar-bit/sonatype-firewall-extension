@@ -93,6 +93,53 @@
 }
 
 /*
+  ##Twisty Container
+  ```
+    <div class="twisty-container">
+      <div>
+        <span class="twisty expand"></span>
+        <span>Sonatype</span>
+      </div>
+      <div>
+        <span class="twisty collapse"></span>
+        <span>Sonatype</span>
+      </div>
+    </div>
+  ```
+*/
+.twisty-container {
+  display: inline-block;
+
+  .twisty {
+    content: "";
+    -webkit-font-smoothing: antialiased;
+    display: inline-block;
+    width: 0;
+    cursor: pointer;
+    vertical-align: text-top;
+
+    &.empty {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.collapse {
+      border-top: 5px solid $slate;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      margin: 6px 3px;
+    }
+
+    &.expand {
+      border-left: 5px solid $slate;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      margin: 3px 8px 3px 3px;
+    }
+  }
+}
+
+/*
   ##Organization Tree View
 
   ```
@@ -273,38 +320,6 @@
 
       &:last-of-type:not(:first-of-type) {
         margin-bottom: 8px;
-      }
-    }
-
-    .twisty-container {
-      display: inline-block;
-
-      .twisty {
-        content: "";
-        -webkit-font-smoothing: antialiased;
-        display: inline-block;
-        width: 0;
-        cursor: pointer;
-        vertical-align: text-top;
-
-        &.empty {
-          width: 16px;
-          height: 16px;
-        }
-
-        &.collapse {
-          border-top: 5px solid $slate;
-          border-left: 5px solid transparent;
-          border-right: 5px solid transparent;
-          margin: 6px 3px;
-        }
-
-        &.expand {
-          border-left: 5px solid $slate;
-          border-top: 5px solid transparent;
-          border-bottom: 5px solid transparent;
-          margin: 3px 8px 3px 3px;
-        }
       }
     }
   }

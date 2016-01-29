@@ -202,4 +202,64 @@
       margin-bottom: 21px;
     }
   }
+  
+  #policy-edit-actions {
+    table {
+      width: 100%;
+
+      label {
+        color: $slate;
+      }
+
+      tr {
+        border-bottom: 1px solid $grey-1;
+        height: 40px;
+        
+        &.expanded {
+          border-bottom: 0px;
+        }
+      }
+
+      td:first-child {
+        @extend .semi-bold;
+        width: 100%;
+      }
+
+      td {
+        @extend .regular;
+        font-size: 14px;
+        color: $slate;
+        white-space: nowrap;
+        padding-left: 12px;
+
+        label {
+          padding-left: 0px;
+
+          span {
+            > .fa {
+              margin-right: 8px;
+              opacity: 0.5;
+            }
+
+            > .fail {
+              color: $red;
+            }
+
+            > .warn {
+              color: $orange;
+            }
+          }
+        }
+
+        input[type="radio"]:checked + span i {
+          opacity: 1.0;
+        }
+
+        .notification-count {
+          @extend .semi-bold;
+          font-size: 16px;
+        }
+      }
+    }
+  }
 }

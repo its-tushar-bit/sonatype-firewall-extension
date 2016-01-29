@@ -8,7 +8,10 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ActionItemList;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
@@ -39,6 +42,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -79,6 +83,7 @@ public abstract class AbstractPolicyEditorTest
 
     assertNewPolicyStateIsCorrect();
     testCreatePolicy_summarySection();
+    testCreatePolicy_actionsNotificationsSection();
     testCreatePolicy_constraintSection();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
     FormMask.seeAndWaitForDismissal();
@@ -107,7 +112,6 @@ public abstract class AbstractPolicyEditorTest
   @Test
   public void testEditPolicy() {
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "original name", 1);
-
     Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
     constraint1.addCondition(new Condition("AgeInDays", "older than", "730"));
     Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
@@ -122,6 +126,9 @@ public abstract class AbstractPolicyEditorTest
     constraint3.addCondition(new Condition("Coordinates", "do not match", "blah:blah:blah"));
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
+
+    policy.addAction(Stage.ID_DEVELOP, new Action(Action.ID_WARN));
+    policy.addAction(Stage.ID_BUILD, new Action(Action.ID_FAIL));
 
     tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
 
@@ -143,6 +150,7 @@ public abstract class AbstractPolicyEditorTest
     testEditPolicy_summarySection();
     testEditPolicy_inheritanceSection();
     testEditPolicy_constraintSection(policy);
+    testEditPolicy_actionsNotificationsSection(policy);
     testDeletePolicy(policyDAO.getById(policy.getId()));
   }
 
@@ -151,7 +159,7 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().val("updated name");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
 
-    FormMask.root().shouldBe(visible).shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
     changeThreatLevel(6);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
 
@@ -334,6 +342,73 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraints.get(0).getConditions().size(), is(1));
   }
 
+  private void testEditPolicy_actionsNotificationsSection(Policy policy) {
+    testEditPolicy_actionsNotificationsSection_stageActions(policy);
+
+    //TODO: CLM-5875 Add notification list view - This should also test notification count + twisty collapse/expand
+    //TODO: CLM-5876 Add notification entry creation
+  }
+
+  private void testEditPolicy_actionsNotificationsSection_stageActions(Policy policy) {
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+    assertActionItemListNames(actionItemList);
+    assertActionItemListNoNotifications(actionItemList);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+
+    // Policy actions for Developer and Build are set to Warn and Fail, respectively.
+    actionItemList.develop().failRadio().shouldNotBe(selected);
+    actionItemList.develop().warnRadio().shouldBe(selected);
+    actionItemList.develop().noActionRadio().shouldNotBe(selected);
+
+    actionItemList.build().failRadio().shouldBe(selected);
+    actionItemList.build().warnRadio().shouldNotBe(selected);
+    actionItemList.build().noActionRadio().shouldNotBe(selected);
+
+
+    // The rest of the stages should have no-action selected
+    actionItemList.proxy().failRadio().shouldNotBe(selected);
+    actionItemList.proxy().warnRadio().shouldNotBe(selected);
+    actionItemList.proxy().noActionRadio().shouldBe(selected);
+    actionItemList.operate().failRadio().shouldNotBe(selected);
+    actionItemList.operate().warnRadio().shouldNotBe(selected);
+    actionItemList.operate().noActionRadio().shouldBe(selected);
+    actionItemList.release().failRadio().shouldNotBe(selected);
+    actionItemList.release().warnRadio().shouldNotBe(selected);
+    actionItemList.release().noActionRadio().shouldBe(selected);
+    actionItemList.stageRelease().failRadio().shouldNotBe(selected);
+    actionItemList.stageRelease().warnRadio().shouldNotBe(selected);
+    actionItemList.stageRelease().noActionRadio().shouldBe(selected);
+
+    // Set proxy to warn, operate to fail
+    actionItemList.proxy().warnRadio().click();
+    actionItemList.proxy().warnRadio().shouldBe(selected);
+    actionItemList.proxy().failRadio().shouldNotBe(selected);
+    actionItemList.proxy().noActionRadio().shouldNotBe(selected);
+
+    actionItemList.operate().noActionRadio().click();
+    actionItemList.operate().noActionRadio().shouldBe(selected);
+    actionItemList.operate().warnRadio().shouldNotBe(selected);
+    actionItemList.operate().failRadio().shouldNotBe(selected);
+
+    actionItemList.operate().failRadio().click();
+    actionItemList.operate().failRadio().shouldBe(selected);
+    actionItemList.operate().warnRadio().shouldNotBe(selected);
+    actionItemList.operate().noActionRadio().shouldNotBe(selected);
+
+    // Save and verify changes via backend
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+
+    policy = policyDAO.getById(policy.getId());
+    assertThat(policy.getActions(Stage.ID_BUILD).get(0).getActionTypeId(), is(Action.ID_FAIL));
+    assertThat(policy.getActions(Stage.ID_DEVELOP).get(0).getActionTypeId(), is(Action.ID_WARN));
+    assertThat(policy.getActions(Stage.ID_PROXY).get(0).getActionTypeId(), is(Action.ID_WARN));
+    assertThat(policy.getActions(Stage.ID_OPERATE).get(0).getActionTypeId(), is(Action.ID_FAIL));
+    assertThat(policy.getActions(Stage.ID_STAGE_RELEASE), is(nullValue()));
+    assertThat(policy.getActions(Stage.ID_RELEASE), is(nullValue()));
+  }
+
   private void testDeletePolicy(Policy policy) {
     PolicyEditorPage.deleteButton().shouldBe(visible, enabled).click();
 
@@ -376,6 +451,15 @@ public abstract class AbstractPolicyEditorTest
     ageCondition.value().modifier().selectedItem().shouldHave(text("Years"));
     ageCondition.value().age().shouldBe(empty).val("3");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS);
+  }
+
+  private void testCreatePolicy_actionsNotificationsSection() {
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+    assertActionItemListNames(actionItemList);
+    assertActionItemListNoNotifications(actionItemList);
+
+    //TODO: CLM-5875 Add notification list view - This should also test notification count + twisty collapse/expand
+    //TODO: CLM-5876 Add notification entry creation
   }
 
   private void assertNewPolicyStateIsCorrect() {
@@ -434,6 +518,26 @@ public abstract class AbstractPolicyEditorTest
 
     ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
         .click();
+  }
+
+  private void assertActionItemListNames(ActionItemList actionItemList) {
+    actionItemList.proxy().name().shouldHave(text("Proxy"));
+    actionItemList.develop().name().shouldHave(text("Develop"));
+    actionItemList.build().name().shouldHave(text("Build"));
+    actionItemList.stageRelease().name().shouldHave(text("Stage Release"));
+    actionItemList.release().name().shouldHave(text("Release"));
+    actionItemList.operate().name().shouldHave(text("Operate"));
+    actionItemList.continuousMonitoring().name().shouldHave(text("Continuous Monitoring"));
+  }
+
+  private void assertActionItemListNoNotifications(ActionItemList actionItemList) {
+    actionItemList.proxy().notificationCount().shouldHave(text("0"));
+    actionItemList.develop().notificationCount().shouldHave(text("0"));
+    actionItemList.build().notificationCount().shouldHave(text("0"));
+    actionItemList.stageRelease().notificationCount().shouldHave(text("0"));
+    actionItemList.release().notificationCount().shouldHave(text("0"));
+    actionItemList.operate().notificationCount().shouldHave(text("0"));
+    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));
   }
 
   private void changeThreatLevel(int threatLevel) {

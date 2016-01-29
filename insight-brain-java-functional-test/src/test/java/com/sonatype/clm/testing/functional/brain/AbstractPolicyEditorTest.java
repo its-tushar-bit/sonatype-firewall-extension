@@ -9,9 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.NotifyAction;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionItemList;
+import com.sonatype.clm.testing.functional.elements.ActionItemList.ActionItem;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
@@ -26,6 +28,7 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -37,6 +40,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
@@ -50,6 +54,7 @@ import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
 import static com.sonatype.insight.brain.model.Color.blue;
 import static com.sonatype.insight.brain.model.Color.red;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -129,6 +134,12 @@ public abstract class AbstractPolicyEditorTest
 
     policy.addAction(Stage.ID_DEVELOP, new Action(Action.ID_WARN));
     policy.addAction(Stage.ID_BUILD, new Action(Action.ID_FAIL));
+    policy.addAction(Stage.ID_BUILD, new Action(Action.ID_NOTIFY, "test@foo.com"));
+    Action notifyDeveloperAction = new Action(Action.ID_NOTIFY);
+    notifyDeveloperAction.setTargetType("role");
+    notifyDeveloperAction.setTarget(new RoleDAO().getByName("Developer").getId());
+    policy.addAction(Stage.ID_BUILD, notifyDeveloperAction);
+    policy.addMonitorNotifyAction(new NotifyAction("test@foo.com", null));
 
     tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
 
@@ -344,15 +355,67 @@ public abstract class AbstractPolicyEditorTest
 
   private void testEditPolicy_actionsNotificationsSection(Policy policy) {
     testEditPolicy_actionsNotificationsSection_stageActions(policy);
+    testEditPolicy_actionsNotificationsSection_notificationList(policy);
+    testEditPolicy_actionsNotificationsSection_monitoring(policy);
+  }
 
-    //TODO: CLM-5875 Add notification list view - This should also test notification count + twisty collapse/expand
-    //TODO: CLM-5876 Add notification entry creation
+  private void testEditPolicy_actionsNotificationsSection_notificationList(Policy policy) {
+    PolicyEditorPage.actionsAndNotificationsPill().click();
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+
+    actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED).click();
+    actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED);
+    actionItemList.build().notifications().shouldHaveSize(2);
+    actionItemList.build().notifications().shouldHave(texts("test@foo.com", "Developer"));
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    actionItemList.build().getNotificationByName("test@foo.com").deleteButton().click();
+    actionItemList.build().notifications().shouldHaveSize(1);
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    actionItemList.build().notificationCount().shouldHave(text("1"));
+    actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED).click();
+    actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED);
+
+    //TODO: CLM-5876 Add notification entry creation - should test adding a notification here
+
+    policy = policyDAO.getById(policy.getId());
+    List<Action> actions = policy.getActions(Stage.ID_BUILD);
+    assertThat(actions, hasSize(2)); // first is 'Fail'
+    Action roleAction = actions.get(1);
+    assertThat(roleAction.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(roleAction.getTargetType(), is("role"));
+  }
+
+  private void testEditPolicy_actionsNotificationsSection_monitoring(Policy policy) {
+    PolicyEditorPage.actionsAndNotificationsPill().click();
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+
+    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED).click();
+    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED);
+    actionItemList.continuousMonitoring().notifications().shouldHaveSize(1);
+    actionItemList.continuousMonitoring().notifications().shouldHave(texts("test@foo.com"));
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    actionItemList.continuousMonitoring().getNotificationByName("test@foo.com").deleteButton().click();
+    actionItemList.continuousMonitoring().notifications().shouldHaveSize(0);
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    FormMask.seeAndWaitForDismissal();
+    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));
+    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED).click();
+    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED);
+
+    //TODO: CLM-5876 Add notification entry creation - should test adding a notification here
+
+    policy = policyDAO.getById(policy.getId());
+    List<NotifyAction> actions = policy.getMonitorNotifyActions();
+    assertThat(actions, hasSize(0));
   }
 
   private void testEditPolicy_actionsNotificationsSection_stageActions(Policy policy) {
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
     assertActionItemListNames(actionItemList);
-    assertActionItemListNoNotifications(actionItemList);
+    assertActionItemListHasBuildNotifications(actionItemList);
     PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.
@@ -410,6 +473,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void testDeletePolicy(Policy policy) {
+    PolicyEditorPage.createPill().click();
     PolicyEditorPage.deleteButton().shouldBe(visible, enabled).click();
 
     DeleteModal.root().shouldBe(visible);
@@ -531,13 +595,23 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertActionItemListNoNotifications(ActionItemList actionItemList) {
+    assertActionItemListNoNotifications_allButBuildAndMonitor(actionItemList);
+    actionItemList.build().notificationCount().shouldHave(text("0"));
+    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));
+  }
+
+  private void assertActionItemListHasBuildNotifications(ActionItemList actionItemList) {
+    assertActionItemListNoNotifications_allButBuildAndMonitor(actionItemList);
+    actionItemList.build().notificationCount().shouldHave(text("2"));
+    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("1"));
+  }
+
+  private void assertActionItemListNoNotifications_allButBuildAndMonitor(ActionItemList actionItemList) {
     actionItemList.proxy().notificationCount().shouldHave(text("0"));
     actionItemList.develop().notificationCount().shouldHave(text("0"));
-    actionItemList.build().notificationCount().shouldHave(text("0"));
     actionItemList.stageRelease().notificationCount().shouldHave(text("0"));
     actionItemList.release().notificationCount().shouldHave(text("0"));
     actionItemList.operate().notificationCount().shouldHave(text("0"));
-    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));
   }
 
   private void changeThreatLevel(int threatLevel) {

@@ -1,4 +1,4 @@
-describe('policy.editor.actions.controller.spec.js', function() {
+describe('policy.editor.actions.and.notifications.controller.spec.js', function() {
 
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {
@@ -22,7 +22,7 @@ describe('policy.editor.actions.controller.spec.js', function() {
     stageTypeStoreDefer = $q.defer();
     spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
     spyOn(StageTypeStore, 'getActionStages').andReturn(stageTypeStoreDefer.promise);
-    vm = $controller('policy.editor.actions.controller', {}, {actions: [], monitorNotifyActions: []});
+    vm = $controller('policy.editor.actions.and.notifications.controller', {}, {actions: [], monitorNotifyActions: []});
   }));
 
   it('Properly loads action info', inject(function() {
@@ -33,6 +33,7 @@ describe('policy.editor.actions.controller.spec.js', function() {
       {actionTypeId: 'notify', target: 'test2@test.com'},
       {actionTypeId: 'notify', target: '2cb71b3468d649789163ea2e212b5411', targetType: 'role'}
     ];
+    vm.actions.build = [{actionTypeId: 'warn', target: null}];
     vm.monitorNotifyActions = [
       {actionTypeId: 'notify', target: 'test@test.com'},
       {actionTypeId: 'notify', target: '2cb71b3468d649789163ea2e212b5411', targetType: 'role'}
@@ -47,6 +48,8 @@ describe('policy.editor.actions.controller.spec.js', function() {
     expect(vm.getRolesList(vm.actionStages[0]).length).toBe(1);
     expect(vm.getMonitoringEmailList().length).toBe(1);
     expect(vm.getMonitoringRolesList().length).toBe(1);
+    expect(vm.hasNotifications('proxy')).toBe(true);
+    expect(vm.hasNotifications('build')).toBe(false);
   }));
 
   it('Conditionally add or remove actions', inject(function() {
@@ -73,6 +76,20 @@ describe('policy.editor.actions.controller.spec.js', function() {
     expect(vm.actions.proxy.length).toBe(4);
     expect(vm.actions.proxy).toContain({actionTypeId: 'warn', target: null});
   }));
+
+  it('Removes notification', function() {
+    vm.actions = {proxy: [{target: 'this', actionTypeId: 'notify'}, {target: 'other', actionTypeId: 'notify'}]};
+
+    vm.removeStageNotification('proxy', 'this');
+    expect(vm.actions.proxy.length).toBe(1);
+    expect(vm.actions.proxy).toContain({target: 'other', actionTypeId: 'notify'});
+  });
+
+  it('Finds the correct name for role notification', function() {
+    vm.roles = [{roleId: 'foo', roleName:'Le Foo'}, {roleId: 'bar', roleName:'Le Bar'}];
+    var name = vm.getNotificationTargetName({targetType: 'role', target: 'bar'});
+    expect(name).toBe('Le Bar');
+  });
 
   function resolveLoadData() {
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();

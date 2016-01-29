@@ -42,6 +42,10 @@ public class PolicyEditorPage
     return $("#policy-constraints-button");
   }
 
+  public static SelenideElement actionsAndNotificationsPill() {
+    return $("#policy-actions-button");
+  }
+
   public static SelenideElement inhertancePill() {
     return $("#policy-inheritance-button");
   }

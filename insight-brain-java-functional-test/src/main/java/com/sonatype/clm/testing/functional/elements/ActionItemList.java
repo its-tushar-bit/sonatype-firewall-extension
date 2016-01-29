@@ -10,6 +10,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$$;
 
 public class ActionItemList
@@ -87,5 +88,27 @@ public class ActionItemList
     public static final Condition EXPANDED = cssClass("expand");
 
     public static final Condition COLLAPSED = cssClass("collapse");
+
+    public ElementsCollection notifications() {
+      return root.parent().$$("tr.expanded + tr div.notification-list li");
+    }
+
+    public NotificationItem getNotificationByName(String name) {
+      return new NotificationItem(notifications().find(text(name)));
+    }
+
+  }
+
+  public static class NotificationItem {
+
+    private final SelenideElement root;
+
+    public NotificationItem(final SelenideElement root) {
+      this.root = root;
+    }
+
+    public SelenideElement deleteButton() {
+      return root.$("button");
+    }
   }
 }

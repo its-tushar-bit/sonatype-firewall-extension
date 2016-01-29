@@ -33,7 +33,23 @@
       </td>
     </tr>
     <tr ng-if="actionStage.isExpanded" ng-repeat-end>
-      <td colspan="5">CLM-5875 and CLM-5876 to go here</td>
+      <td colspan="5">
+        <div class="notification-list" ng-class="{empty : !vm.hasNotifications(actionStage.stageTypeId)}">
+          <ul>
+            <li ng-repeat="action in vm.actions[actionStage.stageTypeId] | filter:{actionTypeId:'notify'}">
+              <span>
+                <i class="fa {{action.targetType === 'role' ? 'fa-users' : 'fa-envelope'}} slate"></i>
+                  {{vm.getNotificationTargetName(action)}}
+              </span>
+              <span>
+                <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeStageNotification(actionStage.stageTypeId, action.target)"><!--
+               --><i class="fa fa-trash"></i>
+                </button>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </td>
     </tr>
     <tr class="action-stage" ng-class="{ expanded: vm.dirtyPolicy.monitorNotifyActions.isExpanded}">
       <td ng-click="vm.dirtyPolicy.monitorNotifyActions.isExpanded = !vm.dirtyPolicy.monitorNotifyActions.isExpanded">
@@ -50,7 +66,24 @@
       </td>
     </tr>
     <tr ng-if="vm.dirtyPolicy.monitorNotifyActions.isExpanded">
-      <td colspan="5">CLM-5875 and CLM-5876 to go here</td>
+      <td colspan="5"><div class="notification-list" ng-class="{empty : !vm.monitorNotifyActions.length > 0}">
+        <div class="notification-list" ng-class="{empty : !vm.hasNotifications(actionStage.stageTypeId)}">
+          <ul>
+            <li ng-repeat="action in vm.monitorNotifyActions">
+              <span>
+                <i class="fa {{action.targetType === 'role' ? 'fa-users' : 'fa-envelope'}} slate"></i>
+                  {{vm.getNotificationTargetName(action)}}
+              </span>
+              <span>
+              <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeMonitoringNotification(action.target)"><!--
+               --><i class="fa fa-trash"></i>
+                </button>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      </td>
     </tr>
   </table>
 </div>

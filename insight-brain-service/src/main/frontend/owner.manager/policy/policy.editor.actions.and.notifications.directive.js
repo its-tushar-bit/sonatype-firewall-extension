@@ -6,10 +6,10 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorActionsDirective() {
+  function PolicyEditorActionsAndNotificationsDirective() {
     return {
-      templateUrl: 'owner.manager/policy/policy.editor.actions.directive.html',
-      controller: 'policy.editor.actions.controller',
+      templateUrl: 'owner.manager/policy/policy.editor.actions.and.notifications.directive.html',
+      controller: 'policy.editor.actions.and.notifications.controller',
       controllerAs: 'vm',
       scope: {
         actions: '=',
@@ -21,6 +21,6 @@
 
   angular //
       .module('owner.manager.module') //
-      .directive('policyEditorActions', PolicyEditorActionsDirective);
+      .directive('policyEditorActions', PolicyEditorActionsAndNotificationsDirective);
 
 }(angular));

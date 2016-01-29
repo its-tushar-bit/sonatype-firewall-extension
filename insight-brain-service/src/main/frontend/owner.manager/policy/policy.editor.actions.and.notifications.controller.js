@@ -6,11 +6,16 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorActionsController($q, $http, CLMAppLocations, StageTypeStore)
+  function PolicyEditorActionsAndNotificationsController($q, $http, CLMAppLocations, StageTypeStore)
   {
     var vm = this;
 
     vm.doLoad = doLoad;
+
+    vm.hasNotifications = hasNotifications;
+    vm.removeStageNotification = removeStageNotification;
+    vm.removeMonitoringNotification = removeMonitoringNotification;
+    vm.getNotificationTargetName = getNotificationTargetName;
     vm.actionStages = undefined;
     vm.conditionallyAddOrRemoveAction = conditionallyAddOrRemoveAction;
     vm.roles = undefined;
@@ -38,6 +43,40 @@
       });
 
       delete vm.loadError;
+    }
+
+    function hasNotifications(stageId) {
+      return vm.actions[stageId] && vm.actions[stageId].some(function(action) {
+            return action.actionTypeId === 'notify';
+          });
+    }
+
+    function removeStageNotification(stageId, removalTarget) {
+      vm.actions[stageId] = vm.actions[stageId].filter(function(action) {
+        return action.target !== removalTarget || action.actionTypeId !== 'notify';
+      });
+    }
+
+    function removeMonitoringNotification(removalTarget) {
+      vm.monitorNotifyActions = vm.monitorNotifyActions.filter(function(action) {
+        return action.target !== removalTarget;
+      });
+    }
+
+    function getNotificationTargetName(action) {
+      var result;
+      if (action.targetType === 'role') {
+        vm.roles.some(function(role) {
+          if (role.roleId === action.target) {
+            result = role.roleName;
+            return true;
+          }
+        });
+      }
+      else {
+        result = action.target;
+      }
+      return result;
     }
 
     /*
@@ -144,10 +183,10 @@
     }
   }
 
-  PolicyEditorActionsController.$inject = ['$q', '$http', 'CLMAppLocations', 'StageTypeStore'];
+  PolicyEditorActionsAndNotificationsController.$inject = ['$q', '$http', 'CLMAppLocations', 'StageTypeStore'];
 
   angular //
       .module('owner.manager.module') //
-      .controller('policy.editor.actions.controller', PolicyEditorActionsController);
+      .controller('policy.editor.actions.and.notifications.controller', PolicyEditorActionsAndNotificationsController);
 
 }(angular));

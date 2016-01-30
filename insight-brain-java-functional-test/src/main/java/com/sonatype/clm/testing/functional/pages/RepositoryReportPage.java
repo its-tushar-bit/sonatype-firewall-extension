@@ -64,7 +64,7 @@ public class RepositoryReportPage
 
   public static class Filter
   {
-    public static final Condition active = cssClass("active");
+    public static final Condition ACTIVE = cssClass("active");
 
     public static SelenideElement allMatchState() {
       return $("#all-matches");
@@ -125,15 +125,15 @@ public class RepositoryReportPage
 
   public static class Table
   {
-    public static final Condition criticalThreat = cssClass("criticalScore");
+    public static final Condition CRITICAL_THREAT = cssClass("criticalScore");
 
-    public static final Condition moderateThreat = cssClass("moderateScore");
+    public static final Condition MODERATE_THREAT = cssClass("moderateScore");
 
-    public static final Condition severeThreat = cssClass("severeScore");
+    public static final Condition SEVERE_THREAT = cssClass("severeScore");
 
-    public static final Condition noThreat = cssClass("noScore");
+    public static final Condition NO_THREAT = cssClass("noScore");
 
-    public static final Condition ignoredScore = cssClass("ignoredScore");
+    public static final Condition IGNORED_SCORE = cssClass("ignoredScore");
 
     public static Row row(int num) {
       return new Row(rows().get(num));

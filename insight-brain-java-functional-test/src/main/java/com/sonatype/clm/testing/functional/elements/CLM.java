@@ -11,7 +11,13 @@ import static com.codeborne.selenide.Condition.cssClass;
 
 public class CLM
 {
-  public static final Condition INITIAL_VALUE_CLASS = cssClass("initial-value");
+  public static final Condition INITIAL_VALUE = cssClass("initial-value");
 
-  public static final Condition DISABLED_CLASS = cssClass("disabled");
+  public static final Condition DISABLED = cssClass("disabled");
+
+  public static final Condition EXPANDED = cssClass("expand");
+
+  public static final Condition COLLAPSED = cssClass("collapse");
+
+  public static final Condition SELECTED = cssClass("selected");
 }

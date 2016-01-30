@@ -9,6 +9,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.cssClass;
+
 public class TileSimpleList
 {
   protected SelenideElement root;
@@ -35,9 +37,7 @@ public class TileSimpleList
 
   public static class TileSimpleListElement
   {
-    public static Condition clickable() {
-      return Condition.cssClass("clickable");
-    }
+    public static final Condition CLICKABLE = cssClass("clickable");
 
     public SelenideElement root;
 

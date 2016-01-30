@@ -5,11 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 
 public class OwnerDetailTreeView
@@ -50,10 +48,6 @@ public class OwnerDetailTreeView
 
   public static class OwnerDetailTreeViewGroup
   {
-    public static final Condition TWISTY_EXPAND_CLASS = cssClass("expand");
-
-    public static final Condition TWISTY_COLLAPSE_CLASS = cssClass("collapse");
-
     private SelenideElement root;
 
     public OwnerDetailTreeViewGroup(SelenideElement root) {
@@ -78,8 +72,6 @@ public class OwnerDetailTreeView
 
     public static class OwnerDetailTreeViewItem
     {
-      public static final Condition SELECTED_CLASS = cssClass("selected");
-
       private SelenideElement root;
 
       public OwnerDetailTreeViewItem(SelenideElement root) {

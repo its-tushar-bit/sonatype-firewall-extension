@@ -9,15 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
-import com.sonatype.clm.testing.functional.elements.LabelTile;
-import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
+import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -150,11 +150,11 @@ public class OrganizationSummaryViewTest
         Tag expectedCategory = ownerTags.get(i).get(j);
 
         if (i == 0) {
-          actualCategory.root.shouldBe(TileSimpleListElement.clickable());
+          actualCategory.root.shouldBe(TileSimpleListElement.CLICKABLE);
           actualCategory.chevron().shouldBe(visible);
         }
         else {
-          actualCategory.root.shouldNotBe(TileSimpleListElement.clickable());
+          actualCategory.root.shouldNotBe(TileSimpleListElement.CLICKABLE);
           actualCategory.chevron().shouldNot(exist);
         }
 

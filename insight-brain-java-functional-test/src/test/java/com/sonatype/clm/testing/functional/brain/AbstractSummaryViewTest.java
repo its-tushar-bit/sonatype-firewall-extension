@@ -29,6 +29,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileHeaderColumn;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
@@ -62,13 +63,6 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileHeaderColumn.columnSelected;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileHeaderColumn.downSelected;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileHeaderColumn.upSelected;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement.fail;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement.failIcon;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement.warn;
-import static com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement.warnIcon;
 import static com.sonatype.clm.testing.functional.elements.PolicyTileList.threatLevel;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -401,9 +395,9 @@ public abstract class AbstractSummaryViewTest
         assertPolicy(policyElement2,actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldHave(upSelected());
-        list.threatLegendHeaderColumn().downArrow().shouldNotHave(downSelected());
-        list.threatLegendHeaderColumn().upArrow().shouldNotHave(upSelected());
+        list.nameHeaderColumn().upArrow().shouldHave(PolicyTileHeaderColumn.UP_SELECTED);
+        list.threatLegendHeaderColumn().downArrow().shouldNotHave(PolicyTileHeaderColumn.DOWN_SELECTED);
+        list.threatLegendHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
 
         policyElement1 = list.element(1);
         policyElement2 = list.element(2);
@@ -411,8 +405,8 @@ public abstract class AbstractSummaryViewTest
         assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldNotHave(upSelected());
-        list.nameHeaderColumn().downArrow().shouldHave(downSelected());
+        list.nameHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
+        list.nameHeaderColumn().downArrow().shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED);
 
         policyElement1 = list.element(1);
         policyElement2 = list.element(2);
@@ -679,9 +673,9 @@ public abstract class AbstractSummaryViewTest
         assertPolicy(policyElement2,actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldHave(upSelected());
-        list.threatLegendHeaderColumn().downArrow().shouldNotHave(downSelected());
-        list.threatLegendHeaderColumn().upArrow().shouldNotHave(upSelected());
+        list.nameHeaderColumn().upArrow().shouldHave(PolicyTileHeaderColumn.UP_SELECTED);
+        list.threatLegendHeaderColumn().downArrow().shouldNotHave(PolicyTileHeaderColumn.DOWN_SELECTED);
+        list.threatLegendHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
 
         policyElement1 = list.element(1);
         policyElement2 = list.element(2);
@@ -689,8 +683,8 @@ public abstract class AbstractSummaryViewTest
         assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldNotHave(upSelected());
-        list.nameHeaderColumn().downArrow().shouldHave(downSelected());
+        list.nameHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
+        list.nameHeaderColumn().downArrow().shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED);
 
         policyElement1 = list.element(1);
         policyElement2 = list.element(2);
@@ -703,9 +697,10 @@ public abstract class AbstractSummaryViewTest
 
   private void assertPolicyHeader(PolicyTileList list) {
     list.selectedHeaderElements().shouldHaveSize(1);
-    list.selectedHeaderColumn().root.shouldBe(visible).shouldHave(columnSelected());
-    list.selectedHeaderColumn().downArrow().shouldBe(visible).shouldHave(downSelected()); // initial state
-    list.selectedHeaderColumn().upArrow().shouldBe(visible).shouldNotHave(upSelected());
+    list.selectedHeaderColumn().root.shouldBe(visible).shouldHave(PolicyTileHeaderColumn.COLUMN_SELECTED);
+    list.selectedHeaderColumn().downArrow().shouldBe(visible)
+        .shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED); // initial state
+    list.selectedHeaderColumn().upArrow().shouldBe(visible).shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
   }
 
   private void assertPolicy(PolicyTileListElement policy, Policy actualPolicy) {
@@ -722,13 +717,13 @@ public abstract class AbstractSummaryViewTest
 
     if (action.getActionTypeId().equals(Action.ID_WARN)) {
       policy.build().find("i")
-          .shouldHave(warnIcon()).shouldHave(warn())
-          .shouldNotHave(failIcon()).shouldNotHave(fail());
+          .shouldHave(PolicyTileListElement.WARN_ICON).shouldHave(PolicyTileListElement.WARN)
+          .shouldNotHave(PolicyTileListElement.FAIL_ICON).shouldNotHave(PolicyTileListElement.FAIL);
     }
     else {
       policy.build().find("i")
-          .shouldHave(failIcon()).shouldHave(fail())
-          .shouldNotHave(warnIcon()).shouldNotHave(warn());
+          .shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
+          .shouldNotHave(PolicyTileListElement.WARN_ICON).shouldNotHave(PolicyTileListElement.WARN);
     }
   }
   

@@ -21,7 +21,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public abstract class AbstractPolicyMonitoringEditorTest
     extends AbstractFunctionalTest
@@ -52,7 +52,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     assertEditMonitoredStageStateIsCorrect(inheritOptionText);
 
     MonitoredStageEditorPage.getStageByName("Develop").click();
-    MonitoredStageEditorPage.updateButton().shouldNotHave(DISABLED_CLASS).click();
+    MonitoredStageEditorPage.updateButton().shouldNotHave(DISABLED).click();
     FormMask.root().shouldBe(visible).shouldNotBe(visible);
     assertEditMonitoredStageStateIsCorrect("Develop");
   }
@@ -61,6 +61,6 @@ public abstract class AbstractPolicyMonitoringEditorTest
     waitUntilUrl(MonitoredStageEditorPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     MonitoredStageEditorPage.title().shouldHave(text(MonitoredStageEditorPage.HEADER_TEXT));
     MonitoredStageEditorPage.selectedStage().shouldHave(text(selectedStageText));
-    MonitoredStageEditorPage.updateButton().shouldHave(DISABLED_CLASS);
+    MonitoredStageEditorPage.updateButton().shouldHave(DISABLED);
   }
 }

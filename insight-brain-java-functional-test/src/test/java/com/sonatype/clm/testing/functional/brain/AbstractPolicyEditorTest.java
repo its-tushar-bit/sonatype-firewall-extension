@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionItemList;
 import com.sonatype.clm.testing.functional.elements.ActionItemList.ActionItem;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
@@ -41,7 +42,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -51,7 +51,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.blue;
 import static com.sonatype.insight.brain.model.Color.red;
 import static org.hamcrest.Matchers.hasSize;
@@ -90,7 +90,7 @@ public abstract class AbstractPolicyEditorTest
     testCreatePolicy_summarySection();
     testCreatePolicy_actionsNotificationsSection();
     testCreatePolicy_constraintSection();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
 
     Policy newPolicy = null;
@@ -168,18 +168,18 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("updated name");
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
 
     FormMask.seeAndWaitForDismissal();
     changeThreatLevel(6);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
 
     refresh();
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
     summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
   }
 
   private void testEditPolicy_constraintSection(Policy policy) {
@@ -245,17 +245,17 @@ public abstract class AbstractPolicyEditorTest
 
     ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.operator().selectedItem().shouldHave(text("all"));
     constraintEdit.name().shouldHave(value(constraints.get(0).getName())).val("New Constraint Name");
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName(), is("New Constraint Name"));
 
     constraintEdit.conditions().shouldHaveSize(1);
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.ageCondition(0).deleteConditionButton().shouldBe(visible, disabled);
     constraintEdit.ageCondition(0).value().age().shouldHave(value("2")).val("3");
     constraintEdit.ageCondition(0).value().modifier().selectedItem().shouldHave(text("Years")).click();
@@ -263,7 +263,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.ageCondition(0).operator().selectedItem().shouldHave(text("older than")).click();
     constraintEdit.ageCondition(0).operator().listItem(1).shouldHave(text("younger than")).click();
     PolicyEditorPage.createPill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
 
@@ -272,7 +272,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(updatedAgeCondition.getValue(), is(Integer.toString(3 * 30)));
     assertThat(updatedAgeCondition.getOperator(), is("younger than"));
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(2);
     constraintEdit.condition(1).type().selectedItem().shouldHave(text("Age")).click();
@@ -282,7 +282,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.dropdownCondition(1).value().selectedItem().shouldHave(text("my LTG")).click();
     constraintEdit.dropdownCondition(1).value().listItem(1).shouldHave(text("my LTG 2")).click();
     PolicyEditorPage.createPill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
 
@@ -295,7 +295,7 @@ public abstract class AbstractPolicyEditorTest
         is(new LicenseThreatGroupDAO().getByOwnerIdAndName(currentOwner.getId(), "my LTG 2").getId()));
     assertThat(ltgCondition.getOperator(), is("is not"));
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.addConditiontButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(3);
     constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age")).click();
@@ -304,7 +304,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.inputCondition(2).operator().listItem(1).shouldHave(text("do not match")).click();
     constraintEdit.inputCondition(2).value().shouldBe(empty).val("com.eclipse.*");
     PolicyEditorPage.createPill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
 
@@ -316,13 +316,13 @@ public abstract class AbstractPolicyEditorTest
     assertThat(coordinatesCondition.getValue(), is("com.eclipse.*"));
     assertThat(coordinatesCondition.getOperator(), is("do not match"));
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.condition(2).type().selectedItem().shouldHave(text("Coordinates (GAV)")).click();
     constraintEdit.condition(2).type().listItem(5).shouldHave(text("Security Vulnerability")).click();
     constraintEdit.condition(2).operator().selectedItem().shouldHave(text("present")).click();
     constraintEdit.condition(2).operator().listItem(1).shouldHave(text("absent")).click();
     PolicyEditorPage.createPill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
 
@@ -345,7 +345,7 @@ public abstract class AbstractPolicyEditorTest
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
     PolicyEditorPage.createPill().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
 
@@ -368,10 +368,10 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.build().notifications().shouldHaveSize(2);
     actionItemList.build().notifications().shouldHave(texts("test@foo.com", "Developer"));
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
     actionItemList.build().getNotificationByName("test@foo.com").deleteButton().click();
     actionItemList.build().notifications().shouldHaveSize(1);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     actionItemList.build().notificationCount().shouldHave(text("1"));
     actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED).click();
@@ -396,10 +396,10 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.continuousMonitoring().notifications().shouldHaveSize(1);
     actionItemList.continuousMonitoring().notifications().shouldHave(texts("test@foo.com"));
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
     actionItemList.continuousMonitoring().getNotificationByName("test@foo.com").deleteButton().click();
     actionItemList.continuousMonitoring().notifications().shouldHaveSize(0);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED).click();
@@ -416,7 +416,7 @@ public abstract class AbstractPolicyEditorTest
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
     assertActionItemListNames(actionItemList);
     assertActionItemListHasBuildNotifications(actionItemList);
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.
     actionItemList.develop().failRadio().shouldNotBe(selected);
@@ -459,9 +459,9 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.operate().noActionRadio().shouldNotBe(selected);
 
     // Save and verify changes via backend
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getActions(Stage.ID_BUILD).get(0).getActionTypeId(), is(Action.ID_FAIL));
@@ -490,10 +490,10 @@ public abstract class AbstractPolicyEditorTest
   public void testCreatePolicy_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
     summary.policyName().val("New Policy");
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     changeThreatLevel(6);
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
   }
 
   public void testCreatePolicy_constraintSection() {
@@ -504,7 +504,7 @@ public abstract class AbstractPolicyEditorTest
 
     ConstraintEditSection newConstraint = constraintSection.constraintEditor(0);
     newConstraint.name().shouldBe(empty).val("New Constraint");
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     newConstraint.operator().selectedItem().shouldHave(text("any"));
     newConstraint.conditions().shouldHaveSize(1);
 
@@ -514,7 +514,7 @@ public abstract class AbstractPolicyEditorTest
     ageCondition.operator().selectedItem().shouldHave(text("older than"));
     ageCondition.value().modifier().selectedItem().shouldHave(text("Years"));
     ageCondition.value().age().shouldBe(empty).val("3");
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
   }
 
   private void testCreatePolicy_actionsNotificationsSection() {
@@ -533,13 +533,13 @@ public abstract class AbstractPolicyEditorTest
     assertNewPolicyStateIsCorrect_summarySection();
     assertNewPolicyStateIsCorrect_inheritanceSection();
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
     PolicyEditorPage.deleteButton().shouldNot(exist);
   }
 
   private void assertNewPolicyStateIsCorrect_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    summary.policyName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
 
     summary.policyName().val("$$$"); // invalid characters
     PopoverViolations.on(summary.policyName()).shouldShowInvalidCharactersError();
@@ -559,13 +559,12 @@ public abstract class AbstractPolicyEditorTest
 
     assertEditPolicyStateIsCorrect_summarySection(policy);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2);
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
   }
 
   private void assertEditPolicyStateIsCorrect_summarySection(Policy policy) {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(
-        value(policy.getName()));
+    summary.policyName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value(policy.getName()));
     assertThreatLevelSelectorState(policy.getThreatLevel());
   }
 

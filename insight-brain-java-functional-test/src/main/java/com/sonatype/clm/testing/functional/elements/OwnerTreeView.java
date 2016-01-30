@@ -20,8 +20,6 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class OwnerTreeView
 {
-  public static final Condition NODE_SELECTED_CLASS = cssClass("selected");
-
   public static SelenideElement filter() {
     return $(".tree-view-filter input");
   }
@@ -57,10 +55,8 @@ public class OwnerTreeView
   {
     private final SelenideElement element;
 
-    public static final Condition CHILD_SELECTED_CLASS = cssClass("childSelected");
-    public static final Condition COLLAPSE_CLASS = cssClass("collapse");
-    public static final Condition EXPAND_CLASS = cssClass("expand");
-    public static final Condition DISABLED_CLASS = cssClass("disabled");
+    public static final Condition CHILD_SELECTED = cssClass("childSelected");
+
     public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
     public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = hasAttribute("data-tooltip", DISABLED_TOOLTIP_CONTENT);
 

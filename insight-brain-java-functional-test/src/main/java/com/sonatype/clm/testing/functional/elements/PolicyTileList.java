@@ -9,6 +9,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.cssClass;
+
 public class PolicyTileList
 {
 
@@ -51,11 +53,18 @@ public class PolicyTileList
   }
 
   public static Condition threatLevel(int threatLevel) {
-    return Condition.cssClass("policy-threat-level-" + threatLevel);
+    return cssClass("policy-threat-level-" + threatLevel);
   }
 
   public static class PolicyTileListElement
   {
+    public static final Condition WARN_ICON = cssClass("fa-exclamation-triangle");
+
+    public static final Condition WARN = cssClass("warn");
+
+    public static final Condition FAIL_ICON = cssClass("fa-exclamation-circle");
+
+    public static final Condition FAIL = cssClass("fail");
 
     public SelenideElement root;
 
@@ -95,22 +104,6 @@ public class PolicyTileList
       return root.$$("td").get(6);
     }
 
-    public static Condition warnIcon() {
-      return Condition.cssClass("fa-exclamation-triangle");
-    }
-
-    public static Condition warn() {
-      return Condition.cssClass("warn");
-    }
-
-    public static Condition failIcon() {
-      return Condition.cssClass("fa-exclamation-circle");
-    }
-
-    public static Condition fail() {
-      return Condition.cssClass("fail");
-    }
-
     public SelenideElement chevron() {
       return root.$(".fa-chevron-right");
     }
@@ -118,6 +111,11 @@ public class PolicyTileList
 
   public static class PolicyTileHeaderColumn
   {
+    public static final Condition UP_SELECTED = cssClass("up");
+
+    public static Condition DOWN_SELECTED = cssClass("down");
+
+    public static Condition COLUMN_SELECTED = cssClass("selected-column");
 
     public SelenideElement root;
 
@@ -139,18 +137,6 @@ public class PolicyTileList
 
     public SelenideElement name() {
       return root.$(".header-text");
-    }
-
-    public static Condition upSelected() {
-      return Condition.cssClass("up");
-    }
-
-    public static Condition downSelected() {
-      return Condition.cssClass("down");
-    }
-
-    public static Condition columnSelected() {
-      return Condition.cssClass("selected-column");
     }
   }
 }

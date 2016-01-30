@@ -18,7 +18,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.InheritanceSection.allRadioText;
 import static com.sonatype.clm.testing.functional.elements.InheritanceSection.specifiedRadioText;
 import static org.hamcrest.Matchers.equalTo;
@@ -54,14 +54,14 @@ public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
     InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();
     inheritance.associationEditor().root().shouldNotBe(visible);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
     FormMask.root().shouldNotBe(visible);
 
     inheritance.allChildrenInheritRadio().shouldBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().root().shouldBe(visible);
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
     FormMask.root().shouldNotBe(visible);
 
@@ -69,11 +69,11 @@ public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
     inheritance.associationEditor().root().shouldBe(visible);
     inheritance.associationEditor().item(1, 0).checkBox().click();
-    PolicyEditorPage.saveButton().shouldNotHave(DISABLED_CLASS).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
     FormMask.root().shouldNotBe(visible);
 
-    PolicyEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     refresh();
 

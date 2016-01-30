@@ -48,7 +48,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -96,9 +96,9 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchButton().click();
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
-    SelectContactModal.updateButton().shouldHave(DISABLED_CLASS);
+    SelectContactModal.updateButton().shouldHave(DISABLED);
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
-    SelectContactModal.updateButton().shouldNotHave(DISABLED_CLASS).click();
+    SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldNotBe(visible);
     OwnerSummaryPage.SummaryTile.contact().shouldHave(text(tempUser.calculateDisplayName()));
     // attempt removal but cancel out of confirmation dialog
@@ -135,7 +135,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.reportLinks().shouldHaveSize(stages.size());
 
     for (int i = 0; i < ActionDropDown.reportLinks().size(); i++) {
-      ActionDropDown.reportLink(i).shouldBe(visible, ActionDropDown.disabled())
+      ActionDropDown.reportLink(i).shouldBe(visible, CLM.DISABLED)
           .shouldHave(ActionDropDown
               .reportLinkText(stages.get(i).getName()));
     }
@@ -153,7 +153,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.reportLinks().shouldHaveSize(policyEvaluations.size());
 
     for (int i = 0; i < ActionDropDown.reportLinks().size(); i++) {
-      ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(ActionDropDown.disabled()).shouldHave(
+      ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED).shouldHave(
           ActionDropDown.reportLinkText(stages.get(i).getName()));
 
       ActionDropDown.reportLink(i).followLink();
@@ -211,7 +211,7 @@ public class ApplicationSummaryViewTest
   private void testApplicationCategoryTile_noneDefined() {
     CategoryTile categoryTile = new CategoryTileAppContext();
     categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(application.getName()));
-    categoryTile.newButton().shouldBe(visible).shouldHave(categoryTile.buttonText()).shouldHave(CLM.DISABLED_CLASS);
+    categoryTile.newButton().shouldBe(visible).shouldHave(categoryTile.buttonText()).shouldHave(CLM.DISABLED);
 
     categoryTile.categoryLists().shouldHaveSize(1);
 

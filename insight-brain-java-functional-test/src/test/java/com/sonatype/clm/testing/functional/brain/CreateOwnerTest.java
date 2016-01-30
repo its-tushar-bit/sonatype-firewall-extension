@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
@@ -23,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -81,8 +81,8 @@ public class CreateOwnerTest
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
 
     // open application
-    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
-    OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
+    OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
 
     // check invalid name
@@ -108,8 +108,8 @@ public class CreateOwnerTest
     popoverViolations(OwnerEditorDialog.publicId()).shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
-    OwnerEditorDialog.name().shouldNotHave(cssClass("initial-value"));
-    OwnerEditorDialog.publicId().shouldNotHave(cssClass("initial-value"));
+    OwnerEditorDialog.name().shouldNotHave(CLM.INITIAL_VALUE);
+    OwnerEditorDialog.publicId().shouldNotHave(CLM.INITIAL_VALUE);
 
     OwnerEditorDialog.saveButton().click();
     OwnerEditorDialog.root().should(disappear);
@@ -132,7 +132,7 @@ public class CreateOwnerTest
     RootOrganizationNode.treeViewElement().shouldBe(visible, enabled).click();
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
-    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     OwnerEditorDialog.publicId().shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
 

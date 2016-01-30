@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
@@ -29,7 +30,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
@@ -37,7 +37,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED_CLASS;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -76,11 +76,11 @@ public class LTGEditorTest
     assertNewLTGStateIsCorrect();
     LTGEditorPage.ltgName().val("$$$"); // invalid characters
     PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();
-    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    LTGEditorPage.saveButton().shouldHave(DISABLED);
 
     LTGEditorPage.ltgName().val(ltgName);
     PopoverViolations.on(LTGEditorPage.ltgName()).shouldNotExist();
-    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED_CLASS).click();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
     assertNewLTGStateIsCorrect();
     LicenseThreatGroup ltg = ltgDAO.getByOwnerIdAndName(organization.getId(), ltgName);
@@ -98,21 +98,21 @@ public class LTGEditorTest
     SummaryTile.localLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(organization.getId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
-    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(cssClass("initial-value")).shouldHave(value("original name"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
-    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    LTGEditorPage.saveButton().shouldHave(DISABLED);
 
     LTGEditorPage.ltgName().val("updated name");
     changeThreatLevel(6);
     pickFirstThreeLicenses();
-    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED_CLASS).click();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
-    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    LTGEditorPage.saveButton().shouldHave(DISABLED);
 
     List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
 
@@ -147,10 +147,10 @@ public class LTGEditorTest
   private void assertNewLTGStateIsCorrect() {
     waitUntilUrl(LTGEditorPage.urlToCreate(organization.getId()));
     LTGEditorPage.title().shouldHave(text("New"));
-    LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(cssClass("initial-value"));
+    LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
     DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
-    LTGEditorPage.saveButton().shouldHave(DISABLED_CLASS);
+    LTGEditorPage.saveButton().shouldHave(DISABLED);
   }
 
   private void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {

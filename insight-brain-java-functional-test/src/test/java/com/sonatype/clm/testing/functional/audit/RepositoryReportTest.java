@@ -151,7 +151,7 @@ public class RepositoryReportTest
   public void testPage() throws Exception {
     // one no violation, unknown
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
-    UNKNOWN = new ExpectedRow(Table.noThreat, "No violations", component.getPathname(), false, false);
+    UNKNOWN = new ExpectedRow(Table.NO_THREAT, "No violations", component.getPathname(), false, false);
 
     // one of each threat level
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
@@ -194,8 +194,8 @@ public class RepositoryReportTest
     testReportSummary();
 
     // Default filter settings
-    Filter.allMatchState().shouldBe(Filter.active);
-    Filter.summaryViolations().shouldBe(Filter.active);
+    Filter.allMatchState().shouldBe(Filter.ACTIVE);
+    Filter.summaryViolations().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, UNKNOWN, NO_VIOLATION_ROW);
 
@@ -313,7 +313,7 @@ public class RepositoryReportTest
     // new table row for the policy violation
     Filter.allViolationsButton().click();
     assertRow(RepositoryReportPage.Table.rowByName("Bad Label"),
-        new ExpectedRow(Table.ignoredScore, "Bad Label", "critical : threat : 1.0", false, false), false);
+        new ExpectedRow(Table.IGNORED_SCORE, "Bad Label", "critical : threat : 1.0", false, false), false);
 
     // re-open CIP
     openCIP(0, "Labels");
@@ -464,7 +464,7 @@ public class RepositoryReportTest
 
   private void testUnknownMatchesFilter() {
     Filter.unknownMatchStateButton().click();
-    Filter.unknownMatchState().shouldBe(Filter.active);
+    Filter.unknownMatchState().shouldBe(Filter.ACTIVE);
 
     assertRows(UNKNOWN);
 
@@ -473,7 +473,7 @@ public class RepositoryReportTest
 
   private void testExactMatchesFilter() {
     Filter.exactMatchStateButton().click();
-    Filter.exactMatchState().shouldBe(Filter.active);
+    Filter.exactMatchState().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW, NO_VIOLATION_ROW);
 
@@ -482,7 +482,7 @@ public class RepositoryReportTest
 
   private void testAllViolationsFilter() {
     Filter.allViolationsButton().click();
-    Filter.allViolations().shouldBe(Filter.active);
+    Filter.allViolations().shouldBe(Filter.ACTIVE);
 
     assertRows(CRITICAL_ROW, QUARANTINED, WAIVED_ROW, CRITICAL_ROW_SECONDARY, SEVERE_ROW, MODERATE_ROW, IGNORED_ROW,
         UNKNOWN);
@@ -491,7 +491,7 @@ public class RepositoryReportTest
 
   private void testQuarantinedFilter() {
     Filter.quarantinedViolationsButton().click();
-    Filter.quarantinedViolations().shouldBe(Filter.active);
+    Filter.quarantinedViolations().shouldBe(Filter.ACTIVE);
 
     assertRows(QUARANTINED);
     resetFilter();
@@ -500,7 +500,7 @@ public class RepositoryReportTest
 
   private void testWaivedFilter() {
     Filter.waivedViolationsButton().click();
-    Filter.waivedViolations().shouldBe(Filter.active);
+    Filter.waivedViolations().shouldBe(Filter.ACTIVE);
 
     assertRows(WAIVED_ROW);
     resetFilter();
@@ -509,8 +509,8 @@ public class RepositoryReportTest
   private void resetFilter() {
     Filter.allMatchStateButton().click();
     Filter.summaryViolationsButton().click();
-    Filter.allMatchState().shouldBe(Filter.active);
-    Filter.summaryViolations().shouldBe(Filter.active);
+    Filter.allMatchState().shouldBe(Filter.ACTIVE);
+    Filter.summaryViolations().shouldBe(Filter.ACTIVE);
   }
 
   private void setupHdsFirewallResponse() {
@@ -580,28 +580,29 @@ public class RepositoryReportTest
 
   private ExpectedRow UNKNOWN;
 
-  private final ExpectedRow QUARANTINED = new ExpectedRow(Table.criticalThreat, "Extremely Bad",
+  private final ExpectedRow QUARANTINED = new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad",
       "quarantined : component : 1.0", false, true);
 
-  private final ExpectedRow CRITICAL_ROW = new ExpectedRow(Table.criticalThreat, "Extremely Bad",
+  private final ExpectedRow CRITICAL_ROW = new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad",
       "critical : threat : 1.0", false, false);
 
-  private final ExpectedRow CRITICAL_ROW_SECONDARY = new ExpectedRow(Table.criticalThreat, "Not In Summary",
+  private final ExpectedRow CRITICAL_ROW_SECONDARY = new ExpectedRow(Table.CRITICAL_THREAT, "Not In Summary",
       "critical : threat : 1.0", false, false);
 
-  private final ExpectedRow SEVERE_ROW = new ExpectedRow(Table.severeThreat, "Really Bad", "severe : threat : 1.0",
+  private final ExpectedRow SEVERE_ROW = new ExpectedRow(Table.SEVERE_THREAT, "Really Bad", "severe : threat : 1.0",
       false, false);
 
-  private final ExpectedRow MODERATE_ROW = new ExpectedRow(Table.moderateThreat, "Sorta Bad", "moderate : threat : 1.0",
+  private final ExpectedRow MODERATE_ROW = new ExpectedRow(Table.MODERATE_THREAT, "Sorta Bad",
+      "moderate : threat : 1.0",
       false, false);
 
-  private final ExpectedRow IGNORED_ROW = new ExpectedRow(Table.ignoredScore, "Meh", "ignored : threat : 1.0", false,
+  private final ExpectedRow IGNORED_ROW = new ExpectedRow(Table.IGNORED_SCORE, "Meh", "ignored : threat : 1.0", false,
       false);
 
-  private final ExpectedRow WAIVED_ROW = new ExpectedRow(Table.criticalThreat, "Extremely Bad but its cool",
+  private final ExpectedRow WAIVED_ROW = new ExpectedRow(Table.CRITICAL_THREAT, "Extremely Bad but its cool",
       "waived : component : 1.0", true, false);
 
-  private final ExpectedRow NO_VIOLATION_ROW = new ExpectedRow(Table.noThreat, "No violations",
+  private final ExpectedRow NO_VIOLATION_ROW = new ExpectedRow(Table.NO_THREAT, "No violations",
       "waived : component : 1.0", false, false);
 
   private static class ExpectedRow

@@ -10,13 +10,11 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
 public class ActionDropDown
 {
-
   public static SelenideElement root() {
     return $("#action-dropdown");
   }
@@ -52,10 +50,6 @@ public class ActionDropDown
   public static Condition reportLinkText(String stageName) {
     stageName = stageName.equals("Stage Release") ? "stage" : stageName;
     return text("View " + stageName + " report");
-  }
-
-  public static Condition disabled() {
-    return cssClass("disabled");
   }
 
   public static String reportLinkUrl(String publicId, String scanId) {

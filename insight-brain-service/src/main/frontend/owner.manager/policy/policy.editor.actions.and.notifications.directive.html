@@ -66,8 +66,8 @@
       </td>
     </tr>
     <tr ng-if="vm.dirtyPolicy.monitorNotifyActions.isExpanded">
-      <td colspan="5"><div class="notification-list" ng-class="{empty : !vm.monitorNotifyActions.length > 0}">
-        <div class="notification-list" ng-class="{empty : !vm.hasNotifications(actionStage.stageTypeId)}">
+      <td colspan="5">
+        <div class="notification-list" ng-class="{empty : !vm.monitorNotifyActions.length > 0}">
           <ul>
             <li ng-repeat="action in vm.monitorNotifyActions">
               <span>
@@ -82,7 +82,6 @@
             </li>
           </ul>
         </div>
-      </div>
       </td>
     </tr>
   </table>

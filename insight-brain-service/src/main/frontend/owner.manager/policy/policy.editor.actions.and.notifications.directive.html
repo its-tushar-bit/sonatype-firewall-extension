@@ -37,14 +37,12 @@
         <div class="notification-list" ng-class="{empty : !vm.hasNotifications(actionStage.stageTypeId)}">
           <ul>
             <li ng-repeat="action in vm.actions[actionStage.stageTypeId] | filter:{actionTypeId:'notify'}">
+              <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeStageNotification(actionStage.stageTypeId, action.target)"><!--
+             --><i class="fa fa-trash"></i>
+              </button>
               <span>
                 <i class="fa {{action.targetType === 'role' ? 'fa-users' : 'fa-envelope'}} slate"></i>
                   {{vm.getNotificationTargetName(action)}}
-              </span>
-              <span>
-                <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeStageNotification(actionStage.stageTypeId, action.target)"><!--
-               --><i class="fa fa-trash"></i>
-                </button>
               </span>
             </li>
           </ul>
@@ -70,14 +68,12 @@
         <div class="notification-list" ng-class="{empty : !vm.monitorNotifyActions.length > 0}">
           <ul>
             <li ng-repeat="action in vm.monitorNotifyActions">
+              <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeMonitoringNotification(action.target)"><!--
+               --><i class="fa fa-trash"></i>
+              </button>
               <span>
                 <i class="fa {{action.targetType === 'role' ? 'fa-users' : 'fa-envelope'}} slate"></i>
                   {{vm.getNotificationTargetName(action)}}
-              </span>
-              <span>
-              <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeMonitoringNotification(action.target)"><!--
-               --><i class="fa fa-trash"></i>
-                </button>
               </span>
             </li>
           </ul>

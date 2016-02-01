@@ -15,6 +15,7 @@
     vm.error = undefined;
     vm.repositories = null;
     vm.viewRemoveRepository = viewRemoveRepository;
+    vm.repositorySubmittingMap = {};
 
     vm.doLoad();
 
@@ -30,6 +31,7 @@
             name: 'Delete',
             type: 'danger',
             click: function() {
+              vm.repositorySubmittingMap[repository.repository.id] = true;
               $http.delete(clmLocations.getRepositoryInfoUrl(repository.repository.id))
                   .success(function() {
                     // Remove the repository from the view on delete.
@@ -42,6 +44,7 @@
                     });
                   })
                   .error(function() {
+                    vm.repositorySubmittingMap[repository.repository.id] = false;
                     ErrorDialog.open(arguments[0]);
                   });
             }
@@ -54,7 +57,7 @@
       delete vm.error;
       $http.get(clmLocations.getRepositoriesUrl())
           .success(function(results) {
-            vm.repositories = results.repositories;
+            vm.repositories = results.repositories || [];
           })
           .error(function() {
             vm.error = arguments;

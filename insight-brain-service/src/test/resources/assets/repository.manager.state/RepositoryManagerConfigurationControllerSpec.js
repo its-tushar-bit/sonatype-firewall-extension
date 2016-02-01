@@ -85,8 +85,11 @@ describe('RepositoryManagerConfigurationController', function() {
       }]
     });
     $httpBackend.expectDELETE(CLMLocations.getRepositoryInfoUrl(vm.repositories[0].repository.id)).respond(204);
+    expect(vm.repositorySubmittingMap[vm.repositories[0].repository.id]).toBeFalsy();
     Dialog.open.mostRecentCall.args[0].buttons[1].click();
+    expect(vm.repositorySubmittingMap[vm.repositories[0].repository.id]).toBeTruthy();
     $httpBackend.flush();
+    expect(vm.repositorySubmittingMap[vm.repositories[0].repository.id]).toBeFalsy();
     expect(vm.repositories.length).toEqual(1);
     expect(vm.repositories[0]).toEqual(repositories.repositories[1]);
   }));

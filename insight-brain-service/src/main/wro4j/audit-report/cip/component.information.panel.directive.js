@@ -59,6 +59,9 @@
           if (vm.showCIP) {
             vm.selectedTab = vm.tabs[0];
           }
+          else {
+            vm.selectedTab = null;
+          }
         });
       }]
     };

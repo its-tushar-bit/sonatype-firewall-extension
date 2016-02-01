@@ -1001,7 +1001,8 @@
             </goals>
             <configuration>
               <targetGroups>version.graph.app,viewdetails</targetGroups>
-              <destinationFolder>${wro4j.brain.resources}assets/version-graph/</destinationFolder>
+              <cssDestinationFolder>${wro4j.brain.resources}assets/version-graph/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}assets/version-graph/</jsDestinationFolder>
             </configuration>
           </execution>
           <execution>
@@ -1012,7 +1013,8 @@
             </goals>
             <configuration>
               <targetGroups>audit-report</targetGroups>
-              <destinationFolder>${wro4j.brain.resources}audit-report/</destinationFolder>
+              <cssDestinationFolder>${wro4j.brain.resources}audit-report/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}audit-report/</jsDestinationFolder>
             </configuration>
           </execution>
         </executions>

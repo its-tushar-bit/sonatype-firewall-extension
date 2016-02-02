@@ -465,3 +465,7 @@ i.unknown-format {
   padding-right: 10px;
   vertical-align: top;
 }
+
+#license-editor .btn-group {
+  display: block;
+}

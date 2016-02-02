@@ -281,7 +281,7 @@ class LicenseModule
 extends Module
 {
   static content = {
-    form { $('form[name=licenseEditorForm]') }
+    form { $('form[name=vm\\.licenseEditorForm]') }
     buttons { module ButtonsModule, form }
     update(required: false) { buttons.button('Update') }
     declaredLicenses { form.find('#declaredLicenseBlock').text() }

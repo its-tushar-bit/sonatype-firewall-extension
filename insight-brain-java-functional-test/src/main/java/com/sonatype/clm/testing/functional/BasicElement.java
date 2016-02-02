@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -14,37 +15,50 @@ public abstract class BasicElement<T extends BasicElement<T>>
 {
   protected final String selector;
 
+  private SelenideElement element;
+
   protected BasicElement(String selector) {
     this.selector = selector;
   }
 
   public T should(Condition... conditions) {
-    $(selector).should(conditions);
+    getElement().should(conditions);
     return (T) this;
   }
 
   public T shouldNot(Condition... conditions) {
-    $(selector).shouldNot(conditions);
+    getElement().shouldNot(conditions);
     return (T) this;
   }
 
   public T shouldBe(Condition... conditions) {
-    $(selector).shouldBe(conditions);
+    getElement().shouldBe(conditions);
     return (T) this;
   }
 
   public T shouldNotBe(Condition... conditions) {
-    $(selector).shouldNotBe(conditions);
+    getElement().shouldNotBe(conditions);
     return (T) this;
   }
 
   public T shouldHave(Condition... conditions) {
-    $(selector).shouldHave(conditions);
+    getElement().shouldHave(conditions);
     return (T) this;
   }
 
   public T shouldNotHave(Condition... conditions) {
-    $(selector).shouldNotHave(conditions);
+    getElement().shouldNotHave(conditions);
     return (T) this;
+  }
+
+  public void click() {
+    getElement().click();
+  }
+
+  private SelenideElement getElement() {
+    if (element == null) {
+      element = $(selector);
+    }
+    return element;
   }
 }

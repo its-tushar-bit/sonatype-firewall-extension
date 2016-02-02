@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, CLM, clmEndpoint */
+/*global angular, CLM, clmEndpoint, InsightDatatable */
 (function() {
   'use strict';
 
   function LicenseEditorController($scope, $q, $http, Messages, SelectedComponent, OwnerContext) {
+    var vm = this;
 
     function getHierarchyById(id) {
       for (var i = 0; i < $scope.hierarchy.length; i++) {
@@ -25,52 +26,49 @@
       }
     }
 
-    function updateTable() {
-      if (SelectedComponent.get()) {
-        var licenseOverride = null,
-            component = SelectedComponent.get();
+    function updateTable(updatedComponent) {
+      var licenseOverride = null,
+          component = SelectedComponent.get();
+
+      $scope.component = updatedComponent;
+
+      // if the license table is active in an App report, attempt to update it
+      if (component && angular.isArray(component.observedLicenses)) {
+        component.effectiveLicenses = [];
+        component.effectiveLicenseThreat = null;
+
+        updatedComponent.effectiveLicenses.forEach(function (licenseWithThreat) {
+          component.effectiveLicenses.push(licenseWithThreat.license.licenseName);
+          component.effectiveLicenseThreat = Math.max(licenseWithThreat.threatLevel, component.effectiveLicenseThreat);
+        });
+        component._formattedEffectiveLicenseThreat = component.effectiveLicenses.join(', ');
+
+        component.overriddenLicenses = null;
+        component.overriddenLicenseThreat = null;
+
         for (var i = 0; i < $scope.hierarchy.length; i++) {
           if ($scope.hierarchy[i].licenseOverride) {
             licenseOverride = $scope.hierarchy[i].licenseOverride;
             break;
           }
         }
+        if (licenseOverride) {
+          component.status = getStatusName(licenseOverride.status);
 
-        if (licenseOverride && licenseOverride.licenseIds && licenseOverride.licenseIds.length > 0) {
-          component.overriddenLicenses = $.map(licenseOverride.licenseIds, function(val) {
-            return [$scope.licenses[val].shortDisplayName];
-          });
-          component.effectiveLicenses = component.overriddenLicenses;
-          component.overriddenLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.overriddenLicenses[0]);
-          component.effectiveLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.overriddenLicenses[0]);
+          if (licenseOverride.status === 'SELECTED' || licenseOverride.status === 'OVERRIDDEN') {
+            component.overriddenLicenseThreat = component.effectiveLicenseThreat;
+            component.overriddenLicenses = component.effectiveLicenses;
+          }
         }
         else {
-          component.overriddenLicenses = null;
-          component.overriddenLicenseThreat = null;
-
-          var licenses = {};
-          component.effectiveLicenses = [];
-          if (component.declaredLicenses) {
-            $.each(component.declaredLicenses, function(index, license) {
-              licenses[license] = license;
-              component.effectiveLicenses.push(license);
-            });
-          }
-          if (component.observedLicenses) {
-            $.each(component.observedLicenses, function(index, license) {
-              if (!licenses[license]) {
-                component.effectiveLicenses.push(license);
-              }
-            });
-          }
-
-          // Update threat
-          component.effectiveLicenseThreat = InsightDatatable.getLicenseThreatLevelFromArray(component.effectiveLicenses);
+          component.status = 'Open';
         }
-        component._formattedEffectiveLicenseThreat = component.effectiveLicenses.join(', ');
-        component.status = licenseOverride ? getStatusName(licenseOverride.status) : 'Open';
 
-        $scope.$emit('clm.grid.licenses.changed', SelectedComponent.get());
+        $scope.$emit('clm.grid.licenses.changed', component);
+      }
+      else {
+        // new style
+        $scope.$emit('component.data.changed', component.hash);
       }
     }
 
@@ -112,6 +110,12 @@
       }
     }
 
+    function createComponentRequest() {
+      return $http.get(CLM.path + 'rest/' + clmEndpoint.type + '/componentDetails/' +
+              OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/licenses?componentIdentifier=' +
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier)));
+    }
+
     $scope.canInherit = function() {
       return $scope.override && getHierarchyIndexById($scope.override.ownerId) < $scope.hierarchy.length - 1;
     };
@@ -135,23 +139,18 @@
       promises.push($http.get(CLM.path + 'rest/license?filterSynthetic=true'));
 
       // Component licenses
-      promises.push($http.get(CLM.path + 'rest/' + clmEndpoint.type + '/componentDetails/' +
-              OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/licenses?componentIdentifier=' +
-              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))));
+      promises.push(createComponentRequest());
 
-      if (OwnerContext.ownerType !== 'repository') {
-        // Current override state
-        promises.push($http.get(CLM.path + 'rest/licenseOverride/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId +
-                '?componentIdentifier=' + encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))));
-      }
+      // Current override state
+      promises.push($http.get(CLM.path + 'rest/licenseOverride/' + OwnerContext.ownerType + '/' +
+              OwnerContext.ownerId + '?componentIdentifier=' +
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))));
 
       $q.all(promises).then(function(results) {
         var licenses = results[0].data,
             component = results[1].data;
 
-        if (OwnerContext.ownerType !== 'repository') {
-          $scope.hierarchy = results[2].data.licenseOverridesByOwner;
-        }
+        $scope.hierarchy = results[2].data.licenseOverridesByOwner;
 
         $scope.component = component;
         $scope.licenses = {};
@@ -165,9 +164,9 @@
 
         $scope.reset();
 
-        $scope.selectableLicenses = {};
+        $scope.selectableLicenses = [];
         angular.forEach($scope.component.selectableLicenses, function (license) {
-          $scope.selectableLicenses[license.licenseId] = $scope.licenses[license.licenseId];
+          $scope.selectableLicenses.push($scope.licenses[license.licenseId]);
         });
       }, function() {
         $scope.error = arguments[0];
@@ -199,22 +198,36 @@
       if (licenseOverride.status === 'DELETE') {
         $http['delete'](CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + licenseOverride.ownerId + '/' +
                 owner.licenseOverride.id).success(function() {
-          $scope.saving = false;
+
           owner.licenseOverride = null;
           $scope.reset();
-          updateTable();
+
+          return createComponentRequest().then(function (updatedComponent) {
+            $scope.saving = false;
+            updateTable(updatedComponent.data);
+          }, function (error) {
+            $scope.saving = false;
+            $scope.alert = Messages.getHttpErrorMessage(error);
+          });
         }).error(function() {
-              $scope.alert = Messages.getHttpErrorMessage(arguments);
-              $scope.saving = false;
-            });
+          $scope.alert = Messages.getHttpErrorMessage(arguments);
+          $scope.saving = false;
+        });
       }
       else {
         $http.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId,
                 licenseOverride).success(function(data) {
-          $scope.saving = false;
+
           owner.licenseOverride = data;
           $scope.reset();
-          updateTable();
+
+          return createComponentRequest().then(function (updatedComponent) {
+            $scope.saving = false;
+            updateTable(updatedComponent.data);
+          }, function (error) {
+            $scope.saving = false;
+            $scope.alert = Messages.getHttpErrorMessage(error);
+          });
         }).error(function() {
           $scope.alert = Messages.getHttpErrorMessage(arguments);
           $scope.saving = false;
@@ -262,7 +275,11 @@
     };
 
     $scope.isSubmitEnabled = function() {
-      return $scope.licenseEditorForm && $scope.licenseEditorForm.$dirty && !$scope.licenseEditorForm.$invalid && !$scope.saving;
+      var validOverride = !($scope.override.status === 'OVERRIDDEN' || $scope.override.status === 'SELECTED') ||
+              $scope.override.licenseIds.length > 0;
+
+      return vm.licenseEditorForm && vm.licenseEditorForm.$dirty && !vm.licenseEditorForm.$invalid && !$scope.saving &&
+              validOverride;
     };
 
     // Remove licenses when changing status

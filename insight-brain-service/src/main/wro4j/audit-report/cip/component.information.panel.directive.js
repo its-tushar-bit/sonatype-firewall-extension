@@ -53,7 +53,10 @@
         }
 
         $scope.$watch(function () {
-          return selectedComponent.get();
+          return selectedComponent.get() && {
+            hash: selectedComponent.get().hash,
+            componentIdentifier: selectedComponent.get().componentIdentifier
+          };
         }, function () {
           vm.showCIP = selectedComponent.get();
           if (vm.showCIP) {
@@ -62,7 +65,7 @@
           else {
             vm.selectedTab = null;
           }
-        });
+        }, true);
       }]
     };
   }

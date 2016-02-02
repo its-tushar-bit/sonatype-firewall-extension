@@ -64,6 +64,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -274,41 +275,42 @@ public class RepositoryReportTest
     LicenseCIP.status().selectOption("Selected");
 
     // choose a license
-    LicenseCIP.licenseSelector().click();
+    LicenseCIP.licenseSelector().button().shouldBe(visible).click();
     LicenseCIP.licenseSelector().entries().shouldHave(texts("Apache-2.0", "GPL-2.0"));
     LicenseCIP.licenseSelector().entry(0).click();
-    LicenseCIP.licenseSelector().click();
+    LicenseCIP.licenseSelector().button().click();
     LicenseCIP.comment().setValue("not bad");
     LicenseCIP.updateButton().shouldBe(enabled).click();
 
-    // CIP should disappear
-    RepositoryReportPage.Table.cip().shouldHave(cssClass("ng-hide"));
-
-    // Verify override on backend
-    LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(),
-        CRITICAL_IDENTIFIER);
-    assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
-    assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
-
-    openCIP(0, "License");
+    RepositoryReportPage.waitForComponentUpdater();
 
     // Check for our override
+    LicenseCIP.effectiveLicenses().shouldHave(texts("Apache-2.0"));
     LicenseCIP.scope().shouldHave(value("string:" + repo.getId()));
     LicenseCIP.status().shouldHave(value("SELECTED"));
     LicenseCIP.licenseSelector().should(exist);
     LicenseCIP.updateButton().shouldNotBe(enabled);
 
+
+    // Verify override on backend
+    final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(),
+        CRITICAL_IDENTIFIER);
+    assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
+    assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
+
     // remove
     LicenseCIP.status().selectOption("Inherit Status (Acknowledged)");
     LicenseCIP.updateButton().shouldBe(enabled).click();
 
-    // CIP should disappear
-    RepositoryReportPage.Table.cip().shouldHave(cssClass("ng-hide"));
+    RepositoryReportPage.waitForComponentUpdater();
 
-    // check backend
+    LicenseCIP.updateButton().shouldBe(disabled);
     override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(), CRITICAL_IDENTIFIER);
     assertNull(override);
+
+    // Close CIP should disappear
+    RepositoryReportPage.Table.closeCipButton().shouldBe(visible).click();
   }
 
   private void testVersionGraphCIP() {
@@ -389,35 +391,29 @@ public class RepositoryReportTest
     // CIP should disappear
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
     // Bad labels is gone
-    RepositoryReportPage.Table.rows().shouldHaveSize(7);
+    RepositoryReportPage.Table.rows().shouldHaveSize(8);
 
     // reset filter
     Filter.summaryViolationsButton().click();
   }
 
   private void testPolicyCIP() {
-    // open CIP
-    RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(visible);
+    openCIP(0, "Policy");
 
-    RepositoryReportPage.Table.cipTab("Policy").click();
-    ReportCip.policyTab().should(appear).click();
-
+    // Check existing violations
     WaiverCip.rows().shouldHaveSize(2);
-
     WaiverCip.row(0).shouldBe(10, CRITICAL_ROW.policyName, new String[] { CRITICAL_ROW.policyName + " constraint" },
         new String[] { "Match State was exact" });
-
     WaiverCip.row(1).shouldBe(10, CRITICAL_ROW_SECONDARY.policyName,
         new String[] { CRITICAL_ROW_SECONDARY.policyName + " constraint" },
         new String[] { "Coordinates were critical : threat : 1.0" });
 
+    // check that there are no existing waivers
     WaiverCip.viewWaivers().shouldBe(visible).click();
-
     ViewWaiversDialog.rows().shouldHaveSize(0);
-
     ViewWaiversDialog.closeButton().click();
 
+    // Waive first violation
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
 
     // Waive a policy violation
@@ -426,16 +422,14 @@ public class RepositoryReportTest
     AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
     AddWaiverDialog.scope(repo.getId()).shouldBe(visible).shouldBe(selected);
 
-    AddWaiverDialog.allComponents().shouldBe(visible);
-    AddWaiverDialog.selectedComponent().shouldBe(visible);
+    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected);
+    AddWaiverDialog.selectedComponent().shouldBe(visible).shouldBe(selected);
     AddWaiverDialog.selectedComponent().parent().shouldHave(text("Selected component (critical : threat : 1.0)"));
-
-    AddWaiverDialog.allComponents().shouldNotBe(selected);
-    AddWaiverDialog.selectedComponent().shouldBe(selected);
 
     AddWaiverDialog.comment().setValue("TEST COMMENT");
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
 
+    // CIP closes as the row is hidden in the summary view
     AddWaiverDialog.root().should(disappear);
     ReportCip.policyTab().should(disappear);
 
@@ -454,20 +448,16 @@ public class RepositoryReportTest
 
     WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(appear).click();
     WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(disappear);
+
+    RepositoryReportPage.waitForComponentUpdater();
     ViewWaiversDialog.closeButton().should(appear).click();
 
     // close CIP & reset filter
-    RepositoryReportPage.Table.cip().shouldNotBe(visible);
-    ViewWaiversDialog.closeButton().shouldBe(visible).click();
     Filter.summaryViolationsButton().click();
   }
 
   private void testVulnerabilityCIP() throws IOException {
-    // open CIP
-    RepositoryReportPage.Table.row(0).component().click();
-    RepositoryReportPage.Table.cip().shouldBe(visible);
-
-    RepositoryReportPage.Table.cipTab("Vulnerabilities").click();
+    openCIP(0, "Vulnerabilities");
 
     VulnerabilityCIP.rows().shouldHaveSize(3);
 
@@ -646,8 +636,7 @@ public class RepositoryReportTest
       false, false);
 
   private final ExpectedRow MODERATE_ROW = new ExpectedRow(Table.MODERATE_THREAT, "Sorta Bad",
-      "moderate : threat : 1.0",
-      false, false);
+      "moderate : threat : 1.0", false, false);
 
   private final ExpectedRow IGNORED_ROW = new ExpectedRow(Table.IGNORED_SCORE, "Meh", "ignored : threat : 1.0", false,
       false);

@@ -34,11 +34,10 @@ public class MultiSelect
     return $$(selector(selector, "li[ng-repeat]"));
   }
 
-
   public SelenideElement entry(int row) {
     // Note we can't use a strict CSS selector here as we do not know whether the filter is visible (thus nth-child
     // cannot be generically used)
-    return entries().get(row);
+    return entries().get(row).find("input");
   }
 
   public static final Condition checked = Condition.cssClass(".selected");

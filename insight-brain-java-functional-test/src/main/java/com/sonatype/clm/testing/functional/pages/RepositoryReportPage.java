@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
@@ -13,6 +14,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class RepositoryReportPage
 {
@@ -21,6 +23,29 @@ public class RepositoryReportPage
   public static String url(String repositoryId)
   {
     return BASE_URL + "?repositoryId=" + repositoryId;
+  }
+
+  public static void waitForComponentUpdater() {
+    final SelenideElement updaterModal = $("#component-updater");
+    final long start = System.currentTimeMillis();
+
+    boolean hasAppeared = false;
+
+    while (System.currentTimeMillis() - start > Configuration.timeout) {
+      boolean visible = updaterModal.isDisplayed();
+      if (hasAppeared && !visible) {
+        return;
+      }
+      hasAppeared = visible;
+
+      try {
+        Thread.sleep(Configuration.pollingInterval);
+      }
+      catch (InterruptedException e) {
+        return;
+      }
+    }
+    // We probably missed it. Probably...
   }
 
   public static class Summary
@@ -127,6 +152,8 @@ public class RepositoryReportPage
   {
     public static final Condition CRITICAL_THREAT = cssClass("criticalScore");
 
+    private static final String TABLE_ROW_SELECTOR = "#componentTable > .slick-viewport > .grid-canvas > .slick-row";
+
     public static final Condition MODERATE_THREAT = cssClass("moderateScore");
 
     public static final Condition SEVERE_THREAT = cssClass("severeScore");
@@ -136,12 +163,12 @@ public class RepositoryReportPage
     public static final Condition IGNORED_SCORE = cssClass("ignoredScore");
 
     public static Row row(int num) {
-      return new Row(rows().get(num));
+      return new Row($(selector(TABLE_ROW_SELECTOR, "[row='" + num + "']")));
     }
 
     public static ElementsCollection rows() {
       // Very specific selector to avoid catching the CIP SV table
-      return $$("#componentTable > .slick-viewport > .grid-canvas > .slick-row");
+      return $$(TABLE_ROW_SELECTOR);
     }
 
     public static Row rowByName(String name) {
@@ -154,6 +181,10 @@ public class RepositoryReportPage
 
     public static SelenideElement cipTab(String name) {
       return cip().$$(".nav > li a").find(text(name));
+    }
+
+    public static SelenideElement closeCipButton() {
+      return $("#informationPanel .close");
     }
   }
 

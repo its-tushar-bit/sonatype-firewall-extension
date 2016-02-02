@@ -16,7 +16,7 @@ public class SelectorUtils
     StringBuilder sb = new StringBuilder();
 
     for (String selector : selectors) {
-      if (!selector.startsWith(":") && sb.length() > 0) {
+      if (!(selector.startsWith(":") || selector.startsWith("[")) && sb.length() > 0) {
         sb.append(' ');
       }
       sb.append(selector);

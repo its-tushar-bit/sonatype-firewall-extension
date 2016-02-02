@@ -231,23 +231,58 @@
         $scope.$on('component.evaluation.updated', function (event, hash, promises) {
           promises.push($http.get('/rest/repositories/' + OwnerContext.ownerId + '/report/details?hash=' + hash)
             .success(function(data) {
-                var items = vm.grid.dataView.getItems(),
-                    maxId = -1;
+                var dataView = vm.grid.dataView,
+                    maxId = -1,
+                    idsToRemove = {},
+                    newItemMap = {},
+                    updatedItemMap= {};
 
-                vm.grid.dataView.beginUpdate();
-                for (var i = items.length - 1; i > -1; i--) {
-                  maxId = Math.max(maxId, items[i].id);
-                  if (items[i].hash === hash) {
-                    vm.grid.dataView.deleteItem(items[i].id);
-                  }
-                }
+                processData(data, 0);
 
-                maxId++;
-                processData(data, maxId);
-                data.forEach(function (newItem) {
-                  vm.grid.dataView.addItem(newItem);
+                data.forEach(function (item) {
+                  // we use a nested structure here because a composite key could cause problems, e.g. someone
+                  // names a policy 'null' would collide with the synthetic No Violations which uses null
+                  (newItemMap[item.pathname] = newItemMap[item.pathname] || {})[item.policyName] = item;
+                  updatedItemMap[item.pathname] = updatedItemMap[item.pathname] || {};
                 });
-                vm.grid.dataView.endUpdate();
+
+                dataView.beginUpdate();
+                // update existing rows
+                dataView.getItems().forEach(function(item) {
+                  maxId = Math.max(maxId, item.id);
+
+                  if (item.hash === hash) {
+                    if (newItemMap[item.pathname] && newItemMap[item.pathname][item.policyName]) {
+                      // update id
+                      newItemMap[item.pathname][item.policyName].id = item.id;
+                      // update entry
+                      dataView.updateItem(item.id, newItemMap[item.pathname][item.policyName]);
+                      // don't need to add this one
+                      updatedItemMap[item.pathname][item.policyName] = true;
+                    }
+                    else {
+                      // can't delete during iteration, collect for later
+                      idsToRemove[item.id] = true;
+                    }
+                  }
+                });
+
+                Object.keys(idsToRemove).forEach(function (id) {
+                  dataView.deleteItem(parseInt(id, 10));
+                });
+
+                // reduce to the new entries
+                data = data.filter(function (item) {
+                  return !updatedItemMap[item.pathname][item.policyName];
+                });
+
+                //add new entries
+                data.forEach(function (newItem) {
+                  newItem.id = ++maxId;
+                  dataView.addItem(newItem);
+                });
+
+                dataView.endUpdate();
               }));
         });
       }]

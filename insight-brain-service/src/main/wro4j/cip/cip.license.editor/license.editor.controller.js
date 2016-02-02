@@ -241,6 +241,11 @@
         ownerId: null,
         licenseIds: []
       };
+
+      if (vm.licenseEditorForm) {
+        vm.licenseEditorForm.$setPristine();
+      }
+
       if ($scope.hierarchy) {
         for (var i = 0; i < $scope.hierarchy.length; i++) {
           if ($scope.hierarchy[i].licenseOverride) {

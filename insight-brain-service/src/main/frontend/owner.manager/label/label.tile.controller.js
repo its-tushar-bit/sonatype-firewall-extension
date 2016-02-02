@@ -26,8 +26,8 @@
         });
 
         vm.ownerName = vm.applicableLabels[0].ownerName;
-      }, function() {
-        vm.error = arguments;
+      }, function(error) {
+        vm.error = error;
       });
 
       delete vm.error;

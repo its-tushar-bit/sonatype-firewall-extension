@@ -33,8 +33,8 @@
 
         vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(vm.membersByRole).length > 0;
-      }, function() {
-        vm.error = arguments[0];
+      }, function(error) {
+        vm.error = error;
       });
 
       delete vm.error;

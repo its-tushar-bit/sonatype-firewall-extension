@@ -34,8 +34,8 @@
               vm.appCategoryOwners[index].parent = true;
             }
           });
-        }, function() {
-          vm.error = arguments;
+        }, function(error) {
+          vm.error = error;
         });
 
         delete vm.error;

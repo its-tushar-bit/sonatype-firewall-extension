@@ -11,6 +11,7 @@
     return {
       open: function () {
         return $modal.open({
+          backdrop: 'static',
           templateUrl: 'repository-reevaluate-modal-template',
           controller: 'repository.reevaluate.modal.controller as vm'
         }).result;

@@ -42,7 +42,6 @@ public class LastPolicyEvaluationDAOTest
     assertThat(policyEvaluation.getApplicationId(), is(applicationId));
     assertThat(policyEvaluation.getStageTypeId(), is(stageTypeId));
 
-
     // Update is not allowed
     try {
       dao.update(policyEvaluation);
@@ -67,34 +66,31 @@ public class LastPolicyEvaluationDAOTest
 
     // put one guy in, he should be first
     final PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, eval1Date);
-    final LastPolicyEvaluation firstPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId,
-        stageTypeId);
+    final LastPolicyEvaluation firstPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
     assertThat(firstPolicyEvaluation.getId(), is(eval1.getId()));
 
-    //put in a newer guy, he should be the newest now
+    // put in a newer guy, he should be the newest now
     final Date eval2Date = new Date(eval1Date.getTime() + 10);
     final PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, eval2Date);
-    final LastPolicyEvaluation secondPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId,
-        stageTypeId);
+    final LastPolicyEvaluation secondPolicyEvaluation = dao
+        .getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
     assertThat(secondPolicyEvaluation.getId(), is(eval2.getId()));
 
-    //put a guy in the middle (timewise), he should not change who the newest is
+    // put a guy in the middle (timewise), he should not change who the newest is
     final Date eval3Date = new Date(eval1Date.getTime() + 5);
     final PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, scanId, eval3Date);
-    final LastPolicyEvaluation thirdPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId,
-        stageTypeId);
+    final LastPolicyEvaluation thirdPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
     assertThat(thirdPolicyEvaluation.getId(), is(eval2.getId()));
 
-    //delete the newest guy, should now be the middle guy
+    // delete the newest guy, should now be the middle guy
     peDao.delete(eval2);
-    final LastPolicyEvaluation fourthPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId,
-        stageTypeId);
+    final LastPolicyEvaluation fourthPolicyEvaluation = dao
+        .getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
     assertThat(fourthPolicyEvaluation.getId(), is(eval3.getId()));
 
-    //delete currently newest guy, should now be the first guy
+    // delete currently newest guy, should now be the first guy
     peDao.delete(eval3);
-    final LastPolicyEvaluation fifthPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId,
-        stageTypeId);
+    final LastPolicyEvaluation fifthPolicyEvaluation = dao.getByApplicationIdAndStageTypeId(applicationId, stageTypeId);
     assertThat(fifthPolicyEvaluation.getId(), is(eval1.getId()));
   }
 

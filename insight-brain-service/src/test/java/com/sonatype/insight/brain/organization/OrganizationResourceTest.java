@@ -68,9 +68,10 @@ public class OrganizationResourceTest
     response = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", organizationId)
         .part("hasRobotSource", "false").part("file", "defaulticon_organization.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals(
-        "defaulticon_organization.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
-        response.getBodyText());
+    Assert
+        .assertEquals(
+            "defaulticon_organization.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
+            response.getBodyText());
 
     // Get icon (default icon)
     HttpResponse iconResponse = restRequest().path(OrganizationResource.GET_ICON_PATH).parameter(organizationId).get();

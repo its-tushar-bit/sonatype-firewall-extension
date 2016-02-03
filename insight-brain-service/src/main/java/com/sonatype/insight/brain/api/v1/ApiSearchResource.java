@@ -40,7 +40,6 @@ public class ApiSearchResource
 {
   private final ApiSearchServiceV2 searchService;
 
-
   @Inject
   public ApiSearchResource(final ApiSearchServiceV2 searchService) {
     this.searchService = searchService;
@@ -54,9 +53,11 @@ public class ApiSearchResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiSearchResultsDTO searchComponent(@QueryParam("stageId") String stageId, @QueryParam("hash") String hash,
-      @QueryParam("groupId") String groupId, @QueryParam("artifactId") String artifactId,
-      @QueryParam("version") String version)
+  public ApiSearchResultsDTO searchComponent(@QueryParam("stageId") String stageId,
+                                             @QueryParam("hash") String hash,
+                                             @QueryParam("groupId") String groupId,
+                                             @QueryParam("artifactId") String artifactId,
+                                             @QueryParam("version") String version)
   {
 
     ComponentIdentifier componentIdentifier = getComponentIdentifier(groupId, artifactId, version);
@@ -81,12 +82,12 @@ public class ApiSearchResource
       searchResultDTO.applicationId = searchResultDTOV2.applicationId;
       searchResultDTO.applicationName = searchResultDTOV2.applicationName;
       if (searchResultDTOV2.componentIdentifier != null) {
-        searchResultDTO.groupId = searchResultDTOV2.componentIdentifier.getCoordinates()
-            .get(ComponentIdentifier.MAVEN_GROUP_ID);
-        searchResultDTO.artifactId = searchResultDTOV2.componentIdentifier.getCoordinates()
-            .get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
-        searchResultDTO.version = searchResultDTOV2.componentIdentifier.getCoordinates()
-            .get(ComponentIdentifier.VERSION);
+        searchResultDTO.groupId = searchResultDTOV2.componentIdentifier.getCoordinates().get(
+            ComponentIdentifier.MAVEN_GROUP_ID);
+        searchResultDTO.artifactId = searchResultDTOV2.componentIdentifier.getCoordinates().get(
+            ComponentIdentifier.MAVEN_ARTIFACT_ID);
+        searchResultDTO.version = searchResultDTOV2.componentIdentifier.getCoordinates().get(
+            ComponentIdentifier.VERSION);
       }
       searchResultDTO.hash = searchResultDTOV2.hash;
       searchResultDTO.reportUrl = searchResultDTOV2.reportUrl;
@@ -101,17 +102,16 @@ public class ApiSearchResource
     criteriaDTO.hash = searchCriteriaDTOV2.hash;
     criteriaDTO.stageId = searchCriteriaDTOV2.stageId;
     if (searchCriteriaDTOV2.componentIdentifier != null) {
-      criteriaDTO.groupId = searchCriteriaDTOV2.componentIdentifier.getCoordinates()
-          .get(ComponentIdentifier.MAVEN_GROUP_ID);
-      criteriaDTO.artifactId = searchCriteriaDTOV2.componentIdentifier.getCoordinates()
-          .get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
+      criteriaDTO.groupId = searchCriteriaDTOV2.componentIdentifier.getCoordinates().get(
+          ComponentIdentifier.MAVEN_GROUP_ID);
+      criteriaDTO.artifactId = searchCriteriaDTOV2.componentIdentifier.getCoordinates().get(
+          ComponentIdentifier.MAVEN_ARTIFACT_ID);
       criteriaDTO.version = searchCriteriaDTOV2.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
     }
     return criteriaDTO;
   }
 
-  private ComponentIdentifier getComponentIdentifier(final String groupId, final String artifactId,
-      final String version)
+  private ComponentIdentifier getComponentIdentifier(final String groupId, final String artifactId, final String version)
   {
     if (groupId == null && artifactId == null && version == null) {
       return null;

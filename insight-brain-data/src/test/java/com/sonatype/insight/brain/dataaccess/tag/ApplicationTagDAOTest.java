@@ -73,7 +73,7 @@ public class ApplicationTagDAOTest
       fail("Expected UnsupportedOperationException");
     }
     catch (UnsupportedOperationException expected) {
-      //Expected
+      // Expected
     }
   }
 

@@ -28,7 +28,7 @@ import org.codehaus.plexus.util.StringUtils;
 @Table(name = "policy_violation")
 public class PolicyViolation
     extends AbstractPolicyViolation
-  implements HasStringId
+    implements HasStringId
 {
   static final char PATHNAMES_DELIMITER_CHAR = '\n';
 
@@ -51,9 +51,15 @@ public class PolicyViolation
   public PolicyViolation() {
   }
 
-  public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      String constraintFactsJson, String pathnames)
+  public PolicyViolation(PolicyEvaluation evaluation,
+                         String policyId,
+                         String policyName,
+                         int threatLevel,
+                         PolicyThreatCategory threatCategory,
+                         String hash,
+                         ComponentIdentifier componentIdentifier,
+                         String constraintFactsJson,
+                         String pathnames)
   {
     super(evaluation.getTime(), policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier,
         constraintFactsJson);
@@ -61,16 +67,26 @@ public class PolicyViolation
     setPathnamesString(pathnames);
   }
 
-  public PolicyViolation(PolicyEvaluation evaluation, Policy policy, String hash,
-      ComponentIdentifier componentIdentifier, List<ConstraintFact> constraintFacts, List<String> pathnames)
+  public PolicyViolation(PolicyEvaluation evaluation,
+                         Policy policy,
+                         String hash,
+                         ComponentIdentifier componentIdentifier,
+                         List<ConstraintFact> constraintFacts,
+                         List<String> pathnames)
   {
     this(evaluation, policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
         componentIdentifier, constraintFacts, pathnames);
   }
 
-  public PolicyViolation(PolicyEvaluation evaluation, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      List<ConstraintFact> constraintFacts, List<String> pathnames)
+  public PolicyViolation(PolicyEvaluation evaluation,
+                         String policyId,
+                         String policyName,
+                         int threatLevel,
+                         PolicyThreatCategory threatCategory,
+                         String hash,
+                         ComponentIdentifier componentIdentifier,
+                         List<ConstraintFact> constraintFacts,
+                         List<String> pathnames)
   {
     super(evaluation.getTime(), policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier,
         constraintFacts);

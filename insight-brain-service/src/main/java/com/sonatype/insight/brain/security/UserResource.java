@@ -62,8 +62,9 @@ public class UserResource
   @Path(MEMBERS_FOR_OWNER_ROLES)
   @Produces(MediaType.APPLICATION_JSON)
   public FindMembersDTO findMembersForNonGlobalRoles(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId, @QueryParam("q") String query,
-      @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
+                                                     @PathParam("ownerId") String ownerId,
+                                                     @QueryParam("q") String query,
+                                                     @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
   {
     return userService.findMembersForRoles(ownerType, ownerId, query, groupsEnabled);
   }
@@ -77,7 +78,8 @@ public class UserResource
   @Path(MEMBERS_FOR_SINGLETON_OWNER_ROLES)
   @Produces(MediaType.APPLICATION_JSON)
   public FindMembersDTO findMembersForRepositoryRoles(@PathParam("ownerType") OwnerType ownerType,
-      @QueryParam("q") String query, @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
+                                                      @QueryParam("q") String query,
+                                                      @QueryParam("groups") @DefaultValue("true") boolean groupsEnabled)
   {
     return userService.findMembersForRoles(ownerType, null, query, groupsEnabled);
   }

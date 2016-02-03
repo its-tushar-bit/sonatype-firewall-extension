@@ -44,8 +44,8 @@ public class TagServiceTest
     Application app = tempEntity.newApplicationWithParent("appPublicId");
     Tag tag = tempEntity.newTag(app.getOrganizationId(), "Tag");
 
-    List<ApplicationTag> applicationTags =
-        tagService.updateApplicationTags(app.getPublicId(), Collections.singletonList(tag));
+    List<ApplicationTag> applicationTags = tagService.updateApplicationTags(app.getPublicId(),
+        Collections.singletonList(tag));
     assertThat(applicationTags, hasSize(1));
     assertThat(applicationTags.get(0).getApplicationId(), is(app.getId()));
     assertThat(applicationTags.get(0).getTagId(), is(tag.getId()));
@@ -94,8 +94,8 @@ public class TagServiceTest
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(),
-          is("Cannot find a tag with id " + tag.getId() + " for organization id " + organization2.getId()));
+      assertThat(e.getMessage(), is("Cannot find a tag with id " + tag.getId() + " for organization id "
+          + organization2.getId()));
     }
   }
 
@@ -112,8 +112,8 @@ public class TagServiceTest
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(),
-          is("Tag with id " + tag.getId() + " is not applied to application with id " + application2.getPublicId()));
+      assertThat(e.getMessage(), is("Tag with id " + tag.getId() + " is not applied to application with id "
+          + application2.getPublicId()));
     }
   }
 
@@ -180,8 +180,8 @@ public class TagServiceTest
     Organization org = tempEntity.newOrganization();
     Organization parentOrg = new OrganizationDAO().getById(org.getParentOrganizationId());
     Application application = tempEntity.newApplication(org.getId());
-    ApplicationTag orgTag = tempEntity.newApplicationTag(application.getId(),
-        tempEntity.newTag(org.getId(), "Org Tag").getId());
+    ApplicationTag orgTag = tempEntity.newApplicationTag(application.getId(), tempEntity.newTag(org.getId(), "Org Tag")
+        .getId());
     ApplicationTag parentTag = tempEntity.newApplicationTag(application.getId(),
         tempEntity.newTag(org.getParentOrganizationId(), "Root Tag").getId());
 
@@ -207,8 +207,8 @@ public class TagServiceTest
     Policy policy = tempEntity.newPolicy(org.getId(), "policy");
 
     PolicyTag orgTag = tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(org.getId(), "Org Tag").getId());
-    PolicyTag parentTag = tempEntity.newPolicyTag(policy.getId(),
-        tempEntity.newTag(parentOrg.getId(), "Root Tag").getId());
+    PolicyTag parentTag = tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(parentOrg.getId(), "Root Tag")
+        .getId());
 
     List<PolicyTag> tags = tagService.getAppliedPolicyTags(org.getId());
     assertTagInList(tags, orgTag);

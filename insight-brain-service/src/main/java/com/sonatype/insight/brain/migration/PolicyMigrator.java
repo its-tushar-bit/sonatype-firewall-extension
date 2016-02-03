@@ -40,7 +40,7 @@ public class PolicyMigrator
   private static final Logger log = LoggerFactory.getLogger(PolicyMigrator.class);
 
   private final InsightWork insightWork;
-  
+
   private final ProcureRemovalMigrator procureMigrator;
 
   static final String MARKER_FILE_NAME = "policies-migrated";
@@ -116,7 +116,8 @@ public class PolicyMigrator
             for (JsonNode policyJsonNode : policyJsonData) {
               Policy policy = JsonUtils.asPojo(policyJsonNode, Policy.class);
               policy.setOwnerId(ownerId);
-              // we need to migrate the procure items out now, otherwise we will be inserting invalid data into the database
+              // we need to migrate the procure items out now, otherwise we will be inserting invalid data into the
+              // database
               procureMigrator.pruneProcurement(policy);
               policyDAO.insert(tx, policy);
             }

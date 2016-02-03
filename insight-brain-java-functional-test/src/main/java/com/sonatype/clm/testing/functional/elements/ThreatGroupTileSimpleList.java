@@ -37,7 +37,7 @@ public class ThreatGroupTileSimpleList
   public static Condition threatLevel(int threatLevel) {
     return Condition.cssClass("threat-level-" + threatLevel);
   }
-  
+
   public static class ThreatGroupTileSimpleListElement
   {
 

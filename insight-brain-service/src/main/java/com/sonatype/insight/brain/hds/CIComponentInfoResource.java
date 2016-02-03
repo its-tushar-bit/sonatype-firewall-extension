@@ -52,36 +52,37 @@ public class CIComponentInfoResource
   @Path(COMPONENT_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public NamedComponentDetails getComponentDetails(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-      @QueryParam("matchState") String matchState, @QueryParam("hash") String hash,
-      @QueryParam("proprietary") boolean proprietary) throws IOException
+                                                   @PathParam("ownerId") final String ownerId,
+                                                   @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+                                                   @QueryParam("matchState") String matchState,
+                                                   @QueryParam("hash") String hash,
+                                                   @QueryParam("proprietary") boolean proprietary) throws IOException
   {
-    return componentInfoService
-        .getComponentDetails_ReadPermission(ownerType, ownerId, identifier, matchState, hash, proprietary, httpRequest);
+    return componentInfoService.getComponentDetails_ReadPermission(ownerType, ownerId, identifier, matchState, hash,
+        proprietary, httpRequest);
   }
 
   @GET
   @Path(COMPONENT_DETAILS_PATH + "/list")
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentDetailsList getComponentDetailsList(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
-      @QueryParam("matchState") String matchState) throws IOException
+                                                      @PathParam("ownerId") final String ownerId,
+                                                      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier identifier,
+                                                      @QueryParam("matchState") String matchState) throws IOException
   {
-    return componentInfoService
-        .getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState, httpRequest);
+    return componentInfoService.getComponentDetailsList_ReadPermission(ownerType, ownerId, identifier, matchState,
+        httpRequest);
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(LICENSES_PATH)
   public ComponentLicenses getLicenses(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+                                       @PathParam("ownerId") final String ownerId,
+                                       @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+      throws IOException
   {
-    return componentInfoService
-        .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest);
+    return componentInfoService.getLicenses(ownerType, ownerId, componentIdentifier, httpRequest);
   }
 
   /**
@@ -91,8 +92,10 @@ public class CIComponentInfoResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(VULNERABILITIES_PATH)
   public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId, @QueryParam("hash") final String hash,
-      @QueryParam("componentIdentifier") final JsonEncodedComponentIdentifier componentIdentifier) throws IOException
+                                                                     @PathParam("ownerId") final String ownerId,
+                                                                     @QueryParam("hash") final String hash,
+                                                                     @QueryParam("componentIdentifier") final JsonEncodedComponentIdentifier componentIdentifier)
+      throws IOException
   {
     return componentInfoService.getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest);
   }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-
 public class StageRiskScoreDTO
 {
 

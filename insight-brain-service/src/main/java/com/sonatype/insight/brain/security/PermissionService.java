@@ -23,8 +23,10 @@ import org.apache.shiro.subject.Subject;
 @Named
 public class PermissionService
 {
-  public Set<Permission> hasPermissions(Subject subject, OwnerType ownerType, String ownerId,
-      Set<Permission> permissions)
+  public Set<Permission> hasPermissions(Subject subject,
+                                        OwnerType ownerType,
+                                        String ownerId,
+                                        Set<Permission> permissions)
   {
     EnumSet<Permission> result = EnumSet.noneOf(Permission.class);
 

@@ -116,8 +116,8 @@ public class ApiComponentDetailsServiceV2
     }
   }
 
-  List<ComponentEvaluationData> getComponentDetailsListFromHds(
-      ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO, String purpose)
+  List<ComponentEvaluationData> getComponentDetailsListFromHds(ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO,
+                                                               String purpose)
   {
     long start = System.currentTimeMillis();
 

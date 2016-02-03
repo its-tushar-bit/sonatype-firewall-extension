@@ -117,8 +117,7 @@ public class RootOrganizationConfigMigrator
   private TagDAO tagDAO = new TagDAO();
 
   @Inject
-  public RootOrganizationConfigMigrator(InsightConfig config, RootOrganizationConfigMigrationUtils migrationUtils)
-  {
+  public RootOrganizationConfigMigrator(InsightConfig config, RootOrganizationConfigMigrationUtils migrationUtils) {
     this.config = config;
     this.migrationUtils = migrationUtils;
   }

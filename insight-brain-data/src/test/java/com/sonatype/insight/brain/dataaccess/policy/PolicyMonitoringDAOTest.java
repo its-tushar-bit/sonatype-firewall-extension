@@ -57,8 +57,7 @@ public class PolicyMonitoringDAOTest
     assertNull(policyMonitoring);
   }
 
-  private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual)
-  {
+  private void assertPolicyMonitoring(String ownerId, String stageTypeId, PolicyMonitoring actual) {
     assertEquals(ownerId, actual.getOwnerId());
     assertEquals(stageTypeId, actual.getStageTypeId());
   }

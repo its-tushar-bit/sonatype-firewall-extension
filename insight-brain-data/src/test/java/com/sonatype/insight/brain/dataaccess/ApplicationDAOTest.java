@@ -84,8 +84,8 @@ public class ApplicationDAOTest
 
   @After
   public void after() throws Exception {
-    //Since these tests create apps detached from TemporaryEntity, ensure they are deleted
-    for(Application app : applicationDAO.getAll()) {
+    // Since these tests create apps detached from TemporaryEntity, ensure they are deleted
+    for (Application app : applicationDAO.getAll()) {
       applicationDAO.delete(app);
     }
   }
@@ -169,18 +169,16 @@ public class ApplicationDAOTest
     for (Application app : applications) {
       tempEntity.newApplicationTag(app.getId(), tag.getId());
     }
-    //find all 3 with tag
+    // find all 3 with tag
     List<Application> retrievedApplications = Lists
         .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet(tag.getId())));
     assertThat(retrievedApplications, hasSize(numApplication));
     assertApplications(retrievedApplications, applications);
 
-    //find nothing without
-    retrievedApplications = Lists
-        .newArrayList(applicationDAO.getByTagIds(Sets.newHashSet("notMyTagId")));
+    // find nothing without
+    retrievedApplications = Lists.newArrayList(applicationDAO.getByTagIds(Sets.newHashSet("notMyTagId")));
     assertThat(retrievedApplications, hasSize(0));
   }
-
 
   @Test
   public void testUpdateOrganizationId() {
@@ -298,15 +296,15 @@ public class ApplicationDAOTest
 
   @Test
   public void testValidatePublicIdTooLong_Insert() {
-    Application app = new Application(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1),
-        "name", organization.getId());
+    Application app = new Application(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1), "name",
+        organization.getId());
     try {
       applicationDAO.insert(app);
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertThat(expected.getMessage(), is("Public ID must be " + ApplicationDAO.MAX_PUBLIC_ID_LENGTH +
-          " characters or less."));
+      assertThat(expected.getMessage(), is("Public ID must be " + ApplicationDAO.MAX_PUBLIC_ID_LENGTH
+          + " characters or less."));
     }
   }
 
@@ -538,7 +536,7 @@ public class ApplicationDAOTest
 
     applicationDAO.delete(application);
     policyWaivers = policyWaiverDAO.getByOwnerId(application.getId());
-    assertThat( policyWaivers.size(), is(0));
+    assertThat(policyWaivers.size(), is(0));
   }
 
   @Test
@@ -566,8 +564,8 @@ public class ApplicationDAOTest
   @Test
   public void testCascadeDeleteToLicenseOverrides() {
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(),
-      ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), LicenseOverrideStatus.OVERRIDDEN,
-      "Apache-2.0", "My comment");
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"),
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     licenseOverrideDAO.insert(licenseOverride);
     List<LicenseOverride> licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());
@@ -665,8 +663,8 @@ public class ApplicationDAOTest
     final Map<String, Application> expecteApplications = new HashMap<>();
     for (int i = 1; i <= numApplications; i++) {
       // Create some with contact name
-      Application application = tempEntity
-          .newApplication("app-with-contact-" + i, tempEntity.uuid(), organization.getId(), contactName);
+      Application application = tempEntity.newApplication("app-with-contact-" + i, tempEntity.uuid(),
+          organization.getId(), contactName);
       expecteApplications.put(application.getId(), application);
       // Create some without
       tempEntity.newApplication(organization.getId());
@@ -704,7 +702,9 @@ public class ApplicationDAOTest
     }
   }
 
-  class ApplicationComparator implements Comparator<Application> {
+  class ApplicationComparator
+      implements Comparator<Application>
+  {
     @Override
     public int compare(final Application o1, final Application o2) {
       return o1.getId().compareTo(o2.getId());

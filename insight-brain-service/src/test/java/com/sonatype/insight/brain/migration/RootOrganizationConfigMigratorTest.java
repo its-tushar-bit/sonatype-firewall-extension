@@ -269,7 +269,7 @@ public class RootOrganizationConfigMigratorTest
     ComponentLabel componentLabel1 = tempEntity.newComponentLabel(otherOrg.getId(), otherLabel1.getId(), "hash");
     Label otherLabel2 = tempEntity.newLabel(otherOrg.getId(), labelName + " something else");
     ComponentLabel componentLabel2 = tempEntity.newComponentLabel(otherOrg.getId(), otherLabel2.getId(), "hash");
-    
+
     Application app = tempEntity.newApplication(otherOrg.getId());
     Policy orgPolicy1 = newPolicyForLabel(otherOrg, otherLabel1);
     Policy appPolicy1 = newPolicyForLabel(app, otherLabel1);
@@ -299,7 +299,7 @@ public class RootOrganizationConfigMigratorTest
     assertThat(policyDAO.getById(appPolicy2.getId()).getConstraints().get(0).getConditions().get(0).getValue(),
         is(otherLabel2.getId()));
   }
-  
+
   @Test
   public void testMigrate_LicenseThreatGroups() throws Exception {
     Organization sourceOrg = createSourceOrg();

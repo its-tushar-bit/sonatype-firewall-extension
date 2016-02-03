@@ -45,15 +45,13 @@ public class RepositoryComponentDAO
     return getList(tx, sQuery, repositoryId);
   }
 
-  public RepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname)
-  {
+  public RepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 
-  public RepositoryComponent getByRepositoryIdAndPathname(TransactionContext tx, String repositoryId, String pathname)
-  {
+  public RepositoryComponent getByRepositoryIdAndPathname(TransactionContext tx, String repositoryId, String pathname) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
         " WHERE entity.repositoryId=?1" + //
         " AND entity.pathname=?2";
@@ -101,7 +99,7 @@ public class RepositoryComponentDAO
 
     Date oldest = getSingle(Date.class, sQuery, repositoryId);
 
-    //converting from a Timestamp to a Date object for happy comparisons
+    // converting from a Timestamp to a Date object for happy comparisons
     return oldest != null ? new Date(oldest.getTime()) : null;
   }
 

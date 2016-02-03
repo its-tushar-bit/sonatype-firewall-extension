@@ -85,9 +85,14 @@ public class PolicyAlertEmailer
   private final OwnerDAO ownerDAO;
 
   @Inject
-  public PolicyAlertEmailer(final InsightMail mail, final BaseUrl baseUrl, final ApplicationAdapter applicationAdapter,
-      final UserDirectory userDirectory, final LdapManager ldapManager, final OwnerDAO ownerDAO,
-      final ApplicationDAO applicationDAO, final MembershipMappingDAO membershipMappingDAO)
+  public PolicyAlertEmailer(final InsightMail mail,
+                            final BaseUrl baseUrl,
+                            final ApplicationAdapter applicationAdapter,
+                            final UserDirectory userDirectory,
+                            final LdapManager ldapManager,
+                            final OwnerDAO ownerDAO,
+                            final ApplicationDAO applicationDAO,
+                            final MembershipMappingDAO membershipMappingDAO)
   {
     this.mail = mail;
     this.baseUrl = baseUrl;
@@ -99,8 +104,10 @@ public class PolicyAlertEmailer
     this.membershipMappingDAO = membershipMappingDAO;
   }
 
-  public void sendNotifications(final Application app, final String scanId, final Stage stage,
-      final List<PolicyAlert> policyAlerts)
+  public void sendNotifications(final Application app,
+                                final String scanId,
+                                final Stage stage,
+                                final List<PolicyAlert> policyAlerts)
   {
     // baseUrl uses ThreadContext to get the base URL. We need to get it before switching threads.
     final String stringBaseUrl = baseUrl.get();
@@ -134,8 +141,7 @@ public class PolicyAlertEmailer
     }.start();
   }
 
-  private Map<String, List<PolicyAlert>> getPolicyAlertsByEmailAddresses(Application app,
-      final List<PolicyAlert> alerts)
+  private Map<String, List<PolicyAlert>> getPolicyAlertsByEmailAddresses(Application app, final List<PolicyAlert> alerts)
   {
     final Map<String, Set<String>> emailAddressesByRoleId = new HashMap<>();
 
@@ -164,8 +170,9 @@ public class PolicyAlertEmailer
     return policyAlertsByEmailAddress;
   }
 
-  private void addPolicyAlert(Map<String, List<PolicyAlert>> policyAlertsByEmailAddress, String emailAddress,
-      PolicyAlert policyAlert)
+  private void addPolicyAlert(Map<String, List<PolicyAlert>> policyAlertsByEmailAddress,
+                              String emailAddress,
+                              PolicyAlert policyAlert)
   {
     List<PolicyAlert> policyAlerts = policyAlertsByEmailAddress.get(emailAddress);
     if (policyAlerts == null) {
@@ -233,11 +240,14 @@ public class PolicyAlertEmailer
     return buffer.toString();
   }
 
-  private String summarizeThreats(String baseUrl, final String applicationPublicId,
-      final String scanId, final Stage stage, final List<PolicyAlert> policyAlerts) throws IOException
+  private String summarizeThreats(String baseUrl,
+                                  final String applicationPublicId,
+                                  final String scanId,
+                                  final Stage stage,
+                                  final List<PolicyAlert> policyAlerts) throws IOException
   {
-    final Map<String, Object> model = createPolicyMailModel(baseUrl, mail.getCdnUrl(), applicationPublicId,
-        scanId, stage, getContact(applicationPublicId), policyAlerts);
+    final Map<String, Object> model = createPolicyMailModel(baseUrl, mail.getCdnUrl(), applicationPublicId, scanId,
+        stage, getContact(applicationPublicId), policyAlerts);
     return TemplateUtils.render(getPolicyThreatsTemplate(), model);
   }
 
@@ -246,7 +256,6 @@ public class PolicyAlertEmailer
     return applicationAdapter.getContact(application.getContactInternalName());
   }
 
-
   private synchronized static Template getPolicyThreatsTemplate() throws IOException {
     if (policyThreatsTemplate == null) {
       policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate("policythreats.ftl");
@@ -254,9 +263,13 @@ public class PolicyAlertEmailer
     return policyThreatsTemplate;
   }
 
-  static Map<String, Object> createPolicyMailModel(final String serverUrl, final String cdnUrl,
-      final String applicationPublicId, final String scanId, final Stage stage, ContactDTO contact,
-      final List<PolicyAlert> policyAlerts)
+  static Map<String, Object> createPolicyMailModel(final String serverUrl,
+                                                   final String cdnUrl,
+                                                   final String applicationPublicId,
+                                                   final String scanId,
+                                                   final Stage stage,
+                                                   ContactDTO contact,
+                                                   final List<PolicyAlert> policyAlerts)
   {
     MailPolicyAlertCounts counts = new MailPolicyAlertCounts(policyAlerts);
 
@@ -300,8 +313,7 @@ public class PolicyAlertEmailer
   {
     public int red, orange, yellow, darkBlue, blue;
 
-    public MailPolicyAlertCounts(final int red, final int orange, final int yellow, final int darkBlue,
-        final int blue)
+    public MailPolicyAlertCounts(final int red, final int orange, final int yellow, final int darkBlue, final int blue)
     {
       this.red = red;
       this.orange = orange;

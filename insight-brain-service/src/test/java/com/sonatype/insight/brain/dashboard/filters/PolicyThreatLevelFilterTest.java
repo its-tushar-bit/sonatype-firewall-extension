@@ -155,7 +155,7 @@ public class PolicyThreatLevelFilterTest
 
   @Test
   public void testStringConstruction() {
-    
+
     String noMin = ",5";
     String noMax = "3,";
     String minAndMax = "3,6";
@@ -167,14 +167,14 @@ public class PolicyThreatLevelFilterTest
     PolicyThreatLevelFilter minAndMaxFilter = new PolicyThreatLevelFilter(minAndMax);
     PolicyThreatLevelFilter noMinAndNoMaxFilter = new PolicyThreatLevelFilter(noMinAndNoMax);
     PolicyThreatLevelFilter spacesInMinAndMaxFilter = new PolicyThreatLevelFilter(spacesInMinAndMax);
-    
+
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
     PolicyViolation v3 = new PolicyViolation();
     v1.setThreatLevel(1);
     v2.setThreatLevel(2);
     v3.setThreatLevel(6);
-    
+
     assertTrue(noMinFilter.asPolicyViolationPredicate().apply(v1));
     assertTrue(noMinFilter.asPolicyViolationPredicate().apply(v2));
     assertFalse(noMinFilter.asPolicyViolationPredicate().apply(v3));

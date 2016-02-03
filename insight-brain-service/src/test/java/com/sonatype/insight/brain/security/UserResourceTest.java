@@ -49,8 +49,7 @@ public class UserResourceTest
   }
 
   private HttpRequest findRequest(OwnerType ownerType, String ownerId, String query) {
-    return restRequest().path("{ownerType}/{ownerId}/query").query("q", query)
-        .parameter(ownerType, ownerId);
+    return restRequest().path("{ownerType}/{ownerId}/query").query("q", query).parameter(ownerType, ownerId);
   }
 
   private List<User> fromResponse(HttpResponse response) {
@@ -329,8 +328,13 @@ public class UserResourceTest
     assertThat(actual.getEmail(), is(email));
   }
 
-  private void assertMember(HttpResponse response, String error, MemberType type, String name, String displayName,
-      String email, String realm)
+  private void assertMember(HttpResponse response,
+                            String error,
+                            MemberType type,
+                            String name,
+                            String displayName,
+                            String email,
+                            String realm)
   {
     assertResponseStatus(200, response);
 
@@ -349,8 +353,12 @@ public class UserResourceTest
     assertMember(members[0], type, name, displayName, email, realm);
   }
 
-  private void assertMember(final Member member, final MemberType type, final String name, final String displayName,
-      final String email, final String realm)
+  private void assertMember(final Member member,
+                            final MemberType type,
+                            final String name,
+                            final String displayName,
+                            final String email,
+                            final String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(name));

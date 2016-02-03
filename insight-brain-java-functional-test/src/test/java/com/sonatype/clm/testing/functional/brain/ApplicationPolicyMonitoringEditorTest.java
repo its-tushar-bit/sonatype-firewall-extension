@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-
 import com.sonatype.insight.brain.model.Application;
 
 import org.junit.Before;

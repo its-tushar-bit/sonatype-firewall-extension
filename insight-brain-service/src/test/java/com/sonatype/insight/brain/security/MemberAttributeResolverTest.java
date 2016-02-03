@@ -118,8 +118,12 @@ public class MemberAttributeResolverTest
     assertMember(member, MemberType.USER, "testuser", "John Doe", "testuser@void.com", "CLM");
   }
 
-  private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,
-      String realm)
+  private void assertMember(Member member,
+                            MemberType type,
+                            String internalName,
+                            String displayName,
+                            String email,
+                            String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(internalName));

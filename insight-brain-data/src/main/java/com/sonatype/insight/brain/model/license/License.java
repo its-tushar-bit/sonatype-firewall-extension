@@ -111,7 +111,7 @@ public class License
    * @since 1.12.0
    */
   public static boolean isEffectivelyUnspecified(String id) {
-    return NOT_DECLARED_ID.equals(id) || NO_SOURCES_ID.equals(id) ||
-        NO_SOURCE_LICENSE_ID.equals(id) || UNSPECIFIED_ID.equals(id);
+    return NOT_DECLARED_ID.equals(id) || NO_SOURCES_ID.equals(id) || NO_SOURCE_LICENSE_ID.equals(id)
+        || UNSPECIFIED_ID.equals(id);
   }
 }

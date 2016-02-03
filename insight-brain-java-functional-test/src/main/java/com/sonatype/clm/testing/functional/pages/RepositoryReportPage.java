@@ -20,8 +20,7 @@ public class RepositoryReportPage
 {
   private static final String BASE_URL = "audit-report/index.html";
 
-  public static String url(String repositoryId)
-  {
+  public static String url(String repositoryId) {
     return BASE_URL + "?repositoryId=" + repositoryId;
   }
 

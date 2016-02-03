@@ -59,14 +59,15 @@ public class ApplicationTagResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   public void updateApplicationTags(@PathParam("applicationPublicId") final String applicationPublicId,
-      final List<Tag> tags) {
+                                    final List<Tag> tags)
+  {
     tagService.updateApplicationTags(applicationPublicId, tags);
   }
 
   @DELETE
   @Path("{tagId}")
   public void deleteApplicationTag(@PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("tagId") String tagId)
+                                   @PathParam("tagId") String tagId)
   {
     tagService.deleteApplicationTag(applicationPublicId, tagId);
   }

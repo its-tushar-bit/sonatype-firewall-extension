@@ -203,6 +203,7 @@ public class ScanFactoryTest
 
   /**
    * Regex equivalent of testScan_Proprietary using package matching.
+   * 
    * @since 1.11
    */
   @Test

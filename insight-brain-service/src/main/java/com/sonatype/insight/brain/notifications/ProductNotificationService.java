@@ -37,8 +37,8 @@ public class ProductNotificationService
 
   @Inject
   public ProductNotificationService(final HdsProductNotificationService hdsNotificationService,
-      final UserViewedProductNotificationDAO notificationViewedDAO,
-      final CurrentUser currentUser)
+                                    final UserViewedProductNotificationDAO notificationViewedDAO,
+                                    final CurrentUser currentUser)
   {
     this.hdsNotificationService = hdsNotificationService;
     this.notificationViewedDAO = notificationViewedDAO;
@@ -76,8 +76,9 @@ public class ProductNotificationService
     return notificationIdSet;
   }
 
-  private List<ProductNotification> getPage(final List<ProductNotification> notificationList, final int pageSize,
-      final int page)
+  private List<ProductNotification> getPage(final List<ProductNotification> notificationList,
+                                            final int pageSize,
+                                            final int page)
   {
     if (pageSize >= notificationList.size()) {
       if (page == 1) {
@@ -98,7 +99,7 @@ public class ProductNotificationService
 
   @VisibleForTesting
   protected ProductNotificationListDTO convert(final List<ProductNotification> notifications,
-      final Set<String> viewedNotificationSet)
+                                               final Set<String> viewedNotificationSet)
   {
     ProductNotificationListDTO notificationListDTO = new ProductNotificationListDTO();
     notificationListDTO.notifications = new ArrayList<>(notifications.size());

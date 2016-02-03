@@ -129,8 +129,7 @@ public class ApplicationRiskServiceTest
     tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, null, null, null, null, "unknown");
 
     List<ApplicationRiskScoreDTO> riskDTOs = applicationRiskService.getApplicationRisks(
-        Collections.singleton(app1.getId()),
-        null, null, null, null, 100);
+        Collections.singleton(app1.getId()), null, null, null, null, 100);
     assertThat(riskDTOs, hasSize(1));
     ApplicationRiskScoreDTO appDTO = riskDTOs.get(0);
     assertThat(appDTO.stageRisks, hasSize(1));

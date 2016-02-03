@@ -140,7 +140,7 @@ public class PolicyEvaluationMigrator
         List<PolicyEvaluation> policyEvaluationsCache = new ArrayList<>();
         Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache = new LinkedHashMap<>();
         Map<String, List<Component>> componentsByScanCache = new LinkedHashMap<>();
-        
+
         ownerCount++;
         File auditDir = insightWork.getAuditDir(application.getId());
         JsonStore auditStore = JsonUtils.fileStore(auditDir);
@@ -169,8 +169,10 @@ public class PolicyEvaluationMigrator
           policyEvaluations.removeAll(primaryEvaluations);
           ImmutableListMultimap<String, PolicyEvaluation> groupedByScanId = Multimaps.index(policyEvaluations,
               GROUP_BY_SCAN);
-          for (Entry<String, Collection<PolicyEvaluation>> scanIdToPolicyEvaluation : groupedByScanId.asMap().entrySet()) {
-            List<PolicyEvaluation> reevaluations = Lists.newArrayList(Iterables.limit(scanIdToPolicyEvaluation.getValue(), 1));
+          for (Entry<String, Collection<PolicyEvaluation>> scanIdToPolicyEvaluation : groupedByScanId.asMap()
+              .entrySet()) {
+            List<PolicyEvaluation> reevaluations = Lists.newArrayList(Iterables.limit(
+                scanIdToPolicyEvaluation.getValue(), 1));
             savePolicyEvaluations(tx, application, stageId, reevaluations, monitoringScans, policyEvaluationsCache,
                 policyViolationsByEvaluationCache, componentsByScanCache);
             evaluationCount += reevaluations.size();
@@ -183,8 +185,8 @@ public class PolicyEvaluationMigrator
 
         saveFirstOccurrencePolicyViolations(tx, policyEvaluationsCache, policyViolationsByEvaluationCache);
 
-        log.debug("Migration of policy evaluations for Application named: {} complete in {} ms.", application.getName(),
-            System.currentTimeMillis() - appStart);
+        log.debug("Migration of policy evaluations for Application named: {} complete in {} ms.",
+            application.getName(), System.currentTimeMillis() - appStart);
       }
 
       tx.commit();
@@ -197,8 +199,9 @@ public class PolicyEvaluationMigrator
         ownerCount, evaluationCount, System.currentTimeMillis() - start);
   }
 
-  private void saveFirstOccurrencePolicyViolations(TransactionContext tx, List<PolicyEvaluation> policyEvaluations,
-      Map<String, List<PolicyViolation>> policyViolationsByEvaluation)
+  private void saveFirstOccurrencePolicyViolations(TransactionContext tx,
+                                                   List<PolicyEvaluation> policyEvaluations,
+                                                   Map<String, List<PolicyViolation>> policyViolationsByEvaluation)
   {
     // Sort policy evaluations by time
     Collections.sort(policyEvaluations, new Comparator<PolicyEvaluation>()
@@ -267,11 +270,14 @@ public class PolicyEvaluationMigrator
     return result;
   }
 
-  private void savePolicyEvaluations(final TransactionContext tx, final Application app, final String stageId,
-      final Collection<PolicyEvaluation> policyEvaluations, final Set<String> monitoringScans,
-      final List<PolicyEvaluation> policyEvaluationsCache,
-      final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
-      final Map<String, List<Component>> componentsByScanCache) throws IOException
+  private void savePolicyEvaluations(final TransactionContext tx,
+                                     final Application app,
+                                     final String stageId,
+                                     final Collection<PolicyEvaluation> policyEvaluations,
+                                     final Set<String> monitoringScans,
+                                     final List<PolicyEvaluation> policyEvaluationsCache,
+                                     final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
+                                     final Map<String, List<Component>> componentsByScanCache) throws IOException
   {
     String applicationId = app.getId();
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
@@ -303,7 +309,7 @@ public class PolicyEvaluationMigrator
       /* check for existence of monitoring results */
 
       if (!monitoringScans.contains(policyEvaluation.getScanId())) {
-        //could only have one of these per scan on the file system
+        // could only have one of these per scan on the file system
         List<PolicyAlert> monitoringAlerts = findPolicyAlerts(applicationId, scanId, MONITOR_POLICY_ALERTS_FILE);
         if (!monitoringAlerts.isEmpty()) {
           long time = findReportEntry(applicationId, scanId, MONITOR_POLICY_ALERTS_FILE).time;
@@ -328,13 +334,15 @@ public class PolicyEvaluationMigrator
       return null;
     }
 
-    return ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(),
-          componentFact.getArtifactId(), componentFact.getVersion());
+    return ComponentIdentifier.createMavenCoordinates(componentFact.getGroupId(), componentFact.getArtifactId(),
+        componentFact.getVersion());
   }
 
-  private void savePolicyAlerts(final TransactionContext tx, final PolicyEvaluation evaluation,
-      final List<PolicyAlert> policyAlerts, final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
-      final Map<String, List<String>> hashToPathnames)
+  private void savePolicyAlerts(final TransactionContext tx,
+                                final PolicyEvaluation evaluation,
+                                final List<PolicyAlert> policyAlerts,
+                                final Map<String, List<PolicyViolation>> policyViolationsByEvaluationCache,
+                                final Map<String, List<String>> hashToPathnames)
   {
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolationsByEvaluationCache.put(evaluation.getId(), policyViolations);
@@ -369,8 +377,10 @@ public class PolicyEvaluationMigrator
     }
   }
 
-  private void saveApplicationComponents(TransactionContext tx, String appId, String stageTypeId,
-      Map<String, List<Component>> componentsByScanCache)
+  private void saveApplicationComponents(TransactionContext tx,
+                                         String appId,
+                                         String stageTypeId,
+                                         Map<String, List<Component>> componentsByScanCache)
   {
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(tx, appId, stageTypeId);
     if (policyEvaluation == null) {
@@ -404,7 +414,9 @@ public class PolicyEvaluationMigrator
     return "primarypolicyalerts.json";
   }
 
-  private List<PolicyAlert> findPolicyAlerts(final String appId, final String scanId, final String fileName) throws IOException {
+  private List<PolicyAlert> findPolicyAlerts(final String appId, final String scanId, final String fileName)
+      throws IOException
+  {
     final ReportEntry reportEntry = findReportEntry(appId, scanId, fileName);
     if (reportEntry != null) {
       return Arrays.asList(JsonUtils.parse(reportEntry.buf, PolicyAlert[].class));
@@ -413,7 +425,8 @@ public class PolicyEvaluationMigrator
   }
 
   private ReportEntry findReportEntry(final String appId, final String scanId, final String fileName)
-      throws IOException {
+      throws IOException
+  {
     final File reportFile = getReport(insightWork, appId, scanId);
     if (reportFile != null) {
       return Report.getEntry(reportFile, fileName);

@@ -127,7 +127,7 @@ public class LabelResourceTest
     String appPublicId2 = "LabelResourceTest_AppId2";
     tempEntity.newApplicationWithParent(appPublicId2);
     Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.blue);
-    
+
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId2).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a label with ID " + label.getId() + " for application ID " + appPublicId2,
@@ -226,8 +226,11 @@ public class LabelResourceTest
         org.getId(), "in organization 'orgName'");
   }
 
-  private void testDelete_InUseByPolicy(OwnerType ownerType, String ownerPublicId, String ownerId,
-      String policyOwnerId, String policyLocation) throws Exception
+  private void testDelete_InUseByPolicy(OwnerType ownerType,
+                                        String ownerPublicId,
+                                        String ownerId,
+                                        String policyOwnerId,
+                                        String policyLocation) throws Exception
   {
     Label label = tempEntity.newLabel(ownerId);
 
@@ -268,7 +271,7 @@ public class LabelResourceTest
     Organization organization2 = tempEntity.newOrganization(orgName2);
 
     Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.blue);
-    
+
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization2.getId()).path(label.getId()).delete();
     assertResponseStatus(404, response);
     Assert.assertEquals(
@@ -428,8 +431,7 @@ public class LabelResourceTest
     Label parentOrgLabel = tempEntity.newLabel(org.getParentOrganizationId(), "rootOrgLabel");
     Label orgLabel = tempEntity.newLabel(org.getId(), "orgLabel");
     Label appLabel = tempEntity.newLabel(app.getId(), "appLabel");
-    HttpRequest request = restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath(
-        "applicable/context/{labelId}");
+    HttpRequest request = restRequest(OwnerType.APPLICATION, app.getPublicId()).subpath("applicable/context/{labelId}");
 
     final Repository repository = tempEntity.newRepository();
 

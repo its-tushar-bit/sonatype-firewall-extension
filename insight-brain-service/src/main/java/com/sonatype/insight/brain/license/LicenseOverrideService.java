@@ -51,9 +51,11 @@ public class LicenseOverrideService
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   @Inject
-  public LicenseOverrideService(final InsightWork work, final OwnerDAO ownerDAO, final CurrentUser currentUser,
-      final LicenseOverrideDAO licenseOverrideDAO,
-      final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
+  public LicenseOverrideService(final InsightWork work,
+                                final OwnerDAO ownerDAO,
+                                final CurrentUser currentUser,
+                                final LicenseOverrideDAO licenseOverrideDAO,
+                                final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.work = work;
     this.currentUser = currentUser;
@@ -64,9 +66,10 @@ public class LicenseOverrideService
 
   @Authorize(permission = Permission.WRITE)
   public LicenseOverride addLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final LicenseOverride licenseOverride,
-      final String where, final HttpServletRequest request)
-      throws IOException
+                                            @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                            final LicenseOverride licenseOverride,
+                                            final String where,
+                                            final HttpServletRequest request) throws IOException
   {
     ComponentIdentifierValidator.validate(licenseOverride.getComponentIdentifier());
 
@@ -92,8 +95,12 @@ public class LicenseOverrideService
     return licenseOverride;
   }
 
-  private void auditLicenseOverride(String ownerId, LicenseOverride licenseOverride, String user, String where,
-      String ipAddress, boolean isDelete) throws IOException
+  private void auditLicenseOverride(String ownerId,
+                                    LicenseOverride licenseOverride,
+                                    String user,
+                                    String where,
+                                    String ipAddress,
+                                    boolean isDelete) throws IOException
   {
     JsonStore store = JsonUtils.fileStore(work.getAuditDir(ownerId));
 
@@ -109,8 +116,10 @@ public class LicenseOverrideService
 
   @Authorize(permission = Permission.WRITE)
   public void deleteLicenseOverride(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String licenseOverrideId, final String where,
-      final HttpServletRequest request) throws IOException
+                                    @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                    final String licenseOverrideId,
+                                    final String where,
+                                    final HttpServletRequest request) throws IOException
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -128,9 +137,9 @@ public class LicenseOverrideService
   }
 
   @Authorize(permission = Permission.READ)
-  public AppliedLicenseOverrides getAppliedLicenseOverrides(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final JsonEncodedComponentIdentifier componentIdentifier)
+  public AppliedLicenseOverrides getAppliedLicenseOverrides(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                            @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                                            final JsonEncodedComponentIdentifier componentIdentifier)
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");

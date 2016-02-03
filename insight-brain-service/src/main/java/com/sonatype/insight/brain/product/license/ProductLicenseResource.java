@@ -57,7 +57,8 @@ public class ProductLicenseResource
                                  @Context HttpHeaders headers,
                                  @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<Void>() {
+    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<Void>()
+    {
       @Override
       public Void call() throws Exception {
         productLicenseService.installLicense(is);

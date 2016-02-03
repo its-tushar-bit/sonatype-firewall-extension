@@ -65,7 +65,8 @@ public class ApplicationResource
 
   public static final String GET_APPLICATION_MANAGEMENT_SUMMARIES = "services/summary";
 
-  public static final String GET_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES + "/{applicationPublicId}";
+  public static final String GET_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES
+      + "/{applicationPublicId}";
 
   public static final String GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY = GET_APPLICATION_MANAGEMENT_SUMMARIES
       + "/{applicationPublicId}/{scanId}";
@@ -115,8 +116,7 @@ public class ApplicationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
-    final List<ApplicationDTO> applications = applicationAdapter.convert(applicationService
-        .getApplications());
+    final List<ApplicationDTO> applications = applicationAdapter.convert(applicationService.getApplications());
     return applications;
   }
 
@@ -131,8 +131,7 @@ public class ApplicationResource
   public List<ApplicationManagementSummaryDTO> getApplicationManagementSummaries() {
     final List<Application> applications = applicationService.getApplications();
 
-    final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(
-        applications);
+    final List<ApplicationManagementSummaryDTO> applicationManagements = getApplicationManagementSummaries(applications);
 
     return applicationManagements;
   }
@@ -150,8 +149,7 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationDTO getApplication(@PathParam("applicationPublicId") final String applicationPublicId)
-  {
+  public ApplicationDTO getApplication(@PathParam("applicationPublicId") final String applicationPublicId) {
     Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
     return applicationAdapter.convert(application);
   }
@@ -164,8 +162,7 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummaryDTO getApplicationManagementSummary(
-      @PathParam("applicationPublicId") final String applicationPublicId)
+  public ApplicationManagementSummaryDTO getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId)
   {
     final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application);
@@ -179,9 +176,8 @@ public class ApplicationResource
   @GET
   @Path(GET_SCAN_APPLICATION_MANAGEMENT_SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicationManagementSummaryDTO getApplicationManagementSummary(
-      @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId)
+  public ApplicationManagementSummaryDTO getApplicationManagementSummary(@PathParam("applicationPublicId") final String applicationPublicId,
+                                                                         @PathParam("scanId") final String scanId)
   {
     final Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
     return getApplicationManagementSummary(application, scanId);
@@ -203,9 +199,7 @@ public class ApplicationResource
   @GET
   @Path(GET_APPLICATION_ICON_PATH)
   @Produces("image/png")
-  public Response getIcon(@PathParam("applicationPublicId") final String applicationPublicId)
-      throws IOException
-  {
+  public Response getIcon(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
     String applicationId = null;
     Application application = applicationService.getApplicationByPublicId(applicationPublicId);
     if (application != null) {
@@ -238,8 +232,9 @@ public class ApplicationResource
   /**
    * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
    *
-   * This is one of two service methods used for editing and adding icons. This method is used by angular ng-upload
-   * and returns an empty string for success and the error message otherwise
+   *             This is one of two service methods used for editing and adding icons. This method is used by angular
+   *             ng-upload
+   *             and returns an empty string for success and the error message otherwise
    * 
    * @return String containing an error message, if any
    */
@@ -249,12 +244,13 @@ public class ApplicationResource
   @Path(ICON_PATH_SYNC)
   @Authorize(permission = Permission.WRITE)
   @AuthzErrorMsg
-  public String setIconSync(
-      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
-      @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
+  public String setIconSync(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                            @Context HttpHeaders headers,
+                            @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+                            @FormDataParam("hasRobotSource") boolean hasRobotSource,
+                            @FormDataParam("robotHash") String robotHash,
+                            @FormDataParam("file") InputStream uploadedInputStream,
+                            @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
   {
     Response response = super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash,
         uploadedInputStream, fileDetail, csrfToken, headers, true);
@@ -279,10 +275,7 @@ public class ApplicationResource
 
   @DELETE
   @Path(GET_APPLICATION_PATH)
-  public void deleteApplication(
-      @PathParam("applicationPublicId") final String applicationPublicId)
-      throws IOException
-  {
+  public void deleteApplication(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
     applicationService.deleteApplicationByPublicId(applicationPublicId);
   }
 
@@ -319,8 +312,7 @@ public class ApplicationResource
     if (evaluation == null) {
       throw new NotFoundException("Unable to locate requested scan");
     }
-    ApplicationManagementSummaryDTO summary = applicationAdapter
-        .createApplicationManagementSummary(application);
+    ApplicationManagementSummaryDTO summary = applicationAdapter.createApplicationManagementSummary(application);
     summary.setPolicyEvaluations(Collections.singletonMap(evaluation.getStageTypeId(), evaluation));
     return summary;
   }

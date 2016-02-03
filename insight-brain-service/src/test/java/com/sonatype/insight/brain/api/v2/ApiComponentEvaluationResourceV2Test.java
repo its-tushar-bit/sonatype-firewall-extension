@@ -82,8 +82,8 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_invalidComponentIdentifier_noExtension() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", null);
+    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", null);
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
@@ -107,8 +107,8 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_validation_nullHash() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
-    component.componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
+    component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentEvaluationV2Helper
+        .createMavenComponentIdentifier("g1", "a1", "v1", "e1"));
     request.components.add(component);
 
     HttpResponse response = restRequest(app.getId()).body(request).post();
@@ -136,7 +136,6 @@ public class ApiComponentEvaluationResourceV2Test
     assertThat(response.getBodyText(), is("No components provided for evaluation"));
   }
 
-
   @Test
   public void testEvaluateComponents_emptyComponents() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
@@ -150,8 +149,8 @@ public class ApiComponentEvaluationResourceV2Test
   @Test
   public void testEvaluateComponents_HdsError() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
-    ComponentIdentifier componentIdentifier =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", "e1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
@@ -181,28 +180,27 @@ public class ApiComponentEvaluationResourceV2Test
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
+        "v2", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
     request.components.add(component2);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
-        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+        "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper
-        .createSecurityVulnerabilities();
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 1),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
             Collections.<SecurityVulnerability> emptyList(), 2));
     mockComponentDetails(componentEvaluationDataList);
 
@@ -227,7 +225,7 @@ public class ApiComponentEvaluationResourceV2Test
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 1, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        MatchState.UNKNOWN.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
         Collections.<SecurityVulnerability> emptyList(), 2, Collections.<String, Policy> emptyMap());
   }
 
@@ -236,28 +234,27 @@ public class ApiComponentEvaluationResourceV2Test
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, null);
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
+        "v2", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, null);
     request.components.add(component2);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
-        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+        "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper
-        .createSecurityVulnerabilities();
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 10),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
             Collections.<SecurityVulnerability> emptyList(), 20));
     mockComponentDetails(componentEvaluationDataList);
 
@@ -282,7 +279,7 @@ public class ApiComponentEvaluationResourceV2Test
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 10, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.UNKNOWN.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        MatchState.UNKNOWN.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
         Collections.<SecurityVulnerability> emptyList(), 20, Collections.<String, Policy> emptyMap());
   }
 
@@ -295,16 +292,15 @@ public class ApiComponentEvaluationResourceV2Test
     request.components.add(component1);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
-        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+        "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper
-        .createSecurityVulnerabilities();
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
-    ComponentIdentifier componentIdentifier1 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
-    ComponentIdentifier componentIdentifier2 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", "e1");
+    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
+        "v2", "e2");
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
@@ -347,21 +343,21 @@ public class ApiComponentEvaluationResourceV2Test
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier componentIdentifier1 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1");
+    ComponentIdentifier componentIdentifier1 = componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1",
+        "v1", "e1");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(componentIdentifier1, "h1");
     request.components.add(component1);
 
-    ComponentIdentifier componentIdentifier2 =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ComponentIdentifier componentIdentifier2 = componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2",
+        "v2", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(componentIdentifier2, "h2");
     request.components.add(component2);
 
     tempEntity.newClaimedComponent("h2", componentIdentifier2);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
-        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+        "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
@@ -369,7 +365,7 @@ public class ApiComponentEvaluationResourceV2Test
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier1, component1.hash,
             MatchState.EXACT, 0, declaredLicenseSet, observedLicenseSet, securityVulnerabilities, 21),
         componentEvaluationV2Helper.createComponentEvaluationData(componentIdentifier2, component2.hash,
-            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
             Collections.<SecurityVulnerability> emptyList(), 22));
     mockComponentDetails(componentEvaluationDataList);
 
@@ -394,7 +390,7 @@ public class ApiComponentEvaluationResourceV2Test
         MatchState.EXACT.getId(), new ArrayList<>(declaredLicenseSet), new ArrayList<>(observedLicenseSet),
         securityVulnerabilities, 21, policies);
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1), request.components.get(1),
-        MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
         Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
   }
 
@@ -402,32 +398,32 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_withClaimedComponentEmptyVsNullClassifier() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier compIdentifierWithEmptyClassifier =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", "e1", "");
+    ComponentIdentifier compIdentifierWithEmptyClassifier = componentEvaluationV2Helper.createMavenComponentIdentifier(
+        "g1", "a1", "v1", "e1", "");
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithEmptyClassifier, null);
     request.components.add(component1);
 
-    ComponentIdentifier compIdentifierWithNullClassifier =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g2", "a2", "v2", "e2");
+    ComponentIdentifier compIdentifierWithNullClassifier = componentEvaluationV2Helper.createMavenComponentIdentifier(
+        "g2", "a2", "v2", "e2");
     ApiComponentDTOV2 component2 = componentEvaluationV2Helper.createComponent(compIdentifierWithNullClassifier, null);
     request.components.add(component2);
 
-    ComponentIdentifier expectedComponentIdentifier1 =
-        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
+    ComponentIdentifier expectedComponentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "",
+        "e1");
     tempEntity.newClaimedComponent("h1", expectedComponentIdentifier1);
-    ComponentIdentifier expectedComponentIdentifier2 =
-        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2");
+    ComponentIdentifier expectedComponentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "",
+        "e2");
     tempEntity.newClaimedComponent("h2", expectedComponentIdentifier2);
 
     // Create a mock return
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
         componentEvaluationV2Helper.createComponentEvaluationData(
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1"), component1.hash,
-            MatchState.UNKNOWN, 0, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            MatchState.UNKNOWN, 0, Collections.<License> emptySet(), Collections.<License> emptySet(),
             Collections.<SecurityVulnerability> emptyList(), 1),
         componentEvaluationV2Helper.createComponentEvaluationData(
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "e2"), component1.hash,
-            MatchState.UNKNOWN, 1, Collections.<License>emptySet(), Collections.<License>emptySet(),
+            MatchState.UNKNOWN, 1, Collections.<License> emptySet(), Collections.<License> emptySet(),
             Collections.<SecurityVulnerability> emptyList(), 2));
     mockComponentDetails(componentEvaluationDataList);
 
@@ -450,11 +446,11 @@ public class ApiComponentEvaluationResourceV2Test
     assertThat(details.results.size(), is(2));
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(0),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier1), "h1",
-        MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
         Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
     componentEvaluationV2Helper.assertComponentDetails(details.results.get(1),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(expectedComponentIdentifier2), "h2",
-        MatchState.EXACT.getId(), Collections.<License>emptyList(), Collections.<License>emptyList(),
+        MatchState.EXACT.getId(), Collections.<License> emptyList(), Collections.<License> emptyList(),
         Collections.<SecurityVulnerability> emptyList(), null, Collections.<String, Policy> emptyMap());
   }
 
@@ -462,8 +458,8 @@ public class ApiComponentEvaluationResourceV2Test
   public void testEvaluateComponents_withClaimedComponentMissingExtension() throws Exception {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
-    ComponentIdentifier compIdentifierWithNoExtension =
-        componentEvaluationV2Helper.createMavenComponentIdentifier("g1", "a1", "v1", null);
+    ComponentIdentifier compIdentifierWithNoExtension = componentEvaluationV2Helper.createMavenComponentIdentifier(
+        "g1", "a1", "v1", null);
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(compIdentifierWithNoExtension, null);
     request.components.add(component1);
 
@@ -483,8 +479,7 @@ public class ApiComponentEvaluationResourceV2Test
         componentEvaluationDataList, 200);
   }
 
-  private ComponentEvaluationDataList createComponentEvaluationDataList(
-      final ComponentEvaluationData... componentEvaluationData)
+  private ComponentEvaluationDataList createComponentEvaluationDataList(final ComponentEvaluationData... componentEvaluationData)
   {
     ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
     componentEvaluationDataList.components = new ArrayList<>();

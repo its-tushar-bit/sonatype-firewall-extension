@@ -74,7 +74,8 @@ public class AccessEditorTest
   public void testAddRole() {
     SummaryTile.accessButton().click();
     SummaryTile.addRoleButton().click();
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(), AccessEditorPage.urlToCreate("organization", organization.getId()));
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(),
+        AccessEditorPage.urlToCreate("organization", organization.getId()));
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
 
     AccessEditorPage.roleDropdown().selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
@@ -93,7 +94,8 @@ public class AccessEditorTest
     FormMask.root().shouldBe(visible).shouldNotBe(visible);
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
     OwnerDetailTreeView.accessGroup().item(2).root().shouldHave(text(roleName));
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1, AccessEditorPage.urlToCreate("organization", organization.getId()));
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1,
+        AccessEditorPage.urlToCreate("organization", organization.getId()));
     assertThatRoleNotAvailableInDropdown(roleName);
     assertThat(getMembershipMappings(organization.getId(), roleName), hasSize(1));
   }
@@ -150,7 +152,8 @@ public class AccessEditorTest
     DeleteModal.continueButton().click();
     DeleteModal.body().shouldNotBe(visible);
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(), AccessEditorPage.urlToCreate("application", app.getPublicId()));
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(),
+        AccessEditorPage.urlToCreate("application", app.getPublicId()));
     assertThat(getMembershipMappings(organization.getId(), role.getName()), is(empty()));
   }
 
@@ -171,7 +174,8 @@ public class AccessEditorTest
     DeleteModal.continueButton().click();
     DeleteModal.body().shouldNotBe(visible);
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(), AccessEditorPage.urlToCreate("application", app.getPublicId()));
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(),
+        AccessEditorPage.urlToCreate("application", app.getPublicId()));
     assertThat(getMembershipMappings(organization.getId(), role.getName()), is(empty()));
   }
 

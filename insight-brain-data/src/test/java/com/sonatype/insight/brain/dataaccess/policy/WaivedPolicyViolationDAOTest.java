@@ -59,8 +59,10 @@ public class WaivedPolicyViolationDAOTest
     assertThat(waivedPolicyViolation, is(nullValue()));
   }
 
-  private void assertWaivedPolicyViolation(String id, String policyWaiverId, String comment,
-      WaivedPolicyViolation actual)
+  private void assertWaivedPolicyViolation(String id,
+                                           String policyWaiverId,
+                                           String comment,
+                                           WaivedPolicyViolation actual)
   {
     assertThat(actual.getId(), is(id));
     assertThat(actual.getPolicyWaiverId(), is(policyWaiverId));

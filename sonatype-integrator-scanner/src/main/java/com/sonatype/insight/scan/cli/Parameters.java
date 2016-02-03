@@ -15,13 +15,10 @@ import com.beust.jcommander.Parameter;
 public class Parameters
     extends AbstractParameters
 {
-  @Parameter(names = {"-b", "--bundle-file"},
-      description = "Path to file where the report bundle ZIP file will be downloaded")
+  @Parameter(names = { "-b", "--bundle-file" }, description = "Path to file where the report bundle ZIP file will be downloaded")
   private File reportBundleFile = new File("report.zip");
 
-  @Parameter(names = {"-a", "--authentication"},
-      description = "Authentication credentials to use for the IQ Server, format <username:password> ",
-      required = true)
+  @Parameter(names = { "-a", "--authentication" }, description = "Authentication credentials to use for the IQ Server, format <username:password> ", required = true)
   private String serverUser;
 
   public Parameters() {

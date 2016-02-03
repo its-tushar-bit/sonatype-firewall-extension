@@ -39,9 +39,9 @@ public class FirewallClient
 
   private final String repositoryPublicId;
 
-
-  public FirewallClient(final Configuration config, final String repositoryManagerInstanceId,
-      final String repositoryPublicId)
+  public FirewallClient(final Configuration config,
+                        final String repositoryManagerInstanceId,
+                        final String repositoryPublicId)
   {
     super(config);
 
@@ -50,8 +50,9 @@ public class FirewallClient
   }
 
   public void setEnabled(boolean enabled) throws IOException {
-    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH,
-        Boolean.toString(enabled)), null);
+    Result result = postRequest(
+        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, ENABLE_PATH, Boolean.toString(enabled)),
+        null);
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();
@@ -60,8 +61,9 @@ public class FirewallClient
   }
 
   public void setQuarantine(final boolean enabled) throws IOException {
-    Result result = postRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH,
-        Boolean.toString(enabled)), null);
+    Result result = postRequest(
+        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, QUARANTINE_PATH, Boolean.toString(enabled)),
+        null);
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();
@@ -70,8 +72,8 @@ public class FirewallClient
   }
 
   public void removeComponent(String pathname) throws IOException {
-    Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId,
-        COMPONENTS_PATH, pathname));
+    Result result = deleteRequest(path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH,
+        pathname));
     int status = result.status();
     if (status >= 300) {
       String msg = result.message();
@@ -86,8 +88,7 @@ public class FirewallClient
         ContentType.APPLICATION_JSON);
 
     final Result result = postRequest(
-        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH),
-        entity);
+        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_PATH), entity);
     final int status = result.status();
     if (status >= 300) {
       String msg = result.message();
@@ -95,8 +96,7 @@ public class FirewallClient
     }
   }
 
-  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
-      final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
+  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
       throws IOException
   {
     ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequestList),

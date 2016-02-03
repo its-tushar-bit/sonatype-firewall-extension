@@ -47,8 +47,8 @@ public class ApplicationResourceTest
   }
 
   private HttpRequest evalRequest(String appId, String scanId, Stage stage) {
-    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
-        .parameter(appId).body(stage);
+    return super.restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId).parameter(appId)
+        .body(stage);
   }
 
   @Test
@@ -58,7 +58,8 @@ public class ApplicationResourceTest
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
 
-    application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName",  "ApplicationResourceTest-testValidate-OrgName");
+    application = tempEntity.newApplicationWithParent(applicationPublicId,
+        "ApplicationResourceTest-testValidate-AppName", "ApplicationResourceTest-testValidate-OrgName");
 
     HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
@@ -79,7 +80,8 @@ public class ApplicationResourceTest
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     Assert.assertNull(application);
 
-    application = tempEntity.newApplicationWithParent(applicationPublicId, "ApplicationResourceTest-testValidate-AppName");
+    application = tempEntity.newApplicationWithParent(applicationPublicId,
+        "ApplicationResourceTest-testValidate-AppName");
 
     HttpResponse response = restRequest().path(ApplicationResource.VALIDATE_PATH).parameter(applicationPublicId).get();
     assertResponseStatus(200, response);
@@ -130,9 +132,10 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", defaultIconByteArray).post();
     assertResponseStatus(400, response);
-    Assert.assertEquals(
-        "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
-        response.getBodyText());
+    Assert
+        .assertEquals(
+            "defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.",
+            response.getBodyText());
 
     // Test Get Icon (default icon)
     HttpResponse iconResponse = restRequest().path(ApplicationResource.GET_APPLICATION_ICON_PATH)
@@ -203,9 +206,10 @@ public class ApplicationResourceTest
     response = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", application.getId())
         .part("hasRobotSource", "false").part("file", "defaulticon_application.png", iconBytes).post();
     assertResponseStatus(200, response);
-    Assert.assertEquals(
-        "\"defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.\"",
-        response.getBodyText());
+    Assert
+        .assertEquals(
+            "\"defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.\"",
+            response.getBodyText());
   }
 
   @Test
@@ -456,7 +460,6 @@ public class ApplicationResourceTest
     Assert.assertEquals(application.getId(), applications[0].getId());
     Assert.assertEquals(application.getName(), applications[0].getName());
     Assert.assertEquals(organization.getName(), applications[0].getOrganizationName());
-
 
     ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "CLM");
     ContactDTO applicationContact = applications[0].getContact();

@@ -20,14 +20,16 @@ public class StageTypesTest
   @Test
   public void testIsIgnoredForDashboard() {
     for (StageType stageType : StageTypes.getAll()) {
-      assertThat(StageTypes.isIgnoredForDashboard(stageType.getId()), anyOf(
-          is(DevelopStageType.ID.equals(stageType.getId())), is(ProxyStageType.ID.equals(stageType.getId()))));
+      assertThat(StageTypes.isIgnoredForDashboard(stageType.getId()),
+          anyOf(is(DevelopStageType.ID.equals(stageType.getId())), is(ProxyStageType.ID.equals(stageType.getId()))));
     }
   }
 
   @Test
   public void testGetAll_ChronologicalOrdering() {
-    assertThat(StageTypes.getAll(), contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD,
-        StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+    assertThat(
+        StageTypes.getAll(),
+        contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
   }
 }

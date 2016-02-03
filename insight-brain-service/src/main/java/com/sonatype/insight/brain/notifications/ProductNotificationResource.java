@@ -41,9 +41,8 @@ public class ProductNotificationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ProductNotificationListDTO getNotifications(
-      @QueryParam("pageSize") @DefaultValue("20") final int pagesSize,
-      @QueryParam("page") @DefaultValue("1") final int page)
+  public ProductNotificationListDTO getNotifications(@QueryParam("pageSize") @DefaultValue("20") final int pagesSize,
+                                                     @QueryParam("page") @DefaultValue("1") final int page)
   {
     return notificationsService.getNotifications(pagesSize, page);
   }

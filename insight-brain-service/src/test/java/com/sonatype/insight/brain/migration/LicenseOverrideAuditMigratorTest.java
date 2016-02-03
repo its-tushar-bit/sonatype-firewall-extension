@@ -28,8 +28,7 @@ public class LicenseOverrideAuditMigratorTest
 
   @Override
   protected void verifyAuditHistory(JsonStore auditStore, final boolean isOrg) throws IOException {
-    ArrayNode aaData = (ArrayNode) auditStore.history(null, getAuditFileName()).get(
-        "aaData");
+    ArrayNode aaData = (ArrayNode) auditStore.history(null, getAuditFileName()).get("aaData");
     List<LicenseOverrideAudit> audits = new ArrayList<>();
     for (JsonNode licenseOverrideAuditJson : aaData) {
       LicenseOverrideAudit licenseOverrideAudit = JsonUtils

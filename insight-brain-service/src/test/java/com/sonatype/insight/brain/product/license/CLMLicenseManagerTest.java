@@ -59,8 +59,8 @@ public class CLMLicenseManagerTest
       fail("Expected LicensingException");
     }
     catch (LicensingException e) {
-      assertThat(e.getMessage(),
-          is("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'"));
+      assertThat(e.getMessage(), is("License does not permit use of feature '" + CLMFeature.ID + "' or '"
+          + FirewallFeature.ID + "'"));
     }
 
     assertNull(clmLicenseManager.getLicenseFingerprint());

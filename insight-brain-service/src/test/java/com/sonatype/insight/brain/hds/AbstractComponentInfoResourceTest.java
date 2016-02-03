@@ -57,13 +57,15 @@ public abstract class AbstractComponentInfoResourceTest
     return super.restRequest().path(getResourcePath());
   }
 
-  protected HttpRequest detailsRequest(String ownerId, ComponentIdentifier componentIdentifier, String hash,
-      MatchState matchState, Boolean proprietary)
+  protected HttpRequest detailsRequest(String ownerId,
+                                       ComponentIdentifier componentIdentifier,
+                                       String hash,
+                                       MatchState matchState,
+                                       Boolean proprietary)
   {
     return restRequest().path(getOwner().getType().toString(), ownerId)
-        .query("componentIdentifier", componentIdentifier).query(
-            "hash", hash).query("matchState", matchState != null ? matchState.getId() : null)
-        .query("proprietary", proprietary);
+        .query("componentIdentifier", componentIdentifier).query("hash", hash)
+        .query("matchState", matchState != null ? matchState.getId() : null).query("proprietary", proprietary);
   }
 
   protected HttpRequest listRequest(String ownerId, ComponentIdentifier componentIdentifier) {
@@ -85,8 +87,8 @@ public abstract class AbstractComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList_Unlicensed() throws Exception {
     uninstallLicense();
-    HttpResponse response = listRequest(getOwnerId(),
-        ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
+    HttpResponse response = listRequest(getOwnerId(), ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv"))
+        .get();
     assertResponseStatus(402, response);
   }
 

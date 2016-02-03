@@ -40,10 +40,10 @@ public class ApplicationService
 
   private final ApplicationHelper applicationHelper;
 
-
   @Inject
-  public ApplicationService(ApplicationDAO applicationDAO, final ApplicationCleaner applicationCleaner,
-      final ApplicationHelper applicationHelper)
+  public ApplicationService(ApplicationDAO applicationDAO,
+                            final ApplicationCleaner applicationCleaner,
+                            final ApplicationHelper applicationHelper)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
@@ -76,11 +76,10 @@ public class ApplicationService
 
   /**
    * @since 1.14.0
-   * Allows anonymous access. Only for use by the clients.
+   *        Allows anonymous access. Only for use by the clients.
    */
   @Authorize(permission = Permission.WRITE, anonymousAllowed = true)
-  protected Application getApplicationByPublicIdAllowAnonymous(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  protected Application getApplicationByPublicIdAllowAnonymous(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return applicationDAO.getByPublicId(applicationPublicId);
   }
@@ -98,27 +97,24 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  public Application getApplicationByPublicIdNotNull(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  public Application getApplicationByPublicIdNotNull(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return applicationDAO.getByPublicIdNotNull(applicationPublicId);
   }
 
   @Authorize(permission = Permission.READ)
-  public Application getApplicationByPublicId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  public Application getApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
   @Authorize(permission = Permission.READ)
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplicationsByIdsAndTagIds(
-      @Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_ID, multiple = true) final Set<String> applicationIds,
-      @Nullable final Set<String> tagIds)
+  public List<Application> getApplicationsByIdsAndTagIds(@Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_ID, multiple = true) final Set<String> applicationIds,
+                                                         @Nullable final Set<String> tagIds)
   {
     if (isEmpty(applicationIds) && isEmpty(tagIds)) {
-      //neither filled
+      // neither filled
       return applicationDAO.getAll();
     }
     else if (isEmpty(applicationIds)) {
@@ -128,7 +124,7 @@ public class ApplicationService
       return applicationDAO.getByIds(applicationIds);
     }
     else {
-      //both filled
+      // both filled
       return applicationDAO.getByIdsAndTagIds(applicationIds, tagIds);
     }
   }
@@ -139,9 +135,7 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public Application addApplication(
-      @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
-  {
+  public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application) {
     applicationHelper.addApplication(application);
     return application;
   }
@@ -153,8 +147,7 @@ public class ApplicationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void deleteApplicationByPublicId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
+  public void deleteApplicationByPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
       throws IOException
   {
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {

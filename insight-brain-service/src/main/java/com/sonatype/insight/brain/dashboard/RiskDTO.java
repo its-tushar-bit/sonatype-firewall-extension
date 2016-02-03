@@ -20,8 +20,11 @@ public class RiskDTO
   public RiskDTO() {
   }
 
-  public RiskDTO(final int totalRisk, final int criticalRisk, final int severeRisk,
-      final int moderateRisk, final int lowRisk)
+  public RiskDTO(final int totalRisk,
+                 final int criticalRisk,
+                 final int severeRisk,
+                 final int moderateRisk,
+                 final int lowRisk)
   {
     this.totalRisk = totalRisk;
     this.criticalRisk = criticalRisk;

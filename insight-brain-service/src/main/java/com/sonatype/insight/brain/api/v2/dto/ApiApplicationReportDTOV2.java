@@ -11,7 +11,6 @@ import com.sonatype.insight.brain.utils.ISODateSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-
 public class ApiApplicationReportDTOV2
 {
   public String stage;

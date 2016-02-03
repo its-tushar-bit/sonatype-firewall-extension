@@ -60,8 +60,9 @@ public class ComponentDetailsLoader
   private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Inject
-  public ComponentDetailsLoader(InsightWork work, LicenseDAO licenseDAO,
-      HashComponentIdentifierDAO hashComponentIdentifierDAO)
+  public ComponentDetailsLoader(InsightWork work,
+                                LicenseDAO licenseDAO,
+                                HashComponentIdentifierDAO hashComponentIdentifierDAO)
   {
     this.work = work;
     this.licenseDAO = licenseDAO;
@@ -71,8 +72,10 @@ public class ComponentDetailsLoader
   /**
    * Gets component details without CLM-specific vulnerability or license augmentation.
    */
-  public NamedComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier, String hash,
-      String matchState, HostedDataServicesSource hdsSource) throws IOException
+  public NamedComponentDetails getComponentDetails(ComponentIdentifier componentIdentifier,
+                                                   String hash,
+                                                   String matchState,
+                                                   HostedDataServicesSource hdsSource) throws IOException
   {
     NamedComponentDetails componentDetails = getComponentDetailsLocally(componentIdentifier, hash);
 
@@ -91,8 +94,7 @@ public class ComponentDetailsLoader
     return componentDetails;
   }
 
-  public NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash)
-  {
+  public NamedComponentDetails getComponentDetailsLocally(ComponentIdentifier componentIdentifier, String hash) {
     NamedComponentDetails componentDetails = null;
 
     // Look among claimed components first
@@ -124,9 +126,7 @@ public class ComponentDetailsLoader
    * Augments the supplied component details with vulnerability and license overrides. The returned object is a
    * transcript of the final component details suitable for policy evaluation.
    */
-  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails)
-      throws IOException
-  {
+  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) throws IOException {
     // Load the augmented data for licenses and security vulnerabilities
     ArrayNode svData = AugmentUtil.getSVData(work, owner.getId(), componentDetails.getComponentIdentifier(),
         componentDetails.getSecurityVulnerabilities());
@@ -148,11 +148,13 @@ public class ComponentDetailsLoader
       effectiveLicenses.addAll(componentDetails.getObservedLicenses());
       effectiveLicenses = removeNonLicensesUnlessNoOtherLicensesExist(effectiveLicenses);
       componentDetails.getEffectiveLicenses().addAll(effectiveLicenses);
-    } else {
+    }
+    else {
       componentDetails.getEffectiveLicenses().addAll(componentDetails.getOverriddenLicenses());
       if (LicenseOverrideStatus.OVERRIDDEN.equals(component.getLicenseOverrideStatus())) {
         componentDetails.setEffectiveLicenseStatus(com.sonatype.clm.dto.model.ide.LicenseStatus.Overridden);
-      } else if (LicenseOverrideStatus.SELECTED.equals(component.getLicenseOverrideStatus())) {
+      }
+      else if (LicenseOverrideStatus.SELECTED.equals(component.getLicenseOverrideStatus())) {
         componentDetails.setEffectiveLicenseStatus(com.sonatype.clm.dto.model.ide.LicenseStatus.Selected);
       }
     }
@@ -197,8 +199,7 @@ public class ComponentDetailsLoader
   private Set<License> removeNonLicensesUnlessNoOtherLicensesExist(Set<License> licenses) {
     Set<License> filtered = new LinkedHashSet<>();
     for (License license : licenses) {
-      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(
-          license.getLicenseId())) {
+      if (!com.sonatype.insight.brain.model.license.License.isEffectivelyUnspecified(license.getLicenseId())) {
         filtered.add(license);
       }
     }

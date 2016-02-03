@@ -50,8 +50,9 @@ public class ApiPolicyViolationService
 
   @Inject
   public ApiPolicyViolationService(final PolicyViolationDAO policyViolationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationService applicationService,
-      final PolicyViolationAdapter policyViolationAdapter)
+                                   final PolicyEvaluationDAO policyEvaluationDAO,
+                                   final ApplicationService applicationService,
+                                   final PolicyViolationAdapter policyViolationAdapter)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -88,8 +89,8 @@ public class ApiPolicyViolationService
   }
 
   private ApiApplicationViolationListDTO buildApplicationDTOs(List<Application> applications,
-      ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
-      ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
+                                                              ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
+                                                              ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
   {
     ApiApplicationViolationListDTO apiViolationListDTO = new ApiApplicationViolationListDTO();
     for (Application application : applications) {
@@ -112,8 +113,8 @@ public class ApiPolicyViolationService
   }
 
   private List<ApiPolicyViolationDTO> buildPolicyViolationDTOs(Application application,
-      ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
-      ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
+                                                               ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
+                                                               ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
   {
     List<ApiPolicyViolationDTO> apiPolicyViolationDTOs = new ArrayList<>();
     List<PolicyEvaluation> policyEvaluations = policyEvaluationMapByAppId.get(application.getId());

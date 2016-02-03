@@ -64,9 +64,17 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(policyViolation, is(nullValue()));
   }
 
-  private void assertPolicyViolation(String repositoryId, String pathname, String policyId, String policyName,
-      int threatLevel, PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      Date time, String actionTypeId, RepositoryPolicyViolation actual)
+  private void assertPolicyViolation(String repositoryId,
+                                     String pathname,
+                                     String policyId,
+                                     String policyName,
+                                     int threatLevel,
+                                     PolicyThreatCategory threatCategory,
+                                     String hash,
+                                     ComponentIdentifier componentIdentifier,
+                                     Date time,
+                                     String actionTypeId,
+                                     RepositoryPolicyViolation actual)
   {
     assertThat(actual.getRepositoryId(), is(repositoryId));
     assertThat(actual.getPathname(), is(pathname));
@@ -86,7 +94,8 @@ public class RepositoryPolicyViolationDAOTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
 
     final String policyIdSecond = "policyId2";
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, true, policyIdSecond, "policyName2", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, true, policyIdSecond,
+        "policyName2", null);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, null);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, pathname, null);

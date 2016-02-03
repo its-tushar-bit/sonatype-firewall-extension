@@ -30,7 +30,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * @since 1.11.0
  */
@@ -50,9 +49,11 @@ public class OrganizationService
   private RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils;
 
   @Inject
-  public OrganizationService(final InsightWork work, final ApplicationCleaner applicationCleaner,
-      final FileCleaner fileCleaner, final OrganizationDAO organizationDAO,
-      final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
+  public OrganizationService(final InsightWork work,
+                             final ApplicationCleaner applicationCleaner,
+                             final FileCleaner fileCleaner,
+                             final OrganizationDAO organizationDAO,
+                             final RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
@@ -85,8 +86,7 @@ public class OrganizationService
    * @since 1.11.0
    */
   @Authorize(permission = Permission.WRITE)
-  public void deleteOrganization(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
+  public void deleteOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") final String organizationId)
       throws IOException
   {
     try (TransactionContext tx = organizationDAO.createTransactionContext()) {

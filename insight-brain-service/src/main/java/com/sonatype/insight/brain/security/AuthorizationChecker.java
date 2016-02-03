@@ -52,8 +52,9 @@ public class AuthorizationChecker
    * Determines whether the given user has the specified permission in the supplied context or any of its ancestor
    * contexts.
    */
-  public boolean isPermitted(UserPrincipal user, Permission permission,
-      Map<AuthzContext.Key, ContextParameter> contextParameters)
+  public boolean isPermitted(UserPrincipal user,
+                             Permission permission,
+                             Map<AuthzContext.Key, ContextParameter> contextParameters)
   {
     if (contextParameters.size() == 1 && contextParameters.values().iterator().next().multiple) {
       return checkIsPermittedMultiple(user, permission, contextParameters);
@@ -63,8 +64,9 @@ public class AuthorizationChecker
     }
   }
 
-  private boolean checkIsPermittedMultiple(final UserPrincipal user, final Permission permission,
-      final Map<Key, ContextParameter> contextParameters)
+  private boolean checkIsPermittedMultiple(final UserPrincipal user,
+                                           final Permission permission,
+                                           final Map<Key, ContextParameter> contextParameters)
   {
     ContextParameter parameter = contextParameters.values().iterator().next();
     if (parameter.object == null) {
@@ -89,8 +91,9 @@ public class AuthorizationChecker
     }
   }
 
-  private boolean checkIsPermittedSingle(final UserPrincipal user, final Permission permission,
-      final Map<Key, ContextParameter> contextParameters)
+  private boolean checkIsPermittedSingle(final UserPrincipal user,
+                                         final Permission permission,
+                                         final Map<Key, ContextParameter> contextParameters)
   {
     Map<Key, Object> contextParamMap = new EnumMap<>(Key.class);
     for (ContextParameter cp : contextParameters.values()) {
@@ -127,8 +130,10 @@ public class AuthorizationChecker
    * permission.
    */
   @SuppressWarnings("unchecked")
-  public Collection<?> filterByPermission(UserPrincipal user, Permission permission, Object entities,
-      Context contextEntity)
+  public Collection<?> filterByPermission(UserPrincipal user,
+                                          Permission permission,
+                                          Object entities,
+                                          Context contextEntity)
   {
     Collection<Object> filtered = newCollection(entities);
     if (user != null) {
@@ -158,8 +163,11 @@ public class AuthorizationChecker
     }
   }
 
-  private <T> void filter(Collection<Object> filtered, UserPrincipal user, Permission permission,
-      Iterable<? extends T> entities, ContextIdResolver<T> resolver)
+  private <T> void filter(Collection<Object> filtered,
+                          UserPrincipal user,
+                          Permission permission,
+                          Iterable<? extends T> entities,
+                          ContextIdResolver<T> resolver)
   {
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
     Map<String, Boolean> resultByContextId = new HashMap<>(256);
@@ -171,8 +179,10 @@ public class AuthorizationChecker
     }
   }
 
-  private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds, Iterable<String> contextIds,
-      Map<String, Boolean> resultByContextId)
+  private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user,
+                                                  Set<String> roleIds,
+                                                  Iterable<String> contextIds,
+                                                  Map<String, Boolean> resultByContextId)
   {
     for (String contextId : contextIds) {
       Boolean result = resultByContextId.get(contextId);

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-
 import com.sonatype.clm.testing.functional.elements.InheritanceSection;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.model.Application;
@@ -15,7 +14,8 @@ import org.junit.Before;
 
 import static com.codeborne.selenide.Condition.visible;
 
-public class ApplicationPolicyEditorTest extends AbstractPolicyEditorTest
+public class ApplicationPolicyEditorTest
+    extends AbstractPolicyEditorTest
 {
 
   private static final String YE_OLE_APPLICATION = "Ye Ole Application";

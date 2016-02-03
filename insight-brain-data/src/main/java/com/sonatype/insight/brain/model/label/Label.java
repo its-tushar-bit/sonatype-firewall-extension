@@ -47,7 +47,7 @@ public class Label
 
   public Label() {
   }
-  
+
   public Label(String ownerId, String label) {
     this.ownerId = ownerId;
     setLabel(label);

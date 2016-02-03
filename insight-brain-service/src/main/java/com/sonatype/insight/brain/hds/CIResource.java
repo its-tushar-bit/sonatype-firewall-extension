@@ -44,10 +44,8 @@ public class CIResource
   @Path(SCAN_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
-  public ScanReceipt putScan(
-      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
-      final String applicationPublicId,
-      @Context HttpServletRequest req) throws IOException
+  public ScanReceipt putScan(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+                             @Context HttpServletRequest req) throws IOException
   {
     return uploader.upload(req, applicationPublicId);
   }

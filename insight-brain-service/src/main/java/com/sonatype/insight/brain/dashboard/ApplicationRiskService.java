@@ -61,9 +61,12 @@ public class ApplicationRiskService
   private final DashboardUtils dashboardUtils;
 
   @Inject
-  public ApplicationRiskService(ApplicationService applicationService, ApplicationAdapter applicationAdapter,
-      PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationDAO policyViolationDAO,
-      PolicyViolationAdapter policyViolationAdapter, DashboardUtils dashboardUtils)
+  public ApplicationRiskService(ApplicationService applicationService,
+                                ApplicationAdapter applicationAdapter,
+                                PolicyEvaluationDAO policyEvaluationDAO,
+                                PolicyViolationDAO policyViolationDAO,
+                                PolicyViolationAdapter policyViolationAdapter,
+                                DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.applicationAdapter = applicationAdapter;
@@ -77,9 +80,11 @@ public class ApplicationRiskService
    * @since 1.11.0
    */
   public List<ApplicationRiskScoreDTO> getApplicationRisks(final Set<String> applicationIds,
-      final Set<String> stageIds, final Set<String> tagIds,
-      final PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      final PolicyThreatLevelFilter policyThreatLevelFilter, final int maxResults)
+                                                           final Set<String> stageIds,
+                                                           final Set<String> tagIds,
+                                                           final PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                           final PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                           final int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -111,8 +116,9 @@ public class ApplicationRiskService
   }
 
   private List<PolicyViolationDTO> createAllPolicyViolations(final Predicate<PolicyViolation> filter,
-      final List<PolicyEvaluation> evaluations, final List<Application> applications,
-      final Map<String, PolicyEvaluation> policyEvaluationsById)
+                                                             final List<PolicyEvaluation> evaluations,
+                                                             final List<Application> applications,
+                                                             final Map<String, PolicyEvaluation> policyEvaluationsById)
   {
     Map<String, Application> applicationsById = mapCollectionById(applications);
     List<PolicyViolationDTO> allPolicyViolationDTOs = new ArrayList<>();
@@ -126,8 +132,9 @@ public class ApplicationRiskService
   }
 
   private Iterable<ApplicationRiskScoreDTO> createApplicationRiskScores(final List<Application> appsToSearch,
-      final Set<StageType> stagesToSearch, final Map<String, PolicyEvaluation> policyEvaluationsById,
-      final List<PolicyViolationDTO> allPolicyViolationDTOs)
+                                                                        final Set<StageType> stagesToSearch,
+                                                                        final Map<String, PolicyEvaluation> policyEvaluationsById,
+                                                                        final List<PolicyViolationDTO> allPolicyViolationDTOs)
   {
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>();
     ContactDTO[] contactsForApplications = findContactsForApplications(appsToSearch);
@@ -170,7 +177,7 @@ public class ApplicationRiskService
   }
 
   private Iterable<PolicyViolationDTO> getViolationsForApp(final List<PolicyViolationDTO> allPolicyViolationDTOs,
-      final Application application)
+                                                           final Application application)
   {
     return Iterables.filter(allPolicyViolationDTOs, new Predicate<PolicyViolationDTO>()
     {
@@ -182,7 +189,8 @@ public class ApplicationRiskService
   }
 
   private Iterable<PolicyViolationDTO> createViolationsForStage(final String stageId,
-      final Iterable<PolicyViolationDTO> violationsForApp, final Map<String, PolicyEvaluation> policyEvaluationsById)
+                                                                final Iterable<PolicyViolationDTO> violationsForApp,
+                                                                final Map<String, PolicyEvaluation> policyEvaluationsById)
   {
     return Iterables.filter(violationsForApp, new Predicate<PolicyViolationDTO>()
     {
@@ -207,14 +215,14 @@ public class ApplicationRiskService
   }
 
   private List<PolicyViolation> getPolicyViolations(final List<PolicyEvaluation> evaluations,
-      final Predicate<PolicyViolation> violationFilter)
+                                                    final Predicate<PolicyViolation> violationFilter)
   {
     Set<String> evaluationIds = Sets.newHashSet(Iterables.transform(evaluations, DashboardUtils.hasIdIdSelector));
     return dashboardUtils.filter(policyViolationDAO.getActiveByEvaluationIds(evaluationIds), violationFilter);
   }
 
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,
-      final Iterable<PolicyViolationDTO> allViolations)
+                                           final Iterable<PolicyViolationDTO> allViolations)
   {
     // squish down any dupes we have across stages
     final Map<String, PolicyViolationDTO> compHashToViolation = new HashMap<>();
@@ -237,8 +245,10 @@ public class ApplicationRiskService
     }
   }
 
-  private void updateStageRisk(ApplicationRiskScoreDTO applicationRiskScore, PolicyViolationDTO violation,
-      StageType stage, String scanId)
+  private void updateStageRisk(ApplicationRiskScoreDTO applicationRiskScore,
+                               PolicyViolationDTO violation,
+                               StageType stage,
+                               String scanId)
   {
     StageRiskScoreDTO currentStageRiskScore = applicationRiskScore.getStageRiskScore(stage.getId());
     if (currentStageRiskScore == null) {
@@ -275,8 +285,7 @@ public class ApplicationRiskService
    * @param applicationRisks - Risks we want to sort.
    * @return the risks sorted in descending order by the Risk. Any guys with a Risk of 0 are removed.
    */
-  private List<ApplicationRiskScoreDTO> sortAndFilterApplicationRiskScore(
-      final Iterable<ApplicationRiskScoreDTO> applicationRisks)
+  private List<ApplicationRiskScoreDTO> sortAndFilterApplicationRiskScore(final Iterable<ApplicationRiskScoreDTO> applicationRisks)
   {
     List<ApplicationRiskScoreDTO> filteredApplicationRiskScores = Lists.newArrayList(Iterables.filter(applicationRisks,
         new Predicate<ApplicationRiskScoreDTO>()

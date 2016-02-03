@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v1.service;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,12 +53,12 @@ public class ApiApplicationService
 
   @Inject
   public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
-      final ApiApplicationTagAdapter apiApplicationTagAdapter,
-      final ApplicationTagDAO applicationTagDAO,
-      final RoleDAO roleDAO,
-      final ApplicationDAO applicationDAO,
-      final ApiRoleAdapter roleAdapter,
-      final ApplicationHelper applicationHelper)
+                               final ApiApplicationTagAdapter apiApplicationTagAdapter,
+                               final ApplicationTagDAO applicationTagDAO,
+                               final RoleDAO roleDAO,
+                               final ApplicationDAO applicationDAO,
+                               final ApiRoleAdapter roleAdapter,
+                               final ApplicationHelper applicationHelper)
   {
     this.apiApplicationAdapter = apiApplicationAdapter;
     this.apiApplicationTagAdapter = apiApplicationTagAdapter;
@@ -71,8 +70,7 @@ public class ApiApplicationService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiApplicationDTO getApplicationById(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
+  public ApiApplicationDTO getApplicationById(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId)
   {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
     return convertApplicationToDTO(application);
@@ -105,8 +103,8 @@ public class ApiApplicationService
       tx.begin();
 
       application = addApplication(tx, application);
-      List<ApplicationTag> applicationTags = apiApplicationTagAdapter
-          .convertFromDTO(application.getId(), applicationDTO.applicationTags);
+      List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(application.getId(),
+          applicationDTO.applicationTags);
       addTags(tx, applicationTags);
 
       tx.commit();
@@ -125,8 +123,8 @@ public class ApiApplicationService
       tx.begin();
 
       application = updateApplication(tx, application);
-      List<ApplicationTag> applicationTags = apiApplicationTagAdapter
-          .convertFromDTO(application.getId(), applicationDTO.applicationTags);
+      List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(application.getId(),
+          applicationDTO.applicationTags);
       updateTags(tx, application, applicationTags);
 
       tx.commit();
@@ -148,14 +146,14 @@ public class ApiApplicationService
 
   @Authorize(permission = Permission.WRITE)
   Application addApplication(final TransactionContext tx,
-      @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
+                             @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
   {
     return applicationHelper.addApplication(tx, application);
   }
 
   @Authorize(permission = Permission.WRITE)
   Application updateApplication(final TransactionContext tx,
-      @AuthzContext(AuthzContext.Key.APPLICATION) final Application application)
+                                @AuthzContext(AuthzContext.Key.APPLICATION) final Application application)
   {
     applicationDAO.update(tx, application);
     return application;
@@ -195,8 +193,9 @@ public class ApiApplicationService
     }
   }
 
-  private void updateTags(final TransactionContext tx, final Application application,
-      final List<ApplicationTag> applicationTags)
+  private void updateTags(final TransactionContext tx,
+                          final Application application,
+                          final List<ApplicationTag> applicationTags)
   {
     // Delete existing tags
     for (ApplicationTag applicationTag : applicationTagDAO.getByApplicationId(tx, application.getId())) {

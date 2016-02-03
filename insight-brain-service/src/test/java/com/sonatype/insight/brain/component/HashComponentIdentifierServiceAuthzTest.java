@@ -35,8 +35,8 @@ public class HashComponentIdentifierServiceAuthzTest
 {
   private static final String HASH = "test-abcdef";
 
-  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
-      ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.0", "jdk15", "jar");
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("gid",
+      "aid", "1.0", "jdk15", "jar");
 
   private final ComponentSummary componentSummary = new ComponentSummary();
 
@@ -58,8 +58,9 @@ public class HashComponentIdentifierServiceAuthzTest
   @Before
   public void resetMockHdsClient() throws Exception {
     reset(mockHdsClient);
-    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
-        anyMapOf(String.class, String.class))).thenReturn(componentSummary);
+    when(
+        mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+            anyMapOf(String.class, String.class))).thenReturn(componentSummary);
   }
 
   @After

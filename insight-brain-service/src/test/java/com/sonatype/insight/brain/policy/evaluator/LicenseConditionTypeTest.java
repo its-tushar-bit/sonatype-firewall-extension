@@ -233,7 +233,7 @@ public class LicenseConditionTypeTest
     assertFactCounts(1, 1, policyAlerts.get(0));
 
     assertContainsPolicyAlert(component, "policyId1", "policyName1", FailActionType.ID, "constraintId1",
-      "constraintName1", LicenseConditionType.ID, policyAlerts);
+        "constraintName1", LicenseConditionType.ID, policyAlerts);
 
     constraints = new ArrayList<>();
     constraints.add(createConstraint("constraintId2", "constraintName2", LicenseConditionType.ID, "is", "AFL-1.2"));

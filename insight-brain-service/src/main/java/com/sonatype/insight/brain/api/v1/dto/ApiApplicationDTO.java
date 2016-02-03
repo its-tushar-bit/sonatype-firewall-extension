@@ -11,7 +11,7 @@ import java.util.List;
  * @since 1.11.0
  */
 public class ApiApplicationDTO
-  extends ApiApplicationBaseDTO
+    extends ApiApplicationBaseDTO
 {
   public List<ApiApplicationTagDTO> applicationTags;
 }

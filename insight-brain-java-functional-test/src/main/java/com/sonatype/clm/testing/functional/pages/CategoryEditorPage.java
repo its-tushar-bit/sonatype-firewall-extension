@@ -31,7 +31,7 @@ public class CategoryEditorPage
   }
 
   public static SelenideElement title() {
-    return  root().$("h2");
+    return root().$("h2");
   }
 
   public static SelenideElement categoryName() {

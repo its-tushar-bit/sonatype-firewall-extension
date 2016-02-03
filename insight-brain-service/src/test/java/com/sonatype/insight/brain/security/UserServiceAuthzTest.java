@@ -83,8 +83,8 @@ public class UserServiceAuthzTest
   @Test
   public void testFindMembersForRoles_RepositoryContainer_Authorized() {
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.REPOSITORY_CONTAINER,
-        null, "*", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.REPOSITORY_CONTAINER, null, "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
   }
@@ -92,7 +92,7 @@ public class UserServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testFindMembersForRoles_RepositoryContainer_Unauthorized() {
     login();
-    userService.findMembersForRoles(OwnerType.REPOSITORY_CONTAINER,null, "*", false /* groupsEnabled */);
+    userService.findMembersForRoles(OwnerType.REPOSITORY_CONTAINER, null, "*", false /* groupsEnabled */);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -103,8 +103,8 @@ public class UserServiceAuthzTest
   @Test
   public void testFindMembersForRoles_Application_Authorized() {
     grantWritePermission(app.getId());
-    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.APPLICATION,
-        app.getPublicId(), "*", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.APPLICATION, app.getPublicId(), "*",
+        false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
   }
@@ -123,8 +123,8 @@ public class UserServiceAuthzTest
   @Test
   public void testFindMembersForRoles_Organization_Authorized() {
     grantWritePermission(org.getId());
-    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(),
-        "*", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService
+        .findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "*", false /* groupsEnabled */);
     assertThat(findMembersDTO.getError(), is(nullValue()));
     assertThat(findMembersDTO.getMembers(), is(not(empty())));
   }

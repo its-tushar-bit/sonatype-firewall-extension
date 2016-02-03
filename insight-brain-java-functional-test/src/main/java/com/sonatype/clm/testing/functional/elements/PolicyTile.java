@@ -32,7 +32,7 @@ public class PolicyTile
   public PolicyTileList policyList(int num) {
     return new PolicyTileList(policyLists().get(num));
   }
-  
+
   public static Condition name() {
     return Condition.text("NAME");
   }

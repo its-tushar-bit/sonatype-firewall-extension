@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -17,11 +16,12 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class LastPolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<LastPolicyEvaluation>
 {
-  public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx, final String applicationId,
-      final String stageTypeId)
+  public void insertIfPossibleLastPolicyEvaluation(final TransactionContext tx,
+                                                   final String applicationId,
+                                                   final String stageTypeId)
   {
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
-    //see if there is a most recent value
+    // see if there is a most recent value
     String sQuery = "SELECT e from PolicyEvaluation e " + //
         "WHERE e.applicationId = ?1 " + //
         "AND e.stageTypeId = ?2 " + //
@@ -31,9 +31,8 @@ public class LastPolicyEvaluationDAO
     PolicyEvaluation newestPolicyEvaluation = policyEvaluationDAO.createQuery(sQuery, applicationId, stageTypeId)
         .forceSingleResult().get(tx);
     if (newestPolicyEvaluation != null) {
-      insert(tx,
-          new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getApplicationId(),
-              newestPolicyEvaluation.getStageTypeId()));
+      insert(tx, new LastPolicyEvaluation(newestPolicyEvaluation.getId(), newestPolicyEvaluation.getApplicationId(),
+          newestPolicyEvaluation.getStageTypeId()));
     }
   }
 
@@ -55,7 +54,6 @@ public class LastPolicyEvaluationDAO
         " AND entity.stageTypeId = ?2";
     return get(sQuery, applicationId, stageTypeId);
   }
-
 
   @Override
   public void update(TransactionContext tx, LastPolicyEvaluation entity) {

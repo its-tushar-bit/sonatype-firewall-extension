@@ -520,8 +520,8 @@ public class ComponentPolicyEvaluatorTest
       Collections.shuffle(policies);
 
       policyResults = new PolicyResults();
-      ComponentPolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID), false /* forMonitoring */,
-          policyResults);
+      ComponentPolicyEvaluator.toPolicyResults(policies, facts, new Stage(BuildStageType.ID),
+          false /* forMonitoring */, policyResults);
       final List<PolicyAlert> alerts = policyResults.getActiveAlerts();
 
       Assert.assertEquals(alertsToString(expectedAlerts), alertsToString(alerts));

@@ -107,7 +107,7 @@ public class DashboardUtils
   }
 
   Predicate<PolicyViolation> buildViolationFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-      PolicyThreatLevelFilter threatLevelFilter)
+                                                  PolicyThreatLevelFilter threatLevelFilter)
   {
     if (threatCategoryFilter == null && threatLevelFilter == null) {
       return null;

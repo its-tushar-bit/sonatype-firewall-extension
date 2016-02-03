@@ -14,7 +14,8 @@ import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
  *
  * @since 1.13.0
  */
-public class ApiReportComponentDTOV2 extends ApiComponentDTOV2
+public class ApiReportComponentDTOV2
+    extends ApiComponentDTOV2
 {
   public String matchState;
 

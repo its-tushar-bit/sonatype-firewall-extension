@@ -25,7 +25,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
+public class OrganizationPolicyEditorTest
+    extends AbstractPolicyEditorTest
 {
 
   private Organization organization;
@@ -106,4 +107,3 @@ public class OrganizationPolicyEditorTest extends AbstractPolicyEditorTest
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
   }
 }
-

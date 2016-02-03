@@ -85,8 +85,9 @@ public class RepositoryService
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   @Inject
-  public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator, CLMLicenseManager licenseManager,
-      PolicyThreatsAdapter policyThreatsAdapter)
+  public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+                           CLMLicenseManager licenseManager,
+                           PolicyThreatsAdapter policyThreatsAdapter)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.licenseManager = licenseManager;
@@ -106,24 +107,23 @@ public class RepositoryService
   public void unquarantineComponent(@AuthzContext(Key.REPOSITORY_ID) final String repositoryId, final String pathname) {
     checkLicenseFeature();
 
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
+        pathname);
     if (repositoryComponent == null) {
-      throw new NotFoundException("Cannot find a component with path " + pathname +
-          " in repository with ID " + repositoryId + ".");
+      throw new NotFoundException("Cannot find a component with path " + pathname + " in repository with ID "
+          + repositoryId + ".");
     }
 
     if (!repositoryComponent.isQuarantined()) {
-      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId +
-          " is not quarantined.");
+      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId + " is not quarantined.");
     }
 
     reevaluateComponent(repositoryComponent);
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
     if (policyViolationsHaveFailedAction(repositoryPolicyViolations)) {
-      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId +
-          " has policy violations.");
+      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId
+          + " has policy violations.");
     }
     // Retrieve the component again before saving as the re-evaluation may have changed the component
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
@@ -142,8 +142,7 @@ public class RepositoryService
 
   private void reevaluateComponent(final RepositoryComponent repositoryComponent) {
     Repository repository = repositoryDAO.getById(repositoryComponent.getRepositoryId());
-    RepositoryComponentEvaluationDataRequestList componentRequestList =
-        new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentRequestList = new RepositoryComponentEvaluationDataRequestList();
     RepositoryComponentEvaluationDataRequest componentRequest = new RepositoryComponentEvaluationDataRequest();
     componentRequest.format = repository.getFormat();
     componentRequest.pathname = repositoryComponent.getPathname();
@@ -162,13 +161,13 @@ public class RepositoryService
 
   @Authorize(permission = Permission.READ)
   RepositoryPolicyThreatDTO getPolicyThreats(@AuthzContext(Key.REPOSITORY) final Repository repository,
-      final String pathname)
+                                             final String pathname)
   {
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
+        pathname);
     if (repositoryComponent == null) {
-      throw new NotFoundException("Cannot find a component with path " + pathname +
-          " in repository with ID " + repository.getId() + ".");
+      throw new NotFoundException("Cannot find a component with path " + pathname + " in repository with ID "
+          + repository.getId() + ".");
     }
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
@@ -176,8 +175,8 @@ public class RepositoryService
 
     List<RepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
     for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      List<PolicyThreats.PolicyConstraint> constraints = policyThreatsAdapter.toPolicyThreatsPolicyConstraints(
-          repositoryPolicyViolation.getConstraintFacts());
+      List<PolicyThreats.PolicyConstraint> constraints = policyThreatsAdapter
+          .toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
       activeRepositoryViolationDTOs.add(new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
           repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(), constraints));
     }
@@ -186,7 +185,7 @@ public class RepositoryService
   }
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(final String repositoryManagerInstanceId,
-      final String repositoryPublicId)
+                                                                      final String repositoryPublicId)
   {
     checkLicenseFeature();
 
@@ -212,8 +211,8 @@ public class RepositoryService
     log.debug("{} audit for repository {}:{}", enable ? "Enabling" : "Disabling", repositoryManagerInstanceId,
         repositoryPublicId);
 
-    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
-        repositoryManagerInstanceId, repositoryPublicId);
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId,
+        repositoryPublicId);
     if (repository == null) {
       repository = new Repository(null, repositoryPublicId);
     }
@@ -224,8 +223,10 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  void setEnabled(String repositoryManagerInstanceId, @AuthzContext(Key.REPOSITORY) Repository repository,
-      boolean enable) {
+  void setEnabled(String repositoryManagerInstanceId,
+                  @AuthzContext(Key.REPOSITORY) Repository repository,
+                  boolean enable)
+  {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
 
     if (repositoryManager == null) {
@@ -243,8 +244,9 @@ public class RepositoryService
     }
   }
 
-  public void setQuarantine(final String repositoryManagerInstanceId, final String repositoryPublicId,
-      final boolean enabled)
+  public void setQuarantine(final String repositoryManagerInstanceId,
+                            final String repositoryPublicId,
+                            final boolean enabled)
   {
     checkLicenseFeature();
 
@@ -270,8 +272,10 @@ public class RepositoryService
     repositoryDAO.update(repository);
   }
 
-  public RepositoryComponentEvaluationDataList evaluateComponents(String repositoryManagerInstanceId, String repositoryPublicId,
-      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList, boolean withQuarantine)
+  public RepositoryComponentEvaluationDataList evaluateComponents(String repositoryManagerInstanceId,
+                                                                  String repositoryPublicId,
+                                                                  RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+                                                                  boolean withQuarantine)
   {
     checkLicenseFeature();
 
@@ -302,8 +306,7 @@ public class RepositoryService
     }
   }
 
-  private void validateEvaluateRequest(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest)
-  {
+  private void validateEvaluateRequest(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest) {
     if (componentEvaluationDataRequest == null) {
       throw new BadRequestException("The componentEvaluationDataRequest cannot be null.");
     }
@@ -320,7 +323,8 @@ public class RepositoryService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   RepositoryComponentEvaluationDataList evaluateComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
-      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList, final boolean withQuarantine)
+                                                           RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+                                                           final boolean withQuarantine)
   {
     long start = System.currentTimeMillis();
 
@@ -346,14 +350,13 @@ public class RepositoryService
       repositoryDAO.update(repository);
     }
 
-
     if (componentEvaluationDataRequestList == null || componentEvaluationDataRequestList.isEmpty()) {
       return new RepositoryComponentEvaluationDataList();
     }
     validateEvaluateRequest(componentEvaluationDataRequestList);
 
     normalizeComponents(componentEvaluationDataRequestList);
-    
+
     RepositoryComponentEvaluationDataList result = repositoryPolicyEvaluator.evaluate(repository,
         componentEvaluationDataRequestList, withQuarantine);
 
@@ -423,16 +426,15 @@ public class RepositoryService
     policyEvaluationSummary.setSevereComponentCount(severeCount);
     policyEvaluationSummary.setModerateComponentCount(moderateCount);
     policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
-    policyEvaluationSummary.setQuarantinedComponentCount(
-        repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId()));
+    policyEvaluationSummary.setQuarantinedComponentCount(repositoryComponentDAO
+        .getQuarantinedComponentCountByRepositoryId(repository.getId()));
 
     policyEvaluationSummary.setReportUrl(UserInterfaceLinksResource.getRepositoryReportUrl(repository.getId()));
 
     return policyEvaluationSummary;
   }
 
-  public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash)
-  {
+  public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash) {
     checkLicenseFeature();
 
     final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
@@ -444,8 +446,7 @@ public class RepositoryService
   }
 
   @Authorize(permission = Permission.READ)
-  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository,
-                                                String hash)
+  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository, String hash)
   {
     final List<RepositoryReportDetail> details = new ArrayList<>();
 
@@ -460,7 +461,7 @@ public class RepositoryService
     for (final RepositoryComponent component : componentList) {
 
       final List<RepositoryPolicyViolation> componentViolations = repositoryPolicyViolationDAO
-          // violations are sorted by 'ThreatLevel DESC, policyId', so highestThreatLevel per component is first
+      // violations are sorted by 'ThreatLevel DESC, policyId', so highestThreatLevel per component is first
           .getActiveByRepositoryIdAndPathname(repository.getId(), component.getPathname());
       boolean highestThreatLevel = true;
 
@@ -472,7 +473,7 @@ public class RepositoryService
           highestThreatLevel = violation.isWaived() ? highestThreatLevel : false;
           allWaived = allWaived && violation.isWaived();
         }
-        //if all violations of this component are waived, we still want to return a 'no violation' entry
+        // if all violations of this component are waived, we still want to return a 'no violation' entry
         if (allWaived) {
           details.add(RepositoryReportDetail.create(component));
         }
@@ -577,8 +578,6 @@ public class RepositoryService
     }
   }
 
-
-
   private final Executor reevalExecutor = createReevaluationExecutor();
 
   private final ConcurrentMap<String, AtomicInteger> reevaluations = new ConcurrentHashMap<>();
@@ -602,8 +601,8 @@ public class RepositoryService
 
   private static Executor createReevaluationExecutor() {
     ThreadPoolExecutor executor = new ThreadPoolExecutor(20, 20, 5L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<Runnable>(),
-        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ReevaluateRepository-%s").build());
+        new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setDaemon(true)
+            .setNameFormat("ReevaluateRepository-%s").build());
 
     executor.allowCoreThreadTimeOut(true);
 
@@ -648,14 +647,14 @@ public class RepositoryService
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
     if (components.isEmpty()) {
-      throw new NotFoundException(
-          "Cannot find a repository component for hash " + hash + " in " + repository.getPublicId() + ".");
+      throw new NotFoundException("Cannot find a repository component for hash " + hash + " in "
+          + repository.getPublicId() + ".");
     }
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
     for (RepositoryComponent component : components) {
-      request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
-          component.getPathname(), component.getHash()));
+      request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component
+          .getPathname(), component.getHash()));
     }
 
     repositoryPolicyEvaluator.evaluate(repository, request, false);

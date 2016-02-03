@@ -17,7 +17,7 @@ public class ComponentFactory
   /**
    * Helper method to construct Maven Components from GAV properties.
    */
-  public static Component forGav(String groupId, String artifactId, String version, MatchState matchState){
+  public static Component forGav(String groupId, String artifactId, String version, MatchState matchState) {
     Component component = new Component(ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version));
     component.setMatchState(matchState);
     return component;

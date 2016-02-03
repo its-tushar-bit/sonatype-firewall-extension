@@ -40,8 +40,11 @@ class TestReportEvaluator
 
   private boolean hasEvaluation = false;
 
-  public TestReportEvaluator(Application app, String scanId, URL locationOfTestReport, String brainBaseUrl,
-      InsightWork workStorage)
+  public TestReportEvaluator(Application app,
+                             String scanId,
+                             URL locationOfTestReport,
+                             String brainBaseUrl,
+                             InsightWork workStorage)
   {
     this.app = app;
     this.scanId = scanId;

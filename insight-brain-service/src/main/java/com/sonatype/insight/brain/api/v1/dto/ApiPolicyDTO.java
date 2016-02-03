@@ -24,13 +24,8 @@ public class ApiPolicyDTO
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "{" +
-        "id='" + id + '\'' +
-        ", name='" + name + '\'' +
-        ", ownerId='" + ownerId + '\'' +
-        ", ownerType='" + ownerType + '\'' +
-        ", threatLevel=" + threatLevel +
-        ", threatCategory='" + policyType + '\'' +
-        '}';
+    return getClass().getSimpleName() + "{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", ownerId='" + ownerId
+        + '\'' + ", ownerType='" + ownerType + '\'' + ", threatLevel=" + threatLevel + ", threatCategory='"
+        + policyType + '\'' + '}';
   }
 }

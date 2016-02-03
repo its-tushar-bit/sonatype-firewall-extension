@@ -55,8 +55,10 @@ public class PolicySummaryService
   private final DashboardUtils dashboardUtils;
 
   @Inject
-  public PolicySummaryService(ApplicationService applicationService, PolicyEvaluationDAO policyEvaluationDAO,
-      PolicyViolationDAO policyViolationDAO, DashboardUtils dashboardUtils)
+  public PolicySummaryService(ApplicationService applicationService,
+                              PolicyEvaluationDAO policyEvaluationDAO,
+                              PolicyViolationDAO policyViolationDAO,
+                              DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -132,8 +134,11 @@ public class PolicySummaryService
    * Gets the policy summary matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public PolicySummaryDTO getPolicySummary(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
-      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
+  public PolicySummaryDTO getPolicySummary(Set<String> applicationIds,
+                                           Set<String> stageIds,
+                                           Set<String> tagIds,
+                                           PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                           PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     dashboardUtils.validateDashboardLicensed();
 

@@ -76,27 +76,29 @@ public class ComponentPolicyEvaluator
     this.waiverEvaluator = waiverEvaluator;
   }
 
-  public List<PolicyAlert> evaluate(String ownerId, Stage stage, List<Component> components)
-  {
+  public List<PolicyAlert> evaluate(String ownerId, Stage stage, List<Component> components) {
     return evaluate(ownerId, stage, components, false /* forMonitoring */).getActiveAlerts();
   }
 
-  public PolicyResults evaluate(String ownerId, Stage stage, List<Component> components,
-      boolean forMonitoring)
-  {
+  public PolicyResults evaluate(String ownerId, Stage stage, List<Component> components, boolean forMonitoring) {
     List<Policy> policies = new PolicyDAO().getApplicableByOwnerId(ownerId);
     return evaluate(ownerId, stage, policies, components, forMonitoring);
   }
 
   // Package visibility for tests only
-  PolicyResults evaluate(final String applicationId, final Stage stage, final List<Policy> policies,
-      final List<Component> components)
+  PolicyResults evaluate(final String applicationId,
+                         final Stage stage,
+                         final List<Policy> policies,
+                         final List<Component> components)
   {
     return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
   }
 
-  private PolicyResults evaluate(final String ownerId, final Stage stage, final List<Policy> policies,
-      final List<Component> components, boolean forMonitoring)
+  private PolicyResults evaluate(final String ownerId,
+                                 final Stage stage,
+                                 final List<Policy> policies,
+                                 final List<Component> components,
+                                 boolean forMonitoring)
   {
     final long start = System.currentTimeMillis();
 
@@ -112,8 +114,11 @@ public class ComponentPolicyEvaluator
     return policyResults;
   }
 
-  static void toPolicyResults(final List<Policy> policies, final List<MatchFact> facts, final Stage stage,
-      boolean forMonitoring, PolicyResults policyResults)
+  static void toPolicyResults(final List<Policy> policies,
+                              final List<MatchFact> facts,
+                              final Stage stage,
+                              boolean forMonitoring,
+                              PolicyResults policyResults)
   {
     // Ordering of facts + slicing with LinkedHashMap should = consistent alerts
     Collections.sort(facts, MATCHES_BY_POLICY_COMPONENT_CONSTRAINT_CONDITION);
@@ -206,7 +211,7 @@ public class ComponentPolicyEvaluator
   }
 
   private static Map<Constraint, List<MatchFact>> byConstraint(final List<Constraint> constraints,
-      final List<MatchFact> facts)
+                                                               final List<MatchFact> facts)
   {
     final Map<String, Constraint> constraintsById = new HashMap<>();
     for (final Constraint constraint : constraints) {

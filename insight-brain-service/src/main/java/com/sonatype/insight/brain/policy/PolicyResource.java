@@ -64,8 +64,8 @@ public class PolicyResource
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 
-  private static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain" +
-      " it is a properly formatted policy import json file?";
+  private static final String BAD_FORMAT_FILE_UPLOAD = "The file you selected failed to upload correctly, are you certain"
+      + " it is a properly formatted policy import json file?";
 
   private final PolicyImportExport policyImportExport;
 
@@ -92,9 +92,8 @@ public class PolicyResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public List<Policy> getPolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
+  public List<Policy> getPolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId)
   {
     log.debug("Received request to get all policies for {} id {}", ownerType, ownerId);
 
@@ -110,9 +109,8 @@ public class PolicyResource
   @Path("applicable")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public ApplicablePolicies getApplicablePolicies(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public ApplicablePolicies getApplicablePolicies(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+                                                  @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     log.debug("Received request to get all applicable policies for {} id {}", ownerType, ownerId);
 
@@ -127,13 +125,14 @@ public class PolicyResource
     for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
       String currentOwnerId = currentOwner.getId();
       if (currentOwner instanceof Application) {
-        policiesByOwnerId.put(currentOwnerId, new PoliciesByOwner(currentOwnerId, currentOwner.getName(),
-            currentOwner.getType()));
+        policiesByOwnerId.put(currentOwnerId,
+            new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType()));
       }
       else {
-        policiesByOwnerId.put(currentOwnerId,
-            new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType(),
-                policyTagDAO.getByOrganizationId(currentOwnerId)));
+        policiesByOwnerId.put(
+            currentOwnerId,
+            new PoliciesByOwner(currentOwnerId, currentOwner.getName(), currentOwner.getType(), policyTagDAO
+                .getByOrganizationId(currentOwnerId)));
       }
     }
 
@@ -153,7 +152,8 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public Policy addPolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy)
+                          @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+                          final Policy policy)
   {
     log.debug("Received request to add {} policy for ownerId {}", ownerType, ownerId);
 
@@ -169,7 +169,8 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public Policy updatePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId, final Policy policy)
+                             @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+                             final Policy policy)
   {
     log.debug("Received request to update {} policy for ownerId {}, policyId {}", ownerType, ownerId, policy.getId());
 
@@ -184,8 +185,8 @@ public class PolicyResource
   @Path("{policyId}")
   @Authorize(permission = Permission.WRITE)
   public void deletePolicy(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
-      @PathParam("policyId") final String policyId)
+                           @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+                           @PathParam("policyId") final String policyId)
   {
     log.debug("Received request to delete {} policy for ownerId {}, policyId {}", ownerType, ownerId, policyId);
 
@@ -204,7 +205,7 @@ public class PolicyResource
   @Path("export")
   @Produces(MediaType.APPLICATION_JSON)
   public PolicyExportResult exportPolicies(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") String ownerId)
+                                           @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -226,7 +227,8 @@ public class PolicyResource
                                  @Context HttpHeaders headers,
                                  @QueryParam("noFormData") boolean noFormData) throws Exception
   {
-    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<PolicyImportResult>() {
+    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<PolicyImportResult>()
+    {
       @Override
       public PolicyImportResult call() throws Exception {
         return importPolicies(ownerType, ownerId, is);
@@ -241,9 +243,11 @@ public class PolicyResource
   @POST
   @Path("import/ie")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public String importPolicies(@PathParam("ownerType") final OwnerType ownerType, @PathParam("ownerId") String ownerId,
-      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @FormDataParam("file") InputStream uploadedInputStream)
+  public String importPolicies(@PathParam("ownerType") final OwnerType ownerType,
+                               @PathParam("ownerId") String ownerId,
+                               @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                               @Context HttpHeaders headers,
+                               @FormDataParam("file") InputStream uploadedInputStream)
   {
     String errorMessage = "";
     try {

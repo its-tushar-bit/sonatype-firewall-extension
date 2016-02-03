@@ -57,8 +57,10 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest());
     assertResponseStatus(400, response);
 
-    assertEquals("The license file was unable to install. Please ensure server has access to "
-        + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.", response.getBodyText());
+    assertEquals(
+        "The license file was unable to install. Please ensure server has access to "
+            + System.getProperty("java.io.tmpdir") + ". If the problem persists, please contact our support team.",
+        response.getBodyText());
   }
 
   @Test
@@ -66,8 +68,8 @@ public class ProductLicenseResourceTest
     HttpResponse response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce"));
     assertResponseStatus(401, response);
 
-    response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce").query(
-        "noFormData", true));
+    response = uploadLicense(licenseRequest().cookie(AntiCsrfFilter.CSRF_COOKIE_NAME, "bad-nonce").query("noFormData",
+        true));
     assertResponseStatus(200, response);
     assertEquals("\"Invalid cross-site request forgery token\"", response.getBodyText());
   }

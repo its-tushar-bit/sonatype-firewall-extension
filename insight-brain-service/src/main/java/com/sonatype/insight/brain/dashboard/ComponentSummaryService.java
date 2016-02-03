@@ -37,7 +37,8 @@ public class ComponentSummaryService
 
   @Inject
   public ComponentSummaryService(ApplicationComponentDAO applicationComponentDAO,
-      ApplicationService applicationService, DashboardUtils dashboardUtils)
+                                 ApplicationService applicationService,
+                                 DashboardUtils dashboardUtils)
   {
     this.applicationComponentDAO = applicationComponentDAO;
     this.applicationService = applicationService;

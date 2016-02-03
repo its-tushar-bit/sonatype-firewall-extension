@@ -444,8 +444,10 @@ public class MembershipMappingResourceTest
     return members;
   }
 
-  private void assertMembersByOwner(final MembersByOwner membersByOwner, final Owner expectedOwner,
-      final List<Member> expectedMembers) {
+  private void assertMembersByOwner(final MembersByOwner membersByOwner,
+                                    final Owner expectedOwner,
+                                    final List<Member> expectedMembers)
+  {
     assertThat(membersByOwner.ownerId, is(expectedOwner.getPublicId()));
     assertThat(membersByOwner.ownerName, is(expectedOwner.getName()));
     assertThat(membersByOwner.ownerType, is(expectedOwner.getType()));
@@ -467,9 +469,12 @@ public class MembershipMappingResourceTest
     }
   }
 
-
-  private void assertMember(Member member, MemberType type, String internalName, String displayName, String email,
-      String realm)
+  private void assertMember(Member member,
+                            MemberType type,
+                            String internalName,
+                            String displayName,
+                            String email,
+                            String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(internalName));

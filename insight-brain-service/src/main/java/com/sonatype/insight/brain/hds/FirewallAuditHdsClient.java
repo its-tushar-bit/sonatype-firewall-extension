@@ -24,8 +24,10 @@ public class FirewallAuditHdsClient
     extends HdsClient
 {
   @Inject
-  public FirewallAuditHdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager,
-      VersionService versionService, IdleConnectionReaper idleConnectionReaper)
+  public FirewallAuditHdsClient(final InsightProxy proxy,
+                                final CLMLicenseManager licenseManager,
+                                VersionService versionService,
+                                IdleConnectionReaper idleConnectionReaper)
   {
     super(proxy, licenseManager, versionService, idleConnectionReaper, 20);
   }

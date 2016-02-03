@@ -76,4 +76,3 @@ public class LdapConnectionConfigurationPage
     return $("#ldap-connection-test");
   }
 }
-

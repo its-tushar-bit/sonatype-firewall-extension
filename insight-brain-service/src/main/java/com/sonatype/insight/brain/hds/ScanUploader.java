@@ -81,9 +81,7 @@ public class ScanUploader
    *
    * @since 1.8
    */
-  public ScanReceipt upload(File scanFile, String applicationPublicId)
-      throws IOException
-  {
+  public ScanReceipt upload(File scanFile, String applicationPublicId) throws IOException {
     ScanReceipt receipt = client.put(ScanReceipt.class, HDS_PATH, scanFile);
 
     augmentScanReceipt(applicationPublicId, receipt);

@@ -215,15 +215,13 @@ public class ComponentDetailServiceTest
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", new Date(
         System.currentTimeMillis() - 1000));
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
-        policy1.getThreatCategory(), component.getComponentIdentifier(), hash,
-        WarnActionType.ID);
+        policy1.getThreatCategory(), component.getComponentIdentifier(), hash, WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), evaluation1.getApplicationId(),
         evaluation1.getStageTypeId());
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2");
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy1, policy1.getThreatLevel(),
-        policy1.getThreatCategory(), component.getComponentIdentifier(), hash,
-        FailActionType.ID);
+        policy1.getThreatCategory(), component.getComponentIdentifier(), hash, FailActionType.ID);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
         .getApplicationDetailsByHash(hash);
@@ -253,8 +251,7 @@ public class ComponentDetailServiceTest
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1",
         new Date());
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation1, policy1, policy1.getThreatLevel(),
-        policy1.getThreatCategory(), component.getComponentIdentifier(), hash,
-        WarnActionType.ID);
+        policy1.getThreatCategory(), component.getComponentIdentifier(), hash, WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation1.getId(), app1.getId(), BuildStageType.ID);
 
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2", new Date(
@@ -262,8 +259,7 @@ public class ComponentDetailServiceTest
     tempEntity.newPolicyViolation(evaluation2, policy1, policy1.getThreatLevel(), policy1.getThreatCategory(),
         component.getComponentIdentifier(), hash, WarnActionType.ID);
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy2, policy2.getThreatLevel(),
-        policy2.getThreatCategory(), component.getComponentIdentifier(), hash,
-        WarnActionType.ID);
+        policy2.getThreatCategory(), component.getComponentIdentifier(), hash, WarnActionType.ID);
     tempEntity.newFirstOccurrencePolicyViolation(violation2.getId(), app1.getId(), BuildStageType.ID);
 
     List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
@@ -274,7 +270,8 @@ public class ComponentDetailServiceTest
     assertThat(dto.application.getId(), is(app1.getId()));
     assertThat(dto.stageDetails, hasSize(4));
     // should show the first occurence time and link to most recent scan report
-    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, "scanId2", evaluation1.getTime().getTime());
+    assertStageDetails(dto.stageDetails.get(0), StageTypes.BUILD, WarnActionType.ID, "scanId2", evaluation1.getTime()
+        .getTime());
     assertStageDetails(dto.stageDetails.get(1), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(2), StageTypes.RELEASE, null, null, null);
     assertStageDetails(dto.stageDetails.get(3), StageTypes.OPERATE, null, null, null);
@@ -296,8 +293,11 @@ public class ComponentDetailServiceTest
     assertThat(appComponentDetailsDTO.application.getContact(), is(nullValue()));
   }
 
-  private void assertStageDetails(StageDetailDTO stageDetailDTO, StageType stageType, String actionType, String scanId,
-      Long time)
+  private void assertStageDetails(StageDetailDTO stageDetailDTO,
+                                  StageType stageType,
+                                  String actionType,
+                                  String scanId,
+                                  Long time)
   {
     assertThat(stageDetailDTO.stageTypeId, is(stageType.getId()));
     assertThat(stageDetailDTO.stageTypeName, is(stageType.getName()));
@@ -356,7 +356,7 @@ public class ComponentDetailServiceTest
   }
 
   private PolicyViolationSummaryDTO getPolicyViolationSummaryDTO(String policyId,
-      List<PolicyViolationSummaryDTO> policyViolations)
+                                                                 List<PolicyViolationSummaryDTO> policyViolations)
   {
     for (PolicyViolationSummaryDTO policyViolation : policyViolations) {
       if (policyViolation.policyId.equals(policyId)) {

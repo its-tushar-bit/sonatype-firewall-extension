@@ -33,7 +33,7 @@ public class ReportDownloader
   static final String HDS_PATH = "rest/application/analysis/{scanId}";
 
   private final HdsClient client;
-  
+
   private final FileCleaner fileCleaner;
 
   @Inject
@@ -42,8 +42,10 @@ public class ReportDownloader
     this.fileCleaner = fileCleaner;
   }
 
-  public boolean downloadReport(final String scanId, final File reportFile, final int retryAttempts,
-      final int retryIntervalInSeconds)
+  public boolean downloadReport(final String scanId,
+                                final File reportFile,
+                                final int retryAttempts,
+                                final int retryIntervalInSeconds)
   {
     try {
       for (int i = 0; i < (retryAttempts + 1); i++) {

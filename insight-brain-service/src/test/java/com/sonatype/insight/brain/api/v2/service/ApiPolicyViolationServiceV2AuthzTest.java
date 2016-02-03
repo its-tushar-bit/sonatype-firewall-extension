@@ -61,7 +61,6 @@ public class ApiPolicyViolationServiceV2AuthzTest
     pe1App1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", new Date());
     pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
-
     Organization org2 = tempEntity.newOrganization();
     Application app2 = tempEntity.newApplication(org2.getId());
 
@@ -79,13 +78,13 @@ public class ApiPolicyViolationServiceV2AuthzTest
     grantReadPermission(app.getId());
 
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
-    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO =
-        apiPolicyViolationService.getPolicyViolations(policyIds);
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(policyIds);
 
     assertThat(apiApplicationViolationListDTO, notNullValue());
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
-    ApiApplicationViolationDTOV2 apiApplicationViolationDTO =
-        apiApplicationViolationListDTO.applicationViolations.get(0);
+    ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
+        .get(0);
     assertThat(apiApplicationViolationDTO.application, notNullValue());
     assertThat(apiApplicationViolationDTO.application.id, is(app.getId()));
     assertThat(apiApplicationViolationDTO.application.name, is(app.getName()));
@@ -115,8 +114,8 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
     assertThat(apiConstraintViolationDTO.reasons, hasSize(1));
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
-    assertThat(apiConstraintViolationReasonDTO.reason,
-        is(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
+    assertThat(apiConstraintViolationReasonDTO.reason, is(pv1App1.getConstraintFacts().get(0).getConditionFacts()
+        .get(0).getReason()));
   }
 
   @Test
@@ -132,8 +131,8 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
   private void assertEmptyWhenUnauthorizedOrAuthenticated() {
     Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
-    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService.getPolicyViolations(
-        policyIds);
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(policyIds);
     assertThat(apiApplicationViolationListDTO, notNullValue());
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(0));
   }

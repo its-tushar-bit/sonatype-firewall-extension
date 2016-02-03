@@ -60,12 +60,11 @@ public class UserViewedProductNotificationDAOTest
   public void testGetByUsernameAndNotificationId() {
     tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID().toString());
     tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
-    UserViewedProductNotification expected =
-        tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
+    UserViewedProductNotification expected = tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID()
+        .toString());
 
-    UserViewedProductNotification retrieved =
-        userViewedNotificationMappingDAO
-            .getByUsernameAndNotificationId(expected.getUsername(), expected.getNotificationId());
+    UserViewedProductNotification retrieved = userViewedNotificationMappingDAO.getByUsernameAndNotificationId(
+        expected.getUsername(), expected.getNotificationId());
 
     assertThat(retrieved.getUsername(), is(expected.getUsername()));
     assertThat(retrieved.getNotificationId(), is(expected.getNotificationId()));
@@ -73,10 +72,10 @@ public class UserViewedProductNotificationDAOTest
 
   @Test
   public void testGetAll() {
-    UserViewedProductNotification expected1 =
-        tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID().toString());
-    UserViewedProductNotification expected2 =
-        tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID().toString());
+    UserViewedProductNotification expected1 = tempEntity.newUserViewedNotificationMapping("tmpUser1", UUID.randomUUID()
+        .toString());
+    UserViewedProductNotification expected2 = tempEntity.newUserViewedNotificationMapping("tmpUser2", UUID.randomUUID()
+        .toString());
 
     List<UserViewedProductNotification> notificationViewedList = userViewedNotificationMappingDAO.getAll();
     assertThat(notificationViewedList.size(), is(2));
@@ -84,7 +83,9 @@ public class UserViewedProductNotificationDAOTest
     for (UserViewedProductNotification notificationViewed : notificationViewedList) {
       userAndNotificationId.add(notificationViewed.getUsername() + notificationViewed.getNotificationId());
     }
-    assertThat(userAndNotificationId, containsInAnyOrder(expected1.getUsername()+ expected1.getNotificationId(),
-        expected2.getUsername() + expected2.getNotificationId()));
+    assertThat(
+        userAndNotificationId,
+        containsInAnyOrder(expected1.getUsername() + expected1.getNotificationId(),
+            expected2.getUsername() + expected2.getNotificationId()));
   }
 }

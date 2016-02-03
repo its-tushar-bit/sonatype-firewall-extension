@@ -78,8 +78,8 @@ public class RepositoryServiceAuthzTest
     catch (NotFoundException e) {
       // We are testing access permissions and we don't care if the component exists
       // This avoids the need to mock the HDS client for the permissions test
-      assertThat(e.getMessage(), is("Cannot find a component with path " + path + " in repository with ID " +
-          repository.getId() + "."));
+      assertThat(e.getMessage(), is("Cannot find a component with path " + path + " in repository with ID "
+          + repository.getId() + "."));
     }
   }
 
@@ -205,24 +205,21 @@ public class RepositoryServiceAuthzTest
   @Test
   public void testEvaluateComponents_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */,
-            false);
+    repositoryService.evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+        null /* componentEvaluationDataRequestList */, false);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
-    repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */,
-            false);
+    repositoryService.evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+        null /* componentEvaluationDataRequestList */, false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_Unauthorized() {
     grantWritePermission();
-    repositoryService
-        .evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), null /* componentEvaluationDataRequestList */,
-            false);
+    repositoryService.evaluateComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+        null /* componentEvaluationDataRequestList */, false);
   }
 
   @Test
@@ -378,8 +375,9 @@ public class RepositoryServiceAuthzTest
     Repository repo = createRepository();
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId());
 
-    Mockito.when(repositoryPolicyEvaluator.evaluate(Mockito.eq(repo),
-        Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false))).thenReturn(null);
+    Mockito.when(
+        repositoryPolicyEvaluator.evaluate(Mockito.eq(repo),
+            Mockito.isA(RepositoryComponentEvaluationDataRequestList.class), Mockito.eq(false))).thenReturn(null);
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.reevaluateComponent(repo.getId(), component.getHash());

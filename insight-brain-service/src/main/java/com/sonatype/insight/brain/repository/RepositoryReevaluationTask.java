@@ -37,8 +37,10 @@ public class RepositoryReevaluationTask
 
   private final Map<String, AtomicInteger> reevaluations;
 
-  public RepositoryReevaluationTask(Repository repository, RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      Executor executor, Map<String, AtomicInteger> reevaluations)
+  public RepositoryReevaluationTask(Repository repository,
+                                    RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+                                    Executor executor,
+                                    Map<String, AtomicInteger> reevaluations)
   {
     this.repository = repository;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
@@ -72,14 +74,15 @@ public class RepositoryReevaluationTask
     }
   }
 
-  private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(Iterator<RepositoryComponent> components) {
+  private RepositoryComponentEvaluationDataRequestList createEvaluationRequest(Iterator<RepositoryComponent> components)
+  {
     int limit = 0;
 
     RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
     while (components.hasNext() && limit++ < 100) {
       RepositoryComponent component = components.next();
-      request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(),
-          component.getPathname(), component.getHash()));
+      request.components.add(new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component
+          .getPathname(), component.getHash()));
     }
     return request;
   }

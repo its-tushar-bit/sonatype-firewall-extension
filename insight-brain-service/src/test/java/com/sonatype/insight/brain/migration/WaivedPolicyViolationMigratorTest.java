@@ -125,9 +125,17 @@ public class WaivedPolicyViolationMigratorTest
     assertThat(policyViolations, hasSize(0));
   }
 
-  private void assertWaivedPolicyViolation(String evaluationId, PolicyViolation policyViolation, String policyId,
-      String policyName, int threatLevel, String groupId, String artifactId, String version, String hash,
-      PolicyThreatCategory threatCategory, PolicyWaiver policyWaiver)
+  private void assertWaivedPolicyViolation(String evaluationId,
+                                           PolicyViolation policyViolation,
+                                           String policyId,
+                                           String policyName,
+                                           int threatLevel,
+                                           String groupId,
+                                           String artifactId,
+                                           String version,
+                                           String hash,
+                                           PolicyThreatCategory threatCategory,
+                                           PolicyWaiver policyWaiver)
   {
     assertThat(policyViolation.getPolicyEvaluationId(), is(evaluationId));
     assertThat(policyViolation.getPolicyId(), is(policyId));

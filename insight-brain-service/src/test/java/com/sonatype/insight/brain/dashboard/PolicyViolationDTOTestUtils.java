@@ -17,8 +17,10 @@ import static org.junit.Assert.fail;
 class PolicyViolationDTOTestUtils
 {
 
-  static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos, PolicyViolation violation,
-      Application application, Policy policy)
+  static void assertPolicyViolationDTO(List<PolicyViolationDTO> dtos,
+                                       PolicyViolation violation,
+                                       Application application,
+                                       Policy policy)
   {
     for (PolicyViolationDTO dto : dtos) {
       if (dto.id.equals(violation.getId())) {

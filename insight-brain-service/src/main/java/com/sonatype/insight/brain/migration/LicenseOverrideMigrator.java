@@ -165,8 +165,8 @@ public class LicenseOverrideMigrator
               comment = comment.substring(0, LicenseOverrideDAO.MAX_COMMENT_SIZE);
             }
             LicenseOverride licenseOverride = new LicenseOverride(applicationId,
-              ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), status, licenseOverrideId,
-              comment);
+                ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version), status, licenseOverrideId,
+                comment);
             licenseOverrideDAO.insert(tx, licenseOverride);
           }
         }

@@ -339,8 +339,11 @@ public class NewestRiskServiceTest
     assertThat(actual.pathnames, is(policyViolation.getPathnames()));
   }
 
-  private void assertNewestRiskDTOContainsStageDetails(NewestRiskDTO actual, String stageTypeId, String scanId,
-      String actionTypeId, Date time)
+  private void assertNewestRiskDTOContainsStageDetails(NewestRiskDTO actual,
+                                                       String stageTypeId,
+                                                       String scanId,
+                                                       String actionTypeId,
+                                                       Date time)
   {
     for (StageDetailDTO stageDetailDTO : actual.stageDetails) {
       if (stageTypeId.equals(stageDetailDTO.stageTypeId)) {

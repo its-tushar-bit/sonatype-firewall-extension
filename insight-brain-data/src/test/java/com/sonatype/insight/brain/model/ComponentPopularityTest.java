@@ -19,6 +19,7 @@ public class ComponentPopularityTest
 
     ComponentPopularity componentPopularity = new ObjectMapper().readValue(json, ComponentPopularity.class);
 
-    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"), componentPopularity.getComponentIdentifier());
+    Assert.assertEquals(ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"),
+        componentPopularity.getComponentIdentifier());
   }
 }

@@ -177,7 +177,7 @@ public class Policy
         if (stageType == null) {
           actionResult.addError("Invalid stage type id: '" + stageTypeId + "'");
         }
-        
+
         Set<String> actionTypeIds = new LinkedHashSet<>();
         for (Action action : actions.get(stageTypeId)) {
           actionTypeIds.add(action.getActionTypeId());
@@ -262,8 +262,8 @@ public class Policy
   }
 
   /**
-   *  A policy can have conditions in more than one category, but only one category is considered as *the* policy
-   *  threat category, in this order: SECURITY, LICENSE, QUALITY, OTHER.
+   * A policy can have conditions in more than one category, but only one category is considered as *the* policy
+   * threat category, in this order: SECURITY, LICENSE, QUALITY, OTHER.
    *
    * @since 1.11
    */

@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.security.ApplicableMembershipMappings;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 
-
 /**
  *
  * @since 1.11.0
@@ -47,8 +46,8 @@ public class ApiOrganizationResource
 
   @Inject
   public ApiOrganizationResource(final ApiOrganizationService apiOrganizationService,
-      final MembershipMappingService membershipMappingService,
-      final ApiMemberMappingAdapter apiMemberMappingAdapter)
+                                 final MembershipMappingService membershipMappingService,
+                                 final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
     this.apiOrganizationService = apiOrganizationService;
     this.membershipMappingService = membershipMappingService;
@@ -64,8 +63,7 @@ public class ApiOrganizationResource
   @GET
   @Path(ROLE_MEMBERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
-      @PathParam("organizationId") final String organizationId)
+  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(@PathParam("organizationId") final String organizationId)
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         OwnerType.ORGANIZATION, organizationId);
@@ -75,9 +73,8 @@ public class ApiOrganizationResource
   @PUT
   @Path(ROLE_MEMBERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setMembershipMappingForRole(
-      @PathParam("organizationId") final String organizationId,
-      final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
+  public void setMembershipMappingForRole(@PathParam("organizationId") final String organizationId,
+                                          final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
     Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, organizationId, roleToMembers);

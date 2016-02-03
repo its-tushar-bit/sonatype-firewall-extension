@@ -46,8 +46,9 @@ public class LicenseThreatGroupService
 
   @Inject
   public LicenseThreatGroupService(final LicenseThreatGroupDAO licenseThreatGroupDAO,
-      final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO, final PolicyDAO policyDAO,
-      final OwnerDAO ownerDAO)
+                                   final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
+                                   final PolicyDAO policyDAO,
+                                   final OwnerDAO ownerDAO)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
@@ -56,8 +57,8 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<LicenseThreatGroup> getLicenseThreatGroups(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType, @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  public List<LicenseThreatGroup> getLicenseThreatGroups(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                         @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -65,8 +66,8 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType, @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  public ApplicableLicenseThreatGroups getApplicableLicenseThreatGroups(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                                        @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -92,7 +93,8 @@ public class LicenseThreatGroupService
 
   @Authorize(permission = Permission.WRITE)
   public LicenseThreatGroup addLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, final LicenseThreatGroup licenseThreatGroup)
+                                                  @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                                                  final LicenseThreatGroup licenseThreatGroup)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -105,7 +107,8 @@ public class LicenseThreatGroupService
 
   @Authorize(permission = Permission.WRITE)
   public LicenseThreatGroup updateLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, final LicenseThreatGroup licenseThreatGroup)
+                                                     @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                                                     final LicenseThreatGroup licenseThreatGroup)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -117,7 +120,8 @@ public class LicenseThreatGroupService
 
   @Authorize(permission = Permission.WRITE)
   public void deleteLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String licenseThreatGroupId)
+                                       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                       final String licenseThreatGroupId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -137,8 +141,10 @@ public class LicenseThreatGroupService
   {
     public List<LicenseThreatGroupsByOwner> licenseThreatGroupsByOwner = new ArrayList<>();
 
-    public void add(String ownerId, String ownerName, OwnerType ownerType,
-        List<LicenseThreatGroupWithLicenses> licenseThreatGroups)
+    public void add(String ownerId,
+                    String ownerName,
+                    OwnerType ownerType,
+                    List<LicenseThreatGroupWithLicenses> licenseThreatGroups)
     {
       LicenseThreatGroupsByOwner ltgbo = new LicenseThreatGroupsByOwner();
       ltgbo.ownerId = ownerId;

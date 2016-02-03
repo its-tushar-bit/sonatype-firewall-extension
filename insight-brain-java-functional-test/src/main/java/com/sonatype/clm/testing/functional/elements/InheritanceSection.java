@@ -9,7 +9,8 @@ import com.codeborne.selenide.Condition;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class InheritanceSection extends PolicyEditorSection
+public class InheritanceSection
+    extends PolicyEditorSection
 {
   public InheritanceSection() {
     super($("#policy-edit-inheritance"));
@@ -18,11 +19,11 @@ public class InheritanceSection extends PolicyEditorSection
   public static Condition allRadioText(String ownerName) {
     return Condition.text("All Applications in " + ownerName);
   }
-  
+
   public static Condition specifiedRadioText(String ownerName) {
     return Condition.text("Applications of the specified Application Categories in " + ownerName);
   }
-  
+
   public Radio allChildrenInheritRadio() {
     return new Radio(root.$$("#editor-policy-inherit label").get(0));
   }

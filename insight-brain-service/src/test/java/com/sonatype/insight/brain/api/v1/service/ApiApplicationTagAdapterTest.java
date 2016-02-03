@@ -57,8 +57,8 @@ public class ApiApplicationTagAdapterTest
     apiApplicationTagDTO.tagId = TAG_ID;
     apiApplicationTagDTOs.add(apiApplicationTagDTO);
 
-    List<ApplicationTag> applicationTags = apiApplicationTagAdapter
-        .convertFromDTO(APPLICATION_ID, apiApplicationTagDTOs);
+    List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(APPLICATION_ID,
+        apiApplicationTagDTOs);
     assertThat(applicationTags, hasSize(1));
     assertThat(applicationTags.get(0).getId(), is(apiApplicationTagDTO.id));
     assertThat(applicationTags.get(0).getApplicationId(), is(APPLICATION_ID));

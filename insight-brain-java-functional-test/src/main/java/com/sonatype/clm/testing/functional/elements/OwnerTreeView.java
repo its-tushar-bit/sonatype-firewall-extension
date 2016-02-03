@@ -29,15 +29,13 @@ public class OwnerTreeView
   }
 
   public static List<OrganizationNode> organizations() {
-    return Lists.transform(organizationElements(),
-      new Function<SelenideElement, OrganizationNode>()
-      {
-        @Override
-        public OrganizationNode apply(final SelenideElement element) {
-          return new OrganizationNode(element);
-        }
+    return Lists.transform(organizationElements(), new Function<SelenideElement, OrganizationNode>()
+    {
+      @Override
+      public OrganizationNode apply(final SelenideElement element) {
+        return new OrganizationNode(element);
       }
-    );
+    });
   }
 
   public static class RootOrganizationNode

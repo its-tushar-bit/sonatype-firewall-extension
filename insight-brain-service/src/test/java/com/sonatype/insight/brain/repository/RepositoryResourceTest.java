@@ -44,12 +44,11 @@ public class RepositoryResourceTest
   @Test
   public void testUnquarantineComponent() throws Exception {
     String path = "path";
-    HttpResponse response = restRequest()
-        .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
+    HttpResponse response = restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
         .parameter(repo.getId(), path).post();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Cannot find a component with path " + path + " in repository with ID " +
-        repo.getId() + "."));
+    assertThat(response.getBodyText(), is("Cannot find a component with path " + path + " in repository with ID "
+        + repo.getId() + "."));
   }
 
   @Test
@@ -63,8 +62,8 @@ public class RepositoryResourceTest
     RepositoryDTO actualRepo = actual.repositories.get(0);
     assertThat(actualRepo.repository.getId(), is(repo.getId()));
     assertThat(actualRepo.repository.getPublicId(), is(repo.getPublicId()));
-    assertThat(actualRepo.managerInstanceId,
-        is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId()));
+    assertThat(actualRepo.managerInstanceId, is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId())
+        .getInstanceId()));
   }
 
   @Test
@@ -77,8 +76,8 @@ public class RepositoryResourceTest
     assertNotNull(actual.repository);
     assertThat(actual.repository.getId(), is(repo.getId()));
     assertThat(actual.repository.getPublicId(), is(repo.getPublicId()));
-    assertThat(actual.managerInstanceId,
-        is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId()).getInstanceId()));
+    assertThat(actual.managerInstanceId, is(new RepositoryManagerDAO().getById(repo.getRepositoryManagerId())
+        .getInstanceId()));
   }
 
   @Test

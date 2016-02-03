@@ -11,7 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 public class AssociationEditor
 {
   private SelenideElement root;
-  
+
   private static final String ROOT_SELECTOR = ".association-editor-wrapper";
 
   public AssociationEditor(SelenideElement root) {
@@ -28,7 +28,7 @@ public class AssociationEditor
 
   public int columnCount() {
     if (rows().size() > 0) {
-      return rows().get(0).$$("td").size();  
+      return rows().get(0).$$("td").size();
     }
     return 0;
   }

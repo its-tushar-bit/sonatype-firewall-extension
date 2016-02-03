@@ -48,9 +48,8 @@ public class ApiPolicyViolationResourceTest
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1", new Date());
     PolicyViolation pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
-
-    HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH).query("p", orgPolicy.getId())
-        .get();
+    HttpResponse response = restRequest().path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH)
+        .query("p", orgPolicy.getId()).get();
 
     assertResponseStatus(200, response);
     ApiApplicationViolationListDTO apiApplicationViolationListDTO = response
@@ -85,7 +84,7 @@ public class ApiPolicyViolationResourceTest
 
     assertThat(apiConstraintViolationDTO.reasons, hasSize(1));
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
-    assertThat(apiConstraintViolationReasonDTO.reason,
-        is(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
+    assertThat(apiConstraintViolationReasonDTO.reason, is(pv1App1.getConstraintFacts().get(0).getConditionFacts()
+        .get(0).getReason()));
   }
 }

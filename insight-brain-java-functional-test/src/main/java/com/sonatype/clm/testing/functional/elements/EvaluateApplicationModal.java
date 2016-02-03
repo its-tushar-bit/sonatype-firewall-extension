@@ -32,35 +32,35 @@ public class EvaluateApplicationModal
     return new NotifyRadioButtons(root());
   }
 
-  public static SelenideElement uploadButton(){
+  public static SelenideElement uploadButton() {
     return root().$("#evaluate-bundle-upload");
   }
 
-  public static SelenideElement cancelButton(){
+  public static SelenideElement cancelButton() {
     return root().$("#evaluate-bundle-cancel");
   }
 
-  public static SelenideElement bundleFileName(){
+  public static SelenideElement bundleFileName() {
     return root().$("#bundle-file-name");
   }
 
-  public static SelenideElement bundleAppName(){
+  public static SelenideElement bundleAppName() {
     return root().$("#bundle-app-name");
   }
 
-  public static SelenideElement bundleStageName(){
+  public static SelenideElement bundleStageName() {
     return root().$("#bundle-stage-name");
   }
 
-  public static SelenideElement evaluateBundleStatus(){
+  public static SelenideElement evaluateBundleStatus() {
     return root().$("#evaluate-bundle-status");
   }
 
-  public static SelenideElement viewReportButton(){
+  public static SelenideElement viewReportButton() {
     return root().$("#evaluate-bundle-view");
   }
 
-  public static SelenideElement closeButton(){
+  public static SelenideElement closeButton() {
     return root().$("#evaluate-bundle-close");
   }
 

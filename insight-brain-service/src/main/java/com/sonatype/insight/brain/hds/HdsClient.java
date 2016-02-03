@@ -86,14 +86,19 @@ public class HdsClient
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
 
   @Inject
-  public HdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService,
-      IdleConnectionReaper idleConnectionReaper)
+  public HdsClient(final InsightProxy proxy,
+                   final CLMLicenseManager licenseManager,
+                   VersionService versionService,
+                   IdleConnectionReaper idleConnectionReaper)
   {
     this(proxy, licenseManager, versionService, idleConnectionReaper, 20);
   }
 
-  protected HdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager, VersionService versionService,
-      IdleConnectionReaper idleConnectionReaper, int poolSize)
+  protected HdsClient(final InsightProxy proxy,
+                      final CLMLicenseManager licenseManager,
+                      VersionService versionService,
+                      IdleConnectionReaper idleConnectionReaper,
+                      int poolSize)
   {
     this.licenseManager = licenseManager;
     config = proxy.contextualize(new Configuration());
@@ -107,8 +112,10 @@ public class HdsClient
     loadVersion();
   }
 
-  public HttpResponse getResponse(HttpServletRequest request, String path, Map<String, String> queryParams,
-      String... uriParams) throws IOException
+  public HttpResponse getResponse(HttpServletRequest request,
+                                  String path,
+                                  Map<String, String> queryParams,
+                                  String... uriParams) throws IOException
   {
     return execute(request, buildUri(request, path, queryParams, uriParams));
   }
@@ -137,8 +144,11 @@ public class HdsClient
     return get(request, clazz, path, null, uriParams);
   }
 
-  public <T> T get(HttpServletRequest request, Class<T> clazz, String path, Map<String, String> queryParams,
-      String... uriParams) throws IOException
+  public <T> T get(HttpServletRequest request,
+                   Class<T> clazz,
+                   String path,
+                   Map<String, String> queryParams,
+                   String... uriParams) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -264,8 +274,7 @@ public class HdsClient
     return buildResponse(response);
   }
 
-  private HttpResponse execute(HttpServletRequest request, String url) throws IOException
-  {
+  private HttpResponse execute(HttpServletRequest request, String url) throws IOException {
     HttpUriRequest cloudReq;
     if (request == null || "GET".equals(request.getMethod())) {
       cloudReq = new HttpGet(url);
@@ -289,7 +298,6 @@ public class HdsClient
     populateRequest(request, cloudReq);
     return execute(cloudReq);
   }
-
 
   /**
    * @since 1.13.0
@@ -316,8 +324,7 @@ public class HdsClient
   /**
    * @since 1.8
    */
-  public <T> T put(Class<T> clazz, String path, File uploadFile, String... uriParams) throws IOException
-  {
+  public <T> T put(Class<T> clazz, String path, File uploadFile, String... uriParams) throws IOException {
     long start = System.currentTimeMillis();
 
     try {

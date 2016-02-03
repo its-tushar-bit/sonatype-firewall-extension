@@ -32,7 +32,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.open;
 
 public class OwnerTreeViewTest
-  extends AbstractFunctionalTest
+    extends AbstractFunctionalTest
 {
   private List<Organization> organizations = new ArrayList<>();
   private List<Application> applications = new ArrayList<>();
@@ -45,7 +45,7 @@ public class OwnerTreeViewTest
 
   @Before
   public void before() {
-    ImmutableMap<String, List<String>> organizations = ImmutableMap.<String, List<String>>builder()
+    ImmutableMap<String, List<String>> organizations = ImmutableMap.<String, List<String>> builder()
         .put("Red Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
         .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
         .put("Blue Squadron", Arrays.asList("Merrick Simms")).build();
@@ -55,8 +55,8 @@ public class OwnerTreeViewTest
       this.organizations.add(organization);
 
       for (String applicationName : organizationMeta.getValue()) {
-        Application application = tempEntity
-            .newApplication(applicationName, UUID.randomUUID().toString(), organization.getId());
+        Application application = tempEntity.newApplication(applicationName, UUID.randomUUID().toString(),
+            organization.getId());
         this.applications.add(application);
       }
     }
@@ -74,8 +74,9 @@ public class OwnerTreeViewTest
         "Luke Skywalker");
   }
 
-  private void assertOrganizationLoaded(OrganizationNode organizationNode, String organizationName,
-      String... applicationNames)
+  private void assertOrganizationLoaded(OrganizationNode organizationNode,
+                                        String organizationName,
+                                        String... applicationNames)
   {
     SelenideElement twisty = organizationNode.twisty();
     SelenideElement organizationElement = organizationNode.treeViewElement();
@@ -154,7 +155,8 @@ public class OwnerTreeViewTest
   public void testShowApplicationParentWithoutPermissions() {
     createUser();
     Organization organization = tempEntity.newOrganization("Parent Organization No Permission");
-    Application application = tempEntity.newApplication("No Parent Permissions", "No_Parent_Permissions", organization.getId());
+    Application application = tempEntity.newApplication("No Parent Permissions", "No_Parent_Permissions",
+        organization.getId());
     grantPermissions(getUsername(), application.getId(), Permission.READ);
 
     logout();

@@ -52,8 +52,12 @@ public class MembershipMappingService
   private final UserDirectory userDirectory;
 
   @Inject
-  public MembershipMappingService(final ApplicationDAO appDAO, OrganizationDAO orgDAO, final RoleDAO roleDAO,
-      final MembershipMappingDAO memberMapDAO, final OwnerDAO ownerDAO, UserDirectory userDirectory)
+  public MembershipMappingService(final ApplicationDAO appDAO,
+                                  OrganizationDAO orgDAO,
+                                  final RoleDAO roleDAO,
+                                  final MembershipMappingDAO memberMapDAO,
+                                  final OwnerDAO ownerDAO,
+                                  UserDirectory userDirectory)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -65,7 +69,7 @@ public class MembershipMappingService
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
   public ApplicableMembershipMappings getApplicableMembershipMappings(final OwnerType ownerType,
-      final String internalOwnerId)
+                                                                      final String internalOwnerId)
   {
     log.debug("Getting all applicable membership mappings for {} id {}", ownerType, internalOwnerId);
 
@@ -104,8 +108,10 @@ public class MembershipMappingService
 
   @Authorize(permission = Permission.READ)
   protected void loadMembersByRoleForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId, MemberAttributeResolver memberAttributeResolver,
-      List<Role> roles, Map<String, MembersByRole> membersByRoleByRoleId)
+                                                      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+                                                      MemberAttributeResolver memberAttributeResolver,
+                                                      List<Role> roles,
+                                                      Map<String, MembersByRole> membersByRoleByRoleId)
   {
     if (OwnerType.GLOBAL.equals(ownerType)) {
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
@@ -121,8 +127,9 @@ public class MembershipMappingService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  protected void loadMembersByRoleForGlobalContext(MemberAttributeResolver memberAttributeResolver, List<Role> roles,
-      Map<String, MembersByRole> membersByRoleByRoleId)
+  protected void loadMembersByRoleForGlobalContext(MemberAttributeResolver memberAttributeResolver,
+                                                   List<Role> roles,
+                                                   Map<String, MembersByRole> membersByRoleByRoleId)
   {
     for (Map.Entry<String, MembersByOwner> entry : loadMembers(MembershipMapping.GLOBAL_CONTEXT_ID,
         MembershipMapping.GLOBAL_CONTEXT_NAME, OwnerType.GLOBAL, memberAttributeResolver, roles).entrySet()) {
@@ -131,8 +138,9 @@ public class MembershipMappingService
   }
 
   // Authorization is checked in setMembershipMappingsForGlobalContext and setMembershipMappingsForNonGlobalContext
-  public void setMembershipMappings(final OwnerType ownerType, final String internalOwnerId,
-      final Map<String, List<Member>> roleToMembers)
+  public void setMembershipMappings(final OwnerType ownerType,
+                                    final String internalOwnerId,
+                                    final Map<String, List<Member>> roleToMembers)
   {
     if (OwnerType.GLOBAL.equals(ownerType)) {
       setMembershipMappingsForGlobalContext(roleToMembers);
@@ -144,7 +152,8 @@ public class MembershipMappingService
 
   @Authorize(permission = Permission.WRITE)
   protected void setMembershipMappingsForNonGlobalContext(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId, Map<String, List<Member>> roleToMembers)
+                                                          @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+                                                          Map<String, List<Member>> roleToMembers)
   {
     if (OwnerType.GLOBAL.equals(ownerType)) {
       throw new BadRequestException("The '" + ownerType + "' context is not allowed.");
@@ -158,8 +167,9 @@ public class MembershipMappingService
     setMembershipMappingsForRoles(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, roleToMembers);
   }
 
-  private void setMembershipMappingsForRoles(OwnerType ownerType, String internalOwnerId,
-      Map<String, List<Member>> roleToMembers)
+  private void setMembershipMappingsForRoles(OwnerType ownerType,
+                                             String internalOwnerId,
+                                             Map<String, List<Member>> roleToMembers)
   {
     try (TransactionContext tx = memberMapDAO.createTransactionContext()) {
       tx.begin();
@@ -174,8 +184,11 @@ public class MembershipMappingService
     }
   }
 
-  private void setMembershipMappingsForRole(final TransactionContext tx, final OwnerType ownerType,
-      final String internalOwnerId, final String roleId, final List<Member> members)
+  private void setMembershipMappingsForRole(final TransactionContext tx,
+                                            final OwnerType ownerType,
+                                            final String internalOwnerId,
+                                            final String roleId,
+                                            final List<Member> members)
   {
     log.debug("Setting membership mappings for {} id {} and role id {}", ownerType, internalOwnerId, roleId);
 
@@ -232,8 +245,11 @@ public class MembershipMappingService
     }
   }
 
-  private Map<String, MembersByOwner> loadMembers(final String ownerId, final String ownerName,
-      final OwnerType ownerType, final MemberAttributeResolver memberAttributeResolver, final List<Role> roles)
+  private Map<String, MembersByOwner> loadMembers(final String ownerId,
+                                                  final String ownerName,
+                                                  final OwnerType ownerType,
+                                                  final MemberAttributeResolver memberAttributeResolver,
+                                                  final List<Role> roles)
   {
     final Map<String, MembersByOwner> byRole = new LinkedHashMap<>();
     for (final MembershipMapping memberMap : memberMapDAO.getByContextId(ownerId)) {

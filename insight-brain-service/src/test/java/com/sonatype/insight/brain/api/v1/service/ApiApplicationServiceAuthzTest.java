@@ -23,7 +23,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
-
 public class ApiApplicationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -55,20 +54,20 @@ public class ApiApplicationServiceAuthzTest
   @Test
   public void testGetApplications_Authorized() {
     grantReadPermission(app.getId());
-    List<Application> applications = apiApplicationService.getApplications(Collections.<String>emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
     assertThat(applications, hasSize(1));
   }
 
   @Test
   public void testGetApplications_Unauthenticated() {
-    List<Application> applications = apiApplicationService.getApplications(Collections.<String>emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
     assertThat(applications, hasSize(0));
   }
 
   @Test
   public void testGetApplications_UnauthorizedButAuthenticated() {
     login();
-    List<Application> applications = apiApplicationService.getApplications(Collections.<String>emptySet());
+    List<Application> applications = apiApplicationService.getApplications(Collections.<String> emptySet());
     assertThat(applications, hasSize(0));
   }
 

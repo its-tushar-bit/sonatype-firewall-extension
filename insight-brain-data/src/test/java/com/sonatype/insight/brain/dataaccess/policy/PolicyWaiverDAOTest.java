@@ -90,8 +90,12 @@ public class PolicyWaiverDAOTest
     assertNull(policyWaiver);
   }
 
-  private void assertPolicyWaiver(String hash, String policyId, String ownerId, String comment, Date createTime,
-      PolicyWaiver actual)
+  private void assertPolicyWaiver(String hash,
+                                  String policyId,
+                                  String ownerId,
+                                  String comment,
+                                  Date createTime,
+                                  PolicyWaiver actual)
   {
     assertEquals(hash, actual.getHash());
     assertEquals(policyId, actual.getPolicyId());

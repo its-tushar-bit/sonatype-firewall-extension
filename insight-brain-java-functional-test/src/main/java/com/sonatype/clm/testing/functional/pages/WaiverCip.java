@@ -138,8 +138,7 @@ public class WaiverCip
       return element.find(".btn-primary");
     }
 
-    public void shouldBe(int threatLevel, String policyName, String[] expectedConstraints,
-        String[] expectedConditions)
+    public void shouldBe(int threatLevel, String policyName, String[] expectedConstraints, String[] expectedConditions)
     {
       policyName().shouldHave(text(policyName));
       constraints().shouldHave(CollectionCondition.texts(expectedConstraints));

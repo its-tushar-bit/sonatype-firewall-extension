@@ -20,7 +20,6 @@ public class DashboardFilterDAOTest
 {
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
-
   @Test
   public void testCRUD() {
     // Add filter

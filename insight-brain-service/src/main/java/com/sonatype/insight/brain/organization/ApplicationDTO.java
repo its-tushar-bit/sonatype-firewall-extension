@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.organization;
 
-
 public class ApplicationDTO
 {
   private String id;
@@ -73,7 +72,6 @@ public class ApplicationDTO
     return contact;
   }
 
-
   /**
    * Set the contact DTO for the application
    *
@@ -86,13 +84,8 @@ public class ApplicationDTO
 
   @Override
   public String toString() {
-    return "ApplicationDTO{" +
-        "id='" + id + '\'' +
-        ", publicId='" + publicId + '\'' +
-        ", name='" + name + '\'' +
-        ", organizationId='" + organizationId + '\'' +
-        ", organizationName='" + organizationName + '\'' +
-        ", contact=" + contact +
-        '}';
+    return "ApplicationDTO{" + "id='" + id + '\'' + ", publicId='" + publicId + '\'' + ", name='" + name + '\''
+        + ", organizationId='" + organizationId + '\'' + ", organizationName='" + organizationName + '\''
+        + ", contact=" + contact + '}';
   }
 }

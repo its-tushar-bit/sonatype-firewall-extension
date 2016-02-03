@@ -26,7 +26,7 @@ public class UserPrincipal
     this.username = username;
     this.displayName = displayName;
     this.clmUser = clmUser;
-    this.membership = membership != null ? membership : Collections.<String>emptySet();
+    this.membership = membership != null ? membership : Collections.<String> emptySet();
   }
 
   public String getUsername() {
@@ -87,7 +87,8 @@ public class UserPrincipal
       if (other.displayName != null) {
         return false;
       }
-    } else if (!displayName.equals(other.displayName)) {
+    }
+    else if (!displayName.equals(other.displayName)) {
       return false;
     }
     return true;

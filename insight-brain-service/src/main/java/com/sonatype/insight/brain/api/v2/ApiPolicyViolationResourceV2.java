@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
 
-
 /**
  * @since 1.13.0
  */

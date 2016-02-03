@@ -68,9 +68,14 @@ public class DashboardFilterService
   private final DashboardUtils dashboardUtils;
 
   @Inject
-  public DashboardFilterService(ApplicationDAO applicationDAO, ApplicationComponentDAO applicationComponentDAO,
-      ApplicationService applicationService, PolicyDAO policyDAO, DashboardFilterDAO dashboardFilterDAO,
-      CurrentUser currentUser, DashboardUtils dashboardUtils, OwnerDAO ownerDAO)
+  public DashboardFilterService(ApplicationDAO applicationDAO,
+                                ApplicationComponentDAO applicationComponentDAO,
+                                ApplicationService applicationService,
+                                PolicyDAO policyDAO,
+                                DashboardFilterDAO dashboardFilterDAO,
+                                CurrentUser currentUser,
+                                DashboardUtils dashboardUtils,
+                                OwnerDAO ownerDAO)
   {
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
@@ -81,6 +86,7 @@ public class DashboardFilterService
     this.currentUser = currentUser;
     this.dashboardUtils = dashboardUtils;
   }
+
   /**
    * @since 1.11.0
    */
@@ -152,8 +158,11 @@ public class DashboardFilterService
    * Calculates how many of the entities accessible to the current user are matched by the specified dashboard filter
    * settings.
    */
-  public FilterSummaryDTO getFilterSummary(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
-      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter)
+  public FilterSummaryDTO getFilterSummary(Set<String> applicationIds,
+                                           Set<String> stageIds,
+                                           Set<String> tagIds,
+                                           PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                           PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -232,7 +241,7 @@ public class DashboardFilterService
   }
 
   private Predicate<Policy> buildPolicyFilter(PolicyThreatCategoryFilter threatCategoryFilter,
-      PolicyThreatLevelFilter threatLevelFilter)
+                                              PolicyThreatLevelFilter threatLevelFilter)
   {
     if (threatCategoryFilter == null && threatLevelFilter == null) {
       return null;

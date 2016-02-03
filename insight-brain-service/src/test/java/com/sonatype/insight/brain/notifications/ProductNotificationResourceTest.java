@@ -120,8 +120,9 @@ public class ProductNotificationResourceTest
     return notifications;
   }
 
-  private void assertNotification(final ProductNotificationDTO notificationDTO, final ProductNotification notification,
-      final boolean viewed)
+  private void assertNotification(final ProductNotificationDTO notificationDTO,
+                                  final ProductNotification notification,
+                                  final boolean viewed)
   {
     assertThat(notificationDTO.id, is(notification.getId()));
     assertThat(notificationDTO.summaryText, is(notification.getSummaryText()));

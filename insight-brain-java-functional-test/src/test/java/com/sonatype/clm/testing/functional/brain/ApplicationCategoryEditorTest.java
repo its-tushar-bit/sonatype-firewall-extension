@@ -64,8 +64,7 @@ public class ApplicationCategoryEditorTest
   public void testNoCategories() {
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
     ApplicationCategoryEditorPage.errorBox().root().shouldBe(visible);
-    ApplicationCategoryEditorPage.errorBox().message()
-        .shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
+    ApplicationCategoryEditorPage.errorBox().message().shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
   }
 
   @Test
@@ -118,9 +117,8 @@ public class ApplicationCategoryEditorTest
     List<Tag> categories = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {
-      categories.add(
-          tempEntity
-              .newTag(application.getOrganizationId(), CATEGORY_NAME + "_" + i, (i % 2) == 0 ? blue : light_green));
+      categories.add(tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_" + i, (i % 2) == 0 ? blue
+          : light_green));
     }
 
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
@@ -142,8 +140,8 @@ public class ApplicationCategoryEditorTest
       for (int j = 0; j < expectedColumnSize; j++) {
         AssociationEditorElement item = ApplicationCategoryEditorPage.associationEditor().item(i, j);
         item.checkBox().shouldBe(visible).shouldNotBe(selected);
-        item.description().shouldBe(visible).shouldHave(
-            text(categories.get(j == 0 ? i : i + categories.size() / 2).getName()));
+        item.description().shouldBe(visible)
+            .shouldHave(text(categories.get(j == 0 ? i : i + categories.size() / 2).getName()));
         item.icon().shouldHave(cssClass(categories.get(j == 0 ? i : i + categories.size() / 2).getColor().toValue()));
       }
     }

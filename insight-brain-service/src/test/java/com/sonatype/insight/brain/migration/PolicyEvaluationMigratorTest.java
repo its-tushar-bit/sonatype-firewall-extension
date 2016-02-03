@@ -101,8 +101,9 @@ public class PolicyEvaluationMigratorTest
     appNoEvals = tempEntity.newApplicationWithSpecificId("appNoEvals", "NoEvals", "NoEvals", organization.getId());
   }
 
-  private void assertPolicyViolationActions(PolicyViolation policyViolation, String actionTypeId,
-      String... notifications)
+  private void assertPolicyViolationActions(PolicyViolation policyViolation,
+                                            String actionTypeId,
+                                            String... notifications)
   {
     assertThat(policyViolation.getActionTypeId(), is(actionTypeId));
     if (notifications.length == 0) {
@@ -417,9 +418,14 @@ public class PolicyEvaluationMigratorTest
     fail("Cannot find antlr ApplicationComponent");
   }
 
-  private void assertAppComponent(ApplicationComponent actual, ComponentIdentifier componentIdentifier,
-      String stageTypeId, Date time, String matchStateId, String identificationSourceId, boolean proprietary,
-      List<String> pathnames)
+  private void assertAppComponent(ApplicationComponent actual,
+                                  ComponentIdentifier componentIdentifier,
+                                  String stageTypeId,
+                                  Date time,
+                                  String matchStateId,
+                                  String identificationSourceId,
+                                  boolean proprietary,
+                                  List<String> pathnames)
   {
     assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
@@ -430,10 +436,17 @@ public class PolicyEvaluationMigratorTest
     assertThat(actual.getPathnames(), is(pathnames));
   }
 
-  private void assertPolicyViolation(final String evaluationId, final PolicyViolation policyViolation,
-      final String policyId, final String policyName, final int threatLevel, final String groupId,
-      final String artifactId, final String version, final String hash, final PolicyThreatCategory threatCategory,
-      final List<String> pathnames)
+  private void assertPolicyViolation(final String evaluationId,
+                                     final PolicyViolation policyViolation,
+                                     final String policyId,
+                                     final String policyName,
+                                     final int threatLevel,
+                                     final String groupId,
+                                     final String artifactId,
+                                     final String version,
+                                     final String hash,
+                                     final PolicyThreatCategory threatCategory,
+                                     final List<String> pathnames)
   {
     assertThat(policyViolation.getPolicyEvaluationId(), is(evaluationId));
     assertThat(policyViolation.getPolicyId(), is(policyId));
@@ -448,9 +461,14 @@ public class PolicyEvaluationMigratorTest
     assertThat(policyViolation.getConstraintFactsJson().length(), greaterThan(0));
   }
 
-  private void assertPolicyEvaluation(final PolicyEvaluation policyEvaluation, final String stageId,
-      final boolean reEvaluation, final boolean monitoring, final String applicationId, final String scanId,
-      final long time, final boolean isForObsoleteScan)
+  private void assertPolicyEvaluation(final PolicyEvaluation policyEvaluation,
+                                      final String stageId,
+                                      final boolean reEvaluation,
+                                      final boolean monitoring,
+                                      final String applicationId,
+                                      final String scanId,
+                                      final long time,
+                                      final boolean isForObsoleteScan)
   {
     assertThat(policyEvaluation.getStageTypeId(), is(stageId));
     assertThat(policyEvaluation.isReevaluation(), is(reEvaluation));

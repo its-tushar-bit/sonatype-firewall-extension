@@ -46,8 +46,7 @@ public class RepositoryReportResource
   @Path(SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId)
-  {
+  public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getReportSummary(repositoryId);
   }
 
@@ -86,7 +85,7 @@ public class RepositoryReportResource
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
   public RepositoryPolicyThreatDTO getPolicyThreats(@PathParam("repositoryId") final String repositoryId,
-      @PathParam("pathname") final String pathname)
+                                                    @PathParam("pathname") final String pathname)
   {
     return repositoryService.getPolicyThreats(repositoryId, pathname);
   }

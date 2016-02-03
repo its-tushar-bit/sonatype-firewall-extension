@@ -33,18 +33,16 @@ public class ActiveDirectoryNoDynamicGroupsQueryTest
     LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
     LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getAll().iterator().next();
 
-    //with this set to true, timeouts occur
+    // with this set to true, timeouts occur
     ldapUserMapping.setDynamicGroupSearchEnabled(false);
     ldapUserMappingDAO.update(ldapUserMapping);
   }
 
   @Test
   public void testDynamicGroupsWithTrailingWildCardsOnlyAndWithoutGroupSearchEnabled() {
-    GatlingPropertiesBuilder props =
-        configureGatling(
-            "LDAP Search Simulation with Active Directory Dynamic Groups. Dynamic group search is disabled and " +
-                "queries contain only trailing wildcards",
-            "com.sonatype.insight.brain.LdapQuerySimulation");
+    GatlingPropertiesBuilder props = configureGatling(
+        "LDAP Search Simulation with Active Directory Dynamic Groups. Dynamic group search is disabled and "
+            + "queries contain only trailing wildcards", "com.sonatype.insight.brain.LdapQuerySimulation");
 
     // none of these test cases return groups from search
     System.setProperty("testCases", "testCasesNoLeadingWildcardsDynamicNoGroupSearch.csv");

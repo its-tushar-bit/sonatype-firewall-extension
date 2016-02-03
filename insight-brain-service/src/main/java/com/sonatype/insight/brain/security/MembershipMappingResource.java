@@ -55,8 +55,8 @@ public class MembershipMappingResource
   @GET
   @Path(APPLICABLE_MAPPINGS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApplicableMembershipMappings getApplicableMembershipMappings(
-      @PathParam("ownerType") final OwnerType ownerType, @PathParam("ownerId") final String ownerId)
+  public ApplicableMembershipMappings getApplicableMembershipMappings(@PathParam("ownerType") final OwnerType ownerType,
+                                                                      @PathParam("ownerId") final String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     return membershipMappingService.getApplicableMembershipMappings(ownerType, internalOwnerId);
@@ -69,7 +69,9 @@ public class MembershipMappingResource
   @Path(ROLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   public void setMembershipMappingForRole(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId, @PathParam("roleId") final String roleId, final List<Member> members)
+                                          @PathParam("ownerId") final String ownerId,
+                                          @PathParam("roleId") final String roleId,
+                                          final List<Member> members)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     Map<String, List<Member>> membersByRoleId = new HashMap<>();
@@ -95,7 +97,8 @@ public class MembershipMappingResource
   @Path(SINGLETON_ROLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   public void setMembershipMappingForRole(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("roleId") final String roleId, final List<Member> members)
+                                          @PathParam("roleId") final String roleId,
+                                          final List<Member> members)
   {
     setMembershipMappingForRole(ownerType, null, roleId, members);
   }

@@ -35,8 +35,9 @@ public class ApiReportServiceV2
   private final ApplicationDAO applicationDAO;
 
   @Inject
-  public ApiReportServiceV2(PolicyEvaluationDAO policyEvaluationDAO, ApiApplicationService applicationService,
-      ApplicationDAO applicationDAO)
+  public ApiReportServiceV2(PolicyEvaluationDAO policyEvaluationDAO,
+                            ApiApplicationService applicationService,
+                            ApplicationDAO applicationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
@@ -44,8 +45,7 @@ public class ApiReportServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ApiApplicationReportDTOV2> getByApplicationId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
+  public List<ApiApplicationReportDTOV2> getByApplicationId(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
   {
     Application application = applicationDAO.getById(applicationId);
 

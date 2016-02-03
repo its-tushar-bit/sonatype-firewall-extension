@@ -49,7 +49,7 @@ public class LdapResource
   public static final String TEST_USER_MAPPING_PATH = "{ldapServerId}/testUserMapping";
 
   public static final String TEST_LOGIN_PATH = "{ldapServerId}/testLogin";
-  
+
   private final LdapServerDAO serverDao = new LdapServerDAO();
 
   private final LdapUserMappingDAO umapDao = new LdapUserMappingDAO();

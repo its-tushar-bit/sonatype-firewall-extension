@@ -32,9 +32,11 @@ public class PolicyEvaluator
   }
 
   @Override
-  protected void processResults(Parameters params, ScanReceipt receipt, PolicyEvaluationResult eval,
-      PolicyAction outcome, RestClient restClient)
-      throws ExitException
+  protected void processResults(Parameters params,
+                                ScanReceipt receipt,
+                                PolicyEvaluationResult eval,
+                                PolicyAction outcome,
+                                RestClient restClient) throws ExitException
   {
     String reportUrl = receipt.resolveReportUrl(params.getServerUrl());
 

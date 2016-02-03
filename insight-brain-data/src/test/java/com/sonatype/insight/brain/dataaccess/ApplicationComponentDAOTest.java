@@ -36,8 +36,7 @@ public class ApplicationComponentDAOTest
     Date now = new Date();
     ApplicationComponent appComponent = new ApplicationComponent(applicationId, BuildStageType.ID, now, "hash",
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"), MatchState.EXACT.getId(),
-        IdentificationSource.SONATYPE.getId(),
-        true /* proprietary */, null /* pathnames */);
+        IdentificationSource.SONATYPE.getId(), true /* proprietary */, null /* pathnames */);
     dao.insert(appComponent);
     assertThat(appComponent.getId(), notNullValue());
 
@@ -64,9 +63,16 @@ public class ApplicationComponentDAOTest
     assertThat(appComponent, nullValue());
   }
 
-  private void assertApplicationComponent(String applicationId, String stageTypeId, Date time, String hash,
-      ComponentIdentifier componentIdentifier, String matchStateId, String identificationSourceId, boolean proprietary,
-      String pathnames, ApplicationComponent actual)
+  private void assertApplicationComponent(String applicationId,
+                                          String stageTypeId,
+                                          Date time,
+                                          String hash,
+                                          ComponentIdentifier componentIdentifier,
+                                          String matchStateId,
+                                          String identificationSourceId,
+                                          boolean proprietary,
+                                          String pathnames,
+                                          ApplicationComponent actual)
   {
     assertThat(actual.getApplicationId(), is(applicationId));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
@@ -179,8 +185,8 @@ public class ApplicationComponentDAOTest
   public void testGetByApplicationIdAndStageTypeIdAndHash() {
     String app1 = application.getId();
     String app2 = tempEntity.newApplication(organization.getId()).getId();
-    ApplicationComponent component1 = tempEntity
-        .newApplicationComponent(app1, BuildStageType.ID, "hash-1", MatchState.EXACT, false);
+    ApplicationComponent component1 = tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1",
+        MatchState.EXACT, false);
     tempEntity.newApplicationComponent(app1, ReleaseStageType.ID, "hash-1", MatchState.EXACT, true);
     tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-3",
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), null, MatchState.EXACT, true,
@@ -188,8 +194,8 @@ public class ApplicationComponentDAOTest
     tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2", MatchState.EXACT, true);
     tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-1", MatchState.EXACT, false);
 
-    ApplicationComponent retrievedComponent = dao.getByApplicationIdAndStageTypeIdAndHash(
-        app1, BuildStageType.ID, "hash-1");
+    ApplicationComponent retrievedComponent = dao.getByApplicationIdAndStageTypeIdAndHash(app1, BuildStageType.ID,
+        "hash-1");
     assertApplicationComponent(component1, retrievedComponent);
   }
 

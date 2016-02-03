@@ -12,7 +12,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ImportPolicyModal
 {
   public static final String ROOT_SELECTOR = "#import-policy-dialog";
-  
+
   public static SelenideElement root() {
     return $(ROOT_SELECTOR);
   }
@@ -21,7 +21,7 @@ public class ImportPolicyModal
     return $(ROOT_SELECTOR + " #importFile");
   }
 
-  public static SelenideElement importButton(){
+  public static SelenideElement importButton() {
     return $(ROOT_SELECTOR + " #import-policy-upload");
   }
 }

@@ -31,9 +31,9 @@ public class ContactDTO
    * Constructor for contact DTO
    *
    * @param internalName the internal name of the contact user (username)
-   * @param displayName  the display name for the contact user
-   * @param email        the email address for the contact user
-   * @param realm        the realm for the contact user
+   * @param displayName the display name for the contact user
+   * @param email the email address for the contact user
+   * @param realm the realm for the contact user
    */
   public ContactDTO(final String internalName, final String displayName, final String email, final String realm) {
 
@@ -85,12 +85,7 @@ public class ContactDTO
 
   @Override
   public String toString() {
-    return "ContactDTO{" +
-        "internalName='" + internalName + '\'' +
-        ", displayName='" + displayName + '\'' +
-        ", email='" + email + '\'' +
-        ", realm='" + realm + '\'' +
-        ", error='" + error + '\'' +
-        '}';
+    return "ContactDTO{" + "internalName='" + internalName + '\'' + ", displayName='" + displayName + '\''
+        + ", email='" + email + '\'' + ", realm='" + realm + '\'' + ", error='" + error + '\'' + '}';
   }
 }

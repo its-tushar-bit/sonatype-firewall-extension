@@ -24,8 +24,10 @@ public class FirewallQuarantineHdsClient
     extends HdsClient
 {
   @Inject
-  public FirewallQuarantineHdsClient(final InsightProxy proxy, final CLMLicenseManager licenseManager,
-      VersionService versionService, IdleConnectionReaper idleConnectionReaper)
+  public FirewallQuarantineHdsClient(final InsightProxy proxy,
+                                     final CLMLicenseManager licenseManager,
+                                     VersionService versionService,
+                                     IdleConnectionReaper idleConnectionReaper)
   {
     super(proxy, licenseManager, versionService, idleConnectionReaper, 20);
   }

@@ -298,8 +298,7 @@ public class ApplicationAdapterTest
 
     List<Member> members = Collections.emptyList();
 
-    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members,
- new Exception(TEST_MESSAGE));
+    setQueryResultForGetMembersByNames(mockUserDirectory, memberNames, members, new Exception(TEST_MESSAGE));
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
         .createApplicationManagementSummaries(applications);
@@ -333,9 +332,8 @@ public class ApplicationAdapterTest
     Set<String> nullMemberNames = new HashSet<>();
     nullMemberNames.add(null);
     List<Member> members = Collections.emptyList();
-        
-    setQueryResultForGetMembersByNames(mockUserDirectory, nullMemberNames, members,
-        null);
+
+    setQueryResultForGetMembersByNames(mockUserDirectory, nullMemberNames, members, null);
 
     List<ApplicationManagementSummaryDTO> actualDTOs = applicationAdapter
         .createApplicationManagementSummaries(applications);
@@ -430,8 +428,11 @@ public class ApplicationAdapterTest
     verify(mockOrganizationDAO, times(1)).getByIdNotNull(anyString());
   }
 
-  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId, String orgName,
-      String appName, String appId, ContactDTO contact)
+  private ApplicationManagementSummaryDTO createExpectedApplicationManagementSummaryDTO(String orgId,
+                                                                                        String orgName,
+                                                                                        String appName,
+                                                                                        String appId,
+                                                                                        ContactDTO contact)
   {
 
     ApplicationManagementSummaryDTO dto = new ApplicationManagementSummaryDTO();
@@ -505,7 +506,7 @@ public class ApplicationAdapterTest
   }
 
   private void assertApplications(List<ApplicationDTO> actualApplicationDTOs,
-      List<ApplicationDTO> expectedApplicationDTOs)
+                                  List<ApplicationDTO> expectedApplicationDTOs)
   {
 
     Assert.assertThat(actualApplicationDTOs.size(), is(expectedApplicationDTOs.size()));
@@ -542,7 +543,7 @@ public class ApplicationAdapterTest
   }
 
   private void assertApplicationManagementSummaryDTOs(List<ApplicationManagementSummaryDTO> actualList,
-      List<ApplicationManagementSummaryDTO> expectedList)
+                                                      List<ApplicationManagementSummaryDTO> expectedList)
   {
     Assert.assertThat(actualList.size(), is(expectedList.size()));
 
@@ -555,7 +556,7 @@ public class ApplicationAdapterTest
   }
 
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
-      ApplicationManagementSummaryDTO expected)
+                                                     ApplicationManagementSummaryDTO expected)
   {
 
     Assert.assertThat(actual.getId(), is(expected.getId()));
@@ -567,8 +568,10 @@ public class ApplicationAdapterTest
     assertContact(actual.getContact(), expected.getContact());
   }
 
-  private void setQueryResultForGetMembersByNames(UserDirectory userDirectory, Set<String> names,
-      List<Member> members, Exception exception)
+  private void setQueryResultForGetMembersByNames(UserDirectory userDirectory,
+                                                  Set<String> names,
+                                                  List<Member> members,
+                                                  Exception exception)
   {
     UserDirectory.QueryResult result = new UserDirectory.QueryResult(members, exception);
     when(userDirectory.getUsersByName(names)).thenReturn(result);

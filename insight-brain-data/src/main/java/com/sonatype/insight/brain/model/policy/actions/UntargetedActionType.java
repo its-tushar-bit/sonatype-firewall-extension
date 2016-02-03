@@ -25,7 +25,7 @@ abstract class UntargetedActionType
   @Override
   public ValidationResult validateAction(Action action) {
     ValidationResult result = new ValidationResult();
-    
+
     if (action.getTarget() != null) {
       result.addError("Invalid action '" + getName() + "': This action does not support targets");
     }

@@ -54,8 +54,10 @@ public class NewestRiskService
   private final DashboardUtils dashboardUtils;
 
   @Inject
-  public NewestRiskService(ApplicationService applicationService, PolicyEvaluationDAO policyEvaluationDAO,
-      PolicyViolationDAO policyViolationDAO, DashboardUtils dashboardUtils)
+  public NewestRiskService(ApplicationService applicationService,
+                           PolicyEvaluationDAO policyEvaluationDAO,
+                           PolicyViolationDAO policyViolationDAO,
+                           DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -64,7 +66,7 @@ public class NewestRiskService
   }
 
   private Map<String, PolicyEvaluation> getLastPolicyEvaluationsByAppIdAndStageTypeId(List<Application> applications,
-      Set<StageType> stageTypes)
+                                                                                      Set<StageType> stageTypes)
   {
     Set<String> appIds = dashboardUtils.getApplicationIds(applications);
     Set<String> stageTypeIds = dashboardUtils.getStageTypeIds(stageTypes);
@@ -83,9 +85,12 @@ public class NewestRiskService
    * Gets the "newest" risk matching the specified filter criteria. Empty or null filter criteria generally means
    * "all available" violations for that aspect.
    */
-  public List<NewestRiskDTO> getNewestRisks(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
-      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter,
-      int maxResults)
+  public List<NewestRiskDTO> getNewestRisks(Set<String> applicationIds,
+                                            Set<String> stageIds,
+                                            Set<String> tagIds,
+                                            PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                            PolicyThreatLevelFilter policyThreatLevelFilter,
+                                            int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -166,7 +171,8 @@ public class NewestRiskService
   }
 
   private Map<PolicyViolation, PolicyViolation> getFirstOccurrencePolicyViolationsForLastPolicyViolations(String appId,
-      String stageTypeId, List<PolicyViolation> lastPolicyViolations)
+                                                                                                          String stageTypeId,
+                                                                                                          List<PolicyViolation> lastPolicyViolations)
   {
     Map<PolicyViolation, PolicyViolation> result = new LinkedHashMap<>();
 
@@ -185,8 +191,11 @@ public class NewestRiskService
     return result;
   }
 
-  private NewestRiskDTO createNewestRiskDTO(Application app, StageType stageType, PolicyViolation policyViolation,
-      long time, String scanId)
+  private NewestRiskDTO createNewestRiskDTO(Application app,
+                                            StageType stageType,
+                                            PolicyViolation policyViolation,
+                                            long time,
+                                            String scanId)
   {
     NewestRiskDTO newestRiskDTO = new NewestRiskDTO();
     newestRiskDTO.applicationPublicId = app.getPublicId();
@@ -209,8 +218,11 @@ public class NewestRiskService
     return newestRiskDTO;
   }
 
-  private void addToNewestRiskDTO(NewestRiskDTO newestRiskDTO, StageType stageType, PolicyViolation policyViolation,
-      long time, String scanId)
+  private void addToNewestRiskDTO(NewestRiskDTO newestRiskDTO,
+                                  StageType stageType,
+                                  PolicyViolation policyViolation,
+                                  long time,
+                                  String scanId)
   {
     if (newestRiskDTO.time < policyViolation.getTime().getTime()) {
       newestRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);

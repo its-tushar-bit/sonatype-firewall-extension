@@ -104,9 +104,16 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getKnownComponentCountByRepositoryId(repository.getId()), is(1));
   }
 
-  private void assertRepositoryComponent(String repositoryId, String pathname, Date time, String hash,
-      ComponentIdentifier componentIdentifier, String matchStateId, String identificationSourceId,
-      Date lastEvaluationTime, boolean canBeQuarantined, RepositoryComponent actual)
+  private void assertRepositoryComponent(String repositoryId,
+                                         String pathname,
+                                         Date time,
+                                         String hash,
+                                         ComponentIdentifier componentIdentifier,
+                                         String matchStateId,
+                                         String identificationSourceId,
+                                         Date lastEvaluationTime,
+                                         boolean canBeQuarantined,
+                                         RepositoryComponent actual)
   {
     assertThat(actual.getRepositoryId(), is(repositoryId));
     assertThat(actual.getPathname(), is(pathname));
@@ -126,18 +133,18 @@ public class RepositoryComponentDAOTest
     assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(1));
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", new Date(), null);
     assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
-    //unquarantined component, so shouldn't add to to total
+    // unquarantined component, so shouldn't add to to total
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined3", new Date(), new Date());
     assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
-    //not a quarantined item, shouldn't add to count
+    // not a quarantined item, shouldn't add to count
     tempEntity.newRepositoryComponent(repository.getId(), "/notquarantined", null, null);
     assertThat(dao.getQuarantinedComponentCountByRepositoryId(repository.getId()), is(2));
   }
 
   @Test
   public void testDelete_SetsPolicyViolationsInactive() {
-    RepositoryComponent repositoryComponent = tempEntity
-        .newRepositoryComponent(repository.getId(), "pathname", new Date() /* quarantineTime */, null /* unquarantineTime */);
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "pathname",
+        new Date() /* quarantineTime */, null /* unquarantineTime */);
     RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), "pathname");
 
     dao.delete(repositoryComponent);

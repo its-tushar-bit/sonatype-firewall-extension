@@ -59,7 +59,8 @@ public class IdUtils
   }
 
   public static Predicate<HasStringId> getIsEqualPredicate(final HasStringId compareTo) {
-    return new Predicate<HasStringId>() {
+    return new Predicate<HasStringId>()
+    {
       @Override
       public boolean apply(final HasStringId existing) {
         return existing.getId().equals(compareTo.getId());

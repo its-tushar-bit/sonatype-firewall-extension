@@ -55,7 +55,8 @@ public class HdsProductNotificationService
 
   @Inject
   public HdsProductNotificationService(final HdsClient hdsClient,
-      final UserViewedProductNotificationDAO notificationViewedDAO) {
+                                       final UserViewedProductNotificationDAO notificationViewedDAO)
+  {
     this.hdsClient = hdsClient;
     this.expirationTime = new Date();
     this.notificationViewedDAO = notificationViewedDAO;
@@ -79,7 +80,7 @@ public class HdsProductNotificationService
         log.info("Updating notification cache from HDS");
         try {
           ProductNotificationList productNotificationList = hdsClient.get(ProductNotificationList.class,
-              HDS_PRODUCT_NOTIFICATION_PATH, Collections.<String, String>emptyMap());
+              HDS_PRODUCT_NOTIFICATION_PATH, Collections.<String, String> emptyMap());
           Set<String> notificationIds = new HashSet<>();
           notifications.clear();
           if (productNotificationList != null) {

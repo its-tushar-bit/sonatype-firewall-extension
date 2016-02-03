@@ -219,17 +219,15 @@ public class InsightBrainService
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());
   }
 
-  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName, Long cacheSizeInBytes,
-      String additionalDBParams)
+  protected DatabaseConfig getDatabaseConfig(File databaseDir,
+                                             String databaseName,
+                                             Long cacheSizeInBytes,
+                                             String additionalDBParams)
   {
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.h2.Driver");
-    StringBuilder urlBuilder = new StringBuilder()
-        .append("jdbc:h2:")
-        .append(databaseDir.getAbsolutePath())
-        .append('/')
-        .append(databaseName)
-        .append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=60000");
+    StringBuilder urlBuilder = new StringBuilder().append("jdbc:h2:").append(databaseDir.getAbsolutePath()).append('/')
+        .append(databaseName).append(";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=60000");
     if (cacheSizeInBytes != null) {
       urlBuilder.append(";CACHE_SIZE=").append(cacheSizeInBytes / 1024);
     }

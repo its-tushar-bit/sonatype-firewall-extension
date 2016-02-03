@@ -152,8 +152,7 @@ public class ApplicationDAO
   public List<Application> getByIdsAndTagIds(Set<String> applicationIds, Set<String> tagIds) {
     String sQuery = "SELECT DISTINCT application FROM Application application, ApplicationTag applicationTag" + //
         " WHERE application.id = applicationTag.applicationId" + //
-        " AND application.id IN (?1)" +
-        " AND applicationTag.tagId IN (?2)";
+        " AND application.id IN (?1)" + " AND applicationTag.tagId IN (?2)";
     return getList(sQuery, applicationIds, tagIds);
   }
 
@@ -221,7 +220,9 @@ public class ApplicationDAO
     super.update(tx, application);
   }
 
-  private void checkConflictingLicenseThreatGroups(TransactionContext tx, Application application, Organization organization)
+  private void checkConflictingLicenseThreatGroups(TransactionContext tx,
+                                                   Application application,
+                                                   Organization organization)
   {
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
     List<LicenseThreatGroup> appLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
@@ -370,8 +371,9 @@ public class ApplicationDAO
     }
   }
 
-  public List<Application> getByOrganizationIdAndLabelLowercase(TransactionContext tx, String organizationId,
-      String labelLowercase)
+  public List<Application> getByOrganizationIdAndLabelLowercase(TransactionContext tx,
+                                                                String organizationId,
+                                                                String labelLowercase)
   {
     final String oQuery = "SELECT app FROM Label label, Application app" + //
         " WHERE label.ownerId=app.id AND app.organizationId=?1" + //

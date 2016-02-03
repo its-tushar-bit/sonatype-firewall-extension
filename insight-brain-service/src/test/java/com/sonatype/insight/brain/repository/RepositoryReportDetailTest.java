@@ -32,8 +32,8 @@ public class RepositoryReportDetailTest
     assertEquals("pathname", RepositoryReportDetail.buildComponentDisplayText(component));
 
     component.setComponentIdentifier(new ComponentIdentifier());
-    assertEquals("component.getComponentIdentifier() returns null if componentFormat == null",
-        "pathname", RepositoryReportDetail.buildComponentDisplayText(component));
+    assertEquals("component.getComponentIdentifier() returns null if componentFormat == null", "pathname",
+        RepositoryReportDetail.buildComponentDisplayText(component));
 
     component.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     assertEquals("g : a : v", RepositoryReportDetail.buildComponentDisplayText(component));
@@ -50,8 +50,8 @@ public class RepositoryReportDetailTest
     final int threatLevel = 5;
     final String policyName = "policyName";
 
-    final RepositoryComponent component = new RepositoryComponent(null, pathname, null, hash, componentId, matchStateId,
-        null, null, false);
+    final RepositoryComponent component = new RepositoryComponent(null, pathname, null, hash, componentId,
+        matchStateId, null, null, false);
     component.setQuarantineTime(quarantineTime);
 
     final RepositoryPolicyViolation violation = new RepositoryPolicyViolation(null, pathname, null, null, policyName,
@@ -80,8 +80,8 @@ public class RepositoryReportDetailTest
     final String matchStateId = MatchState.UNKNOWN.getId();
     final Date quarantineTime = new Date();
 
-    final RepositoryComponent component = new RepositoryComponent(null, pathname, null, hash, componentId, matchStateId,
-        null, null, false);
+    final RepositoryComponent component = new RepositoryComponent(null, pathname, null, hash, componentId,
+        matchStateId, null, null, false);
     component.setQuarantineTime(quarantineTime);
 
     repositoryReportDetail = RepositoryReportDetail.create(component);

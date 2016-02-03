@@ -50,7 +50,7 @@ public class PolicyTagResource
 
   /**
    * @deprecated The new UI uses {@link #updatePolicyTags(String, List)} to manage {@link PolicyTag}. This can be
-   * removed after the completion of CLM-4528
+   *             removed after the completion of CLM-4528
    */
   @Deprecated
   @POST
@@ -68,20 +68,20 @@ public class PolicyTagResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Tag> updatePolicyTags(@PathParam("policyId") String policyId, List<Tag> tags)
-  {
+  public List<Tag> updatePolicyTags(@PathParam("policyId") String policyId, List<Tag> tags) {
     return tagService.updatePolicyTags(policyId, tags);
   }
 
   /**
    * @deprecated The new UI uses {@link #updatePolicyTags(String, List)} to manage {@link PolicyTag}. This can be
-   * removed after the completion of CLM-4528
+   *             removed after the completion of CLM-4528
    */
   @Deprecated
   @DELETE
   @Path("{tagId}")
-  public void deletePolicyTag(@QueryParam("orgId") String orgId, @PathParam("policyId") String policyId,
-      @PathParam("tagId") String tagId)
+  public void deletePolicyTag(@QueryParam("orgId") String orgId,
+                              @PathParam("policyId") String policyId,
+                              @PathParam("tagId") String tagId)
   {
     tagService.deletePolicyTag(orgId, policyId, tagId);
   }

@@ -34,8 +34,7 @@ public class HashComponentIdentifierResource
   private final HashComponentIdentifierService hashComponentIdentifierService;
 
   @Inject
-  public HashComponentIdentifierResource(final HashComponentIdentifierService hashComponentIdentifierService)
-  {
+  public HashComponentIdentifierResource(final HashComponentIdentifierService hashComponentIdentifierService) {
     this.hashComponentIdentifierService = hashComponentIdentifierService;
   }
 

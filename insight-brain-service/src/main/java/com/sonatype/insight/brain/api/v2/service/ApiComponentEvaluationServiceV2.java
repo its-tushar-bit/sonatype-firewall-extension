@@ -82,13 +82,14 @@ public class ApiComponentEvaluationServiceV2
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
-
   @Inject
   public ApiComponentEvaluationServiceV2(final ApplicationDAO applicationDAO,
-      final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
-      final ComponentPolicyEvaluator componentPolicyEvaluator, final ComponentDetailsLoader componentDetailsLoader,
-      final ApiComponentDetailsAdapter componentDetailsAdapter, final InsightWork work,
-      final ErrorResponseGenerator errorResponseGenerator)
+                                         final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
+                                         final ComponentPolicyEvaluator componentPolicyEvaluator,
+                                         final ComponentDetailsLoader componentDetailsLoader,
+                                         final ApiComponentDetailsAdapter componentDetailsAdapter,
+                                         final InsightWork work,
+                                         final ErrorResponseGenerator errorResponseGenerator)
   {
     this.applicationDAO = applicationDAO;
     this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
@@ -100,9 +101,8 @@ public class ApiComponentEvaluationServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiComponentEvaluationTicketDTOV2 evaluateComponents(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
-      final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
+  public ApiComponentEvaluationTicketDTOV2 evaluateComponents(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+                                                              final ApiComponentEvaluationRequestDTOV2 evaluationRequest)
   {
     validateRequest(evaluationRequest);
 
@@ -113,9 +113,8 @@ public class ApiComponentEvaluationServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId, final String resultId)
-      throws IOException
+  public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+                                                                  final String resultId) throws IOException
   {
     File componentDetailsFile = work.getComponentDetailsFile(applicationId, resultId);
     try {
@@ -150,7 +149,8 @@ public class ApiComponentEvaluationServiceV2
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(componentDTO.componentIdentifier.getFormat(),
           componentDTO.componentIdentifier.getCoordinates());
       componentIdentifier.ensureComplete();
-    } catch (InvalidComponentIdentifierException e) {
+    }
+    catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
   }
@@ -160,8 +160,8 @@ public class ApiComponentEvaluationServiceV2
     evaluationTicketDTO.resultId = UUID.randomUUID().toString().replace("-", "");
     evaluationTicketDTO.submittedDate = new Date();
     evaluationTicketDTO.applicationId = applicationId;
-    evaluationTicketDTO.resultsUrl = PublicApiPaths.APPLICATION_EVALUATION_PATH_V2
-        + "/" + applicationId + "/results/" + evaluationTicketDTO.resultId;
+    evaluationTicketDTO.resultsUrl = PublicApiPaths.APPLICATION_EVALUATION_PATH_V2 + "/" + applicationId + "/results/"
+        + evaluationTicketDTO.resultId;
 
     return evaluationTicketDTO;
   }
@@ -174,7 +174,7 @@ public class ApiComponentEvaluationServiceV2
     private final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO;
 
     public ComponentEvaluationTask(final ApiComponentEvaluationTicketDTOV2 evaluationTicketDTO,
-        final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
+                                   final ApiComponentEvaluationRequestDTOV2 evaluationRequestDTO)
     {
       this.evaluationTicketDTO = evaluationTicketDTO;
       this.evaluationRequestDTO = evaluationRequestDTO;
@@ -194,8 +194,8 @@ public class ApiComponentEvaluationServiceV2
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
           NamedComponentDetails componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           // use the claimed component data if found
-          NamedComponentDetails localComponentDetails = componentDetailsLoader
-              .getComponentDetailsLocally(componentDetails.getComponentIdentifier(), componentDetails.getHash());
+          NamedComponentDetails localComponentDetails = componentDetailsLoader.getComponentDetailsLocally(
+              componentDetails.getComponentIdentifier(), componentDetails.getHash());
           if (localComponentDetails != null) {
             componentDetails = localComponentDetails;
           }
@@ -244,9 +244,7 @@ public class ApiComponentEvaluationServiceV2
       }
     }
 
-    private void augmentSecurityVulnerabilities(Component component,
-        List<SecurityVulnerability> vulnerabilities)
-    {
+    private void augmentSecurityVulnerabilities(Component component, List<SecurityVulnerability> vulnerabilities) {
       if (component.getSecurityVulnerabilities() != null) {
         for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
             .getSecurityVulnerabilities()) {

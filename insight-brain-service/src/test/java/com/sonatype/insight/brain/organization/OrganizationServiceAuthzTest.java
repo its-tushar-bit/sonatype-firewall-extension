@@ -26,7 +26,6 @@ public class OrganizationServiceAuthzTest
   @Inject
   private OrganizationService organizationService;
 
-
   @Test
   public void testGetAllWith_Authorized() throws Exception {
     grantReadPermission(org.getId());

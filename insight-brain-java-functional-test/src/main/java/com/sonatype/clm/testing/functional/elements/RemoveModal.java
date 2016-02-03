@@ -9,7 +9,8 @@ import com.codeborne.selenide.Condition;
 
 import static com.codeborne.selenide.Condition.text;
 
-public class RemoveModal extends DeleteModal
+public class RemoveModal
+    extends DeleteModal
 {
   public static Condition headerText(String resourceType) {
     return text("Clear " + resourceType);

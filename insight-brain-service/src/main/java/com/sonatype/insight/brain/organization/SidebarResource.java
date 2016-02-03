@@ -43,7 +43,7 @@ public class SidebarResource
   @Path(GET_OWNER_DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public OwnerDetailsDTO getOwnerDetails(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId)
+                                         @PathParam("ownerId") final String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     return sidebarService.getOwnerDetails(ownerType, internalOwnerId);

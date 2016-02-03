@@ -99,7 +99,8 @@ public class ActionItemList
 
   }
 
-  public static class NotificationItem {
+  public static class NotificationItem
+  {
 
     private final SelenideElement root;
 

@@ -47,8 +47,8 @@ public class HashComponentIdentifierServiceTest
 {
   private static final String HASH = "test-abcdef";
 
-  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
-      ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.0", "jdk15", "jar");
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("gid",
+      "aid", "1.0", "jdk15", "jar");
 
   private static final String COMMENT = "test-comment";
 
@@ -73,8 +73,9 @@ public class HashComponentIdentifierServiceTest
 
   @Test
   public void testSet_KnownToHDS() throws Exception {
-    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
-        anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(true));
+    when(
+        mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+            anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(true));
 
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     try {
@@ -100,8 +101,8 @@ public class HashComponentIdentifierServiceTest
 
   @Test
   public void testSet_InvalidComponentIdentifier() throws Exception {
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH,
-        JsonUtils.parse("{\"format\":\"maven\",\"coordinates\":null}", ComponentIdentifier.class));
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, JsonUtils.parse(
+        "{\"format\":\"maven\",\"coordinates\":null}", ComponentIdentifier.class));
     try {
       hashComponentIdentifierService.set(hashComponentIdentifier);
       fail("Expected BadRequestException");
@@ -118,8 +119,9 @@ public class HashComponentIdentifierServiceTest
     hashComponentIdentifier.setCreateTime(CREATED_TIME);
 
     // Component must be unknown or we cannot claim it
-    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
-        anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(false));
+    when(
+        mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"),
+            anyMapOf(String.class, String.class))).thenReturn(ComponentSummary.create(false));
 
     // Create the claimed component
     HashComponentIdentifierDTO serverResponse = hashComponentIdentifierService.set(hashComponentIdentifier);
@@ -139,14 +141,16 @@ public class HashComponentIdentifierServiceTest
 
     // Now check the license overrides
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride override =
-        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(), updatedComponentIdentifier);
+    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(application.getId(),
+        updatedComponentIdentifier);
     assertThat(override, Matchers.notNullValue());
     assertThat(override.getId(), Matchers.is(expectedLicenseOverride.getId()));
   }
 
   private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,
-      final ComponentIdentifier componentIdentifier, final String comment, final Date createTime)
+                                                final ComponentIdentifier componentIdentifier,
+                                                final String comment,
+                                                final Date createTime)
   {
     assertThat(hashComponentIdentifierDTO, notNullValue());
     assertThat(hashComponentIdentifierDTO.hash, is(HASH));

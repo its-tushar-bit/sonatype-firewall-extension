@@ -31,7 +31,7 @@ public class AccessEditorPage
   public static String urlToCreate(String ownerType, String ownerId) {
     return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/access";
   }
-  
+
   public static SelenideElement title() {
     return $(ACCESS_EDITOR_ID + " h2");
   }
@@ -57,7 +57,8 @@ public class AccessEditorPage
   }
 
   public static Condition confirmRemovalThroughUpdateText(String roleName, String ownerType) {
-    return text("You are about to remove the " + roleName + " role from this " + ownerType + ". Next time, consider using the \"Remove Role\" button; it will save you some clicks!");
+    return text("You are about to remove the " + roleName + " role from this " + ownerType
+        + ". Next time, consider using the \"Remove Role\" button; it will save you some clicks!");
   }
 
   public static Condition confirmRemovalText(String roleName, String ownerType) {

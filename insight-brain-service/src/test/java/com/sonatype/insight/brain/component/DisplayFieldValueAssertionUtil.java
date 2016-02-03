@@ -24,15 +24,18 @@ import static org.junit.Assert.fail;
  */
 public class DisplayFieldValueAssertionUtil
 {
-  public static void assertDisplayFieldValue(final ComponentDisplayNamePart displayFieldValue, final String field,
+  public static void assertDisplayFieldValue(final ComponentDisplayNamePart displayFieldValue,
+                                             final String field,
                                              final String value)
   {
     assertThat(displayFieldValue.field, is(field));
     assertThat(displayFieldValue.value, is(value));
   }
 
-  public static void assertDisplayFieldValuesForGAV(List<ComponentDisplayNamePart> displayName, String groupId,
-                                                    String artifactId, String version)
+  public static void assertDisplayFieldValuesForGAV(List<ComponentDisplayNamePart> displayName,
+                                                    String groupId,
+                                                    String artifactId,
+                                                    String version)
   {
     assertThat(displayName, hasSize(5));
     assertDisplayFieldValue(displayName.get(0), "Group", groupId);

@@ -112,8 +112,7 @@ public class PolicySummaryServiceTest
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
 
     dto = policySummaryService.getPolicySummary(null, Sets.newHashSet(BuildStageType.ID, ReleaseStageType.ID), null,
-        null,
-        null);
+        null, null);
     assertCounters(dto, 3, 0, 0, 3);
     assertCountersWeek(dto, 0, 3, 0, 0, 3);
     ageUnresolvedStatistics = createStatistics(dto.timestamp - pe1.getTime().getTime(), dto.timestamp
@@ -162,8 +161,7 @@ public class PolicySummaryServiceTest
     tempEntity.newPolicyViolation(pe2, orgPolicy, "g3", "a3", "v3", "h3", "r3");
 
     PolicySummaryDTO dto = policySummaryService.getPolicySummary(null, null, Collections.singleton(app1Tag.getId()),
-        null,
-        null);
+        null, null);
     assertCounters(dto, 1, 0, 0, 1);
     assertCountersWeek(dto, 0, 1, 0, 0, 1);
     DescriptiveStatistics ageWaivedStatistics = createStatistics(0);
@@ -440,8 +438,11 @@ public class PolicySummaryServiceTest
     assertAges(dto, ageWaivedStatistics, ageFixedStatistics, ageUnresolvedStatistics);
   }
 
-  private void assertCounters(PolicySummaryDTO actual, int totalNew, int totalWaived, int totalFixed,
-      int currentUnresolved)
+  private void assertCounters(PolicySummaryDTO actual,
+                              int totalNew,
+                              int totalWaived,
+                              int totalFixed,
+                              int currentUnresolved)
   {
     assertThat(actual, notNullValue());
 
@@ -456,8 +457,12 @@ public class PolicySummaryServiceTest
     assertThat(actual.weeklyDeltaUnresolved, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
   }
 
-  private void assertCountersWeek(PolicySummaryDTO actual, int week, int newCount, int waivedCount, int fixedCount,
-      int unresolvedCount)
+  private void assertCountersWeek(PolicySummaryDTO actual,
+                                  int week,
+                                  int newCount,
+                                  int waivedCount,
+                                  int fixedCount,
+                                  int unresolvedCount)
   {
     assertThat("weeklyDeltaNew", actual.weeklyDeltaNew.get(week), is(newCount));
     assertThat("weeklyDeltaWaived", actual.weeklyDeltaWaived.get(week), is(waivedCount));
@@ -465,8 +470,10 @@ public class PolicySummaryServiceTest
     assertThat("weeklyDeltaUnresolved", actual.weeklyDeltaUnresolved.get(week), is(unresolvedCount));
   }
 
-  private void assertAges(PolicySummaryDTO actual, DescriptiveStatistics ageWaivedStatistics,
-      DescriptiveStatistics ageFixedStatistics, DescriptiveStatistics ageUnresolvedStatistics)
+  private void assertAges(PolicySummaryDTO actual,
+                          DescriptiveStatistics ageWaivedStatistics,
+                          DescriptiveStatistics ageFixedStatistics,
+                          DescriptiveStatistics ageUnresolvedStatistics)
   {
     assertThat(actual.ageAverageWaived, is((long) ageWaivedStatistics.getMean()));
     assertThat(actual.agePercentile90Waived, is((long) ageWaivedStatistics.getPercentile(90)));

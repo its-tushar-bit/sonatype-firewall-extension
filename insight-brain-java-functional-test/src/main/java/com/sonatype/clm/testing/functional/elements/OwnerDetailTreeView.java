@@ -22,7 +22,7 @@ public class OwnerDetailTreeView
     return root().$(".tree-view-header");
   }
 
-  public static String headerHref(){
+  public static String headerHref() {
     return header().$("a").attr("href");
   }
 

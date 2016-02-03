@@ -83,9 +83,9 @@ public class PolicyImportExport
    * merged if they match (case-insensitive by name) existing data; this preserves any related ComponentLabels.
    * </p>
    * <p>
-   * License Threat Groups and associated Licenses on this application are all deleted as part of the import.
-   * If the imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy,
-   * then it will be discarded and the existing one higher up in the hierarchy will be used in it's place
+   * License Threat Groups and associated Licenses on this application are all deleted as part of the import. If the
+   * imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy, then it will be
+   * discarded and the existing one higher up in the hierarchy will be used in it's place
    * </p>
    * 
    * @param application application to import policy to
@@ -94,7 +94,7 @@ public class PolicyImportExport
    */
   @Authorize(permission = Permission.WRITE)
   PolicyImportResult importApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application,
-      PolicyExportResult exportDTO)
+                                       PolicyExportResult exportDTO)
   {
     checkAppImportPreconditions(application, exportDTO);
 
@@ -135,9 +135,9 @@ public class PolicyImportExport
    * preserves any related ComponentLabels.
    * </p>
    * <p>
-   * License Threat Groups and associated Licenses on this organization are all deleted as part of the import.
-   * If the imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy,
-   * then it will be discarded and the existing one higher up in the hierarchy will be used in it's place
+   * License Threat Groups and associated Licenses on this organization are all deleted as part of the import. If the
+   * imported data contains any LicenseThreatGroups with the same name as one in the parent hierarchy, then it will be
+   * discarded and the existing one higher up in the hierarchy will be used in it's place
    * </p>
    * 
    * @param organization org to import policy to
@@ -146,7 +146,7 @@ public class PolicyImportExport
    */
   @Authorize(permission = Permission.WRITE)
   PolicyImportResult importOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization,
-      PolicyExportResult exportDTO)
+                                        PolicyExportResult exportDTO)
   {
     checkOrgImportPreconditions(organization, exportDTO);
 
@@ -281,8 +281,11 @@ public class PolicyImportExport
    * @param organizationId the organizationId owning the labels; if applicationId is not set this organization will be
    *          updated
    */
-  void importAndMergeLabels(final TransactionContext tx, final PolicyExportResult exportDTO, final List<Label> oldLabels,
-      final String applicationId, final String organizationId)
+  void importAndMergeLabels(final TransactionContext tx,
+                            final PolicyExportResult exportDTO,
+                            final List<Label> oldLabels,
+                            final String applicationId,
+                            final String organizationId)
   {
     if (!exportDTO.labels.isEmpty()) {
       Map<String, String> idMap = new HashMap<>();

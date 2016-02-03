@@ -20,8 +20,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AugmentUtil
 {
-  public static ArrayNode getSVData(InsightWork work, String applicationId, ComponentIdentifier componentIdentifier,
-      List<SecurityVulnerability> securityVulnerabilities) throws IOException
+  public static ArrayNode getSVData(InsightWork work,
+                                    String applicationId,
+                                    ComponentIdentifier componentIdentifier,
+                                    List<SecurityVulnerability> securityVulnerabilities) throws IOException
   {
     if (securityVulnerabilities == null || securityVulnerabilities.isEmpty()) {
       return null;

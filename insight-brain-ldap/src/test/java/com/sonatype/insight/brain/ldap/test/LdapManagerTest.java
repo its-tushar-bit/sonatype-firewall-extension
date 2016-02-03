@@ -353,7 +353,6 @@ public class LdapManagerTest
     }
   }
 
-
   @Test
   public void testAuthenticateUser_usernameLeakViaInjection() throws Exception {
     startLdapServer();
@@ -362,8 +361,8 @@ public class LdapManagerTest
     new LdapUserMappingDAO().insert(umap);
 
     try {
-      //prior to the sanitization of query parameters, an AuthenticationException
-      //would've been thrown here, and it leaked the first user name in the system
+      // prior to the sanitization of query parameters, an AuthenticationException
+      // would've been thrown here, and it leaked the first user name in the system
       manager.authenticateUser("*)(uid=*))(|(uid=*", "invalid".toCharArray());
       fail("authentication should have failed");
     }
@@ -379,8 +378,8 @@ public class LdapManagerTest
     LdapUserMapping umap = createUserMapping();
     new LdapUserMappingDAO().insert(umap);
 
-    //previous to escaping characters in the ldap query, this auth check would have succeeded
-    //matching against the first test user in the system
+    // previous to escaping characters in the ldap query, this auth check would have succeeded
+    // matching against the first test user in the system
     manager.authenticateUser("test*", "test".toCharArray());
   }
 
@@ -445,10 +444,10 @@ public class LdapManagerTest
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.insert(umap);
 
-    List<LdapUser> users = manager.getUsers(new String[]{"test_user", "test_user2"}, 100);
+    List<LdapUser> users = manager.getUsers(new String[] { "test_user", "test_user2" }, 100);
     assertThat(users.size(), is(2));
 
-    users = manager.getUsers(new String[]{"foo"}, 100);
+    users = manager.getUsers(new String[] { "foo" }, 100);
     assertThat(users.size(), is(0));
   }
 
@@ -461,7 +460,7 @@ public class LdapManagerTest
     LdapUserMappingDAO userMappingDAO = new LdapUserMappingDAO();
     userMappingDAO.insert(umap);
 
-    List<LdapUser> users = manager.getUsers(new String[]{"test_user*"}, 100);
+    List<LdapUser> users = manager.getUsers(new String[] { "test_user*" }, 100);
     assertThat(users.size(), is(0));
   }
 
@@ -478,14 +477,14 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.insert(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[]{"Gamma", "Theta"}, 100);
+    List<LdapGroup> groups = manager.getGroups(new String[] { "Gamma", "Theta" }, 100);
     assertThat(groups.size(), is(2));
 
     // Test max results
-    groups = manager.getGroups(new String[]{"Gamma", "Theta"}, 1);
+    groups = manager.getGroups(new String[] { "Gamma", "Theta" }, 1);
     assertThat(groups.size(), is(1));
 
-    groups = manager.getGroups(new String[]{"foo"}, 100);
+    groups = manager.getGroups(new String[] { "foo" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -502,7 +501,7 @@ public class LdapManagerTest
     umap.setGroupMemberFormat("uid=${username}");
     userMappingDAO.insert(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[]{"*ta"}, 100);
+    List<LdapGroup> groups = manager.getGroups(new String[] { "*ta" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -517,13 +516,13 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.insert(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[]{"ab", "abc", "bc"}, 100);
+    List<LdapGroup> groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 100);
     assertThat(groups.size(), is(3));
 
     groups = manager.getGroups(new String[] { "ab", "abc", "bc" }, 1);
     assertThat(groups.size(), is(1));
 
-    groups = manager.getGroups(new String[]{"foo"}, 100);
+    groups = manager.getGroups(new String[] { "foo" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -538,7 +537,7 @@ public class LdapManagerTest
     umap.setUserMemberOfGroupAttribute("departmentNumber");
     userMappingDAO.insert(umap);
 
-    List<LdapGroup> groups = manager.getGroups(new String[]{"ab*"}, 100);
+    List<LdapGroup> groups = manager.getGroups(new String[] { "ab*" }, 100);
     assertThat(groups.size(), is(0));
   }
 
@@ -769,7 +768,6 @@ public class LdapManagerTest
     users = manager.findUsersByGroup("Theta", 0);
     assertThat(users, hasSize(2));
   }
-
 
   @Test
   public void testFindUsersByGroup_Static_wildcardMatchingNotExpected() throws Exception {
@@ -1013,7 +1011,8 @@ public class LdapManagerTest
     try {
       manager.getLdapServerName();
       fail("Expected IllegalStateException");
-    } catch(IllegalStateException expected) {
+    }
+    catch (IllegalStateException expected) {
       assertThat(expected.getMessage(), is("LDAP server is not configured"));
     }
 

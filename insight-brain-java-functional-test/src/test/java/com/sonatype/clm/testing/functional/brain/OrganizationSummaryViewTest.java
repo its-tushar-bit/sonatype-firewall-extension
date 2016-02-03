@@ -89,8 +89,7 @@ public class OrganizationSummaryViewTest
 
   private void testApplicationCategoryTile_Empty() {
     CategoryTile categoryTile = new CategoryTileOrgContext();
-    categoryTile.subHeader().shouldBe(visible)
-        .shouldHave(categoryTile.subHeaderText(organization.getName()));
+    categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(organization.getName()));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 
     categoryTile.categoryLists().shouldHaveSize(getHierarchySize(organization.getId()));
@@ -101,8 +100,7 @@ public class OrganizationSummaryViewTest
 
       if (i == 0) {
         list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldBe(visible)
-            .shouldHave(categoryTile.emptyListDescriptorText());
+        list.emptyDescriptor().shouldBe(visible).shouldHave(categoryTile.emptyListDescriptorText());
       }
       else {
         list.subsectionHeader().shouldNot(exist);

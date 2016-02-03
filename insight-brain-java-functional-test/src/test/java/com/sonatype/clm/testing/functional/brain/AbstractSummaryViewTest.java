@@ -143,7 +143,7 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the labels tile
     OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
-    
+
     for (int i = 0; i < labelTile.labelLists().size(); i++) {
       TileSimpleList list = labelTile.labelList(i);
 
@@ -313,8 +313,8 @@ public abstract class AbstractSummaryViewTest
 
           actualLTG.name().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
 
-          actualLTG.threatLevel().shouldBe(visible).shouldHave(
-              ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
+          actualLTG.threatLevel().shouldBe(visible)
+              .shouldHave(ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
           actualLTG.chevron().shouldBe(visible);
         }
       }
@@ -353,7 +353,6 @@ public abstract class AbstractSummaryViewTest
         readOnly.groupIcon().shouldBe(visible);
         readOnly.members().shouldBe(visible).shouldHave(text("Group"));
 
-
         AccessTileListElement writeOnly = list.element(1);
         writeOnly.chevron().shouldBe(visible);
         writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
@@ -373,7 +372,7 @@ public abstract class AbstractSummaryViewTest
     int hierarchySize = getHierarchySize(currentOwner.getId());
     PolicyTile policyTile = new PolicyTile();
     policyTile.policyLists().shouldHaveSize(hierarchySize);
-    
+
     // scroll to the policy tile
     OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
 
@@ -392,7 +391,7 @@ public abstract class AbstractSummaryViewTest
         assertPolicy(policyElement1, actualPolicy1);
         PolicyTileListElement policyElement2 = list.element(2);
         Policy actualPolicy2 = localPolicies.get(1);
-        assertPolicy(policyElement2,actualPolicy2);
+        assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
         list.nameHeaderColumn().upArrow().shouldHave(PolicyTileHeaderColumn.UP_SELECTED);
@@ -434,7 +433,7 @@ public abstract class AbstractSummaryViewTest
 
     Action warn = new Action(Action.ID_WARN);
     Action fail = new Action(Action.ID_FAIL);
-    
+
     for (Owner owner : new OwnerDAO().walkHierarchy(currentOwner.getParentOwnerId())) {
       List<LicenseThreatGroup> ltgs = new ArrayList<>();
       List<Label> labels = new ArrayList<>();
@@ -541,7 +540,6 @@ public abstract class AbstractSummaryViewTest
     DeleteModal.header().shouldHave(DeleteModal.headerText(currentOwner.getType().toString()));
     DeleteModal.body().shouldHave(DeleteModal.bodyText(ownerName));
 
-
     DeleteModal.root().shouldBe(visible);
     DeleteModal.continueButton().click();
 
@@ -582,8 +580,8 @@ public abstract class AbstractSummaryViewTest
         list.elements().shouldBe(empty);
       }
       else {
-        int expectedDefaultLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(i - 1).getId())
-            ? LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT : 0;
+        int expectedDefaultLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(i - 1).getId()) ? LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT
+            : 0;
         list.elements().shouldHaveSize(inheritedLTGs.get(i - 1).size() + expectedDefaultLTGSize);
         list.ownerName().shouldBe(visible)
             .shouldHave(LicenseThreatGroupTile.inheritedText(parentOwners.get(i - 1).getName()));
@@ -594,8 +592,8 @@ public abstract class AbstractSummaryViewTest
           if (inheritedLTGs.size() < i) {
             LicenseThreatGroup expectedLTG = inheritedLTGs.get(i - 1).get(j);
             actualLTG.name().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
-            actualLTG.threatLevel().shouldBe(visible).shouldHave(
-                ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
+            actualLTG.threatLevel().shouldBe(visible)
+                .shouldHave(ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
           }
 
           actualLTG.chevron().shouldBe(visible);
@@ -623,8 +621,7 @@ public abstract class AbstractSummaryViewTest
       }
       else {
         list.emptyDescriptor().shouldNotBe(visible);
-        list.ownerName().shouldBe(visible)
-            .shouldHave(AccessTile.inheritedText(parentOwners.get(i - 1).getName()));
+        list.ownerName().shouldBe(visible).shouldHave(AccessTile.inheritedText(parentOwners.get(i - 1).getName()));
         list.elements().shouldHaveSize(2);
 
         AccessTileListElement readOnly = list.element(0);
@@ -652,25 +649,24 @@ public abstract class AbstractSummaryViewTest
 
     for (int i = 0; i < policyTile.policyLists().size(); i++) {
       PolicyTileList list = policyTile.policyList(i);
-      
+
       if (i == 0) {
         list.ownerName().shouldBe(visible).shouldHave(text("Local"));
         list.emptyDescriptor().should(exist);
       }
       else {
         list.emptyDescriptor().shouldNotBe(visible);
-        list.ownerName().shouldBe(visible)
-            .shouldHave(PolicyTile.inheritedText(parentOwners.get(i - 1).getName()));
+        list.ownerName().shouldBe(visible).shouldHave(PolicyTile.inheritedText(parentOwners.get(i - 1).getName()));
         list.elements().shouldHaveSize(3); // 2 elements plus header
-        
+
         assertPolicyHeader(list);
-        
+
         PolicyTileListElement policyElement1 = list.element(1);
         Policy actualPolicy1 = inheritedPolicies.get(i - 1).get(0);
         assertPolicy(policyElement1, actualPolicy1);
         PolicyTileListElement policyElement2 = list.element(2);
         Policy actualPolicy2 = inheritedPolicies.get(i - 1).get(1);
-        assertPolicy(policyElement2,actualPolicy2);
+        assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
         list.nameHeaderColumn().upArrow().shouldHave(PolicyTileHeaderColumn.UP_SELECTED);
@@ -698,8 +694,8 @@ public abstract class AbstractSummaryViewTest
   private void assertPolicyHeader(PolicyTileList list) {
     list.selectedHeaderElements().shouldHaveSize(1);
     list.selectedHeaderColumn().root.shouldBe(visible).shouldHave(PolicyTileHeaderColumn.COLUMN_SELECTED);
-    list.selectedHeaderColumn().downArrow().shouldBe(visible)
-        .shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED); // initial state
+    list.selectedHeaderColumn().downArrow().shouldBe(visible).shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED); // initial
+                                                                                                                // state
     list.selectedHeaderColumn().upArrow().shouldBe(visible).shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
   }
 
@@ -716,17 +712,15 @@ public abstract class AbstractSummaryViewTest
     policy.operate().shouldBe(visible).shouldHave(PolicyTile.noAction());
 
     if (action.getActionTypeId().equals(Action.ID_WARN)) {
-      policy.build().find("i")
-          .shouldHave(PolicyTileListElement.WARN_ICON).shouldHave(PolicyTileListElement.WARN)
+      policy.build().find("i").shouldHave(PolicyTileListElement.WARN_ICON).shouldHave(PolicyTileListElement.WARN)
           .shouldNotHave(PolicyTileListElement.FAIL_ICON).shouldNotHave(PolicyTileListElement.FAIL);
     }
     else {
-      policy.build().find("i")
-          .shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
+      policy.build().find("i").shouldHave(PolicyTileListElement.FAIL_ICON).shouldHave(PolicyTileListElement.FAIL)
           .shouldNotHave(PolicyTileListElement.WARN_ICON).shouldNotHave(PolicyTileListElement.WARN);
     }
   }
-  
+
   @Test
   public void testImportPolicy() {
     String filePath = new File(getClass().getResource("/policyExport/samplePolicy.json").getFile()).getAbsolutePath();
@@ -761,7 +755,7 @@ public abstract class AbstractSummaryViewTest
     threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
     threatGroupTileSimpleList.elements().shouldHaveSize(1);
     threatGroupTileSimpleList.element(0).name().shouldBe(visible).shouldHave(text("Test LTG"));
-    
+
     // scroll to the policy tile
     OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
     PolicyTile policyTile = new PolicyTile();
@@ -775,13 +769,16 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the application categories tile
     OwnerSummaryPage.SummaryTile.appCategoriesButton().shouldBe(visible).click();
-    CategoryTile categoryTile = OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? 
-        new CategoryTileOrgContext() : new CategoryTileAppContext();
+    CategoryTile categoryTile = OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? new CategoryTileOrgContext()
+        : new CategoryTileAppContext();
     TileSimpleList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
-    categoryList.emptyDescriptor().shouldBe(visible).shouldHave(
-        OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? categoryTile
-            .emptyListDescriptorText() : CategoryTileAppContext.NO_CATEGORIES_DEFINED);
+    categoryList
+        .emptyDescriptor()
+        .shouldBe(visible)
+        .shouldHave(
+            OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? categoryTile.emptyListDescriptorText()
+                : CategoryTileAppContext.NO_CATEGORIES_DEFINED);
   }
 
   protected int getHierarchySize(String ownerId) {

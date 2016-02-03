@@ -68,9 +68,15 @@ public class ApplicationComponent
   public ApplicationComponent() {
   }
 
-  public ApplicationComponent(String applicationId, String stageTypeId, Date time, String hash,
-      ComponentIdentifier componentIdentifier, String matchStateId, String identificationSourceId, boolean proprietary,
-      List<String> pathnames)
+  public ApplicationComponent(String applicationId,
+                              String stageTypeId,
+                              Date time,
+                              String hash,
+                              ComponentIdentifier componentIdentifier,
+                              String matchStateId,
+                              String identificationSourceId,
+                              boolean proprietary,
+                              List<String> pathnames)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;

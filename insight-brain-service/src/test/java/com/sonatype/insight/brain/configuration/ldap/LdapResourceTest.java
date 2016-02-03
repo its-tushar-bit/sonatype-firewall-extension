@@ -435,7 +435,8 @@ public class LdapResourceTest
     LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
 
     Assert.assertEquals(LdapConnectionStatus.Status.FAILURE, status.getStatus());
-    assertThat(status.getMessage(),
+    assertThat(
+        status.getMessage(),
         allOf(anyOf(containsString("UnknownHostException"), containsString("CommunicationException")),
             containsString("garbage.localhost.litter")));
   }

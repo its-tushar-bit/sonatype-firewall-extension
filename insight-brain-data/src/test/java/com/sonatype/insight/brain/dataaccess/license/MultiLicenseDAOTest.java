@@ -187,7 +187,8 @@ public class MultiLicenseDAOTest
         tx.commit();
       }
       catch (Exception e) {
-        throw new RuntimeException("Could not simulate retrieval of license data from Sonatype HDS: " + e.getMessage(), e);
+        throw new RuntimeException("Could not simulate retrieval of license data from Sonatype HDS: " + e.getMessage(),
+            e);
       }
     }
 

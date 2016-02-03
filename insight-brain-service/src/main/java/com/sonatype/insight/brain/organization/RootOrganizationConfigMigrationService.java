@@ -36,7 +36,7 @@ public class RootOrganizationConfigMigrationService
 
   @Inject
   public RootOrganizationConfigMigrationService(OrganizationDAO organizationDAO,
-      RootOrganizationConfigMigrationUtils migrationUtils)
+                                                RootOrganizationConfigMigrationUtils migrationUtils)
   {
     this.organizationDAO = organizationDAO;
     this.migrationUtils = migrationUtils;

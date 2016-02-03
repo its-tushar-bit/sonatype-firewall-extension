@@ -69,8 +69,8 @@ public class LicenseThreatGroupDAOTest
   public void testCreateDefaultLicenseThreatGroups() throws Exception {
     try {
       licenseThreatGroupDAO.createDefaultGroups(Organization.ROOT_ORGANIZATION_ID);
-      List<LicenseThreatGroup> licenseThreatGroups =
-          licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+      List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO
+          .getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
       assertEquals(LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT, licenseThreatGroups.size());
     }
     finally {
@@ -263,7 +263,6 @@ public class LicenseThreatGroupDAOTest
     assertUpdateLicenseThreatGroupWithDuplicateName(parentOrganizationId, group1, group2.getName(), application);
   }
 
-
   //
   @Test
   public void testUpdateLTGInOrganization_ClashesWithParentOrganization() throws Exception {
@@ -290,7 +289,6 @@ public class LicenseThreatGroupDAOTest
 
     assertUpdateLicenseThreatGroupWithDuplicateName(parentOrganizationId, group1, group2.getName(), organization);
   }
-
 
   @Test
   public void testInsertInvalidThreatLevel() throws Exception {
@@ -557,8 +555,10 @@ public class LicenseThreatGroupDAOTest
     }
   }
 
-  private void assertUpdateLicenseThreatGroupWithDuplicateName(final String ownerId, final LicenseThreatGroup group,
-      final String groupName, final Owner expectedOwner)
+  private void assertUpdateLicenseThreatGroupWithDuplicateName(final String ownerId,
+                                                               final LicenseThreatGroup group,
+                                                               final String groupName,
+                                                               final Owner expectedOwner)
   {
     // Update without changing the name
     group.setThreatLevel(6);
@@ -572,14 +572,14 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      assertThat(expected.getMessage(),
-          is("A license threat group with the same name already exists for the " + expectedOwner.getType() + " '"
-              + expectedOwner.getName() + "'."));
+      assertThat(expected.getMessage(), is("A license threat group with the same name already exists for the "
+          + expectedOwner.getType() + " '" + expectedOwner.getName() + "'."));
     }
   }
 
-  private void assertInsertLicenseThreatGroupWithDuplicateName(final String ownerId, final String groupName,
-      final Owner expectedOwner)
+  private void assertInsertLicenseThreatGroupWithDuplicateName(final String ownerId,
+                                                               final String groupName,
+                                                               final Owner expectedOwner)
   {
     // Add a group with a case-/whitespace-equivalent name
     LicenseThreatGroup group = newLicenseThreatGroup(ownerId,
@@ -589,9 +589,8 @@ public class LicenseThreatGroupDAOTest
       Assert.fail("Expected InvalidLicenseThreatGroupException");
     }
     catch (InvalidLicenseThreatGroupException expected) {
-      assertThat(expected.getMessage(),
-          is("A license threat group with the same name already exists for the " + expectedOwner.getType() + " '"
-              + expectedOwner.getName() + "'."));
+      assertThat(expected.getMessage(), is("A license threat group with the same name already exists for the "
+          + expectedOwner.getType() + " '" + expectedOwner.getName() + "'."));
     }
   }
 

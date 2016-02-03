@@ -107,9 +107,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient)
-      throws ExitException
-  {
+  private ProprietaryConfig getProprietaryConfiguration(P params, RestClient restClient) throws ExitException {
     log.debug("Retrieving configuration for proprietary components from the IQ Server...");
     try {
       return restClient.getProprietaryConfiguration();
@@ -185,9 +183,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private PolicyEvaluationResult evaluatePolicy(P params, RestClient restClient, File scanFile)
-      throws ExitException
-  {
+  private PolicyEvaluationResult evaluatePolicy(P params, RestClient restClient, File scanFile) throws ExitException {
     ScanReceipt receipt = uploadScan(params, restClient, scanFile);
     log.info("Fetching results of policy evaluation (ETA {}s)...", receipt.getTimeToReport());
     PolicyEvaluationResult eval;
@@ -202,8 +198,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (ClientException e) {
-      log.error("The policy evaluation results could not be fetched from the IQ Server: {} ({})", e.getMessage(),
-          e.getResult().status());
+      log.error("The policy evaluation results could not be fetched from the IQ Server: {} ({})", e.getMessage(), e
+          .getResult().status());
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     catch (IOException e) {
@@ -245,6 +241,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return restClientFactory.newRestCIClient(configuration);
   }
 
-  protected abstract void processResults(P params, ScanReceipt receipt, PolicyEvaluationResult eval,
-      PolicyAction outcome, RestClient restClient) throws ExitException;
+  protected abstract void processResults(P params,
+                                         ScanReceipt receipt,
+                                         PolicyEvaluationResult eval,
+                                         PolicyAction outcome,
+                                         RestClient restClient) throws ExitException;
 }

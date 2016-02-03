@@ -182,8 +182,8 @@ public class UserDAO
 
     // Cascade to user viewed notification mapping
     UserViewedProductNotificationDAO userViewedNotificationMappingDAO = new UserViewedProductNotificationDAO();
-    for (UserViewedProductNotification userViewedNotificationMapping :
-        userViewedNotificationMappingDAO.getByUsername(tx, entity.getUsername())) {
+    for (UserViewedProductNotification userViewedNotificationMapping : userViewedNotificationMappingDAO.getByUsername(
+        tx, entity.getUsername())) {
       userViewedNotificationMappingDAO.delete(tx, userViewedNotificationMapping);
     }
 

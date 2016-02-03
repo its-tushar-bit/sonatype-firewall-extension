@@ -70,7 +70,9 @@ public class UserService
    */
   @Authorize(permission = Permission.WRITE)
   protected FindMembersDTO findMembersForNonGlobalRoles(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, String query, boolean groupsEnabled)
+                                                        @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                                                        String query,
+                                                        boolean groupsEnabled)
   {
     return findMembers(query, groupsEnabled);
   }

@@ -46,8 +46,8 @@ public class ApiMemberMappingAdapterTest
     final OwnerType ownerType = OwnerType.APPLICATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
-    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter.convert(mappings,
-        ownerType);
+    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter
+        .convert(mappings, ownerType);
 
     assertRoleMemberMappingDTO(apiRoleMemberMappingListDTO);
   }
@@ -57,8 +57,8 @@ public class ApiMemberMappingAdapterTest
     final OwnerType ownerType = OwnerType.ORGANIZATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
-    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter.convert(mappings,
-        ownerType);
+    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter
+        .convert(mappings, ownerType);
 
     assertRoleMemberMappingDTO(apiRoleMemberMappingListDTO);
   }
@@ -92,8 +92,7 @@ public class ApiMemberMappingAdapterTest
     assertThat(member.getInternalName(), is(testUserName));
   }
 
-  private void assertRoleMemberMappingDTO(final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
-  {
+  private void assertRoleMemberMappingDTO(final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO) {
     assertThat(apiRoleMemberMappingListDTO, notNullValue());
     assertThat(apiRoleMemberMappingListDTO.memberMappings, hasSize(1));
     final ApiRoleMemberMappingDTO roleMemberMappingDTO = apiRoleMemberMappingListDTO.memberMappings.get(0);

@@ -280,7 +280,7 @@ public class IdeResourceTest
     // Override the license and evaluate the policy again
 
     tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
-      null /* comment */);
+        null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
@@ -329,8 +329,8 @@ public class IdeResourceTest
 
     // Override the license and evaluate the policy again
 
-    tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES,  LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
-      null /* comment */);
+    tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+        null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
@@ -673,8 +673,7 @@ public class IdeResourceTest
     String applicationPublicId = "IdeResourceTest_AppId";
     Application app = tempEntity.newApplicationWithParent(applicationPublicId);
     Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
-    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
-        .getId(), hash);
+    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label.getId(), hash);
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
@@ -740,8 +739,10 @@ public class IdeResourceTest
   }
 
   @SuppressWarnings("deprecation")
-  private void assertGavInIdeMatchedComponent(String groupId, String artifactId, String version,
-      IdeMatchedComponent ideMatchedComponent)
+  private void assertGavInIdeMatchedComponent(String groupId,
+                                              String artifactId,
+                                              String version,
+                                              IdeMatchedComponent ideMatchedComponent)
   {
     assertThat(ideMatchedComponent.getGroupId(), is(groupId));
     assertThat(ideMatchedComponent.getArtifactId(), is(artifactId));

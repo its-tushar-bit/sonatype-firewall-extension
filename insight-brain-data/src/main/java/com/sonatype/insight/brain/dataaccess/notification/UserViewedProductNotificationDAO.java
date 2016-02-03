@@ -29,8 +29,7 @@ public class UserViewedProductNotificationDAO
     }
   }
 
-  public UserViewedProductNotification getByUsernameAndNotificationId(final String username,
-      final String notificationId)
+  public UserViewedProductNotification getByUsernameAndNotificationId(final String username, final String notificationId)
   {
     String sQuery = "SELECT entity FROM UserViewedProductNotification entity WHERE entity.username=?1" + //
         " AND entity.notificationId=?2";

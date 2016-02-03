@@ -58,8 +58,12 @@ abstract class AbstractResourceWithIcon
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
   }
 
-  private void setIcon(String ownerId, File iconDir, boolean hasRobotSource, String robotHash,
-      InputStream uploadedInputStream, FormDataContentDisposition fileDetail) throws IOException
+  private void setIcon(String ownerId,
+                       File iconDir,
+                       boolean hasRobotSource,
+                       String robotHash,
+                       InputStream uploadedInputStream,
+                       FormDataContentDisposition fileDetail) throws IOException
   {
     if (hasRobotSource) {
       try {
@@ -100,8 +104,8 @@ abstract class AbstractResourceWithIcon
           new IconDAO().setIcon(ownerId, iconDir, sizeCheckedInputStream);
         }
         catch (IllegalArgumentException | IOException | BadRequestException e) {
-          throw new BadRequestException(fileDetail.getFileName() +
-              " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
+          throw new BadRequestException(fileDetail.getFileName()
+              + " is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.", e);
         }
         finally {
           sizeCheckedInputStream.close();

@@ -110,16 +110,14 @@ public class LicenseThreatGroupDAO
     super.insert(tx, licenseThreatGroup);
   }
 
-  public LicenseThreatGroup getInheritedByName(final TransactionContext tx,
-      final LicenseThreatGroup licenseThreatGroup)
+  public LicenseThreatGroup getInheritedByName(final TransactionContext tx, final LicenseThreatGroup licenseThreatGroup)
   {
     String name = licenseThreatGroup.getName();
     Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());
     return getInheritedByName(tx, owner.getParentOwnerId(), name);
   }
 
-  private LicenseThreatGroup getInheritedByName(final TransactionContext tx, final String parentId, final String name)
-  {
+  private LicenseThreatGroup getInheritedByName(final TransactionContext tx, final String parentId, final String name) {
     if (parentId == null) {
       return null; // no parent, we're done
     }
@@ -140,8 +138,7 @@ public class LicenseThreatGroupDAO
     validateNameWithinHierarchyDown(tx, owner, licenseThreatGroup.getName());
   }
 
-  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final String name)
-  {
+  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final String name) {
     if (parentId == null) {
       return; // no parent, we're done
     }
@@ -155,8 +152,7 @@ public class LicenseThreatGroupDAO
     validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
   }
 
-  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, String name)
-  {
+  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, String name) {
     if (!owner.canHaveChildren()) {
       return;
     }
@@ -164,8 +160,8 @@ public class LicenseThreatGroupDAO
     for (Owner child : children) {
       if (getByOwnerIdAndName(tx, child.getId(), name) != null) {
         throw new InvalidLicenseThreatGroupException(
-            "A license threat group with the same name already exists for the " + child.getType()
-                + " '" + child.getName() + "'.");
+            "A license threat group with the same name already exists for the " + child.getType() + " '"
+                + child.getName() + "'.");
       }
       validateNameWithinHierarchyDown(tx, child, name);
     }

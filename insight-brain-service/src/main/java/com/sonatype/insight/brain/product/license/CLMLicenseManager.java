@@ -51,7 +51,6 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_AUDITOR = "Auditor";
 
-
   private final class CachedLicenseData
       extends ProductLicenseDetails
   {
@@ -59,9 +58,13 @@ public class CLMLicenseManager
 
     private final long expirationTimestamp;
 
-    public CachedLicenseData(final String fingerprint, final int version, Integer applicationLimit,
-        final Set<String> products, final String[] features, final Set<CLMEnforcementPoint> enforcementPoints,
-        final long expirationTimestamp)
+    public CachedLicenseData(final String fingerprint,
+                             final int version,
+                             Integer applicationLimit,
+                             final Set<String> products,
+                             final String[] features,
+                             final Set<CLMEnforcementPoint> enforcementPoints,
+                             final long expirationTimestamp)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
@@ -109,8 +112,7 @@ public class CLMLicenseManager
   private final List<LicenseListener> listeners = new CopyOnWriteArrayList<>();
 
   @Inject
-  public CLMLicenseManager(final ProductLicenseManager licenseManager,
-      final LicenseFingerprinter licenseFingerprinter)
+  public CLMLicenseManager(final ProductLicenseManager licenseManager, final LicenseFingerprinter licenseFingerprinter)
   {
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
@@ -264,16 +266,16 @@ public class CLMLicenseManager
 
   private String getProductEdition() {
     if (hasProduct(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
-      return(PRODUCT_LIFECYCLE);
+      return (PRODUCT_LIFECYCLE);
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_FIREWALL)) {
-      return(PRODUCT_FIREWALL);
+      return (PRODUCT_FIREWALL);
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_NEXUS)) {
-      return(PRODUCT_PRO_PLUS);
+      return (PRODUCT_PRO_PLUS);
     }
     else if (hasProduct(ProductLicenseDetails.PRODUCT_RISK)) {
-      return(PRODUCT_AUDITOR);
+      return (PRODUCT_AUDITOR);
     }
 
     return "";
@@ -288,8 +290,8 @@ public class CLMLicenseManager
         licenseManager.verifyFeature(key, new FirewallFeature());
       }
       catch (LicensingException e2) {
-        throw new LicensingException("License does not permit use of feature '" + CLMFeature.ID + "' or '" +
-            FirewallFeature.ID + "'");
+        throw new LicensingException("License does not permit use of feature '" + CLMFeature.ID + "' or '"
+            + FirewallFeature.ID + "'");
       }
     }
   }
@@ -414,8 +416,8 @@ public class CLMLicenseManager
   }
 
   private void clearLicenseCache() {
-    licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String>emptySet(), new String[0],
-        Collections.<CLMEnforcementPoint>emptySet(), 0);
+    licenseCache = new CachedLicenseData(null, 0, 0, Collections.<String> emptySet(), new String[0],
+        Collections.<CLMEnforcementPoint> emptySet(), 0);
     notifyListeners();
   }
 

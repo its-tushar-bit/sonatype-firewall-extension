@@ -29,15 +29,15 @@ public class RepositoryPolicyViolationDAO
     return get(tx, sQuery, id);
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname)
-  {
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getActiveByRepositoryIdAndPathname(tx, repositoryId, pathname);
     }
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(TransactionContext tx, String repositoryId,
-      String pathname)
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(TransactionContext tx,
+                                                                            String repositoryId,
+                                                                            String pathname)
   {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
@@ -48,7 +48,8 @@ public class RepositoryPolicyViolationDAO
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(String repositoryId,
-      String pathname, boolean isWaived)
+                                                                                     String pathname,
+                                                                                     boolean isWaived)
   {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //

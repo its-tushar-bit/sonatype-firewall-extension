@@ -42,7 +42,7 @@ public abstract class AbstractPolicyEvaluationTest
   public void setUpDefaultLicenseThreatGroups() {
     // blank slate please
   }
-  
+
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {
     return evaluate(new Stage(BuildStageType.ID), policy, components);
   }
@@ -53,8 +53,11 @@ public abstract class AbstractPolicyEvaluationTest
         .getActiveAlerts();
   }
 
-  protected Constraint createConstraint(String constraintId, String constraintName, String conditionTypeId,
-      String operator, String value)
+  protected Constraint createConstraint(String constraintId,
+                                        String constraintName,
+                                        String conditionTypeId,
+                                        String operator,
+                                        String value)
   {
     Condition condition = new Condition(conditionTypeId, operator, value);
     Constraint constraint = new Constraint(constraintId, constraintName, LogicalOperator.AND);
@@ -62,8 +65,9 @@ public abstract class AbstractPolicyEvaluationTest
     return constraint;
   }
 
-  public static void assertFactCounts(int expectedConstraintFactCount, int expectedComponentFactCount,
-      PolicyAlert actualPolicyAlert)
+  public static void assertFactCounts(int expectedConstraintFactCount,
+                                      int expectedComponentFactCount,
+                                      PolicyAlert actualPolicyAlert)
   {
     List<ComponentFact> componentFacts = actualPolicyAlert.getTrigger().getComponentFacts();
     Assert.assertEquals("Incorrect number of component facts:" + componentFacts, expectedComponentFactCount,
@@ -81,9 +85,14 @@ public abstract class AbstractPolicyEvaluationTest
     Assert.assertEquals("Incorrect number of constraint facts", expectedConstraintFactCount, actualConstraintFactCount);
   }
 
-  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent, String expectedPolicyId,
-      String expectedPolicyName, String actionTypeId, String expectedConstraintId, String expectedConstraintName,
-      String expectedConditionTypeId, List<PolicyAlert> actual)
+  public static ConditionFact assertContainsPolicyAlert(Component expectedComponent,
+                                                        String expectedPolicyId,
+                                                        String expectedPolicyName,
+                                                        String actionTypeId,
+                                                        String expectedConstraintId,
+                                                        String expectedConstraintName,
+                                                        String expectedConditionTypeId,
+                                                        List<PolicyAlert> actual)
   {
     for (PolicyAlert actualPolicyAlert : actual) {
       PolicyFact policyFact = actualPolicyAlert.getTrigger();

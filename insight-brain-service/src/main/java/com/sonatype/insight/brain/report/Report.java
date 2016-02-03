@@ -125,9 +125,8 @@ public final class Report
 
   public static ReportEntry appendCacheBustingParams(ReportEntry reportEntry, String clmVersion) throws IOException {
     String originalIndexHtmlContent = new String(reportEntry.buf, Charset.forName("UTF-8"));
-    String augmentedIndexHtmlContent = originalIndexHtmlContent
-        .replace("/brain.client.js", "/brain.client.js?" + clmVersion)
-        .replace("/cip-loader.js", "/cip-loader.js?" + clmVersion);
+    String augmentedIndexHtmlContent = originalIndexHtmlContent.replace("/brain.client.js",
+        "/brain.client.js?" + clmVersion).replace("/cip-loader.js", "/cip-loader.js?" + clmVersion);
     return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
   }
 
@@ -306,8 +305,10 @@ public final class Report
     return depthsByIdentifier;
   }
 
-  private static void updatePunchCard(List<int[]> punchCard, ComponentIdentifier componentIdentifier,
-      Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier, int level)
+  private static void updatePunchCard(List<int[]> punchCard,
+                                      ComponentIdentifier componentIdentifier,
+                                      Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier,
+                                      int level)
   {
     Set<Integer> depths = depthsByIdentifier.get(componentIdentifier);
     if (depths == null) {
@@ -398,8 +399,7 @@ public final class Report
     log.debug("fixComponentIdentifiers: {} components, {} removed.", aaData.size(), removedCount);
   }
 
-  private static void applyLicenseOverrides(ContainerNode<?> licensesJsonData, Application application)
-  {
+  private static void applyLicenseOverrides(ContainerNode<?> licensesJsonData, Application application) {
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
@@ -409,8 +409,8 @@ public final class Report
     while (iterLicenseData.hasNext()) {
       ObjectNode licenseJsonNode = (ObjectNode) iterLicenseData.next();
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
-      LicenseOverride licenseOverride = licenseOverrideDAO
-          .getAppliedByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
+      LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(
+          application.getId(), componentIdentifier);
       if (licenseOverride != null) {
         licenseOverrideCount++;
         licenseJsonNode.put("status", licenseOverride.getStatus().getName());
@@ -431,7 +431,8 @@ public final class Report
   }
 
   private static void addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
-      Collection<HashComponentIdentifier> hashComponentIdentifiers, Application application)
+                                                              Collection<HashComponentIdentifier> hashComponentIdentifiers,
+                                                              Application application)
   {
     LicenseDAO licenseDAO = new LicenseDAO();
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
@@ -473,7 +474,7 @@ public final class Report
   }
 
   private static void removeClaimedComponentsFromPartialMatched(ContainerNode<?> partialmatchedJsonData,
-      Map<String, HashComponentIdentifier> claimedComponentsByHash)
+                                                                Map<String, HashComponentIdentifier> claimedComponentsByHash)
   {
     JsonNode aaData = partialmatchedJsonData.get("aaData");
     Iterator<JsonNode> iterPartialMatchData = aaData.iterator();
@@ -501,8 +502,9 @@ public final class Report
   /**
    * Applies changes to component data (bom/license/security/partialmatched) including claiming components
    */
-  private static void applyComponentRelatedChanges(final Application application, final File reportFile,
-      final JsonStore auditStore) throws IOException
+  private static void applyComponentRelatedChanges(final Application application,
+                                                   final File reportFile,
+                                                   final JsonStore auditStore) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -576,15 +578,20 @@ public final class Report
     saveReportEntry(reportFile, "licensethreats.json", licenseThreatsJson);
   }
 
-  public static void printPdf(final File reportFile, final String projectName, final String stageName,
-      final ContactDTO contact, final ResponseBuilder response) throws IOException
+  public static void printPdf(final File reportFile,
+                              final String projectName,
+                              final String stageName,
+                              final ContactDTO contact,
+                              final ResponseBuilder response) throws IOException
   {
     Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)), projectName,
         stageName, contact, response);
   }
 
-  public static File printPdf(final File reportFile, final String projectName, final String stageName,
-      final ContactDTO contact) throws IOException
+  public static File printPdf(final File reportFile,
+                              final String projectName,
+                              final String stageName,
+                              final ContactDTO contact) throws IOException
   {
     return Pdf.generate(reportFile, getCacheDir(reportFile), ReportType.SAMPLE.equals(getType(reportFile)),
         projectName, stageName, contact);

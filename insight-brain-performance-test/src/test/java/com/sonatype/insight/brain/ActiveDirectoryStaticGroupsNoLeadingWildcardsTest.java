@@ -36,11 +36,9 @@ public class ActiveDirectoryStaticGroupsNoLeadingWildcardsTest
 
   @Test
   public void testStaticGroupsWithTrailingWildcardQueriesOnly() {
-    GatlingPropertiesBuilder props =
-        configureGatling(
-            "LDAP Search Simulation with Active Directory Static Groups and only trailing wildcards included in the " +
-                "queries",
-            "com.sonatype.insight.brain.LdapQuerySimulation");
+    GatlingPropertiesBuilder props = configureGatling(
+        "LDAP Search Simulation with Active Directory Static Groups and only trailing wildcards included in the "
+            + "queries", "com.sonatype.insight.brain.LdapQuerySimulation");
 
     System.setProperty("testCases", "testCasesNoLeadingWildcardsGroupSearch.csv");
     int result = Gatling.fromMap(props.build());

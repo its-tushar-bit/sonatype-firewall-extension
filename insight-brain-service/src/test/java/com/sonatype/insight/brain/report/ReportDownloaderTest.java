@@ -53,8 +53,7 @@ public class ReportDownloaderTest
     String scanId = "NonExistentScanId";
 
     NotFoundException expectedException = new NotFoundException("test");
-    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId)).
-        thenThrow(expectedException);
+    when(mockHdsClient.get(InputStream.class, ReportDownloader.HDS_PATH, null, scanId)).thenThrow(expectedException);
 
     File reportFile = work.getReportFile(app.getId(), scanId);
     boolean rc = reportDownloader.downloadReport(scanId, reportFile, 0, 0);

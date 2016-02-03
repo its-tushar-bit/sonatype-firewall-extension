@@ -22,10 +22,8 @@ public class NameHelperTest
    */
   public static final String[] INVALID_CHARACTERS = { "!", "@", "#", "$", "%", "^", "&", "*", "(", "+" };
 
-  public static final String[] INVALID_SPACING_NAMES = {
-      " leading space", "trailing space ", " leading and trailing space ",
-      "double  space", "  starts with double space", "ends with double space  "
-  };
+  public static final String[] INVALID_SPACING_NAMES = { " leading space", "trailing space ",
+      " leading and trailing space ", "double  space", "  starts with double space", "ends with double space  " };
 
   // The names must be case-insensitive unique in order to avoid test failures due to entity names being
   // case-insensitive unique.
@@ -63,7 +61,7 @@ public class NameHelperTest
 
   @Test
   public void validateInvalidWhitespaceForName() {
-    for (String name: NameHelperTest.INVALID_SPACING_NAMES) {
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       verifyNameHasBadWhitespace(name);
     }
   }
@@ -130,7 +128,6 @@ class ExceptionMessageMatcher
 
   @Override
   public void describeTo(Description description) {
-    description.appendText("exception with message that ").appendDescriptionOf(
-        messageMatcher);
+    description.appendText("exception with message that ").appendDescriptionOf(messageMatcher);
   }
 }

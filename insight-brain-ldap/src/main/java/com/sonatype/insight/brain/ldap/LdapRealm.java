@@ -59,6 +59,7 @@ public class LdapRealm
     LdapUser ldapUser = ldapManager.authenticateUser(username, password);
     Set<String> membership = ldapUser.getMembership();
 
-    return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false, membership), null, getName());
+    return new SimpleAuthenticationInfo(new UserPrincipal(username, ldapUser.getRealName(), false, membership), null,
+        getName());
   }
 }

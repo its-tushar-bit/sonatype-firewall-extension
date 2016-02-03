@@ -42,7 +42,8 @@ public class ComponentLabelResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public AppliedLabels getComponentLabels(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId, @PathParam("hash") final String hash)
+                                          @PathParam("ownerId") final String ownerId,
+                                          @PathParam("hash") final String hash)
   {
     return componentLabelService.getComponentLabels(ownerType, ownerId, hash);
   }
@@ -55,7 +56,9 @@ public class ComponentLabelResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   public void setComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId, @PathParam("hash") final String hash, final Label label)
+                                @PathParam("ownerId") final String ownerId,
+                                @PathParam("hash") final String hash,
+                                final Label label)
   {
     componentLabelService.setComponentLabel(ownerType, ownerId, hash, label);
   }
@@ -68,8 +71,9 @@ public class ComponentLabelResource
   @DELETE
   @Path("{labelId}")
   public void deleteComponentLabel(@PathParam("ownerType") final OwnerType ownerType,
-      @PathParam("ownerId") final String ownerId, @PathParam("hash") final String hash,
-      @PathParam("labelId") final String labelId)
+                                   @PathParam("ownerId") final String ownerId,
+                                   @PathParam("hash") final String hash,
+                                   @PathParam("labelId") final String labelId)
   {
     componentLabelService.deleteComponentLabel(ownerType, ownerId, hash, labelId);
   }

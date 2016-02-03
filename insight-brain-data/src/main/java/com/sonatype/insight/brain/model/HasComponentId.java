@@ -39,7 +39,7 @@ public abstract class HasComponentId
     if (componentIdentifier == null) {
       try {
         componentIdentifier = new ComponentIdentifier(componentIdFormat, JsonUtils.parse(componentIdCoordinatesJson,
-          Map.class));
+            Map.class));
       }
       catch (IOException e) {
         throw new RuntimeException(e);

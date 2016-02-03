@@ -34,9 +34,11 @@ public class PolicyEvaluator
   }
 
   @Override
-  protected void processResults(Parameters params, ScanReceipt receipt, PolicyEvaluationResult eval,
-      PolicyAction outcome, RestClient restClient)
-      throws ExitException
+  protected void processResults(Parameters params,
+                                ScanReceipt receipt,
+                                PolicyEvaluationResult eval,
+                                PolicyAction outcome,
+                                RestClient restClient) throws ExitException
   {
     saveReportBundleFile(params, restClient, receipt);
 
@@ -57,8 +59,7 @@ public class PolicyEvaluator
     }
   }
 
-  private void saveReportBundleFile(Parameters params, RestClient restClient, ScanReceipt receipt)
-      throws ExitException
+  private void saveReportBundleFile(Parameters params, RestClient restClient, ScanReceipt receipt) throws ExitException
   {
     log.info("Downloading report bundle from the IQ Server...");
     try {

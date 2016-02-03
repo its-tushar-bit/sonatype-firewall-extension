@@ -104,11 +104,11 @@ public class ComponentLabelResourceTest
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(0));
     // Verify repository container level
-    response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, componentHash).get();
+    response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, componentHash)
+        .get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(0));
-
 
     // Labels applied to componentHash at all levels
     tempEntity.newComponentLabel(app.getId(), appLabel.getId(), componentHash);
@@ -145,7 +145,8 @@ public class ComponentLabelResourceTest
     assertLabelsByOwner(componentLabels.labelsByOwner.get(0), rootOrg, rootOrgLabel.getId());
     // Verify repository container level
     // NOTE: Currently, only RootOrg labels are possible for a Repository container.
-    response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, componentHash).get();
+    response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, componentHash)
+        .get();
     assertResponseStatus(200, response);
     componentLabels = response.getBody(AppliedLabels.class);
     assertThat(componentLabels.labelsByOwner, hasSize(1));
@@ -174,7 +175,8 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testSetComponentLabel_RespoistoryContainerLevel() throws Exception {
-    setComponentLabelAndVerify(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, rootOrgLabel);
+    setComponentLabelAndVerify(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        rootOrgLabel);
   }
 
   @Test
@@ -185,23 +187,24 @@ public class ComponentLabelResourceTest
 
   @Test
   public void testDeleteComponentLabel_OrgLevel() throws Exception {
-    ComponentLabel componentLabel = tempEntity
-        .newComponentLabel(app.getOrganizationId(), orgLabel.getId(), componentHash);
+    ComponentLabel componentLabel = tempEntity.newComponentLabel(app.getOrganizationId(), orgLabel.getId(),
+        componentHash);
     deleteComponentLabelAndVerify(OwnerType.ORGANIZATION, app.getOrganizationId(), componentLabel);
   }
 
   @Test
   public void testDeleteComponentLabel_RepositoryLevel() throws Exception {
-    ComponentLabel componentLabel = tempEntity
-        .newComponentLabel(repository.getId(), rootOrgLabel.getId(), componentHash);
+    ComponentLabel componentLabel = tempEntity.newComponentLabel(repository.getId(), rootOrgLabel.getId(),
+        componentHash);
     deleteComponentLabelAndVerify(OwnerType.REPOSITORY, repository.getId(), componentLabel);
   }
 
   @Test
   public void testDeleteComponentLabel_RepositoryContainerLevel() throws Exception {
-    ComponentLabel componentLabel = tempEntity
-        .newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, rootOrgLabel.getId(), componentHash);
-    deleteComponentLabelAndVerify(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, componentLabel);
+    ComponentLabel componentLabel = tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        rootOrgLabel.getId(), componentHash);
+    deleteComponentLabelAndVerify(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        componentLabel);
   }
 
   /**
@@ -240,7 +243,8 @@ public class ComponentLabelResourceTest
 
     response = restRequest(ownerType, requestOwnerId, componentHash).path(labelId).delete();
     assertResponseStatus(404, response);
-    Assert.assertThat(response.getBodyText(), is("Cannot find the label with ID " + labelId
-        + " for " + ownerType.toString() + " ID " + requestOwnerId + " on the component " + componentHash + "."));
+    Assert.assertThat(response.getBodyText(),
+        is("Cannot find the label with ID " + labelId + " for " + ownerType.toString() + " ID " + requestOwnerId
+            + " on the component " + componentHash + "."));
   }
 }

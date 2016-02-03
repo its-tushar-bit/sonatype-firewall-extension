@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dto.audit;
 
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
 /**
@@ -14,7 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
  * @since 1.6
  */
 public class BomAudit
-  extends Auditable
+    extends Auditable
 {
   private boolean modified;
 

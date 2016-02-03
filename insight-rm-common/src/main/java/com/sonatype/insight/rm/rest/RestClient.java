@@ -37,8 +37,7 @@ public interface RestClient
 
     Resource getResource(String path) throws IOException, URISyntaxException;
 
-    Resource getResource(String path, Map<String, String[]> params) throws IOException,
-        URISyntaxException;
+    Resource getResource(String path, Map<String, String[]> params) throws IOException, URISyntaxException;
 
   }
 
@@ -69,8 +68,8 @@ public interface RestClient
     void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
         throws IOException;
 
-    RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
-        final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
+    RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest)
+        throws IOException;
 
     RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
   }

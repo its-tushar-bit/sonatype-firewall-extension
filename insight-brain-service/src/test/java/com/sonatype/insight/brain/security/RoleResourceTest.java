@@ -122,8 +122,9 @@ public class RoleResourceTest
     return permissionCategoryDTO;
   }
 
-  private void assertRoleDTO(final RoleDTO actualRole, final RoleDTO expectedRole,
-      final String expectedPermissionCategoryName)
+  private void assertRoleDTO(final RoleDTO actualRole,
+                             final RoleDTO expectedRole,
+                             final String expectedPermissionCategoryName)
   {
     assertThat(actualRole.name, is(expectedRole.name));
     assertThat(actualRole.description, is(expectedRole.description));

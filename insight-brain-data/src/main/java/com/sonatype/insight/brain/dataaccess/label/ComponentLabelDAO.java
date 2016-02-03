@@ -73,7 +73,11 @@ public class ComponentLabelDAO
     }
   }
 
-  private ComponentLabel getByOwnerIdAndHashAndLabelId(TransactionContext tx, String ownerId, String hash, String labelId) {
+  private ComponentLabel getByOwnerIdAndHashAndLabelId(TransactionContext tx,
+                                                       String ownerId,
+                                                       String hash,
+                                                       String labelId)
+  {
     String sQuery = "SELECT entity FROM ComponentLabel entity" + //
         " WHERE entity.ownerId=?1 AND entity.hash=?2 AND entity.labelId=?3";
     return get(tx, sQuery, ownerId, hash, labelId);

@@ -38,8 +38,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(getOwnerType(), ownerId);
   }
 
-  protected void testDelete_OwnerIdMismatch(Owner owner1, Owner owner2) throws Exception
-  {
+  protected void testDelete_OwnerIdMismatch(Owner owner1, Owner owner2) throws Exception {
     LicenseThreatGroup group = tempEntity.newLicenseThreatGroup(owner1.getId());
 
     HttpResponse response = restRequest(owner2.getPublicId()).path(group.getId()).delete();
@@ -55,8 +54,10 @@ abstract class AbstractLicenseThreatGroupResourceTest
     testDelete_InUseByPolicy(owner.getPublicId(), owner.getId(), owner.getId(), null);
   }
 
-  protected void testDelete_InUseByPolicy(String ownerPublicId, String ownerId, String policyOwnerId,
-      String policyLocation) throws Exception
+  protected void testDelete_InUseByPolicy(String ownerPublicId,
+                                          String ownerId,
+                                          String policyOwnerId,
+                                          String policyLocation) throws Exception
   {
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(ownerId);
 
@@ -146,8 +147,11 @@ abstract class AbstractLicenseThreatGroupResourceTest
     return response.getBody(ApplicableLicenseThreatGroups.class);
   }
 
-  protected void assertLicenseThreatGroupsByOwner(String ownerId, String ownerName, OwnerType ownerType,
-      int licenseThreatGroupCount, LicenseThreatGroupsByOwner actual)
+  protected void assertLicenseThreatGroupsByOwner(String ownerId,
+                                                  String ownerName,
+                                                  OwnerType ownerType,
+                                                  int licenseThreatGroupCount,
+                                                  LicenseThreatGroupsByOwner actual)
   {
     Assert.assertEquals(ownerId, actual.ownerId);
     Assert.assertEquals(ownerName, actual.ownerName);

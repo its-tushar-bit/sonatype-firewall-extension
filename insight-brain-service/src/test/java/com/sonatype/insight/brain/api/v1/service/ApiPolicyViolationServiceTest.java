@@ -58,8 +58,8 @@ public class ApiPolicyViolationServiceTest
 
   @Test
   public void testGetPolicyViolations_noPolicyIds() {
-    ApiApplicationViolationListDTO apiApplicationViolationListDTO =
-        apiPolicyViolationService.getPolicyViolations(Collections.<String>emptySet());
+    ApiApplicationViolationListDTO apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(Collections.<String> emptySet());
     assertThat(apiApplicationViolationListDTO, notNullValue());
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(0));
   }
@@ -68,8 +68,8 @@ public class ApiPolicyViolationServiceTest
   public void testGetPolicyViolations_filteredByPolicyId() {
     // Get two of the three policy violations by policy ids
     Set<String> policyIds = Sets.newHashSet(appPolicyData1.orgPolicy.getId(), appPolicyData2.orgPolicy.getId());
-    ApiApplicationViolationListDTO apiApplicationViolationListDTO =
-        apiPolicyViolationService.getPolicyViolations(policyIds);
+    ApiApplicationViolationListDTO apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(policyIds);
 
     assertThat(apiApplicationViolationListDTO, notNullValue());
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(2));
@@ -94,8 +94,7 @@ public class ApiPolicyViolationServiceTest
     assertThat(apiApplicationViolationDTO.application.publicId, is(appPolicyData.application.getPublicId()));
     assertThat(apiApplicationViolationDTO.application.contactUserName,
         is(appPolicyData.application.getContactInternalName()));
-    assertThat(apiApplicationViolationDTO.application.organizationId,
-        is(appPolicyData.application.getOrganizationId()));
+    assertThat(apiApplicationViolationDTO.application.organizationId, is(appPolicyData.application.getOrganizationId()));
 
     assertThat(apiApplicationViolationDTO.policyViolations, hasSize(2));
     ApiPolicyViolationDTO apiPolicyViolationDTO1 = apiApplicationViolationDTO.policyViolations.get(0);
@@ -115,13 +114,15 @@ public class ApiPolicyViolationServiceTest
     }
   }
 
-  private void assertPolicyViolation(ApiPolicyViolationDTO apiPolicyViolationDTO, Application application,
-      PolicyEvaluation policyEvaluation, PolicyViolation policyViolation)
+  private void assertPolicyViolation(ApiPolicyViolationDTO apiPolicyViolationDTO,
+                                     Application application,
+                                     PolicyEvaluation policyEvaluation,
+                                     PolicyViolation policyViolation)
   {
     assertThat(apiPolicyViolationDTO.policyId, is(policyViolation.getPolicyId()));
     assertThat(apiPolicyViolationDTO.policyName, is(policyViolation.getPolicyName()));
-    assertThat(apiPolicyViolationDTO.reportUrl,
-        is("ui/links/application/" + application.getPublicId() + "/report/" + policyEvaluation.getScanId()));
+    assertThat(apiPolicyViolationDTO.reportUrl, is("ui/links/application/" + application.getPublicId() + "/report/"
+        + policyEvaluation.getScanId()));
     assertThat(apiPolicyViolationDTO.stageId, is(policyEvaluation.getStageTypeId()));
     assertThat(apiPolicyViolationDTO.mavenComponent.hash, is(policyViolation.getHash()));
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
@@ -133,16 +134,21 @@ public class ApiPolicyViolationServiceTest
     ApiConstraintViolationDTO apiConstraintViolationDTO = apiPolicyViolationDTO.constraintViolations.get(0);
     assertThat(apiConstraintViolationDTO.constraintId,
         is(policyViolation.getConstraintFacts().get(0).getConstraintId()));
-    assertThat(apiConstraintViolationDTO.constraintName,
-        is(policyViolation.getConstraintFacts().get(0).getConstraintName()));
+    assertThat(apiConstraintViolationDTO.constraintName, is(policyViolation.getConstraintFacts().get(0)
+        .getConstraintName()));
     assertThat(apiConstraintViolationDTO.reasons, hasSize(1));
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
-    assertThat(apiConstraintViolationReasonDTO.reason,
-        is(policyViolation.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
+    assertThat(apiConstraintViolationReasonDTO.reason, is(policyViolation.getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason()));
   }
 
-  private PolicyData createPolicyTestData(String orgPolicyNName, String scanId, String groupId, String artifactId,
-      String version, String hash, String reason)
+  private PolicyData createPolicyTestData(String orgPolicyNName,
+                                          String scanId,
+                                          String groupId,
+                                          String artifactId,
+                                          String version,
+                                          String hash,
+                                          String reason)
   {
     PolicyData policyTestData = new PolicyData();
     policyTestData.organization = tempEntity.newOrganization();
@@ -151,24 +157,22 @@ public class ApiPolicyViolationServiceTest
 
     // Create one violation in the past for build stage
     long time = System.currentTimeMillis() - 1000;
-    PolicyEvaluation policyEvaluation = tempEntity
-        .newPolicyEvaluation(policyTestData.application.getId(), BuildStageType.ID, scanId + "1", new Date(time));
-    tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy, groupId, artifactId,
-        version, hash, reason);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
+        BuildStageType.ID, scanId + "1", new Date(time));
+    tempEntity.newPolicyViolation(policyEvaluation, policyTestData.orgPolicy, groupId, artifactId, version, hash,
+        reason);
 
     // Create a current violation for build stage
-    policyTestData.policyEvaluation1 = tempEntity
-        .newPolicyEvaluation(policyTestData.application.getId(), BuildStageType.ID, scanId, new Date());
-    policyTestData.policyViolation1 = tempEntity
-        .newPolicyViolation(policyTestData.policyEvaluation1, policyTestData.orgPolicy, groupId, artifactId, version,
-            hash, reason);
+    policyTestData.policyEvaluation1 = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
+        BuildStageType.ID, scanId, new Date());
+    policyTestData.policyViolation1 = tempEntity.newPolicyViolation(policyTestData.policyEvaluation1,
+        policyTestData.orgPolicy, groupId, artifactId, version, hash, reason);
 
     // Create a current violation for release stage
-    policyTestData.policyEvaluation2 = tempEntity
-        .newPolicyEvaluation(policyTestData.application.getId(), ReleaseStageType.ID, scanId, new Date());
-    policyTestData.policyViolation2 = tempEntity
-        .newPolicyViolation(policyTestData.policyEvaluation2, policyTestData.orgPolicy, groupId, artifactId, version,
-            hash, reason);
+    policyTestData.policyEvaluation2 = tempEntity.newPolicyEvaluation(policyTestData.application.getId(),
+        ReleaseStageType.ID, scanId, new Date());
+    policyTestData.policyViolation2 = tempEntity.newPolicyViolation(policyTestData.policyEvaluation2,
+        policyTestData.orgPolicy, groupId, artifactId, version, hash, reason);
 
     return policyTestData;
   }

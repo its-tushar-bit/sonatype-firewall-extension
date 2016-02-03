@@ -119,7 +119,7 @@ public class PolicyImportExportTest
 
     Label oldLabelToKeep = new Label(toOrg.getId(), "keepMe", Color.red);
     labelDAO.insert(oldLabelToKeep);
-    
+
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
@@ -130,11 +130,11 @@ public class PolicyImportExportTest
 
     List<Label> labels = labelDAO.getByOwnerId(toOrg.getId());
     assertThat(labels, hasSize(3));
-    
+
     Label keptLabel = labels.get(0);
     assertThat(keptLabel.getColor(), is(Color.red));
     assertThat(keptLabel.getLabel(), is("keepMe"));
-    
+
     Label updatedLabel = labels.get(1);
     assertThat(updatedLabel.getColor(), is(Color.black)); // updated
     assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
@@ -170,7 +170,7 @@ public class PolicyImportExportTest
     labelDAO.insert(oldLabelToUpdate);
 
     Label oldLabelToKeep = tempEntity.newLabel(toApp.getId(), "keepMe", Color.red);
-    
+
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
     try (TransactionContext tx = labelDAO.createTransactionContext()) {
@@ -181,11 +181,11 @@ public class PolicyImportExportTest
 
     List<Label> labels = labelDAO.getByOwnerId(toApp.getId());
     assertThat(labels, hasSize(3));
-    
+
     Label keptLabel = labels.get(0);
     assertThat(keptLabel.getColor(), is(Color.red));
     assertThat(keptLabel.getLabel(), is("keepMe"));
-    
+
     Label updatedLabel = labels.get(1);
     assertThat(updatedLabel.getColor(), is(Color.black)); // updated
     assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
@@ -202,21 +202,21 @@ public class PolicyImportExportTest
   }
 
   @Test
-  public void testDeletionOfPolicyWaiversFromApp(){
+  public void testDeletionOfPolicyWaiversFromApp() {
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
-    
+
     Policy appPolicy = tempEntity.newPolicy(toApp.getId(), "Policy Name");
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
 
-    //only interested in the deletion so import an empty DTO
+    // only interested in the deletion so import an empty DTO
     policyImportExport.importApplication(toApp, new PolicyExportResult());
 
     assertThat(new PolicyWaiverDAO().getByOwnerId(toApp.getId()), is(empty()));
   }
 
   @Test
-  public void testDeletionOfPolicyWaiversFromOrg(){
+  public void testDeletionOfPolicyWaiversFromOrg() {
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
     Policy orgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy Name");
@@ -225,7 +225,7 @@ public class PolicyImportExportTest
     tempEntity.newWaiver("hash", appPolicy.getId(), toApp.getId());
     PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
-    //only interested in the deletion so import an empty DTO
+    // only interested in the deletion so import an empty DTO
     policyImportExport.importOrganization(toOrg, new PolicyExportResult());
 
     assertThat(policyWaiverDAO.getByOwnerId(toOrg.getId()), is(empty()));
@@ -551,7 +551,7 @@ public class PolicyImportExportTest
     PolicyExportResult policyExportResult = policyImportExport.exportOrganization(fromOrg);
     policyExportResult = detachObjects(policyExportResult);
     deleteFromOrg();
-    
+
     Organization toOrg = tempEntity.newOrganization("To Org");
     Policy toOrgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy");
     LicenseThreatGroup toOrgLtg = tempEntity.newLicenseThreatGroup(toOrg.getId());
@@ -612,7 +612,6 @@ public class PolicyImportExportTest
     Organization toOrg = tempEntity.newOrganization("To Org");
     String parentId = toOrg.getParentOrganizationId();
     LicenseThreatGroup parentLTG = tempEntity.newLicenseThreatGroup(parentId, "DummyLTG", 10, "Apache-2.0");
-
 
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.licenseThreatGroups = new ArrayList<>();

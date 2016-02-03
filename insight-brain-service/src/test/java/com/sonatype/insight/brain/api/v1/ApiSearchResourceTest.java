@@ -56,8 +56,14 @@ public class ApiSearchResourceTest
     return request.query("groupId", groupId).query("artifactId", artifactId).query("version", version);
   }
 
-  private void assertSearchResult(ApiSearchResultDTO result, String appId, String appName, String hash, String groupId,
-      String artifactId, String version, Integer threatLevel) throws Exception
+  private void assertSearchResult(ApiSearchResultDTO result,
+                                  String appId,
+                                  String appName,
+                                  String hash,
+                                  String groupId,
+                                  String artifactId,
+                                  String version,
+                                  Integer threatLevel) throws Exception
   {
     assertThat(result.applicationId, is(appId));
     assertThat(result.applicationName, is(appName));
@@ -71,7 +77,8 @@ public class ApiSearchResourceTest
   }
 
   private void sortResultsByAppIdAndHash(ApiSearchResultsDTO resultsDTO) {
-    Collections.sort(resultsDTO.results, new Comparator<ApiSearchResultDTO>() {
+    Collections.sort(resultsDTO.results, new Comparator<ApiSearchResultDTO>()
+    {
       @Override
       public int compare(final ApiSearchResultDTO o1, final ApiSearchResultDTO o2) {
         String applicationIdHash1 = o1.applicationId + o1.hash;
@@ -178,14 +185,14 @@ public class ApiSearchResourceTest
     sortResultsByAppIdAndHash(results);
     assertSearchResult(results.results.get(0), "search-app-1", "SEARCH-APP-1", "1249e25aebb15358bedd", "tomcat",
         "tomcat-util", "5.5.23", 8); // jar
-    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8",
-        "tomcat", "tomcat-util", "5.5.23", 8); // zip
-    assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9",
-        "tomcat", "tomcat-util", "5.5.23", 8); // sources, zip
+    assertSearchResult(results.results.get(1), "search-app-1", "SEARCH-APP-1", "2aa135385b1f449292e8", "tomcat",
+        "tomcat-util", "5.5.23", 8); // zip
+    assertSearchResult(results.results.get(2), "search-app-1", "SEARCH-APP-1", "a18da38b875b4658b4e9", "tomcat",
+        "tomcat-util", "5.5.23", 8); // sources, zip
     assertSearchResult(results.results.get(3), "search-app-1", "SEARCH-APP-1", "a397f601582e5ccd4b1a", "tomcat",
         "servlets-default", "5.5.4", null); // jar
-    assertSearchResult(results.results.get(4), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9",
-        "tomcat", "tomcat-util", "5.5.23", 8); // sources, jar
+    assertSearchResult(results.results.get(4), "search-app-1", "SEARCH-APP-1", "c85713867bef4a3b91c9", "tomcat",
+        "tomcat-util", "5.5.23", 8); // sources, jar
 
     assertSearchResult(results.results.get(5), "search-app-2", "SEARCH-APP-2", "1249e25aebb15358bedd", "tomcat",
         "tomcat-util", "5.5.23", 4); // jar
@@ -202,8 +209,8 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), "tomcat", "*", "*")
-        .get();
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), "tomcat", "*",
+        "*").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = response.getBody(ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));
@@ -221,8 +228,8 @@ public class ApiSearchResourceTest
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), "*", "tomcat-util",
-        "*").get();
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), "*",
+        "tomcat-util", "*").get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTO results = response.getBody(ApiSearchResultsDTO.class);
     assertThat(results, is(notNullValue()));

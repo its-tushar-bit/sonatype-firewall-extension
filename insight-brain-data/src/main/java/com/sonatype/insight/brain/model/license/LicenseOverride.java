@@ -36,19 +36,25 @@ public class LicenseOverride
   }
 
   public LicenseOverride(LicenseOverrideInternal internal, Set<String> licenseIds) {
-    this(internal.getOwnerId(), internal.getComponentIdentifier(), internal.getStatus(), licenseIds,
-        internal.getComment());
+    this(internal.getOwnerId(), internal.getComponentIdentifier(), internal.getStatus(), licenseIds, internal
+        .getComment());
     setId(internal.getId());
   }
 
-  public LicenseOverride(String ownerId, ComponentIdentifier componentIdentifier, LicenseOverrideStatus status,
-      String licenseId, String comment)
+  public LicenseOverride(String ownerId,
+                         ComponentIdentifier componentIdentifier,
+                         LicenseOverrideStatus status,
+                         String licenseId,
+                         String comment)
   {
     this(ownerId, componentIdentifier, status, licenseId != null ? Collections.singleton(licenseId) : null, comment);
   }
 
-  public LicenseOverride(String ownerId, ComponentIdentifier componentIdentifier, LicenseOverrideStatus status,
-      Set<String> licenseIds, String comment)
+  public LicenseOverride(String ownerId,
+                         ComponentIdentifier componentIdentifier,
+                         LicenseOverrideStatus status,
+                         Set<String> licenseIds,
+                         String comment)
   {
     this.ownerId = ownerId;
     this.componentIdentifier = componentIdentifier;
@@ -116,13 +122,8 @@ public class LicenseOverride
 
   @Override
   public String toString() {
-    return "LicenseOverride{" +
-        "id='" + id + '\'' +
-        ", ownerId='" + ownerId + '\'' +
-        ", status=" + status +
-        ", comment='" + comment + '\'' +
-        ", componentIdentifier='" + getComponentIdentifier() + '\'' +
-        ", licenseIds='" + getLicenseIds() + '\'' +
-        '}';
+    return "LicenseOverride{" + "id='" + id + '\'' + ", ownerId='" + ownerId + '\'' + ", status=" + status
+        + ", comment='" + comment + '\'' + ", componentIdentifier='" + getComponentIdentifier() + '\''
+        + ", licenseIds='" + getLicenseIds() + '\'' + '}';
   }
 }

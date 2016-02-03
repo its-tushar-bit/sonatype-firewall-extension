@@ -57,8 +57,11 @@ public class PolicyEvaluation
     this.scanId = scanId;
   }
 
-  public PolicyEvaluation(String applicationId, String stageTypeId, String scanId, boolean isReevaluation,
-      boolean isForMonitoring)
+  public PolicyEvaluation(String applicationId,
+                          String stageTypeId,
+                          String scanId,
+                          boolean isReevaluation,
+                          boolean isForMonitoring)
   {
     this.applicationId = applicationId;
     this.stageTypeId = stageTypeId;

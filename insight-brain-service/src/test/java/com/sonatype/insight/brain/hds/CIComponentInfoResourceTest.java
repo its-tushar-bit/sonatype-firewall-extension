@@ -34,10 +34,13 @@ public class CIComponentInfoResourceTest
 {
   private Repository repository;
 
-  protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType, final String ownerId, final String hash,
-      final ComponentIdentifier componentIdentifier) {
-    return restRequest().path(CIComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId).
-        query("hash", hash).query("componentIdentifier", componentIdentifier);
+  protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
+                                               final String ownerId,
+                                               final String hash,
+                                               final ComponentIdentifier componentIdentifier)
+  {
+    return restRequest().path(CIComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId)
+        .query("hash", hash).query("componentIdentifier", componentIdentifier);
   }
 
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
@@ -76,8 +79,7 @@ public class CIComponentInfoResourceTest
   public void testGetLicenses() throws Exception {
     ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
-    setHdsResponseForURI(
-        convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()),
+    setHdsResponseForURI(convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()),
         hdsComponentDetails, 200);
 
     HttpResponse response = licensesRequest(MAVEN_COORDINATES).get();
@@ -107,14 +109,14 @@ public class CIComponentInfoResourceTest
     vulnerability.setStatus("status");
     hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
 
-    setHdsResponseForURI(
-        convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null).getUrl()),
-        hdsComponentDetails, 200);
+    setHdsResponseForURI(convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null)
+        .getUrl()), hdsComponentDetails, 200);
 
-    HttpResponse response = vulnerabilitiesRequest(OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES).
-        get();
+    HttpResponse response = vulnerabilitiesRequest(OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES)
+        .get();
     assertResponseStatus(200, response);
-    ComponentSecurityVulnerabilities retrievedVulnerabilities = response.getBody(ComponentSecurityVulnerabilities.class);
+    ComponentSecurityVulnerabilities retrievedVulnerabilities = response
+        .getBody(ComponentSecurityVulnerabilities.class);
     assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
     SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
     assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));

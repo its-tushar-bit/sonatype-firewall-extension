@@ -53,9 +53,9 @@ public abstract class AbstractAuditMigratorTest
 
   protected String applicationId = "app1";
 
-  //common component randomly selected for testing
-  protected static final ComponentIdentifier ANTLR_COMPONENT = ComponentIdentifier
-      .createMavenCoordinates("antlr", "antlr", "2.7.2");
+  // common component randomly selected for testing
+  protected static final ComponentIdentifier ANTLR_COMPONENT = ComponentIdentifier.createMavenCoordinates("antlr",
+      "antlr", "2.7.2");
 
   public void setup(String testDataDir) throws IOException {
     File sonatypeWork = temporaryFolder.newFolder();
@@ -118,7 +118,7 @@ public abstract class AbstractAuditMigratorTest
     assertThat(auditMigrator.migrate(), is(0));
     ArrayNode aaData = (ArrayNode) appAuditStore.history(null, auditMigrator.getAuditFileName()).get("aaData");
     for (JsonNode auditJson : aaData) {
-      //file should not be migrated as marker file indicates it already has been
+      // file should not be migrated as marker file indicates it already has been
       assertThat(auditJson.get(ComponentIdentifierAdapter.COMPONENT_IDENTIFIER), is(nullValue()));
     }
   }

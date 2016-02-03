@@ -671,7 +671,7 @@ public class UserDAOTest
 
     UserDAO dao = new UserDAO();
     List<User> users = dao.findUsersByName("%fOo%");
-    //we only check first name and last name, so 2 results should be found
+    // we only check first name and last name, so 2 results should be found
     assertThat(users, hasSize(2));
     assertThat(users.get(0).getUsername(), is(user0.getUsername()));
     assertThat(users.get(1).getUsername(), is(user1.getUsername()));

@@ -148,7 +148,7 @@ public class LabelDAO
           + " characters, the one supplied has " + description.length() + " characters. ");
     }
   }
-  
+
   private void validateLabelColor(Color color) {
     if (color == null) {
       throw new InvalidLabelException("The label color must be assigned.");
@@ -202,7 +202,9 @@ public class LabelDAO
   }
 
   private void getDuplicateLabels(final TransactionContext tx,
-      final Map<OwnerType, Set<String>> childrenWithDuplicatesByType, final Owner owner, final Label label)
+                                  final Map<OwnerType, Set<String>> childrenWithDuplicatesByType,
+                                  final Owner owner,
+                                  final Label label)
   {
 
     if (!owner.canHaveChildren()) {
@@ -219,8 +221,7 @@ public class LabelDAO
     }
   }
 
-  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final Label label)
-  {
+  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final Label label) {
     if (parentId == null) {
       return;
     }

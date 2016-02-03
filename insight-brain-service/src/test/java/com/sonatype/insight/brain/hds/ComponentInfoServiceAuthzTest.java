@@ -182,9 +182,8 @@ public class ComponentInfoServiceAuthzTest
       throws Exception
   {
     login();
-    componentInfoService
-        .getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-            "hash", false /* proprietary */, null /* httpRequest */);
+    componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -200,9 +199,8 @@ public class ComponentInfoServiceAuthzTest
   private void testGetComponentDetails_ReadPermission_Unauthenticated(final Owner owner, final String ownerId)
       throws Exception
   {
-    componentInfoService
-        .getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER, MatchState.EXACT.getId(),
-            "hash", false /* proprietary */, null /* httpRequest */);
+    componentInfoService.getComponentDetails_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
+        MatchState.EXACT.getId(), "hash", false /* proprietary */, null /* httpRequest */);
   }
 
   @Test(expected = UnauthenticatedException.class)

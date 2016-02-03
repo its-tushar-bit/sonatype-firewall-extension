@@ -66,9 +66,12 @@ public class ComponentRiskService
   private final DashboardUtils dashboardUtils;
 
   @Inject
-  public ComponentRiskService(ApplicationService applicationService, ApplicationDAO applicationDAO,
-      PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationDAO policyViolationDAO,
-      PolicyViolationAdapter policyViolationAdapter, DashboardUtils dashboardUtils)
+  public ComponentRiskService(ApplicationService applicationService,
+                              ApplicationDAO applicationDAO,
+                              PolicyEvaluationDAO policyEvaluationDAO,
+                              PolicyViolationDAO policyViolationDAO,
+                              PolicyViolationAdapter policyViolationAdapter,
+                              DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.applicationDAO = applicationDAO;
@@ -83,9 +86,12 @@ public class ComponentRiskService
    * null filter criteria generally mean "all available" violations for that aspect. The results are sorted by
    * descending component risk scores.
    */
-  public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationIds, Set<String> stageIds, Set<String> tagIds,
-      PolicyThreatCategoryFilter policyThreatCategoryFilter, PolicyThreatLevelFilter policyThreatLevelFilter,
-      int maxResults)
+  public List<ComponentRiskDTO> getComponentRisks(Set<String> applicationIds,
+                                                  Set<String> stageIds,
+                                                  Set<String> tagIds,
+                                                  PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                  PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                  int maxResults)
   {
     dashboardUtils.validateDashboardLicensed();
 
@@ -116,9 +122,9 @@ public class ComponentRiskService
   }
 
   @Authorize(permission = Permission.READ)
-  protected List<PolicyViolationDTO> getPolicyViolationsByApplicationId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, Set<StageType> stages,
-      @Nullable Predicate<PolicyViolation> violationFilter)
+  protected List<PolicyViolationDTO> getPolicyViolationsByApplicationId(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+                                                                        Set<StageType> stages,
+                                                                        @Nullable Predicate<PolicyViolation> violationFilter)
   {
     if (StringUtils.isBlank(applicationId)) {
       throw new BadRequestException("Unable to get policy violations for null or empty application ID.");
@@ -150,9 +156,11 @@ public class ComponentRiskService
    * Gets the policy violations matching the specified filter criteria. Empty or null filter criteria generally mean
    * "all available" violations for that aspect.
    */
-  private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationIds, Set<String> stageIds,
-      Set<String> tagIds, PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      PolicyThreatLevelFilter policyThreatLevelFilter)
+  private List<PolicyViolationDTO> getPolicyViolations(Set<String> applicationIds,
+                                                       Set<String> stageIds,
+                                                       Set<String> tagIds,
+                                                       PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                       PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter);
@@ -173,7 +181,8 @@ public class ComponentRiskService
    * @throws BadRequestException Thrown if the stageTypeId does not match a known {@link StageType}.
    */
   List<PolicyViolationDTO> getPolicyViolations(@Nullable final Set<String> stageTypeIds,
-      @Nullable final Set<String> tagIds, @Nullable final Predicate<PolicyViolation> violationFilter)
+                                               @Nullable final Set<String> tagIds,
+                                               @Nullable final Predicate<PolicyViolation> violationFilter)
   {
 
     List<Application> applications = applicationService.getApplications();
@@ -226,8 +235,9 @@ public class ComponentRiskService
    *           applications provided.
    */
   List<PolicyViolationDTO> getPolicyViolationsByApplicationIds(Set<String> applicationIds,
-      @Nullable Set<String> stageTypeIds, @Nullable Set<String> tagIds,
-      @Nullable Predicate<PolicyViolation> violationFilter)
+                                                               @Nullable Set<String> stageTypeIds,
+                                                               @Nullable Set<String> tagIds,
+                                                               @Nullable Predicate<PolicyViolation> violationFilter)
   {
     Set<StageType> stages = dashboardUtils.getStageTypes(stageTypeIds);
 

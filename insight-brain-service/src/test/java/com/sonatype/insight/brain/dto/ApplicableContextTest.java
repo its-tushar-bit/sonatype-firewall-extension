@@ -19,7 +19,7 @@ public class ApplicableContextTest
 
   @Before
   public void setUp() {
-     applicableContext = new ApplicableContext();
+    applicableContext = new ApplicableContext();
   }
 
   @Test
@@ -32,7 +32,8 @@ public class ApplicableContextTest
     try {
       applicableContext.setType(ownerType);
       fail();
-    } catch (IllegalArgumentException e) {
+    }
+    catch (IllegalArgumentException e) {
       assertEquals("Unknown context type: " + ownerType, e.getMessage());
     }
   }

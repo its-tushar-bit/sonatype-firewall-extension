@@ -84,7 +84,7 @@ public class PolicyMigratorTest
     assertThat(appPolicies.get(0).getId(), is("da31c4440914400399e4dccfc13c1897"));
     assertThat(appPolicies.get(1).getName(), is("Test Policy 3"));
     assertThat(appPolicies.get(1).getId(), is("73fecb2f8bec4b38868f5e62c98141ef"));
-    
+
     // Assert that the new db foreign keys were created
     Tag tag = tempEntity.newTag(org.getId(), "PolicyMigratorTest Tag");
     try {
@@ -158,21 +158,21 @@ public class PolicyMigratorTest
 
     assertTrue(markerFile.exists());
   }
-  
+
   @Test
   public void testMigrate_ProcureAction() throws Exception {
     Organization org = tempEntity.newOrganization("PolicyMigratorTest Org");
-    
+
     // Create the policy data to be migrated
     InsightWork insightWork = createInsightWork();
     File policyDir = new File(insightWork.getWorkDir(), "policy");
     File orgPolicyDir = new File(policyDir, org.getId());
     orgPolicyDir.mkdirs();
     assertTrue(orgPolicyDir.isDirectory());
-    
+
     URL testPolicyFileUrl = getClass().getResource("/PolicyMigratorTest/policy-procure.json");
     FileUtils.copyFile(new File(testPolicyFileUrl.getFile()), new File(orgPolicyDir, "policy.json"));
-    
+
     // Remove the db foreign keys that must be created only after the policy data is migrated
     new H2DatabaseMigrator().runScript(OperationalDataStoreProvider.getDataSource(),
         "/PolicyMigratorTest/remove_foreign_keys.sql");

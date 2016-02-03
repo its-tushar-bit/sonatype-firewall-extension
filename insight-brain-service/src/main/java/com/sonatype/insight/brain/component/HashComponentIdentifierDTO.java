@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
  * Enhances {@link HashComponentIdentifier} with additional details required by the UI.
  * This keeps the implementation details of how the {@link ComponentIdentifier} should be rendered out of the client
  * code.
+ * 
  * @since 1.13.0
  */
 public class HashComponentIdentifierDTO
@@ -43,8 +44,7 @@ public class HashComponentIdentifierDTO
   public HashComponentIdentifierDTO() {
   }
 
-  public HashComponentIdentifierDTO(HashComponentIdentifier hashComponentIdentifier, ComponentDisplayName displayName)
-  {
+  public HashComponentIdentifierDTO(HashComponentIdentifier hashComponentIdentifier, ComponentDisplayName displayName) {
     this.id = hashComponentIdentifier.getId();
     this.hash = hashComponentIdentifier.getHash();
     this.comment = hashComponentIdentifier.getComment();

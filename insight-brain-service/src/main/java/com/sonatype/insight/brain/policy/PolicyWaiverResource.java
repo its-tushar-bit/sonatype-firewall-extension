@@ -53,7 +53,8 @@ public class PolicyWaiverResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, PolicyWaiver policyWaiver)
+                                      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                      PolicyWaiver policyWaiver)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -67,8 +68,8 @@ public class PolicyWaiverResource
   @Path("{policyWaiverId}")
   @Authorize(permission = Permission.WRITE)
   public void deletePolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-      @PathParam("policyWaiverId") String policyWaiverId)
+                                 @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                 @PathParam("policyWaiverId") String policyWaiverId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -90,9 +91,9 @@ public class PolicyWaiverResource
   @Path("component/{hash}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public AppliedWaivers getPolicyWaiversByHash(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, @PathParam("hash") String hash)
+  public AppliedWaivers getPolicyWaiversByHash(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+                                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                               @PathParam("hash") String hash)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -155,8 +156,8 @@ public class PolicyWaiverResource
 
     if (!foundPolicyInHierarchy) {
       Owner owner = ownerDAO.getById(ownerId);
-      throw new NotFoundException(
-          "Cannot find a policy with ID " + policyId + " for " + owner.getType() + " public ID " + owner.getPublicId());
+      throw new NotFoundException("Cannot find a policy with ID " + policyId + " for " + owner.getType()
+          + " public ID " + owner.getPublicId());
     }
 
     return context;

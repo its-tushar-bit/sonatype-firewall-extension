@@ -62,8 +62,8 @@ public class ApiApplicationResource
 
   @Inject
   public ApiApplicationResource(final ApiApplicationService apiApplicationService,
-      final MembershipMappingService membershipMappingService,
-      final ApiMemberMappingAdapter apiMemberMappingAdapter)
+                                final MembershipMappingService membershipMappingService,
+                                final ApiMemberMappingAdapter apiMemberMappingAdapter)
   {
     this.apiApplicationService = apiApplicationService;
     this.membershipMappingService = membershipMappingService;
@@ -73,9 +73,7 @@ public class ApiApplicationResource
   @GET
   @Path(APPLICATION_ID)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiApplicationDTO getApplication(
-      @PathParam("applicationId") final String applicationId)
-  {
+  public ApiApplicationDTO getApplication(@PathParam("applicationId") final String applicationId) {
     return apiApplicationService.getApplicationById(applicationId);
   }
 
@@ -88,9 +86,7 @@ public class ApiApplicationResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiApplicationListDTO getApplications(
-      @QueryParam("publicId") final Set<String> publicIds)
-  {
+  public ApiApplicationListDTO getApplications(@QueryParam("publicId") final Set<String> publicIds) {
     return apiApplicationService.getApplicationDTOs(publicIds);
   }
 
@@ -106,16 +102,15 @@ public class ApiApplicationResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiApplicationDTO updateApplication(final ApiApplicationDTO applicationDTO,
-      @PathParam("applicationId") final String applicationId)
+                                             @PathParam("applicationId") final String applicationId)
   {
     if (StringUtils.isBlank(applicationDTO.id)) {
       applicationDTO.id = applicationId;
     }
 
     if (!applicationId.equals(applicationDTO.id)) {
-      throw new InvalidApplicationException(
-          "The applicationId=" + applicationId + " provided in the url did not match the id=" + applicationDTO.id +
-              " provided in the json.");
+      throw new InvalidApplicationException("The applicationId=" + applicationId
+          + " provided in the url did not match the id=" + applicationDTO.id + " provided in the json.");
     }
     return apiApplicationService.updateApplication(applicationDTO);
   }
@@ -130,8 +125,7 @@ public class ApiApplicationResource
   @GET
   @Path(ROLE_MEMBERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(
-      @PathParam("applicationId") final String applicationId)
+  public ApiRoleMemberMappingListDTO getApplicableMembershipMappings(@PathParam("applicationId") final String applicationId)
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         OwnerType.APPLICATION, applicationId);
@@ -141,9 +135,8 @@ public class ApiApplicationResource
   @PUT
   @Path(ROLE_MEMBERS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setMembershipMappingForRole(
-      @PathParam("applicationId") final String applicationId,
-      final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
+  public void setMembershipMappingForRole(@PathParam("applicationId") final String applicationId,
+                                          final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
     Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
     membershipMappingService.setMembershipMappings(OwnerType.APPLICATION, applicationId, roleToMembers);
@@ -151,9 +144,7 @@ public class ApiApplicationResource
 
   @DELETE
   @Path(APPLICATION_ID)
-  public void deleteApplication(@PathParam("applicationId") final String applicationId)
-      throws IOException
-  {
+  public void deleteApplication(@PathParam("applicationId") final String applicationId) throws IOException {
     apiApplicationService.deleteApplication(applicationId);
   }
 }

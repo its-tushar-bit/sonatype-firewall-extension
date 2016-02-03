@@ -104,7 +104,7 @@ public class PolicyThreatsAdapterTest
     for (PolicyThreats.Component component : threats.aaData) {
       Assert.assertThat(component.waivedViolations, hasSize(1));
     }
-    
+
     assertPolicyThreats(threats, violations);
   }
 
@@ -172,8 +172,12 @@ public class PolicyThreatsAdapterTest
     Assert.assertThat(threats.version, is(2));
   }
 
-  private PolicyViolation buildPolicyViolation(String policyId, String hash, int threatLevel,
-      ComponentIdentifier componentIdentifier, boolean waived, String actionType)
+  private PolicyViolation buildPolicyViolation(String policyId,
+                                               String hash,
+                                               int threatLevel,
+                                               ComponentIdentifier componentIdentifier,
+                                               boolean waived,
+                                               String actionType)
   {
     PolicyEvaluation evaluation = new PolicyEvaluation("applicationId1", "stageId1", "scanId1");
 
@@ -186,8 +190,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private List<ConstraintFact> buildConstraintFact(String policyId) {
-    ConstraintFact fact = new ConstraintFact("constraint-" + policyId, "constraint-" + policyId,
-        "test-operator");
+    ConstraintFact fact = new ConstraintFact("constraint-" + policyId, "constraint-" + policyId, "test-operator");
     ConditionFact condition = new ConditionFact(ConditionTypes.MatchStateConditionType.getId(),
         "Match state condition.", "Unknown match state.");
     fact.addConditionFact(condition);
@@ -239,7 +242,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyViolations(List<PolicyThreats.PolicyViolation> policyViolations,
-      List<PolicyViolation> violations)
+                                                   List<PolicyViolation> violations)
   {
     for (PolicyThreats.PolicyViolation policyViolation : policyViolations) {
       assertPolicyThreatsPolicyViolations(policyViolation, violations);
@@ -247,7 +250,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyViolations(PolicyThreats.PolicyViolation policyViolation,
-      List<PolicyViolation> violations)
+                                                   List<PolicyViolation> violations)
   {
     for (PolicyViolation violation : violations) {
       if (policyViolation.policyId.equals(violation.getPolicyId())) {
@@ -260,7 +263,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyViolations(PolicyThreats.PolicyViolation policyViolation,
-      PolicyViolation violation)
+                                                   PolicyViolation violation)
   {
     Assert.assertThat(policyViolation.policyId, is(violation.getPolicyId()));
     Assert.assertThat(policyViolation.policyName, is(violation.getPolicyName()));
@@ -274,7 +277,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyConstraints(List<PolicyThreats.PolicyConstraint> policyConstraints,
-      List<ConstraintFact> facts)
+                                                    List<ConstraintFact> facts)
   {
     for (PolicyThreats.PolicyConstraint policyConstraint : policyConstraints) {
       assertPolicyThreatsPolicyConstraints(policyConstraint, facts);
@@ -282,7 +285,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyConstraints(PolicyThreats.PolicyConstraint constraint,
-      List<ConstraintFact> facts)
+                                                    List<ConstraintFact> facts)
   {
     for (ConstraintFact fact : facts) {
       if (constraint.constraintId.equals(fact.getConstraintId())) {
@@ -303,7 +306,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyConditions(List<PolicyThreats.PolicyCondition> conditions,
-      List<ConditionFact> conditionFacts)
+                                                   List<ConditionFact> conditionFacts)
   {
     for (PolicyThreats.PolicyCondition condition : conditions) {
       assertPolicyThreatsPolicyConditions(condition, conditionFacts);
@@ -311,7 +314,7 @@ public class PolicyThreatsAdapterTest
   }
 
   private void assertPolicyThreatsPolicyConditions(PolicyThreats.PolicyCondition condition,
-      List<ConditionFact> conditionFacts)
+                                                   List<ConditionFact> conditionFacts)
   {
     for (ConditionFact fact : conditionFacts) {
       if (fact.getConditionTypeId().equals(condition.conditionType)

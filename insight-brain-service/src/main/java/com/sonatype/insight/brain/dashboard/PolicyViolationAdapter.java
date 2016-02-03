@@ -21,7 +21,7 @@ public class PolicyViolationAdapter
 {
 
   public List<PolicyViolationDTO> createPolicyViolationDTOs(Application application,
-      List<PolicyViolation> policyViolations)
+                                                            List<PolicyViolation> policyViolations)
   {
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 

@@ -48,9 +48,13 @@ public class ComponentEvaluationV2Helper
   private PolicyDAO policyDAO = new PolicyDAO();
 
   public ComponentEvaluationData createComponentEvaluationData(final ComponentIdentifier componentIdentifier,
-      final String hash, final MatchState matchState, final int index, final Set<License> declaredLicenses,
-      final Set<License> observedLicenses, final List<SecurityVulnerability> securityVulnerabilities,
-      final Integer relativePopularity)
+                                                               final String hash,
+                                                               final MatchState matchState,
+                                                               final int index,
+                                                               final Set<License> declaredLicenses,
+                                                               final Set<License> observedLicenses,
+                                                               final List<SecurityVulnerability> securityVulnerabilities,
+                                                               final Integer relativePopularity)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -66,23 +70,26 @@ public class ComponentEvaluationV2Helper
     return componentEvaluationData;
   }
 
-  public ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
-      final String hash)
-  {
+  public ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier, final String hash) {
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;
     return component;
   }
 
-  public ComponentIdentifier createMavenComponentIdentifier(final String groupId, final String artifactId,
-      final String version, final String extension)
+  public ComponentIdentifier createMavenComponentIdentifier(final String groupId,
+                                                            final String artifactId,
+                                                            final String version,
+                                                            final String extension)
   {
     return createMavenComponentIdentifier(groupId, artifactId, version, extension, null);
   }
 
-  public ComponentIdentifier createMavenComponentIdentifier(final String groupId, final String artifactId,
-      final String version, final String extension, final String classifier)
+  public ComponentIdentifier createMavenComponentIdentifier(final String groupId,
+                                                            final String artifactId,
+                                                            final String version,
+                                                            final String extension,
+                                                            final String classifier)
   {
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put(ComponentIdentifier.MAVEN_GROUP_ID, groupId);
@@ -142,19 +149,27 @@ public class ComponentEvaluationV2Helper
   }
 
   public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-      final ApiComponentDTOV2 requestComponentDTO, final String matchState, final List<License> declaredLicenses,
-      final List<License> observedLicenses, final List<SecurityVulnerability> securityVulnerabilities,
-      final Integer relativePopularity, final Map<String, Policy> policies)
+                                     final ApiComponentDTOV2 requestComponentDTO,
+                                     final String matchState,
+                                     final List<License> declaredLicenses,
+                                     final List<License> observedLicenses,
+                                     final List<SecurityVulnerability> securityVulnerabilities,
+                                     final Integer relativePopularity,
+                                     final Map<String, Policy> policies)
   {
-    assertComponentDetails(resultComponentDTO , requestComponentDTO.componentIdentifier, requestComponentDTO.hash,
+    assertComponentDetails(resultComponentDTO, requestComponentDTO.componentIdentifier, requestComponentDTO.hash,
         matchState, declaredLicenses, observedLicenses, securityVulnerabilities, relativePopularity, policies);
   }
 
   public void assertComponentDetails(final ApiComponentDetailsDTOV2 resultComponentDTO,
-      final ApiComponentIdentifierDTOV2 expectedComponentIdentifier, final String expectedHash,
-      final String matchState, final List<License> declaredLicenses, final List<License> observedLicenses,
-      final List<SecurityVulnerability> securityVulnerabilities, final Integer relativePopularity,
-      final Map<String, Policy> policies)
+                                     final ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
+                                     final String expectedHash,
+                                     final String matchState,
+                                     final List<License> declaredLicenses,
+                                     final List<License> observedLicenses,
+                                     final List<SecurityVulnerability> securityVulnerabilities,
+                                     final Integer relativePopularity,
+                                     final Map<String, Policy> policies)
   {
     assertThat(resultComponentDTO, notNullValue());
     assertThat(resultComponentDTO.component, notNullValue());
@@ -166,34 +181,33 @@ public class ComponentEvaluationV2Helper
     assertThat(resultComponentDTO.matchState, is(matchState));
     assertThat(resultComponentDTO.relativePopularity, is(relativePopularity));
 
-
     assertThat(resultComponentDTO.licenseData, notNullValue());
     assertThat(resultComponentDTO.licenseData.declaredLicenses.size(), is(declaredLicenses.size()));
     for (int i = 0; i < declaredLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseId,
-          is(declaredLicenses.get(i).getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseName,
-          is(declaredLicenses.get(i).getLicenseName()));
+      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseId, is(declaredLicenses.get(i)
+          .getLicenseId()));
+      assertThat(resultComponentDTO.licenseData.declaredLicenses.get(i).licenseName, is(declaredLicenses.get(i)
+          .getLicenseName()));
     }
 
     assertThat(resultComponentDTO.licenseData.observedLicenses.size(), is(observedLicenses.size()));
     for (int i = 0; i < observedLicenses.size(); i++) {
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseId,
-          is(observedLicenses.get(i).getLicenseId()));
-      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseName,
-          is(observedLicenses.get(i).getLicenseName()));
+      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseId, is(observedLicenses.get(i)
+          .getLicenseId()));
+      assertThat(resultComponentDTO.licenseData.observedLicenses.get(i).licenseName, is(observedLicenses.get(i)
+          .getLicenseName()));
     }
     assertThat(resultComponentDTO.licenseData.overriddenLicenses.size(), is(0));
 
     assertThat(resultComponentDTO.securityData, notNullValue());
     assertThat(resultComponentDTO.securityData.securityIssues.size(), is(securityVulnerabilities.size()));
     for (int i = 0; i < securityVulnerabilities.size(); i++) {
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source,
-          is(securityVulnerabilities.get(i).getSource()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference,
-          is(securityVulnerabilities.get(i).getRefId()));
-      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity,
-          is(securityVulnerabilities.get(i).getSeverity()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).source, is(securityVulnerabilities.get(i)
+          .getSource()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).reference, is(securityVulnerabilities.get(i)
+          .getRefId()));
+      assertThat(resultComponentDTO.securityData.securityIssues.get(i).severity, is(securityVulnerabilities.get(i)
+          .getSeverity()));
       assertThat(resultComponentDTO.securityData.securityIssues.get(i).url, is(securityVulnerabilities.get(i).getUrl()));
     }
 

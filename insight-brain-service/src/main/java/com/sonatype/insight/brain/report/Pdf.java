@@ -67,9 +67,12 @@ final class Pdf
     }
   }
 
-  public static File generate(final File reportFile, final File cacheDir, final boolean sample,
-      final String applicationName, final String stageName, final ContactDTO contact)
-      throws IOException
+  public static File generate(final File reportFile,
+                              final File cacheDir,
+                              final boolean sample,
+                              final String applicationName,
+                              final String stageName,
+                              final ContactDTO contact) throws IOException
   {
     final File pdfFile = getPdfFile(reportFile);
 
@@ -85,9 +88,13 @@ final class Pdf
     return pdfFile;
   }
 
-  public static void generate(final File reportFile, final File cacheDir, final boolean sample,
-      final String applicationName, final String stageName, final ContactDTO contact, final ResponseBuilder response)
-      throws IOException
+  public static void generate(final File reportFile,
+                              final File cacheDir,
+                              final boolean sample,
+                              final String applicationName,
+                              final String stageName,
+                              final ContactDTO contact,
+                              final ResponseBuilder response) throws IOException
   {
     final File pdfFile = generate(reportFile, cacheDir, sample, applicationName, stageName, contact);
     final Date now = new Date();
@@ -116,8 +123,11 @@ final class Pdf
     });
   }
 
-  private static File setupTemplateDir(final File reportFile, final File cacheDir, final String applicationName,
-      final String stageName, final ContactDTO contact) throws IOException
+  private static File setupTemplateDir(final File reportFile,
+                                       final File cacheDir,
+                                       final String applicationName,
+                                       final String stageName,
+                                       final ContactDTO contact) throws IOException
   {
     final File templateDir = new File(reportFile.getParentFile(), "pdf");
 
@@ -153,7 +163,7 @@ final class Pdf
         }
       }
       File policyAlerts = new File(cacheDir, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME);
-      if(policyAlerts.exists()){
+      if (policyAlerts.exists()) {
         FileUtils.copyFile(policyAlerts, new File(templateDir, policyAlerts.getName()));
       }
     }
@@ -175,8 +185,10 @@ final class Pdf
     return false;
   }
 
-  static void fillSummary(final ObjectNode summary, final String applicationName, final String stageName,
-      final ContactDTO contact)
+  static void fillSummary(final ObjectNode summary,
+                          final String applicationName,
+                          final String stageName,
+                          final ContactDTO contact)
   {
     summary.put("applicationName", applicationName);
     summary.put("stageName", stageName);

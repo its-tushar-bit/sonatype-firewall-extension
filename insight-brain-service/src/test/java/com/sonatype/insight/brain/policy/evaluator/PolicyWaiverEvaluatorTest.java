@@ -31,7 +31,7 @@ public class PolicyWaiverEvaluatorTest
   private PolicyWaiverEvaluator evaluator = new PolicyWaiverEvaluator();
 
   private Organization org;
-  
+
   private Application app;
 
   private Policy policyApp;
@@ -79,7 +79,7 @@ public class PolicyWaiverEvaluatorTest
     assertThat(fact3.getPolicyWaiver(), nullValue());
     assertThat(fact4.getPolicyWaiver().getId(), is(policyWaiver.getId()));
   }
-  
+
   @Test
   public void testApplyWaivers_Inheritance() {
     Policy policyParentOrg = tempEntity.newPolicy(org.getParentOrganizationId(), "PolicyWaiverEvaluatorTest2");

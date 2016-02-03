@@ -51,8 +51,12 @@ public class ApiReportDataServiceV2
   private final ApiSecurityDataAdapter securityDataAdapter;
 
   @Inject
-  public ApiReportDataServiceV2(InsightWork work, ApplicationDAO appDAO, ComponentDAO componentDAO,
-      ReportService reportService, ApiLicenseDataAdapter licenseDataAdapter, ApiSecurityDataAdapter securityDataAdapter)
+  public ApiReportDataServiceV2(InsightWork work,
+                                ApplicationDAO appDAO,
+                                ComponentDAO componentDAO,
+                                ReportService reportService,
+                                ApiLicenseDataAdapter licenseDataAdapter,
+                                ApiSecurityDataAdapter securityDataAdapter)
   {
     this.work = work;
     this.appDAO = appDAO;
@@ -64,12 +68,12 @@ public class ApiReportDataServiceV2
 
   @Authorize(permission = Permission.READ)
   public ApiReportDataDTOV2 getData(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      String scanId) throws IOException {
+                                    String scanId) throws IOException
+  {
     return getDataNoAuth(applicationPublicId, scanId);
   }
 
-  public ApiReportDataDTOV2 getDataNoAuth(String applicationPublicId, String scanId) throws IOException
-  {
+  public ApiReportDataDTOV2 getDataNoAuth(String applicationPublicId, String scanId) throws IOException {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(work, app.getId(), scanId);
     if (reportFile == null) {

@@ -171,8 +171,8 @@ public class InternalRestApiAuthcTest
   public void testExplicitAuthSufficientWithoutCsrfTokenForClientIntegrationRequests() throws Exception {
     HttpRequest request = restRequest().auth().noCsrfToken();
 
-    HttpResponse response = request.subpath(PolicyEvaluationSummaryResource.RESOURCE_PATH).parameter("appId", "stageId")
-        .get();
+    HttpResponse response = request.subpath(PolicyEvaluationSummaryResource.RESOURCE_PATH)
+        .parameter("appId", "stageId").get();
     assertResponseStatus(400, response);
     assertThat(response.getSessionCookie(), is(nullValue()));
 

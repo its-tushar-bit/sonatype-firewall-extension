@@ -68,8 +68,10 @@ public class IdeResource
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   @Inject
-  public IdeResource(InsightWork work, BaseUrl baseUrl, HdsClient client,
-      ComponentPolicyEvaluator componentPolicyEvaluator)
+  public IdeResource(InsightWork work,
+                     BaseUrl baseUrl,
+                     HdsClient client,
+                     ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.work = work;
     this.baseUrl = baseUrl;
@@ -89,11 +91,11 @@ public class IdeResource
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public IdeMatchedComponent doScan(
-      @PathParam("scanType") String scanType,
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("path") String path, @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req)
-      throws IOException
+  public IdeMatchedComponent doScan(@PathParam("scanType") String scanType,
+                                    @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String applicationPublicId,
+                                    @PathParam("path") String path,
+                                    @QueryParam("proprietary") boolean proprietary,
+                                    @Context HttpServletRequest req) throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String applicationId = app.getId();
@@ -126,8 +128,8 @@ public class IdeResource
       ComponentDAO componentDAO = new ComponentDAO();
       Component component = componentDAO.getComponent(app, matchedComponent, svData);
       component.setProprietary(proprietary);
-      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(applicationId, new Stage(
-          DevelopStageType.ID), Collections.singletonList(component));
+      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
+          Collections.singletonList(component));
       ideComponent.setAlerts(policyAlerts);
     }
     return ideComponent;
@@ -145,8 +147,10 @@ public class IdeResource
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
   public IdeMatchedComponent postScan(@PathParam("scanType") String scanType,
-      @PathParam("applicationPublicId") String applicationPublicId, @PathParam("path") String path,
-      @QueryParam("proprietary") boolean proprietary, @Context HttpServletRequest req) throws IOException
+                                      @PathParam("applicationPublicId") String applicationPublicId,
+                                      @PathParam("path") String path,
+                                      @QueryParam("proprietary") boolean proprietary,
+                                      @Context HttpServletRequest req) throws IOException
   {
     return doScan(scanType, applicationPublicId, path, proprietary, req);
   }

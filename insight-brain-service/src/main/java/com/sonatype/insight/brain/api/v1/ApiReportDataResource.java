@@ -43,7 +43,7 @@ public class ApiReportDataResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiReportDataDTO getData(@PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("scanId") String scanId) throws Exception
+                                  @PathParam("scanId") String scanId) throws Exception
   {
     return reportDataService.getData(applicationPublicId, scanId);
   }

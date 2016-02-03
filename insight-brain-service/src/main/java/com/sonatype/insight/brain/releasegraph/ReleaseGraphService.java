@@ -51,8 +51,8 @@ public class ReleaseGraphService
         }
       }
 
-      throw new RuntimeException("Error creating popularity graph for " + componentIdentifier
-          + " for report " + scanId, e);
+      throw new RuntimeException(
+          "Error creating popularity graph for " + componentIdentifier + " for report " + scanId, e);
     }
   }
 }

@@ -254,9 +254,7 @@ public class InsightMockServer
       baseRequest.setHandled(true);
     }
 
-    private void handleReportDownload(HttpServletRequest request)
-        throws IOException
-    {
+    private void handleReportDownload(HttpServletRequest request) throws IOException {
       handleMatchedRequest(request);
 
       String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());

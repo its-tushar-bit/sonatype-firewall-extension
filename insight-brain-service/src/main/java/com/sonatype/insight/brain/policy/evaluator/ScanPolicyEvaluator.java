@@ -77,8 +77,10 @@ public class ScanPolicyEvaluator
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   @Inject
-  public ScanPolicyEvaluator(final InsightWork insightWork, final ReportService reportService,
-      final PolicyThreatsAdapter policyThreatsAdapter, final ComponentPolicyEvaluator componentPolicyEvaluator)
+  public ScanPolicyEvaluator(final InsightWork insightWork,
+                             final ReportService reportService,
+                             final PolicyThreatsAdapter policyThreatsAdapter,
+                             final ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -98,8 +100,10 @@ public class ScanPolicyEvaluator
     return evaluate(applicationPublicId, scanId, stage, true /* forMonitoring */);
   }
 
-  private PolicyEvaluation evaluate(final String applicationPublicId, final String scanId, final Stage stage,
-      boolean forMonitoring) throws IOException
+  private PolicyEvaluation evaluate(final String applicationPublicId,
+                                    final String scanId,
+                                    final Stage stage,
+                                    boolean forMonitoring) throws IOException
   {
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException("Invalid stage id=" + stage.getStageTypeId());
@@ -143,15 +147,19 @@ public class ScanPolicyEvaluator
     return policyEvaluation;
   }
 
-  private PolicyEvaluation persistPolicyResults(String appId, String scanId, Stage stage, boolean forMonitoring,
-      PolicyResults policyResults, List<Component> components)
+  private PolicyEvaluation persistPolicyResults(String appId,
+                                                String scanId,
+                                                Stage stage,
+                                                boolean forMonitoring,
+                                                PolicyResults policyResults,
+                                                List<Component> components)
   {
     Object lock = getPersistenceLock(appId);
     synchronized (lock) {
       PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
       try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
         tx.begin();
-  
+
         // Persist the policy evaluation
         boolean isReevaluation = (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null);
         PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
@@ -164,7 +172,7 @@ public class ScanPolicyEvaluator
           policyEvaluation.setForObsoleteScan(!isForLatestScan);
         }
         policyEvaluationDAO.insert(tx, policyEvaluation);
-  
+
         // Persist policy violations
         List<PolicyViolation> newPolicyViolations = new ArrayList<>();
         List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
@@ -206,8 +214,8 @@ public class ScanPolicyEvaluator
         // primary policy evaluation, since any reevaluation (even for monitoring) may be for an older scan.
         if (isForLatestScan) {
           // Calculate a diff between the current policy violations and the previous first occurrence policy violations
-          List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(tx,
-              appId, stage.getStageTypeId());
+          List<PolicyViolation> oldPolicyViolations = policyViolationDAO
+              .getFirstOccurrenceByApplicationIdAndStageTypeId(tx, appId, stage.getStageTypeId());
           PolicyViolationDiff policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(oldPolicyViolations,
               newPolicyViolations);
           FirstOccurrencePolicyViolationDAO firstOccurrencePolicyViolationDAO = new FirstOccurrencePolicyViolationDAO();
@@ -226,16 +234,19 @@ public class ScanPolicyEvaluator
 
           persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
         }
-  
+
         tx.commit();
-  
+
         return policyEvaluation;
       }
     }
   }
 
-  private void persistApplicationComponents(TransactionContext tx, String appId, Stage stage, Date time,
-      List<Component> components)
+  private void persistApplicationComponents(TransactionContext tx,
+                                            String appId,
+                                            Stage stage,
+                                            Date time,
+                                            List<Component> components)
   {
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 

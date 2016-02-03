@@ -25,7 +25,7 @@ import static org.junit.Assert.assertThat;
  * @since 1.13.0
  */
 public class SecurityAuditMigratorTest
-  extends AbstractAuditMigratorTest
+    extends AbstractAuditMigratorTest
 {
   @Override
   protected void verifyAuditHistory(final JsonStore auditStore, final boolean isOrg) throws IOException {
@@ -48,19 +48,16 @@ public class SecurityAuditMigratorTest
   }
 
   private void verifySecurityAugmentation() throws IOException {
-    List<SecurityVulnerability> securityVulnerabilities = Lists.asList(
-        new SecurityVulnerability("98703", "osvdb", 5f),
-        new SecurityVulnerability("CVE-2013-2186", "cve", 8f),
-        new SecurityVulnerability[0]
-    );
+    List<SecurityVulnerability> securityVulnerabilities = Lists.asList(new SecurityVulnerability("98703", "osvdb", 5f),
+        new SecurityVulnerability("CVE-2013-2186", "cve", 8f), new SecurityVulnerability[0]);
 
-    ArrayNode securityData = AugmentUtil
-        .getSVData(getInsightWork(), applicationId, ANTLR_COMPONENT, securityVulnerabilities);
+    ArrayNode securityData = AugmentUtil.getSVData(getInsightWork(), applicationId, ANTLR_COMPONENT,
+        securityVulnerabilities);
 
     for (JsonNode securityNode : securityData) {
       assertThat(securityNode.get("status").textValue(), is("Not Applicable"));
-      assertThat(securityNode.get("comment").textValue(),
-          is(securityNode.get("reference").textValue() + " is not applicable."));
+      assertThat(securityNode.get("comment").textValue(), is(securityNode.get("reference").textValue()
+          + " is not applicable."));
     }
   }
 

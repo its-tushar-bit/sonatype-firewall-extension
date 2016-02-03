@@ -50,8 +50,8 @@ public class PolicyEvaluationSummaryServiceTest
     String scanId = "test-scanid";
 
     Application application = tempEntity.newApplicationWithParent("test-app");
-    PolicyEvaluation policyEvaluation = tempEntity
-        .newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
+        scanId);
     Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
@@ -59,8 +59,8 @@ public class PolicyEvaluationSummaryServiceTest
         .getEvaluationSummaryByApplicationId(application.getId(), stage);
 
     assertThat(policyEvaluationSummary, notNullValue());
-    assertThat(policyEvaluationSummary.getReportUrl(),
-        is("ui/links/application/" + application.getPublicId() + "/report/" + scanId));
+    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/application/" + application.getPublicId()
+        + "/report/" + scanId));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));

@@ -397,7 +397,7 @@ public class TagDAOTest
       assertEquals("The tag color must be assigned.", expected.getMessage());
     }
   }
-  
+
   @Test
   public void testValidateNullColor_Update() {
     Tag tag = new Tag(organization.getId(), "name", "description", Color.yellow);
@@ -482,7 +482,7 @@ public class TagDAOTest
     Policy policy3 = tempEntity.newPolicy(org2.getId(), "TagDAOTest3");
     Policy policy4 = tempEntity.newPolicy(org2.getId(), "TagDAOTest4");
 
-    //Create tags and apply to policies
+    // Create tags and apply to policies
     org1Tags.add(tempEntity.newTag(org1.getId()));
     tempEntity.newPolicyTag(policy1.getId(), org1Tags.get(0).getId());
     org1Tags.add(tempEntity.newTag(org1.getId()));
@@ -498,7 +498,7 @@ public class TagDAOTest
     tempEntity.newPolicyTag(policy3.getId(), org2Tags.get(2).getId());
     tempEntity.newPolicyTag(policy4.getId(), org2Tags.get(2).getId());
 
-    //Create tags but do not apply to policies
+    // Create tags but do not apply to policies
     tempEntity.newTag(org1.getId());
     tempEntity.newTag(org2.getId());
 

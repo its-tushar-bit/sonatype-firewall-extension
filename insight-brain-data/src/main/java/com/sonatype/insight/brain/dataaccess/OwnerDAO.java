@@ -41,7 +41,7 @@ public class OwnerDAO
     if (app != null) {
       return app;
     }
-    
+
     return repoDAO.getById(id);
   }
 

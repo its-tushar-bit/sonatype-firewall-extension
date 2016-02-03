@@ -23,7 +23,7 @@ public class FormMask
       mask.shouldBe(visible);
     }
     catch (Throwable t) {
-      //ok the mask opened and closed before we got a chance to check
+      // ok the mask opened and closed before we got a chance to check
       return mask;
     }
 

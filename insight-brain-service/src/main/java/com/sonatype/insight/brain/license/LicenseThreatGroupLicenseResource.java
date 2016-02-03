@@ -35,10 +35,9 @@ public class LicenseThreatGroupLicenseResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-      @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
+  public List<LicenseThreatGroupLicense> getLicenseThreatGroupLicenses(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+                                                                       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                                                       @PathParam("licenseThreatGroupId") String licenseThreatGroupId)
   {
     return licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(licenseThreatGroupId);
   }
@@ -47,10 +46,10 @@ public class LicenseThreatGroupLicenseResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
-  public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-      @PathParam("licenseThreatGroupId") String licenseThreatGroupId, Set<String> licenseIds)
+  public List<LicenseThreatGroupLicense> setLicenseThreatGroupLicenses(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+                                                                       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                                                                       @PathParam("licenseThreatGroupId") String licenseThreatGroupId,
+                                                                       Set<String> licenseIds)
   {
     licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroupId, licenseIds);
 

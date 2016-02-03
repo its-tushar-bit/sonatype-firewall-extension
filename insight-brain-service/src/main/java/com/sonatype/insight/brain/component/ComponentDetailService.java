@@ -59,9 +59,11 @@ public class ComponentDetailService
   private final CLMLicenseManager licenseManager;
 
   @Inject
-  public ComponentDetailService(ApplicationService appService, ApplicationAdapter appAdapter,
-      ApplicationComponentDAO applicationComponentDAO, StageTypeService stageTypeService,
-      CLMLicenseManager licenseManager)
+  public ComponentDetailService(ApplicationService appService,
+                                ApplicationAdapter appAdapter,
+                                ApplicationComponentDAO applicationComponentDAO,
+                                StageTypeService stageTypeService,
+                                CLMLicenseManager licenseManager)
   {
     this.appService = appService;
     this.appAdapter = appAdapter;
@@ -109,8 +111,8 @@ public class ComponentDetailService
           continue;
         }
 
-        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationIdAndHash(policyEvaluation.getId(),
-            hash);
+        List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationIdAndHash(
+            policyEvaluation.getId(), hash);
         if (policyViolations.isEmpty()) {
           continue;
         }
@@ -152,7 +154,7 @@ public class ComponentDetailService
 
           // Should always have the time/action of the first occurring violation for the stage, to indicate how long
           // violations have been around for this application.
-          if(policyStageDetailDTO.time <= appStageDetailDTO.time) {
+          if (policyStageDetailDTO.time <= appStageDetailDTO.time) {
             appStageDetailDTO.time = policyStageDetailDTO.time;
             appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
           }

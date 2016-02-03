@@ -53,9 +53,12 @@ public class ApiSearchServiceV2
   private final PolicyViolationDAO policyViolationDAO;
 
   @Inject
-  public ApiSearchServiceV2(final BaseUrl baseUrl, final ApplicationDAO applicationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationComponentDAO applicationComponentDAO,
-      final PolicyViolationDAO policyViolationDAO) {
+  public ApiSearchServiceV2(final BaseUrl baseUrl,
+                            final ApplicationDAO applicationDAO,
+                            final PolicyEvaluationDAO policyEvaluationDAO,
+                            final ApplicationComponentDAO applicationComponentDAO,
+                            final PolicyViolationDAO policyViolationDAO)
+  {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -63,8 +66,7 @@ public class ApiSearchServiceV2
     this.policyViolationDAO = policyViolationDAO;
   }
 
-  public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier)
-  {
+  public ApiSearchResultsDTOV2 searchComponent(String stageId, String hash, ComponentIdentifier componentIdentifier) {
     if (StringUtils.isEmpty(stageId)) {
       throw new BadRequestException("Stage has not been specified.");
     }
@@ -104,8 +106,8 @@ public class ApiSearchServiceV2
         continue;
       }
 
-      List<ApplicationComponent> applicationComponentList =
-          applicationComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stageId);
+      List<ApplicationComponent> applicationComponentList = applicationComponentDAO.getByApplicationIdAndStageTypeId(
+          app.getId(), stageId);
       for (ApplicationComponent applicationComponent : applicationComponentList) {
         String candidateHash = applicationComponent.getHash();
         if (hash != null && !hash.equalsIgnoreCase(candidateHash)) {

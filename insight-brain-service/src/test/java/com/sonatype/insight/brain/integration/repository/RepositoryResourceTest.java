@@ -54,8 +54,8 @@ public class RepositoryResourceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
-        .post();
+    HttpResponse response = enableRequest()
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true).post();
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());
@@ -69,8 +69,8 @@ public class RepositoryResourceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
-    HttpResponse response =
-        quarantineRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true).post();
+    HttpResponse response = quarantineRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(),
+        true).post();
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());
@@ -93,11 +93,12 @@ public class RepositoryResourceTest
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
     tempEntity.newRepositoryComponent(repository.getId(), "/blah", new Date(), null);
 
-    HttpResponse response = summaryRequest().
-        parameter(repositoryManager.getInstanceId(), repository.getPublicId()).get();
+    HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .get();
 
     assertResponseStatus(200, response);
-    RepositoryPolicyEvaluationSummary policyEvaluationSummary = response.getBody(RepositoryPolicyEvaluationSummary.class);
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary = response
+        .getBody(RepositoryPolicyEvaluationSummary.class);
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getSevereComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(1));
@@ -113,9 +114,8 @@ public class RepositoryResourceTest
     HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
 
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(),
-        is("Cannot find a repository with repositoryManagerInstanceId=" + repositoryManager.getInstanceId() +
-            " and publicId=" + repositoryId + "."));
+    assertThat(response.getBodyText(), is("Cannot find a repository with repositoryManagerInstanceId="
+        + repositoryManager.getInstanceId() + " and publicId=" + repositoryId + "."));
   }
 
   @Test

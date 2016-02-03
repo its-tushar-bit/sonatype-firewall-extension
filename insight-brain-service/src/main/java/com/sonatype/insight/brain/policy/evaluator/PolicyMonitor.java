@@ -46,12 +46,15 @@ public class PolicyMonitor
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
-  
+
   private final CLMLicenseManager licenseManager;
 
   @Inject
-  public PolicyMonitor(InsightWork work, ScanUploader uploader, ScanPolicyEvaluator scanPolicyEvaluator,
-      PolicyAlertNotifier policyAlertNotifier, CLMLicenseManager licenseManager)
+  public PolicyMonitor(InsightWork work,
+                       ScanUploader uploader,
+                       ScanPolicyEvaluator scanPolicyEvaluator,
+                       PolicyAlertNotifier policyAlertNotifier,
+                       CLMLicenseManager licenseManager)
   {
     this.work = work;
     this.uploader = uploader;
@@ -61,12 +64,12 @@ public class PolicyMonitor
   }
 
   public void run() {
-    //not licensed, back on outta here
+    // not licensed, back on outta here
     if (!licenseManager.hasPolicyMonitoring()) {
       log.debug("Ending task, not licensed for Policy Monitoring.");
       return;
     }
-    
+
     log.info("Starting policy monitoring");
 
     long start = System.currentTimeMillis();
@@ -136,8 +139,7 @@ public class PolicyMonitor
         app.getId(), scanId);
 
     Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(),
-        scanId, stage);
+    PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluateForMonitoring(app.getPublicId(), scanId, stage);
     policyAlertNotifier.sendNotifications(app, policyEvaluation,
         lastMonitoringPolicyEvaluation != null ? lastMonitoringPolicyEvaluation : lastPrimaryPolicyEvaluation);
 

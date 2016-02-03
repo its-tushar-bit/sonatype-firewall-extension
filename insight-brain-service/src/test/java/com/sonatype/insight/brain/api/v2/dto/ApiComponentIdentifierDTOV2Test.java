@@ -15,10 +15,12 @@ import static org.hamcrest.Matchers.is;
 /**
  * A compatibility test to highlight when changes to the internal {@link ComponentIdentifier} break the public API.
  *
- * Since we are exposing the non-public {@link ComponentIdentifier} coordinates map to the public API, we need to make sure the
- * names (keys) of the coordinates don't change.  If they do we'll need to correct, potentially by transforming them.
+ * Since we are exposing the non-public {@link ComponentIdentifier} coordinates map to the public API, we need to make
+ * sure the
+ * names (keys) of the coordinates don't change. If they do we'll need to correct, potentially by transforming them.
  *
- * NOTE: Don't use the {@link ComponentIdentifier} constants that define the names (keys) in order to validate that expectations
+ * NOTE: Don't use the {@link ComponentIdentifier} constants that define the names (keys) in order to validate that
+ * expectations
  * of API clients have not changed.
  */
 public class ApiComponentIdentifierDTOV2Test

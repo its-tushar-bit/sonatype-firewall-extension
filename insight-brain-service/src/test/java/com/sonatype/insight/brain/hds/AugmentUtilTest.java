@@ -72,8 +72,9 @@ public class AugmentUtilTest
 
   private void augmentAndAssertSecurity(String securityJson, String expectedJson) throws IOException {
     createSecurityJson(securityJson);
-    ArrayNode svData = AugmentUtil.getSVData(insightWork, applicationId, ComponentIdentifier.createMavenCoordinates("g", "a", "v"), getSecurityVulnerabilities());
-    assertThat(svData, is((ArrayNode)JsonUtils.parse(expectedJson)));
+    ArrayNode svData = AugmentUtil.getSVData(insightWork, applicationId,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), getSecurityVulnerabilities());
+    assertThat(svData, is((ArrayNode) JsonUtils.parse(expectedJson)));
   }
 
   private List<SecurityVulnerability> getSecurityVulnerabilities() {

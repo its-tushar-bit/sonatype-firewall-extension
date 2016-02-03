@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
-
 
 /**
  * @since 1.12
@@ -32,7 +30,6 @@ public class LastPolicyEvaluation
 
   @Column(name = "stage_type_id")
   private String stageTypeId;
-
 
   public LastPolicyEvaluation() {
 
@@ -72,12 +69,8 @@ public class LastPolicyEvaluation
 
   @Override
   public String toString() {
-    return "LastPolicyEvaluation{" +
-        "policyEvaluationId='" + policyEvaluationId + '\'' +
-        ", applicationId='" + applicationId + '\'' +
-        ", stageTypeId='" + stageTypeId + '\'' +
-        '}';
+    return "LastPolicyEvaluation{" + "policyEvaluationId='" + policyEvaluationId + '\'' + ", applicationId='"
+        + applicationId + '\'' + ", stageTypeId='" + stageTypeId + '\'' + '}';
   }
-
 
 }

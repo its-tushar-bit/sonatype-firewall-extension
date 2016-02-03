@@ -181,7 +181,8 @@ public class RepositoryDAOTest
     try {
       dao.getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, publicId);
       fail("Expected NotFoundException");
-    } catch (NotFoundException e) {
+    }
+    catch (NotFoundException e) {
       assertThat(e.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId)));
     }
   }

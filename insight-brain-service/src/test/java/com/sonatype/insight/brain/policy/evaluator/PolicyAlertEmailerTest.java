@@ -145,9 +145,10 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
 
-    log.assertDebug("Not sending notification emails for application " + app.getPublicId() + " and scan "
-        + eval.getScanId() + " in stage " + eval.getStageTypeId()
-        + ", no recipients configured for any violated policy", NOTIFICATION_WAIT_TIMEOUT);
+    log.assertDebug(
+        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+            + " in stage " + eval.getStageTypeId() + ", no recipients configured for any violated policy",
+        NOTIFICATION_WAIT_TIMEOUT);
   }
 
   @Test
@@ -168,9 +169,10 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyAlerts);
 
-    log.assertDebug("Sending notification email via " + mailer.getServer() + " to " + action.getTarget()
-        + " for application " + app.getPublicId() + " and scan " + eval.getScanId() + " in stage "
-        + eval.getStageTypeId(), NOTIFICATION_WAIT_TIMEOUT);
+    log.assertDebug(
+        "Sending notification email via " + mailer.getServer() + " to " + action.getTarget() + " for application "
+            + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(),
+        NOTIFICATION_WAIT_TIMEOUT);
   }
 
   @Test
@@ -345,8 +347,7 @@ public class PolicyAlertEmailerTest
     assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3);
   }
 
-  private void assertEmailAddresses(String... expectedEmailAddresses)
-  {
+  private void assertEmailAddresses(String... expectedEmailAddresses) {
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT).times(expectedEmailAddresses.length)).sendHtml(anyString(),
         toAddressesArgumentCaptor.capture(), anyString(), anyString());
 

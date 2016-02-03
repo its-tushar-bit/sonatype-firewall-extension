@@ -92,41 +92,41 @@ public class LicenseThreatGroupServiceAuthzTest
   @Test
   public void testAddLicenseThreatGroupForApplication_Authorized() throws Exception {
     grantWritePermission(app.getId());
-    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(),
-        new LicenseThreatGroup(null, "Test LTG", 5));
+    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(), new LicenseThreatGroup(
+        null, "Test LTG", 5));
   }
 
   @Test
   public void testAddLicenseThreatGroupForOrganization_Authorized() throws Exception {
     grantWritePermission(org.getId());
-    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(),
-        new LicenseThreatGroup(null, "Test LTG", 5));
+    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(), new LicenseThreatGroup(null,
+        "Test LTG", 5));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddLicenseThreatGroupForApplication_Unauthenticated() throws Exception {
-    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.APPLICATION,
-        app.getPublicId(), new LicenseThreatGroup(null, "Test LTG", 5));
+    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(), new LicenseThreatGroup(
+        null, "Test LTG", 5));
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddLicenseThreatGroupForOrganization_Unauthenticated() throws Exception {
-    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(),
-        new LicenseThreatGroup(null, "Test LTG", 5));
+    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(), new LicenseThreatGroup(null,
+        "Test LTG", 5));
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testAddLicenseThreatGroupForApplication_Unauthorized() throws Exception {
     grantReadPermission(app.getId());
-    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.APPLICATION,
-        app.getPublicId(), new LicenseThreatGroup(null, "Test LTG", 5));
+    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(), new LicenseThreatGroup(
+        null, "Test LTG", 5));
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testAddLicenseThreatGroupForOrganization_Unauthorized() throws Exception {
     grantReadPermission(org.getId());
-    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(),
-        new LicenseThreatGroup(null, "Test LTG", 5));
+    licenseThreatGroupService.addLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(), new LicenseThreatGroup(null,
+        "Test LTG", 5));
   }
 
   @Test
@@ -146,8 +146,7 @@ public class LicenseThreatGroupServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateLicenseThreatGroupForApplication_Unauthenticated() throws Exception {
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId());
-    licenseThreatGroupService.updateLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(),
-        licenseThreatGroup);
+    licenseThreatGroupService.updateLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(), licenseThreatGroup);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -160,8 +159,7 @@ public class LicenseThreatGroupServiceAuthzTest
   public void testUpdateLicenseThreatGroupForApplication_Unauthorized() throws Exception {
     grantReadPermission(app.getId());
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(app.getId());
-    licenseThreatGroupService.updateLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(),
-        licenseThreatGroup);
+    licenseThreatGroupService.updateLicenseThreatGroup(OwnerType.APPLICATION, app.getPublicId(), licenseThreatGroup);
   }
 
   @Test(expected = UnauthorizedException.class)

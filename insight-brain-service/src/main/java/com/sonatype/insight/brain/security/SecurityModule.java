@@ -89,7 +89,7 @@ public class SecurityModule
 
     manager.createChain("/*assets/**", "anon"); // assets for the web interface
     manager.createChain("/audit-report/**", "anon"); // assets for the audit report
-    manager.createChain("/new/*assets/**", "anon");  // assets for the web interface
+    manager.createChain("/new/*assets/**", "anon"); // assets for the web interface
     manager.createChain("/cip/**", "anon"); // assets for report CIP
     manager.createChain("/new/cip/**", "anon"); // assets for report CIP
     manager.createChain("/favicon.ico", "anon"); // favicon for web interface
@@ -130,7 +130,8 @@ public class SecurityModule
 
   private void configureFilterChainsForIntegrations(DefaultFilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
-    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic";
+    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
+        + "], reverseProxy, authcBasic";
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);

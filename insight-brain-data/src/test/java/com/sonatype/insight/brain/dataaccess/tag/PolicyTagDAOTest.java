@@ -124,7 +124,7 @@ public class PolicyTagDAOTest
     Policy policy3 = tempEntity.newPolicy(org2.getId(), "PolicyTagDAOTest3");
     Policy policy4 = tempEntity.newPolicy(org2.getId(), "PolicyTagDAOTest4");
 
-    //Create tags and apply to policies
+    // Create tags and apply to policies
     org1PolicyTags.add(tempEntity.newPolicyTag(policy1.getId(), tempEntity.newTag(org1.getId()).getId()));
     org1PolicyTags.add(tempEntity.newPolicyTag(policy2.getId(), tempEntity.newTag(org1.getId()).getId()));
     org1PolicyTags.add(tempEntity.newPolicyTag(policy1.getId(), tempEntity.newTag(org1.getId()).getId()));
@@ -135,7 +135,7 @@ public class PolicyTagDAOTest
     org2PolicyTags.add(tempEntity.newPolicyTag(policy3.getId(), tempEntity.newTag(org2.getId()).getId()));
     org2PolicyTags.add(tempEntity.newPolicyTag(policy4.getId(), org2PolicyTags.get(2).getTagId()));
 
-    //Create tags but do not apply to policies
+    // Create tags but do not apply to policies
     tempEntity.newTag(org1.getId());
     tempEntity.newTag(org2.getId());
 

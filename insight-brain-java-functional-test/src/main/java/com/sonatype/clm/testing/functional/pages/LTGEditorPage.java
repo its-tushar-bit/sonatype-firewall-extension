@@ -14,8 +14,8 @@ public class LTGEditorPage
   public static final int DEFAULT_THREAT_LEVEL = 5;
 
   public static String urlToEdit(String ownerId, String licenseThreatGroupId) {
-    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/licenseThreatGroup/" +
-        licenseThreatGroupId;
+    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/licenseThreatGroup/"
+        + licenseThreatGroupId;
   }
 
   public static String urlToCreate(String ownerId) {

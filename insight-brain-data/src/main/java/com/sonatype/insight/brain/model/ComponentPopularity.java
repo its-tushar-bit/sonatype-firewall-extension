@@ -29,7 +29,7 @@ public class ComponentPopularity
 
   public ComponentIdentifier getComponentIdentifier() {
     if (componentIdentifier == null) {
-      //to support old reports that won't have the componentIdentifier
+      // to support old reports that won't have the componentIdentifier
       try {
         componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
       }

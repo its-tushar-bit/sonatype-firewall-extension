@@ -32,12 +32,18 @@ public class DataMigrator
   private final RootOrganizationConfigMigrator rootOrganizationConfigMigrator;
 
   @Inject
-  public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator, PolicyMigrator policyMigrator,
-      PolicyEvaluationMigrator policyEvaluationMigrator, WaivedPolicyViolationMigrator waivedPolicyViolationMigrator,
-      ProcureRemovalMigrator procureRemovalMigrator, NullHashModifiedMigrator modifiedMigrator,
-      PolicyDroolsCodeMigrator policyDroolsCodeMigrator, DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator,
-      LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator, BomAuditGAVMigrator bomAuditMigrator,
-      SecurityAuditGAVMigrator securityAuditMigrator, RootOrganizationConfigMigrator rootOrganizationConfigMigrator)
+  public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator,
+                      PolicyMigrator policyMigrator,
+                      PolicyEvaluationMigrator policyEvaluationMigrator,
+                      WaivedPolicyViolationMigrator waivedPolicyViolationMigrator,
+                      ProcureRemovalMigrator procureRemovalMigrator,
+                      NullHashModifiedMigrator modifiedMigrator,
+                      PolicyDroolsCodeMigrator policyDroolsCodeMigrator,
+                      DashboardFilterAppIdMigrator dashboardFilterAppIdMigrator,
+                      LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator,
+                      BomAuditGAVMigrator bomAuditMigrator,
+                      SecurityAuditGAVMigrator securityAuditMigrator,
+                      RootOrganizationConfigMigrator rootOrganizationConfigMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;

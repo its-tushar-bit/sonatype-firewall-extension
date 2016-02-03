@@ -55,8 +55,12 @@ public class ApiSearchResourceV2Test
     return request.query("componentIdentifier", componentIdentifier);
   }
 
-  private void assertSearchResult(ApiSearchResultDTOV2 result, String appId, String appName, String hash,
-      ComponentIdentifier componentIdentifier, Integer threatLevel) throws Exception
+  private void assertSearchResult(ApiSearchResultDTOV2 result,
+                                  String appId,
+                                  String appName,
+                                  String hash,
+                                  ComponentIdentifier componentIdentifier,
+                                  Integer threatLevel) throws Exception
   {
     assertThat(result.applicationId, is(appId));
     assertThat(result.applicationName, is(appName));
@@ -220,8 +224,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-1", Stage.ID_BUILD, appToComponentMap.get("search-app-1"));
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*",
-        "sources", "jar");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*", "sources",
+        "jar");
     HttpResponse response = addCoords(searchRequest(Stage.ID_BUILD), componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
@@ -260,8 +264,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("tomcat", "*", "*");
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), componentIdentifier)
-        .get();
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"),
+        componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -280,8 +284,8 @@ public class ApiSearchResourceV2Test
     helper.createAppWithScan("search-app-2", Stage.ID_BUILD, appToComponentMap.get("search-app-2"));
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("*", "tomcat-util", "*");
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"), componentIdentifier)
-        .get();
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "a397f601582e5ccd4b1a"),
+        componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));
@@ -292,8 +296,8 @@ public class ApiSearchResourceV2Test
   @Test
   public void testSearchComponent_EchoCriteria() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", "1");
-    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"), componentIdentifier)
-        .get();
+    HttpResponse response = addCoords(addHash(searchRequest(Stage.ID_BUILD), "1249e25aebb15358bedd"),
+        componentIdentifier).get();
     assertResponseStatus(200, response);
     ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
     assertThat(results, is(notNullValue()));

@@ -40,8 +40,12 @@ public class TestInsightBrainServiceRule
 
   private TestInsightBrainService brain;
 
-  public TestInsightBrainServiceRule(int port, int adminPort, String baseUrl, String hdsUrl,
-      boolean isHdsProxyRequired, List<Module> modules)
+  public TestInsightBrainServiceRule(int port,
+                                     int adminPort,
+                                     String baseUrl,
+                                     String hdsUrl,
+                                     boolean isHdsProxyRequired,
+                                     List<Module> modules)
   {
     this.port = port;
     this.adminPort = adminPort;

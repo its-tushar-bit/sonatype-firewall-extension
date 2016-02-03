@@ -74,8 +74,9 @@ public class ApiComponentDetailsServiceV2Test
     apiComponentDetailsServiceV2.setChunkSize(CHUNK_SIZE);
   }
 
-  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest, ComponentIdentifier componentIdentifier,
-      String hash) throws IOException
+  private void mockHdsRequest(ComponentEvaluationDataRequestList hdsRequest,
+                              ComponentIdentifier componentIdentifier,
+                              String hash) throws IOException
   {
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
@@ -334,7 +335,8 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   private void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
-      ApiComponentIdentifierDTOV2 expectedComponentIdentifier, String expectedHash)
+                                      ApiComponentIdentifierDTOV2 expectedComponentIdentifier,
+                                      String expectedHash)
   {
     assertThat(resultComponentDTO, notNullValue());
     assertThat(resultComponentDTO.component, notNullValue());
@@ -346,8 +348,12 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   public void assertComponentDetails(ApiComponentDetailsDTOV2 resultComponentDTO,
-      ApiComponentDTOV2 requestComponentDTO, String matchState, List<License> declaredLicenses,
-      List<License> observedLicenses, List<SecurityVulnerability> securityVulnerabilities, Integer relativePopularity)
+                                     ApiComponentDTOV2 requestComponentDTO,
+                                     String matchState,
+                                     List<License> declaredLicenses,
+                                     List<License> observedLicenses,
+                                     List<SecurityVulnerability> securityVulnerabilities,
+                                     Integer relativePopularity)
   {
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier = requestComponentDTO.componentIdentifier;
     String expectedHash = requestComponentDTO.hash;

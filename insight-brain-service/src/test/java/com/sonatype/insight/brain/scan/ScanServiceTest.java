@@ -112,10 +112,10 @@ public class ScanServiceTest
   }
 
   /**
-   * Simulates what the UI will do, but without any pausing.  Don't really know the value of this other than having an
+   * Simulates what the UI will do, but without any pausing. Don't really know the value of this other than having an
    * integrated test of the actual task execution.
    */
-  @Test(timeout=15 * 1000)
+  @Test(timeout = 15 * 1000)
   public void testGetTicketUntilTaskComplete() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
     ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(

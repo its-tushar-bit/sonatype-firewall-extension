@@ -48,7 +48,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
-
 @RunWith(MockitoJUnitRunner.class)
 public class ApiComponentEvaluationServiceV2Test
     extends AbstractComponentTest
@@ -77,7 +76,7 @@ public class ApiComponentEvaluationServiceV2Test
     super.configure(binder);
     binder.bind(HdsClient.class).toInstance(client);
   }
-  
+
   @Before
   public void setupApplication() {
     org = tempEntity.newOrganization();
@@ -96,11 +95,10 @@ public class ApiComponentEvaluationServiceV2Test
 
   @Test
   public void testEvaluateComponents_chunked() throws Exception {
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(
-        Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+        "Apache-2.0")));
     LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
-    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper
-        .createSecurityVulnerabilities();
+    List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
@@ -110,8 +108,8 @@ public class ApiComponentEvaluationServiceV2Test
       ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
       componentEvaluationDataList.components = new ArrayList<>();
       for (int i = 0; i < CHUNK_SIZE; i++) {
-        ComponentIdentifier componentIdentifier =
-            componentEvaluationV2Helper.createMavenComponentIdentifier("g" + i, "a" + i, "v" + i, "e" + i);
+        ComponentIdentifier componentIdentifier = componentEvaluationV2Helper.createMavenComponentIdentifier("g" + i,
+            "a" + i, "v" + i, "e" + i);
         ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h" + i);
         request.components.add(component);
         componentEvaluationDataList.components.add(componentEvaluationV2Helper.createComponentEvaluationData(
@@ -121,7 +119,6 @@ public class ApiComponentEvaluationServiceV2Test
       mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(request), componentEvaluationDataList);
     }
     int numComponents = CHUNK_SIZE * 2;
-
 
     ApiComponentEvaluationTicketDTOV2 ticket = apiComponentEvaluationService.evaluateComponents(app.getId(), request);
     ApiComponentEvaluationResultDTOV2 details = getComponentEvaluationResult(ticket);
@@ -177,8 +174,7 @@ public class ApiComponentEvaluationServiceV2Test
         is(componentIdentifier.getCoordinates()));
   }
 
-  private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(
-      final ApiComponentEvaluationTicketDTOV2 evaluationTicket)
+  private ApiComponentEvaluationResultDTOV2 getComponentEvaluationResult(final ApiComponentEvaluationTicketDTOV2 evaluationTicket)
       throws Exception
   {
     boolean done = false;
@@ -186,8 +182,8 @@ public class ApiComponentEvaluationServiceV2Test
     while (!done) {
       System.out.println("tryCount=" + tryCount);
       try {
-        return apiComponentEvaluationService
-            .getComponentEvaluation(evaluationTicket.applicationId, evaluationTicket.resultId);
+        return apiComponentEvaluationService.getComponentEvaluation(evaluationTicket.applicationId,
+            evaluationTicket.resultId);
       }
       catch (NotFoundException e) {
         tryCount++;

@@ -187,7 +187,8 @@ public class PolicyTest
 
     policy.setName(name + "a");
     ValidationResult result = policy.validate(applicationId);
-    assertValidationResultHasErrors(result, "The policy name must be " + NameHelper.MAX_NAME_LENGTH + " characters or less.");
+    assertValidationResultHasErrors(result, "The policy name must be " + NameHelper.MAX_NAME_LENGTH
+        + " characters or less.");
 
     policy.setName(name);
     result = policy.validate(applicationId);
@@ -233,7 +234,7 @@ public class PolicyTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    
+
     Action action = new Action(FailActionType.ID);
     HashMap<String, List<Action>> invalidStage = new HashMap<>();
     invalidStage.put("unknown stage type", Arrays.asList(action));
@@ -250,7 +251,7 @@ public class PolicyTest
     result = policy.validate(applicationId);
     assertValidationResultHasNoErrors(result);
   }
-  
+
   @Test
   public void testValidate_ActionTypeUnknown() {
     Policy policy = new Policy("PolicyId", "Policy Name");
@@ -340,7 +341,8 @@ public class PolicyTest
 
     policy.setThreatLevel(11);
     result = policy.validate(applicationId);
-    assertValidationResultHasErrors(result, "Policy 'testValidate_threatLevelInvalid' has threat level outside of valid range 0-10: 11");
+    assertValidationResultHasErrors(result,
+        "Policy 'testValidate_threatLevelInvalid' has threat level outside of valid range 0-10: 11");
 
     policy.setThreatLevel(0);
     result = policy.validate(applicationId);

@@ -239,7 +239,8 @@ public class TestInsightBrainService
   }
 
   private void stopDropwizardLoggingAsyncAppenders() {
-    ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory
+        .getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
     Iterator<Appender<ILoggingEvent>> logAppenderIter = rootLogger.iteratorForAppenders();
     while (logAppenderIter.hasNext()) {
       Appender<ILoggingEvent> logAppender = logAppenderIter.next();
@@ -300,8 +301,10 @@ public class TestInsightBrainService
   }
 
   @Override
-  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName, Long cacheSize,
-      final String additionalDBParams)
+  protected DatabaseConfig getDatabaseConfig(File databaseDir,
+                                             String databaseName,
+                                             Long cacheSize,
+                                             final String additionalDBParams)
   {
     // Use in memory db
     return null;

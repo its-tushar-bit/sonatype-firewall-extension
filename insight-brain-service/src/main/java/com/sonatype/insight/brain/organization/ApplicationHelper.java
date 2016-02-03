@@ -39,9 +39,11 @@ public class ApplicationHelper
   private final CLMLicenseManager licenseManager;
 
   @Inject
-  public ApplicationHelper(final ApplicationDAO applicationDAO, final OrganizationDAO organizationDAO,
-      final UserDirectory userDirectory, final ApplicationCleaner applicationCleaner,
-      final CLMLicenseManager licenseManager)
+  public ApplicationHelper(final ApplicationDAO applicationDAO,
+                           final OrganizationDAO organizationDAO,
+                           final UserDirectory userDirectory,
+                           final ApplicationCleaner applicationCleaner,
+                           final CLMLicenseManager licenseManager)
   {
     this.applicationDAO = applicationDAO;
     this.licenseManager = licenseManager;
@@ -95,8 +97,8 @@ public class ApplicationHelper
 
     final Organization org = organizationDAO.getById(organizationId);
     if (org == null) {
-      throw new InvalidApplicationException(
-          "Application references an organization (ID=" + organizationId + ") that does not exist.");
+      throw new InvalidApplicationException("Application references an organization (ID=" + organizationId
+          + ") that does not exist.");
     }
     if (org.getParentOrganizationId() == null) {
       throw new InvalidApplicationException("Applications cannot have the root organization as parent.");
@@ -108,8 +110,8 @@ public class ApplicationHelper
       users.add(contact);
       final Set<String> invalidUsers = userDirectory.validateUsers(users);
       if (!invalidUsers.isEmpty()) {
-        throw new InvalidApplicationException(
-            "Application has a contactUserName=" + invalidUsers.iterator().next() + " that does not exist.");
+        throw new InvalidApplicationException("Application has a contactUserName=" + invalidUsers.iterator().next()
+            + " that does not exist.");
       }
     }
   }

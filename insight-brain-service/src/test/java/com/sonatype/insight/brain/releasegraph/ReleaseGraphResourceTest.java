@@ -44,8 +44,8 @@ public class ReleaseGraphResourceTest
 
   private void copyReport(String filename) throws Exception {
     reportDir.mkdirs();
-    Files.copy(getClass().getResourceAsStream("/ReleaseGraphResourceTest/" + filename),
-        new File(reportDir, "report.zip").toPath());
+    Files.copy(getClass().getResourceAsStream("/ReleaseGraphResourceTest/" + filename), new File(reportDir,
+        "report.zip").toPath());
   }
 
   @Before

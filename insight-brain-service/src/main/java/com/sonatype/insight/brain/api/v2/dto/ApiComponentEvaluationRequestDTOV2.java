@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-
 /**
  * @since 1.13.0
  */

@@ -131,8 +131,9 @@ public class WaivedPolicyViolationMigrator
         appCount, policyEvalCount, System.currentTimeMillis() - start);
   }
 
-  private void migratePolicyEvaluation(TransactionContext tx, PolicyEvaluation policyEvaluation,
-      PolicyWaiversMap policyWaiversMap)
+  private void migratePolicyEvaluation(TransactionContext tx,
+                                       PolicyEvaluation policyEvaluation,
+                                       PolicyWaiversMap policyWaiversMap)
   {
     try {
       PolicyThreats policyThreats = loadPolicyThreats(policyEvaluation);
@@ -182,9 +183,11 @@ public class WaivedPolicyViolationMigrator
     });
   }
 
-  private void createWaivedPolicyViolation(TransactionContext tx, PolicyEvaluation policyEvaluation,
-      PolicyThreats.Component componentWithViolations, PolicyThreats.PolicyViolation waivedViolation,
-      PolicyWaiver policyWaiver)
+  private void createWaivedPolicyViolation(TransactionContext tx,
+                                           PolicyEvaluation policyEvaluation,
+                                           PolicyThreats.Component componentWithViolations,
+                                           PolicyThreats.PolicyViolation waivedViolation,
+                                           PolicyWaiver policyWaiver)
   {
     List<ConstraintFact> constraintFacts = new ArrayList<>();
     for (PolicyThreats.PolicyConstraint policyConstraint : waivedViolation.constraints) {
@@ -247,7 +250,7 @@ public class WaivedPolicyViolationMigrator
     ContainerNode<?> policyThreatsJson = JsonUtils.parse(policyThreatsReportEntry.buf);
     String version = JsonUtils.getNullableString(policyThreatsJson.get("version"));
     if ("1".equals(version)) {
-      return JsonUtils.asPojo(policyThreatsJson,  PolicyThreats.class);
+      return JsonUtils.asPojo(policyThreatsJson, PolicyThreats.class);
     }
     return null;
   }

@@ -20,7 +20,6 @@ public class ApiApplicationAdapterTest
 {
   private ApiApplicationAdapter apiApplicationAdapter = new ApiApplicationAdapter();
 
-
   @Test
   public void testConvertToApplicationDTO_nullValue() {
     final ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(null);

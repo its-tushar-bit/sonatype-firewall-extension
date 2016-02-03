@@ -43,7 +43,7 @@ public class PolicyMonitoringResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     return loadPolicyMonitoring(internalOwnerId);
@@ -57,9 +57,8 @@ public class PolicyMonitoringResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
   @Authorize(permission = Permission.READ)
-  public ApplicablePolicyMonitors getApplicable(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+  public ApplicablePolicyMonitors getApplicable(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+                                                @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ApplicablePolicyMonitors results = new ApplicablePolicyMonitors();
@@ -81,7 +80,8 @@ public class PolicyMonitoringResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   public PolicyMonitoring set(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId, PolicyMonitoring policyMonitoring)
+                              @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                              PolicyMonitoring policyMonitoring)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -98,7 +98,7 @@ public class PolicyMonitoringResource
   @DELETE
   @Authorize(permission = Permission.WRITE)
   public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+                     @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 

@@ -34,7 +34,7 @@ public class ConditionValueTypeResource
   @Produces(MediaType.APPLICATION_JSON)
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public Collection<ConditionValueType> getConditionValueTypes(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId)
+                                                               @PathParam("ownerId") String ownerId)
   {
     log.debug("Received request to get all {} condition value types for policyOwnerId ID {}", ownerType, ownerId);
 

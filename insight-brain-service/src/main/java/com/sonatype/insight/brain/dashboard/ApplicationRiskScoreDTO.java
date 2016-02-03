@@ -25,8 +25,9 @@ public class ApplicationRiskScoreDTO
 
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
-  public ApplicationRiskScoreDTO(final String applicationName, final String applicationId,
-      final ContactDTO applicationContact)
+  public ApplicationRiskScoreDTO(final String applicationName,
+                                 final String applicationId,
+                                 final ContactDTO applicationContact)
   {
     this.applicationName = applicationName;
     this.applicationId = applicationId;

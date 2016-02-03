@@ -108,7 +108,7 @@ public class HdsClientProxyTest
       {
         if ("CONNECT".equals(request.getMethod())) {
           headers.clear();
-          for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
+          for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
             String headerName = en.nextElement();
             headers.put(headerName, request.getHeader(headerName));
           }
@@ -118,7 +118,7 @@ public class HdsClientProxyTest
     };
 
     try {
-      client.getResponse(mockedRequest, "some/path", Collections.<String, String>emptyMap());
+      client.getResponse(mockedRequest, "some/path", Collections.<String, String> emptyMap());
     }
     catch (Exception ignore) {
     }

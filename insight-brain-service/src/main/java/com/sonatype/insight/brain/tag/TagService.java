@@ -62,9 +62,14 @@ class TagService
   private final OrganizationDAO organizationDAO;
 
   @Inject
-  public TagService(ApplicationService applicationService, ApplicationTagDAO applicationTagDAO, TagDAO tagDAO,
-                    OwnerDAO ownerDAO, PolicyTagDAO policyTagDAO, ApplicationDAO applicationDAO,
-                    OrganizationDAO organizationDAO, PolicyDAO policyDAO)
+  public TagService(ApplicationService applicationService,
+                    ApplicationTagDAO applicationTagDAO,
+                    TagDAO tagDAO,
+                    OwnerDAO ownerDAO,
+                    PolicyTagDAO policyTagDAO,
+                    ApplicationDAO applicationDAO,
+                    OrganizationDAO organizationDAO,
+                    PolicyDAO policyDAO)
   {
     this.applicationService = applicationService;
     this.applicationTagDAO = applicationTagDAO;
@@ -131,19 +136,18 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId) {
+  public List<Tag> getAppliedApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
+  {
     return tagDAO.getByApplicationId(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId));
   }
 
   @Authorize(permission = Permission.READ)
-  public AppliedTags getAppliedTags(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
-  {
+  public AppliedTags getAppliedTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
     AppliedTags entities = new AppliedTags();
     entities.applicationTagsByOwner = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
-      ApplicationTagsByOwner appTags = new ApplicationTagsByOwner(owner,
-          applicationTagDAO.getByOrganizationId(owner.getId()));
+      ApplicationTagsByOwner appTags = new ApplicationTagsByOwner(owner, applicationTagDAO.getByOrganizationId(owner
+          .getId()));
       entities.applicationTagsByOwner.add(appTags);
     }
 
@@ -151,8 +155,8 @@ class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public List<ApplicationTag> updateApplicationTags(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId, final List<Tag> tags)
+  public List<ApplicationTag> updateApplicationTags(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+                                                    final List<Tag> tags)
   {
     String applicationId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId);
 
@@ -174,8 +178,8 @@ class TagService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public ApplicationTag addApplicationTag(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, Tag tag)
+  public ApplicationTag addApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                                          Tag tag)
   {
     ApplicationTag appTag = new ApplicationTag(IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId),
         tag.getId());
@@ -185,12 +189,13 @@ class TagService
 
   @Authorize(permission = Permission.WRITE)
   public void deleteApplicationTag(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      String tagId)
+                                   String tagId)
   {
     ApplicationTag appTag = applicationTagDAO.getByApplicationIdAndTagId(
         IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId), tagId);
-    if(appTag == null) {
-      throw new NotFoundException("Tag with id " + tagId + " is not applied to application with id " + applicationPublicId);
+    if (appTag == null) {
+      throw new NotFoundException("Tag with id " + tagId + " is not applied to application with id "
+          + applicationPublicId);
     }
 
     applicationTagDAO.delete(appTag);
@@ -203,12 +208,11 @@ class TagService
 
   /**
    * @deprecated The new UI uses {@link #updatePolicyTags(String, String, List)} to manage {@link PolicyTag}. This can
-   * be removed after the completion of CLM-4528
+   *             be removed after the completion of CLM-4528
    */
   @Deprecated
   @Authorize(permission = Permission.WRITE)
-  public Tag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag)
-  {
+  public Tag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag) {
     final String tagId = tag.getId();
     PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
     policyTagDAO.insert(policyTag);
@@ -222,7 +226,8 @@ class TagService
 
   @Authorize(permission = Permission.WRITE)
   List<Tag> updatePolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId,
-                             String policyId, final List<Tag> newTags)
+                             String policyId,
+                             final List<Tag> newTags)
   {
     try (TransactionContext tx = policyTagDAO.createTransactionContext()) {
       tx.begin();
@@ -255,12 +260,13 @@ class TagService
 
   /**
    * @deprecated The new UI uses {@link #updatePolicyTags(String, String, List)} to manage {@link PolicyTag}. This can
-   * be removed after the completion of CLM-4528
+   *             be removed after the completion of CLM-4528
    */
   @Deprecated
   @Authorize(permission = Permission.WRITE)
-  public void deletePolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId,
-      String tagId)
+  public void deletePolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
+                              String policyId,
+                              String tagId)
   {
     PolicyTag policyTag = policyTagDAO.getByPolicyIdAndTagId(policyId, tagId);
     if (policyTag == null) {
@@ -271,9 +277,7 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<PolicyTag> getAppliedPolicyTags(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
-  {
+  public List<PolicyTag> getAppliedPolicyTags(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
     List<PolicyTag> policyTags = new ArrayList<>();
     for (Owner owner : ownerDAO.walkHierarchy(organizationId)) {
       policyTags.addAll(policyTagDAO.getByOrganizationId(owner.getId()));
@@ -283,8 +287,7 @@ class TagService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<Tag> getApplicableTagsByApplicationPublicId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
+  public List<Tag> getApplicableTagsByApplicationPublicId(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
   {
     List<Tag> result = new ArrayList<>();
     String organizationId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getOrganizationId();

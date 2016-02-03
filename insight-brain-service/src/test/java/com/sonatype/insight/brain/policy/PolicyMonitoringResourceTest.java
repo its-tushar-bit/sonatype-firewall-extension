@@ -109,7 +109,7 @@ public class PolicyMonitoringResourceTest
     Application application = tempEntity.newApplication("testGetApplicablePolicyMonitoringAppId",
         "testGetApplicablePolicyMonitoringAppId", organization.getId());
 
-    //no Policy Monitoring set
+    // no Policy Monitoring set
     HttpResponse response = restRequest(OwnerType.APPLICATION, application.getPublicId()).path("applicable").get();
     assertResponseStatus(200, response);
     ApplicablePolicyMonitors applicablePolicyMonitors = response.getBody(ApplicablePolicyMonitors.class);
@@ -134,7 +134,7 @@ public class PolicyMonitoringResourceTest
     assertThat(applicablePolicyMonitors.policyMonitoringByOwner, hasSize(1));
     assertEmptyPolicyMonitoringByOwner(organizationParent, applicablePolicyMonitors.policyMonitoringByOwner.get(0));
 
-    //Root Org only Policy Monitoring set
+    // Root Org only Policy Monitoring set
     tempEntity.newPolicyMonitoring(organizationParent.getId(), Stage.ID_RELEASE);
     response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
@@ -163,7 +163,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(2));
 
-    //Root and Org Policy Monitoring set
+    // Root and Org Policy Monitoring set
     tempEntity.newPolicyMonitoring(organization.getId(), Stage.ID_STAGE_RELEASE);
     response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
@@ -194,7 +194,7 @@ public class PolicyMonitoringResourceTest
     assertPolicyMonitoringByOwner(organizationParent, Stage.ID_RELEASE,
         applicablePolicyMonitors.policyMonitoringByOwner.get(2));
 
-    //App, Org and Root Org all have Policy Monitoring set
+    // App, Org and Root Org all have Policy Monitoring set
     tempEntity.newPolicyMonitoring(application.getId(), Stage.ID_BUILD);
     response = restRequest(OwnerType.ORGANIZATION, organizationParent.getId()).path("applicable").get();
     assertResponseStatus(200, response);
@@ -231,14 +231,14 @@ public class PolicyMonitoringResourceTest
     assertEquals(stageTypeId, actual.getStageTypeId());
   }
 
-  private void assertEmptyPolicyMonitoringByOwner(Owner owner, PolicyMonitoringByOwner policyMonitoringByOwner)
-  {
+  private void assertEmptyPolicyMonitoringByOwner(Owner owner, PolicyMonitoringByOwner policyMonitoringByOwner) {
     assertEquals(owner.getName(), policyMonitoringByOwner.ownerName);
     assertThat(policyMonitoringByOwner.policyMonitoring, nullValue());
   }
 
-  private void assertPolicyMonitoringByOwner(Owner owner, String stageTypeId,
-      PolicyMonitoringByOwner policyMonitoringByOwner)
+  private void assertPolicyMonitoringByOwner(Owner owner,
+                                             String stageTypeId,
+                                             PolicyMonitoringByOwner policyMonitoringByOwner)
   {
     assertEquals(owner.getName(), policyMonitoringByOwner.ownerName);
     assertThat(policyMonitoringByOwner.policyMonitoring, notNullValue());

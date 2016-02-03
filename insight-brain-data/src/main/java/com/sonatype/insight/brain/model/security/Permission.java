@@ -18,7 +18,7 @@ public enum Permission
   EDIT_ROLES("Edit", PermissionCategory.ADMINISTRATOR, "Custom Roles", true /* global */, false /* allowedInCustomRoles */),
 
   VIEW_ROLES("View", PermissionCategory.ADMINISTRATOR, "All Roles", true /* global */, true /* allowedInCustomRoles */),
-  
+
   MANAGE_PROPRIETARY("Edit", PermissionCategory.ADMINISTRATOR, "Proprietary Components", true /* global */, true /* allowedInCustomRoles */),
 
   CLAIM_COMPONENT("Claim", PermissionCategory.CLM, "Components", true /* global */, true /* allowedInCustomRoles */),
@@ -41,8 +41,11 @@ public enum Permission
 
   private final boolean allowedInCustomRoles;
 
-  private Permission(final String displayName, final PermissionCategory category, final String description,
-      final boolean global, final boolean allowedInCustomRoles)
+  private Permission(final String displayName,
+                     final PermissionCategory category,
+                     final String description,
+                     final boolean global,
+                     final boolean allowedInCustomRoles)
   {
     this.displayName = displayName;
     this.category = category;

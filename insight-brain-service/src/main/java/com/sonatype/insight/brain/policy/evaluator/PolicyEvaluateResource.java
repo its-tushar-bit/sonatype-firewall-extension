@@ -46,8 +46,7 @@ public class PolicyEvaluateResource
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Inject
-  public PolicyEvaluateResource(final ScanPolicyEvaluator scanPolicyEvaluator,
-      PolicyAlertNotifier policyAlertNotifier)
+  public PolicyEvaluateResource(final ScanPolicyEvaluator scanPolicyEvaluator, PolicyAlertNotifier policyAlertNotifier)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -58,11 +57,9 @@ public class PolicyEvaluateResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.EVALUATE_APPLICATION, anonymousAllowed = true)
   @Timed
-  public PolicyEvaluationResult evaluate(
-      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
-      final String applicationPublicId,
-      @QueryParam("scanId") final String scanId, final Stage stage)
-      throws IOException
+  public PolicyEvaluationResult evaluate(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+                                         @QueryParam("scanId") final String scanId,
+                                         final Stage stage) throws IOException
   {
     log.debug("Received request to evaluate policy for app id {}, scan id {}, stageTypeId {}", applicationPublicId,
         scanId, stage.getStageTypeId());
@@ -75,8 +72,7 @@ public class PolicyEvaluateResource
         stage.getStageTypeId());
 
     PolicyEvaluation policyEvaluation = scanPolicyEvaluator.evaluate(applicationPublicId, scanId, stage);
-    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-        .createPolicyEvaluationResult(policyEvaluation);
+    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation);
 
     if (!policyEvaluationResult.isReevaluation()) {
       policyAlertNotifier.sendNotifications(application, policyEvaluation, lastPrimaryPolicyEvaluation);

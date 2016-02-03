@@ -55,7 +55,7 @@ public class WaiverTest
   public static final int numberOfComponents = 4;
 
   private Application app;
-  
+
   private TestReportEvaluator evaluator;
 
   @BeforeClass
@@ -74,7 +74,7 @@ public class WaiverTest
   @Test
   public void testViewWaivedPolicyViolations() throws Exception {
     createGavViolatingPolicy(app.getOrganizationId());
-    
+
     evaluator.evaluatePolicy();
     waiveComponent();
     AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
@@ -255,8 +255,8 @@ public class WaiverTest
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
     AddWaiverDialog.root().should(appear);
     AddWaiverDialog.comment().shouldBe(visible);
-    AddWaiverDialog.selectedComponent().parent().shouldHave(
-        text("Selected component (ch.qos.logback : logback-access : 0.6)"));
+    AddWaiverDialog.selectedComponent().parent()
+        .shouldHave(text("Selected component (ch.qos.logback : logback-access : 0.6)"));
   }
 
   private void createGavViolatingPolicy(String ownerId) {

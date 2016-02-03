@@ -37,10 +37,9 @@ public class ApiComponentDetailsAdapter
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
-
   @Inject
   public ApiComponentDetailsAdapter(final ApiLicenseDataAdapter licenseDataAdapter,
-      final ApiSecurityDataAdapter securityDataAdapter)
+                                    final ApiSecurityDataAdapter securityDataAdapter)
   {
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
@@ -49,12 +48,12 @@ public class ApiComponentDetailsAdapter
   public ApiComponentDetailsDTOV2 convertToDTO(final Component component, final Collection<PolicyAlert> policyAlerts) {
     ApiComponentDetailsDTOV2 componentDetailsDTO = new ApiComponentDetailsDTOV2();
     componentDetailsDTO.component = new ApiComponentDTOV2();
-    componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
-        .fromComponentIdentifier(component.getComponentIdentifier());
+    componentDetailsDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(component
+        .getComponentIdentifier());
     componentDetailsDTO.component.hash = component.getHash();
     componentDetailsDTO.component.proprietary = component.isProprietary();
-    componentDetailsDTO.matchState =
-        component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component.getMatchState().getId();
+    componentDetailsDTO.matchState = component.getMatchState() == null ? MatchState.UNKNOWN.getId() : component
+        .getMatchState().getId();
 
     if (component.getCatalogDate() != null) {
       componentDetailsDTO.catalogDate = new Date(component.getCatalogDate());

@@ -36,17 +36,19 @@ public class LdapUtilsTest
 
   @Test
   public void testEscapeQueryAttribute() {
-    //validate each escaped character
+    // validate each escaped character
     assertThat(LdapUtils.escapeLdapQueryAttribute("\\()*" + '\u0000'), is("\\5c\\28\\29\\2a\\00"));
-    //as well as the string initially reported
-    assertThat(LdapUtils.escapeLdapQueryAttribute("*)(uid=*))(|(uid=*"), is("\\2a\\29\\28uid=\\2a\\29\\29\\28|\\28uid=\\2a"));
+    // as well as the string initially reported
+    assertThat(LdapUtils.escapeLdapQueryAttribute("*)(uid=*))(|(uid=*"),
+        is("\\2a\\29\\28uid=\\2a\\29\\29\\28|\\28uid=\\2a"));
   }
 
   @Test
   public void testEscapeQueryAttribute_allowWildcard() {
-    //validate each escaped character
+    // validate each escaped character
     assertThat(LdapUtils.escapeLdapQueryAttribute("\\()*" + '\u0000', true), is("\\5c\\28\\29*\\00"));
-    //as well as the string initially reported
-    assertThat(LdapUtils.escapeLdapQueryAttribute("*)(uid=*))(|(uid=*", true), is("*\\29\\28uid=*\\29\\29\\28|\\28uid=*"));
+    // as well as the string initially reported
+    assertThat(LdapUtils.escapeLdapQueryAttribute("*)(uid=*))(|(uid=*", true),
+        is("*\\29\\28uid=*\\29\\29\\28|\\28uid=*"));
   }
 }

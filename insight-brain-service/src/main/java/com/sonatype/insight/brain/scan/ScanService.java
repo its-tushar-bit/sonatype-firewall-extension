@@ -55,7 +55,10 @@ class ScanService
    */
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public ScanTicket scanBinary(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String appPublicId,
-      InputStream is, String filename, Stage stage, boolean sendNotifications) throws IOException
+                               InputStream is,
+                               String filename,
+                               Stage stage,
+                               boolean sendNotifications) throws IOException
   {
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
 
@@ -116,7 +119,8 @@ class ScanService
     return ext;
   }
 
-  private ScanTask newScanTask(String appPublicId, File binFile, String filename, Stage stage, boolean sendNotifications) {
+  private ScanTask newScanTask(String appPublicId, File binFile, String filename, Stage stage, boolean sendNotifications)
+  {
     Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
     ScanTask scanTask = taskRepository.newScanTask(app, binFile, filename, stage, sendNotifications);
     return scanTask;

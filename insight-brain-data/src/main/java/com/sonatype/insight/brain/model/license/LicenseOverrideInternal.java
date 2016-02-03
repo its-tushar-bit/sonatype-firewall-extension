@@ -25,8 +25,8 @@ import com.sonatype.insight.model.HasStringId;
 @Entity
 @Table(name = "license_override")
 public class LicenseOverrideInternal
-  extends HasComponentId
-  implements HasStringId
+    extends HasComponentId
+    implements HasStringId
 {
   @Id
   @Column(name = "license_override_id")
@@ -45,8 +45,10 @@ public class LicenseOverrideInternal
   public LicenseOverrideInternal() {
   }
 
-  public LicenseOverrideInternal(String ownerId, ComponentIdentifier componentIdentifier, LicenseOverrideStatus status,
-      String comment)
+  public LicenseOverrideInternal(String ownerId,
+                                 ComponentIdentifier componentIdentifier,
+                                 LicenseOverrideStatus status,
+                                 String comment)
   {
     this.ownerId = ownerId;
     this.status = status;
@@ -90,12 +92,7 @@ public class LicenseOverrideInternal
 
   @Override
   public String toString() {
-    return "LicenseOverride{" +
-      "id='" + id + '\'' +
-      ", ownerId='" + ownerId + '\'' +
-      ", status=" + status +
-      ", comment='" + comment + '\'' +
-      ", componentIdentifier='" + getComponentIdentifier() + '\'' +
-      '}';
+    return "LicenseOverride{" + "id='" + id + '\'' + ", ownerId='" + ownerId + '\'' + ", status=" + status
+        + ", comment='" + comment + '\'' + ", componentIdentifier='" + getComponentIdentifier() + '\'' + '}';
   }
 }

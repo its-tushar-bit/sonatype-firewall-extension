@@ -27,8 +27,11 @@ public class RepositoryPolicyViolationDTO
   public RepositoryPolicyViolationDTO() {
   }
 
-  public RepositoryPolicyViolationDTO(final String policyId, final String policyName, final int policyThreatLevel,
-      final List<PolicyThreats.PolicyConstraint> constraints) {
+  public RepositoryPolicyViolationDTO(final String policyId,
+                                      final String policyName,
+                                      final int policyThreatLevel,
+                                      final List<PolicyThreats.PolicyConstraint> constraints)
+  {
     this.policyId = policyId;
     this.policyName = policyName;
     this.policyThreatLevel = policyThreatLevel;

@@ -41,15 +41,16 @@ public class ApplicationComponentDAO
     }
   }
 
-  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(TransactionContext tx, String appId, String stageTypeId)
+  public List<ApplicationComponent> getByApplicationIdAndStageTypeId(TransactionContext tx,
+                                                                     String appId,
+                                                                     String stageTypeId)
   {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2";
     return getList(tx, sQuery, appId, stageTypeId);
   }
 
-  public ApplicationComponent getByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId, String hash)
-  {
+  public ApplicationComponent getByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId, String hash) {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 and entity.hash=?3";
     return get(sQuery, appId, stageTypeId, hash);
@@ -68,16 +69,14 @@ public class ApplicationComponentDAO
     return createQuery(sQuery, hash).forceSingleResult().get();
   }
 
-  public int getUniqueCountByApplicationIdsAndStageTypeIds(Collection<String> appIds,
-      Collection<String> stageTypeIds)
-  {
+  public int getUniqueCountByApplicationIdsAndStageTypeIds(Collection<String> appIds, Collection<String> stageTypeIds) {
     String sQuery = "SELECT COUNT(DISTINCT entity.hash) FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
     return getSingle(Number.class, sQuery, appIds, stageTypeIds).intValue();
   }
 
   public List<ApplicationComponent> getNonProprietaryByApplicationIdsAndStageTypeIds(Collection<String> appIds,
-      Collection<String> stageTypeIds)
+                                                                                     Collection<String> stageTypeIds)
   {
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.proprietary=false AND entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";

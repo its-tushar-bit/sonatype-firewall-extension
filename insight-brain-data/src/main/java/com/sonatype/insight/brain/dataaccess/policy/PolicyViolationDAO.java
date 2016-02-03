@@ -56,8 +56,9 @@ public class PolicyViolationDAO
     return getList(sQuery, evaluationIds);
   }
 
-  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(TransactionContext tx, String appId,
-      String stageTypeId)
+  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeId(TransactionContext tx,
+                                                                               String appId,
+                                                                               String stageTypeId)
   {
     String sQuery = "SELECT policyViolation" + //
         " FROM PolicyViolation policyViolation," + //
@@ -74,8 +75,9 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId,
-      String hash)
+  public List<PolicyViolation> getFirstOccurrenceByApplicationIdAndStageTypeIdAndHash(String appId,
+                                                                                      String stageTypeId,
+                                                                                      String hash)
   {
     if (hash == null) {
       // unhashed components can cause violations but can't be tracked specifically

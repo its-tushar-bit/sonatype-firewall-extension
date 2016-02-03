@@ -47,8 +47,7 @@ public class RepositoryResource
   private final RepositoryService repositoryService;
 
   @Inject
-  public RepositoryResource(final RepositoryService repositoryService)
-  {
+  public RepositoryResource(final RepositoryService repositoryService) {
     this.repositoryService = repositoryService;
   }
 
@@ -61,7 +60,8 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   public void setEnabled(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("enabled") boolean enabled)
+                         @PathParam("repositoryPublicId") String repositoryPublicId,
+                         @PathParam("enabled") boolean enabled)
   {
     repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
@@ -70,9 +70,8 @@ public class RepositoryResource
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
-      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") final String repositoryPublicId)
+  public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+                                                                      @PathParam("repositoryPublicId") final String repositoryPublicId)
   {
     return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId);
   }
@@ -81,10 +80,9 @@ public class RepositoryResource
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
-  public void evaluateComponents(
-      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId,
-      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+                                 @PathParam("repositoryPublicId") String repositoryPublicId,
+                                 RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList, false);
@@ -95,10 +93,9 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
-      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") final String repositoryPublicId,
-      final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(@PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+                                                                               @PathParam("repositoryPublicId") final String repositoryPublicId,
+                                                                               final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     return repositoryService.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId,
         componentEvaluationDataRequestList, true);
@@ -109,7 +106,8 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Timed
   public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("enabled") boolean enabled)
+                            @PathParam("repositoryPublicId") String repositoryPublicId,
+                            @PathParam("enabled") boolean enabled)
   {
     repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
@@ -118,7 +116,8 @@ public class RepositoryResource
   @Path(COMPONENTS_PATH)
   @Timed
   public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") String repositoryPublicId, @PathParam("pathname") String pathname)
+                              @PathParam("repositoryPublicId") String repositoryPublicId,
+                              @PathParam("pathname") String pathname)
   {
     repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }

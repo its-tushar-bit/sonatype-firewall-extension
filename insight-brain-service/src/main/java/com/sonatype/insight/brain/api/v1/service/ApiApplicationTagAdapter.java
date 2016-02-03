@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 public class ApiApplicationTagAdapter
 {
   public List<ApplicationTag> convertFromDTO(final String applicationId,
-      final List<ApiApplicationTagDTO> applicationTagDTOs)
+                                             final List<ApiApplicationTagDTO> applicationTagDTOs)
   {
     if (applicationTagDTOs == null) {
       return Collections.emptyList();

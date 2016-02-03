@@ -126,40 +126,41 @@ public class LabelServiceAuthzTest
   @Test
   public void testGetApplicableContextsForApplication_Authorized() {
     grantWritePermission(app.getId());
-    labelService
-        .getApplicableContexts(OwnerType.APPLICATION, app.getPublicId(), tempEntity.newLabel(app.getId()).getId());
+    labelService.getApplicableContexts(OwnerType.APPLICATION, app.getPublicId(), tempEntity.newLabel(app.getId())
+        .getId());
   }
 
   @Test
   public void testGetApplicableContextsForRepository_Authorized() {
     grantWritePermission(repository.getId());
-    labelService.getApplicableContexts(OwnerType.REPOSITORY, repository.getId(), tempEntity.newLabel(app.getId()).getId());
+    labelService.getApplicableContexts(OwnerType.REPOSITORY, repository.getId(), tempEntity.newLabel(app.getId())
+        .getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetApplicableContextsForApplication_Unauthenticated() {
-    labelService
-        .getApplicableContexts(OwnerType.APPLICATION, app.getPublicId(), tempEntity.newLabel(app.getId()).getId());
+    labelService.getApplicableContexts(OwnerType.APPLICATION, app.getPublicId(), tempEntity.newLabel(app.getId())
+        .getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetApplicableContextsForRepository_Unauthenticated() {
-    labelService
-        .getApplicableContexts(OwnerType.REPOSITORY, repository.getId(), tempEntity.newLabel(app.getId()).getId());
+    labelService.getApplicableContexts(OwnerType.REPOSITORY, repository.getId(), tempEntity.newLabel(app.getId())
+        .getId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetApplicableContextsForApplication_Unauthorized() {
     login();
-    labelService
-        .getApplicableContexts(OwnerType.APPLICATION, app.getPublicId(), tempEntity.newLabel(app.getId()).getId());
+    labelService.getApplicableContexts(OwnerType.APPLICATION, app.getPublicId(), tempEntity.newLabel(app.getId())
+        .getId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetApplicableContextsForRepository_Unauthorized() {
     login();
-    labelService
-        .getApplicableContexts(OwnerType.REPOSITORY, repository.getId(), tempEntity.newLabel(app.getId()).getId());
+    labelService.getApplicableContexts(OwnerType.REPOSITORY, repository.getId(), tempEntity.newLabel(app.getId())
+        .getId());
   }
 
   @Test

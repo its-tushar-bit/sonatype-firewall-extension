@@ -12,15 +12,14 @@ import com.beust.jcommander.Parameter;
 public class Parameters
     extends AbstractParameters
 {
-  @Parameter(names = {"-w", "--fail-on-policy-warnings"}, description = "Fail on policy evaluation warnings")
+  @Parameter(names = { "-w", "--fail-on-policy-warnings" }, description = "Fail on policy evaluation warnings")
   private boolean failOnPolicyWarning;
 
-  @Parameter(names = {"-r", "--result-file"}, description = "Path to a JSON file where the results "
+  @Parameter(names = { "-r", "--result-file" }, description = "Path to a JSON file where the results "
       + "of the policy evaluation will be stored in a machine-readable format")
   private File resultFile;
 
-  @Parameter(names = {"-a", "--authentication"},
-      description = "Authentication credentials to use for the IQ Server, format <username:password> ")
+  @Parameter(names = { "-a", "--authentication" }, description = "Authentication credentials to use for the IQ Server, format <username:password> ")
   private String serverUser;
 
   public Parameters() {

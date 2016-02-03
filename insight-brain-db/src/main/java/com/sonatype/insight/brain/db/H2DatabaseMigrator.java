@@ -29,8 +29,11 @@ public class H2DatabaseMigrator
 {
   private static final Logger log = LoggerFactory.getLogger(H2DatabaseMigrator.class);
 
-  public void migrate(DatabaseConfig databaseConfig, String databaseName, DataSource dataSource, int desiredVersion,
-      int defaultCurrentVersion)
+  public void migrate(DatabaseConfig databaseConfig,
+                      String databaseName,
+                      DataSource dataSource,
+                      int desiredVersion,
+                      int defaultCurrentVersion)
   {
     if (databaseConfig == null) {
       // In memory database, nothing to migrate.

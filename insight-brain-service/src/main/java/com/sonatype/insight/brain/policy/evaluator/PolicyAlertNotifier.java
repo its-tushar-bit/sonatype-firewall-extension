@@ -39,8 +39,7 @@ public class PolicyAlertNotifier
   private final PolicyViolationDAO policyViolationDAO;
 
   @Inject
-  public PolicyAlertNotifier(final PolicyAlertEmailer policyAlertEmailer, final PolicyViolationDAO policyViolationDAO)
-  {
+  public PolicyAlertNotifier(final PolicyAlertEmailer policyAlertEmailer, final PolicyViolationDAO policyViolationDAO) {
     this.policyAlertEmailer = policyAlertEmailer;
     this.policyViolationDAO = policyViolationDAO;
   }
@@ -49,8 +48,9 @@ public class PolicyAlertNotifier
    * Sends notifications in case of a difference between the current and previous policy violations for a given
    * application and stage.
    */
-  public void sendNotifications(final Application app, final PolicyEvaluation currentEvaluation,
-      final PolicyEvaluation previousEvaluation)
+  public void sendNotifications(final Application app,
+                                final PolicyEvaluation currentEvaluation,
+                                final PolicyEvaluation previousEvaluation)
   {
     PolicyViolationDiff diff = createPolicyViolationDiff(previousEvaluation, currentEvaluation);
 
@@ -69,7 +69,7 @@ public class PolicyAlertNotifier
   }
 
   private PolicyViolationDiff createPolicyViolationDiff(final PolicyEvaluation previousEvaluation,
-      final PolicyEvaluation currentEvaluation)
+                                                        final PolicyEvaluation currentEvaluation)
   {
     List<PolicyViolation> currentViolations = policyViolationDAO.getActiveByEvaluationId(currentEvaluation.getId());
     List<PolicyViolation> previousViolations = null;

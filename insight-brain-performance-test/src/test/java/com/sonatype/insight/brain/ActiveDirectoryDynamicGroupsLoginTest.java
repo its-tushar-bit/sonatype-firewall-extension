@@ -31,9 +31,8 @@ public class ActiveDirectoryDynamicGroupsLoginTest
 
   @Test
   public void testDynamicGroupsLogin() {
-    GatlingPropertiesBuilder props =
-        configureGatling("LDAP Login Simulation with Active Directory Dynamic Groups",
-            "com.sonatype.insight.brain.LdapLoginSimulation");
+    GatlingPropertiesBuilder props = configureGatling("LDAP Login Simulation with Active Directory Dynamic Groups",
+        "com.sonatype.insight.brain.LdapLoginSimulation");
 
     int result = Gatling.fromMap(props.build());
     assertThat("Failures were detected from Gatling", result, equalTo(0));

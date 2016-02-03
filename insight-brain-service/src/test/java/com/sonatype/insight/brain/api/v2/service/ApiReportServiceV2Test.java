@@ -72,8 +72,10 @@ public class ApiReportServiceV2Test
     assertContainsReport(appOne, StageTypes.RELEASE, "one-release", reports);
   }
 
-  private void assertContainsReport(Application app, StageType expectedStage, String expectedScanId,
-      List<ApiApplicationReportDTOV2> actual)
+  private void assertContainsReport(Application app,
+                                    StageType expectedStage,
+                                    String expectedScanId,
+                                    List<ApiApplicationReportDTOV2> actual)
   {
     String expectedStageId = expectedStage.getId();
     for (ApiApplicationReportDTOV2 report : actual) {

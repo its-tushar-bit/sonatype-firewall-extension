@@ -22,7 +22,6 @@ public class PolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<PolicyEvaluation>
 {
 
-
   @Override
   protected PolicyEvaluation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
@@ -88,7 +87,10 @@ public class PolicyEvaluationDAO
   /**
    * Returns the last primary evaluation (i.e. not a reevaluation) for the given application and stage.
    */
-  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(TransactionContext tx, String appId, String stageTypeId) {
+  public PolicyEvaluation getLastPrimaryByApplicationIdAndStageId(TransactionContext tx,
+                                                                  String appId,
+                                                                  String stageTypeId)
+  {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.isReevaluation=false" + //
         " ORDER BY entity.time DESC";
@@ -130,17 +132,16 @@ public class PolicyEvaluationDAO
     PolicyEvaluation lastPolicyEvaluation = getLastByApplicationIdAndStageId(tx, appId, stageTypeId);
     if (lastPolicyEvaluation == null || lastPolicyEvaluation.getTime().getTime() < policyEvaluation.getTime().getTime()) {
       LastPolicyEvaluationDAO lastPolicyEvaluationDAO = new LastPolicyEvaluationDAO();
-      
+
       // Delete the current last policy evaluation record for this app and stage type
       if (lastPolicyEvaluation != null) {
         lastPolicyEvaluationDAO.delete(tx, lastPolicyEvaluationDAO.getByEvaluationId(tx, lastPolicyEvaluation.getId()));
       }
-      
+
       // Insert a new last policy evaluation record for this application and stage type
       lastPolicyEvaluationDAO.insert(tx, new LastPolicyEvaluation(policyEvaluation.getId(), appId, stageTypeId));
     }
   }
-
 
   public List<PolicyEvaluation> getByApplicationId(TransactionContext tx, String appId) {
     String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //

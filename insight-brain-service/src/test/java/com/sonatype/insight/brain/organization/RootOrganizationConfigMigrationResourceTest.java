@@ -42,7 +42,8 @@ public class RootOrganizationConfigMigrationResourceTest
 
   @Test
   public void testSetRootOrganizationTemplate() throws Exception {
-    HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH, org.getId()).post();
+    HttpResponse response = restRequest().path(RootOrganizationConfigMigrationResource.RESOURCE_PATH, org.getId())
+        .post();
     assertResponseStatus(204, response);
     assertTrue(migrationUtils.isMigrationScheduled());
   }

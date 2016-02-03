@@ -176,10 +176,8 @@ public abstract class AbstractApiApplicationResourceTest
     HttpResponse response = restRequest().path(app.getId()).body(applicationDTO).put();
     assertResponseStatus(400, response);
     String errorMessage = response.getBodyText();
-    assertThat(errorMessage,
-        is("The applicationId=" + app.getId() + " provided in the url did not match the id=" + applicationDTO.id +
-            " provided in the json.")
-    );
+    assertThat(errorMessage, is("The applicationId=" + app.getId() + " provided in the url did not match the id="
+        + applicationDTO.id + " provided in the json."));
   }
 
   @Test
@@ -299,8 +297,8 @@ public abstract class AbstractApiApplicationResourceTest
     // Test the post
     HttpResponse response = restRequest().body(applicationDTO).post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(),
-        equalTo("Application has a contactUserName=" + contactUserName + " that does not exist."));
+    assertThat(response.getBodyText(), equalTo("Application has a contactUserName=" + contactUserName
+        + " that does not exist."));
   }
 
   @Test
@@ -375,9 +373,7 @@ public abstract class AbstractApiApplicationResourceTest
     // Create
     final ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
-            newMember(MemberType.GROUP, "Alpha")),
-        appRoles.get(0).getId()
-    );
+            newMember(MemberType.GROUP, "Alpha")), appRoles.get(0).getId());
 
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
@@ -427,8 +423,7 @@ public abstract class AbstractApiApplicationResourceTest
 
     // Create
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userB.getUsername())),
-        appRoles.get(0).getId());
+        newMemberList(newMember(MemberType.USER, userB.getUsername())), appRoles.get(0).getId());
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
@@ -452,14 +447,12 @@ public abstract class AbstractApiApplicationResourceTest
     assertApiRoleMemberMappingDTO(returnedRoleMemberMapping, appRoles.get(0).getId(), userB, MemberType.USER);
 
     // Update
-    roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userA.getUsername())),
+    roleMemberMappingListDTO = newMemberMapping(newMemberList(newMember(MemberType.USER, userA.getUsername())),
         appRoles.get(0).getId());
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
-    roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userB.getUsername())),
+    roleMemberMappingListDTO = newMemberMapping(newMemberList(newMember(MemberType.USER, userB.getUsername())),
         appRoles.get(1).getId());
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
@@ -540,7 +533,9 @@ public abstract class AbstractApiApplicationResourceTest
   }
 
   private void assertApiRoleMemberMappingDTO(final ApiRoleMemberMappingDTO apiRoleMemberMappingDTO,
-      final String roleId, final User user, final MemberType type)
+                                             final String roleId,
+                                             final User user,
+                                             final MemberType type)
   {
     assertThat(apiRoleMemberMappingDTO, notNullValue());
     assertThat(apiRoleMemberMappingDTO.roleId, is(roleId));
@@ -568,7 +563,7 @@ public abstract class AbstractApiApplicationResourceTest
   }
 
   private void assertApplications(List<ApiApplicationDTO> actualApplications,
-      List<ApiApplicationDTO> expectedApplications)
+                                  List<ApiApplicationDTO> expectedApplications)
   {
     assertThat(actualApplications.size(), is(expectedApplications.size()));
 

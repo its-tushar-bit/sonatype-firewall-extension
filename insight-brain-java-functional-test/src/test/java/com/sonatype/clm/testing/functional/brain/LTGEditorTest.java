@@ -55,7 +55,6 @@ public class LTGEditorTest
 
   private LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
-
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(OrganizationManagementPage.URL);
@@ -123,8 +122,8 @@ public class LTGEditorTest
     assertThat(includedLicenses.size(), is(3));
 
     for (int i = 0; i < includedLicenses.size(); i++) {
-      DoubleColumnPicker.pickedItem(i).name().shouldHave(
-          text(licenseDAO.getById(includedLicenses.get(i).getLicenseId()).getLongDisplayName()));
+      DoubleColumnPicker.pickedItem(i).name()
+          .shouldHave(text(licenseDAO.getById(includedLicenses.get(i).getLicenseId()).getLongDisplayName()));
     }
 
     testDeleteLTG(ltg);
@@ -164,8 +163,7 @@ public class LTGEditorTest
       assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
     }
 
-    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
-        .click();
+    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel))).click();
   }
 
   private void changeThreatLevel(int threatLevel) {

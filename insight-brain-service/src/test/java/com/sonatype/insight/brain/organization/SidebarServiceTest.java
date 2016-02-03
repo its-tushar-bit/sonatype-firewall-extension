@@ -61,8 +61,7 @@ public class SidebarServiceTest
     Label label = tempEntity.newLabel(application.getId());
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(application.getId());
 
-    OwnerDetailsDTO ownerDetailsDTO = sidebarService
-        .getOwnerDetails(OwnerType.APPLICATION, application.getId());
+    OwnerDetailsDTO ownerDetailsDTO = sidebarService.getOwnerDetails(OwnerType.APPLICATION, application.getId());
     assertThat(ownerDetailsDTO.tags, hasSize(0));
 
     assertThat(ownerDetailsDTO.policies, hasSize(1));

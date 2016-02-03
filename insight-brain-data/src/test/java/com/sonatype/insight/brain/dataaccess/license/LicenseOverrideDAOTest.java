@@ -40,8 +40,8 @@ public class LicenseOverrideDAOTest
     extends AbstractDbDAOTest
 {
 
-  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier
-      .createMavenCoordinates("gid", "aid", "1.0");
+  private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("gid", "aid",
+      "1.0");
 
   private void testCRUD(String ownerId) throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
@@ -72,16 +72,22 @@ public class LicenseOverrideDAOTest
     assertNull(licenseOverride);
   }
 
-  private void assertLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
-      LicenseOverrideStatus status, String licenseId, String comment,
-      LicenseOverride actual)
+  private void assertLicenseOverride(String ownerId,
+                                     ComponentIdentifier componentIdentifier,
+                                     LicenseOverrideStatus status,
+                                     String licenseId,
+                                     String comment,
+                                     LicenseOverride actual)
   {
     assertLicenseOverride(ownerId, componentIdentifier, status, Collections.singleton(licenseId), comment, actual);
   }
 
-  private void assertLicenseOverride(String ownerId, ComponentIdentifier componentIdentifier,
-      LicenseOverrideStatus status, Set<String> licenseIds, String comment,
-      LicenseOverride actual)
+  private void assertLicenseOverride(String ownerId,
+                                     ComponentIdentifier componentIdentifier,
+                                     LicenseOverrideStatus status,
+                                     Set<String> licenseIds,
+                                     String comment,
+                                     LicenseOverride actual)
   {
     assertEquals(ownerId, actual.getOwnerId());
     assertEquals(componentIdentifier, actual.getComponentIdentifier());
@@ -108,8 +114,8 @@ public class LicenseOverrideDAOTest
   @Test
   public void testCommentTooLong() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN, (String)null,
-        StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
+    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
+        (String) null, StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
     try {
       dao.insert(override);
       fail("Expected BadRequestException");
@@ -186,8 +192,8 @@ public class LicenseOverrideDAOTest
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
-      LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, status, (String)null /* licenseId */,
-          "My comment");
+      LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, status,
+          (String) null /* licenseId */, "My comment");
       switch (status) {
         case ACKNOWLEDGED:
         case CONFIRMED:
@@ -215,7 +221,7 @@ public class LicenseOverrideDAOTest
   public void testNullLicenseId_Update() throws Exception {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
-        (String)null /* licenseId */, "My comment");
+        (String) null /* licenseId */, "My comment");
     dao.insert(override);
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
@@ -312,7 +318,8 @@ public class LicenseOverrideDAOTest
 
     try {
       dao.insert(override);
-    } catch (BadRequestException bre) {
+    }
+    catch (BadRequestException bre) {
       assertThat(bre.getMessage(), is("LicenseOverride already exists for this ownerId and component"));
     }
 
@@ -407,8 +414,8 @@ public class LicenseOverrideDAOTest
     Set<String> licenseIds = new HashSet<>(Arrays.asList("Apache-1.0", "Apache-2.0"));
     String comment = null;
 
-    LicenseOverride licenseOverride = new LicenseOverride(applicationId, componentIdentifier, status,
-        licenseIds, comment);
+    LicenseOverride licenseOverride = new LicenseOverride(applicationId, componentIdentifier, status, licenseIds,
+        comment);
     dao.insert(licenseOverride);
     assertNotNull(licenseOverride.getId());
     licenseOverride = dao.getById(licenseOverride.getId());
@@ -431,8 +438,8 @@ public class LicenseOverrideDAOTest
         LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD");
     override = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier);
     assertNotNull(override);
-    assertLicenseOverride(organization.getParentOrganizationId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
-        "ANTLR-PD", "testing", override);
+    assertLicenseOverride(organization.getParentOrganizationId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "ANTLR-PD", "testing", override);
 
     // Set @ Organization
     tempEntity.newLicenseOverride(organization.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,

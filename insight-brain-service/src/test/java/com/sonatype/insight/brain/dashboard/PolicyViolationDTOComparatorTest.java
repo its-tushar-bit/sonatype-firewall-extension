@@ -57,8 +57,11 @@ public class PolicyViolationDTOComparatorTest
     assertThat(sorted, is(expected));
   }
 
-  private PolicyViolationDTO buildPolicyViolationDTO(int threatLevel, String policyName, String applicationName,
-      ComponentIdentifier componentIdentifier, String hash)
+  private PolicyViolationDTO buildPolicyViolationDTO(int threatLevel,
+                                                     String policyName,
+                                                     String applicationName,
+                                                     ComponentIdentifier componentIdentifier,
+                                                     String hash)
   {
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.id = UUID.randomUUID().toString();

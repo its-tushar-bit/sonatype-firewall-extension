@@ -144,7 +144,8 @@ public class ReleaseGraphModelTest
     Assert.assertEquals(2, model.getSlotIndices()[24]);
   }
 
-  private static ComponentPopularity buildGavPopularity(long[] catalogDates, int[] popularity, int currentVersionIndex) {
+  private static ComponentPopularity buildGavPopularity(long[] catalogDates, int[] popularity, int currentVersionIndex)
+  {
     ComponentPopularity gav = new ComponentPopularity();
     gav.setCatalogDates(catalogDates);
     gav.setPopularity(popularity);

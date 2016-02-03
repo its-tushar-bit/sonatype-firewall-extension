@@ -39,7 +39,6 @@ public class ApiPolicyServiceAuthzTest
   @Inject
   private ApiPolicyService apiPolicyService;
 
-
   @Before
   public void setUpPolicies() {
     tempEntity.newPolicy(org.getParentOrganizationId(), PARENT_ORG_POLICY_NAME1);

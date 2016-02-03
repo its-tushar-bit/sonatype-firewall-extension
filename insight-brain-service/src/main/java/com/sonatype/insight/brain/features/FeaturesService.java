@@ -32,7 +32,7 @@ public class FeaturesService
 
   @Inject
   public FeaturesService(CLMLicenseManager licenseManager,
-      RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
+                         RootOrganizationConfigMigrationUtils rootOrganizationConfigMigrationUtils)
   {
     this.licenseManager = licenseManager;
     this.rootOrganizationConfigMigrationUtils = rootOrganizationConfigMigrationUtils;

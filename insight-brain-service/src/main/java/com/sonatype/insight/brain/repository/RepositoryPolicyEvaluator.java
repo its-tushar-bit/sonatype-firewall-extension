@@ -74,9 +74,11 @@ public class RepositoryPolicyEvaluator
 
   @Inject
   public RepositoryPolicyEvaluator(ComponentPolicyEvaluator componentPolicyEvaluator,
-      RepositoryComponentDAO repositoryComponentDAO, RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      FirewallAuditHdsClient auditHdsClient, FirewallQuarantineHdsClient quarantineHdsClient,
-      ComponentDetailsLoader componentDetailsLoader)
+                                   RepositoryComponentDAO repositoryComponentDAO,
+                                   RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+                                   FirewallAuditHdsClient auditHdsClient,
+                                   FirewallQuarantineHdsClient quarantineHdsClient,
+                                   ComponentDetailsLoader componentDetailsLoader)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -87,7 +89,8 @@ public class RepositoryPolicyEvaluator
   }
 
   public RepositoryComponentEvaluationDataList evaluate(Repository repository,
-      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList, final boolean withQuarantine)
+                                                        RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+                                                        final boolean withQuarantine)
   {
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
@@ -106,8 +109,8 @@ public class RepositoryPolicyEvaluator
       }
 
       // Use the claimed component data if found
-      NamedComponentDetails componentDetails = componentDetailsLoader
-          .getComponentDetailsLocally(null /* componentIdentifier */, componentEvaluationData.hash);
+      NamedComponentDetails componentDetails = componentDetailsLoader.getComponentDetailsLocally(
+          null /* componentIdentifier */, componentEvaluationData.hash);
       if (componentDetails == null) {
         componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
         componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
@@ -139,8 +142,12 @@ public class RepositoryPolicyEvaluator
     return componentEvaluationResultList;
   }
 
-  private void persistEvaluationResults(Repository repository, Date evaluationTime, Component component,
-      PolicyResults policyResults, boolean canBeQuarantined, Date quarantineTime)
+  private void persistEvaluationResults(Repository repository,
+                                        Date evaluationTime,
+                                        Component component,
+                                        PolicyResults policyResults,
+                                        boolean canBeQuarantined,
+                                        Date quarantineTime)
   {
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
@@ -152,16 +159,20 @@ public class RepositoryPolicyEvaluator
     }
   }
 
-  private void persistRepositoryComponent(TransactionContext tx, Repository repository, Date evaluationTime,
-      Component component, boolean canBeQuarantined, Date quarantineTime)
+  private void persistRepositoryComponent(TransactionContext tx,
+                                          Repository repository,
+                                          Date evaluationTime,
+                                          Component component,
+                                          boolean canBeQuarantined,
+                                          Date quarantineTime)
   {
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
     if (repositoryComponent == null) {
       repositoryComponent = new RepositoryComponent(repository.getId(), pathname, evaluationTime, component.getHash(),
-          component.getComponentIdentifier(), component.getMatchState().getId(),
-          component.getIdentificationSource().getId(), evaluationTime, canBeQuarantined);
+          component.getComponentIdentifier(), component.getMatchState().getId(), component.getIdentificationSource()
+              .getId(), evaluationTime, canBeQuarantined);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponentDAO.insert(tx, repositoryComponent);
     }
@@ -180,8 +191,11 @@ public class RepositoryPolicyEvaluator
     }
   }
 
-  private void persistPolicyViolations(TransactionContext tx, Repository repository, Date evaluationTime,
-      Component component, PolicyResults policyResults)
+  private void persistPolicyViolations(TransactionContext tx,
+                                       Repository repository,
+                                       Date evaluationTime,
+                                       Component component,
+                                       PolicyResults policyResults)
   {
     String pathname = component.getPathnames().get(0);
     // Update the current last RepositoryPolicyViolations for this component
@@ -207,7 +221,11 @@ public class RepositoryPolicyEvaluator
   }
 
   private RepositoryPolicyViolation createRepositoryPolicyViolation(PolicyAlert policyAlert,
-      ComponentFact componentFact, String pathname, Repository repository, Date evaluationTime, boolean waived)
+                                                                    ComponentFact componentFact,
+                                                                    String pathname,
+                                                                    Repository repository,
+                                                                    Date evaluationTime,
+                                                                    boolean waived)
   {
     PolicyFact policyFact = policyAlert.getTrigger();
     Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
@@ -266,14 +284,14 @@ public class RepositoryPolicyEvaluator
   }
 
   private ComponentEvaluationDataList getComponentDetailsFromHds(boolean withQuarantine,
-      final RepositoryComponentEvaluationDataRequestList hdsRequest)
+                                                                 final RepositoryComponentEvaluationDataRequestList hdsRequest)
   {
     try {
       long start = System.currentTimeMillis();
 
       HdsClient hdsClient = withQuarantine ? quarantineHdsClient : auditHdsClient;
-      ComponentEvaluationDataList result = hdsClient.post(ComponentEvaluationDataList.class, HDS_COMPONENT_DETAILS_PATH,
-          hdsRequest);
+      ComponentEvaluationDataList result = hdsClient.post(ComponentEvaluationDataList.class,
+          HDS_COMPONENT_DETAILS_PATH, hdsRequest);
 
       log.debug("Got component details from HDS for {} components in {} ms.", hdsRequest.components.size(),
           System.currentTimeMillis() - start);

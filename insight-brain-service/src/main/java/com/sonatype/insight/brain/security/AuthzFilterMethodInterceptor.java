@@ -31,8 +31,10 @@ class AuthzFilterMethodInterceptor
     this(new AuthzFilterAnnotationHandler(), null, authzChecker, true);
   }
 
-  private AuthzFilterMethodInterceptor(AuthzFilterAnnotationHandler handler, AnnotationResolver resolver,
-      AuthorizationChecker authzChecker, boolean anonymousClientAccessAllowed)
+  private AuthzFilterMethodInterceptor(AuthzFilterAnnotationHandler handler,
+                                       AnnotationResolver resolver,
+                                       AuthorizationChecker authzChecker,
+                                       boolean anonymousClientAccessAllowed)
   {
     super(handler, resolver);
     this.authzChecker = authzChecker;

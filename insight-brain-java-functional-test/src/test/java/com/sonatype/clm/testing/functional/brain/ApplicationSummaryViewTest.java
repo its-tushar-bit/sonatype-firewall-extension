@@ -136,15 +136,14 @@ public class ApplicationSummaryViewTest
 
     for (int i = 0; i < ActionDropDown.reportLinks().size(); i++) {
       ActionDropDown.reportLink(i).shouldBe(visible, CLM.DISABLED)
-          .shouldHave(ActionDropDown
-              .reportLinkText(stages.get(i).getName()));
+          .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
     }
 
     List<PolicyEvaluation> policyEvaluations = new ArrayList<>();
 
     for (StageType stage : stages) {
-      policyEvaluations.add(
-          tempEntity.newPolicyEvaluation(application.getId(), stage.getId(), stage.getId() + "FakeScanID"));
+      policyEvaluations.add(tempEntity.newPolicyEvaluation(application.getId(), stage.getId(), stage.getId()
+          + "FakeScanID"));
     }
 
     refresh();
@@ -153,8 +152,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.reportLinks().shouldHaveSize(policyEvaluations.size());
 
     for (int i = 0; i < ActionDropDown.reportLinks().size(); i++) {
-      ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED).shouldHave(
-          ActionDropDown.reportLinkText(stages.get(i).getName()));
+      ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED)
+          .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
 
       ActionDropDown.reportLink(i).followLink();
       switchToWindow(1);
@@ -217,8 +216,7 @@ public class ApplicationSummaryViewTest
 
     TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
 
-    appliedCategoryList.emptyDescriptor().shouldBe(visible)
-        .shouldHave(CategoryTileAppContext.NO_CATEGORIES_DEFINED);
+    appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTileAppContext.NO_CATEGORIES_DEFINED);
     appliedCategoryList.elements().shouldBe(empty);
   }
 
@@ -231,8 +229,7 @@ public class ApplicationSummaryViewTest
 
     TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
 
-    appliedCategoryList.emptyDescriptor().shouldBe(visible)
-        .shouldHave(categoryTile.emptyListDescriptorText());
+    appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(categoryTile.emptyListDescriptorText());
     appliedCategoryList.elements().shouldBe(empty);
   }
 
@@ -286,8 +283,8 @@ public class ApplicationSummaryViewTest
 
         EvaluateApplicationModal.root().shouldBe(visible);
         EvaluateApplicationModal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
-        EvaluateApplicationModal.stageDropdown().selectedItem().shouldBe(
-            EvaluateApplicationModal.defaultStageText()).click();
+        EvaluateApplicationModal.stageDropdown().selectedItem().shouldBe(EvaluateApplicationModal.defaultStageText())
+            .click();
         EvaluateApplicationModal.stageDropdown().listItems().shouldHaveSize(4);
 
         EvaluateApplicationModal.stageDropdown().listItem(2).shouldHave(text(StageTypes.RELEASE.getName()));

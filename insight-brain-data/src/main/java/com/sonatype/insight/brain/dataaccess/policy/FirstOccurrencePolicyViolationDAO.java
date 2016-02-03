@@ -24,8 +24,9 @@ public class FirstOccurrencePolicyViolationDAO
     return get(tx, sQuery, id);
   }
 
-  public List<FirstOccurrencePolicyViolation> getByApplicationIdAndStageId(TransactionContext tx, String applicationId,
-      String stageId)
+  public List<FirstOccurrencePolicyViolation> getByApplicationIdAndStageId(TransactionContext tx,
+                                                                           String applicationId,
+                                                                           String stageId)
   {
     String sQuery = "SELECT entity FROM FirstOccurrencePolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2";

@@ -76,8 +76,8 @@ public abstract class AbstractOwnerDetailsEditingTest
   @Test
   public void testOwnerTreeViewDetails() {
     OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
-    assertThat(OwnerDetailTreeView.headerHref(), containsString(OwnerSummaryPage.url(currentOwner.getType().toString(),
-        currentOwner.getPublicId())));
+    assertThat(OwnerDetailTreeView.headerHref(),
+        containsString(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId())));
 
     testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
     testRouting_Policies(OwnerDetailTreeView.policyGroup());
@@ -164,8 +164,8 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.item(2).root().shouldBe(visible).shouldHave(text(label.getLabel())).click();
     detailGroup.item(2).root().shouldBe(CLM.SELECTED);
     detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(label.getColor().toString()));
-    waitUntilUrl(
-        LabelEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), label.getId()));
+    waitUntilUrl(LabelEditorPage
+        .urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), label.getId()));
 
     back();
 
@@ -212,8 +212,8 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
     detailGroup.item(2).root().shouldBe(CLM.SELECTED);
     detailGroup.item(2).icon().shouldBe(visible);
-    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(),
-        currentOwner.getPublicId(), ROLES.get(0).getId()));
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), ROLES.get(0)
+        .getId()));
 
     for (int i = 1; i < ROLES.size(); i++) {
       tempEntity.newMembershipMapping(currentOwner.getId(), ROLES.get(i).getId(), "admin");

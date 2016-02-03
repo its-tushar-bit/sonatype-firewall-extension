@@ -44,7 +44,8 @@ public class HashComponentIdentifierService
 
   @Inject
   public HashComponentIdentifierService(final HdsClient hdsClient,
-      final HashComponentIdentifierDAO hashComponentIdentifierDAO, final LicenseOverrideDAO licenseOverrideDAO)
+                                        final HashComponentIdentifierDAO hashComponentIdentifierDAO,
+                                        final LicenseOverrideDAO licenseOverrideDAO)
   {
     this.client = hdsClient;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
@@ -82,8 +83,8 @@ public class HashComponentIdentifierService
       hashComponentIdentifierDAO.update(tx, hashComponentIdentifier);
 
       // Now get the existing license overrides and update them
-      List<LicenseOverride> licenseOverrideList =
-          licenseOverrideDAO.getByComponentIdentifier(tx, existingHashComponentIdentifier.getComponentIdentifier());
+      List<LicenseOverride> licenseOverrideList = licenseOverrideDAO.getByComponentIdentifier(tx,
+          existingHashComponentIdentifier.getComponentIdentifier());
       for (LicenseOverride licenseOverride : licenseOverrideList) {
         licenseOverride.setComponentIdentifier(hashComponentIdentifier.getComponentIdentifier());
         licenseOverrideDAO.update(tx, licenseOverride);

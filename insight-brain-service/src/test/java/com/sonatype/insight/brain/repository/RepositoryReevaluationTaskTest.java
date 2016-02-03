@@ -149,8 +149,12 @@ public class RepositoryReevaluationTaskTest
     }
   }
 
-  private static void assertHasViolation(List<RepositoryPolicyViolation> violations, String pathname, String policyName,
-      int threatLevel, ComponentIdentifier componentIdentifier, boolean waived)
+  private static void assertHasViolation(List<RepositoryPolicyViolation> violations,
+                                         String pathname,
+                                         String policyName,
+                                         int threatLevel,
+                                         ComponentIdentifier componentIdentifier,
+                                         boolean waived)
   {
     for (RepositoryPolicyViolation violation : violations) {
       if (violation.getPathname().equals(pathname) && violation.getPolicyName().equals(policyName)) {
@@ -164,8 +168,13 @@ public class RepositoryReevaluationTaskTest
 
   }
 
-  private static void assertHasComponent(List<RepositoryComponent> components, String pathname, MatchState matchState,
-      String identificationSource, ComponentIdentifier componentIdentifier, boolean quarantined, Date timeBeforeReevaluation)
+  private static void assertHasComponent(List<RepositoryComponent> components,
+                                         String pathname,
+                                         MatchState matchState,
+                                         String identificationSource,
+                                         ComponentIdentifier componentIdentifier,
+                                         boolean quarantined,
+                                         Date timeBeforeReevaluation)
   {
     for (RepositoryComponent component : components) {
       if (component.getPathname().equals(pathname)) {
@@ -181,18 +190,21 @@ public class RepositoryReevaluationTaskTest
 
   private void createHdsResponse() throws Exception {
     ComponentEvaluationDataList response = new ComponentEvaluationDataList();
-    response.components.add(
-        createComponentResponse(component.getHash(), component.getComponentIdentifier(), MatchState.EXACT.getId(), 0));
-    response.components
-        .add(createComponentResponse(unknownComponent.getHash(), newIdentifier, MatchState.EXACT.getId(), 1));
+    response.components.add(createComponentResponse(component.getHash(), component.getComponentIdentifier(),
+        MatchState.EXACT.getId(), 0));
+    response.components.add(createComponentResponse(unknownComponent.getHash(), newIdentifier,
+        MatchState.EXACT.getId(), 1));
 
-    Mockito.when(auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
-        Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
-        Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
+    Mockito.when(
+        auditHdsClient.post(Mockito.eq(ComponentEvaluationDataList.class),
+            Mockito.eq(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH),
+            Mockito.any(RepositoryComponentEvaluationDataRequestList.class))).thenReturn(response);
   }
 
-  private ComponentEvaluationData createComponentResponse(String hash, ComponentIdentifier identifier,
-      String matchState, int index)
+  private ComponentEvaluationData createComponentResponse(String hash,
+                                                          ComponentIdentifier identifier,
+                                                          String matchState,
+                                                          int index)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
 
@@ -202,8 +214,8 @@ public class RepositoryReevaluationTaskTest
     componentEvaluationData.declaredLicenses = Collections.emptySet();
     componentEvaluationData.observedLicenses = Collections.emptySet();
     componentEvaluationData.matchState = matchState;
-    componentEvaluationData.securityVulnerabilities = Collections
-        .singletonList(new SecurityVulnerability("cve", "CVE-2015-1234", 9.0f));
+    componentEvaluationData.securityVulnerabilities = Collections.singletonList(new SecurityVulnerability("cve",
+        "CVE-2015-1234", 9.0f));
 
     return componentEvaluationData;
   }

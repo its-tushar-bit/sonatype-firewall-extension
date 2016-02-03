@@ -41,8 +41,10 @@ public class Scanner
   private final ScanWriterFactory writerFactory;
 
   @Inject
-  public Scanner(ScanPropertiesLoader configLoader, ClientScanner clientScanner, FileScanner fileScanner,
-      ScanWriterFactory writerFactory)
+  public Scanner(ScanPropertiesLoader configLoader,
+                 ClientScanner clientScanner,
+                 FileScanner fileScanner,
+                 ScanWriterFactory writerFactory)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;

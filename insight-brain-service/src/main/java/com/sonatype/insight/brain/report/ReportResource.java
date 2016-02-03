@@ -123,10 +123,16 @@ public class ReportResource
   private final VersionService versionService;
 
   @Inject
-  public ReportResource(final ReportService reportService, final ScanPolicyEvaluator scanPolicyEvaluator,
-      InsightWork work, BaseUrl baseUrl, ApplicationAdapter applicationAdapter, ApiReportDataServiceV2 reportDataService,
-      ReleaseGraphService releaseGraphService, ComponentDetailsLoader componentDetailsLoader, CurrentUser currentUser,
-      VersionService versionService)
+  public ReportResource(final ReportService reportService,
+                        final ScanPolicyEvaluator scanPolicyEvaluator,
+                        InsightWork work,
+                        BaseUrl baseUrl,
+                        ApplicationAdapter applicationAdapter,
+                        ApiReportDataServiceV2 reportDataService,
+                        ReleaseGraphService releaseGraphService,
+                        ComponentDetailsLoader componentDetailsLoader,
+                        CurrentUser currentUser,
+                        VersionService versionService)
   {
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
@@ -148,10 +154,9 @@ public class ReportResource
   @GET
   @Path("embedReport/{path:.*}")
   @Authorize(permission = Permission.READ, anonymousAllowed = true)
-  public Response embedReport(
-      @PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID)
-      final String applicationPublicId,
-      @PathParam("scanId") final String scanId, @PathParam("path") final String path)
+  public Response embedReport(@PathParam("applicationPublicId") @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+                              @PathParam("scanId") final String scanId,
+                              @PathParam("path") final String path)
   {
     if ("index.html".equals(path) || path.isEmpty()) {
       UriBuilder uriBuilder = baseUrl.redirect();
@@ -182,10 +187,10 @@ public class ReportResource
   @GET
   @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
-  public Response browseReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId, @PathParam("path") final String path,
-      @Context final HttpServletRequest httpRequest) throws IOException
+  public Response browseReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+                               @PathParam("scanId") final String scanId,
+                               @PathParam("path") final String path,
+                               @Context final HttpServletRequest httpRequest) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -200,9 +205,9 @@ public class ReportResource
       log.warn("Problem embedding report: " + e.getMessage(), e);
     }
     if (reportEntry != null) {
-      //we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
-      //the contents loaded from the file before serving up to the browser, the timestamp on the file won't
-      //change, even when brain versions do, so index.html is always sent in response
+      // we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
+      // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
+      // change, even when brain versions do, so index.html is always sent in response
       if (reportEntry.name.equals("index.html")) {
         reportEntry = Report.appendCacheBustingParams(reportEntry, versionService.getVersion());
       }
@@ -236,9 +241,8 @@ public class ReportResource
   @POST
   @Path("reevaluatePolicy")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public Response reevaluatePolicy(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId) throws IOException
+  public Response reevaluatePolicy(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+                                   @PathParam("scanId") final String scanId) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -257,9 +261,8 @@ public class ReportResource
   @Path(PRINT_PATH)
   @Produces("application/pdf")
   @Authorize(permission = Permission.READ)
-  public Response printReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId) throws IOException
+  public Response printReport(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+                              @PathParam("scanId") final String scanId) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -292,9 +295,8 @@ public class ReportResource
   @Path(DOWNLOAD_BUNDLE_PATH)
   @Produces("application/zip")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public Response downloadBundle(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("scanId") final String scanId) throws IOException
+  public Response downloadBundle(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+                                 @PathParam("scanId") final String scanId) throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.fetchReport(work, app.getId(), scanId, true);
@@ -336,10 +338,10 @@ public class ReportResource
             continue;
           }
           if (!cipDetailsPath.isEmpty() && entry.getName().startsWith(cipDetailsPath)) {
-            final NamedComponentDetails hdsDetails = JsonUtils
-                .parse(reportZip.getInputStream(entry), NamedComponentDetails.class);
-            NamedComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(hdsDetails.getComponentIdentifier(),
-                hdsDetails.getHash(), hdsDetails.getMatchState(),
+            final NamedComponentDetails hdsDetails = JsonUtils.parse(reportZip.getInputStream(entry),
+                NamedComponentDetails.class);
+            NamedComponentDetails clmDetails = componentDetailsLoader.getComponentDetails(
+                hdsDetails.getComponentIdentifier(), hdsDetails.getHash(), hdsDetails.getMatchState(),
                 new ComponentDetailsLoader.HostedDataServicesSource()
                 {
                   @Override
@@ -403,9 +405,12 @@ public class ReportResource
     return groupId + '/' + artifactId + '/' + version;
   }
 
-  private void addUniqueComponentsToUpdater(final String applicationPublicId, final String scanId,
-      final String dataPath, final int dataVersion, final List<ApiReportComponentDTOV2> components,
-      final ReportBundleUpdater updater) throws IOException
+  private void addUniqueComponentsToUpdater(final String applicationPublicId,
+                                            final String scanId,
+                                            final String dataPath,
+                                            final int dataVersion,
+                                            final List<ApiReportComponentDTOV2> components,
+                                            final ReportBundleUpdater updater) throws IOException
   {
     for (ApiReportComponentDTOV2 component : components) {
       ComponentIdentifier componentIdentifier = convertFromApi(component.componentIdentifier);
@@ -460,11 +465,11 @@ public class ReportResource
   @POST
   @Path("augmentData/{path}")
   @Authorize(permission = Permission.WRITE)
-  public Response augmentData(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("path") final String path, @QueryParam("where") final String where,
-      @Context final HttpServletRequest request, final InputStream stream)
-      throws IOException
+  public Response augmentData(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+                              @PathParam("path") final String path,
+                              @QueryParam("where") final String where,
+                              @Context final HttpServletRequest request,
+                              final InputStream stream) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -491,9 +496,9 @@ public class ReportResource
   @Path("auditLog/{path}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public Response auditLog(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-      @PathParam("path") final String path, @QueryParam("key") final String encodedKey) throws IOException
+  public Response auditLog(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
+                           @PathParam("path") final String path,
+                           @QueryParam("key") final String encodedKey) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
@@ -547,13 +552,15 @@ public class ReportResource
 
   /**
    * @since 1.13.0
-   * Given an encodedKey for a given Component, check for legacy GAV format and replace with ComponentIdentifier if
-   * it is missing.
-   * Necessary to maintain backwards compatibility for older reports which encode this key as a JSON Object in this
-   * format: {"hash":"hashValue","groupId":"g","artifactId":"a","version":"v"}
+   *        Given an encodedKey for a given Component, check for legacy GAV format and replace with ComponentIdentifier
+   *        if
+   *        it is missing.
+   *        Necessary to maintain backwards compatibility for older reports which encode this key as a JSON Object in
+   *        this
+   *        format: {"hash":"hashValue","groupId":"g","artifactId":"a","version":"v"}
    */
   private ContainerNode<?> decodeKey(final String encodedKey) throws IOException {
-    if(encodedKey == null) {
+    if (encodedKey == null) {
       return null;
     }
     ContainerNode<?> decodedKey = JsonUtils.parse(encodedKey.getBytes("UTF-8"));

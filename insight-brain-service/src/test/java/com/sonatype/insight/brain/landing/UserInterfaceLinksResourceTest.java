@@ -39,8 +39,8 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   public void testLinkToReport() throws Exception {
-    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"), is(UserInterfaceLinksResource.RESOURCE_PATH
-        + "/application/app%20id/report/scan%20id"));
+    assertThat(UserInterfaceLinksResource.getReportUrl("app id", "scan id"),
+        is(UserInterfaceLinksResource.RESOURCE_PATH + "/application/app%20id/report/scan%20id"));
     HttpResponse response = get(UserInterfaceLinksResource.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/reports/app%20id/scan%20id");
   }

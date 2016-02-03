@@ -63,7 +63,7 @@ public class ApplicationSummaryAdapterTest
 
   @Test
   public void testConvertApplicationList_EmptyList() {
-    ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(Collections.<Application>emptyList());
+    ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(Collections.<Application> emptyList());
     assertThat(applicationSummaryList, notNullValue());
     assertThat(applicationSummaryList.getApplicationSummaries(), hasSize(0));
   }

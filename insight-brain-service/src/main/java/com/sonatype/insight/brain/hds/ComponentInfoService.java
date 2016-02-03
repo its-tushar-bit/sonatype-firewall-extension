@@ -70,8 +70,9 @@ public class ComponentInfoService
   private String toolName;
 
   @Inject
-  public ComponentInfoService(HdsClient hdsClient, ComponentDetailsLoader componentDetailsLoader,
-      ComponentPolicyEvaluator componentPolicyEvaluator)
+  public ComponentInfoService(HdsClient hdsClient,
+                              ComponentDetailsLoader componentDetailsLoader,
+                              ComponentPolicyEvaluator componentPolicyEvaluator)
   {
     this.hdsClient = hdsClient;
     this.componentDetailsLoader = componentDetailsLoader;
@@ -79,9 +80,13 @@ public class ComponentInfoService
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public NamedComponentDetails getComponentDetails_EvaluateComponentPermission(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, ComponentIdentifier identifier,
-      String matchState, String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
+  public NamedComponentDetails getComponentDetails_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                                                                               ComponentIdentifier identifier,
+                                                                               String matchState,
+                                                                               String hash,
+                                                                               boolean proprietary,
+                                                                               HttpServletRequest httpRequest)
+      throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     NamedComponentDetails details = getComponentDetails(app, identifier, matchState, hash, proprietary, httpRequest);
@@ -90,17 +95,24 @@ public class ComponentInfoService
   }
 
   @Authorize(permission = Permission.READ)
-  public NamedComponentDetails getComponentDetails_ReadPermission(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, ComponentIdentifier componentIdentifier,
-      String matchState, String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
+  public NamedComponentDetails getComponentDetails_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                                  @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                                                  ComponentIdentifier componentIdentifier,
+                                                                  String matchState,
+                                                                  String hash,
+                                                                  boolean proprietary,
+                                                                  HttpServletRequest httpRequest) throws IOException
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest);
   }
 
-  NamedComponentDetails getComponentDetails(Owner owner, final ComponentIdentifier identifier, String matchState,
-      String hash, boolean proprietary, HttpServletRequest httpRequest) throws IOException
+  NamedComponentDetails getComponentDetails(Owner owner,
+                                            final ComponentIdentifier identifier,
+                                            String matchState,
+                                            String hash,
+                                            boolean proprietary,
+                                            HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -121,8 +133,8 @@ public class ComponentInfoService
     component.setProprietary(proprietary);
 
     // Evaluate the policies
-    List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(owner.getId(),
-        new Stage(DevelopStageType.ID), Collections.singletonList(component));
+    List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(owner.getId(), new Stage(DevelopStageType.ID),
+        Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
@@ -130,8 +142,10 @@ public class ComponentInfoService
     return componentDetails;
   }
 
-  private NamedComponentDetails getComponentDetailsFromHDS(String matchState, final String hash,
-      final ComponentIdentifier identifier, final HttpServletRequest httpRequest) throws IOException
+  private NamedComponentDetails getComponentDetailsFromHDS(String matchState,
+                                                           final String hash,
+                                                           final ComponentIdentifier identifier,
+                                                           final HttpServletRequest httpRequest) throws IOException
   {
     return componentDetailsLoader.getComponentDetails(identifier, hash, matchState,
         new ComponentDetailsLoader.HostedDataServicesSource()
@@ -176,9 +190,11 @@ public class ComponentInfoService
    * This method is called by the eclipse plugin, so it needs to check the EVALUATE_COMPONENT permission.
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId, ComponentIdentifier identifier,
-      String matchState, HttpServletRequest httpRequest) throws IOException
+  public ComponentDetailsList getComponentDetailsList_EvaluateComponentPermission(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+                                                                                  ComponentIdentifier identifier,
+                                                                                  String matchState,
+                                                                                  HttpServletRequest httpRequest)
+      throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     return getComponentDetailsList(app, identifier, matchState, httpRequest);
@@ -191,17 +207,20 @@ public class ComponentInfoService
    * This method is called by the CIP, so it needs to check the READ permission.
    */
   @Authorize(permission = Permission.READ)
-  public ComponentDetailsList getComponentDetailsList_ReadPermission(
-      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, ComponentIdentifier componentIdentifier,
-      String matchState, HttpServletRequest httpRequest) throws IOException
+  public ComponentDetailsList getComponentDetailsList_ReadPermission(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                                     @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                                                     ComponentIdentifier componentIdentifier,
+                                                                     String matchState,
+                                                                     HttpServletRequest httpRequest) throws IOException
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     return getComponentDetailsList(owner, componentIdentifier, matchState, httpRequest);
   }
 
-  ComponentDetailsList getComponentDetailsList(Owner owner, ComponentIdentifier identifier, String matchState,
-      HttpServletRequest httpRequest) throws IOException
+  ComponentDetailsList getComponentDetailsList(Owner owner,
+                                               ComponentIdentifier identifier,
+                                               String matchState,
+                                               HttpServletRequest httpRequest) throws IOException
   {
     long start = System.currentTimeMillis();
 
@@ -233,8 +252,9 @@ public class ComponentInfoService
    */
   @Authorize(permission = Permission.READ)
   public ComponentLicenses getLicenses(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, ComponentIdentifier componentIdentifier,
-      HttpServletRequest httpRequest) throws IOException
+                                       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                       ComponentIdentifier componentIdentifier,
+                                       HttpServletRequest httpRequest) throws IOException
   {
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
@@ -260,10 +280,11 @@ public class ComponentInfoService
    * @since 1.18.0
    */
   @Authorize(permission = Permission.READ)
-  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(
-      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash,
-      final ComponentIdentifier componentIdentifier, final HttpServletRequest httpRequest)
+  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                                     @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                                                     final String hash,
+                                                                     final ComponentIdentifier componentIdentifier,
+                                                                     final HttpServletRequest httpRequest)
       throws IOException
   {
     if (componentIdentifier == null) {
@@ -306,8 +327,7 @@ public class ComponentInfoService
   /**
    * @since 1.6
    */
-  private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Owner owner, Set<License> multiLicenses)
-  {
+  private List<LicenseWithThreatLevel> getLicensesWithThreatLevels(Owner owner, Set<License> multiLicenses) {
     List<LicenseWithThreatLevel> result = new ArrayList<>();
 
     if (multiLicenses != null) {

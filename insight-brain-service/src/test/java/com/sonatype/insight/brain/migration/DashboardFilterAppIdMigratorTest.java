@@ -64,7 +64,7 @@ public class DashboardFilterAppIdMigratorTest
     tempEntity.newDashboardFilter("foo",
         JsonUtils.format(createFilter(Collections.singletonList("testMissingApplication"))));
     dashboardFilterAppIdMigrator.migrate();
-    
+
     DashboardFilterDTO filter = getByUser("foo");
     assertThat(filter, notNullValue());
     assertThat(filter.applicationFilters, is(empty()));

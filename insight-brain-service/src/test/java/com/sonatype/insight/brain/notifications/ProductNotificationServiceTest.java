@@ -115,9 +115,9 @@ public class ProductNotificationServiceTest
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
-        Collections.<String>emptySet());
-    ProductNotificationDTO returnedValue =
-        notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
+        Collections.<String> emptySet());
+    ProductNotificationDTO returnedValue = notificationsService.setNotificationViewed(notificationListDTO.notifications
+        .get(0));
     assertNotification(returnedValue, notifications.get(0), true);
 
     int pageSize = 2;
@@ -133,9 +133,9 @@ public class ProductNotificationServiceTest
     when(hdsNotificationService.getNotifications()).thenReturn(notifications);
 
     ProductNotificationListDTO notificationListDTO = notificationsService.convert(notifications,
-        Collections.<String>emptySet());
-    ProductNotificationDTO returnedValue =
-        notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
+        Collections.<String> emptySet());
+    ProductNotificationDTO returnedValue = notificationsService.setNotificationViewed(notificationListDTO.notifications
+        .get(0));
     assertNotification(returnedValue, notifications.get(0), true);
 
     returnedValue = notificationsService.setNotificationViewed(notificationListDTO.notifications.get(0));
@@ -157,8 +157,9 @@ public class ProductNotificationServiceTest
     return notifications;
   }
 
-  private void assertNotification(final ProductNotificationDTO notificationDTO, final ProductNotification notification,
-      final boolean viewed)
+  private void assertNotification(final ProductNotificationDTO notificationDTO,
+                                  final ProductNotification notification,
+                                  final boolean viewed)
   {
     assertThat(notificationDTO.id, is(notification.getId()));
     assertThat(notificationDTO.summaryText, is(notification.getSummaryText()));

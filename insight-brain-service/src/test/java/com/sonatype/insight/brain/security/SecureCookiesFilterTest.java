@@ -31,8 +31,8 @@ public class SecureCookiesFilterTest
 
   private static String COOKIE_2_INSECURE = "simple=cookie";
 
-  private static String COOKIE_3_SECURE = SecurityModule.SESSION_COOKIE_NAME +
-      "=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
+  private static String COOKIE_3_SECURE = SecurityModule.SESSION_COOKIE_NAME
+      + "=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
   private static String COOKIE_4_SECURE = "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAG;
 
@@ -58,8 +58,8 @@ public class SecureCookiesFilterTest
   @Test
   public void testIfRequestIsSecureSetSecureCookieAttributeWhenMissing() throws Exception {
     when(request.isSecure()).thenReturn(true);
-    when(response.getHeaders("Set-Cookie")).thenReturn(asList(COOKIE_1_INSECURE, COOKIE_2_INSECURE, COOKIE_3_SECURE,
-        COOKIE_4_SECURE));
+    when(response.getHeaders("Set-Cookie")).thenReturn(
+        asList(COOKIE_1_INSECURE, COOKIE_2_INSECURE, COOKIE_3_SECURE, COOKIE_4_SECURE));
 
     cookieFilter.doFilter(request, response, filterChain);
 
@@ -72,8 +72,7 @@ public class SecureCookiesFilterTest
   @Test
   public void testIfRequestIsNotSecureDoNotChangeCookieAttributes() throws Exception {
     when(request.isSecure()).thenReturn(false);
-    when(response.getHeaders("Set-Cookie"))
-        .thenReturn(asList(COOKIE_1_INSECURE, COOKIE_3_SECURE));
+    when(response.getHeaders("Set-Cookie")).thenReturn(asList(COOKIE_1_INSECURE, COOKIE_3_SECURE));
 
     cookieFilter.doFilter(request, response, filterChain);
 

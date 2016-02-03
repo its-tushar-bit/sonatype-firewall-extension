@@ -70,8 +70,8 @@ public class RepositoryReportContainerTest
     Date oldest = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
     assertThat(oldest, is(repositoryComponent.getLastEvaluationTime()));
     RepositoryReportContainerPage.refreshButton().shouldBe(visible);
-    RepositoryReportContainerPage.oldestEvalTime().shouldBe(visible).shouldBe(
-        Condition.exactTextCaseSensitive("Oldest evaluation 3 days ago"));
+    RepositoryReportContainerPage.oldestEvalTime().shouldBe(visible)
+        .shouldBe(Condition.exactTextCaseSensitive("Oldest evaluation 3 days ago"));
 
     RepositoryReportContainerPage.refreshButton().click();
 
@@ -112,8 +112,6 @@ public class RepositoryReportContainerTest
     ComponentEvaluationDataList dataList = new ComponentEvaluationDataList();
     dataList.components.add(evalData);
 
-    testCLMServer.getInsightServer()
-        .setResponseForURI("rest/component/details/firewall", dataList,
-            200);
+    testCLMServer.getInsightServer().setResponseForURI("rest/component/details/firewall", dataList, 200);
   }
 }

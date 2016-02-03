@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.model;
 
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

@@ -225,12 +225,12 @@ public class ApplicationServiceAuthzTest
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
 
-    //request with nothing specified, should only see app1
+    // request with nothing specified, should only see app1
     List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(null, null);
     assertThat(applications, hasSize(1));
     assertEquals(app.getId(), applications.get(0).getId());
 
-    //now app2 permission and it should show up
+    // now app2 permission and it should show up
     grantReadPermission(app2.getId());
     applications = applicationService.getApplicationsByIdsAndTagIds(null, null);
     assertThat(applications, hasSize(2));

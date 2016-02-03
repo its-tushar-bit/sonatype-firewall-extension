@@ -40,7 +40,7 @@ public class ApiReportDataResourceV2
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApiReportDataDTOV2 getData(@PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("scanId") String scanId) throws Exception
+                                    @PathParam("scanId") String scanId) throws Exception
   {
     return reportDataService.getData(applicationPublicId, scanId);
   }
@@ -49,6 +49,7 @@ public class ApiReportDataResourceV2
    * Gets the relative URL to this REST resource for the given application and scan.
    */
   public static String getDataUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).build(applicationPublicId, scanId).toString();
+    return UriBuilder.fromPath(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2).build(applicationPublicId, scanId)
+        .toString();
   }
 }

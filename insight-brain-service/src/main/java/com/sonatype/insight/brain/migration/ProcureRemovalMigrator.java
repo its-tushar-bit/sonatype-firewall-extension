@@ -53,8 +53,7 @@ public class ProcureRemovalMigrator
   private final InsightWork insightWork;
 
   @Inject
-  public ProcureRemovalMigrator(InsightWork insightWork)
-  {
+  public ProcureRemovalMigrator(InsightWork insightWork) {
     this.insightWork = insightWork;
   }
 
@@ -104,12 +103,12 @@ public class ProcureRemovalMigrator
   private void migrate(HasStringId context) {
     for (Policy policy : policyDAO.getByOwnerId(context.getId())) {
       if (pruneProcurement(policy)) {
-        policyDAO.update(policy); 
+        policyDAO.update(policy);
       }
     }
   }
-  
-  public boolean pruneProcurement( Policy policy) {
+
+  public boolean pruneProcurement(Policy policy) {
     log.debug("Checking policy {}", policy.getName());
     Map<String, List<Action>> actions = policy.getActions();
     if (actions != null && actions.containsKey(ID_PROCURE)) {

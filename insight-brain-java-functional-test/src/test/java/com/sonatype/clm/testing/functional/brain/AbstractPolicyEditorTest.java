@@ -121,10 +121,10 @@ public abstract class AbstractPolicyEditorTest
     constraint1.addCondition(new Condition("AgeInDays", "older than", "730"));
     Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
         LogicalOperator.AND);
-    constraint2.addCondition(new Condition("License Threat Group", "is",
-        tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG", 5).getId()));
-    constraint2.addCondition(
-        new Condition("Label", "is", tempEntity.newLabel(currentOwner.getId(), "my Label").getId()));
+    constraint2.addCondition(new Condition("License Threat Group", "is", tempEntity.newLicenseThreatGroup(
+        currentOwner.getId(), "my LTG", 5).getId()));
+    constraint2
+        .addCondition(new Condition("Label", "is", tempEntity.newLabel(currentOwner.getId(), "my Label").getId()));
     Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
         LogicalOperator.OR);
     constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
@@ -197,9 +197,9 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary1.name().shouldHave(text(constraints.get(0).getName()));
 
     List<Condition> conditions = constraints.get(0).getConditions();
-    constraintSummary1.subheader()
-        .shouldHave(ConstraintSection.ConstraintSummary
-            .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
+    constraintSummary1.subheader().shouldHave(
+        ConstraintSection.ConstraintSummary.subheaderText(conditions.size(), constraints.get(0).getOperator()
+            .toString()));
     constraintSummary1.conditions().shouldHaveSize(conditions.size());
     constraintSummary1.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
@@ -210,9 +210,9 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
 
     conditions = constraints.get(1).getConditions();
-    constraintSummary2.subheader()
-        .shouldHave(ConstraintSection.ConstraintSummary
-            .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
+    constraintSummary2.subheader().shouldHave(
+        ConstraintSection.ConstraintSummary.subheaderText(conditions.size(), constraints.get(1).getOperator()
+            .toString()));
     constraintSummary2.conditions().shouldHaveSize(conditions.size());
     constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
@@ -224,9 +224,9 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary3.name().shouldHave(text(constraints.get(2).getName()));
 
     conditions = constraints.get(2).getConditions();
-    constraintSummary3.subheader()
-        .shouldHave(ConstraintSection.ConstraintSummary
-            .subheaderText(conditions.size(), constraints.get(2).getOperator().toString()));
+    constraintSummary3.subheader().shouldHave(
+        ConstraintSection.ConstraintSummary.subheaderText(conditions.size(), constraints.get(2).getOperator()
+            .toString()));
     constraintSummary3.conditions().shouldHaveSize(conditions.size());
     constraintSummary3.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary3.editConstraintButton().shouldBe(visible, enabled);
@@ -377,7 +377,7 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED).click();
     actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED);
 
-    //TODO: CLM-5876 Add notification entry creation - should test adding a notification here
+    // TODO: CLM-5876 Add notification entry creation - should test adding a notification here
 
     policy = policyDAO.getById(policy.getId());
     List<Action> actions = policy.getActions(Stage.ID_BUILD);
@@ -405,7 +405,7 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED).click();
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED);
 
-    //TODO: CLM-5876 Add notification entry creation - should test adding a notification here
+    // TODO: CLM-5876 Add notification entry creation - should test adding a notification here
 
     policy = policyDAO.getById(policy.getId());
     List<NotifyAction> actions = policy.getMonitorNotifyActions();
@@ -426,7 +426,6 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.build().failRadio().shouldBe(selected);
     actionItemList.build().warnRadio().shouldNotBe(selected);
     actionItemList.build().noActionRadio().shouldNotBe(selected);
-
 
     // The rest of the stages should have no-action selected
     actionItemList.proxy().failRadio().shouldNotBe(selected);
@@ -522,8 +521,8 @@ public abstract class AbstractPolicyEditorTest
     assertActionItemListNames(actionItemList);
     assertActionItemListNoNotifications(actionItemList);
 
-    //TODO: CLM-5875 Add notification list view - This should also test notification count + twisty collapse/expand
-    //TODO: CLM-5876 Add notification entry creation
+    // TODO: CLM-5875 Add notification list view - This should also test notification count + twisty collapse/expand
+    // TODO: CLM-5876 Add notification entry creation
   }
 
   private void assertNewPolicyStateIsCorrect() {
@@ -553,8 +552,8 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2) {
-    waitUntilUrl(
-        PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), policy.getId()));
+    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(),
+        policy.getId()));
     PolicyEditorPage.title().shouldHave(text("Edit"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy);
@@ -579,8 +578,7 @@ public abstract class AbstractPolicyEditorTest
       assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
     }
 
-    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
-        .click();
+    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel))).click();
   }
 
   private void assertActionItemListNames(ActionItemList actionItemList) {

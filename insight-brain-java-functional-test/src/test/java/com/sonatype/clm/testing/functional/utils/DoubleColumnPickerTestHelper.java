@@ -45,7 +45,7 @@ public class DoubleColumnPickerTestHelper
     assertDoubleColumnPickerDefaultState(numAvailableItems, 0, filterOn);
   }
 
-    public static void assertDoubleColumnPickerDefaultState(int numAvailableItems) {
+  public static void assertDoubleColumnPickerDefaultState(int numAvailableItems) {
     assertDoubleColumnPickerDefaultState(numAvailableItems, true);
   }
 

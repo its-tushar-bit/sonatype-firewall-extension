@@ -25,8 +25,8 @@ public class SidebarResourceTest
 
   @Test
   public void testGetOwnerDetails_Organization() throws Exception {
-    HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH).parameter(OwnerType.ORGANIZATION,
-        Organization.ROOT_ORGANIZATION_ID).get();
+    HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
+        .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).get();
 
     assertValidOwnerDetailsDTO(response);
   }
@@ -36,8 +36,8 @@ public class SidebarResourceTest
     final String applicationPublicId = "SidebarResourceTest_Application";
     tempEntity.newApplicationWithParent(applicationPublicId);
 
-    HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH).parameter(OwnerType.APPLICATION,
-        applicationPublicId).get();
+    HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
+        .parameter(OwnerType.APPLICATION, applicationPublicId).get();
 
     assertValidOwnerDetailsDTO(response);
   }

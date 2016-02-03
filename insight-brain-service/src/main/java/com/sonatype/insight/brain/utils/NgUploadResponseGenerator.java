@@ -37,8 +37,7 @@ public class NgUploadResponseGenerator
   private final AntiCsrfFilter antiCsrfFilter;
 
   @Inject
-  public NgUploadResponseGenerator(ErrorResponseGenerator errorResponseGenerator, AntiCsrfFilter antiCsrfFilter)
-  {
+  public NgUploadResponseGenerator(ErrorResponseGenerator errorResponseGenerator, AntiCsrfFilter antiCsrfFilter) {
     this.errorResponseGenerator = errorResponseGenerator;
     this.antiCsrfFilter = antiCsrfFilter;
   }

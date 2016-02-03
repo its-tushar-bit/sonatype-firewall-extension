@@ -121,8 +121,7 @@ public class MultiLicenseDAO
     final Set<License> licenses = getLicensesByMultiLicenseIdNotNull(multiLicenseId);
     Integer threatLevel = null;
     for (License license : licenses) {
-      threatLevel = max(threatLevel,
-          licenseDAO.getLicenseThreatLevelByOwnerAndLicenseId(application, license.getId()));
+      threatLevel = max(threatLevel, licenseDAO.getLicenseThreatLevelByOwnerAndLicenseId(application, license.getId()));
     }
     return threatLevel;
   }

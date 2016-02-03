@@ -21,7 +21,7 @@ public class ValidationResultTest
   public void testNoErrorsIsMutable() {
     ValidationResult result = ValidationResult.noErrors();
     result.addError("any error");
-    
+
     assertThat(result.isValid(), is(false));
   }
 }

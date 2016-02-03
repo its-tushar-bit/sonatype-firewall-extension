@@ -75,12 +75,11 @@ public class ProprietaryConfigResourceTest
 
   @Test
   public void testInvalidRegexBlacklisted() throws Exception {
-    assertInvalidRegex(Arrays.asList(".*", "^.*$"), "This regex is specifically disallowed: .*\nThis regex is " +
-        "specifically disallowed: ^.*$");
+    assertInvalidRegex(Arrays.asList(".*", "^.*$"), "This regex is specifically disallowed: .*\nThis regex is "
+        + "specifically disallowed: ^.*$");
   }
 
-  private void assertInvalidRegex(final List<String> regexes,
-      final String expectedMessage) throws Exception {
+  private void assertInvalidRegex(final List<String> regexes, final String expectedMessage) throws Exception {
     ProprietaryConfig config = new ProprietaryConfig();
     config.setRegexes(regexes);
     HttpResponse response = restRequest().path("update").body(config).put();

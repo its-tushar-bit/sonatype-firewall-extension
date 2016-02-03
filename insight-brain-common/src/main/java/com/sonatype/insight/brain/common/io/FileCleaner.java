@@ -15,9 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Removes directories and files. 
+ * Removes directories and files.
  * 
- * Having our own utility encourages consistency across the system, making it easier to change implementation as necessary.
+ * Having our own utility encourages consistency across the system, making it easier to change implementation as
+ * necessary.
  * 
  * @since 1.9
  */
@@ -34,14 +35,14 @@ public class FileCleaner
     // to System.gc() and a 10 millisec sleep, which can cause performance problems.
     if (file != null && file.exists()) {
       long start = System.currentTimeMillis();
-      
+
       try {
         FileUtils.forceDelete(file);
       }
       catch (IOException e) {
         throw new FileDeletionException(file, e);
       }
-      
+
       long duration = System.currentTimeMillis() - start;
       if (duration > 500) {
         log.debug("Deleted file/dir '{}' in {} ms.", file.getAbsolutePath(), duration);

@@ -32,11 +32,9 @@ public class ActiveDirectoryStaticGroupsQueryTest
 
   @Test
   public void testStaticGroupsWithLeadingAndTrailingWildcards() {
-    GatlingPropertiesBuilder props =
-        configureGatling(
-            "LDAP Search Simulation with Active Directory Static Groups. Queries contain both leading and trailing " +
-                "wildcards",
-            "com.sonatype.insight.brain.LdapQuerySimulation");
+    GatlingPropertiesBuilder props = configureGatling(
+        "LDAP Search Simulation with Active Directory Static Groups. Queries contain both leading and trailing "
+            + "wildcards", "com.sonatype.insight.brain.LdapQuerySimulation");
     int result = Gatling.fromMap(props.build());
     assertThat("Failures were detected from Gatling", result, equalTo(0));
   }

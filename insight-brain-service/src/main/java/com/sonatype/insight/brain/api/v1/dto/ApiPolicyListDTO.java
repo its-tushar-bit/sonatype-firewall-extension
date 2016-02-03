@@ -16,8 +16,6 @@ public class ApiPolicyListDTO
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "{" +
-        "policies=" + policies +
-        '}';
+    return getClass().getSimpleName() + "{" + "policies=" + policies + '}';
   }
 }

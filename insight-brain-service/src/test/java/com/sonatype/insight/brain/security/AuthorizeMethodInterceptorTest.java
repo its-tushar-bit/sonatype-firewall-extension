@@ -53,7 +53,8 @@ public class AuthorizeMethodInterceptorTest
 
   @Authorize(permission = Permission.READ)
   public String stubSomeContext(@AuthzContext(AuthzContext.Key.TYPE) String arg0,
-      @AuthzContext(AuthzContext.Key.ID) String arg1, String arg2)
+                                @AuthzContext(AuthzContext.Key.ID) String arg1,
+                                String arg2)
   {
     return arg0;
   }

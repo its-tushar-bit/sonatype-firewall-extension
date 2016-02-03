@@ -91,8 +91,11 @@ public class HashComponentIdentifierResourceTest
     assertThat(hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash()), nullValue());
   }
 
-  private void assertHashComponentIdentifier(String hash, ComponentIdentifier componentIdentifier, String comment,
-      Date createTime, HashComponentIdentifier hashComponentIdentifier)
+  private void assertHashComponentIdentifier(String hash,
+                                             ComponentIdentifier componentIdentifier,
+                                             String comment,
+                                             Date createTime,
+                                             HashComponentIdentifier hashComponentIdentifier)
   {
     assertEquals(hash, hashComponentIdentifier.getHash());
     assertEquals(componentIdentifier, hashComponentIdentifier.getComponentIdentifier());
@@ -100,8 +103,11 @@ public class HashComponentIdentifierResourceTest
     assertEquals(createTime, hashComponentIdentifier.getCreateTime());
   }
 
-  private void assertHashComponentIdentifierDTO(String hash, ComponentIdentifier componentIdentifier, String comment,
-      Date createTime, HashComponentIdentifierDTO hashComponentIdentifier)
+  private void assertHashComponentIdentifierDTO(String hash,
+                                                ComponentIdentifier componentIdentifier,
+                                                String comment,
+                                                Date createTime,
+                                                HashComponentIdentifierDTO hashComponentIdentifier)
   {
     assertEquals(hash, hashComponentIdentifier.hash);
     assertEquals(componentIdentifier, hashComponentIdentifier.componentIdentifier);

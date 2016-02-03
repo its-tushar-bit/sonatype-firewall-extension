@@ -107,8 +107,10 @@ public class HashComponentIdentifierDAOTest
     assertHashComponentIdentifier(hash, componentIdentifier, createTime, actualHashComponentIdentifier);
   }
 
-  private void assertHashComponentIdentifier(String hash, ComponentIdentifier componentIdentifier, Date createTime,
-      HashComponentIdentifier hashComponentIdentifier)
+  private void assertHashComponentIdentifier(String hash,
+                                             ComponentIdentifier componentIdentifier,
+                                             Date createTime,
+                                             HashComponentIdentifier hashComponentIdentifier)
   {
     assertEquals(hash, hashComponentIdentifier.getHash());
     assertEquals(componentIdentifier, hashComponentIdentifier.getComponentIdentifier());
@@ -132,8 +134,7 @@ public class HashComponentIdentifierDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("This component is already mapped to 'g1 : a1 : v1'.",
-          expected.getMessage());
+      assertEquals("This component is already mapped to 'g1 : a1 : v1'.", expected.getMessage());
     }
 
     dao.delete(hashComponentIdentifier1);
@@ -155,8 +156,7 @@ public class HashComponentIdentifierDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertEquals("Another component is already mapped to 'g1 : a1 : v1'.",
-          expected.getMessage());
+      assertEquals("Another component is already mapped to 'g1 : a1 : v1'.", expected.getMessage());
     }
 
     dao.delete(hashComponentIdentifier1);

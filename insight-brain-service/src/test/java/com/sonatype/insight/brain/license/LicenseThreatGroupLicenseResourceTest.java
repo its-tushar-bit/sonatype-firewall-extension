@@ -73,8 +73,10 @@ public class LicenseThreatGroupLicenseResourceTest
     testSetGet(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
-  private void assertLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId,
-      LicenseThreatGroupLicense actual)
+  private void assertLicenseThreatGroupLicense(String ownerId,
+                                               String licenseThreatGroupId,
+                                               String licenseId,
+                                               LicenseThreatGroupLicense actual)
   {
     Assert.assertEquals(ownerId, actual.getOwnerId());
     Assert.assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());

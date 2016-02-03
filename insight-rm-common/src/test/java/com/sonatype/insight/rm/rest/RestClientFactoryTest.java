@@ -171,8 +171,8 @@ public class RestClientFactoryTest
     final String repositoryPublicId = "repositoryPublicId";
 
     final RestClientFactory factory = spy(new RestClientFactory());
-    doReturn(firewallClient).when(factory)
-        .newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId), eq(repositoryPublicId));
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
@@ -190,8 +190,8 @@ public class RestClientFactoryTest
     final String repositoryPublicId = "repositoryPublicId";
 
     final RestClientFactory factory = spy(new RestClientFactory());
-    doReturn(firewallClient).when(factory)
-        .newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId), eq(repositoryPublicId));
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
@@ -217,8 +217,8 @@ public class RestClientFactoryTest
     final String repositoryPublicId = "repositoryPublicId";
 
     final RestClientFactory factory = spy(new RestClientFactory());
-    doReturn(firewallClient).when(factory)
-        .newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId), eq(repositoryPublicId));
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
 
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);

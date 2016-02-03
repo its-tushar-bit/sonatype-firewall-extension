@@ -42,8 +42,9 @@ public class ApiSearchResourceV2
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiSearchResultsDTOV2 searchComponent(@QueryParam("stageId") String stageId, @QueryParam("hash") String hash,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+  public ApiSearchResultsDTOV2 searchComponent(@QueryParam("stageId") String stageId,
+                                               @QueryParam("hash") String hash,
+                                               @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
 
     return searchService.searchComponent(stageId, hash, componentIdentifier);

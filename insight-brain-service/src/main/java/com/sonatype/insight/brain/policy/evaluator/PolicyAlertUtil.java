@@ -34,8 +34,9 @@ public class PolicyAlertUtil
     return createPolicyAlerts(policyViolations, policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
   }
 
-  public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations, String stageTypeId,
-      boolean forMonitoring)
+  public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations,
+                                                     String stageTypeId,
+                                                     boolean forMonitoring)
   {
     List<PolicyAlert> result = new ArrayList<>();
     PolicyDAO policyDAO = new PolicyDAO();

@@ -24,7 +24,6 @@ public class ApiComponentEvaluationServiceV2AuthzTest
   @Inject
   private ApiComponentEvaluationServiceV2 apiComponentEvaluationService;
 
-
   @Test
   public void testEvaluateComponents_Authorized() {
     grantReadPermission(app.getId());
@@ -62,15 +61,12 @@ public class ApiComponentEvaluationServiceV2AuthzTest
   private ApiComponentEvaluationRequestDTOV2 createEvaluationRequest() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = createComponent(
-        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", null, "jar"),
-        "1249e25aebb15358bedd");
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1", null, "jar"), "1249e25aebb15358bedd");
     request.components.add(component);
     return request;
   }
 
-  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier,
-      final String hash)
-  {
+  private ApiComponentDTOV2 createComponent(final ComponentIdentifier componentIdentifier, final String hash) {
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     component.hash = hash;

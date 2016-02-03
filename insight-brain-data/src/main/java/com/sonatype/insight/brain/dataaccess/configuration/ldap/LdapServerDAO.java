@@ -83,7 +83,6 @@ public class LdapServerDAO
     super.update(tx, config);
   }
 
-  
   @Override
   public void delete(TransactionContext tx, LdapServer entity) {
     new LdapConnectionDAO().deleteByServerId(tx, entity.getId());

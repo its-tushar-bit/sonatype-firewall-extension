@@ -49,7 +49,8 @@ public class RestClientFactory
   }
 
   FirewallClient newFirewallClient(final Configuration config,
-      final String repositoryManagerInstanceId, final String repositoryPublicId)
+                                   final String repositoryManagerInstanceId,
+                                   final String repositoryPublicId)
   {
     return new FirewallClient(config, repositoryManagerInstanceId, repositoryPublicId);
   }
@@ -113,7 +114,7 @@ public class RestClientFactory
 
     @Override
     public Resource getResource(String path) throws IOException, URISyntaxException {
-      return getResource(path, Collections.<String, String[]>emptyMap());
+      return getResource(path, Collections.<String, String[]> emptyMap());
     }
 
     @Override
@@ -144,8 +145,9 @@ public class RestClientFactory
 
     private final String repositoryPublicId;
 
-    public RepositorySpecificClient(final Configuration config, final String repositoryManagerInstanceId,
-        final String repositoryPublicId)
+    public RepositorySpecificClient(final Configuration config,
+                                    final String repositoryManagerInstanceId,
+                                    final String repositoryPublicId)
     {
       super(config);
       this.repositoryManagerInstanceId = repositoryManagerInstanceId;
@@ -163,20 +165,19 @@ public class RestClientFactory
     }
 
     @Override
-    public void evaluateComponents(
-        final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList) throws IOException
+    public void evaluateComponents(final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+        throws IOException
     {
       newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).evaluateComponents(
           componentEvaluationDataRequestList);
     }
 
     @Override
-    public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
-        final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
+    public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList)
         throws IOException
     {
-      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).evaluateComponentWithQuarantine(
-          repositoryComponentEvaluationDataRequestList);
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
+          .evaluateComponentWithQuarantine(repositoryComponentEvaluationDataRequestList);
     }
 
     @Override

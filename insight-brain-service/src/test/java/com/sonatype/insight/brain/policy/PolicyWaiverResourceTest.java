@@ -210,8 +210,10 @@ public class PolicyWaiverResourceTest
     assertWaiversByOwner(grandparent, policy.getId(), "My comment", waivers.waiversByOwner.get(0));
   }
 
-  private void testDelete_OwnerIdMismatch(OwnerType ownerType, String ownerPublicId1, String ownerId1,
-      String ownerPublicId2) throws Exception
+  private void testDelete_OwnerIdMismatch(OwnerType ownerType,
+                                          String ownerPublicId1,
+                                          String ownerId1,
+                                          String ownerPublicId2) throws Exception
   {
     String policyId = createPolicy(ownerId1).getId();
 
@@ -261,8 +263,8 @@ public class PolicyWaiverResourceTest
 
   @Test
   public void testDelete_Nonexistent_RepositoryContainer() throws Exception {
-    HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.SINGLETON.getId())
-        .path("YettiId").delete();
+    HttpResponse response = restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.SINGLETON.getId()).path(
+        "YettiId").delete();
     assertResponseStatus(404, response);
     Assert.assertEquals("Cannot find a policy waiver with ID YettiId.", response.getBodyText());
   }
@@ -320,8 +322,8 @@ public class PolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
 
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Root Policy");
-    HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId())
-        .path("applicable/context", policy.getId()).get();
+    HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("applicable/context",
+        policy.getId()).get();
     assertResponseStatus(200, response);
     ApplicableContext result = response.getBody(ApplicableContext.class);
 
@@ -364,11 +366,11 @@ public class PolicyWaiverResourceTest
     Application otherApp = tempEntity.newApplicationWithParent("anApp");
 
     Policy policy = tempEntity.newPolicy(otherApp.getId(), "Policy");
-    HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId())
-        .path("applicable/context", policy.getId()).get();
+    HttpResponse response = restRequest(OwnerType.REPOSITORY, repository.getId()).path("applicable/context",
+        policy.getId()).get();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(),
-        is("Cannot find a policy with ID " + policy.getId() + " for repository public ID " + repository.getPublicId()));
+    assertThat(response.getBodyText(), is("Cannot find a policy with ID " + policy.getId()
+        + " for repository public ID " + repository.getPublicId()));
   }
 
   private void assertApplicableContext(Owner owner, ApplicableContext actual) {

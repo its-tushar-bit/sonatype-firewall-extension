@@ -122,8 +122,7 @@ public class OrganizationResource
   @Path(GET_ICON_PATH)
   @Produces("image/png")
   @Authorize(permission = Permission.READ)
-  public Response getIcon(
-      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId)
+  public Response getIcon(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) @PathParam("organizationId") String organizationId)
       throws IOException
   {
     return super.getIcon(organizationId, work.getOrganizationIconDir());
@@ -155,8 +154,9 @@ public class OrganizationResource
   /**
    * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
    *
-   * This is one of two service methods used for editing and adding icons. This method is used by angular ng-upload
-   * and returns an empty string for success and the error message otherwise
+   *             This is one of two service methods used for editing and adding icons. This method is used by angular
+   *             ng-upload
+   *             and returns an empty string for success and the error message otherwise
    *
    * @return String containing an error message, if any
    */
@@ -166,12 +166,13 @@ public class OrganizationResource
   @Path(ICON_PATH_SYNC)
   @Authorize(permission = Permission.WRITE)
   @AuthzErrorMsg
-  public String setIconSync(
-      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
-      @FormDataParam("hasRobotSource") boolean hasRobotSource, @FormDataParam("robotHash") String robotHash,
-      @FormDataParam("file") InputStream uploadedInputStream,
-      @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
+  public String setIconSync(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                            @Context HttpHeaders headers,
+                            @FormDataParam("organizationId") @AuthzContext(Key.ORGANIZATION_ID) String organizationId,
+                            @FormDataParam("hasRobotSource") boolean hasRobotSource,
+                            @FormDataParam("robotHash") String robotHash,
+                            @FormDataParam("file") InputStream uploadedInputStream,
+                            @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
   {
     Response response = super.setIcon(organizationId, work.getOrganizationIconDir(), hasRobotSource, robotHash,
         uploadedInputStream, fileDetail, csrfToken, headers, true);

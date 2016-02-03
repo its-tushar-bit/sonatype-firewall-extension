@@ -17,11 +17,11 @@ public class ScanTicket
   public String applicationPublicId;
 
   public int currentStep;
-  
+
   public String currentStepName;
-  
+
   public int totalSteps;
-  
+
   public String error;
 
   public String scanId;

@@ -32,8 +32,9 @@ public class ApiOrganizationService
   private final ApiOrganizationAdapter apiOrganizationAdapter;
 
   @Inject
-  public ApiOrganizationService(final TagDAO tagDAO, final OrganizationService organizationService,
-      final ApiOrganizationAdapter apiOrganizationAdapter)
+  public ApiOrganizationService(final TagDAO tagDAO,
+                                final OrganizationService organizationService,
+                                final ApiOrganizationAdapter apiOrganizationAdapter)
   {
     this.tagDAO = tagDAO;
     this.organizationService = organizationService;

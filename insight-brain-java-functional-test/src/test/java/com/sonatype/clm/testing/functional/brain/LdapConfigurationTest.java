@@ -33,6 +33,7 @@ public class LdapConfigurationTest
     extends AbstractFunctionalTest
 {
   private LdapServer server;
+
   @BeforeClass
   public static void startup() {
     open(LdapConfigurationPage.URL);

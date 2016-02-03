@@ -63,8 +63,7 @@ public class ComponentDisplayNameUtil
     }
   }
 
-  private static ComponentDisplayName fromFilenames(List<String> fileNames, String hash)
-  {
+  private static ComponentDisplayName fromFilenames(List<String> fileNames, String hash) {
     ComponentDisplayName name = new ComponentDisplayName();
     if (fileNames != null && fileNames.size() > 0) {
       int fileNamesSize = fileNames.size();

@@ -66,7 +66,7 @@ public class RootOrganizationConfigMigrationUtils
             + getMigrationConfigFile().getAbsolutePath(), e);
       }
     }
-    
+
     return null;
   }
 

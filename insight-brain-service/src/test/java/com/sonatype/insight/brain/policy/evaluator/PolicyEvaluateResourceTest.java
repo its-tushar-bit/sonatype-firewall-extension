@@ -85,9 +85,8 @@ public class PolicyEvaluateResourceTest
   private final ComponentIdentifier TOMCAT_UTIL_5_5_23 = ComponentIdentifier.createMavenCoordinates("tomcat",
       "tomcat-util", "5.5.23");
 
-
-  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier
-    .createMavenCoordinates("commons-pool", "commons-pool", "1.4");
+  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier.createMavenCoordinates("commons-pool",
+      "commons-pool", "1.4");
 
   private String applicationPublicId = "PolicyEvaluateResourceTestAppPublicId";
 
@@ -153,9 +152,11 @@ public class PolicyEvaluateResourceTest
     AbstractPolicyEvaluationTest.assertFactCounts(2, 3, policyAlerts.get(0));
     Component expectedComponentExact = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.EXACT);
     expectedComponentExact.setHash("3102cdd0edd5a05afe00");
-    Component expectedComponentSimilar1 = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
+    Component expectedComponentSimilar1 = ComponentFactory
+        .forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
     expectedComponentSimilar1.setHash("d29a75f9056e0b040f09");
-    Component expectedComponentSimilar2 = ComponentFactory.forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
+    Component expectedComponentSimilar2 = ComponentFactory
+        .forGav("tomcat", "tomcat-util", "5.0.28", MatchState.SIMILAR);
     expectedComponentSimilar2.setHash("707df42012875442b9df");
     AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponentExact, policy1.getId(), "Policy 1",
         Action.ID_FAIL, constraintLicense.getId(), "Constraint License", LicenseConditionType.ID, policyAlerts);
@@ -244,8 +245,7 @@ public class PolicyEvaluateResourceTest
     String hash = "1249e25aebb15358bedd";
     String scanId = "testEvaluate_Label_ScanId";
     Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
-    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label
-        .getId(), hash);
+    tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label.getId(), hash);
 
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(LabelConditionType.ID, "is", label.getId()));
@@ -287,8 +287,10 @@ public class PolicyEvaluateResourceTest
     assertPolicyEvaluation(applicationId, scanId, isReevaluation, false /* isForObsoleteScan */);
   }
 
-  private void assertPolicyEvaluation(String applicationId, String scanId, boolean isReevaluation,
-      boolean isForObsoleteScan)
+  private void assertPolicyEvaluation(String applicationId,
+                                      String scanId,
+                                      boolean isReevaluation,
+                                      boolean isForObsoleteScan)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluationDAO()
         .getLastByApplicationIdAndScanId(applicationId, scanId);
@@ -345,8 +347,7 @@ public class PolicyEvaluateResourceTest
     messagesB.clear();
 
     ApplicationComponentDAO appComponentDAO = new ApplicationComponentDAO();
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()),
-        is(empty()));
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()), is(empty()));
 
     // evaluate policy
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -389,8 +390,7 @@ public class PolicyEvaluateResourceTest
     Assert.assertEquals(8, policyThreats.get(0).get("policyThreatLevel").asInt());
 
     // check components are associated with the application and stage
-    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()),
-        hasSize(28));
+    assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId()), hasSize(28));
 
     // notification message should also have been sent
     assertNotifications(messagesA, 1, 5000);
@@ -575,8 +575,8 @@ public class PolicyEvaluateResourceTest
     mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
 
     // Override the license at org level
-    tempEntity.newLicenseOverride(app.getOrganizationId(), COMMONS_POOL_ID, LicenseOverrideStatus.OVERRIDDEN, "ZPL-2.0",
-      " My comment");
+    tempEntity.newLicenseOverride(app.getOrganizationId(), COMMONS_POOL_ID, LicenseOverrideStatus.OVERRIDDEN,
+        "ZPL-2.0", " My comment");
 
     // Evaluate policy
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -601,7 +601,7 @@ public class PolicyEvaluateResourceTest
     // Override the license at app level. This must supersede the override at org level, so the policy should not
     // trigger any alerts.
     tempEntity.newLicenseOverride(app.getId(), COMMONS_POOL_ID, LicenseOverrideStatus.ACKNOWLEDGED,
-      (String)null /* licenseId */, " My comment");
+        (String) null /* licenseId */, " My comment");
 
     // Evaluate policy
     response = evalRequest(applicationPublicId, scanId, stage).post();
@@ -793,8 +793,8 @@ public class PolicyEvaluateResourceTest
     HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
-        stage.getStageTypeId());
+    List<PolicyViolation> policyViolations1 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
+        app.getId(), stage.getStageTypeId());
     assertThat(policyViolations1, hasSize(2));
     policyViolations1 = sort(policyViolations1);
     assertThat(policyViolations1.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID), is("tomcat"));
@@ -811,8 +811,8 @@ public class PolicyEvaluateResourceTest
     // Evaluate policy again for the same scan
     response = evalRequest(applicationPublicId, scanId, stage).post();
     assertResponseStatus(200, response);
-    List<PolicyViolation> policyViolations2 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
-        stage.getStageTypeId());
+    List<PolicyViolation> policyViolations2 = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(
+        app.getId(), stage.getStageTypeId());
     assertThat(policyViolations2, hasSize(2));
     policyViolations2 = sort(policyViolations2);
     assertThat(policyViolations2.get(0).getComponentIdentifier().get(ComponentIdentifier.MAVEN_GROUP_ID),
@@ -864,7 +864,8 @@ public class PolicyEvaluateResourceTest
         .getById(policyViolationsRelease.get(0).getId());
     assertThat(firstOccurrencePolicyViolationRelease.getId(), is(not(firstOccurrencePolicyViolationBuild.getId())));
 
-    policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(), Stage.ID_BUILD);
+    policyViolationsBuild = policyViolationDAO.getFirstOccurrenceByApplicationIdAndStageTypeId(app.getId(),
+        Stage.ID_BUILD);
     assertThat(policyViolationsBuild, hasSize(1));
     FirstOccurrencePolicyViolation firstOccurrencePolicyViolationBuild1 = firstOccurrencePolicyViolationDAO
         .getById(policyViolationsBuild.get(0).getId());
@@ -963,8 +964,9 @@ public class PolicyEvaluateResourceTest
     assertPolicyEvaluation(app.getId(), scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
   }
 
-  private void assertApplicationComponent(ComponentIdentifier componentIdentifier, Date time,
-      ApplicationComponent actual)
+  private void assertApplicationComponent(ComponentIdentifier componentIdentifier,
+                                          Date time,
+                                          ApplicationComponent actual)
   {
     assertThat(actual.getComponentIdentifier(), is(componentIdentifier));
     assertThat(actual.getTime(), is(time));

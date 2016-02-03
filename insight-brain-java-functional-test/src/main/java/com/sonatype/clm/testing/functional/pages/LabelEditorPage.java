@@ -22,7 +22,7 @@ public class LabelEditorPage
   }
 
   public static SelenideElement title() {
-    return  $("#label-editor").$("h2");
+    return $("#label-editor").$("h2");
   }
 
   public static SelenideElement labelName() {

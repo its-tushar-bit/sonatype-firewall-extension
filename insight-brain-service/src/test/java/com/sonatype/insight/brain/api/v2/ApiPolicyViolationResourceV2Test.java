@@ -52,8 +52,8 @@ public class ApiPolicyViolationResourceV2Test
         .getBody(ApiApplicationViolationListDTOV2.class);
 
     assertThat(apiApplicationViolationListDTO.applicationViolations, hasSize(1));
-    ApiApplicationViolationDTOV2 apiApplicationViolationDTO =
-        apiApplicationViolationListDTO.applicationViolations.get(0);
+    ApiApplicationViolationDTOV2 apiApplicationViolationDTO = apiApplicationViolationListDTO.applicationViolations
+        .get(0);
     assertThat(apiApplicationViolationDTO.application, CoreMatchers.notNullValue());
     assertThat(apiApplicationViolationDTO.application.id, is(app.getId()));
     assertThat(apiApplicationViolationDTO.application.name, is(app.getName()));
@@ -82,7 +82,7 @@ public class ApiPolicyViolationResourceV2Test
 
     assertThat(apiConstraintViolationDTO.reasons, hasSize(1));
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
-    assertThat(apiConstraintViolationReasonDTO.reason,
-        is(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason()));
+    assertThat(apiConstraintViolationReasonDTO.reason, is(pv1App1.getConstraintFacts().get(0).getConditionFacts()
+        .get(0).getReason()));
   }
 }

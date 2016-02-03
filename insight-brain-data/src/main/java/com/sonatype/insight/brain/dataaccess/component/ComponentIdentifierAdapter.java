@@ -95,7 +95,7 @@ public class ComponentIdentifierAdapter
     injectComponentIdentifier(component);
     component.remove(Arrays.asList(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, VERSION, MAVEN_EXTENSION, MAVEN_CLASSIFIER));
   }
-  
+
   /**
    * Inject ComponentIdentifier structure if it is absent.
    */
@@ -121,4 +121,3 @@ public class ComponentIdentifierAdapter
     return gavCoordinates;
   }
 }
-

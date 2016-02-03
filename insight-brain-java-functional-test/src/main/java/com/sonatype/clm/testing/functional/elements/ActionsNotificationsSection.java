@@ -20,4 +20,3 @@ public class ActionsNotificationsSection
     return new ActionItemList(ROOT_SELECTOR + " table");
   }
 }
-

@@ -28,8 +28,8 @@ public class RepositoryDAO
   private static final Logger log = LoggerFactory.getLogger(RepositoryDAO.class);
 
   public static String getErrMsgMissingRepo(final String repositoryManagerInstanceId, final String repositoryPublicId) {
-    return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId + " and publicId="
-        + repositoryPublicId + ".";
+    return "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId
+        + " and publicId=" + repositoryPublicId + ".";
   }
 
   @Override
@@ -52,7 +52,7 @@ public class RepositoryDAO
   }
 
   public Repository getByRepositoryManagerInstanceIdAndPublicIdNotNull(final String repositoryManagerInstanceId,
-      final String publicId)
+                                                                       final String publicId)
   {
     final Repository repository = getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, publicId);
     if (repository == null) {
@@ -68,8 +68,9 @@ public class RepositoryDAO
     return get(sQuery, repositoryManagerInstanceId, publicId);
   }
 
-  private Repository getByRepositoryManagerIdAndPublicId(TransactionContext tx, String repositoryManagerId,
-      String publicId)
+  private Repository getByRepositoryManagerIdAndPublicId(TransactionContext tx,
+                                                         String repositoryManagerId,
+                                                         String publicId)
   {
     String sQuery = "SELECT entity FROM Repository entity" + //
         " WHERE entity.repositoryManagerId=?1 AND entity.publicId=?2";

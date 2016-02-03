@@ -32,21 +32,21 @@ public class RepositoryReportDetail
 
   private final String policyName;
 
-  public static RepositoryReportDetail create(final RepositoryComponent component)
-  {
+  public static RepositoryReportDetail create(final RepositoryComponent component) {
     return create(component, null, true);
   }
 
   public static RepositoryReportDetail create(final RepositoryComponent component,
-      final RepositoryPolicyViolation violation, final boolean highestThreatLevel)
+                                              final RepositoryPolicyViolation violation,
+                                              final boolean highestThreatLevel)
   {
 
     final String componentDisplayText = buildComponentDisplayText(component);
 
     if (violation == null) {
       return new RepositoryReportDetail(component.getComponentIdentifier(), componentDisplayText,
-          component.getPathname(), component.getHash(), component.getMatchStateId(), component.isQuarantined(),
-          false, 0, highestThreatLevel, null);
+          component.getPathname(), component.getHash(), component.getMatchStateId(), component.isQuarantined(), false,
+          0, highestThreatLevel, null);
     }
     else {
       return new RepositoryReportDetail(component.getComponentIdentifier(), componentDisplayText,
@@ -69,9 +69,15 @@ public class RepositoryReportDetail
   }
 
   private RepositoryReportDetail(final ComponentIdentifier componentIdentifier,
-      final String componentDisplayText, final String pathname, final String hash,
-      final String matchStateId, final boolean quarantined, final boolean waived,
-      final int threatLevel, final boolean highestThreatLevel, final String policyName)
+                                 final String componentDisplayText,
+                                 final String pathname,
+                                 final String hash,
+                                 final String matchStateId,
+                                 final boolean quarantined,
+                                 final boolean waived,
+                                 final int threatLevel,
+                                 final boolean highestThreatLevel,
+                                 final String policyName)
   {
     this.componentIdentifier = componentIdentifier;
     this.componentDisplayText = componentDisplayText;
@@ -127,17 +133,9 @@ public class RepositoryReportDetail
 
   @Override
   public String toString() {
-    return "RepositoryReportDetail{" +
-        "componentIdentifier=" + componentIdentifier +
-        ", componentDisplayText=" + componentDisplayText +
-        ", pathname='" + pathname + '\'' +
-        ", hash='" + hash + '\'' +
-        ", matchState='" + matchState + '\'' +
-        ", quarantined=" + quarantined +
-        ", waived=" + waived +
-        ", threatLevel=" + threatLevel +
-        ", highestThreatLevel=" + highestThreatLevel +
-        ", policyName='" + policyName + '\'' +
-        '}';
+    return "RepositoryReportDetail{" + "componentIdentifier=" + componentIdentifier + ", componentDisplayText="
+        + componentDisplayText + ", pathname='" + pathname + '\'' + ", hash='" + hash + '\'' + ", matchState='"
+        + matchState + '\'' + ", quarantined=" + quarantined + ", waived=" + waived + ", threatLevel=" + threatLevel
+        + ", highestThreatLevel=" + highestThreatLevel + ", policyName='" + policyName + '\'' + '}';
   }
 }

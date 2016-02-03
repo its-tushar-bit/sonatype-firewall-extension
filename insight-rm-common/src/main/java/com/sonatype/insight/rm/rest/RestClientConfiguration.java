@@ -56,8 +56,10 @@ public class RestClientConfiguration
     return this;
   }
 
-  public RestClientConfiguration setProxyAuth(final String username, final String password, final String ntlmDomain,
-      final String ntlmWorkstation)
+  public RestClientConfiguration setProxyAuth(final String username,
+                                              final String password,
+                                              final String ntlmDomain,
+                                              final String ntlmWorkstation)
   {
     final SimpleAuthentication auth = new SimpleAuthentication();
     auth.setUsername(username);

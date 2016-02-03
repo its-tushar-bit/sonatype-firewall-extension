@@ -33,14 +33,13 @@ import com.sonatype.insight.jaxrs.JsonEncodedComponentIdentifier;
 @Path(LicenseOverrideResource.RESOURCE_PATH)
 public class LicenseOverrideResource
 {
-  public static final String RESOURCE_PATH = "rest/licenseOverride/" +
-          "{ownerType: application|organization|repository|repository_container}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/licenseOverride/"
+      + "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
   private final LicenseOverrideService licenseOverrideService;
 
   @Inject
-  public LicenseOverrideResource(final LicenseOverrideService licenseOverrideService)
-  {
+  public LicenseOverrideResource(final LicenseOverrideService licenseOverrideService) {
     this.licenseOverrideService = licenseOverrideService;
   }
 
@@ -48,18 +47,21 @@ public class LicenseOverrideResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public LicenseOverride addLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId, LicenseOverride licenseOverride, @QueryParam("where") String where,
-      @Context final HttpServletRequest request)
-      throws IOException
+                                            @PathParam("ownerId") String ownerId,
+                                            LicenseOverride licenseOverride,
+                                            @QueryParam("where") String where,
+                                            @Context final HttpServletRequest request) throws IOException
   {
     return licenseOverrideService.addLicenseOverride(ownerType, ownerId, licenseOverride, where, request);
   }
 
   @DELETE
   @Path("{licenseOverrideId}")
-  public void deleteLicenseOverride(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("licenseOverrideId") String licenseOverrideId, @QueryParam("where") String where,
-      @Context final HttpServletRequest request) throws IOException
+  public void deleteLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
+                                    @PathParam("ownerId") String ownerId,
+                                    @PathParam("licenseOverrideId") String licenseOverrideId,
+                                    @QueryParam("where") String where,
+                                    @Context final HttpServletRequest request) throws IOException
   {
     licenseOverrideService.deleteLicenseOverride(ownerType, ownerId, licenseOverrideId, where, request);
   }
@@ -67,8 +69,8 @@ public class LicenseOverrideResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public AppliedLicenseOverrides getAppliedLicenseOverrides(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
-      @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
+                                                            @PathParam("ownerId") String ownerId,
+                                                            @QueryParam("componentIdentifier") JsonEncodedComponentIdentifier componentIdentifier)
   {
     return licenseOverrideService.getAppliedLicenseOverrides(ownerType, ownerId, componentIdentifier);
   }

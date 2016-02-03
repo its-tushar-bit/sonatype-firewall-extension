@@ -43,8 +43,7 @@ public class LicensedStagesResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Collection<Stage> getStageTypes(
-      @QueryParam("context") @DefaultValue(StageTypeService.CLI_CONTEXT) final String context)
+  public Collection<Stage> getStageTypes(@QueryParam("context") @DefaultValue(StageTypeService.CLI_CONTEXT) final String context)
   {
     log.debug("Received request to get licensed stages for context {}", context);
 

@@ -53,12 +53,16 @@ class Scanner
   private final ScanWriterFactory writerFactory;
 
   private final ProprietaryConfigDAO proprietaryConfigDAO;
-  
+
   private final FileCleaner fileCleaner;
 
   @Inject
-  public Scanner(ScanPropertiesLoader configLoader, ClientScanner clientScanner, FileScanner fileScanner,
-      ScanWriterFactory writerFactory, InsightWork work, FileCleaner fileCleaner)
+  public Scanner(ScanPropertiesLoader configLoader,
+                 ClientScanner clientScanner,
+                 FileScanner fileScanner,
+                 ScanWriterFactory writerFactory,
+                 InsightWork work,
+                 FileCleaner fileCleaner)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;

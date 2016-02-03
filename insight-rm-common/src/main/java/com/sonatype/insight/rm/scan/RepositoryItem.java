@@ -29,8 +29,11 @@ public abstract class RepositoryItem
 
     private final String moduleId;
 
-    public MavenCoords(final String groupId, final String artifactId, final String version, final String classifier,
-        final String extension)
+    public MavenCoords(final String groupId,
+                       final String artifactId,
+                       final String version,
+                       final String classifier,
+                       final String extension)
     {
       final StringBuilder buffer = new StringBuilder(128);
       buffer.append(groupId);

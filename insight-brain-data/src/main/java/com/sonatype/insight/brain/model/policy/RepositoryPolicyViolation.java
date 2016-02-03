@@ -24,7 +24,7 @@ import com.sonatype.insight.model.HasStringId;
 @Table(name = "repository_policy_violation")
 public class RepositoryPolicyViolation
     extends AbstractPolicyViolation
-  implements HasStringId
+    implements HasStringId
 {
   @Id
   @Column(name = "repository_policy_violation_id")
@@ -42,18 +42,32 @@ public class RepositoryPolicyViolation
   public RepositoryPolicyViolation() {
   }
 
-  public RepositoryPolicyViolation(String repositoryId, String pathname, Date time, String policyId, String policyName,
-      int threatLevel, PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      String constraintFactsJson)
+  public RepositoryPolicyViolation(String repositoryId,
+                                   String pathname,
+                                   Date time,
+                                   String policyId,
+                                   String policyName,
+                                   int threatLevel,
+                                   PolicyThreatCategory threatCategory,
+                                   String hash,
+                                   ComponentIdentifier componentIdentifier,
+                                   String constraintFactsJson)
   {
     super(time, policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
     this.repositoryId = repositoryId;
     this.pathname = pathname;
   }
 
-  public RepositoryPolicyViolation(String repositoryId, String pathname, Date time, String policyId, String policyName,
-      int threatLevel, PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      List<ConstraintFact> constraintFacts)
+  public RepositoryPolicyViolation(String repositoryId,
+                                   String pathname,
+                                   Date time,
+                                   String policyId,
+                                   String policyName,
+                                   int threatLevel,
+                                   PolicyThreatCategory threatCategory,
+                                   String hash,
+                                   ComponentIdentifier componentIdentifier,
+                                   List<ConstraintFact> constraintFacts)
   {
     super(time, policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);
     this.repositoryId = repositoryId;

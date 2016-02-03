@@ -48,7 +48,7 @@ public class PolicyResults
   void addWaivedAlert(PolicyAlert waivedAlert) {
     waivedAlerts.add(waivedAlert);
   }
-  
+
   void addPolicyWaiver(ComponentFact componentFact, PolicyWaiver policyWaiver) {
     policyWaiversByComponentFacts.put(componentFact, policyWaiver);
   }

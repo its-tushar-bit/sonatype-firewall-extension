@@ -143,8 +143,8 @@ public class ReportResourceTest
         assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
         assertEquals(createTime.getTime(), bomJsonNode.get("createTime").asLong());
         assertEquals(0F, bomJsonNode.get("relativePopularity").asDouble(), 0F);
-        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : " +
-                "testClaimedComponent_C : testClaimedComponent_V",
+        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
+            + "testClaimedComponent_C : testClaimedComponent_V",
             JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString());
         foundClaimedComponent = true;
       }
@@ -204,8 +204,8 @@ public class ReportResourceTest
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
 
     String licenseId = new LicenseDAO().getByIdNotNull("GPL-3.0").getId(); // db lookup to make sure licenseId is valid
-    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, licenseId,
-      "manual override");
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        licenseId, "manual override");
 
     String scanId = "testClaimedComponent_ScanId";
     String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
@@ -272,8 +272,8 @@ public class ReportResourceTest
         assertEquals(extension, bomJsonNode.get("extension").asText());
         assertEquals(classifier, bomJsonNode.get("classifier").asText());
         assertEquals(componentIdentifier, ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode));
-        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : " +
-                "testClaimedComponent_C : testClaimedComponent_V",
+        assertEquals("testClaimedComponent_G : testClaimedComponent_A : testClaimedComponent_E : "
+            + "testClaimedComponent_C : testClaimedComponent_V",
             JsonUtils.asPojo(bomJsonNode.get("displayName"), ComponentDisplayName.class).toString());
         assertEquals(MatchState.EXACT.getId(), bomJsonNode.get("matchState").asText());
         foundClaimedComponent = true;
@@ -357,11 +357,12 @@ public class ReportResourceTest
         Math.abs(calendar.getTimeInMillis() - expires.getTime()) <= 2 * 60 * 1000);
 
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
-    String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar.getTime());
+    String ifModifiedSinceHeader = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH).format(calendar
+        .getTime());
     response = request.subpath("data.json").header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(304, response);
 
-    //make sure index.html always returns 200, no 304s here
+    // make sure index.html always returns 200, no 304s here
     response = request.subpath("index.html").header("If-Modified-Since", ifModifiedSinceHeader).get();
     assertResponseStatus(200, response);
   }
@@ -424,8 +425,7 @@ public class ReportResourceTest
           testJsonApplyComponentChanges(actual);
         }
         else if (contentType.startsWith("text") || contentType.endsWith("json")) {
-          assertThat(response.getBodyText(),
-              equalToIgnoringWhiteSpace(IOUtil.toString(zipStream, "UTF-8")));
+          assertThat(response.getBodyText(), equalToIgnoringWhiteSpace(IOUtil.toString(zipStream, "UTF-8")));
         }
         else {
           assertThat(response.getBodyBytes(), equalTo(IOUtil.toByteArray(zipStream)));
@@ -672,8 +672,7 @@ public class ReportResourceTest
     assertThat(response.getBodyText(), containsString("\"state\" : \"accepted\""));
 
     // check the audit log reflects this change
-    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}")
-        .get();
+    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}").get();
     assertResponseStatus(200, response);
 
     String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
@@ -691,8 +690,7 @@ public class ReportResourceTest
     assertThat(response.getBodyText(), containsString("\"state\" : \"confirmed\""));
 
     // check the audit log reflects this change
-    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}")
-        .get();
+    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}").get();
     assertResponseStatus(200, response);
 
     feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
@@ -703,7 +701,8 @@ public class ReportResourceTest
     // edit the BoM
     final String bomEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
 
-    response = request.subpath("augmentData", "bom.json").query("user=test&where=ReportResourceTest").body(bomEdit).post();
+    response = request.subpath("augmentData", "bom.json").query("user=test&where=ReportResourceTest").body(bomEdit)
+        .post();
     assertResponseStatus(200, response);
 
     // verify the BoM change has been applied
@@ -755,7 +754,7 @@ public class ReportResourceTest
 
     // Override the license at organization level
     LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
-      LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
         .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
     assertResponseStatus(200, response);
@@ -787,9 +786,8 @@ public class ReportResourceTest
     Assert.assertEquals("Did not find expected overridden license", 1, found);
 
     // Override the license at application level
-    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(),
-      COMMONS_POOL_ID,
-      LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), COMMONS_POOL_ID,
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
         .parameter(OwnerType.APPLICATION, application.getPublicId()).body(appLicenseOverride).post();
     assertResponseStatus(200, response);
@@ -929,8 +927,8 @@ public class ReportResourceTest
     LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId, claimedComponent.getComponentIdentifier(),
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
     LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
-      ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
-      "EPL-1.0");
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
+        LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName().replaceAll("[_]", ""));
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
@@ -960,7 +958,8 @@ public class ReportResourceTest
         assertThat(details.getComponentIdentifier(), is(claimedComponent.getComponentIdentifier()));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds().iterator().next()));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds()
+            .iterator().next()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(9));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
@@ -984,11 +983,11 @@ public class ReportResourceTest
         list = JsonUtils.parse(zip.getInputStream(zip.getEntry("data/cip/list/tomcat/tomcat-util/5.5.23.json")),
             ComponentDetailsList.class);
         details = findDetailsForComponent(list,
-          ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
+            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"));
         assertThat(details, is(notNullValue()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(),
-            is(licenseOverride2.getLicenseIds().iterator().next()));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride2
+            .getLicenseIds().iterator().next()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(2));
       }
@@ -1020,8 +1019,8 @@ public class ReportResourceTest
     LicenseOverride licenseOverride = tempEntity.newLicenseOverride(appId, claimedComponent.getComponentIdentifier(),
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0");
     LicenseOverride licenseOverride2 = tempEntity.newLicenseOverride(appId,
-      ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"), LicenseOverrideStatus.OVERRIDDEN,
-      "EPL-1.0");
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23"),
+        LicenseOverrideStatus.OVERRIDDEN, "EPL-1.0");
     Policy policy = tempEntity.newPolicy(appId, testName.getMethodName());
 
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(applicationPublicId)
@@ -1054,13 +1053,15 @@ public class ReportResourceTest
 
         assertNull(zip.getEntry("cip/details/f0776db1593e215146d2.json"));
         TestNamedComponentDetails details = JsonUtils.parse(
-            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")), TestNamedComponentDetails.class);
+            zip.getInputStream(zip.getEntry("data/cip/details/f0776db1593e215146d2.json")),
+            TestNamedComponentDetails.class);
         assertThat(details.getMatchState(), is("exact"));
         assertComponentIdentifier(details, claimedComponent.getComponentIdentifier());
         assertThat(details.getDisplayName().toString(), is("commons-httpclient : commons-httpclient : 3.1.SONATYPE"));
         assertThat(details.getCatalogDate(), is(claimedComponent.getCreateTimeLong()));
         assertThat(details.getOverriddenLicenses(), hasSize(1));
-        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds().iterator().next()));
+        assertThat(details.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride.getLicenseIds()
+            .iterator().next()));
         assertThat(details.getLicenseThreatGroupNames(), containsInAnyOrder("Copyleft"));
         assertThat(details.getLicenseThreatLevel(), is(9));
         assertThat(details.getIdentificationSource(), is(IdentificationSource.MANUAL.getId()));
@@ -1087,27 +1088,30 @@ public class ReportResourceTest
             + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/list.json")),
             ComponentDetailsList.class);
         ComponentDetails detailsFromList = findDetailsForComponent(list,
-          ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
+            ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar"));
         assertThat(detailsFromList, is(notNullValue()));
         assertThat(detailsFromList.getOverriddenLicenses(), hasSize(1));
-        assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId(),
-            is(licenseOverride2.getLicenseIds().iterator().next()));
+        assertThat(detailsFromList.getOverriddenLicenses().iterator().next().getLicenseId(), is(licenseOverride2
+            .getLicenseIds().iterator().next()));
         assertThat(detailsFromList.getLicenseThreatGroupNames(), containsInAnyOrder("Weak Copyleft"));
         assertThat(detailsFromList.getLicenseThreatLevel(), is(2));
       }
     }
   }
 
-  private static void assertComponent(String groupId, String artifactId, String version, String threatGroup,
-      int threatLevel, List<ApiReportComponentDTOV2> components)
+  private static void assertComponent(String groupId,
+                                      String artifactId,
+                                      String version,
+                                      String threatGroup,
+                                      int threatLevel,
+                                      List<ApiReportComponentDTOV2> components)
   {
     for (ApiReportComponentDTOV2 candidate : components) {
-      Map<String, String> coordinates = candidate.componentIdentifier == null ? null
-          : candidate.componentIdentifier.getCoordinates();
+      Map<String, String> coordinates = candidate.componentIdentifier == null ? null : candidate.componentIdentifier
+          .getCoordinates();
 
       if (coordinates != null && groupId.equals(coordinates.get("groupId"))
-          && artifactId.equals(coordinates.get("artifactId"))
-          && version.equals(coordinates.get("version"))) {
+          && artifactId.equals(coordinates.get("artifactId")) && version.equals(coordinates.get("version"))) {
         for (ApiLicenseThreatDTOV2 effectiveLicense : candidate.licenseData.effectiveLicenseThreats) {
           if (threatGroup.equals(effectiveLicense.licenseThreatGroupName)) {
             assertThat(effectiveLicense.licenseThreatGroupLevel, is(threatLevel));

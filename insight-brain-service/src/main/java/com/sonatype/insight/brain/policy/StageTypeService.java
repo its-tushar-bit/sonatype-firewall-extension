@@ -55,7 +55,7 @@ public class StageTypeService
   @Inject
   public StageTypeService(final CLMLicenseManager licenseManager) {
     this.licenseManager = licenseManager;
-    contextFilterMap.put(ALL_CONTEXT, Predicates.<StageType>alwaysTrue());
+    contextFilterMap.put(ALL_CONTEXT, Predicates.<StageType> alwaysTrue());
     contextFilterMap.put(CI_CONTEXT, new CIFilter());
     contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
     contextFilterMap.put(QA_CONTEXT, new CIFilter());
@@ -139,8 +139,8 @@ public class StageTypeService
   }
 
   /**
-   * Orders the given stages by their natural chronological order.  This is the same order as
-   * {@link StageTypes#getAll()}.
+   * Orders the given stages by their natural chronological order. This is the same order as {@link StageTypes#getAll()}
+   * .
    */
   private Collection<StageType> orderStages(Collection<StageType> stagesToOrder) {
     Collection<StageType> ordered = new ArrayList<>();

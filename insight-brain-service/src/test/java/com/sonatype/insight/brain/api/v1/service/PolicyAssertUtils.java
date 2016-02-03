@@ -19,9 +19,9 @@ import static org.hamcrest.core.IsNull.notNullValue;
 
 public class PolicyAssertUtils
 {
-  public static void assertPolicies(List<ApiPolicyDTO> actualPolicyList, Map<String, Policy> expectedOrgPolicies,
-      Map<String, Policy> expectedAppPolicies
-  )
+  public static void assertPolicies(List<ApiPolicyDTO> actualPolicyList,
+                                    Map<String, Policy> expectedOrgPolicies,
+                                    Map<String, Policy> expectedAppPolicies)
   {
     for (ApiPolicyDTO actualPolicy : actualPolicyList) {
       if (expectedAppPolicies.get(actualPolicy.id) != null) {

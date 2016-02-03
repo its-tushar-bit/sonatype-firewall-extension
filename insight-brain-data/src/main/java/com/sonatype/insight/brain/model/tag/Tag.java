@@ -46,7 +46,7 @@ public class Tag
 
   public Tag() {
   }
-  
+
   public Tag(String organizationId, String name, String description) {
     this.organizationId = organizationId;
     setName(name);

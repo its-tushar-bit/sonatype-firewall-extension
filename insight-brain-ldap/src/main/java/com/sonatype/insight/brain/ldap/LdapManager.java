@@ -177,9 +177,7 @@ public class LdapManager
    * @return List of LdapUser objects that match the search criteria
    * @throws NamingException if there is a problem with the mapping or the credentials
    */
-  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String name, long maxResults)
-      throws NamingException
-  {
+  public List<LdapUser> testFindUsersByName(LdapUserMapping umap, String name, long maxResults) throws NamingException {
     return new LdapQuery(getDecryptedConnection(), umap).queryUsersByName(name, maxResults);
   }
 
@@ -192,8 +190,8 @@ public class LdapManager
    */
   public boolean isLdapEnabled() {
     List<LdapServer> servers = serverDao.getAll();
-    return !servers.isEmpty() && connDao.getByServerId(servers.get(0).getId()) != null &&
-        userDao.getByServerId(servers.get(0).getId()) != null;
+    return !servers.isEmpty() && connDao.getByServerId(servers.get(0).getId()) != null
+        && userDao.getByServerId(servers.get(0).getId()) != null;
   }
 
   public boolean isLdapGroupEnabled() {

@@ -43,8 +43,8 @@ public class PolicyEvaluationSummaryResourceTest
   public void testGetPolicyEvaluationSummary() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    PolicyEvaluation policyEvaluation = tempEntity
-        .newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
+        scanId);
     Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
@@ -54,8 +54,8 @@ public class PolicyEvaluationSummaryResourceTest
     PolicyEvaluationSummary policyEvaluationSummary = response.getBody(PolicyEvaluationSummary.class);
 
     assertThat(policyEvaluationSummary, notNullValue());
-    assertThat(policyEvaluationSummary.getReportUrl(),
-        is("ui/links/application/" + application.getPublicId() + "/report/" + scanId));
+    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/application/" + application.getPublicId()
+        + "/report/" + scanId));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));

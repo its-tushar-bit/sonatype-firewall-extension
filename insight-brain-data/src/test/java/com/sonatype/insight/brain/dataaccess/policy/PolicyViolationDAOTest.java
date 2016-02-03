@@ -77,9 +77,17 @@ public class PolicyViolationDAOTest
     assertThat(policyViolation, is(nullValue()));
   }
 
-  private void assertPolicyViolation(String policyEvaluationId, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      List<String> pathnames, Date time, String actionTypeId, PolicyViolation actual)
+  private void assertPolicyViolation(String policyEvaluationId,
+                                     String policyId,
+                                     String policyName,
+                                     int threatLevel,
+                                     PolicyThreatCategory threatCategory,
+                                     String hash,
+                                     ComponentIdentifier componentIdentifier,
+                                     List<String> pathnames,
+                                     Date time,
+                                     String actionTypeId,
+                                     PolicyViolation actual)
   {
     assertThat(actual.getPolicyEvaluationId(), is(policyEvaluationId));
     assertThat(actual.getPolicyId(), is(policyId));
@@ -274,7 +282,7 @@ public class PolicyViolationDAOTest
     assertThat(policyViolations, hasSize(1));
     assertThat(policyViolations.get(0).getId(), is(activeViolation.getId()));
   }
-  
+
   @Test
   public void testReplacePolicyId() {
     Policy fromPolicy = tempEntity.newPolicy(applicationId, "From Policy");

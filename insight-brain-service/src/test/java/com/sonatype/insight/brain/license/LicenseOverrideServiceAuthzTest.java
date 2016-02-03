@@ -25,8 +25,8 @@ import static org.mockito.Mockito.mock;
 public class LicenseOverrideServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
-      ComponentIdentifier.createMavenCoordinates("g", "a", "1");
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("g", "a",
+      "1");
 
   @Inject
   private LicenseOverrideService licenseOverrideService;
@@ -65,15 +65,11 @@ public class LicenseOverrideServiceAuthzTest
     testAddLicenseOverride_Authorized(RepositoryContainer.SINGLETON);
   }
 
-  private void testAddLicenseOverride_Unauthorized(final Owner owner)
-      throws Exception
-  {
+  private void testAddLicenseOverride_Unauthorized(final Owner owner) throws Exception {
     testAddLicenseOverride_Unauthorized(owner, owner.getId());
   }
 
-  private void testAddLicenseOverride_Unauthorized(final Owner owner, final String ownerId)
-      throws Exception
-  {
+  private void testAddLicenseOverride_Unauthorized(final Owner owner, final String ownerId) throws Exception {
     grantReadPermission(owner.getId());
     LicenseOverride override = new LicenseOverride(null, COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED,
         (String) null, "test");
@@ -136,10 +132,9 @@ public class LicenseOverrideServiceAuthzTest
 
   private void testDeleteLicenseOverride_Authorized(final Owner owner, final String ownerId) throws Exception {
     grantWritePermission(owner.getId());
-    LicenseOverride override = tempEntity
-        .newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
-    licenseOverrideService.deleteLicenseOverride(owner.getType(), ownerId,
-        override.getId(), null, mockRequest);
+    LicenseOverride override = tempEntity.newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER,
+        LicenseOverrideStatus.CONFIRMED, (String) null);
+    licenseOverrideService.deleteLicenseOverride(owner.getType(), ownerId, override.getId(), null, mockRequest);
   }
 
   @Test
@@ -169,8 +164,8 @@ public class LicenseOverrideServiceAuthzTest
   private void testDeleteLicenseOverride_Unauthorized(final Owner owner, final String ownerId) throws Exception {
     grantReadPermission(owner.getId());
 
-    LicenseOverride override = tempEntity
-        .newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
+    LicenseOverride override = tempEntity.newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER,
+        LicenseOverrideStatus.CONFIRMED, (String) null);
     licenseOverrideService.deleteLicenseOverride(owner.getType(), ownerId, override.getId(), null, mockRequest);
   }
 
@@ -199,8 +194,8 @@ public class LicenseOverrideServiceAuthzTest
   }
 
   private void testDeleteLicenseOverride_Unauthenticated(final Owner owner, final String ownerId) throws Exception {
-    LicenseOverride override = tempEntity
-        .newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER, LicenseOverrideStatus.CONFIRMED, (String) null);
+    LicenseOverride override = tempEntity.newLicenseOverride(owner.getId(), COMPONENT_IDENTIFIER,
+        LicenseOverrideStatus.CONFIRMED, (String) null);
     licenseOverrideService.deleteLicenseOverride(owner.getType(), ownerId, override.getId(), null, mockRequest);
   }
 
@@ -288,8 +283,7 @@ public class LicenseOverrideServiceAuthzTest
     testGetAppliedLicenseOverrides_Unauthenticated(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId)
-      throws Exception
+  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId) throws Exception
   {
     licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId,
         JsonEncodedComponentIdentifier.copy(COMPONENT_IDENTIFIER));

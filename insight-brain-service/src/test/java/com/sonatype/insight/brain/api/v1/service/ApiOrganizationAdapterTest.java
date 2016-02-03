@@ -36,7 +36,7 @@ public class ApiOrganizationAdapterTest
   @Test
   public void testConvertEntityToDTO() {
 
-    Organization org =  tempEntity.newOrganization();
+    Organization org = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(org.getId());
     List<Tag> tagList = new ArrayList<>();
     tagList.add(tag);

@@ -38,8 +38,11 @@ class SidebarService
   private final MembershipMappingService membershipMappingService;
 
   @Inject
-  public SidebarService(final TagDAO tagDAO, final PolicyDAO policyDAO, final LabelDAO labelDAO,
-      final LicenseThreatGroupDAO licenseThreatGroupDAO, final MembershipMappingService membershipMappingService)
+  public SidebarService(final TagDAO tagDAO,
+                        final PolicyDAO policyDAO,
+                        final LabelDAO labelDAO,
+                        final LicenseThreatGroupDAO licenseThreatGroupDAO,
+                        final MembershipMappingService membershipMappingService)
   {
     this.tagDAO = tagDAO;
     this.policyDAO = policyDAO;
@@ -48,10 +51,9 @@ class SidebarService
     this.membershipMappingService = membershipMappingService;
   }
 
-
   @Authorize(permission = Permission.READ)
   OwnerDetailsDTO getOwnerDetails(@AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId)
+                                  @AuthzContext(Key.INTERNAL_ID) String internalOwnerId)
   {
     OwnerDetailsDTO ownerDetailsDTO = new OwnerDetailsDTO();
 

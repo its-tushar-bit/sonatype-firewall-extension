@@ -184,8 +184,8 @@ public class UserServiceTest
 
   @Test
   public void testFindCLMUsers() throws Exception {
-    FindMembersDTO findMembersDTO = userService
-        .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*",
+        false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
 
     findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null,
@@ -255,8 +255,8 @@ public class UserServiceTest
   @Test
   public void testNoLdapConnection() throws Exception {
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
-    FindMembersDTO findMembersDTO = userService
-        .findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*", false /* groupsEnabled */);
+    FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*",
+        false /* groupsEnabled */);
 
     // Should not try to use Ldap until server is added and configured
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost", "CLM");
@@ -270,8 +270,13 @@ public class UserServiceTest
         "Admin BuiltIn", "admin@localhost", "CLM");
   }
 
-  private void assertMember(FindMembersDTO findMembersDTO, String error, MemberType type, String name,
-      String displayName, String email, String realm)
+  private void assertMember(FindMembersDTO findMembersDTO,
+                            String error,
+                            MemberType type,
+                            String name,
+                            String displayName,
+                            String email,
+                            String realm)
   {
     if (!StringUtils.isBlank(error)) {
       assertThat(findMembersDTO.getError(), is(error));
@@ -286,8 +291,12 @@ public class UserServiceTest
     assertMember(members[0], type, name, displayName, email, realm);
   }
 
-  private void assertMember(final Member member, final MemberType type, final String name, final String displayName,
-      final String email, final String realm)
+  private void assertMember(final Member member,
+                            final MemberType type,
+                            final String name,
+                            final String displayName,
+                            final String email,
+                            final String realm)
   {
     assertThat(member.getType(), is(type));
     assertThat(member.getInternalName(), is(name));

@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.api.v1.dto.ApiApplicationViolationListDTO;
 import com.sonatype.insight.brain.api.v1.service.ApiPolicyViolationService;
 import com.sonatype.insight.brain.api.v2.ApiPolicyViolationResourceV2;
 
-
 /**
  * @deprecated since 1.13.0, use {@link ApiPolicyViolationResourceV2}
  *
@@ -38,7 +37,6 @@ public class ApiPolicyViolationResource
   public ApiPolicyViolationResource(final ApiPolicyViolationService apiPolicyViolationService) {
     this.apiPolicyViolationService = apiPolicyViolationService;
   }
-
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

@@ -60,7 +60,7 @@ class JavaXXMaxPermSizeChecker
         log.trace("Ignoring MemoryPoolMXBean with name '{}'.", memoryPoolName);
         continue;
       }
-      
+
       log.trace("Found MemoryPoolMXBean with name '{}'.", memoryPoolName);
       long maxPermGenInBytes = memoryPoolMXBean.getUsage().getMax();
       log.trace("Found maxPermGenInBytes={}.", maxPermGenInBytes);

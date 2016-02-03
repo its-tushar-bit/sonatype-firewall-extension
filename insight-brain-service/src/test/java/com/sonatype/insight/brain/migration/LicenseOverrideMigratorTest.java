@@ -110,8 +110,13 @@ public class LicenseOverrideMigratorTest
         "GPL-3.0", "Comment 4");
   }
 
-  private void assertLicenseOverride(String ownerId, String groupId, String artifactId, String version,
-      LicenseOverrideStatus status, String licenseId, String comment)
+  private void assertLicenseOverride(String ownerId,
+                                     String groupId,
+                                     String artifactId,
+                                     String version,
+                                     LicenseOverrideStatus status,
+                                     String licenseId,
+                                     String comment)
   {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     LicenseOverride actual = new LicenseOverrideDAO().getByOwnerIdAndComponentIdentifier(ownerId, componentIdentifier);

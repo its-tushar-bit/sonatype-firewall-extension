@@ -51,7 +51,7 @@ public class H2DatabaseBackup
     if (databaseConfig == null) {
       throw new IllegalArgumentException("Cannot backup an in-memory H2 database.");
     }
-    
+
     File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
     String databaseName = databasePath.getName();
     File dbBackupFile = new File(dbBackupDir, databaseName + BACKUP_FILENAME_SUFFIX);

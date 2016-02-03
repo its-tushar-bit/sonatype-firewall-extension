@@ -53,16 +53,16 @@ public class PolicyClientTest
         .getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
     assertThat(policyEvaluationSummary, is(nullValue()));
 
-    PolicyEvaluation policyEvaluation = tempEntity
-        .newPolicyEvaluation(application.getId(), stage.getStageTypeId(), scanId);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(),
+        scanId);
     Policy policy = tempEntity.newPolicy(application.getId(), "test-policy");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
     policyEvaluationSummary = policyClient.getPolicyEvaluationSummary(new Stage(Stage.ID_BUILD));
 
     assertThat(policyEvaluationSummary, notNullValue());
-    assertThat(policyEvaluationSummary.getReportUrl(),
-        is("ui/links/application/" + application.getPublicId() + "/report/" + scanId));
+    assertThat(policyEvaluationSummary.getReportUrl(), is("ui/links/application/" + application.getPublicId()
+        + "/report/" + scanId));
     assertThat(policyEvaluationSummary.getAffectedComponentCount(), is(1));
     assertThat(policyEvaluationSummary.getCriticalComponentCount(), is(0));
     assertThat(policyEvaluationSummary.getModerateComponentCount(), is(0));

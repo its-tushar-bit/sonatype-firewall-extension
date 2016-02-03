@@ -263,7 +263,7 @@ public class LabelDAOTest
     label.setOwnerId(applicationId);
     label.setLabel("MyLabel");
     label.setColor(null);
-    
+
     // Insert
     try {
       dao.insert(label);
@@ -528,9 +528,9 @@ public class LabelDAOTest
       fail("Expected InvalidLabelException");
     }
     catch (InvalidLabelException e) {
-      final String expectedMessage = String
-          .format("A label with name '%s' already exists in application(s) '%s' organization(s) '%s' '%s'.",
-              label1.getLabel(), application.getName(), org1.getName(), org2.getName());
+      final String expectedMessage = String.format(
+          "A label with name '%s' already exists in application(s) '%s' organization(s) '%s' '%s'.", label1.getLabel(),
+          application.getName(), org1.getName(), org2.getName());
       assertThat(e.getMessage(), is(expectedMessage));
     }
   }
@@ -550,8 +550,8 @@ public class LabelDAOTest
       fail("Expected InvalidLabelException");
     }
     catch (InvalidLabelException e) {
-      final String expectedMessage = String
-          .format("A label with name '%s' already exists in organization 'Root Organization'.", label2.getLabel());
+      final String expectedMessage = String.format(
+          "A label with name '%s' already exists in organization 'Root Organization'.", label2.getLabel());
       assertThat(e.getMessage(), is(expectedMessage));
     }
   }

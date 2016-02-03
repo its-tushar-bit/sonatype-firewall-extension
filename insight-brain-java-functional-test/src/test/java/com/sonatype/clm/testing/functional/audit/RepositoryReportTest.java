@@ -261,8 +261,8 @@ public class RepositoryReportTest
     // Editor default state
     LicenseCIP.scopes().shouldHave(texts(repo.getName(), "All Repositories", "Root Organization"));
     LicenseCIP.scope().shouldHave(value("string:" + RepositoryContainer.REPOSITORY_CONTAINER_ID));
-    LicenseCIP.statuses()
-        .shouldHave(texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    LicenseCIP.statuses().shouldHave(
+        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     LicenseCIP.status().shouldHave(value("ACKNOWLEDGED"));
     LicenseCIP.licenseSelector().shouldNot(exist);
     LicenseCIP.updateButton().shouldNotBe(enabled);
@@ -291,11 +291,9 @@ public class RepositoryReportTest
     LicenseCIP.licenseSelector().should(exist);
     LicenseCIP.updateButton().shouldNotBe(enabled);
 
-
     // Verify override on backend
     final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
-    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(),
-        CRITICAL_IDENTIFIER);
+    LicenseOverride override = licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(repo.getId(), CRITICAL_IDENTIFIER);
     assertThat(override.getStatus(), is(LicenseOverrideStatus.SELECTED));
     assertThat(override.getLicenseIds(), is(Collections.singleton("Apache-2.0")));
 
@@ -367,8 +365,8 @@ public class RepositoryReportTest
 
     // new table row for the policy violation
     Filter.allViolationsButton().click();
-    assertRow(RepositoryReportPage.Table.rowByName("Bad Label"),
-        new ExpectedRow(Table.IGNORED_SCORE, "Bad Label", "critical : threat : 1.0", false, false), false);
+    assertRow(RepositoryReportPage.Table.rowByName("Bad Label"), new ExpectedRow(Table.IGNORED_SCORE, "Bad Label",
+        "critical : threat : 1.0", false, false), false);
 
     // re-open CIP
     openCIP(0, "Labels");
@@ -468,15 +466,15 @@ public class RepositoryReportTest
     String componentIdentifier = URLEncoder.encode(ComponentIdentifierAdapter.toJson(CRITICAL_IDENTIFIER), "UTF-8");
 
     testCLMServer.getInsightServer().setResponseForURI(
-        "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash=" +
-            criticalComponentHash,
+        "rest/vulnerability/details/cve/CVE-1234-56789?componentIdentifier=" + componentIdentifier + "&hash="
+            + criticalComponentHash,
         FileUtils.readFileToString(new File("src/test/resources/vulnerabilityDetails/vulnerabilityDetails.json")), 200);
 
     VulnerabilityCIP.row(0).info().click();
 
     SVDetailModal.root().shouldBe(Condition.visible);
 
-    //html from the json response we send above
+    // html from the json response we send above
     $("#somedivfortest").shouldBe(Condition.visible);
 
     SVDetailModal.closeButton().shouldBe(Condition.enabled).click();
@@ -539,7 +537,6 @@ public class RepositoryReportTest
     assertRows(QUARANTINED);
     resetFilter();
   }
-
 
   private void testWaivedFilter() {
     Filter.waivedViolationsButton().click();

@@ -64,8 +64,7 @@ public class ComponentDAO
     }
   }
 
-  public List<Component> getAll(byte[] bomData)
-  {
+  public List<Component> getAll(byte[] bomData) {
     List<Component> components = new ArrayList<>();
 
     JsonNode bomJson = loadJson(bomData);
@@ -113,8 +112,10 @@ public class ComponentDAO
     return components;
   }
 
-  public List<Component> getAll(Application application, final byte[] licenseData, final byte[] securityData,
-      final byte[] bomData)
+  public List<Component> getAll(Application application,
+                                final byte[] licenseData,
+                                final byte[] securityData,
+                                final byte[] bomData)
   {
     // Load bom data
     List<Component> bomComponents = getAll(bomData);
@@ -210,8 +211,7 @@ public class ComponentDAO
     return result;
   }
 
-  public Component getComponent(Owner owner, ComponentInfo componentInfo, ArrayNode jsonSVNode)
-  {
+  public Component getComponent(Owner owner, ComponentInfo componentInfo, ArrayNode jsonSVNode) {
     Component component = new Component();
 
     component.setHash(componentInfo.getHash());
@@ -254,7 +254,8 @@ public class ComponentDAO
   }
 
   private void addSecurityVulnerabilities(Component component,
-      List<com.sonatype.clm.dto.model.SecurityVulnerability> issues, ArrayNode jsonSVNode)
+                                          List<com.sonatype.clm.dto.model.SecurityVulnerability> issues,
+                                          ArrayNode jsonSVNode)
   {
     if (issues == null) {
       return;
@@ -315,8 +316,10 @@ public class ComponentDAO
     component.setUnassignedLicenseIds(unassignedLicenseIds);
   }
 
-  private void loadLicenseThreatGroups(Component component, Set<String> unassignedLicenseIds, Set<String> licenseIds,
-      String ltgOwnerId)
+  private void loadLicenseThreatGroups(Component component,
+                                       Set<String> unassignedLicenseIds,
+                                       Set<String> licenseIds,
+                                       String ltgOwnerId)
   {
     for (String licenseId : licenseIds) {
       List<LicenseThreatGroup> licenseThreatGroups = licenseThreatGroupDAO.getByOwnerIdAndLicenseId(ltgOwnerId,

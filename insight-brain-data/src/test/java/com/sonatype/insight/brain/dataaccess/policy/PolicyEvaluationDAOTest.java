@@ -182,8 +182,12 @@ public class PolicyEvaluationDAOTest
     assertThat(policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId()), hasSize(0));
   }
 
-  private void assertPolicyEvaluation(String applicationId, String stageTypeId, String scanId, boolean reevaluation,
-      boolean forMonitoring, PolicyEvaluation actual)
+  private void assertPolicyEvaluation(String applicationId,
+                                      String stageTypeId,
+                                      String scanId,
+                                      boolean reevaluation,
+                                      boolean forMonitoring,
+                                      PolicyEvaluation actual)
   {
     assertThat(actual.getApplicationId(), is(applicationId));
     assertThat(actual.getStageTypeId(), is(stageTypeId));
@@ -203,8 +207,8 @@ public class PolicyEvaluationDAOTest
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time2);
 
-    List<PolicyEvaluation> policyEvaluations = dao
-        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
+        Sets.newHashSet(ReleaseStageType.ID));
     assertThat(policyEvaluations, hasSize(1));
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
     assertThat(policyEvaluation, is(notNullValue()));
@@ -217,26 +221,26 @@ public class PolicyEvaluationDAOTest
   public void testGetLastByApplicationIdsAndStageIdsFiltersInvalidAppIdsAndStages() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
-    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
-        organization.getId());
+    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2",
+        "AbstractDbDAOTest_AppPublicId2", organization.getId());
 
     Date time1 = new Date();
     tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
 
-    //wrong stage
+    // wrong stage
     Date time2 = new Date(time1.getTime() + 1000);
     tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", time2);
 
-    //wrong appId
+    // wrong appId
     Date time3 = new Date(time1.getTime() + 2000);
     tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan3", time3);
 
-    //wrong both
+    // wrong both
     Date time4 = new Date(time1.getTime() + 3000);
     tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, "scan4", time4);
 
-    List<PolicyEvaluation> policyEvaluations = dao
-        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
+        Sets.newHashSet(ReleaseStageType.ID));
     assertThat(policyEvaluations, hasSize(1));
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
     assertThat(policyEvaluation, is(notNullValue()));
@@ -251,8 +255,8 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe1 = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan1", time1);
     tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan2", time1);
 
-    List<PolicyEvaluation> policyEvaluations = dao
-        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId), Sets.newHashSet(ReleaseStageType.ID));
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId),
+        Sets.newHashSet(ReleaseStageType.ID));
     assertThat(policyEvaluations, hasSize(1));
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
     assertThat(policyEvaluation, is(notNullValue()));
@@ -269,15 +273,14 @@ public class PolicyEvaluationDAOTest
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scan2", time2);
 
-    //second app
-    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
-        organization.getId());
+    // second app
+    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2",
+        "AbstractDbDAOTest_AppPublicId2", organization.getId());
     tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan3", time1);
     PolicyEvaluation pe4 = tempEntity.newPolicyEvaluation(application2.getId(), ReleaseStageType.ID, "scan4", time2);
 
-    List<PolicyEvaluation> policyEvaluations = dao
-        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId, application2.getId()),
-            Sets.newHashSet(ReleaseStageType.ID));
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(
+        Sets.newHashSet(applicationId, application2.getId()), Sets.newHashSet(ReleaseStageType.ID));
     assertThat(policyEvaluations, hasSize(2));
     Set<String> policyIds = new HashSet<>();
     for (PolicyEvaluation pe : policyEvaluations) {
@@ -328,9 +331,9 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId1", true /* isReevaluation */,
         false /* forMonitoring */, true /* isForObsoleteScan */, time3);
 
-    //second app
-    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2", "AbstractDbDAOTest_AppPublicId2",
-        organization.getId());
+    // second app
+    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2",
+        "AbstractDbDAOTest_AppPublicId2", organization.getId());
     Date time4 = new Date(time3.getTime() + 1000);
     tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId5", time4);
     Date time5 = new Date(time4.getTime() + 1000);
@@ -340,20 +343,17 @@ public class PolicyEvaluationDAOTest
     tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId5", true /* isReevaluation */,
         false /* forMonitoring */, true /* isForObsoleteScan */, time6);
 
-    //third app
-    Application application3 = tempEntity.newApplication("AbstractDbDAOTest-AppName3", "AbstractDbDAOTest_AppPublicId3",
-        organization.getId());
+    // third app
+    Application application3 = tempEntity.newApplication("AbstractDbDAOTest-AppName3",
+        "AbstractDbDAOTest_AppPublicId3", organization.getId());
     Date time7 = new Date();
     tempEntity.newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", time7);
     Date time8 = new Date(time7.getTime() + 9000);
-    PolicyEvaluation pe8 = tempEntity
-        .newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7", true /* isReevaluation */,
-            false /* forMonitoring */, time8);
+    PolicyEvaluation pe8 = tempEntity.newPolicyEvaluation(application3.getId(), stageTypeId, "scanId7",
+        true /* isReevaluation */, false /* forMonitoring */, time8);
 
-
-    List<PolicyEvaluation> policyEvaluations = dao
-        .getLastByApplicationIdsAndStageIds(Sets.newHashSet(applicationId, application2.getId(), application3.getId()),
-            Sets.newHashSet(stageTypeId));
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(
+        Sets.newHashSet(applicationId, application2.getId(), application3.getId()), Sets.newHashSet(stageTypeId));
     assertThat(policyEvaluations, is(notNullValue()));
     assertThat(policyEvaluations, hasSize(3));
     Set<String> policyIds = new HashSet<>();
@@ -470,11 +470,11 @@ public class PolicyEvaluationDAOTest
     // Assert we have a last policy evaluation and that it is the second one
     PolicyEvaluation lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(lastPolicyEvaluation.getId(), is(pe2.getId()));
-    
+
     // Delete the second evaluation. The last policy eval will be deleted and there will not be a new last policy eval
     // because we tell the delete to not update the last policy eval.
     dao.delete(pe2, false /* updateLastPolicyEvaluation */);
-    
+
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(applicationId, stageTypeId);
     assertThat(lastPolicyEvaluation, is(nullValue()));
   }

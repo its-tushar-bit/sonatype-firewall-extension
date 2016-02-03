@@ -42,8 +42,11 @@ public class ApiPolicyService
   private final OwnerDAO ownerDAO;
 
   @Inject
-  public ApiPolicyService(final PolicyDAO policyDAO, final ApplicationService applicationService,
-      final OrganizationService organizationService, final ApiPolicyAdapter apiPolicyAdapter, final OwnerDAO ownerDAO)
+  public ApiPolicyService(final PolicyDAO policyDAO,
+                          final ApplicationService applicationService,
+                          final OrganizationService organizationService,
+                          final ApiPolicyAdapter apiPolicyAdapter,
+                          final OwnerDAO ownerDAO)
   {
     this.policyDAO = policyDAO;
     this.applicationService = applicationService;

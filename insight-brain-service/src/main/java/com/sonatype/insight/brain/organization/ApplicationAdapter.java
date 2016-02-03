@@ -139,7 +139,6 @@ public class ApplicationAdapter
     return applicationManagementSummaryDTOList;
   }
 
-
   /**
    * Create the application management summary DTO from the application entity
    *
@@ -213,9 +212,7 @@ public class ApplicationAdapter
     return string.toLowerCase(Locale.ENGLISH);
   }
 
-  private void putUnknownErrorContacts(List<String> internalNamesList,
-      Map<String, ContactDTO> nameToContactMap)
-  {
+  private void putUnknownErrorContacts(List<String> internalNamesList, Map<String, ContactDTO> nameToContactMap) {
     // If we've already mapped all the names no work needs to be done.
     if (nameToContactMap.size() == internalNamesList.size()) {
       return;
@@ -229,9 +226,7 @@ public class ApplicationAdapter
     }
   }
 
-  private void putUserDirectoryErrorContacts(List<String> internalNamesList,
-      Map<String, ContactDTO> nameToContactMap)
-  {
+  private void putUserDirectoryErrorContacts(List<String> internalNamesList, Map<String, ContactDTO> nameToContactMap) {
     // If we've already mapped all the names no work needs to be done.
     if (nameToContactMap.size() == internalNamesList.size()) {
       return;

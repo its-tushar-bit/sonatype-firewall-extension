@@ -253,8 +253,7 @@ public class PolicyViolationDigesterTest
     PolicyEvaluation evaluation = new PolicyEvaluation();
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policy_4", "Policy 4", 0,
         PolicyThreatCategory.OTHER, "H", ComponentIdentifier.createMavenCoordinates("G", "A", "V"),
-        Collections.singletonList(constraintFact),
-        Collections.singletonList("pathnames"));
+        Collections.singletonList(constraintFact), Collections.singletonList("pathnames"));
 
     return policyViolation;
   }
@@ -265,7 +264,8 @@ public class PolicyViolationDigesterTest
 
   private static ConditionFact conditionFact(final String conditionTypeId, final String operator, final String value) {
     final Condition condition = new Condition(conditionTypeId, operator, value);
-    return ComponentPolicyEvaluator.createConditionFact(condition, ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
+    return ComponentPolicyEvaluator.createConditionFact(condition,
+        ComponentFactory.forGav("G", "A", "V", MatchState.EXACT));
   }
 
   private static PolicyViolation newPolicyViolation(String policyId, String policyName, int threatLevel) {

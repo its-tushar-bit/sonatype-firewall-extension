@@ -98,7 +98,9 @@ public class MembershipMappingDAO
    *
    * @since 1.11.0
    */
-  public void setMembershipMappingsForContextAndRole(TransactionContext tx, String contextId, String roleId,
+  public void setMembershipMappingsForContextAndRole(TransactionContext tx,
+                                                     String contextId,
+                                                     String roleId,
                                                      List<MembershipMapping> mappings)
   {
 

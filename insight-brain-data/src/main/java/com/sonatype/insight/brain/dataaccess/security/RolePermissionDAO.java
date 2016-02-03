@@ -81,8 +81,8 @@ public class RolePermissionDAO
     }
     for (Permission permission : permissions) {
       if (!permission.isAllowedInCustomRoles()) {
-        throw new BadRequestException("Cannot assign permission '" + permission + "' to custom role '"
-            + role.getName() + "'");
+        throw new BadRequestException("Cannot assign permission '" + permission + "' to custom role '" + role.getName()
+            + "'");
       }
       if (!alreadySet.contains(permission)) {
         insert(tx, new RolePermission(roleId, permission));

@@ -31,11 +31,10 @@ public class ActiveDirectoryDynamicGroupsQueryTest
 
   @Test
   public void testDynamicGroups() {
-    GatlingPropertiesBuilder props =
-        configureGatling("LDAP Search Simulation with Active Directory Dynamic Groups",
-            "com.sonatype.insight.brain.LdapQuerySimulation");
+    GatlingPropertiesBuilder props = configureGatling("LDAP Search Simulation with Active Directory Dynamic Groups",
+        "com.sonatype.insight.brain.LdapQuerySimulation");
 
-    //much more than this causes timeouts with dynamic group search enabled
+    // much more than this causes timeouts with dynamic group search enabled
     System.setProperty("userCount", "8");
     System.setProperty("repeatTimes", "1");
     System.setProperty("rampTime", "120");

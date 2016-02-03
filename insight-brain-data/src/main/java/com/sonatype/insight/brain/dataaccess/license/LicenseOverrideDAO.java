@@ -50,7 +50,7 @@ public class LicenseOverrideDAO
    * @since 1.17
    */
   public LicenseOverride getAppliedByOwnerIdAndComponentIdentifier(String ownerId,
-      ComponentIdentifier componentIdentifier)
+                                                                   ComponentIdentifier componentIdentifier)
   {
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       LicenseOverride override = getByOwnerIdAndComponentIdentifier(owner.getId(), componentIdentifier);
@@ -74,14 +74,14 @@ public class LicenseOverrideDAO
   }
 
   public List<LicenseOverride> getByComponentIdentifier(final TransactionContext tx,
-      final ComponentIdentifier componentIdentifier)
+                                                        final ComponentIdentifier componentIdentifier)
   {
-    List<LicenseOverrideInternal> licenseOverrideInternalList =
-        licenseOverrideInternalDAO.getByComponentIdentifier(tx, componentIdentifier);
+    List<LicenseOverrideInternal> licenseOverrideInternalList = licenseOverrideInternalDAO.getByComponentIdentifier(tx,
+        componentIdentifier);
     List<LicenseOverride> licenseOverrideList = new ArrayList<>(licenseOverrideInternalList.size());
     for (LicenseOverrideInternal licenseOverrideInternal : licenseOverrideInternalList) {
-      licenseOverrideList.add(new LicenseOverride(licenseOverrideInternal,
-          getLicenseIds(tx, licenseOverrideInternal.getId())));
+      licenseOverrideList.add(new LicenseOverride(licenseOverrideInternal, getLicenseIds(tx,
+          licenseOverrideInternal.getId())));
     }
 
     return licenseOverrideList;
@@ -128,10 +128,10 @@ public class LicenseOverrideDAO
     validate(entity);
     licenseOverrideInternalDAO.update(tx, toInternal(entity));
 
-    //clear existing licenses
+    // clear existing licenses
     clearLicenseOverrideLicenseInternals(tx, entity.getId());
 
-    //add new ones
+    // add new ones
     addLicenseOverrideLicenseInternals(tx, entity);
   }
 
@@ -157,8 +157,7 @@ public class LicenseOverrideDAO
   }
 
   private void validate(LicenseOverride entity) {
-    if (entity.getStatus() == LicenseOverrideStatus.OVERRIDDEN ||
-        entity.getStatus() == LicenseOverrideStatus.SELECTED) {
+    if (entity.getStatus() == LicenseOverrideStatus.OVERRIDDEN || entity.getStatus() == LicenseOverrideStatus.SELECTED) {
       if (entity.getLicenseIds().isEmpty()) {
         throw new BadRequestException("Expected at least one license ID for license override.");
       }
@@ -186,8 +185,8 @@ public class LicenseOverrideDAO
   }
 
   private void clearLicenseOverrideLicenseInternals(TransactionContext tx, String licenseOverrideId) {
-    for (LicenseOverrideLicenseInternal license : licenseOverrideLicenseInternalDAO
-        .getByLicenseOverrideId(tx, licenseOverrideId)) {
+    for (LicenseOverrideLicenseInternal license : licenseOverrideLicenseInternalDAO.getByLicenseOverrideId(tx,
+        licenseOverrideId)) {
       licenseOverrideLicenseInternalDAO.delete(tx, license);
     }
   }
@@ -220,8 +219,8 @@ public class LicenseOverrideDAO
   }
 
   private LicenseOverrideInternal toInternal(LicenseOverride override) {
-    LicenseOverrideInternal internal = new LicenseOverrideInternal(override.getOwnerId(), override.getComponentIdentifier(), override.getStatus(),
-        override.getComment());
+    LicenseOverrideInternal internal = new LicenseOverrideInternal(override.getOwnerId(),
+        override.getComponentIdentifier(), override.getStatus(), override.getComment());
     internal.setId(override.getId());
 
     return internal;

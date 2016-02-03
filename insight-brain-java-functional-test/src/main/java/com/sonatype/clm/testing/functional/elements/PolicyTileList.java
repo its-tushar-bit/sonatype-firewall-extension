@@ -79,7 +79,7 @@ public class PolicyTileList
     public SelenideElement name() {
       return root.$(".threat-name");
     }
-    
+
     public SelenideElement proxy() {
       return root.$$("td").get(1);
     }

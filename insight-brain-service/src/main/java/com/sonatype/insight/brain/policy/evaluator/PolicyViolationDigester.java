@@ -22,7 +22,7 @@ public class PolicyViolationDigester
   }
 
   public static PolicyViolationDiff digestPolicyViolations(Collection<PolicyViolation> oldViolations,
-      Collection<PolicyViolation> newViolations)
+                                                           Collection<PolicyViolation> newViolations)
   {
     PolicyViolationDiff diff = new PolicyViolationDiff();
 

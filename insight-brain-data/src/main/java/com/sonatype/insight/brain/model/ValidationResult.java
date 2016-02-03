@@ -20,9 +20,9 @@ public class ValidationResult
   public static ValidationResult noErrors() {
     return new ValidationResult();
   }
-  
+
   /**
-   * Creates an instance that starts as being valid. 
+   * Creates an instance that starts as being valid.
    */
   public ValidationResult() {
   }

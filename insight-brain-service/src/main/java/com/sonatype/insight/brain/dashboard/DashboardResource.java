@@ -61,9 +61,11 @@ public class DashboardResource
 
   @Inject
   public DashboardResource(ApplicationRiskService applicationRiskService,
-      DashboardFilterService dashboardFilterService, ComponentRiskService componentRiskService,
-      ComponentSummaryService componentSummaryService, NewestRiskService newestRiskService,
-      PolicySummaryService policySummaryService)
+                           DashboardFilterService dashboardFilterService,
+                           ComponentRiskService componentRiskService,
+                           ComponentSummaryService componentSummaryService,
+                           NewestRiskService newestRiskService,
+                           PolicySummaryService policySummaryService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
@@ -79,10 +81,11 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "getNewestRisksExceptionMeter")
   public List<NewestRiskDTO> getNewestRisks(@QueryParam("applicationIds") Set<String> applicationIds,
-      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
-      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
-      @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
+                                            @QueryParam("stageIds") Set<String> stageIds,
+                                            @QueryParam("tagIds") Set<String> tagIds,
+                                            @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                            @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
+                                            @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
     return newestRiskService.getNewestRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
@@ -94,11 +97,11 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "getApplicationRisksExceptionMeter")
   public List<ApplicationRiskScoreDTO> getApplicationRisks(@QueryParam("applicationIds") Set<String> applicationIds,
-      @QueryParam("stageIds") Set<String> stageIds,
-      @QueryParam("tagIds") Set<String> tagIds,
-      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
-      @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
+                                                           @QueryParam("stageIds") Set<String> stageIds,
+                                                           @QueryParam("tagIds") Set<String> tagIds,
+                                                           @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                           @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                           @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
     return applicationRiskService.getApplicationRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
@@ -110,10 +113,11 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "getComponentRisksExceptionMeter")
   public List<ComponentRiskDTO> getComponentRisks(@QueryParam("applicationIds") Set<String> applicationIds,
-      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
-      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
-      @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
+                                                  @QueryParam("stageIds") Set<String> stageIds,
+                                                  @QueryParam("tagIds") Set<String> tagIds,
+                                                  @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                                  @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                  @QueryParam("maxResults") @DefaultValue("1000") int maxResults)
   {
     return componentRiskService.getComponentRisks(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter, maxResults);
@@ -161,9 +165,10 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "getFilterSummaryExceptionMeter")
   public FilterSummaryDTO getFilterSummary(@QueryParam("applicationIds") Set<String> applicationIds,
-      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
-      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
+                                           @QueryParam("stageIds") Set<String> stageIds,
+                                           @QueryParam("tagIds") Set<String> tagIds,
+                                           @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                           @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     return dashboardFilterService.getFilterSummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);
@@ -175,7 +180,8 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "getComponentSummaryExceptionMeter")
   public ComponentSummaryDTO getComponentSummary(@QueryParam("applicationIds") Set<String> applicationIds,
-      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds)
+                                                 @QueryParam("stageIds") Set<String> stageIds,
+                                                 @QueryParam("tagIds") Set<String> tagIds)
   {
     return componentSummaryService.getComponentSummary(applicationIds, stageIds, tagIds);
   }
@@ -186,9 +192,10 @@ public class DashboardResource
   @Timed
   @ExceptionMetered(name = "getPolicySummaryExceptionMeter")
   public PolicySummaryDTO getPolicySummary(@QueryParam("applicationIds") Set<String> applicationIds,
-      @QueryParam("stageIds") Set<String> stageIds, @QueryParam("tagIds") Set<String> tagIds,
-      @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
-      @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
+                                           @QueryParam("stageIds") Set<String> stageIds,
+                                           @QueryParam("tagIds") Set<String> tagIds,
+                                           @QueryParam("policyThreatCategories") PolicyThreatCategoryFilter policyThreatCategoryFilter,
+                                           @QueryParam("policyThreatLevelRange") PolicyThreatLevelFilter policyThreatLevelFilter)
   {
     return policySummaryService.getPolicySummary(applicationIds, stageIds, tagIds, policyThreatCategoryFilter,
         policyThreatLevelFilter);

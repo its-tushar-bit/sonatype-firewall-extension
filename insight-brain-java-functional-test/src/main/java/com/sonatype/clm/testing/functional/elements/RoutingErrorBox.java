@@ -13,8 +13,8 @@ import static com.codeborne.selenide.Selenide.$;
 public class RoutingErrorBox
 {
   public static Condition errorText(String error) {
-    return Condition.text(
-        "Please try to reload the page, if the problem persists contact your server administrator. (" + error + ")");
+    return Condition.text("Please try to reload the page, if the problem persists contact your server administrator. ("
+        + error + ")");
   }
 
   public static SelenideElement errorBox() {

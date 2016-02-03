@@ -27,7 +27,7 @@ public class StageTypeServiceTest
   private StageTypeService stageTypeService;
 
   @Inject
-  //note we solely use this to call installLicense() to flush the caches
+  // note we solely use this to call installLicense() to flush the caches
   private CLMLicenseManager clmLicenseManager;
 
   @Inject
@@ -44,8 +44,8 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(), contains(StageTypes.PROXY, StageTypes.STAGE_RELEASE,
-        StageTypes.RELEASE));
+    assertThat(stageTypeService.getLicensedStageTypes(),
+        contains(StageTypes.PROXY, StageTypes.STAGE_RELEASE, StageTypes.RELEASE));
   }
 
   @Test
@@ -53,8 +53,10 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(), contains(StageTypes.PROXY, StageTypes.DEVELOP,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+    assertThat(
+        stageTypeService.getLicensedStageTypes(),
+        contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
   }
 
   @Test
@@ -81,7 +83,8 @@ public class StageTypeServiceTest
         CLMEnforcementPoint.Release, CLMEnforcementPoint.StageRelease);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(),
+    assertThat(
+        stageTypeService.getLicensedStageTypes(),
         contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
             StageTypes.OPERATE));
   }
@@ -101,8 +104,10 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT), contains(StageTypes.PROXY,
-        StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
+    assertThat(
+        stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT),
+        contains(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+            StageTypes.OPERATE));
   }
 
   @Test
@@ -128,9 +133,9 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CLI_CONTEXT),
-        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
-            StageTypes.OPERATE));
+    assertThat(
+        stageTypeService.getLicensedStageTypes(StageTypeService.CLI_CONTEXT),
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
   }
 
   @Test
@@ -156,8 +161,8 @@ public class StageTypeServiceTest
     productLicenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     clmLicenseManager.installLicense(null);
 
-    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.MAVEN_CONTEXT),
-        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
-            StageTypes.OPERATE));
+    assertThat(
+        stageTypeService.getLicensedStageTypes(StageTypeService.MAVEN_CONTEXT),
+        contains(StageTypes.DEVELOP, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE));
   }
 }

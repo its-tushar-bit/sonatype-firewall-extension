@@ -32,19 +32,19 @@ public class ApplicationTagResourceTest
 
     HttpRequest request = restRequest().path(ApplicationTagResource.RESOURCE_PATH).parameter(app.getPublicId());
 
-    //Get
+    // Get
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
     Tag[] retrievedTags = response.getBody(Tag[].class);
     assertThat(retrievedTags, is(notNullValue()));
     assertThat(retrievedTags.length, is(0));
 
-    //Add
+    // Add
     Tag tag = tempEntity.newTag(app.getOrganizationId(), "tag name");
     response = request.body(tag).post();
     assertResponseStatus(204, response);
 
-    //Get
+    // Get
     response = request.get();
     assertResponseStatus(200, response);
     retrievedTags = response.getBody(Tag[].class);
@@ -52,7 +52,7 @@ public class ApplicationTagResourceTest
     assertThat(retrievedTags.length, is(1));
     assertTag(tag, retrievedTags[0]);
 
-    //Update
+    // Update
     List<Tag> tags = new ArrayList<>();
     tags.add(tempEntity.newTag(app.getOrganizationId(), "tag name 1"));
     tags.add(tempEntity.newTag(app.getOrganizationId(), "tag name 2"));
@@ -64,7 +64,8 @@ public class ApplicationTagResourceTest
     retrievedTags = response.getBody(Tag[].class);
     assertThat(retrievedTags, is(notNullValue()));
     assertThat(retrievedTags.length, is(2));
-    Arrays.sort(retrievedTags, new Comparator<Tag>() {
+    Arrays.sort(retrievedTags, new Comparator<Tag>()
+    {
       @Override
       public int compare(final Tag o1, final Tag o2) {
         return o1.getName().compareTo(o2.getName());
@@ -73,13 +74,13 @@ public class ApplicationTagResourceTest
     assertTag(tags.get(0), retrievedTags[0]);
     assertTag(tags.get(1), retrievedTags[1]);
 
-    //Delete
+    // Delete
     for (Tag currentTag : tags) {
       response = request.subpath("{tagId}").parameter(currentTag.getId()).delete();
       assertResponseStatus(204, response);
     }
 
-    //Get
+    // Get
     response = request.get();
     assertResponseStatus(200, response);
     retrievedTags = response.getBody(Tag[].class);

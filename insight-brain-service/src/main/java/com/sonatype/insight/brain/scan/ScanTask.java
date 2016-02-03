@@ -104,8 +104,12 @@ class ScanTask
   private volatile long touched;
 
   @Inject
-  public ScanTask(Scanner scanner, ScanUploader uploader, ScanPolicyEvaluator scanPolicyEvaluator,
-      PolicyAlertNotifier policyAlertNotifier, InsightWork work, FileCleaner fileCleaner)
+  public ScanTask(Scanner scanner,
+                  ScanUploader uploader,
+                  ScanPolicyEvaluator scanPolicyEvaluator,
+                  PolicyAlertNotifier policyAlertNotifier,
+                  InsightWork work,
+                  FileCleaner fileCleaner)
   {
     this.scanner = scanner;
     this.uploader = uploader;

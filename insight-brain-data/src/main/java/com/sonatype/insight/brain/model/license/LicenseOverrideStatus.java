@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.model.license;
 
-
 /**
  * @since 1.6
  */

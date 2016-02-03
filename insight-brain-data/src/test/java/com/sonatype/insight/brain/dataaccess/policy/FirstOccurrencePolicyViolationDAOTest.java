@@ -102,8 +102,10 @@ public class FirstOccurrencePolicyViolationDAOTest
         firstOccurrence1a.getStageTypeId(), firstOccurrences.get(0));
   }
 
-  private void assertFirstOccurrencePolicyViolation(String id, String applicationId, String stageTypeId,
-      FirstOccurrencePolicyViolation actual)
+  private void assertFirstOccurrencePolicyViolation(String id,
+                                                    String applicationId,
+                                                    String stageTypeId,
+                                                    FirstOccurrencePolicyViolation actual)
   {
     assertThat(actual.getId(), is(id));
     assertThat(actual.getApplicationId(), is(applicationId));

@@ -204,8 +204,10 @@ public class LicenseThreatGroupLicenseDAOTest
     Assert.assertFalse(licenseThreatGroupLicense1.getId().equals(licenseThreatGroupLicense2.getId()));
   }
 
-  private void assertLicenseThreatGroupLicense(String ownerId, String licenseThreatGroupId, String licenseId,
-      LicenseThreatGroupLicense actual)
+  private void assertLicenseThreatGroupLicense(String ownerId,
+                                               String licenseThreatGroupId,
+                                               String licenseId,
+                                               LicenseThreatGroupLicense actual)
   {
     Assert.assertEquals(ownerId, actual.getOwnerId());
     Assert.assertEquals(licenseThreatGroupId, actual.getLicenseThreatGroupId());

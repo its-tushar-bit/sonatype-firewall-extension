@@ -32,8 +32,7 @@ public class BomAuditMigratorTest
 
   @Override
   protected void verifyAuditHistory(final JsonStore auditStore, final boolean isOrg) throws IOException {
-    ArrayNode aaData = (ArrayNode) auditStore.history(null, getAuditFileName()).get(
-        "aaData");
+    ArrayNode aaData = (ArrayNode) auditStore.history(null, getAuditFileName()).get("aaData");
     for (JsonNode auditJson : aaData) {
       BomAudit bomAudit = JsonUtils.asPojo(auditJson, BomAudit.class);
       assertThat(bomAudit.getComponentIdentifier(), is(ANTLR_COMPONENT));

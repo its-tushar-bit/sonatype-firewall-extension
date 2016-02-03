@@ -56,8 +56,11 @@ public class LabelService
   private PermissionService permissionService;
 
   @Inject
-  public LabelService(final PermissionService permissionService, final LabelDAO labelDAO, final OwnerDAO ownerDAO,
-      final PolicyDAO policyDAO, final ApplicationDAO applicationDAO)
+  public LabelService(final PermissionService permissionService,
+                      final LabelDAO labelDAO,
+                      final OwnerDAO ownerDAO,
+                      final PolicyDAO policyDAO,
+                      final ApplicationDAO applicationDAO)
   {
     this.permissionService = permissionService;
     this.labelDAO = labelDAO;
@@ -68,11 +71,12 @@ public class LabelService
 
   /**
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
-   *                hierarchy, default is {@code false}
+   *          hierarchy, default is {@code false}
    */
   @Authorize(permission = Permission.READ)
   public List<Label> getLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, final boolean inherit)
+                               @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                               final boolean inherit)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -85,7 +89,7 @@ public class LabelService
    */
   @Authorize(permission = Permission.READ)
   public ApplicableLabels getApplicableLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId)
+                                              @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
     log.debug("Received request to get all applicable labels for {} id {}", ownerType, ownerId);
 
@@ -111,7 +115,8 @@ public class LabelService
    */
   @Authorize(permission = Permission.WRITE)
   public ApplicableContext getApplicableContexts(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerIdPrivateOrPublic, final String labelId)
+                                                 @AuthzContext(AuthzContext.Key.ID) final String ownerIdPrivateOrPublic,
+                                                 final String labelId)
   {
     Label label = labelDAO.getByIdNotNull(labelId);
 
@@ -154,7 +159,8 @@ public class LabelService
 
   @Authorize(permission = Permission.WRITE)
   public Label addLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, final Label label)
+                        @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                        final Label label)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -168,7 +174,8 @@ public class LabelService
 
   @Authorize(permission = Permission.WRITE)
   public Label updateLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, final Label label)
+                           @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                           final Label label)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -181,7 +188,8 @@ public class LabelService
 
   @Authorize(permission = Permission.WRITE)
   public void deleteLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String labelId)
+                          @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                          final String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 

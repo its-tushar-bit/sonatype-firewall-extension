@@ -21,7 +21,7 @@ public class HasComponentIdTest
   @Test
   public void testJsonFormattingForMaven() {
     HasComponentId hasComponentId = new PolicyViolation();
-    //classifier and extension are excluded from the stored results
+    // classifier and extension are excluded from the stored results
     hasComponentId.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null));
     assertThat(hasComponentId.getComponentIdCoordinatesJson(),
         is("{\"artifactId\":\"a\",\"groupId\":\"g\",\"version\":\"v\"}"));
@@ -37,7 +37,7 @@ public class HasComponentIdTest
   }
 
   @Test
-  public void testNullFormat(){
+  public void testNullFormat() {
     HasComponentId hasComponentId = new PolicyViolation();
     assertThat(hasComponentId.getComponentIdentifier(), is(nullValue()));
   }

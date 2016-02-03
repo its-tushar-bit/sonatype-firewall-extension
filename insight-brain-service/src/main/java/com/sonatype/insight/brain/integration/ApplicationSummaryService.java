@@ -36,7 +36,7 @@ public class ApplicationSummaryService
 
   @Inject
   public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
-      final ApplicationDAO applicationDAO)
+                                   final ApplicationDAO applicationDAO)
   {
     this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;

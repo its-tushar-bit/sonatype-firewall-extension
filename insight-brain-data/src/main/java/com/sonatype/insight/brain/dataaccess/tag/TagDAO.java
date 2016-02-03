@@ -95,7 +95,7 @@ public class TagDAO
         " WHERE entity.nameLowercaseNoWhitespace=?1";
     return getList(sQuery, name);
   }
-  
+
   private void validateColor(Color color) {
     if (color == null) {
       throw new InvalidTagException("The tag color must be assigned.");
@@ -131,16 +131,14 @@ public class TagDAO
     super.update(tx, entity);
   }
 
-  private void validateNameWithinHierarchy(TransactionContext tx, String orgId, String name)
-  {
+  private void validateNameWithinHierarchy(TransactionContext tx, String orgId, String name) {
     Organization org = orgDAO.getById(tx, orgId);
 
     validateNameWithinHierarchyUp(tx, org.getParentOrganizationId(), name);
     validateNameWithinHierarchyDown(tx, org, name);
   }
 
-  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, String name)
-  {
+  private void validateNameWithinHierarchyUp(TransactionContext tx, String parentId, String name) {
     if (parentId == null) {
       return; // no parent, we're done
     }
@@ -152,8 +150,7 @@ public class TagDAO
     validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
   }
 
-  private void validateNameWithinHierarchyDown(TransactionContext tx, Organization org, String name)
-  {
+  private void validateNameWithinHierarchyDown(TransactionContext tx, Organization org, String name) {
     List<Organization> childOrgs = orgDAO.getByParentOrganizationId(tx, org.getId());
     for (Organization childOrg : childOrgs) {
       if (getByOrganizationIdAndName(tx, childOrg.getId(), name) != null) {

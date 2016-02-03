@@ -64,8 +64,8 @@ public class FirewallClientTest
 
     client.setEnabled(true);
 
-    Repository repo = new RepositoryDAO()
-        .getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId, REPOSITORY_PUBLIC_ID);
+    Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
+        REPOSITORY_PUBLIC_ID);
     assertEquals(REPOSITORY_PUBLIC_ID, repo.getPublicId());
     assertTrue(repo.isEnabled());
   }
@@ -90,8 +90,8 @@ public class FirewallClientTest
 
     client.setEnabled(false);
 
-    Repository repo = new RepositoryDAO()
-        .getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId, REPOSITORY_PUBLIC_ID);
+    Repository repo = new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(rmInstanceId,
+        REPOSITORY_PUBLIC_ID);
     assertEquals(REPOSITORY_PUBLIC_ID, repo.getPublicId());
     assertFalse(repo.isEnabled());
   }
@@ -224,18 +224,16 @@ public class FirewallClientTest
     hdsResult.components.add(componentEvaluationData);
     setHdsResponseForURI("/rest/component/details/firewall", hdsResult, 200);
 
-    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
-        new RepositoryComponentEvaluationDataRequest();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest = new RepositoryComponentEvaluationDataRequest();
     repositoryComponentEvaluationDataRequest.format = "maven2";
     repositoryComponentEvaluationDataRequest.pathname = "path";
     repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
-        new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<RepositoryComponentEvaluationDataRequest>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult =
-        client.evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult = client
+        .evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
     assertThat(repositoryComponentEvaluationResult.componentEvalResults, hasSize(1));
     assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine, is(false));
   }
@@ -243,8 +241,7 @@ public class FirewallClientTest
   @Test
   public void testEvaluateComponentWithQuarantine_Error() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
-    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
-        new RepositoryComponentEvaluationDataRequestList();
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<RepositoryComponentEvaluationDataRequest>();
 
     try {

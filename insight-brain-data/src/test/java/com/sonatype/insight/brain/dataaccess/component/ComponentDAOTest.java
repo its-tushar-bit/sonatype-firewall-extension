@@ -53,8 +53,10 @@ public class ComponentDAOTest
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");
   }
 
-  private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId, String source,
-      Float severity, SecurityVulnerabilityStatus status)
+  private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId,
+                                                                                 String source,
+                                                                                 Float severity,
+                                                                                 SecurityVulnerabilityStatus status)
   {
     com.sonatype.insight.brain.model.component.SecurityVulnerability sv = new com.sonatype.insight.brain.model.component.SecurityVulnerability(
         source, refId, severity);
@@ -62,9 +64,8 @@ public class ComponentDAOTest
     return sv;
   }
 
-  private void assertSecurityVulnerabilities(
-      List<com.sonatype.insight.brain.model.component.SecurityVulnerability> actual,
-      com.sonatype.insight.brain.model.component.SecurityVulnerability... expected)
+  private void assertSecurityVulnerabilities(List<com.sonatype.insight.brain.model.component.SecurityVulnerability> actual,
+                                             com.sonatype.insight.brain.model.component.SecurityVulnerability... expected)
   {
     assertEquals(expected.length, actual.size());
     for (int i = 0, n = expected.length; i < n; i++) {
@@ -73,7 +74,7 @@ public class ComponentDAOTest
   }
 
   private void assertSecurityVulnerability(com.sonatype.insight.brain.model.component.SecurityVulnerability expected,
-      com.sonatype.insight.brain.model.component.SecurityVulnerability actual)
+                                           com.sonatype.insight.brain.model.component.SecurityVulnerability actual)
   {
     assertEquals(expected.getRefId(), actual.getRefId());
     assertEquals(expected.getSource(), actual.getSource());
@@ -145,10 +146,10 @@ public class ComponentDAOTest
 
     LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     // Override at org level
-    ComponentIdentifier componentIdentifier = ComponentIdentifier
-      .createMavenCoordinates("gid", "aid", "1.2.3", null, null);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", null,
+        null);
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
-      LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
     component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);
@@ -157,7 +158,7 @@ public class ComponentDAOTest
 
     // Override at app level
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
-      LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
+        LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
     component = componentDAO.getComponent(application, matchedComponent, null);
     assertNotNull(component);

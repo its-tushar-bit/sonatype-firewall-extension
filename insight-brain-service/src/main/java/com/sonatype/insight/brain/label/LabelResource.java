@@ -34,7 +34,6 @@ public class LabelResource
 
   private final LabelService labelService;
 
-
   @Inject
   public LabelResource(final LabelService labelService) {
     this.labelService = labelService;
@@ -42,14 +41,14 @@ public class LabelResource
 
   /**
    * @param inherit boolean if {@code true} the returned list will include labels inherited from organization
-   *                hierarchy, default is {@code false}
+   *          hierarchy, default is {@code false}
    * @since 1.6
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<Label> getLabels(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId,
-      @QueryParam("inherit") @DefaultValue("false") boolean inherit)
+                               @PathParam("ownerId") String ownerId,
+                               @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
     return labelService.getLabels(ownerType, ownerId, inherit);
   }
@@ -64,7 +63,7 @@ public class LabelResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable")
   public ApplicableLabels getApplicableLabels(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId)
+                                              @PathParam("ownerId") String ownerId)
   {
     return labelService.getApplicableLabels(ownerType, ownerId);
   }
@@ -78,7 +77,8 @@ public class LabelResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path("applicable/context/{labelId}")
   public ApplicableContext getApplicableContexts(@PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerIdPrivateOrPublic, @PathParam("labelId") String labelId)
+                                                 @PathParam("ownerId") String ownerIdPrivateOrPublic,
+                                                 @PathParam("labelId") String labelId)
   {
     return labelService.getApplicableContexts(ownerType, ownerIdPrivateOrPublic, labelId);
   }
@@ -100,8 +100,9 @@ public class LabelResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Label updateLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId,
-      Label label)
+  public Label updateLabel(@PathParam("ownerType") OwnerType ownerType,
+                           @PathParam("ownerId") String ownerId,
+                           Label label)
   {
     return labelService.updateLabel(ownerType, ownerId, label);
   }
@@ -111,8 +112,9 @@ public class LabelResource
    */
   @DELETE
   @Path("{labelId}")
-  public void deleteLabel(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId,
-      @PathParam("labelId") String labelId)
+  public void deleteLabel(@PathParam("ownerType") OwnerType ownerType,
+                          @PathParam("ownerId") String ownerId,
+                          @PathParam("labelId") String labelId)
   {
     labelService.deleteLabel(ownerType, ownerId, labelId);
   }

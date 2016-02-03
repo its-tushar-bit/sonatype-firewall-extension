@@ -29,8 +29,10 @@ public class MatchFact
     this(component, policyId, constraintId, -1 /* indicates all conditions */);
   }
 
-  public MatchFact(final Component component, final String policyId, final String constraintId,
-      final int conditionNumber)
+  public MatchFact(final Component component,
+                   final String policyId,
+                   final String constraintId,
+                   final int conditionNumber)
   {
     this.component = component;
     this.policyId = policyId;

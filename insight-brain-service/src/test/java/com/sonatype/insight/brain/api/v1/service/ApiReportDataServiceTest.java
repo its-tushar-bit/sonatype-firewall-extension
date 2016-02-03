@@ -78,12 +78,12 @@ public class ApiReportDataServiceTest
         for (JsonNode node : licenseNode.get("aaData")) {
           String status = JsonUtils.getNullableString(node.get("status"));
           if (status != null && !"Open".equals(status)) {
-            ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
-              node.get("groupId").asText(), node.get("artifactId").asText(), node.get("version").asText());
+            ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(node.get("groupId")
+                .asText(), node.get("artifactId").asText(), node.get("version").asText());
             String licenseName = node.get("overriddenLicenses").get(0).asText();
             String licenseId = multiLicenseDAO.getByNameNotNull(licenseName).getId();
-            tempEntity.newLicenseOverride(app.getId(), componentIdentifier,
-                LicenseOverrideStatus.getByName(status), licenseId, "testing");
+            tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.getByName(status),
+                licenseId, "testing");
           }
         }
       }

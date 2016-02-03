@@ -92,15 +92,15 @@ public class PolicyAlertNotifierTest
     assertThat(violationBeforeAlerting.getNotifications(), empty());
 
     // When notifier causes an error emailing notifications...
-    doThrow(new RuntimeException("postal strike")).when(policyAlertEmailer).sendNotifications(any(Application.class), anyString(),
-        any(Stage.class), anyListOf(PolicyAlert.class));
+    doThrow(new RuntimeException("postal strike")).when(policyAlertEmailer).sendNotifications(any(Application.class),
+        anyString(), any(Stage.class), anyListOf(PolicyAlert.class));
     try {
       notifier.sendNotifications(app, eval, null);
       fail("Expected exception");
     }
     catch (Exception expected) {
       // expected exception, check the content to help in debugging test failures
-      assertThat(expected.getMessage(), equalTo("postal strike") );
+      assertThat(expected.getMessage(), equalTo("postal strike"));
     }
 
     // Then...

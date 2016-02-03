@@ -28,7 +28,7 @@ public class MonitoredStageEditorPage
   }
 
   public static SelenideElement title() {
-    return  $(ROOT + " h2");
+    return $(ROOT + " h2");
   }
 
   public static Radio selectedStage() {

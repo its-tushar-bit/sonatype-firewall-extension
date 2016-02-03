@@ -32,9 +32,8 @@ public class ActiveDirectoryStaticGroupsLoginTest
 
   @Test
   public void testStaticGroupsLogin() {
-    GatlingPropertiesBuilder props =
-        configureGatling("LDAP Login Simulation with Active Directory Static Groups",
-            "com.sonatype.insight.brain.LdapLoginSimulation");
+    GatlingPropertiesBuilder props = configureGatling("LDAP Login Simulation with Active Directory Static Groups",
+        "com.sonatype.insight.brain.LdapLoginSimulation");
     int result = Gatling.fromMap(props.build());
     assertThat("Failures were detected from Gatling", result, equalTo(0));
   }

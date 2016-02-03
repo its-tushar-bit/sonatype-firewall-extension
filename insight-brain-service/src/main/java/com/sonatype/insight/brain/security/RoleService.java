@@ -142,7 +142,8 @@ public class RoleService
   }
 
   private List<PermissionCategoryDTO> convertPermissionsToDTO(final Set<Permission> permissions,
-      final boolean customRole) {
+                                                              final boolean customRole)
+  {
     ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
     for (Permission perm : EnumSet.allOf(Permission.class)) {
       if (customRole && !perm.isAllowedInCustomRoles()) {

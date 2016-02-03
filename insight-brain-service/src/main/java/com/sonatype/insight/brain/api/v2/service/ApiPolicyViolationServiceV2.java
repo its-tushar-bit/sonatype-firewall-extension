@@ -54,9 +54,11 @@ public class ApiPolicyViolationServiceV2
 
   @Inject
   public ApiPolicyViolationServiceV2(final PolicyViolationDAO policyViolationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO, final ApplicationService applicationService,
-      final PolicyViolationAdapter policyViolationAdapter, final ApiApplicationAdapter applicationAdapter,
-      final ApplicationComponentDAO applicationComponentDAO)
+                                     final PolicyEvaluationDAO policyEvaluationDAO,
+                                     final ApplicationService applicationService,
+                                     final PolicyViolationAdapter policyViolationAdapter,
+                                     final ApiApplicationAdapter applicationAdapter,
+                                     final ApplicationComponentDAO applicationComponentDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -95,8 +97,8 @@ public class ApiPolicyViolationServiceV2
   }
 
   private ApiApplicationViolationListDTOV2 buildApplicationDTOs(List<Application> applications,
-      ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
-      ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
+                                                                ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
+                                                                ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
   {
     ApiApplicationViolationListDTOV2 apiViolationListDTO = new ApiApplicationViolationListDTOV2();
     for (Application application : applications) {
@@ -114,8 +116,8 @@ public class ApiPolicyViolationServiceV2
   }
 
   private List<ApiEnhancedPolicyViolationDTOV2> buildPolicyViolationDTOs(Application application,
-      ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
-      ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
+                                                                         ListMultimap<String, PolicyViolation> policyViolationMapByEvaluationId,
+                                                                         ListMultimap<String, PolicyEvaluation> policyEvaluationMapByAppId)
   {
     List<ApiEnhancedPolicyViolationDTOV2> apiPolicyViolationDTOs = new ArrayList<>();
     List<PolicyEvaluation> policyEvaluations = policyEvaluationMapByAppId.get(application.getId());
@@ -134,13 +136,13 @@ public class ApiPolicyViolationServiceV2
               apiPolicyViolationDTO.reportUrl = UserInterfaceLinksResource.getReportUrl(application.getPublicId(),
                   policyEvaluation.getScanId());
               apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
-              ApplicationComponent applicationComponent =
-                  applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
-                      application.getId(), policyEvaluation.getStageTypeId(), policyViolation.getHash());
+              ApplicationComponent applicationComponent = applicationComponentDAO
+                  .getByApplicationIdAndStageTypeIdAndHash(application.getId(), policyEvaluation.getStageTypeId(),
+                      policyViolation.getHash());
               apiPolicyViolationDTO.component = new ApiComponentDTOV2();
               apiPolicyViolationDTO.component.hash = policyViolation.getHash();
-              apiPolicyViolationDTO.component.proprietary =
-                  applicationComponent != null && applicationComponent.isProprietary();
+              apiPolicyViolationDTO.component.proprietary = applicationComponent != null
+                  && applicationComponent.isProprietary();
               apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
                   .fromComponentIdentifier(componentIdentifier);
               apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);

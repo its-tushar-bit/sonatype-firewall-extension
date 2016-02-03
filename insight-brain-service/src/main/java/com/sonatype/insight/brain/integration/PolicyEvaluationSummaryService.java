@@ -37,11 +37,11 @@ public class PolicyEvaluationSummaryService
 
   private final CLMLicenseManager licenseManager;
 
-
   @Inject
   public PolicyEvaluationSummaryService(final ApplicationDAO applicationDAO,
-      final ScanPolicyEvaluator scanPolicyEvaluator, final PolicyEvaluationDAO policyEvaluationDAO,
-      final CLMLicenseManager licenseManager)
+                                        final ScanPolicyEvaluator scanPolicyEvaluator,
+                                        final PolicyEvaluationDAO policyEvaluationDAO,
+                                        final CLMLicenseManager licenseManager)
   {
     this.applicationDAO = applicationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
@@ -50,8 +50,8 @@ public class PolicyEvaluationSummaryService
   }
 
   @Authorize(permission = Permission.READ)
-  public PolicyEvaluationSummary getEvaluationSummaryByApplicationId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId, final Stage stage)
+  public PolicyEvaluationSummary getEvaluationSummaryByApplicationId(@AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
+                                                                     final Stage stage)
   {
     validateLicensed();
 
@@ -63,8 +63,7 @@ public class PolicyEvaluationSummaryService
       return null;
     }
 
-    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-        .createPolicyEvaluationResult(policyEvaluation);
+    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation);
 
     PolicyEvaluationSummary summary = new PolicyEvaluationSummary();
     summary.setAffectedComponentCount(policyEvaluationResult.getAffectedComponentCount());

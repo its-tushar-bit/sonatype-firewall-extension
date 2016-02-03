@@ -70,7 +70,7 @@ public class UserInterfaceLinksResource
   @GET
   @Path(REPORT_PATH)
   public Response linkToReport(@PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("scanId") String scanId)
+                               @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(
@@ -84,7 +84,7 @@ public class UserInterfaceLinksResource
   @GET
   @Path(EMBEDDABLE_REPORT_PATH)
   public Response linkToEmbeddableReport(@PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("scanId") String scanId)
+                                         @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.BROWSE_PATH).path("index.html");
@@ -97,7 +97,7 @@ public class UserInterfaceLinksResource
   @GET
   @Path(PDF_PATH)
   public Response linkToPdf(@PathParam("applicationPublicId") String applicationPublicId,
-      @PathParam("scanId") String scanId)
+                            @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.PRINT_PATH);
@@ -106,8 +106,7 @@ public class UserInterfaceLinksResource
 
   @GET
   @Path(REPO_RESULT_PATH)
-  public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId)
-  {
+  public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId) {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" + REPO_RESULT_PATH);
 

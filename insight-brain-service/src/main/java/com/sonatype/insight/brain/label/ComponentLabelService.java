@@ -34,8 +34,9 @@ public class ComponentLabelService
   private final OwnerDAO ownerDAO;
 
   @Inject
-  public ComponentLabelService(final LabelDAO labelDAO, final ComponentLabelDAO componentLabelDAO,
-      final OwnerDAO ownerDAO)
+  public ComponentLabelService(final LabelDAO labelDAO,
+                               final ComponentLabelDAO componentLabelDAO,
+                               final OwnerDAO ownerDAO)
   {
     this.labelDAO = labelDAO;
     this.componentLabelDAO = componentLabelDAO;
@@ -48,7 +49,8 @@ public class ComponentLabelService
    */
   @Authorize(permission = Permission.READ)
   public AppliedLabels getComponentLabels(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) String ownerId, final String hash)
+                                          @AuthzContext(AuthzContext.Key.ID) String ownerId,
+                                          final String hash)
   {
     ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -56,8 +58,7 @@ public class ComponentLabelService
 
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       String restOwnerId = ownerType == OwnerType.APPLICATION ? owner.getPublicId() : owner.getId();
-      result.add(restOwnerId, owner.getName(), owner.getType(),
-          labelDAO.getByOwnerIdAndHash(owner.getId(), hash));
+      result.add(restOwnerId, owner.getName(), owner.getType(), labelDAO.getByOwnerIdAndHash(owner.getId(), hash));
     }
 
     return result;
@@ -68,7 +69,9 @@ public class ComponentLabelService
    */
   @Authorize(permission = Permission.WRITE)
   public void setComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash, final Label label)
+                                @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                final String hash,
+                                final Label label)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ComponentLabel componentLabel = new ComponentLabel(internalOwnerId, label.getId(), hash);
@@ -80,7 +83,9 @@ public class ComponentLabelService
    */
   @Authorize(permission = Permission.WRITE)
   public void deleteComponentLabel(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) final String ownerId, final String hash, final String labelId)
+                                   @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+                                   final String hash,
+                                   final String labelId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ComponentLabel label = componentLabelDAO.getByOwnerIdAndHashAndLabelId(internalOwnerId, hash, labelId);

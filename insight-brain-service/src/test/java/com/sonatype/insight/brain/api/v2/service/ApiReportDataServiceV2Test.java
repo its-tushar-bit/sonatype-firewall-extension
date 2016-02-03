@@ -65,7 +65,7 @@ public class ApiReportDataServiceV2Test
 
   private void makeReport(String resource) throws Exception {
     File reportFile = makeReportFile();
-    String[] filenames = {"bom.json", "security.json", "licenses.json"};
+    String[] filenames = { "bom.json", "security.json", "licenses.json" };
     for (String filename : filenames) {
       File file = Report.getCacheFile(reportFile, filename);
       FileUtils.copyURLToFile(getClass().getResource("/ApiReportDataServiceTest/" + resource + "/" + filename), file);
@@ -74,12 +74,12 @@ public class ApiReportDataServiceV2Test
         for (JsonNode node : licenseNode.get("aaData")) {
           String status = JsonUtils.getNullableString(node.get("status"));
           if (status != null && !"Open".equals(status)) {
-            ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
-                node.get("groupId").asText(), node.get("artifactId").asText(), node.get("version").asText());
+            ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(node.get("groupId")
+                .asText(), node.get("artifactId").asText(), node.get("version").asText());
             String licenseName = node.get("overriddenLicenses").get(0).asText();
             String licenseId = multiLicenseDAO.getByNameNotNull(licenseName).getId();
-            tempEntity.newLicenseOverride(app.getId(), componentIdentifier,
-                LicenseOverrideStatus.getByName(status), licenseId, "testing");
+            tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.getByName(status),
+                licenseId, "testing");
           }
         }
       }
@@ -102,8 +102,13 @@ public class ApiReportDataServiceV2Test
     }
   }
 
-  private void assertSv(ApiSecurityIssueDTO sv, String status, String source, String ref, Float severity, String url,
-      String threatCategory)
+  private void assertSv(ApiSecurityIssueDTO sv,
+                        String status,
+                        String source,
+                        String ref,
+                        Float severity,
+                        String url,
+                        String threatCategory)
   {
     assertThat(sv.status, is(status));
     assertThat(sv.source, is(source));

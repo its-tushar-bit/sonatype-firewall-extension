@@ -51,8 +51,7 @@ public class PolicyResourceTest
         .put();
     // ensure that we cannot import to an App that does not exist
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText(), is("Could not find an application with public ID " + applicationPublicId
-        + "."));
+    assertThat(response.getBodyText(), is("Could not find an application with public ID " + applicationPublicId + "."));
   }
 
   @Test
@@ -188,8 +187,11 @@ public class PolicyResourceTest
     Assert.assertEquals("The policy name is required.", response.getBodyText());
   }
 
-  private void assertPoliciesByOwner(String ownerId, String ownerName, OwnerType ownerType, int policyCount,
-      PoliciesByOwner actual)
+  private void assertPoliciesByOwner(String ownerId,
+                                     String ownerName,
+                                     OwnerType ownerType,
+                                     int policyCount,
+                                     PoliciesByOwner actual)
   {
     Assert.assertEquals(ownerId, actual.ownerId);
     Assert.assertEquals(ownerName, actual.ownerName);
@@ -405,7 +407,8 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("import/ie")
         .part("file", "policies.json", export).post();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(),
+    assertThat(
+        response.getBodyText(),
         is("The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?"));
   }
 
@@ -425,13 +428,13 @@ public class PolicyResourceTest
   }
 
   @Test
-  public void testImportOfNonJsonPolicyFile() throws Exception{
+  public void testImportOfNonJsonPolicyFile() throws Exception {
     Organization org = tempEntity.newOrganization();
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import")
         .part("file", "garbage.png", "garbage").post();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain " +
-        "it is a properly formatted policy import json file?"));
+    assertThat(response.getBodyText(), is("The file you selected failed to upload correctly, are you certain "
+        + "it is a properly formatted policy import json file?"));
   }
 
   @Test

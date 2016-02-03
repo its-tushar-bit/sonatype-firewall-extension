@@ -125,9 +125,7 @@ public abstract class AbstractApiOrganizationResourceTest
     // Create
     final ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
         newMemberList(newMember(MemberType.USER, User.ADMIN_USERNAME), newMember(MemberType.USER, "testuser"),
-            newMember(MemberType.GROUP, "Alpha")),
-        orgRoles.get(0).getId()
-    );
+            newMember(MemberType.GROUP, "Alpha")), orgRoles.get(0).getId());
 
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
@@ -177,8 +175,7 @@ public abstract class AbstractApiOrganizationResourceTest
 
     // Create
     ApiRoleMemberMappingListDTO roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userB.getUsername())),
-        orgRoles.get(0).getId());
+        newMemberList(newMember(MemberType.USER, userB.getUsername())), orgRoles.get(0).getId());
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
@@ -201,14 +198,12 @@ public abstract class AbstractApiOrganizationResourceTest
     assertApiRoleMemberMappingDTO(returnedRoleMemberMapping, orgRoles.get(0).getId(), userB, MemberType.USER);
 
     // Update
-    roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userA.getUsername())),
+    roleMemberMappingListDTO = newMemberMapping(newMemberList(newMember(MemberType.USER, userA.getUsername())),
         orgRoles.get(0).getId());
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
 
-    roleMemberMappingListDTO = newMemberMapping(
-        newMemberList(newMember(MemberType.USER, userB.getUsername())),
+    roleMemberMappingListDTO = newMemberMapping(newMemberList(newMember(MemberType.USER, userB.getUsername())),
         orgRoles.get(1).getId());
     response = request.body(roleMemberMappingListDTO).put();
     assertResponseStatus(204, response);
@@ -255,7 +250,9 @@ public abstract class AbstractApiOrganizationResourceTest
   }
 
   private void assertApiRoleMemberMappingDTO(final ApiRoleMemberMappingDTO apiRoleMemberMappingDTO,
-      final String roleId, final User user, final MemberType type)
+                                             final String roleId,
+                                             final User user,
+                                             final MemberType type)
   {
     assertThat(apiRoleMemberMappingDTO, notNullValue());
     assertThat(apiRoleMemberMappingDTO.roleId, is(roleId));

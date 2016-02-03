@@ -30,7 +30,7 @@ import org.codehaus.plexus.util.StringUtils;
  */
 @MappedSuperclass
 abstract class AbstractPolicyViolation
-  extends HasComponentId
+    extends HasComponentId
 {
   static final char NOTIFICATIONS_DELIMITER_CHAR = '\n';
 
@@ -80,9 +80,14 @@ abstract class AbstractPolicyViolation
   public AbstractPolicyViolation() {
   }
 
-  protected AbstractPolicyViolation(Date time, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      String constraintFactsJson)
+  protected AbstractPolicyViolation(Date time,
+                                    String policyId,
+                                    String policyName,
+                                    int threatLevel,
+                                    PolicyThreatCategory threatCategory,
+                                    String hash,
+                                    ComponentIdentifier componentIdentifier,
+                                    String constraintFactsJson)
   {
     this.time = time;
     this.policyId = policyId;
@@ -94,9 +99,14 @@ abstract class AbstractPolicyViolation
     setConstraintFactsJson(constraintFactsJson);
   }
 
-  protected AbstractPolicyViolation(Date time, String policyId, String policyName, int threatLevel,
-      PolicyThreatCategory threatCategory, String hash, ComponentIdentifier componentIdentifier,
-      List<ConstraintFact> constraintFacts)
+  protected AbstractPolicyViolation(Date time,
+                                    String policyId,
+                                    String policyName,
+                                    int threatLevel,
+                                    PolicyThreatCategory threatCategory,
+                                    String hash,
+                                    ComponentIdentifier componentIdentifier,
+                                    List<ConstraintFact> constraintFacts)
   {
     this.time = time;
     this.policyId = policyId;

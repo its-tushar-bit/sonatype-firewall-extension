@@ -65,9 +65,15 @@ public class RepositoryComponent
   public RepositoryComponent() {
   }
 
-  public RepositoryComponent(String repositoryId, String pathname, Date time, String hash,
-      ComponentIdentifier componentIdentifier, String matchStateId, String identificationSourceId,
-      Date lastEvaluationTime, boolean canBeQuarantined)
+  public RepositoryComponent(String repositoryId,
+                             String pathname,
+                             Date time,
+                             String hash,
+                             ComponentIdentifier componentIdentifier,
+                             String matchStateId,
+                             String identificationSourceId,
+                             Date lastEvaluationTime,
+                             boolean canBeQuarantined)
   {
     this.repositoryId = repositoryId;
     this.pathname = pathname;

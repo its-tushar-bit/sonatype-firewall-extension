@@ -359,8 +359,11 @@ public class PolicyMonitorTest
     notificationsMonitor3.clear();
   }
 
-  private Policy createPolicy(String ownerId, String policyName, Stage stage, String notifyEmail,
-      String monitorNotifyEmail) throws Exception
+  private Policy createPolicy(String ownerId,
+                              String policyName,
+                              Stage stage,
+                              String notifyEmail,
+                              String monitorNotifyEmail) throws Exception
   {
     Policy policy = new Policy(null /* id */, policyName);
     policy.setOwnerId(ownerId);
@@ -378,7 +381,6 @@ public class PolicyMonitorTest
       monitorNotifyAction.setTarget(monitorNotifyEmail);
       policy.addMonitorNotifyAction(monitorNotifyAction);
     }
-
 
     return tempEntity.newPolicy(policy);
   }

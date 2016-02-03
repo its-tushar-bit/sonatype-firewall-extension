@@ -48,8 +48,9 @@ public class ScanResource
   private final AntiCsrfFilter antiCsrfFilter;
 
   @Inject
-  public ScanResource(ScanService scanService, ErrorResponseGenerator errorResponseGenerator,
-      AntiCsrfFilter antiCsrfFilter)
+  public ScanResource(ScanService scanService,
+                      ErrorResponseGenerator errorResponseGenerator,
+                      AntiCsrfFilter antiCsrfFilter)
   {
     this.scanService = scanService;
     this.errorResponseGenerator = errorResponseGenerator;
@@ -58,15 +59,14 @@ public class ScanResource
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public Response uploadBinary(
-      @PathParam("applicationPublicId") String appPublicId,
-      @FormDataParam("file") InputStream is, 
-      @FormDataParam("file") FormDataContentDisposition fileDetail,
-      @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken, @Context HttpHeaders headers,
-      @QueryParam("stageId") String stageId,
-      @QueryParam("sendNotifications") boolean sendNotifications,
-      @QueryParam("noFormData") boolean noFormData) 
-          throws Exception
+  public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,
+                               @FormDataParam("file") InputStream is,
+                               @FormDataParam("file") FormDataContentDisposition fileDetail,
+                               @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
+                               @Context HttpHeaders headers,
+                               @QueryParam("stageId") String stageId,
+                               @QueryParam("sendNotifications") boolean sendNotifications,
+                               @QueryParam("noFormData") boolean noFormData) throws Exception
   {
     try {
       antiCsrfFilter.validate(csrfToken, headers);
@@ -74,8 +74,9 @@ public class ScanResource
           sendNotifications);
       if (noFormData) {
         return Response.ok(JsonUtils.generate(result), ErrorResponse.CONTENT_TYPE).build();
-      } else {
-        return Response.ok(result, MediaType.APPLICATION_JSON).build();  
+      }
+      else {
+        return Response.ok(result, MediaType.APPLICATION_JSON).build();
       }
     }
     catch (Exception e) {
@@ -90,9 +91,8 @@ public class ScanResource
   @Path("/{ticketId}")
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ScanTicket getTicket(
-      @PathParam("applicationPublicId") String appPublicId,
-      @PathParam("ticketId") String ticketId) throws Exception
+  public ScanTicket getTicket(@PathParam("applicationPublicId") String appPublicId,
+                              @PathParam("ticketId") String ticketId) throws Exception
   {
     return scanService.getTicket(appPublicId, ticketId);
   }

@@ -450,6 +450,45 @@ public class RepositoryReportTest
     RepositoryReportPage.waitForComponentUpdater();
     ViewWaiversDialog.closeButton().should(appear).click();
 
+    // re-open CIP
+    openCIP(0, "Policy");
+
+    // Waive first violation
+    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
+
+    // Waive a policy violation for all components
+    AddWaiverDialog.scopeContainer().shouldBe(visible);
+    AddWaiverDialog.scope(Organization.ROOT_ORGANIZATION_ID).shouldBe(visible);
+    AddWaiverDialog.scope(RepositoryContainer.REPOSITORY_CONTAINER_ID).shouldBe(visible);
+    AddWaiverDialog.scope(repo.getId()).shouldBe(visible).shouldBe(selected);
+
+    AddWaiverDialog.allComponents().shouldBe(visible).shouldNotBe(selected).click();
+    AddWaiverDialog.allComponents().shouldBe(selected);
+    AddWaiverDialog.selectedComponent().shouldBe(visible).shouldNotBe(selected);
+
+    AddWaiverDialog.comment().setValue("TEST COMMENT");
+    AddWaiverDialog.saveButton().shouldBe(visible, enabled).click();
+
+    // Warning about all component waivers should appear
+    RepositoryReportPage.ComponentUpdater.root().shouldBe(visible);
+    RepositoryReportPage.ComponentUpdater.dismiss().click();
+
+    // re-open CIP
+    RepositoryReportPage.Table.cipTab("Policy").click();
+
+    // remove waiver
+    WaiverCip.viewWaivers().should(appear).click();
+    ViewWaiversDialog.rows().shouldHaveSize(1);
+    ViewWaiversDialog.row(0).removeButton().click();
+
+    WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(appear).click();
+    WaiverCip.ConfirmRemoveWaiverDialog.removeButton().should(disappear);
+
+    // Warning about all component waivers should appear
+    RepositoryReportPage.ComponentUpdater.root().shouldBe(visible);
+    RepositoryReportPage.ComponentUpdater.dismiss().click();
+    ViewWaiversDialog.closeButton().should(appear).click();
+
     // close CIP & reset filter
     Filter.summaryViolationsButton().click();
   }

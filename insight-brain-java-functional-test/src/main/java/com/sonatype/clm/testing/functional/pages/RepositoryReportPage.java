@@ -25,7 +25,7 @@ public class RepositoryReportPage
   }
 
   public static void waitForComponentUpdater() {
-    final SelenideElement updaterModal = $("#component-updater");
+    final SelenideElement updaterModal = ComponentUpdater.root();
     final long start = System.currentTimeMillis();
 
     boolean hasAppeared = false;
@@ -45,6 +45,19 @@ public class RepositoryReportPage
       }
     }
     // We probably missed it. Probably...
+  }
+
+  public static class ComponentUpdater
+  {
+    private static final String ROOT_SELECTOR = "#component-updater";
+
+    public static SelenideElement root() {
+      return $(ROOT_SELECTOR);
+    }
+
+    public static SelenideElement dismiss() {
+      return $(ROOT_SELECTOR + " .modal-footer .btn");
+    }
   }
 
   public static class Summary

@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  function ComponentUpdateService($modal, Dialog) {
+  function ComponentUpdateService($modal) {
     return {
       update: function(hash) {
         if (hash) {
@@ -24,19 +24,18 @@
           });
         }
         else {
-          Dialog.open({
-            title: 'Components Changed',
-            body: 'This change may affect too many components, a manual re-evaluation is required.',
-            buttons: [{
-              name: 'Close'
-            }]
+          $modal.open({
+            templateUrl: 'audit.module/component.update.optional.html',
+            controller: 'component.update.optional.controller as vm',
+            backdrop: 'static',
+            keyboard: false
           });
         }
       }
     };
   }
 
-  ComponentUpdateService.$inject = ['$modal', 'Dialog'];
+  ComponentUpdateService.$inject = ['$modal'];
 
   angular.module('audit').service('component.update.service', ComponentUpdateService);
 }());

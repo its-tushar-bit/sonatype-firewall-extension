@@ -371,6 +371,7 @@
     <js>/audit-report/audit.module/owner.context.service.js</js>
     <js>/audit-report/audit.module/repository.violation.table.filter.directive.js</js>
     <js>/audit-report/audit.module/component.update.controller.js</js>
+    <js>/audit-report/audit.module/component.update.optional.controller.js</js>
     <js>/audit-report/audit.module/component.update.service.js</js>
   </group>
 </groups>

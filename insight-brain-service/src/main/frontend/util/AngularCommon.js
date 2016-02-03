@@ -1161,7 +1161,7 @@ var AngularStateUtils = {
         }
         var message = '',
             headers = args.headers ? args.headers() : null;
-        if (args.status === 0 || args.status >= 1000) {
+        if (args.status <= 0 || args.status >= 1000) {
           message = 'Unable to reach CLM server';
         }
         else if (args.data && (!headers || !headers['content-type'] || headers['content-type'].indexOf('text/html') === -1)) {

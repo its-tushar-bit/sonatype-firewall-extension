@@ -21,8 +21,8 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   img {
-    height: 24px;
-    width: 24px;
+    margin-left: 1px;
+    margin-top: 1px;
   }
 
   .dropdown-toggle, .dropdown-contents > li > a {
@@ -38,7 +38,7 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     font-weight: normal;
     line-height: 24px;
     margin-left: 0px;
-    padding: 8px 19px 6px 8px;
+    padding: 7px 19px 5px 2px;
     text-shadow: none;
     white-space: nowrap;
 

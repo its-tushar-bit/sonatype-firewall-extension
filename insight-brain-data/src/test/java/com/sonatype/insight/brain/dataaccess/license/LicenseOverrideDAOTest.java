@@ -312,17 +312,16 @@ public class LicenseOverrideDAOTest
   @Test
   public void testUniqueValidation() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
-    LicenseOverride override = new LicenseOverride(applicationId, MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
-        "Apache-2.0", "My comment");
-    dao.insert(override);
+    LicenseOverride override = tempEntity.newLicenseOverride(applicationId, MAVEN_COORDINATES,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
     try {
       dao.insert(override);
+      fail("Expected exception");
     }
-    catch (BadRequestException bre) {
-      assertThat(bre.getMessage(), is("LicenseOverride already exists for this ownerId and component"));
+    catch (BadRequestException expected) {
+      assertThat(expected.getMessage(), is("LicenseOverride already exists for this ownerId and component"));
     }
-
   }
 
   @Test

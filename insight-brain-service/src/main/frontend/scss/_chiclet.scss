@@ -10,6 +10,7 @@
   border-radius: 4px;
   font-size: 14px;
 }
+
 .policy .threat-chiclet,
 .licenseGroups .threat-chiclet {
   padding: 0; /* These show color only, no count */
@@ -18,7 +19,7 @@
 // threat levels
 @each $threatdef in $threat-levels {
   .threat-chiclet-#{nth($threatdef, 1)} {
-    color : nth($threatdef, 2);
-    background-color : nth($threatdef, 3) !important;
+    color: nth($threatdef, 2);
+    background-color: nth($threatdef, 3) !important;
   }
 }

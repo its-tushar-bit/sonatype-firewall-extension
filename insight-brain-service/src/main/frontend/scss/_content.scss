@@ -51,6 +51,7 @@ body {
   left: 0;
   right: 0;
 }
+
 .main-view {
   @include main-content();
   width: calc(100% - 2px);
@@ -78,7 +79,7 @@ body {
 
   // Hack to prevent rendering issues in Chrome. This will create a new layer with its own backing surface, preventing
   // the background and text from disappearing. Witnessed on Chrome 43.0.2357.130 (64-bit) on a MBP laptop screen.
-  -webkit-transform: translate3d(0,0,0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .body-container {
@@ -86,7 +87,7 @@ body {
   width: calc(78% - 1px);
   height: 100%;
   white-space: normal;
-  background : url("../img/tile_bg.png");
+  background: url("../img/tile_bg.png");
 
   @media only screen and (-webkit-min-device-pixel-ratio: 2),
   only screen and (min-resolution: 2dppx),
@@ -207,6 +208,7 @@ body {
     }
   }
 }
+
 .sub-section {
   margin-bottom: 12px;
 }

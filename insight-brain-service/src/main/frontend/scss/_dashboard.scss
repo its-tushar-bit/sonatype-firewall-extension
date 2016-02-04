@@ -42,7 +42,7 @@
 ```
 */
 .dashboard-viewing-item {
-  padding-top:5px;
+  padding-top: 5px;
 }
 
 .dashboard-viewing-item h2 {
@@ -470,7 +470,7 @@ $policy-summary-table-row-height: 25px;
   }
 
   .delta-column .up:before, .delta-column .down:before {
-    font-size : 1.3em;
+    font-size: 1.3em;
     line-height: $policy-summary-table-row-height;
     vertical-align: top;
   }
@@ -498,45 +498,45 @@ $policy-summary-table-row-height: 25px;
     }
     .line {
       &.base {
-        stroke : #198FFA;
+        stroke: #198FFA;
       }
       stroke-width: 2px;
       fill: none;
     }
     .fill.base {
-      fill : #E8E8E8;
+      fill: #E8E8E8;
     }
   }
 
   .natural {
     .delta-column {
       .up:before {
-        color : $dark-green;
+        color: $dark-green;
       }
       .down:before {
-        color : $dark-red;
+        color: $dark-red;
       }
     }
     .sparkline {
       .fill.up {
-        fill : $light-green;
+        fill: $light-green;
       }
       .line.up {
-        stroke : $dark-green;
+        stroke: $dark-green;
       }
       .fill.down {
-        fill : $light-red;
+        fill: $light-red;
       }
       .line.down {
-        stroke : $dark-red;
+        stroke: $dark-red;
       }
     }
     .chart {
       .bar.up {
-        fill : $dark-green;
+        fill: $dark-green;
       }
       .bar.down {
-        fill : $dark-red;
+        fill: $dark-red;
       }
     }
   }
@@ -544,32 +544,32 @@ $policy-summary-table-row-height: 25px;
   .inverse {
     .delta-column {
       .up:before {
-        color : $dark-red;
+        color: $dark-red;
       }
       .down:before {
-        color : $dark-green;
+        color: $dark-green;
       }
     }
     .sparkline {
       .fill.up {
-        fill : $light-red;
+        fill: $light-red;
       }
       .line.up {
-        stroke : $dark-red;
+        stroke: $dark-red;
       }
       .fill.down {
-        fill : $light-green;
+        fill: $light-green;
       }
       .line.down {
-        stroke : $dark-green;
+        stroke: $dark-green;
       }
     }
     .chart {
       .bar.up {
-        fill : $dark-red;
+        fill: $dark-red;
       }
       .bar.down {
-        fill : $dark-green;
+        fill: $dark-green;
       }
     }
   }
@@ -577,20 +577,20 @@ $policy-summary-table-row-height: 25px;
   .neutral {
     .delta-column {
       .up:before {
-        color : $dark-blue;
+        color: $dark-blue;
       }
     }
     .sparkline {
       .fill.up, .fill.down {
-        fill : $light-blue;
+        fill: $light-blue;
       }
       .line.up, .line.down {
-        stroke : $dark-blue;
+        stroke: $dark-blue;
       }
     }
     .chart {
       .bar {
-        fill : $dark-blue;
+        fill: $dark-blue;
       }
     }
   }
@@ -628,7 +628,7 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 
 // Used on the dashboard to help the table with its initial size
 .dashboard-summary-section {
-  min-height : 125px;
+  min-height: 125px;
 
   & > div:nth-child(2) {
     margin-left: 30px;
@@ -703,13 +703,13 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     padding: 0 5px;
   }
 
-  th>div {
+  th > div {
     position: absolute;
     top: 0;
     line-height: 30px;
   }
 
-  th:first-child>div {
+  th:first-child > div {
     padding-left: 5px;
   }
 }
@@ -769,7 +769,7 @@ Dashboard tables
 */
 
 .dashboard-root-container .nav.nav-tabs {
-  margin:0px;
+  margin: 0px;
 }
 
 .dashboard-root-container .nav.nav-tabs .active {
@@ -785,11 +785,11 @@ Dashboard tables
 }
 
 .dashboard-root-container h4 {
-  font-size : 19.5px
+  font-size: 19.5px
 }
 
 .dashboard-root-container .nav.nav-tabs h4 {
-  margin:0px;
+  margin: 0px;
   padding-top: 8px;
 }
 

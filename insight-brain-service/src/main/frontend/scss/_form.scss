@@ -111,7 +111,7 @@
       }
       .warning {
         margin-top: 10px;
-        margin-bottom:4px;
+        margin-bottom: 4px;
         line-height: 14px;
         color: $fail-fg;
       }
@@ -135,7 +135,7 @@
         margin-top: 20px;
       }
 
-      .field{
+      .field {
         display: inline-block;
         vertical-align: top;
         margin-top: 0;
@@ -173,7 +173,7 @@
   input[type=text], input[type=number], input[type=email], input[type=password] {
     @include size(22px, 240px);
   }
-  
+
   textarea {
     @include size(100%, 240px);
   }
@@ -238,6 +238,7 @@
     width: 421px !important;
   }
 }
+
 /*
   ##Radio inputs
 
@@ -349,6 +350,7 @@
     }
   }
 }
+
 /*
   ##Checkbox inputs
 
@@ -459,6 +461,7 @@
 .clm-primary-buttons {
   padding-right: 5px;
 }
+
 .clm-primary-buttons-wide {
   padding-right: 10px;
 }
@@ -636,13 +639,16 @@
   border-spacing: 0 5px;
   border-collapse: separate;
 }
+
 .inline-table label {
   margin: 0;
 }
+
 .inline-control {
   white-space: nowrap;
   padding-right: 24px;
 }
+
 //
 //.inline-control-group:after {
 //  content: "";
@@ -662,7 +668,7 @@
  </div>
   ```
 */
-.input-popover{
+.input-popover {
   background-color: $errorBackground !important;
   color: $errorText;
   border: 1px solid $errorBorder;
@@ -673,32 +679,41 @@
     z-index: $zindexModal + 1;
   }
 }
-.input-popover .top{
-  margin-top:-2px
+
+.input-popover .top {
+  margin-top: -2px
 }
-.input-popover .right{
-  margin-left:2px
+
+.input-popover .right {
+  margin-left: 2px
 }
-.input-popover .bottom{
-  margin-top:2px
+
+.input-popover .bottom {
+  margin-top: 2px
 }
-.input-popover .left{
-  margin-left:-2px
+
+.input-popover .left {
+  margin-left: -2px
 }
-.input-popover .top .popover-arrow{
-  bottom:-11px;
-  left:80%;
+
+.input-popover .top .popover-arrow {
+  bottom: -11px;
+  left: 80%;
 }
+
 .input-popover .popover-content {
   padding: 0 10px;
 }
+
 .input-popover.top .arrow {
   left: 80%;
   border-top-color: $errorBorder !important;
 }
+
 .input-popover.top .arrow:after {
   border-top-color: $errorBackground !important;
 }
+
 .input-popover.top .arrow:before {
   display: none;
 }
@@ -718,6 +733,7 @@
   background-color: $light-blue;
   text-shadow: none;
 }
+
 /*
   ##Alerts
 
@@ -736,6 +752,7 @@
 .alert {
   word-break: break-word;
 }
+
 /*
   ##Well
 ```
@@ -748,7 +765,7 @@
 */
 .clm-well {
   border: 2px solid $grey-4 !important;
-  margin-bottom:0px !important;
+  margin-bottom: 0px !important;
 }
 
 /*
@@ -815,45 +832,56 @@
 .list-editor-form {
   margin-bottom: 0px;
 }
+
 .list-editor-form input[type=text] {
   width: 440px !important;
 }
+
 .modal .list-editor-form input[type=text] {
   width: 449px !important;
 }
+
 .modal .list-editor-form select {
   width: 467px !important;
 }
+
 .list-editor-well {
   padding: 3px;
   margin-bottom: 20px;
   height: 120px;
   background: #fff;
 }
-.list-editor-well>div {
-  height:100%;
-  overflow-y:auto
+
+.list-editor-well > div {
+  height: 100%;
+  overflow-y: auto
 }
+
 .list-editor-well table {
-  margin:auto;
+  margin: auto;
   width: 100%;
 }
+
 .list-editor-well tr {
   border-bottom: 1px solid #DDDDDD;
 }
+
 .list-editor-well td {
   padding-bottom: 5px;
   vertical-align: top;
 }
+
 .list-editor-well td:nth-child(1) {
   max-width: 370px;
   padding-left: 5px;
 }
-.list-editor-well td:nth-child(1)>div {
+
+.list-editor-well td:nth-child(1) > div {
   max-width: 100%;
-  text-overflow:ellipsis;
-  overflow:hidden
+  text-overflow: ellipsis;
+  overflow: hidden
 }
+
 .list-editor-well td:nth-child(2) {
   text-align: right;
 }
@@ -891,7 +919,7 @@
     display: inline-block;
     padding: 12px;
     position: relative;
-    top : 50%;
+    top: 50%;
     z-index: $form-mask-zindex + 1;
 
     &.success {
@@ -904,9 +932,9 @@
 #access-editor-role {
   margin-top: -177px;
   margin-bottom: 118px;
-  
+
   &.space-for-error {
-    margin-top:-202px;
+    margin-top: -202px;
     margin-bottom: 141px;
   }
 }

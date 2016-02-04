@@ -454,6 +454,7 @@
     vertical-align: top;
   }
 }
+
 /*
   ## Select List Item
 
@@ -565,12 +566,12 @@
     }
   }
 
-/*
- * Note: IE, 9, 10, and 11 have issues triggering the pseudo active class when there are nested child elements inside
- * an anchor tag. There is a workaround for ie 11 and that is to create a :before pseudo element on the anchor tag. This
- * essentially wraps the anchor allowing for the active class to be triggered.
- *
- */
+  /*
+   * Note: IE, 9, 10, and 11 have issues triggering the pseudo active class when there are nested child elements inside
+   * an anchor tag. There is a workaround for ie 11 and that is to create a :before pseudo element on the anchor tag. This
+   * essentially wraps the anchor allowing for the active class to be triggered.
+   *
+   */
   .dropdown-menu {
     padding: 8px 0px 8px 0px;
     background: $off-white;
@@ -635,7 +636,8 @@
         }
       }
 
-      a:before { // ie 11 workaround, see note above
+      a:before {
+        // ie 11 workaround, see note above
         content: "";
         display: block;
         position: absolute;
@@ -659,6 +661,7 @@
     }
   }
 }
+
 /*
   #Color Picker
 
@@ -1383,7 +1386,7 @@ age-in-days-input {
   li:first-child {
     border-top: 1px solid $grey-3;
   }
-  
+
   li {
     height: 40px;
     border-bottom: 1px solid $grey-1;
@@ -1394,7 +1397,7 @@ age-in-days-input {
       margin-right: 8px;
     }
     button {
-      float:right;
+      float: right;
       margin-right: 8px;
     }
   }

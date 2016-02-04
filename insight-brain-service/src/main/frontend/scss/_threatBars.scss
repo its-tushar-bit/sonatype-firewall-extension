@@ -12,6 +12,7 @@ $threat-bars: ("ignore", #FFF, $ignore-color),
     background-color: #{nth($threatdef, 3)} !important;
   }
 }
+
 /*
   Threat level colored backgrounds, intended for usage in a tabular layout
 ```

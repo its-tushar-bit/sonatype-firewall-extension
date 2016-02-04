@@ -2,13 +2,12 @@
   #Main Header
 */
 
-
 $main-header-color: #CCCCCC;
 $main-header-highlight: #2476FC;
 $header-dropdown-panel-border: 1px solid $grey-4;
 $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
 $notification-item-border: 1px solid $grey-1;
-$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
+$dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87, 87, 87, 1);
 
 /*
   First Row
@@ -48,8 +47,8 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
     }
 
     & > div {
-      margin-right:10px;
-      margin-top:-3px;
+      margin-right: 10px;
+      margin-top: -3px;
     }
 
     & > div > div:first-child {
@@ -80,8 +79,8 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
   }
 
   .navbar-version {
-    font-size:10px;
-    line-height:10px;
+    font-size: 10px;
+    line-height: 10px;
     text-shadow: none;
   }
 
@@ -248,7 +247,7 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
 
       & > a {
         color: $off-black;
-        padding: 8px;   // here to avoid dead zones on click targets
+        padding: 8px; // here to avoid dead zones on click targets
         display: block; // for top & bottom padding
       }
 
@@ -335,8 +334,6 @@ $dropdown-menu-box-shadow: -8px 8px 12px 0px rgba(87,87,87,1);
       color: $slate;
     }
   }
-
-
 
   .notification-age {
     float: left;

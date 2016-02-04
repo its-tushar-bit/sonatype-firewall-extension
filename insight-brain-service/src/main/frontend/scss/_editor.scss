@@ -54,7 +54,7 @@
   margin: 0 8px 8px 8px;
   padding-top: 8px;
 
-  &:not(.tile-scroll-container){
+  &:not(.tile-scroll-container) {
     height: calc(100% - 16px);
     overflow-y: auto;
   }
@@ -203,7 +203,7 @@
       margin-bottom: 21px;
     }
   }
-  
+
   #policy-edit-actions {
     table {
       width: 100%;
@@ -215,7 +215,7 @@
       tr {
         border-bottom: 1px solid $grey-1;
         height: 40px;
-        
+
         &.expanded {
           border-bottom: 0px;
         }

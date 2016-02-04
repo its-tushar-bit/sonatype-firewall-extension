@@ -233,15 +233,13 @@
             .success(function(data) {
                 var dataView = vm.grid.dataView,
                     maxId = -1,
-                    idsToRemove = {},
+                    idsToRemove = [],
                     newItemMap = {},
-                    updatedItemMap= {};
+                    updatedItemMap = {};
 
                 processData(data, 0);
 
                 data.forEach(function (item) {
-                  // we use a nested structure here because a composite key could cause problems, e.g. someone
-                  // names a policy 'null' would collide with the synthetic No Violations which uses null
                   (newItemMap[item.pathname] = newItemMap[item.pathname] || {})[item.policyName] = item;
                   updatedItemMap[item.pathname] = updatedItemMap[item.pathname] || {};
                 });
@@ -262,12 +260,12 @@
                     }
                     else {
                       // can't delete during iteration, collect for later
-                      idsToRemove[item.id] = true;
+                      idsToRemove.push(item.id);
                     }
                   }
                 });
 
-                Object.keys(idsToRemove).forEach(function (id) {
+                idsToRemove.forEach(function (id) {
                   dataView.deleteItem(parseInt(id, 10));
                 });
 

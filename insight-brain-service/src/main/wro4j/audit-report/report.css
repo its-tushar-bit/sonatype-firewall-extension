@@ -349,6 +349,21 @@ ul.nav-pills>li.active>a {
   margin-left: 105px;
 }
 
+#informationPanel form label {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+#informationPanel select {
+  height: 28px;
+  line-height: 28px
+}
+
+#informationPanel .btn {
+  line-height: 18px;
+  font-size: 13px;
+}
+
 .infoPanelText {
   width: 99%;
   padding: 7px 0 5px 1%;
@@ -430,33 +445,33 @@ body {
 }
 
 /* icons */
+.slick-cell i {
+  vertical-align: middle;
+  width: 23px;
+}
 i.waived {
   display: inline-block;
   background: url(img/flag_white.png) no-repeat;
-  width: 23px;
   height: 16px;
 }
 i.not-waived {
   display: inline-block;
-  width: 20px;
   height: 16px;
+  width: 20px;
 }
 i.nuget {
   display: inline-block;
   background: url(img/coord-nuget.png) no-repeat;
-  width: 16px;
   height: 16px;
 }
 i.maven {
   display: inline-block;
   background: url(img/coord-maven.png) no-repeat;
-  width: 16px;
   height: 16px;
 }
 i.unknown-format {
   display: inline-block;
   background: url(img/coord-unknown.png) no-repeat;
-  width: 16px;
   height: 16px;
 }
 
@@ -468,4 +483,5 @@ i.unknown-format {
 
 #license-editor .btn-group {
   display: block;
+  white-space: initial;
 }

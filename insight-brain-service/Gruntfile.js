@@ -313,7 +313,6 @@
           tasks: [
             'configure_override:develop',
             'copy:develop',
-            'copy:build',
             'template:build'
           ]
         },
@@ -322,6 +321,7 @@
             '<%= config.frontend %>/**/*.{css,scss}'
           ],
           tasks: [
+            'configure_override:develop',
             'copy:develop',
             'template:build',
             'sass:build',

@@ -1270,8 +1270,9 @@ dropdown-selector {
           color: $slate;
 
           &:hover {
+            filter: none;
             color: $off-black;
-            background-color: inherit; // override bootstrap style
+            background-color: $off-white; // override bootstrap style. 'inherit' causes flicker in IE9
             background-image: inherit;
           }
         }

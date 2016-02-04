@@ -30,7 +30,7 @@ public class RepositoryReportPage
 
     boolean hasAppeared = false;
 
-    while (System.currentTimeMillis() - start > Configuration.timeout) {
+    while (System.currentTimeMillis() - start < Configuration.timeout) {
       boolean visible = updaterModal.isDisplayed();
       if (hasAppeared && !visible) {
         return;

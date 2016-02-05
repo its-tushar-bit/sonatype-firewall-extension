@@ -13,7 +13,7 @@
   }
 
   var module = angular.module('LdapConfiguration',
-  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'Configuration'],
+  ['CLMLocation', 'ResourceModule', 'ui.router', 'AngularCommon', 'CommonServices', 'ManagementModule'],
   ['$stateProvider', function($stateProvider) {
     $stateProvider.state('ldap', {
       url: '/ldap',

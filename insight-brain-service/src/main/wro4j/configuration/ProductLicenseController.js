@@ -3,12 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, $ */
+/* global angular, $, clmBuildTimestamp */
 (function() {
   'use strict';
 
-  var module = angular.module('ProductLicense',
-      ['AngularCommon', 'ngUpload', 'ngCookies', 'CLMLocation']);
+  var module = angular.module('ProductLicense', ['ui.router', 'AngularCommon', 'ngUpload', 'ngCookies', 'CLMLocation'],
+    ['$stateProvider', function($stateProvider) {
+      $stateProvider.state('productlicense', {
+        url: '/productlicense',
+        controller: 'ProductLicenseController',
+        templateUrl: '../configuration-assets/components/license.html?' + clmBuildTimestamp,
+        data : {
+          title : 'Product License'
+        },
+        resolve : {
+          'isAuthorized' : ['PermissionService', function (PermissionService) {
+            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          }]
+        }
+      });
+    }
+    ]);
 
   module.controller('ProductLicenseController', [
     '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', 'Messages', 'ErrorDialog', 'isAuthorized',

@@ -1,32 +1,34 @@
-<div class='mid-content' authorization-wrapper="isAuthorized">
+<div class='mid-content' authorization-wrapper="vm.isAuthorized">
   <h1 class='page-title'>
     <div class='container proprietary'>Proprietary Components</div>
   </h1>
 
   <div class='container'>
     <div id="proprietary-component-form" class="fixed-width-small-form">
-      <div ng-show='loadError'>An Error Occurred</div>
-      <div ng-show='!loadError && !proprietary'><i class='icon-time'></i> Loading</div>
-      <div ng-show='!loadError && proprietary' class="well clm-well">
+      <div ng-show='vm.loadError'>An Error Occurred</div>
+      <div ng-show='!vm.loadError && !vm.proprietary'><i class='icon-time'></i> Loading</div>
+      <div ng-show='!vm.loadError && vm.proprietary' class="well clm-well">
         <p>These entries are provided to CLM scanners and are used to help identify internal components.
           If a specified package or file is contained within a component, it will be considered proprietary.</p>
-        <div proprietary-config-editor prefixes="packages" regexes="regexes"></div>
-        <div clm-alerts="error" id="proprietaryError"></div>
-        <span ng-show='!saving && proprietary' id='proprietaryButtons'>
-          <button class="btn btn-link btn-cancel" ng-click="reset();" ng-disabled="!isDirty() && !error">Reset</button>
-          <button class="btn btn-primary pull-right" ng-disabled="!isDirty()" ng-click="save()">Save</button>
+        <div proprietary-configuration-editor prefixes="vm.packages" regexes="vm.regexes"></div>
+        <div clm-alerts="vm.error" id="proprietaryError"></div>
+        <span ng-show='!vm.saving && vm.proprietary' id='proprietaryButtons'>
+          <button class="btn btn-link btn-cancel" ng-click="vm.reset();" ng-disabled="!vm.isDirty() && !vm.error">
+            Reset
+          </button>
+          <button class="btn btn-primary pull-right" ng-disabled="!vm.isDirty()" ng-click="vm.save()">Save</button>
         </span>
-        <span ng-show='saving' style='height:30px'><i class='icon-time'></i> Saving</span>
+        <span ng-show='vm.saving' style='height:30px'><i class='icon-time'></i> Saving</span>
       </div>
     </div>
   </div>
   <script type="text/ng-template" id="config-editor">
-    <form ng-submit='add($event, component.prefix, prefixes)' class="clm-form list-editor-form"
-          name="prefixForm" ng-if="!isRegex">
+    <form ng-submit='vm.add($event, vm.component.prefix, vm.prefixes)' class="clm-form list-editor-form"
+          name="prefixForm" ng-if="!vm.isRegex">
       <div clm-control-group for="package-prefix" label="Add Prefix for Proprietary Components">
         <div class='input-append controls'>
-          <input clm-input unique-validator="prefixes" input-validator="validatePackage"
-                 type='text' id="package-prefix" name='packagePrefix' ng-model='component.prefix' max='50'
+          <input clm-input unique-validator="vm.prefixes" input-validator="vm.validatePackage"
+                 type='text' id="package-prefix" name='packagePrefix' ng-model='vm.component.prefix' max='50'
                  required entersubmit placeholder="ex. com.sonatype"
                  messages="{
                        invalidPrefix: 'Invalid package prefix:<br />e.g. com.sonatype',
@@ -39,12 +41,12 @@
         </div>
       </div>
     </form>
-    <form ng-submit='add($event, component.regex, regexes)' class="clm-form list-editor-form"
-          name="regexForm" ng-if="isRegex">
+    <form ng-submit='vm.add($event, vm.component.regex, vm.regexes)' class="clm-form list-editor-form"
+          name="regexForm" ng-if="vm.isRegex">
       <div clm-control-group for="regex" label="Add Regex for Proprietary Components">
         <div class='input-append controls'>
-          <input clm-input unique-validator="regexes"
-                 type='text' id="regex" name='regex' ng-model='component.regex' max='50'
+          <input clm-input unique-validator="vm.regexes"
+                 type='text' id="regex" name='regex' ng-model='vm.component.regex' max='50'
                  required entersubmit placeholder="ex. com.sonatype.*"
                  messages="{
                        unique: 'Component regex already specified'
@@ -57,29 +59,31 @@
     </form>
     <div class='checkbox'>
       <label>
-        <input type='checkbox' id='isRegex' name='isRegex' ng-model='isRegex'> Regular expression
+        <input type='checkbox' id='isRegex' name='isRegex' ng-model='vm.isRegex'> Regular expression
       </label>
     </div>
     <div class='well well-small list-editor-well'>
       <div>
         <table>
-          <tr ng-repeat='prefix in prefixes'>
+          <tr ng-repeat='prefix in vm.prefixes'>
             <td>
               <div title='{{prefix}}'>{{prefix}}</div>
             </td>
             <td>
-              <button class='btn btn-mini' ng-click='remove($index, prefixes)' title='Remove Prefix for Proprietary Components'>
+              <button class='btn btn-mini' ng-click='vm.remove($index, vm.prefixes)'
+                      title='Remove Prefix for Proprietary Components'>
                 <i class='icon-minus-sign'></i>
               </button>
             </td>
           </tr>
-          <tr ng-repeat='regex in regexes'>
+          <tr ng-repeat='regex in vm.regexes'>
             <td>
               <div title='{{regex}}'>{{regex}}</div>
             </td>
             <td>
               <span><em>(regex)</em></span>
-              <button class='btn btn-mini' ng-click='remove($index, regexes)' title='Remove Regex for Proprietary Components'>
+              <button class='btn btn-mini' ng-click='vm.remove($index, vm.regexes)'
+                      title='Remove Regex for Proprietary Components'>
                 <i class='icon-minus-sign'></i>
               </button>
             </td>

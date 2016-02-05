@@ -50,7 +50,10 @@
   </group>
 
   <group name='configuration'>
-    <js>/configuration/ConfigurationController.js</js>
+    <js>/configuration/proprietary.configuration.module.js</js>
+    <js>/configuration/proprietary.configuration.controller.js</js>
+    <js>/configuration/proprietary.configuration.editor.controller.js</js>
+    <js>/configuration/proprietary.configuration.editor.directive.js</js>
     <js>/configuration/LdapConfigurationController.js</js>
     <js>/configuration/ProductLicenseController.js</js>
     <js>/security/UserModule.js</js>

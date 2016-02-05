@@ -22,7 +22,7 @@ class ProprietaryComponentsPage
 
   static content = {
     pageTitle { $('h1.page-title', text: 'Proprietary Components') }
-    input { $('input[ng-model^="component"]') }
+    input { $('input[ng-model^="vm.component"]') }
     regex { $('#isRegex') }
     add { $('form button') }
     rows(required: false) { moduleList ProprietaryTableRow, $('tr') }

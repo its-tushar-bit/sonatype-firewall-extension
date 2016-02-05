@@ -8,7 +8,7 @@
   'use strict';
   angular.module('managementApp',
       [
-        'MainModule', 'OrganizationModule', 'ApplicationModule', 'Configuration', 'UserModule', 'RoleModule',
+        'MainModule', 'OrganizationModule', 'ApplicationModule', 'proprietary.configuration.module', 'UserModule', 'RoleModule',
         'LdapConfiguration', 'repository.manager.module'
       ]);
 }());

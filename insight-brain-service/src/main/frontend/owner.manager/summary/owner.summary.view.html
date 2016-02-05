@@ -1,36 +1,38 @@
 <div class="tile-container">
-  <div class="tile summary-tile" id='owner-summary' ng-controller="OwnerSummaryController as vm">
-    <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
-      <div class="clm-dropdown pull-right" id="action-dropdown">
-        <button class="btn btn-default dropdown-toggle btn-tertiary" type="button" id="action-menu" data-toggle="dropdown">
-          Actions
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-left">
-          <li ng-if="vm.isApp"><a id="select-contact-link" ng-click='vm.selectContact(vm.owner)'><i class="fa fa-user fa-fw"/><span>Select Contact</span></a></li>
-          <li><a ng-click='vm.edit()' id="app-org-link"><i class="fa fa-pencil fa-fw"/><span>Edit {{:: vm.getShortTypeName()}} Name / Icon</span></a></li>
-          <li><a id="import-policies-link" ng-click='vm.importPolicy()'><i class="fa fa-download fa-fw"/><span>Import Policies</span></a></li>
-          <li><a id="delete-owner-link" ng-click='vm.deleteOwner()'><i class="fa fa-trash fa-fw"/><span>Delete {{vm.owner.name}}</span></a></li>
-          <li ng-if="vm.isApp" class="divider"></li>
-          <li ng-if="vm.isApp"><a id="eval-binary-link" ng-click="vm.evaluateApp()"><i class="fa fa-upload fa-fw"/><span>Evaluate Binary</span></a></li>
-          <li ng-repeat="stage in ::vm.stages">
-            <a id="app-report-link" class="link"
-               ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
-               ng-click="vm.openReport(stage)">
-              <i class="fa fa-external-link fa-fw"/><span>View {{::stage.shortName | lowercase}} report</span></a>
-          </li>
+  <div class="summary-tile-container">
+    <div class="tile summary-tile" id='owner-summary' ng-controller="OwnerSummaryController as vm">
+      <div load-wrapper="vm.error" loading="!vm.owner" reload="vm.doLoad()">
+        <div class="clm-dropdown pull-right" id="action-dropdown">
+          <button class="btn btn-default dropdown-toggle btn-tertiary" type="button" id="action-menu" data-toggle="dropdown">
+            Actions
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-left">
+            <li ng-if="vm.isApp"><a id="select-contact-link" ng-click='vm.selectContact(vm.owner)'><i class="fa fa-user fa-fw"/><span>Select Contact</span></a></li>
+            <li><a ng-click='vm.edit()' id="app-org-link"><i class="fa fa-pencil fa-fw"/><span>Edit {{:: vm.getShortTypeName()}} Name / Icon</span></a></li>
+            <li><a id="import-policies-link" ng-click='vm.importPolicy()'><i class="fa fa-download fa-fw"/><span>Import Policies</span></a></li>
+            <li><a id="delete-owner-link" ng-click='vm.deleteOwner()'><i class="fa fa-trash fa-fw"/><span>Delete {{vm.owner.name}}</span></a></li>
+            <li ng-if="vm.isApp" class="divider"></li>
+            <li ng-if="vm.isApp"><a id="eval-binary-link" ng-click="vm.evaluateApp()"><i class="fa fa-upload fa-fw"/><span>Evaluate Binary</span></a></li>
+            <li ng-repeat="stage in ::vm.stages">
+              <a id="app-report-link" class="link"
+                 ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
+                 ng-click="vm.openReport(stage)">
+                <i class="fa fa-external-link fa-fw"/><span>View {{::stage.shortName | lowercase}} report</span></a>
+            </li>
+          </ul>
+        </div>
+        <h1><span owner-image="vm.owner"></span> {{vm.owner.name}}</h1>
+        <div class="sub-header" ng-if="vm.owner.contact"><i class="fa fa-user size-12px"></i>{{vm.owner.contact.displayName}}</div>
+
+        <ul class="nav nav-pills">
+          <li class="active"><a data-toggle="pill" id="owner-app-categories-button" data-target="#owner-pill-app-categories" ng-href="">Application Categories</a></li>
+          <li><a data-toggle="pill" id="owner-policy-button" data-target="#owner-pill-policy" ng-href="">Policy</a></li>
+          <li><a data-toggle="pill" id="owner-comp-labels-button" data-target="#owner-pill-comp-labels" ng-href="">Component Labels</a></li>
+          <li><a data-toggle="pill" id="owner-ltgs-button" data-target="#owner-pill-ltgs" ng-href="">License Threat Groups</a></li>
+          <li><a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">Access</a></li>
         </ul>
       </div>
-      <h1><span owner-image="vm.owner"></span> {{vm.owner.name}}</h1>
-      <div class="sub-header" ng-if="vm.owner.contact"><i class="fa fa-user size-12px"></i>{{vm.owner.contact.displayName}}</div>
-
-      <ul class="nav nav-pills">
-        <li class="active"><a data-toggle="pill" id="owner-app-categories-button" data-target="#owner-pill-app-categories" ng-href="">Application Categories</a></li>
-        <li><a data-toggle="pill" id="owner-policy-button" data-target="#owner-pill-policy" ng-href="">Policy</a></li>
-        <li><a data-toggle="pill" id="owner-comp-labels-button" data-target="#owner-pill-comp-labels" ng-href="">Component Labels</a></li>
-        <li><a data-toggle="pill" id="owner-ltgs-button" data-target="#owner-pill-ltgs" ng-href="">License Threat Groups</a></li>
-        <li><a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">Access</a></li>
-      </ul>
     </div>
   </div>
 

@@ -11,7 +11,10 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class ActionItemList
 {
@@ -22,75 +25,83 @@ public class ActionItemList
   }
 
   public ElementsCollection elements() {
-    return $$(rootSelector + " tr");
+    return $$(rootSelector);
   }
 
   public ActionItem proxy() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(0));
+    return new ActionItem(selector(rootSelector, nthChild(1)));
   }
 
   public ActionItem develop() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(1));
+    return new ActionItem(selector(rootSelector, nthChild(2)));
   }
 
   public ActionItem build() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(2));
+    return new ActionItem(selector(rootSelector, nthChild(3)));
   }
 
   public ActionItem stageRelease() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(3));
+    return new ActionItem(selector(rootSelector, nthChild(4)));
   }
 
   public ActionItem release() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(4));
+    return new ActionItem(selector(rootSelector, nthChild(5)));
   }
 
   public ActionItem operate() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(5));
+    return new ActionItem(selector(rootSelector, nthChild(6)));
   }
 
   public ActionItem continuousMonitoring() {
-    return new ActionItem($$(rootSelector + " tr.action-stage").get(6));
+    return new ActionItem(selector(rootSelector, nthChild(7)));
   }
 
   public static class ActionItem
   {
-    private SelenideElement root;
+    private String rootSelector;
 
-    public ActionItem(SelenideElement root) {
-      this.root = root;
+    public ActionItem(String rootSelector) {
+      this.rootSelector = rootSelector;
+    }
+
+    private String actionItemElementSelector(int childNum) {
+      return selector(rootSelector, "tr", nthChild(1), "td", nthChild(childNum));
     }
 
     public SelenideElement name() {
-      return root.$("td:nth-child(1)");
+      return $(actionItemElementSelector(1));
     }
 
     public SelenideElement twisty() {
-      return root.$("td:nth-child(1) .twisty");
-    }
-
-    public Radio warnRadio() {
-      return new Radio(root.$("td:nth-child(3) .radio"));
-    }
-
-    public Radio failRadio() {
-      return new Radio(root.$("td:nth-child(4) .radio"));
+      return $(selector(actionItemElementSelector(1), ".twisty"));
     }
 
     public Radio noActionRadio() {
-      return new Radio(root.$("td:nth-child(2) .radio"));
+      return new Radio($(selector(actionItemElementSelector(2), ".radio")));
+    }
+
+    public Radio warnRadio() {
+      return new Radio($(selector(actionItemElementSelector(3), ".radio")));
+    }
+
+    public Radio failRadio() {
+      return new Radio($(selector(actionItemElementSelector(4), ".radio")));
     }
 
     public SelenideElement notificationCount() {
-      return root.$("td:nth-child(5) .notification-count");
+      return $(selector(actionItemElementSelector(5), ".notification-count"));
     }
 
     public static final Condition EXPANDED = cssClass("expand");
 
     public static final Condition COLLAPSED = cssClass("collapse");
 
+    public AddNotificationItem addNotification() {
+      return new AddNotificationItem(selector(rootSelector, "tr", nthChild(2), ".add-notification"));
+    }
+
     public ElementsCollection notifications() {
-      return root.parent().$$("tr.expanded + tr div.notification-list li");
+      return $$(selector(rootSelector, "tr", nthChild(2), ".notification-list li"));
     }
 
     public NotificationItem getNotificationByName(String name) {
@@ -110,6 +121,32 @@ public class ActionItemList
 
     public SelenideElement deleteButton() {
       return root.$("button");
+    }
+  }
+
+  public static class AddNotificationItem
+  {
+
+    private final String rootSelector;
+
+    public AddNotificationItem(final String rootSelector) {
+      this.rootSelector = rootSelector;
+    }
+
+    public DropdownSelector notificationType() {
+      return new DropdownSelector($(selector(rootSelector, ".editor-notification-type")));
+    }
+
+    public SelenideElement email() {
+      return $(selector(rootSelector, ".editor-notification-email"));
+    }
+
+    public DropdownSelector role() {
+      return new DropdownSelector($(selector(rootSelector, ".editor-notification-role")));
+    }
+
+    public SelenideElement addButton() {
+      return $(selector(rootSelector, "button"));
     }
   }
 }

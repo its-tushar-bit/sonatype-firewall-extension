@@ -8,24 +8,25 @@
 
   function PolicyEditorActionsAndNotificationsController($q, $http, CLMAppLocations, StageTypeStore)
   {
-    var vm = this;
+    var vm = this,
+        monitoringStage = 'monitoring';
 
     vm.doLoad = doLoad;
 
     vm.hasNotifications = hasNotifications;
-    vm.removeStageNotification = removeStageNotification;
-    vm.removeMonitoringNotification = removeMonitoringNotification;
+    vm.removeNotification = removeNotification;
+    vm.addNotification = addNotification;
     vm.getNotificationTargetName = getNotificationTargetName;
     vm.actionStages = undefined;
     vm.conditionallyAddOrRemoveAction = conditionallyAddOrRemoveAction;
     vm.roles = undefined;
     vm.getEmailList = getEmailList;
     vm.getRolesList = getRolesList;
-    vm.getMonitoringEmailList = getMonitoringEmailList;
-    vm.getMonitoringRolesList = getMonitoringRolesList;
-    vm.getStageNotificationCount = getStageNotificationCount;
-    vm.getMonitoringNotificationCount = getMonitoringNotificationCount;
+    vm.getNotificationCount = getNotificationCount;
     vm.getActionItem = getActionItem;
+    vm.notificationTypes = ['Email', 'Role'];
+    vm.notificationTypeMap = undefined;
+    vm.notificationValueMap = undefined;
     vm.loadError = undefined;
 
     vm.doLoad();
@@ -36,8 +37,14 @@
       ];
 
       $q.all(promises).then(function(results) {
-        vm.actionStages = results[0];
+        vm.actionStages = angular.copy(results[0]);
         vm.roles = results[1].data.membersByRole;
+        vm.notificationValueMap = {};
+        vm.notificationTypeMap = {};
+        vm.actionStages.push({stageName: 'Continuous Monitoring', stageTypeId: monitoringStage});
+        vm.actionStages.forEach(function(action) {
+          vm.notificationTypeMap[action.stageTypeId] = vm.notificationTypes[0];
+        });
       }, function(error) {
         vm.loadError = error;
       });
@@ -46,21 +53,53 @@
     }
 
     function hasNotifications(stageId) {
-      return vm.actions[stageId] && vm.actions[stageId].some(function(action) {
-            return action.actionTypeId === 'notify';
+      if (stageId === monitoringStage) {
+        return vm.monitorNotifyActions;
+      }
+      else {
+        return vm.actions[stageId] && vm.actions[stageId].some(function(action) {
+              return action.actionTypeId === 'notify';
+            });
+      }
+    }
+
+    function removeNotification(stageId, removalTarget) {
+      if (stageId === monitoringStage) {
+        vm.monitorNotifyActions = vm.monitorNotifyActions.filter(function(action) {
+          return action.target !== removalTarget;
+        });
+      }
+      else {
+        vm.actions[stageId] = vm.actions[stageId].filter(function(action) {
+          return action.target !== removalTarget || action.actionTypeId !== 'notify';
+        });
+      }
+    }
+
+    function addNotification(stageId) {
+      var target = vm.notificationValueMap[stageId];
+      if (!targetExists(stageId, target)) {
+        if (stageId === monitoringStage) {
+          vm.monitorNotifyActions = vm.monitorNotifyActions || [];
+        }
+        else {
+          vm.actions[stageId] = vm.actions[stageId] || [];
+        }
+        if (target.roleId) {
+          (stageId === monitoringStage ? vm.monitorNotifyActions : vm.actions[stageId]).push({
+            actionTypeId: 'notify',
+            target: target.roleId,
+            targetType: 'role'
           });
-    }
-
-    function removeStageNotification(stageId, removalTarget) {
-      vm.actions[stageId] = vm.actions[stageId].filter(function(action) {
-        return action.target !== removalTarget || action.actionTypeId !== 'notify';
-      });
-    }
-
-    function removeMonitoringNotification(removalTarget) {
-      vm.monitorNotifyActions = vm.monitorNotifyActions.filter(function(action) {
-        return action.target !== removalTarget;
-      });
+        }
+        else {
+          (stageId === monitoringStage ? vm.monitorNotifyActions : vm.actions[stageId]).push({
+            actionTypeId: 'notify',
+            target: target
+          });
+        }
+      }
+      vm.notificationValueMap[stageId] = undefined;
     }
 
     function getNotificationTargetName(action) {
@@ -128,29 +167,19 @@
       }
       return null;
     }
-    
-    function getStageNotificationCount(actionStage) {
-      return getEmailList(actionStage).length + getRolesList(actionStage).length; 
-    }
-    
-    function getMonitoringNotificationCount() {
-      return getMonitoringEmailList().length + getMonitoringRolesList().length;
+
+    function getNotificationCount(actionStage) {
+      return getEmailList(actionStage).length + getRolesList(actionStage).length;
     }
 
     function getEmailList(stage) {
-      return extractAddresses(vm.actions[stage.stageTypeId] || []);
+      return extractAddresses((stage.stageTypeId ===
+          monitoringStage ? vm.monitorNotifyActions : vm.actions[stage.stageTypeId] ) || []);
     }
 
     function getRolesList(stage) {
-      return extractRoles(vm.actions[stage.stageTypeId] || []);
-    }
-
-    function getMonitoringEmailList() {
-      return extractAddresses(vm.monitorNotifyActions || []);
-    }
-
-    function getMonitoringRolesList() {
-      return extractRoles(vm.monitorNotifyActions || []);
+      return extractRoles((stage.stageTypeId ===
+          monitoringStage ? vm.monitorNotifyActions : vm.actions[stage.stageTypeId] ) || []);
     }
 
     function extractAddresses(actions) {
@@ -180,6 +209,14 @@
         }
       }
       return roles;
+    }
+
+    function targetExists(stageId, target) {
+      target = target.roleId || target;
+      var stageActions = stageId === monitoringStage ? vm.monitorNotifyActions : vm.actions[stageId];
+      return stageActions && stageActions.some(function(action) {
+            return action.actionTypeId === 'notify' && action.target === target;
+          });
     }
   }
 

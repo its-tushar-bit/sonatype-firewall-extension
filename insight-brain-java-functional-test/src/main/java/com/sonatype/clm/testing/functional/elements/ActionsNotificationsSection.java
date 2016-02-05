@@ -17,6 +17,6 @@ public class ActionsNotificationsSection
   }
 
   public ActionItemList actionItemList() {
-    return new ActionItemList(ROOT_SELECTOR + " table");
+    return new ActionItemList(ROOT_SELECTOR + " table tbody");
   }
 }

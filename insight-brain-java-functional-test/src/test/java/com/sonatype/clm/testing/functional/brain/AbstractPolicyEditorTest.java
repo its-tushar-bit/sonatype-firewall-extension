@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionItemList;
 import com.sonatype.clm.testing.functional.elements.ActionItemList.ActionItem;
+import com.sonatype.clm.testing.functional.elements.ActionItemList.AddNotificationItem;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
@@ -112,6 +113,18 @@ public abstract class AbstractPolicyEditorTest
     assertThat(condition.getConditionTypeId(), is("AgeInDays"));
     assertThat(condition.getOperator(), is("older than"));
     assertThat(condition.getValue(), is(Integer.toString(3 * 365)));
+
+    List<Action> buildActions = newPolicy.getActions(Stage.ID_BUILD);
+    assertThat(buildActions, hasSize(1));
+    Action testEmail = buildActions.get(0);
+    assertThat(testEmail.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(testEmail.getTarget(), is("test@sonatype.com"));
+
+    List<NotifyAction> monitorActions = newPolicy.getMonitorNotifyActions();
+    assertThat(monitorActions, hasSize(1));
+    Action devRole = monitorActions.get(0);
+    assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(devRole.getTargetType(), is("role"));
   }
 
   @Test
@@ -121,10 +134,10 @@ public abstract class AbstractPolicyEditorTest
     constraint1.addCondition(new Condition("AgeInDays", "older than", "730"));
     Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
         LogicalOperator.AND);
-    constraint2.addCondition(new Condition("License Threat Group", "is", tempEntity.newLicenseThreatGroup(
-        currentOwner.getId(), "my LTG", 5).getId()));
-    constraint2
-        .addCondition(new Condition("Label", "is", tempEntity.newLabel(currentOwner.getId(), "my Label").getId()));
+    constraint2.addCondition(new Condition("License Threat Group", "is",
+        tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG", 5).getId()));
+    constraint2.addCondition(
+        new Condition("Label", "is", tempEntity.newLabel(currentOwner.getId(), "my Label").getId()));
     Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
         LogicalOperator.OR);
     constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
@@ -197,9 +210,9 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary1.name().shouldHave(text(constraints.get(0).getName()));
 
     List<Condition> conditions = constraints.get(0).getConditions();
-    constraintSummary1.subheader().shouldHave(
-        ConstraintSection.ConstraintSummary.subheaderText(conditions.size(), constraints.get(0).getOperator()
-            .toString()));
+    constraintSummary1.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
     constraintSummary1.conditions().shouldHaveSize(conditions.size());
     constraintSummary1.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
@@ -210,9 +223,9 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
 
     conditions = constraints.get(1).getConditions();
-    constraintSummary2.subheader().shouldHave(
-        ConstraintSection.ConstraintSummary.subheaderText(conditions.size(), constraints.get(1).getOperator()
-            .toString()));
+    constraintSummary2.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
     constraintSummary2.conditions().shouldHaveSize(conditions.size());
     constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
@@ -224,9 +237,9 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary3.name().shouldHave(text(constraints.get(2).getName()));
 
     conditions = constraints.get(2).getConditions();
-    constraintSummary3.subheader().shouldHave(
-        ConstraintSection.ConstraintSummary.subheaderText(conditions.size(), constraints.get(2).getOperator()
-            .toString()));
+    constraintSummary3.subheader()
+        .shouldHave(ConstraintSection.ConstraintSummary
+            .subheaderText(conditions.size(), constraints.get(2).getOperator().toString()));
     constraintSummary3.conditions().shouldHaveSize(conditions.size());
     constraintSummary3.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary3.editConstraintButton().shouldBe(visible, enabled);
@@ -355,36 +368,64 @@ public abstract class AbstractPolicyEditorTest
 
   private void testEditPolicy_actionsNotificationsSection(Policy policy) {
     testEditPolicy_actionsNotificationsSection_stageActions(policy);
-    testEditPolicy_actionsNotificationsSection_notificationList(policy);
+    testEditPolicy_actionsNotificationsSection_notifications(policy);
     testEditPolicy_actionsNotificationsSection_monitoring(policy);
   }
 
-  private void testEditPolicy_actionsNotificationsSection_notificationList(Policy policy) {
+  private void testEditPolicy_actionsNotificationsSection_notifications(Policy policy) {
     PolicyEditorPage.actionsAndNotificationsPill().click();
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
 
     actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED).click();
     actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED);
-    actionItemList.build().notifications().shouldHaveSize(2);
-    actionItemList.build().notifications().shouldHave(texts("test@foo.com", "Developer"));
 
-    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+
+    // test add notifications
+    AddNotificationItem buildNotification = actionItemList.build().addNotification();
+    buildNotification.addButton().shouldHave(DISABLED);
+    buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
+    buildNotification.email().val("test@sonatype.com").shouldBe(visible);
+    buildNotification.role().root().shouldNot(exist);
+    buildNotification.addButton().shouldNotHave(DISABLED).click();
+    buildNotification.addButton().shouldHave(DISABLED);
+    buildNotification.email().shouldBe(empty);
+
+    buildNotification.notificationType().selectedItem().click();
+    buildNotification.notificationType().listItem(1).click();
+    buildNotification.email().shouldNot(exist);
+    buildNotification.role().root().shouldBe(visible);
+    buildNotification.role().selectedItem().click();
+    buildNotification.role().listItems().findBy(text("Application Evaluator")).click();
+    buildNotification.addButton().shouldNotHave(DISABLED).click();
+    buildNotification.addButton().shouldHave(DISABLED);
+    buildNotification.role().selectedItem().shouldHave(text("None Selected"));
+
+    actionItemList.build().notifications().shouldHaveSize(4);
+    actionItemList.build().notifications().shouldHave(
+        texts("test@foo.com", "Developer", "test@sonatype.com", "Application Evaluator"));
+
     actionItemList.build().getNotificationByName("test@foo.com").deleteButton().click();
-    actionItemList.build().notifications().shouldHaveSize(1);
-    PolicyEditorPage.saveButton().shouldNotHave(CLM.DISABLED).click();
+    actionItemList.build().notifications().shouldHaveSize(3);
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    actionItemList.build().notificationCount().shouldHave(text("1"));
+    actionItemList.build().notificationCount().shouldHave(text("3"));
+
     actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED).click();
     actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED);
 
-    // TODO: CLM-5876 Add notification entry creation - should test adding a notification here
-
     policy = policyDAO.getById(policy.getId());
     List<Action> actions = policy.getActions(Stage.ID_BUILD);
-    assertThat(actions, hasSize(2)); // first is 'Fail'
+    assertThat(actions, hasSize(4)); // first is 'Fail'
     Action roleAction = actions.get(1);
     assertThat(roleAction.getActionTypeId(), is(Action.ID_NOTIFY));
     assertThat(roleAction.getTargetType(), is("role"));
+    Action testEmail = actions.get(2);
+    assertThat(testEmail.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(testEmail.getTarget(), is("test@sonatype.com"));
+    Action devRole = actions.get(3);
+    assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(devRole.getTargetType(), is("role"));
   }
 
   private void testEditPolicy_actionsNotificationsSection_monitoring(Policy policy) {
@@ -393,30 +434,59 @@ public abstract class AbstractPolicyEditorTest
 
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED).click();
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED);
-    actionItemList.continuousMonitoring().notifications().shouldHaveSize(1);
-    actionItemList.continuousMonitoring().notifications().shouldHave(texts("test@foo.com"));
 
-    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+
+    // test add notifications
+    AddNotificationItem monitoringNotification = actionItemList.continuousMonitoring().addNotification();
+
+    monitoringNotification.addButton().shouldHave(DISABLED);
+    monitoringNotification.notificationType().selectedItem().shouldHave(text("Email"));
+    monitoringNotification.email().val("test@sonatype.com").shouldBe(visible);
+    monitoringNotification.role().root().shouldNot(exist);
+    monitoringNotification.addButton().shouldNotHave(DISABLED).click();
+    monitoringNotification.addButton().shouldHave(DISABLED);
+    monitoringNotification.email().shouldBe(empty);
+
+    monitoringNotification.notificationType().selectedItem().click();
+    monitoringNotification.notificationType().listItem(1).click();
+    monitoringNotification.email().shouldNot(exist);
+    monitoringNotification.role().root().shouldBe(visible);
+    monitoringNotification.role().selectedItem().click();
+    monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
+    monitoringNotification.addButton().shouldNotHave(DISABLED).click();
+    monitoringNotification.addButton().shouldHave(DISABLED);
+    monitoringNotification.role().selectedItem().shouldHave(text("None Selected"));
+
+    actionItemList.continuousMonitoring().notifications().shouldHaveSize(3);
+    actionItemList.continuousMonitoring().notifications().shouldHave(
+        texts("test@foo.com", "test@sonatype.com", "Application Evaluator"));
+
     actionItemList.continuousMonitoring().getNotificationByName("test@foo.com").deleteButton().click();
-    actionItemList.continuousMonitoring().notifications().shouldHaveSize(0);
-    PolicyEditorPage.saveButton().shouldNotHave(CLM.DISABLED).click();
+    actionItemList.continuousMonitoring().notifications().shouldHaveSize(2);
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("0"));
+    actionItemList.continuousMonitoring().notificationCount().shouldHave(text("2"));
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED).click();
     actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED);
 
-    // TODO: CLM-5876 Add notification entry creation - should test adding a notification here
-
     policy = policyDAO.getById(policy.getId());
     List<NotifyAction> actions = policy.getMonitorNotifyActions();
-    assertThat(actions, hasSize(0));
+    assertThat(actions, hasSize(2));
+
+    Action testEmail = actions.get(0);
+    assertThat(testEmail.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(testEmail.getTarget(), is("test@sonatype.com"));
+    Action devRole = actions.get(1);
+    assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
+    assertThat(devRole.getTargetType(), is("role"));
   }
 
   private void testEditPolicy_actionsNotificationsSection_stageActions(Policy policy) {
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
     assertActionItemListNames(actionItemList);
     assertActionItemListHasBuildNotifications(actionItemList);
-    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     // Policy actions for Developer and Build are set to Warn and Fail, respectively.
     actionItemList.develop().failRadio().shouldNotBe(selected);
@@ -426,6 +496,7 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.build().failRadio().shouldBe(selected);
     actionItemList.build().warnRadio().shouldNotBe(selected);
     actionItemList.build().noActionRadio().shouldNotBe(selected);
+
 
     // The rest of the stages should have no-action selected
     actionItemList.proxy().failRadio().shouldNotBe(selected);
@@ -458,9 +529,9 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.operate().noActionRadio().shouldNotBe(selected);
 
     // Save and verify changes via backend
-    PolicyEditorPage.saveButton().shouldNotHave(CLM.DISABLED).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    PolicyEditorPage.saveButton().shouldHave(CLM.DISABLED);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getActions(Stage.ID_BUILD).get(0).getActionTypeId(), is(Action.ID_FAIL));
@@ -521,8 +592,34 @@ public abstract class AbstractPolicyEditorTest
     assertActionItemListNames(actionItemList);
     assertActionItemListNoNotifications(actionItemList);
 
-    // TODO: CLM-5875 Add notification list view - This should also test notification count + twisty collapse/expand
-    // TODO: CLM-5876 Add notification entry creation
+    actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED).click();
+    actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED);
+
+    PolicyEditorPage.saveButton().shouldHave(DISABLED);
+
+    AddNotificationItem buildNotification = actionItemList.build().addNotification();
+    buildNotification.addButton().shouldHave(DISABLED);
+    buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
+    buildNotification.email().val("test@sonatype.com").shouldBe(visible);
+    buildNotification.role().root().shouldNot(exist);
+    buildNotification.addButton().shouldNotHave(DISABLED).click();
+    buildNotification.addButton().shouldHave(DISABLED);
+    PolicyEditorPage.saveButton().shouldHave(DISABLED); // disabled because constraint has not been populated
+
+    actionItemList.build().twisty().click();
+    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED).click();
+    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED);
+
+    AddNotificationItem monitoringNotification = actionItemList.continuousMonitoring().addNotification();
+    monitoringNotification.addButton().shouldHave(DISABLED);
+    monitoringNotification.notificationType().selectedItem().shouldHave(text("Email")).click();
+    monitoringNotification.notificationType().listItem(1).click();
+    monitoringNotification.email().shouldNot(exist);
+    monitoringNotification.role().root().shouldBe(visible);
+    monitoringNotification.role().selectedItem().click();
+    monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
+    monitoringNotification.addButton().shouldNotHave(DISABLED).click();
+    monitoringNotification.addButton().shouldHave(DISABLED);
   }
 
   private void assertNewPolicyStateIsCorrect() {
@@ -552,8 +649,8 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2) {
-    waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(),
-        policy.getId()));
+    waitUntilUrl(
+        PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), policy.getId()));
     PolicyEditorPage.title().shouldHave(text("Edit"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy);
@@ -578,7 +675,8 @@ public abstract class AbstractPolicyEditorTest
       assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
     }
 
-    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel))).click();
+    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
+        .click();
   }
 
   private void assertActionItemListNames(ActionItemList actionItemList) {

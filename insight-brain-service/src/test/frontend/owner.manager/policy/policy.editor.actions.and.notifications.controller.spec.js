@@ -40,14 +40,14 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
     ];
     resolveLoadData();
 
-    expect(vm.actionStages.length).toBe(6);
+    expect(vm.actionStages.length).toBe(7);
     expect(vm.roles.length).toBe(1);
     expect(vm.actions.proxy.length).toBe(4);
     expect(vm.monitorNotifyActions.length).toBe(2);
     expect(vm.getEmailList(vm.actionStages[0]).length).toBe(2);
     expect(vm.getRolesList(vm.actionStages[0]).length).toBe(1);
-    expect(vm.getMonitoringEmailList().length).toBe(1);
-    expect(vm.getMonitoringRolesList().length).toBe(1);
+    expect(vm.getEmailList(vm.actionStages[6]).length).toBe(1);
+    expect(vm.getRolesList(vm.actionStages[6]).length).toBe(1);
     expect(vm.hasNotifications('proxy')).toBe(true);
     expect(vm.hasNotifications('build')).toBe(false);
   }));
@@ -80,15 +80,61 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
   it('Removes notification', function() {
     vm.actions = {proxy: [{target: 'this', actionTypeId: 'notify'}, {target: 'other', actionTypeId: 'notify'}]};
 
-    vm.removeStageNotification('proxy', 'this');
+    vm.removeNotification('proxy', 'this');
     expect(vm.actions.proxy.length).toBe(1);
     expect(vm.actions.proxy).toContain({target: 'other', actionTypeId: 'notify'});
   });
 
   it('Finds the correct name for role notification', function() {
-    vm.roles = [{roleId: 'foo', roleName:'Le Foo'}, {roleId: 'bar', roleName:'Le Bar'}];
+    vm.roles = [{roleId: 'foo', roleName: 'Le Foo'}, {roleId: 'bar', roleName: 'Le Bar'}];
     var name = vm.getNotificationTargetName({targetType: 'role', target: 'bar'});
     expect(name).toBe('Le Bar');
+  });
+
+  it('Add stage notifications', function() {
+    vm.roles = [{roleId: 'foo', roleName: 'Le Foo'}, {roleId: 'bar', roleName: 'Le Bar'}];
+    vm.actions = {proxy: [{target: 'this', actionTypeId: 'notify'}, {target: 'other', actionTypeId: 'notify'}]};
+    vm.notificationValueMap = {};
+    vm.notificationTypeMap = {};
+
+    expect(vm.notificationTypes.length).toBe(2)
+    vm.notificationTypeMap['proxy'] = vm.notificationTypes[0];
+
+    vm.notificationValueMap['proxy'] = 'test@sonatype.com';
+    vm.addNotification('proxy');
+    expect(vm.actions.proxy.length).toBe(3);
+    expect(vm.actions.proxy).toContain({target: 'test@sonatype.com', actionTypeId: 'notify'});
+    expect(vm.notificationValueMap['proxy']).toBeUndefined();
+
+    vm.notificationTypeMap['proxy'] = vm.notificationTypes[1];
+    vm.notificationValueMap['proxy'] = {roleId: "foo", roleName: 'Le Foo'};
+    vm.addNotification('proxy');
+    expect(vm.actions.proxy.length).toBe(4);
+    expect(vm.actions.proxy).toContain({target: 'foo', actionTypeId: 'notify', targetType: 'role'});
+    expect(vm.notificationValueMap['proxy']).toBeUndefined();
+  });
+
+  it('Add monitoring notifications', function() {
+    vm.roles = [{roleId: 'foo', roleName: 'Le Foo'}, {roleId: 'bar', roleName: 'Le Bar'}];
+    vm.monitorNotifyActions = [{target: 'this', actionTypeId: 'notify'}, {target: 'other', actionTypeId: 'notify'}];
+    vm.notificationValueMap = {};
+    vm.notificationTypeMap = {};
+
+    expect(vm.notificationTypes.length).toBe(2)
+    vm.notificationTypeMap['monitoring'] - vm.notificationTypes[0];
+
+    vm.notificationValueMap['monitoring'] = 'test@sonatype.com';
+    vm.addNotification('monitoring');
+    expect(vm.monitorNotifyActions.length).toBe(3);
+    expect(vm.monitorNotifyActions).toContain({target: 'test@sonatype.com', actionTypeId: 'notify'});
+    expect(vm.notificationValueMap['monitoring']).toBeUndefined();
+
+    vm.notificationTypeMap['monitoring'] = vm.notificationTypes[1];
+    vm.notificationValueMap['monitoring'] = {roleId: "foo", roleName: 'Le Foo'};
+    vm.addNotification('monitoring');
+    expect(vm.monitorNotifyActions.length).toBe(4);
+    expect(vm.monitorNotifyActions).toContain({target: 'foo', actionTypeId: 'notify', targetType: 'role'});
+    expect(vm.notificationValueMap['monitoring']).toBeUndefined();
   });
 
   function resolveLoadData() {

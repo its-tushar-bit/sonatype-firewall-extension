@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
@@ -52,6 +53,8 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -60,7 +63,6 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyCollectionOf;
@@ -574,6 +576,17 @@ public class ApplicationDAOTest
     applicationDAO.delete(application);
     licenseOverrides = licenseOverrideDAO.getByOwnerId(application.getId());
     assertThat(licenseOverrides.size(), is(0));
+  }
+
+  @Test
+  public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
+    SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
+        application.getId(), ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "source", "refrenceId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+
+    applicationDAO.delete(application);
+
+    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId()), is(nullValue()));
   }
 
   @Test

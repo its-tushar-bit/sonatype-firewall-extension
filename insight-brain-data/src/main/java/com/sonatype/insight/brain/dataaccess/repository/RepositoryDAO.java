@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -186,6 +187,9 @@ public class RepositoryDAO
     for (LicenseOverride licenseOverride : licenseOverrides) {
       licenseOverrideDAO.delete(tx, licenseOverride);
     }
+
+    // Cascade to owned entities
+    new OwnerDAO().cascadeDelete(tx, repository);
 
     // We do not enroll the policy violation and component deletions in the transaction on purpose.
     // This improves performance and keeps db operations (including commits) reasonably short, which means other

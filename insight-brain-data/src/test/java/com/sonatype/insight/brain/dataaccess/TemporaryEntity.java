@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Color;
@@ -93,6 +94,8 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -172,6 +175,8 @@ public class TemporaryEntity
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
+  private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
+
   private Collection<Application> apps;
 
   private Collection<Organization> orgs;
@@ -204,8 +209,8 @@ public class TemporaryEntity
 
   private Collection<RepositoryManager> repositoryManagers;
 
+  private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
   private Collection<MembershipMapping> membershipMappings;
-
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -224,6 +229,7 @@ public class TemporaryEntity
     licenseThreatGroups = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
     repositoryManagers = new ArrayList<>();
+    securityVulnerabilityOverrides = new ArrayList<>();
     membershipMappings = new ArrayList<>();
   }
 
@@ -261,6 +267,11 @@ public class TemporaryEntity
     for (LicenseOverride override : licenseOverrides) {
       if ((override = licenseOverrideDAO.getById(override.getId())) != null) {
         licenseOverrideDAO.delete(override);
+      }
+    }
+    for (SecurityVulnerabilityOverride override : securityVulnerabilityOverrides) {
+      if ((override = securityVulnerabilityOverrideDAO.getById(override.getId())) != null) {
+        securityVulnerabilityOverrideDAO.delete(override);
       }
     }
     for (User user : users) {
@@ -1288,5 +1299,28 @@ public class TemporaryEntity
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;
+  }
+
+  public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(String ownerId,
+                                                                        ComponentIdentifier componentIdentifier,
+                                                                        String source,
+                                                                        String refrenceId,
+                                                                        SecurityVulnerabilityOverrideStatus status)
+  {
+    return newSecurityVulnerabilityOverride(ownerId, componentIdentifier, source, refrenceId, status, null /* comment */);
+  }
+
+  public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(String ownerId,
+                                                                        ComponentIdentifier componentIdentifier,
+                                                                        String source,
+                                                                        String refrenceId,
+                                                                        SecurityVulnerabilityOverrideStatus status,
+                                                                        String comment)
+  {
+    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(ownerId, componentIdentifier, source,
+        refrenceId, status, comment);
+    securityVulnerabilityOverrideDAO.insert(override);
+    securityVulnerabilityOverrides.add(override);
+    return override;
   }
 }

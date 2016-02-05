@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class OwnerDAO
@@ -134,6 +136,16 @@ public class OwnerDAO
     @Override
     public void remove() {
       throw new UnsupportedOperationException();
+    }
+  }
+
+  public void cascadeDelete(TransactionContext tx, Owner owner) {
+    // Cascade to security vulnerability overrides
+    SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
+    List<SecurityVulnerabilityOverride> securityVulnerabilityOverrides = securityVulnerabilityOverrideDAO.getByOwnerId(
+        tx, owner.getId());
+    for (SecurityVulnerabilityOverride securityVulnerabilityOverride : securityVulnerabilityOverrides) {
+      securityVulnerabilityOverrideDAO.delete(tx, securityVulnerabilityOverride);
     }
   }
 }

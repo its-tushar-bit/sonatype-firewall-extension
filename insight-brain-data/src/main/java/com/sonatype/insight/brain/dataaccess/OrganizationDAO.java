@@ -185,6 +185,9 @@ public class OrganizationDAO
       policyMonitoringDAO.delete(tx, policyMonitoring);
     }
 
+    // Cascade to owned entities
+    new OwnerDAO().cascadeDelete(tx, organization);
+
     // Cascade to tags
     TagDAO tagDAO = new TagDAO();
     List<Tag> tags = tagDAO.getByOrganizationId(tx, organization.getId());

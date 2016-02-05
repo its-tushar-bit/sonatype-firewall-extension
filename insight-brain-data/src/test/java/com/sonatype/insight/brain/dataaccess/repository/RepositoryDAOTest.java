@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -20,10 +21,11 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
-
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -172,6 +174,17 @@ public class RepositoryDAOTest
     dao.delete(repository);
 
     assertThat(new LicenseOverrideDAO().getById(licenseOverride.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
+    SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
+        repository.getId(), ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "source", "refrenceId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+
+    dao.delete(repository);
+
+    assertThat(new SecurityVulnerabilityOverrideDAO().getById(securityVulnerabilityOverride.getId()), is(nullValue()));
   }
 
   @Test

@@ -335,6 +335,9 @@ public class ApplicationDAO
       policyMonitoringDAO.delete(tx, policyMonitoring);
     }
 
+    // Cascade to owned entities
+    new OwnerDAO().cascadeDelete(tx, application);
+
     // Cascade to applied tags
     ApplicationTagDAO applicationTagDAO = new ApplicationTagDAO();
     List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(tx, application.getId());

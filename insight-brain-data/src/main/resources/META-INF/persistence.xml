@@ -38,6 +38,7 @@
     <class>com.sonatype.insight.brain.model.security.Role</class>
     <class>com.sonatype.insight.brain.model.security.RolePermission</class>
     <class>com.sonatype.insight.brain.model.security.User</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride</class>
     <class>com.sonatype.insight.brain.model.tag.ApplicationTag</class>
     <class>com.sonatype.insight.brain.model.tag.PolicyTag</class>
     <class>com.sonatype.insight.brain.model.tag.Tag</class>

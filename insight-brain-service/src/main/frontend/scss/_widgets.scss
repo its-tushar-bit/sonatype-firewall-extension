@@ -1014,6 +1014,12 @@
 */
 
 .threat-level-selector {
+  display: block;
+
+  &.open .selected-threat-level{
+    opacity: 0.6;
+  }
+
   a {
     width: 30px;
     display: inline-block;
@@ -1022,7 +1028,6 @@
     text-align: center;
     position: relative;
     vertical-align: top;
-    z-index: $zindexDropdown + 1;
 
     &.selected-threat-level {
       border-top: 1px solid $grey-4;
@@ -1044,6 +1049,10 @@
         border-left: 5px solid transparent;
         margin-top: 13px;
         margin-left: 0;
+      }
+
+      &:hover:not(.disabled) .caret{
+        border-top: 6px solid $slate;
       }
 
       &.disabled {
@@ -1079,8 +1088,8 @@
 
   .dropdown-menu {
     min-width: 30px;
-    margin: -17px 0 0 0;
-    padding: 31px 0 0 0;
+    margin: 0;
+    padding: 0;
     background-color: $off-white;
     box-shadow: -4px 4px 10px 0 $slate;
     border: 1px solid $off-white;
@@ -1227,7 +1236,6 @@ dropdown-selector {
       line-height: 22px;
       padding: 4px 34px 4px 8px;
       position: relative;
-      z-index: $zindexDropdown;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -1251,7 +1259,6 @@ dropdown-selector {
     .dropdown-menu {
       border-radius: 0;
       border: 1px solid $grey-4;
-      z-index: $zindexDropdown + 1;
       border-collapse: separate;
       background: $off-white;
       margin: 0 0 0 -4px;

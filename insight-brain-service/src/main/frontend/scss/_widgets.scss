@@ -1399,9 +1399,9 @@ age-in-days-input {
     border-bottom: 1px solid $grey-1;
     span {
       line-height: 40px;
-    }
-    span:first-child .fa {
-      margin-right: 8px;
+      .fa {
+        margin-right: 8px;
+      }
     }
     button {
       float: right;

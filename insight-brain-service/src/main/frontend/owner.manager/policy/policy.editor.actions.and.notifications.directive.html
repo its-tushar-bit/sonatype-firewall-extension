@@ -40,8 +40,8 @@
                                    name="notification-type-{{actionStage.stageName}}"
                                    ng-change="vm.notificationValueMap[actionStage.stageTypeId] = undefined"
                                    options="vm.notificationTypes"></dropdown-selector>
-              </div>
-              <div class="field" ng-if="vm.notificationTypeMap[actionStage.stageTypeId] === 'Email'">
+              </div><!--
+           --><div class="field" ng-if="vm.notificationTypeMap[actionStage.stageTypeId] === 'Email'">
                 <label for="editor-notification-email-{{actionStage.stageName}}">Email Address</label>
                 <input id="editor-notification-email-{{actionStage.stageName}}" class="editor-notification-email"
                        name="editor-notification-email-{{actionStage.stageName}}"
@@ -49,16 +49,16 @@
                        ng-model="vm.notificationValueMap[actionStage.stageTypeId]"
                        ng-maxlength="100"
                        focus-input="true">
-              </div>
-              <div class="field" ng-if="vm.notificationTypeMap[actionStage.stageTypeId] === 'Role'">
+              </div><!--
+           --><div class="field" ng-if="vm.notificationTypeMap[actionStage.stageTypeId] === 'Role'">
                 <label for="editor-notification-role-{{actionStage.stageName}}">Role</label>
                 <dropdown-selector id="editor-notification-role-{{actionStage.stageName}}" class="editor-notification-role"
                                    option-name-param="roleName"
                                    ng-model="vm.notificationValueMap[actionStage.stageTypeId]"
                                    name="notification-role-{{actionStage.stageName}}"
                                    options="vm.roles"></dropdown-selector>
-              </div>
-              <div class="field no-label">
+              </div><!--
+           --><div class="field no-label">
                 <button id="editor-notification-add" class='btn' type="button"
                         ng-click="vm.addNotification(actionStage.stageTypeId, vm.notificationValueMap[actionStage.stageTypeId])"
                         ng-class="{ disabled: !vm.notificationValueMap[actionStage.stageTypeId] }">

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, Slick, $, clmBuildTimestamp, Insight, ComponentInformationPanelPlugin */
+/*global angular, Slick, $, clmBuildTimestamp, Insight, ComponentInformationPanelPlugin, Brain */
 (function () {
   'use strict';
 
@@ -203,7 +203,7 @@
         function doLoad() {
           delete vm.error;
 
-          $http.get('/rest/repositories/' + OwnerContext.ownerId + '/report/details').success(function (data) {
+          $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId)).success(function (data) {
             vm.grid = createTable(data, $scope);
             setFilter();
           }).error(function () {
@@ -229,7 +229,7 @@
         });
 
         $scope.$on('component.evaluation.updated', function (event, hash, promises) {
-          promises.push($http.get('/rest/repositories/' + OwnerContext.ownerId + '/report/details?hash=' + hash)
+          promises.push($http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId, hash))
             .success(function(data) {
                 var dataView = vm.grid.dataView,
                     maxId = -1,

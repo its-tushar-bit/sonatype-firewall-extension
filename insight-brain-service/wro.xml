@@ -250,6 +250,7 @@
     <js>/version-graph/app/owner.context.service.js</js>
     <js>/version-graph/app/exception.handler.factory.js</js>
     <group-ref>version-graph</group-ref>
+    <css>/version-graph/detail-table.css</css>
   </group>
 
   <group name='viewdetails'>

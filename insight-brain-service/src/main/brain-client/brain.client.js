@@ -139,6 +139,19 @@ var clmBuildTimestamp = '${build.timestamp}';
       return '../reevaluatePolicy';
     },
 
+    /**
+     * @since 1.19.0
+     */
+    'getRepositoryResultsUrl': function (repositoryId, hash) {
+      var path = 'rest/repositories/' + encodeURIComponent(repositoryId) + '/report/details';
+
+      if (hash) {
+        path += '?' + param({hash: hash});
+      }
+
+      return basePath + path;
+    },
+
     'ci': {
       /**
        * Get the URL for the agnostic coordinate ComponentDetails resource

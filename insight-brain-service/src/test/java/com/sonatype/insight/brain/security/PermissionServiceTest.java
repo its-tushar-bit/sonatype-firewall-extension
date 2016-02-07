@@ -55,6 +55,18 @@ public class PermissionServiceTest
   }
 
   @Test
+  public void testHasPermissions_RepoContext_Unauthenticated() {
+    assertPermissions(OwnerType.REPOSITORY, repository.getId(), NONE);
+  }
+
+  @Test
+  public void testHasPermissions_RepoContext_Authenticated() {
+    grantReadPermission(repository.getId());
+    grantWritePermission(repository.getId());
+    assertPermissions(OwnerType.REPOSITORY, repository.getId(), Permission.READ, Permission.WRITE);
+  }
+
+  @Test
   public void testHasPermissions_OrgContext_Unauthenticated() {
     assertPermissions(OwnerType.ORGANIZATION, org.getId(), NONE);
   }

@@ -46,6 +46,10 @@ public class PermissionService
           contextMap.put(AuthzContext.Key.ID, new ContextParameter(Key.ID, ownerId, false));
           contextMap.put(AuthzContext.Key.TYPE, new ContextParameter(Key.TYPE, OwnerType.REPOSITORY_CONTAINER, false));
           break;
+        case REPOSITORY:
+          contextMap = Collections.singletonMap(Key.REPOSITORY_ID, new ContextParameter(Key.REPOSITORY_ID, ownerId,
+              false));
+          break;
         default:
           contextMap = Collections.emptyMap();
       }

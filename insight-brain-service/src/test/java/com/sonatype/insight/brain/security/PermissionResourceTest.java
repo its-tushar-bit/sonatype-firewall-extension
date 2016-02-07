@@ -7,65 +7,69 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class PermissionResourceTest
     extends AbstractResourceTest
 {
+  private User user;
+
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PermissionResource.RESOURCE_PATH, PermissionResource.OWNER_CONTEXT_PATH);
+    return super.restRequest().path(PermissionResource.RESOURCE_PATH).auth(user.getUsername(), user.getPassword());
   }
 
-  protected HttpRequest singleOwnerRequest() {
-    return super.restRequest().path(PermissionResource.RESOURCE_PATH, PermissionResource.SINGLETON_OWNER_CONTEXT_PATH);
-
+  private HttpRequest validateRequest(OwnerType ownerType, String ownerId) {
+    return restRequest().path(PermissionResource.OWNER_CONTEXT_PATH).parameter(ownerType, ownerId);
   }
 
-  @Test
-  public void testAdminUserWithAdminPerm() throws Exception {
-    HttpResponse response = restRequest().parameter(OwnerType.GLOBAL, "*")
-        .body(EnumSet.of(Permission.CONFIGURE_SYSTEM)).put();
-    assertResponseStatus(200, response);
-    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
-    Assert.assertTrue(permissions.contains(Permission.CONFIGURE_SYSTEM));
+  private HttpRequest validateRequest(OwnerType ownerType) {
+    return restRequest().path(PermissionResource.SINGLETON_OWNER_CONTEXT_PATH).parameter(ownerType);
   }
 
-  @Test
-  public void testNonAdminUserWithAdminPerm() throws Exception {
-    tempEntity.newUser("testNonAdminUser");
-    HttpResponse response = restRequest().parameter(OwnerType.GLOBAL, "*")
-        .body(EnumSet.of(Permission.CONFIGURE_SYSTEM)).auth("testNonAdminUser", "secret").put();
-    assertResponseStatus(200, response);
-    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
-    Assert.assertFalse(permissions.contains(Permission.CONFIGURE_SYSTEM));
+  @Before
+  public void initUser() {
+    user = tempEntity.newUser();
+    Role role = tempEntity.newRole(true, Permission.READ);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
   }
 
   @Test
-  public void testValidatePermission_AdminUserWithAdminPerm() throws Exception {
-    HttpResponse response = singleOwnerRequest().parameter(OwnerType.REPOSITORY_CONTAINER)
-        .body(EnumSet.of(Permission.READ)).put();
+  public void testValidatePermission_NonSingletonContext() throws Exception {
+    HttpResponse response = validateRequest(OwnerType.GLOBAL, "global").body(
+        EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
-    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
-    Assert.assertTrue(permissions.contains(Permission.READ));
+    assertThat(Arrays.asList(response.getBody(Permission[].class)), containsInAnyOrder(Permission.READ));
   }
 
   @Test
-  public void testValidatePermission_NonAdminUserWithAdminPerm() throws Exception {
-    tempEntity.newUser("testNonAdminUser");
-    HttpResponse response = singleOwnerRequest().parameter(OwnerType.REPOSITORY_CONTAINER)
-        .body(EnumSet.of(Permission.READ)).auth("testNonAdminUser", "secret").put();
+  public void testValidatePermission_SingletonContext() throws Exception {
+    HttpResponse response = validateRequest(OwnerType.REPOSITORY_CONTAINER).body(
+        EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
-    List<Permission> permissions = Arrays.asList(response.getBody(Permission[].class));
-    Assert.assertFalse(permissions.contains(Permission.READ));
+    assertThat(Arrays.asList(response.getBody(Permission[].class)), containsInAnyOrder(Permission.READ));
+  }
+
+  @Test
+  public void testValidatePermission_Unlicensed() throws Exception {
+    uninstallLicense();
+    HttpResponse response = validateRequest(OwnerType.REPOSITORY_CONTAINER).body(
+        EnumSet.of(Permission.READ, Permission.WRITE)).put();
+    assertResponseStatus(200, response);
+    assertThat(Arrays.asList(response.getBody(Permission[].class)), containsInAnyOrder(Permission.READ));
   }
 }

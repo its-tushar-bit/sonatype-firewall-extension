@@ -5,184 +5,76 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class PermissionServiceTest
-    extends AbstractComponentTest
+    extends AbstractServiceAuthzTest
 {
   @Inject
-  PermissionService service;
+  private PermissionService service;
 
-  private UserPrincipal principal = mock(UserPrincipal.class);
+  private static final Permission[] NONE = {};
 
-  @Test
-  public void validateAdminPermission_GlobalContext_AuthenticatedAsAdmin() {
-    prepareMocks(User.ADMIN_USERNAME);
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
-        true, Permission.CONFIGURE_SYSTEM);
+  private void assertPermissions(OwnerType ownerType, String ownerId, Permission... expected) {
+    assertThat(service.hasPermissions(subject, ownerType, ownerId, EnumSet.allOf(Permission.class)),
+        containsInAnyOrder(expected));
   }
 
   @Test
-  public void validateAdminPermission_GlobalContext_AuthenticatedAsNonAdmin() {
-    prepareMocks("nonadmin");
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
-        false, Permission.CONFIGURE_SYSTEM);
+  public void testHasPermissions_GlobalContext_Unauthenticated() {
+    assertPermissions(OwnerType.GLOBAL, null, NONE);
   }
 
   @Test
-  public void validateAdminPermission_GlobalContext_Unauthenticated() {
-    prepareMocks(null);
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.GLOBAL, null, Collections.singleton(Permission.CONFIGURE_SYSTEM)),
-        false, Permission.CONFIGURE_SYSTEM);
+  public void testHasPermissions_GlobalContext_Authenticated() {
+    grantConfigureSystemPermission();
+    assertPermissions(OwnerType.GLOBAL, null, Permission.CONFIGURE_SYSTEM);
   }
 
   @Test
-  public void validateReadWritePermission_OrgAppContext_AuthenticatedAsAdmin() {
-    prepareMocks(User.ADMIN_USERNAME);
-
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
+  public void testHasPermissions_RepoContainerContext_Unauthenticated() {
+    assertPermissions(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, NONE);
   }
 
   @Test
-  public void validateReadWritePermission_OrgAppContext_AuthenticatedAsNonAdmin() {
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
-    User user = tempEntity.newUser();
-
-    prepareMocks(user.getUsername());
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
-
-    grantReadPermission(app.getId(), user.getUsername());
-    grantReadPermission(org.getId(), user.getUsername());
-    grantWritePermission(app.getId(), user.getUsername());
-    grantWritePermission(org.getId(), user.getUsername());
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), true, Permission.READ, Permission.WRITE);
+  public void testHasPermissions_RepoContainerContext_Authenticated() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertPermissions(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
   }
 
   @Test
-  public void validateReadWritePermission_OrgAppContext_Unauthenticated() {
-    prepareMocks(null);
-
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.APPLICATION, app.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
-
-    assertPermissions(
-        service.hasPermissions(subject, OwnerType.ORGANIZATION, org.getId(),
-            EnumSet.of(Permission.WRITE, Permission.READ)), false, Permission.READ, Permission.WRITE);
+  public void testHasPermissions_OrgContext_Unauthenticated() {
+    assertPermissions(OwnerType.ORGANIZATION, org.getId(), NONE);
   }
 
   @Test
-  public void validateReadWritePermission_RepositoryContainerContext_AuthenticatedAsAdmin() {
-    prepareMocks(User.ADMIN_USERNAME);
-
-    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), true,
-        Permission.READ, Permission.WRITE);
+  public void testHasPermissions_OrgContext_Authenticated() {
+    grantReadPermission(org.getId());
+    grantWritePermission(org.getId());
+    assertPermissions(OwnerType.ORGANIZATION, org.getId(), Permission.READ, Permission.WRITE);
   }
 
   @Test
-  public void validateReadWritePermission_RepositoryContainerContext_AuthenticatedAsNonAdmin() {
-    User user = tempEntity.newUser();
-
-    prepareMocks(user.getUsername());
-
-    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), false,
-        Permission.READ, Permission.WRITE);
-
-    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, user.getUsername());
-    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, user.getUsername());
-
-    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), true,
-        Permission.READ, Permission.WRITE);
+  public void testHasPermissions_AppContext_Unauthenticated() {
+    assertPermissions(OwnerType.APPLICATION, app.getId(), NONE);
   }
 
   @Test
-  public void validateReadWritePermission_RepositoryContainerContext_Unauthenticated() {
-    prepareMocks(null);
-
-    assertPermissions(service.hasPermissions(subject, OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, EnumSet.of(Permission.WRITE, Permission.READ)), false,
-        Permission.READ, Permission.WRITE);
-  }
-
-  private void assertPermissions(Set<Permission> permissions, boolean match, Permission... expectedPermissions) {
-    // make sure we are only seeing the perms we are looking for
-    Assert.assertEquals(match ? expectedPermissions.length : 0, permissions.size());
-
-    for (Permission expectedPermission : expectedPermissions) {
-      Assert.assertEquals(match, permissions.contains(expectedPermission));
-    }
-  }
-
-  private void prepareMocks(String username) {
-    if (username != null) {
-      when(subject.isAuthenticated()).thenReturn(true);
-      when(subject.getPrincipal()).thenReturn(principal);
-      when(principal.getUsername()).thenReturn(username);
-    }
-    else {
-      when(subject.isAuthenticated()).thenReturn(false);
-    }
-  }
-
-  private void grantWritePermission(String contextId, String username) {
-    Role role = tempEntity.newRole(false /* global */, Permission.WRITE);
-    tempEntity.newMembershipMapping(contextId, role.getId(), username);
-  }
-
-  private void grantReadPermission(String contextId, String username) {
-    Role role = tempEntity.newRole(false /* global */, Permission.READ);
-    tempEntity.newMembershipMapping(contextId, role.getId(), username);
+  public void testHasPermissions_AppContext_Authenticated() {
+    grantReadPermission(app.getId());
+    grantWritePermission(app.getId());
+    assertPermissions(OwnerType.APPLICATION, app.getId(), Permission.READ, Permission.WRITE);
   }
 }

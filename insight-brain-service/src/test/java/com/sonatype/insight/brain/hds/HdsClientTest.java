@@ -21,7 +21,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -40,6 +39,7 @@ import org.junit.Test;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
@@ -140,8 +140,8 @@ public class HdsClientTest
     client.getResponse(request, testPath, null, new String[] {});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER), is(testClmClientUserAgent));
     // Method does not pass an original request, hence the null header.
-    client.put(InputStream.class, testPath, new File(HdsClientTest.class.getResource("/config-test.yml").toURI()),
-        new String[] {});
+    client.put(null, InputStream.class, testPath,
+        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
     assertNull(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER));
 
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn("ua-we-cannot-control");
@@ -187,8 +187,8 @@ public class HdsClientTest
     assertThat(headers, hasItem(userAgent));
     client.getResponse(request, testPath, null, new String[] {});
     assertThat(headers, hasItem(userAgent));
-    client.put(InputStream.class, testPath, new File(HdsClientTest.class.getResource("/config-test.yml").toURI()),
-        new String[] {});
+    client.put(null, InputStream.class, testPath,
+        new File(HdsClientTest.class.getResource("/config-test.yml").toURI()), new String[] {});
     assertThat(headers, hasItem(userAgent));
   }
 
@@ -358,5 +358,37 @@ public class HdsClientTest
       assertThat(e.getMessage(), is("The hostname for the Sonatype HDS could not be resolved,"
           + " please verify the network configuration (DNS) at the site where the Sonatype CLM server is operated"));
     }
+  }
+
+  @Test
+  public void testAppIdOnRequests() throws Exception {
+    final Map<String, String> headers = new HashMap<>();
+    String testPath = "/rest/test";
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        headers.clear();
+        headers.put(HdsClient.OWNER_TYPE_HEADER, request.getHeader(HdsClient.OWNER_TYPE_HEADER));
+        headers.put(HdsClient.OWNER_ID_HEADER, request.getHeader(HdsClient.OWNER_ID_HEADER));
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.<String> emptyList()));
+    when(request.getMethod()).thenReturn("GET");
+
+    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication("test-app-id");
+
+    client.get(request, analytics, InputStream.class, testPath, null, new String[] {});
+    assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+
+    client.put(analytics, String.class, testPath, File.createTempFile("test", ".tmp"), new String[] {});
+    assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
   }
 }

@@ -132,7 +132,7 @@ public class PolicyMonitor
 
     String scanId = lastPrimaryPolicyEvaluation.getScanId();
     File scanFile = work.getScanFile(app.getId(), scanId);
-    ScanReceipt scanReceipt = uploader.upload(scanFile, app.getPublicId());
+    ScanReceipt scanReceipt = uploader.upload(scanFile, app);
     scanReceipt.waitForReport();
 
     PolicyEvaluation lastMonitoringPolicyEvaluation = policyEvaluationDAO.getLastMonitoringByApplicationIdAndScanId(

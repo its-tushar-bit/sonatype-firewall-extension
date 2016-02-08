@@ -74,7 +74,7 @@ public class ScanTaskTest
     tmpScanFile.createNewFile();
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
-    when(uploader.upload(eq(tmpScanFile), eq(app.getPublicId()))).thenReturn(scanReceipt);
+    when(uploader.upload(eq(tmpScanFile), eq(app))).thenReturn(scanReceipt);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir))).thenReturn(tmpScanFile);
   }
 

@@ -85,6 +85,10 @@ public class HdsClient
 
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
 
+  static final String OWNER_TYPE_HEADER = "X-CLM-Owner-Type";
+
+  static final String OWNER_ID_HEADER = "X-CLM-Owner-Id";
+
   @Inject
   public HdsClient(final InsightProxy proxy,
                    final CLMLicenseManager licenseManager,
@@ -117,7 +121,16 @@ public class HdsClient
                                   Map<String, String> queryParams,
                                   String... uriParams) throws IOException
   {
-    return execute(request, buildUri(request, path, queryParams, uriParams));
+    return getResponse(request, null, path, queryParams, uriParams);
+  }
+
+  private HttpResponse getResponse(HttpServletRequest request,
+                                   HdsClientAnalytics analytics,
+                                   String path,
+                                   Map<String, String> queryParams,
+                                   String... uriParams) throws IOException
+  {
+    return execute(request, buildUri(request, path, queryParams, uriParams), analytics);
   }
 
   private HttpResponse getResponse(HttpServletRequest request, String path) throws IOException {
@@ -131,7 +144,7 @@ public class HdsClient
     else {
       url += path;
     }
-    return execute(request, url);
+    return execute(request, url, null);
   }
 
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams)
@@ -150,10 +163,20 @@ public class HdsClient
                    Map<String, String> queryParams,
                    String... uriParams) throws IOException
   {
+    return get(request, null, clazz, path, queryParams, uriParams);
+  }
+
+  public <T> T get(HttpServletRequest request,
+                   HdsClientAnalytics analytics,
+                   Class<T> clazz,
+                   String path,
+                   Map<String, String> queryParams,
+                   String... uriParams) throws IOException
+  {
     long start = System.currentTimeMillis();
 
     try {
-      HttpResponse response = getResponse(request, path, queryParams, uriParams);
+      HttpResponse response = getResponse(request, analytics, path, queryParams, uriParams);
       return fromHttpResponse(response, clazz);
     }
     finally {
@@ -274,7 +297,8 @@ public class HdsClient
     return buildResponse(response);
   }
 
-  private HttpResponse execute(HttpServletRequest request, String url) throws IOException {
+  private HttpResponse execute(HttpServletRequest request, String url, HdsClientAnalytics analytics) throws IOException
+  {
     HttpUriRequest cloudReq;
     if (request == null || "GET".equals(request.getMethod())) {
       cloudReq = new HttpGet(url);
@@ -295,7 +319,7 @@ public class HdsClient
     else {
       throw new IllegalArgumentException("Unknown request method " + request.getMethod());
     }
-    populateRequest(request, cloudReq);
+    populateRequest(request, cloudReq, analytics);
     return execute(cloudReq);
   }
 
@@ -309,7 +333,7 @@ public class HdsClient
       HttpPost cloudReq = new HttpPost(buildUri(path, uriParams));
       StringEntity entity = new StringEntity(JsonUtils.format(jsonSerializableObject));
       cloudReq.setEntity(entity);
-      populateRequest(null /* base request */, cloudReq);
+      populateRequest(null /* base request */, cloudReq, null);
       cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
       cloudReq.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -324,7 +348,9 @@ public class HdsClient
   /**
    * @since 1.8
    */
-  public <T> T put(Class<T> clazz, String path, File uploadFile, String... uriParams) throws IOException {
+  public <T> T put(HdsClientAnalytics analytics, Class<T> clazz, String path, File uploadFile, String... uriParams)
+      throws IOException
+  {
     long start = System.currentTimeMillis();
 
     try {
@@ -334,7 +360,7 @@ public class HdsClient
       HttpPut cloudReq = new HttpPut(buildUri(path, uriParams));
       FileEntity fileEntity = new FileEntity(uploadFile, ContentType.DEFAULT_BINARY);
       cloudReq.setEntity(new BufferedHttpEntity(fileEntity));
-      populateRequest(null /* base request */, cloudReq);
+      populateRequest(null /* base request */, cloudReq, analytics);
       HttpResponse response = execute(cloudReq);
       return fromHttpResponse(response, clazz);
     }
@@ -365,7 +391,7 @@ public class HdsClient
     return new InputStreamEntity(request.getInputStream(), request.getContentLength());
   }
 
-  private void populateRequest(final HttpServletRequest orig, HttpUriRequest req) {
+  private void populateRequest(final HttpServletRequest orig, HttpUriRequest req, HdsClientAnalytics analytics) {
     if (orig != null) {
       for (Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements();) {
         String headerName = e.nextElement();
@@ -381,6 +407,10 @@ public class HdsClient
       }
 
       req.setHeader(CLM_CLIENT_USER_AGENT_HEADER, getClientUserAgent(orig));
+    }
+    if (analytics != null) {
+      req.setHeader(OWNER_TYPE_HEADER, analytics.getOwnerType().toString());
+      req.setHeader(OWNER_ID_HEADER, analytics.getOwnerId());
     }
 
     req.setHeader("X-Brain-Version", version);

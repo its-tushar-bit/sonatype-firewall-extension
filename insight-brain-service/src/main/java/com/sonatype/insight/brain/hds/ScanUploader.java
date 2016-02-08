@@ -65,7 +65,8 @@ public class ScanUploader
 
     request.setAttribute(HdsClient.UPLOAD_FILE_ATTRIBUTE, scanFile);
 
-    final ScanReceipt receipt = client.get(request, ScanReceipt.class, HDS_PATH, params);
+    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
+    final ScanReceipt receipt = client.get(request, analytics, ScanReceipt.class, HDS_PATH, null, params);
 
     if (StringUtils.isNotBlank(receipt.getScanId())) {
       FileUtils.rename(scanFile, work.getScanFile(appId, receipt.getScanId()));
@@ -81,10 +82,12 @@ public class ScanUploader
    *
    * @since 1.8
    */
-  public ScanReceipt upload(File scanFile, String applicationPublicId) throws IOException {
-    ScanReceipt receipt = client.put(ScanReceipt.class, HDS_PATH, scanFile);
+  public ScanReceipt upload(File scanFile, Application application) throws IOException {
+    HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(application.getId());
 
-    augmentScanReceipt(applicationPublicId, receipt);
+    ScanReceipt receipt = client.put(analytics, ScanReceipt.class, HDS_PATH, scanFile);
+
+    augmentScanReceipt(application.getPublicId(), receipt);
 
     return receipt;
   }

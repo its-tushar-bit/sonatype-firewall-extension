@@ -186,7 +186,7 @@ class ScanTask
 
       // upload the scan
       state = State.UPLOADING_SCAN;
-      ScanReceipt scanReceipt = uploader.upload(scanFile, appPublicId);
+      ScanReceipt scanReceipt = uploader.upload(scanFile, app);
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
         FileUtils.rename(scanFile, work.getScanFile(app.getId(), scanReceipt.getScanId()));
       }

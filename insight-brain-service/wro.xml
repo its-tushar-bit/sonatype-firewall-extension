@@ -337,7 +337,6 @@
   </group>
 
   <group name='audit-report'>
-    <js>/lib/hogan.js</js>
     <js>/lib/protovis/protovis-tipsy.js</js>
     <js>/lib/date.format.js</js>
     <js>/lib/jquery/jquery.tipsy.js</js>

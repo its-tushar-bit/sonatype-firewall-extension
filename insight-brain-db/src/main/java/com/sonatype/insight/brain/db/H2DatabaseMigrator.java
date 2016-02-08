@@ -9,9 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -78,14 +75,12 @@ public class H2DatabaseMigrator
       backup(databaseDir, databaseFilename, backupDir);
 
       String scriptsPath = "/db/" + databaseName + "/";
-      List<String> scriptNames = new ArrayList<>();
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
         String scriptName = scriptsPath + "schema_incremental_" + String.format("%1$04d", i) + ".sql";
-        scriptNames.add(scriptName);
+        runScript(dataSource, scriptName);
+        FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
       }
-      runScripts(dataSource, scriptNames);
 
-      FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(desiredVersion));
       new FileCleaner().delete(backupDir);
     }
     catch (IOException | SQLException e) {
@@ -96,22 +91,12 @@ public class H2DatabaseMigrator
     }
   }
 
-  private void runScripts(DataSource dataSource, List<String> scriptNames) throws SQLException {
+  public void runScript(DataSource dataSource, String scriptName) throws SQLException {
     ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
     ResourceLoader resourceLoader = new DefaultResourceLoader();
-    for (String scriptName : scriptNames) {
-      resourceDatabasePopulator.addScript(resourceLoader.getResource(scriptName));
-    }
-    Connection conn = dataSource.getConnection();
-    try {
+    resourceDatabasePopulator.addScript(resourceLoader.getResource(scriptName));
+    try (Connection conn = dataSource.getConnection()) {
       resourceDatabasePopulator.populate(conn);
-    }
-    finally {
-      try {
-        conn.close();
-      }
-      catch (SQLException ignored) {
-      }
     }
   }
 
@@ -130,10 +115,6 @@ public class H2DatabaseMigrator
     }
 
     return null;
-  }
-
-  public void runScript(DataSource dataSource, String scriptName) throws SQLException {
-    runScripts(dataSource, Arrays.asList(scriptName));
   }
 
   private void backup(File databaseDir, String databaseName, File backupDir) throws IOException {

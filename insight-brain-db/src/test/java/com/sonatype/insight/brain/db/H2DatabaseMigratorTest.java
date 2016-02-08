@@ -7,18 +7,29 @@ package com.sonatype.insight.brain.db;
 
 import java.io.File;
 
+import javax.sql.DataSource;
+
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.springframework.jdbc.datasource.init.CannotReadScriptException;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class H2DatabaseMigratorTest
 {
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
   @After
   public void cleanup() {
     DataSourceFactory.clear_ForTestsOnly();
@@ -64,5 +75,40 @@ public class H2DatabaseMigratorTest
     dmDatabaseConfig.setMaxConnections(50);
     DatamartProvider.init(dmDatabaseConfig);
     assertEquals(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION), FileUtils.fileRead(databaseVersionFile));
+  }
+
+  @Test
+  public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
+    File databaseDir = temporaryFolder.newFolder("db");
+    FileUtils
+        .copyDirectory(
+            new File(
+                "target/test-classes/H2DatabaseMigratorTest/testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"),
+            databaseDir);
+    File databaseVersionFile = new File(databaseDir, "dm.ver");
+    assertThat(databaseVersionFile.isFile(), is(true));
+    assertThat(FileUtils.fileRead(databaseVersionFile), is("3"));
+
+    String dbUrl = "jdbc:h2:" + databaseDir.getAbsolutePath()
+        + "/dm;DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setUrl(dbUrl);
+    databaseConfig.setUsername("sa");
+    databaseConfig.setPassword("");
+    databaseConfig.setMaxConnections(50);
+
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+
+    // The migration should fail because there is no incremental script for targetDatabaseVersion,
+    // but the version file must be updated to contain the number of the last incremental script applied successfully.
+    int targetDatabaseVersion = DatamartProvider.DESIRED_DATABASE_VERSION + 1;
+    try {
+      new H2DatabaseMigrator()
+          .migrate(databaseConfig, DatamartProvider.ID, dataSource, targetDatabaseVersion, 1 /* defaultCurrentVersion */);
+      fail("Expected exception");
+    }
+    catch (CannotReadScriptException expected) {
+      assertThat(FileUtils.fileRead(databaseVersionFile), is(String.valueOf(DatamartProvider.DESIRED_DATABASE_VERSION)));
+    }
   }
 }

@@ -110,11 +110,6 @@
 
       if (vm.policyEditor.$valid && vm.isPolicyDirty()) {
         var savePolicy = vm.dirtyPolicy.$save().then(function() {
-          if (isNew) {
-            vm.siblings.push(vm.dirtyPolicy);
-            vm.dirtyPolicy = createPolicy();
-          }
-
           return vm.isApp ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
               vm.hasPolicyCategories ? appliedCategories : []);
         }, submitErrorHandler);
@@ -127,6 +122,11 @@
         });
 
         formMaskDelay.wrap($scope, savePolicy).then(function() {
+          if (isNew) {
+            vm.siblings.push(vm.dirtyPolicy);
+            vm.dirtyPolicy = createPolicy();
+          }
+
           originalCategories = angular.copy(vm.categories);
           originalHasPolicyCategories = vm.hasPolicyCategories;
           vm.policyEditor.$setPristine();

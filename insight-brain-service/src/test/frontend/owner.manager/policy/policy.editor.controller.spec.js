@@ -78,6 +78,7 @@ describe('policy.editor.controller.spec.js', function() {
 
       resolveLoadData(mockPolicyStoreData, undefined);
 
+      mockPolicy.id = 123;
       mockPolicy.$new = true;
       mockPolicy.isDirty = function() {
         return true;
@@ -88,9 +89,7 @@ describe('policy.editor.controller.spec.js', function() {
         $valid: true,
         $setPristine: angular.noop
       };
-
-      mockPolicyStoreData[0].store.create.andReturn({id: 123})
-
+      
       vm.save();
       resolveSaveData('123');
 

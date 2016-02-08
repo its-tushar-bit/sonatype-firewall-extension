@@ -51,9 +51,14 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class ScanPolicyEvaluator
 {
+  private static final Logger log = LoggerFactory.getLogger(ScanPolicyEvaluator.class);
+
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
@@ -156,6 +161,7 @@ public class ScanPolicyEvaluator
   {
     Object lock = getPersistenceLock(appId);
     synchronized (lock) {
+      long start = System.currentTimeMillis();
       PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
       try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
         tx.begin();
@@ -237,6 +243,10 @@ public class ScanPolicyEvaluator
 
         tx.commit();
 
+        log.debug(
+            "Persisted policy evaluation results (active={}, waived={}) for application {} from stage {} in {} ms",
+            policyResults.getActiveAlerts().size(), policyResults.getWaivedAlerts().size(), appId,
+            stage.getStageTypeId(), System.currentTimeMillis() - start);
         return policyEvaluation;
       }
     }

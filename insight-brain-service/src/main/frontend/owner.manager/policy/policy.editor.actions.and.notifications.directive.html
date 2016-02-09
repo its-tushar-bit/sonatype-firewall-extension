@@ -2,7 +2,7 @@
   <table>
     <tbody ng-repeat="actionStage in vm.actionStages">
       <tr class="action-stage clickable" ng-class="{ expanded: actionStage.isExpanded}">
-        <td ng-click="actionStage.isExpanded = !actionStage.isExpanded">
+        <td ng-click="actionStage.isExpanded = !actionStage.isExpanded; vm.updateAvailableRoles(actionStage.stageTypeId)">
           <div class="twisty-container">
             <span class="twisty" ng-class="{ expand: !actionStage.isExpanded, collapse: actionStage.isExpanded}"></span>
           </div>
@@ -56,7 +56,9 @@
                                    option-name-param="roleName"
                                    ng-model="vm.notificationValueMap[actionStage.stageTypeId]"
                                    name="notification-role-{{actionStage.stageName}}"
-                                   options="vm.roles"></dropdown-selector>
+                                   options="vm.availableRoles[actionStage.stageTypeId]"
+                                   no-options-string="All roles are being notified."
+                                   empty-option-string="-- Select Role --"></dropdown-selector>
               </div><!--
            --><div class="field no-label">
                 <button id="editor-notification-add" class='btn' type="button"

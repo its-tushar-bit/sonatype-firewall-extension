@@ -399,7 +399,8 @@ public abstract class AbstractPolicyEditorTest
     buildNotification.role().listItems().findBy(text("Application Evaluator")).click();
     buildNotification.addButton().shouldNotHave(DISABLED).click();
     buildNotification.addButton().shouldHave(DISABLED);
-    buildNotification.role().selectedItem().shouldHave(text("None Selected"));
+    buildNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
+    buildNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
 
     actionItemList.build().notifications().shouldHaveSize(4);
     actionItemList.build().notifications().shouldHave(
@@ -456,7 +457,8 @@ public abstract class AbstractPolicyEditorTest
     monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
     monitoringNotification.addButton().shouldNotHave(DISABLED).click();
     monitoringNotification.addButton().shouldHave(DISABLED);
-    monitoringNotification.role().selectedItem().shouldHave(text("None Selected"));
+    monitoringNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
+    monitoringNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
 
     actionItemList.continuousMonitoring().notifications().shouldHaveSize(3);
     actionItemList.continuousMonitoring().notifications().shouldHave(

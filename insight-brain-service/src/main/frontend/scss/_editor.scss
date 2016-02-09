@@ -302,7 +302,9 @@
 
   .add-notification {
     margin-left: 20px;
-    margin-bottom: 8px;
+    margin-bottom: 0px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid $grey-3;
 
     .no-label {
       vertical-align: bottom;
@@ -314,6 +316,44 @@
 
     .field:nth-child(n + 2) {
       margin-left: 12px;
+    }
+
+    dropdown-selector.no-options {
+      padding-top: 8px;
+    }
+  }
+
+  .notification-list {
+    overflow-y: auto;
+    max-height: 200px;
+    padding-left: 16px;
+    margin-top: 0px;
+    margin-bottom: 24px;
+
+    &.empty {
+      margin-top: 0px;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0px 0px 0px 0px;
+      padding-left: 8px;
+    }
+
+    li {
+      height: 40px;
+      border-bottom: 1px solid $grey-1;
+      span {
+        line-height: 40px;
+        .fa {
+          margin-right: 8px;
+        }
+      }
+      button {
+        float: right;
+        margin-top: 4px;
+        margin-right: 8px;
+      }
     }
   }
 }

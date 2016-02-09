@@ -20,6 +20,7 @@
     vm.actionStages = undefined;
     vm.conditionallyAddOrRemoveAction = conditionallyAddOrRemoveAction;
     vm.roles = undefined;
+    vm.availableRoles = {};
     vm.getEmailList = getEmailList;
     vm.getRolesList = getRolesList;
     vm.getNotificationCount = getNotificationCount;
@@ -28,6 +29,7 @@
     vm.notificationTypeMap = undefined;
     vm.notificationValueMap = undefined;
     vm.loadError = undefined;
+    vm.updateAvailableRoles = updateAvailableRoles;
 
     vm.doLoad();
 
@@ -74,6 +76,7 @@
           return action.target !== removalTarget || action.actionTypeId !== 'notify';
         });
       }
+      vm.updateAvailableRoles(stageId);
     }
 
     function addNotification(stageId) {
@@ -91,6 +94,7 @@
             target: target.roleId,
             targetType: 'role'
           });
+          vm.updateAvailableRoles(stageId);
         }
         else {
           (stageId === monitoringStage ? vm.monitorNotifyActions : vm.actions[stageId]).push({
@@ -169,17 +173,17 @@
     }
 
     function getNotificationCount(actionStage) {
-      return getEmailList(actionStage).length + getRolesList(actionStage).length;
+      return getEmailList(actionStage.stageTypeId).length + getRolesList(actionStage.stageTypeId).length;
     }
 
-    function getEmailList(stage) {
-      return extractAddresses((stage.stageTypeId ===
-          monitoringStage ? vm.monitorNotifyActions : vm.actions[stage.stageTypeId] ) || []);
+    function getEmailList(stageTypeId) {
+      return extractAddresses((stageTypeId ===
+          monitoringStage ? vm.monitorNotifyActions : vm.actions[stageTypeId] ) || []);
     }
 
-    function getRolesList(stage) {
-      return extractRoles((stage.stageTypeId ===
-          monitoringStage ? vm.monitorNotifyActions : vm.actions[stage.stageTypeId] ) || []);
+    function getRolesList(stageTypeId) {
+      return extractRoles((stageTypeId ===
+          monitoringStage ? vm.monitorNotifyActions : vm.actions[stageTypeId] ) || []);
     }
 
     function extractAddresses(actions) {
@@ -217,6 +221,16 @@
       return stageActions && stageActions.some(function(action) {
             return action.actionTypeId === 'notify' && action.target === target;
           });
+    }
+
+    function updateAvailableRoles(stageTypeId) {
+      var roles = getRolesList(stageTypeId);
+      var availableRoles = angular.copy(vm.roles) || [];
+      vm.availableRoles[stageTypeId] = availableRoles.filter(function(availableRole) {
+        return !roles.some(function(role) {
+          return role.roleId === availableRole.roleId; 
+        });
+      });
     }
   }
 

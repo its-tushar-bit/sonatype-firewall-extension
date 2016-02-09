@@ -44,10 +44,10 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
     expect(vm.roles.length).toBe(1);
     expect(vm.actions.proxy.length).toBe(4);
     expect(vm.monitorNotifyActions.length).toBe(2);
-    expect(vm.getEmailList(vm.actionStages[0]).length).toBe(2);
-    expect(vm.getRolesList(vm.actionStages[0]).length).toBe(1);
-    expect(vm.getEmailList(vm.actionStages[6]).length).toBe(1);
-    expect(vm.getRolesList(vm.actionStages[6]).length).toBe(1);
+    expect(vm.getEmailList(vm.actionStages[0].stageTypeId).length).toBe(2);
+    expect(vm.getRolesList(vm.actionStages[0].stageTypeId).length).toBe(1);
+    expect(vm.getEmailList(vm.actionStages[6].stageTypeId).length).toBe(1);
+    expect(vm.getRolesList(vm.actionStages[6].stageTypeId).length).toBe(1);
     expect(vm.hasNotifications('proxy')).toBe(true);
     expect(vm.hasNotifications('build')).toBe(false);
   }));
@@ -79,8 +79,10 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
 
   it('Removes notification', function() {
     vm.actions = {proxy: [{target: 'this', actionTypeId: 'notify'}, {target: 'other', actionTypeId: 'notify'}]};
-
+    vm.roles = [{roleId: 'foo', roleName: 'Le Foo'}, {roleId: 'bar', roleName: 'Le Bar'}];
+    vm.availableRoles['proxy'] = [];
     vm.removeNotification('proxy', 'this');
+    expect(vm.availableRoles['proxy'].length).toBe(2);
     expect(vm.actions.proxy.length).toBe(1);
     expect(vm.actions.proxy).toContain({target: 'other', actionTypeId: 'notify'});
   });
@@ -93,6 +95,7 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
 
   it('Add stage notifications', function() {
     vm.roles = [{roleId: 'foo', roleName: 'Le Foo'}, {roleId: 'bar', roleName: 'Le Bar'}];
+    vm.updateAvailableRoles('proxy');
     vm.actions = {proxy: [{target: 'this', actionTypeId: 'notify'}, {target: 'other', actionTypeId: 'notify'}]};
     vm.notificationValueMap = {};
     vm.notificationTypeMap = {};
@@ -108,7 +111,9 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
 
     vm.notificationTypeMap['proxy'] = vm.notificationTypes[1];
     vm.notificationValueMap['proxy'] = {roleId: "foo", roleName: 'Le Foo'};
+    expect(vm.availableRoles['proxy'].length).toBe(2);
     vm.addNotification('proxy');
+    expect(vm.availableRoles['proxy'].length).toBe(1);
     expect(vm.actions.proxy.length).toBe(4);
     expect(vm.actions.proxy).toContain({target: 'foo', actionTypeId: 'notify', targetType: 'role'});
     expect(vm.notificationValueMap['proxy']).toBeUndefined();
@@ -121,7 +126,6 @@ describe('policy.editor.actions.and.notifications.controller.spec.js', function(
     vm.notificationTypeMap = {};
 
     expect(vm.notificationTypes.length).toBe(2)
-    vm.notificationTypeMap['monitoring'] - vm.notificationTypes[0];
 
     vm.notificationValueMap['monitoring'] = 'test@sonatype.com';
     vm.addNotification('monitoring');

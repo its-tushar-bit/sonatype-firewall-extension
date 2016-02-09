@@ -11,6 +11,7 @@ describe('policy.editor.controller.spec.js', function() {
   function createTests(type, owner) {
 
     var vm,
+        $q,
         scope,
         $timeout,
         CLMAppLocations,
@@ -29,9 +30,10 @@ describe('policy.editor.controller.spec.js', function() {
             'policiesByOwner'),
         mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function($rootScope, $q, _$timeout_, _$controller_, _$httpBackend_, _CLMAppLocations_)
+    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$controller_, _$httpBackend_, _CLMAppLocations_)
     {
       scope = $rootScope.$new();
+      $q = _$q_;
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       $controller = _$controller_;
@@ -89,12 +91,10 @@ describe('policy.editor.controller.spec.js', function() {
         $valid: true,
         $setPristine: angular.noop
       };
-      
+      vm.policyEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+
       vm.save();
       resolveSaveData('123');
-
-      // mask delay
-      $timeout.flush();
 
       expect(vm.siblings.length).toBe(2);
       expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
@@ -137,6 +137,7 @@ describe('policy.editor.controller.spec.js', function() {
       vm.policyEditor = {
         $valid: true
       };
+      vm.policyEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
       vm.save();
       mockPolicy.rejectSave('dagnabbit');

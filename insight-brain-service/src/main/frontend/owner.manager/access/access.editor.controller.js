@@ -6,14 +6,15 @@
 (function(angular) {
   'use strict';
 
-  function AccessEditorController($scope, $rootScope, $stateParams, $http, CLMAppLocations, Messages,
-                                  LocalRoleService, SameOwnerStateNavigationService, FormMaskDelay, DeleteModalService)
+  function AccessEditorController($rootScope, $stateParams, $http, CLMAppLocations, Messages, LocalRoleService,
+                                  SameOwnerStateNavigationService, DeleteModalService)
   {
     var originalMembers,
         ownerType,
         vm = this;
-    
+
     vm.accessEditor = undefined;
+    vm.accessEditorMask = undefined;
     vm.accessEditorSearch = undefined;
     vm.loadError = undefined;
     vm.query = undefined;
@@ -100,8 +101,8 @@
               '"Remove Role" button; it will save you some clicks!');
         }
         else {
-          FormMaskDelay.wrap($scope,
-              $http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId), currentlyPicked())).then(function() {
+          vm.accessEditorMask.wrap($http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId),
+              currentlyPicked())).then(function() {
             if (vm.isNew) {
               $rootScope.$broadcast('resource.data.modified');
               vm.availableRoles.some(function(role, index) {
@@ -148,7 +149,6 @@
         }, function(error) {
           vm.searchError = Messages.getHttpErrorMessage(error);
         });
-
       }
     }
 
@@ -174,8 +174,8 @@
   }
 
   AccessEditorController.$inject = [
-    '$scope', '$rootScope', '$stateParams', '$http', 'CLMAppLocations', 'Messages',
-    'local.role.service', 'SameOwnerStateNavigationService', 'FormMaskDelay', 'DeleteModalService'
+    '$rootScope', '$stateParams', '$http', 'CLMAppLocations', 'Messages', 'local.role.service',
+    'SameOwnerStateNavigationService', 'DeleteModalService'
   ];
 
   angular //

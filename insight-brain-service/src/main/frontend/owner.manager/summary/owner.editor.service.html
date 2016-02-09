@@ -14,7 +14,7 @@
     <input name="robotHash" ng-model="vm.icon.robotHash" type="text"/>
     <input name="{{::vm.csrfTokenName}}" value="{{::vm.csrfTokenValue}}" type="text"/>
   </form>
-  <form name="vm.ownerEditor" role="form" ng-submit="vm.save()" class="clm-form" form-mask>
+  <form name="vm.ownerEditor" role="form" ng-submit="vm.save()" class="clm-form" form-mask="vm.ownerEditorMask">
     <div class="clm-modal-body">
       <div class="section">
         <div class="field">

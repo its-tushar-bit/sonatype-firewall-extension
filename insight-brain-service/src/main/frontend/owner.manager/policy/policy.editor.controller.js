@@ -6,8 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorController($q, $http, $scope, $stateParams, PolicyHierarchyStore, DeleteModalService,
-                                  formMaskDelay, SameOwnerStateNavigationService, CLMAppLocations)
+  function PolicyEditorController($q, $http, $stateParams, PolicyHierarchyStore, DeleteModalService,
+                                  SameOwnerStateNavigationService, CLMAppLocations)
   {
     var vm = this,
         originalCategories,
@@ -17,6 +17,7 @@
     vm.dirtyPolicy = undefined;
     vm.doLoad = doLoad;
     vm.policyEditor = undefined;
+    vm.policyEditorMask = undefined;
     vm.deletePolicy = deletePolicy;
     vm.loadError = undefined;
     vm.save = save;
@@ -121,7 +122,7 @@
           return category.isApplied;
         });
 
-        formMaskDelay.wrap($scope, savePolicy).then(function() {
+        vm.policyEditorMask.wrap(savePolicy).then(function() {
           if (isNew) {
             vm.siblings.push(vm.dirtyPolicy);
             vm.dirtyPolicy = createPolicy();
@@ -145,8 +146,8 @@
   }
 
   PolicyEditorController.$inject = [
-    '$q', '$http', '$scope', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService', 'FormMaskDelay',
-    'SameOwnerStateNavigationService', 'CLMAppLocations'
+    '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService', 'SameOwnerStateNavigationService',
+    'CLMAppLocations'
   ];
 
   angular //

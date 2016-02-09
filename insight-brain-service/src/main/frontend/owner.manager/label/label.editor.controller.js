@@ -6,7 +6,9 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($q, $http, $stateParams, $scope, LabelStore, CLMAppLocations, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
+  function LabelEditorController($q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
+                                 SameOwnerStateNavigationService)
+  {
     var vm = this;
 
     vm.dirtyLabel = undefined;
@@ -14,6 +16,7 @@
     vm.doLoad = doLoad;
     vm.loadError = undefined;
     vm.labelEditor = undefined;
+    vm.labelEditorMask = undefined;
     vm.siblings = [];
     vm.save = save;
     vm.submitError = undefined;
@@ -55,7 +58,7 @@
       var isNew = vm.dirtyLabel.$new;
       delete vm.submitError;
 
-      formMaskDelay.wrap($scope, vm.dirtyLabel.$save()).then(function() {
+      vm.labelEditorMask.wrap(vm.dirtyLabel.$save()).then(function() {
         if (isNew) {
           vm.siblings.push(vm.dirtyLabel);
           vm.dirtyLabel = LabelStore.create();
@@ -67,7 +70,10 @@
     }
   }
 
-  LabelEditorController.$inject = ['$q', '$http', '$stateParams', '$scope', 'LabelStore', 'CLMAppLocations', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
+  LabelEditorController.$inject = [
+    '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
+    'SameOwnerStateNavigationService'
+  ];
 
   angular.module('owner.manager.module').controller('label.editor.controller', LabelEditorController);
 

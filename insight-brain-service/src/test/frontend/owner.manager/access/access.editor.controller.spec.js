@@ -1,5 +1,6 @@
 describe('access.editor.controller.spec.js', function() {
   var vm,
+      $q,
       $httpBackend,
       deleteServiceResourceDefer,
       $timeout,
@@ -36,10 +37,11 @@ describe('access.editor.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $controller, _$timeout_, $q, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function($rootScope, $controller, _$timeout_, _$q_, _$httpBackend_, _CLMAppLocations_) {
         scope = $rootScope.$new();
         $timeout = _$timeout_;
         $httpBackend = _$httpBackend_;
+        $q = _$q_;
         deleteServiceResourceDefer = $q.defer();
         CLMAppLocations = _CLMAppLocations_;
       }
@@ -86,6 +88,7 @@ describe('access.editor.controller.spec.js', function() {
     $httpBackend.flush();
     vm.removeRole = jasmine.createSpy();
     vm.members.forEach(function(user) { user.picked = false; });
+    vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
 
@@ -120,6 +123,7 @@ describe('access.editor.controller.spec.js', function() {
     vm.accessEditor = mockAccessEditor;
     vm.role = vm.availableRoles[0];
     vm.members = [{internalName: 'testUser', picked: true}];
+    vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
     $httpBackend.expectPUT(mockCLMAppLocations.getRoleMappingUrl()).respond(200);

@@ -6,9 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function LicenseThreatGroupEditorController($q, $http, $stateParams, $scope, CLMLocations, licenseGroupStore,
-                                              CLMAppLocations, DeleteModalService, formMaskDelay,
-                                              SameOwnerStateNavigationService)
+  function LicenseThreatGroupEditorController($q, $http, $stateParams, CLMLocations, licenseGroupStore, CLMAppLocations,
+                                              DeleteModalService, SameOwnerStateNavigationService)
   {
     var originalPickedLicenseIds = [],
         vm = this;
@@ -20,6 +19,7 @@
     vm.isLTGDirty = isLTGDirty;
     vm.loadError = undefined;
     vm.ltgEditor = undefined;
+    vm.ltgEditorMask = undefined;
     vm.save = save;
     vm.siblings = [];
     vm.submitError = undefined;
@@ -93,7 +93,7 @@
           }
         });
 
-        formMaskDelay.wrap($scope, vm.dirtyLTG.$save()).then(function() {
+        vm.ltgEditorMask.wrap(vm.dirtyLTG.$save()).then(function() {
           if (isNew) {
             vm.siblings.push(vm.dirtyLTG);
             vm.dirtyLTG = licenseGroupStore.create();
@@ -123,8 +123,8 @@
   }
 
   LicenseThreatGroupEditorController.$inject = [
-    '$q', '$http', '$stateParams', '$scope', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations',
-    'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'
+    '$q', '$http', '$stateParams', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations', 'DeleteModalService',
+    'SameOwnerStateNavigationService'
   ];
 
   angular.module('owner.manager.module').controller('license.threat.group.editor.controller',

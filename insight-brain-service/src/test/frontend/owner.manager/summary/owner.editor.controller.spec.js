@@ -16,7 +16,7 @@ describe('owner.editor.controller.spec.js', function() {
     describe('New Owner: ' + type, function() {
       var ownerResource;
 
-      beforeEach(inject(function($controller, $rootScope) {
+      beforeEach(inject(function($controller, $rootScope, $q) {
         ownerResource = {
           $new: true,
           $save: angular.noop,
@@ -34,6 +34,8 @@ describe('owner.editor.controller.spec.js', function() {
           ownerType: type,
           siblings: []
         });
+
+        vm.ownerEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
       }));
 
       describe('Page Changes', function() {

@@ -6,10 +6,13 @@
 (function(angular) {
   'use strict';
 
-  function DeleteModalController($scope, Messages, FormMaskDelay, resourceType, resourceName, resource, headerText, bodyText, maskText, continueAction) {
+  function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText, bodyText, maskText,
+                                 continueAction)
+  {
     var vm = this;
 
     vm.deleteResource = deleteResource;
+    vm.deleteResourceMask = undefined;
     vm.error = undefined;
     vm.resourceName = resourceName;
     vm.resourceType = resourceType;
@@ -18,7 +21,7 @@
     vm.maskText = maskText;
 
     function deleteResource() {
-      FormMaskDelay.wrap($scope, continueAction ? continueAction() : resource.$delete()).then(function() {
+      vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(function() {
         $scope.$close();
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
@@ -26,7 +29,10 @@
     }
   }
 
-  DeleteModalController.$inject = ['$scope', 'Messages', 'FormMaskDelay', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText', 'continueAction'];
+  DeleteModalController.$inject = [
+    '$scope', 'Messages', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText',
+    'continueAction'
+  ];
 
   angular //
       .module('utility') //

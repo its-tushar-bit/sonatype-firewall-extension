@@ -9,6 +9,7 @@ describe('select.application.contact.controller.spec.js', function() {
   beforeEach(module('ResourceModule'));
 
   var vm,
+      $q,
       scope,
       $timeout,
       $httpBackend,
@@ -16,8 +17,9 @@ describe('select.application.contact.controller.spec.js', function() {
       mockDeleteService,
       mockOwner = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_, _$httpBackend_) {
+  beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_) {
       scope = $rootScope.$new();
+      $q = _$q_;
       $timeout = _$timeout_;
       deleteServiceResourceDefer = $q.defer();
       mockDeleteService = {
@@ -47,6 +49,7 @@ describe('select.application.contact.controller.spec.js', function() {
       vm = $controller('select.application.contact.controller', {$scope: scope, owner: mockOwner});
     });
     vm.selected = {internalName: 'Foo Bar'};
+    vm.selectContactFormMask = {wrap: SpecUtil.promiseWrapper($q)};
     vm.updateContact();
     mockOwner.resolveSave();
     $timeout.flush();

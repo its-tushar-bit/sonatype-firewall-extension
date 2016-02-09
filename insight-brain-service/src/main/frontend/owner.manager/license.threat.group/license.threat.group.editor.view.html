@@ -5,8 +5,8 @@
       </i>{{::vm.dirtyLTG.id ? 'Edit' : 'New'}} License Threat Group
     </h2>
 
-    <form name="vm.ltgEditor" class="clm-form" role="form" ng-submit="vm.save()" novalidate form-mask
-          mask-attach-to-body>
+    <form name="vm.ltgEditor" class="clm-form" role="form" ng-submit="vm.save()" novalidate
+          form-mask="vm.ltgEditorMask" mask-attach-to-body>
       <div class="section">
         <div class="inline-fields">
           <div class="field">

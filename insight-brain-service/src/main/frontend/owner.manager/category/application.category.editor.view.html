@@ -7,7 +7,7 @@
     </h2>
     <form name="vm.categoryEditor" class="clm-form" role="form"
           ng-submit="vm.categoryEditor.$valid && vm.areCategoriesDirty() && vm.save()"
-          form-mask mask-attach-to-body>
+          form-mask="vm.categoryEditorMask" mask-attach-to-body>
       <div class="section">
         <div class="field">
           <label for="associated-categories">Associated Application Categories</label>

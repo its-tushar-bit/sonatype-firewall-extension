@@ -6,8 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages, FormMaskDelay,
-                                          MonitoredStageService)
+  function MonitoredStageEditorController($q, StageTypeStore, PolicyMonitoringStore, Messages, MonitoredStageService)
   {
     var originalStage,
         vm = this;
@@ -20,6 +19,7 @@
     vm.save = save;
     vm.isDirty = isDirty;
     vm.continuousMonitoringEditor = undefined;
+    vm.continuousMonitoringEditorMask = undefined;
 
     vm.doLoad();
 
@@ -42,7 +42,7 @@
     function save() {
       delete vm.submitError;
 
-      FormMaskDelay.wrap($scope, vm.monitoredStage.stageTypeId ?
+      vm.continuousMonitoringEditorMask.wrap(vm.monitoredStage.stageTypeId ?
           PolicyMonitoringStore.save(vm.monitoredStage) : PolicyMonitoringStore.remove()).then(function() {
         originalStage = angular.copy(vm.monitoredStage);
       }, function(error) {
@@ -56,7 +56,7 @@
   }
 
   MonitoredStageEditorController.$inject = [
-    '$scope', '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'FormMaskDelay', 'monitored.stage.service'
+    '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'monitored.stage.service'
   ];
 
   angular //

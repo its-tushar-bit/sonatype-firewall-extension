@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function SelectApplicationContactController($scope, $http, CLMAppLocations, FormMaskDelay, owner, DeleteModalService, Messages) {
+  function SelectApplicationContactController($scope, $http, CLMAppLocations, owner, DeleteModalService, Messages) {
     var vm = this;
 
     vm.deleteMode = false;
@@ -19,6 +19,7 @@
     vm.selected = undefined;
     vm.submitError = undefined;
     vm.updateContact = updateContact;
+    vm.selectContactFormMask = undefined;
     vm.users = undefined;
 
     function search() {
@@ -46,7 +47,7 @@
     function updateContact() {
       delete vm.submitError;
       owner.contactInternalName = vm.selected.internalName;
-      FormMaskDelay.wrap($scope, owner.$save()).then(function() {
+      vm.selectContactFormMask.wrap(owner.$save()).then(function() {
         $scope.$close();
       }, function(error) {
         vm.submitError = Messages.getHttpErrorMessage(error);
@@ -75,7 +76,9 @@
     }
   }
 
-  SelectApplicationContactController.$inject = ['$scope', '$http', 'CLMAppLocations', 'FormMaskDelay', 'owner', 'DeleteModalService', 'Messages'];
+  SelectApplicationContactController.$inject = [
+    '$scope', '$http', 'CLMAppLocations', 'owner', 'DeleteModalService', 'Messages'
+  ];
 
   angular //
       .module('owner.manager.module') //

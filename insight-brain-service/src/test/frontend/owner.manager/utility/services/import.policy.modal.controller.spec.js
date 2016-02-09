@@ -19,6 +19,7 @@ describe('import.policy.modal.controller.spec.js', function() {
 
     vm = $controller('import.policy.modal.controller',
         {$scope: scope});
+    vm.importPolicyMask = {wrap: SpecUtil.promiseWrapper($q)};
   }));
 
   it('Test Form validation', function() {
@@ -49,6 +50,7 @@ describe('import.policy.modal.controller.spec.js', function() {
 
     it('Test import success', function() {
       validateInitialState();
+      scope.$close = jasmine.createSpy('close');
 
       $httpBackend.expectPOST(CLMAppLocations.getImportPolicyUrl()).respond({
         ownerName: 'test'
@@ -57,6 +59,7 @@ describe('import.policy.modal.controller.spec.js', function() {
       vm.doSubmit()
       $httpBackend.flush();
 
+      expect(scope.$close).toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
     });
 

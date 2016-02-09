@@ -24,7 +24,7 @@
       <div class="clm-modal-header">
         <h3>Re-evaluate policy</h3>
       </div>
-      <form ng-submit="vm.reEvaluatePolicy()" form-mask="Starting evaluation">
+      <form ng-submit="vm.reEvaluatePolicy()" form-mask="vm.reEvaluatePolicyMask" mask-message="Starting evaluation">
         <div class="clm-modal-body">
           <span>
             Note: Re-evaluating policy can be a time-consuming process depending on repository size. If you proceed,

@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryEditorController($q, $http, $scope, ApplicationStore, CLMAppLocations, CLMLocations, formMaskDelay)
+  function ApplicationCategoryEditorController($q, $http, ApplicationStore, CLMAppLocations, CLMLocations)
   {
     var originalCategoryArray,
         vm = this;
@@ -20,6 +20,7 @@
     vm.isApp = CLMAppLocations.isApplication();
     vm.ownerName = undefined;
     vm.categoryEditor = undefined;
+    vm.categoryEditorMask = undefined;
     vm.areCategoriesDirty = areCategoriesDirty;
 
     vm.doLoad();
@@ -73,7 +74,7 @@
         return category.isApplied;
       });
 
-      formMaskDelay.wrap($scope, $http.put(CLMLocations.getApplicationTagUrl(CLMAppLocations.getEntityId()),
+      vm.categoryEditorMask.wrap($http.put(CLMLocations.getApplicationTagUrl(CLMAppLocations.getEntityId()),
           appliedCategories)).then(function() {
         originalCategoryArray = angular.copy(vm.categories);
         vm.categoryEditor.$setPristine();
@@ -87,9 +88,7 @@
     }
   }
 
-  ApplicationCategoryEditorController.$inject = [
-    '$q', '$http', '$scope', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'FormMaskDelay'
-  ];
+  ApplicationCategoryEditorController.$inject = ['$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'];
 
   angular//
       .module('owner.manager.module')//

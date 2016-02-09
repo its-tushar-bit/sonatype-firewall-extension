@@ -6,8 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages,
-                                       CLMAppLocations, formMaskDelay)
+  function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMAppLocations)
   {
     var vm = this,
         ieDeferred;
@@ -18,6 +17,7 @@
     vm.doSubmit = doSubmit;
     vm.error = undefined;
     vm.uploaded = uploaded;
+    vm.importPolicyMask = undefined;
     vm.importPolicyUrl = importPolicyUrl;
     
     function setError(message, retryFunction) {
@@ -43,7 +43,7 @@
 
       if ($window.FormData) {
         var formData = new FormData(form[0]);
-        formMaskDelay.wrap($scope, $http.post(CLMAppLocations.getImportPolicyUrl(), formData)).then(function() {
+        vm.importPolicyMask.wrap($http.post(CLMAppLocations.getImportPolicyUrl(), formData)).then(function() {
           $rootScope.$broadcast('policy.imported');
           $scope.$close();
         }, function(error) {
@@ -53,7 +53,7 @@
       else {
         // IE9 case, trigger ng-upload
         ieDeferred = $q.defer();
-        formMaskDelay.wrap($scope, ieDeferred.promise).then(function() {
+        vm.importPolicyMask.wrap(ieDeferred.promise).then(function() {
           $rootScope.$broadcast('policy.imported');
           $scope.$close();
         }, function(error) {
@@ -75,7 +75,7 @@
   }
 
   ImportPolicyModalController.$inject = [
-    '$rootScope', '$scope', '$q', '$http', '$window', '$cookies', 'Messages', 'CLMAppLocations', 'FormMaskDelay'
+    '$rootScope', '$scope', '$q', '$http', '$window', '$cookies', 'Messages', 'CLMAppLocations'
   ];
 
   angular //

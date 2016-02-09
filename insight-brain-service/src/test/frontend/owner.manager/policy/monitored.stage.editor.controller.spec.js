@@ -31,6 +31,8 @@ describe('monitored.stage.editor.controller.spec.js', function() {
     vm = $controller('monitored.stage.editor.controller', {
       $scope: scope, 'monitored.stage.service': mockMonitoredStageService
     });
+
+    vm.continuousMonitoringEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
   }));
 
   it('Sets state correctly on load', function() {

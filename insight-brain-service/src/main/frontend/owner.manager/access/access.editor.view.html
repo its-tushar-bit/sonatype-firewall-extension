@@ -18,7 +18,8 @@
       </div>
     </form>
 
-    <form name="vm.accessEditor" class="clm-form" role="form" novalidate form-mask mask-attach-to-body ng-submit="vm.save()">
+    <form name="vm.accessEditor" class="clm-form" role="form" novalidate form-mask="vm.accessEditorMask"
+          mask-attach-to-body ng-submit="vm.save()">
       <div class="section">
         <div class="field" id="access-editor-role" ng-if="vm.isNew" ng-class="{'space-for-error': vm.searchError}">
           <label for="access-role-name" ng-if="true">Role</label><!-- bogus ng-if to fix IE9 combobox rendering -->

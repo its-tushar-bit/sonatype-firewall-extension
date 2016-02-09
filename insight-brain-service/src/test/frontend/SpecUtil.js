@@ -96,5 +96,19 @@ var SpecUtil = {
         isAuthorized: fn
       };
     }]);
+  },
+
+  promiseWrapper: function($q) {
+    return function(promise) {
+      var deferred = $q.defer();
+
+      promise.then(function() {
+        deferred.resolve.apply(deferred, arguments);
+      }, function() {
+        deferred.reject.apply(deferred, arguments);
+      });
+
+      return deferred.promise;
+    };
   }
 };

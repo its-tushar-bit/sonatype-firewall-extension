@@ -4,7 +4,8 @@
       <i class="fa size-20px fa-trash"></i> {{vm.headerText || 'Delete ' + vm.resourceType}}
     </h2>
   </div>
-  <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="{{vm.maskText || 'Deleting'}}">
+  <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="vm.deleteResourceMask"
+        mask-message="{{vm.maskText || 'Deleting'}}">
     <div class="clm-modal-body">
       <div ng-if="!vm.error" class="clm-alert alert">
         <i class="fa fa-warning"></i>

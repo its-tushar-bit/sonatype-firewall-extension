@@ -4,7 +4,8 @@
       <i class="fa size-20px fa-user slate"></i>Select Contact
     </h2>
   </div>
-  <form class="clm-form" role="form" name="vm.selectContactForm" ng-submit="vm.isDirty() && vm.updateContact()" form-mask="Updating">
+  <form class="clm-form" role="form" name="vm.selectContactForm" ng-submit="vm.isDirty() && vm.updateContact()"
+        form-mask="vm.selectContactFormMask" mask-message="Updating">
     <div class="clm-modal-body">
       <div class="section">
         <h3 id="current-contact">

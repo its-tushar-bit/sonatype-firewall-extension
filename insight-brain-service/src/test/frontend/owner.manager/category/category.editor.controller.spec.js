@@ -9,6 +9,7 @@ describe('category.editor.controller.spec.js', function() {
   beforeEach(module('ResourceModule'));
 
   var vm,
+      $q,
       scope,
       $timeout,
       deleteServiceResourceDefer,
@@ -18,9 +19,10 @@ describe('category.editor.controller.spec.js', function() {
       mockCategory = ResourceUtils().createMockResource(),
       mockOwner = {store: {create: function(){return 'stub';}}, tags: [mockCategory]};
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_) {
+  beforeEach(inject(function($rootScope, _$q_, _$timeout_) {
         scope = $rootScope.$new();
         $timeout = _$timeout_;
+        $q = _$q_;
         deleteServiceResourceDefer = $q.defer();
         mockDeleteService = {
           deleteResource: function() {
@@ -61,6 +63,8 @@ describe('category.editor.controller.spec.js', function() {
     mockCategory.$new = true;
     vm.dirtyCategory = mockCategory;
     vm.categoryEditor = {$setPristine: function(){}};
+    vm.categoryEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+
     vm.save();
     mockCategory.resolveSave();
     $timeout.flush();
@@ -98,6 +102,7 @@ describe('category.editor.controller.spec.js', function() {
     mockCategoryStore.resolveGet([mockOwner]);
     $timeout.flush();
     vm.dirtyCategory = mockCategory;
+    vm.categoryEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
     vm.save();
     mockCategory.rejectSave('dammit');
     $timeout.flush();

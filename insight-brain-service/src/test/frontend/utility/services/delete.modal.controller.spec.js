@@ -25,6 +25,7 @@ describe('delete.modal.controller.spec.js', function() {
       continueAction: null
     });
     $timeout = _$timeout_;
+    vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
   }));
 
   it('sets resource metadata', function() {
@@ -53,7 +54,7 @@ describe('delete.modal.controller.spec.js', function() {
   });
 
   it('calls custom continue action', function() {
-    inject(function($controller) {
+    inject(function($controller, $q) {
       vm = $controller('DeleteModalController', {$scope: scope,
         resourceType: null,
         resourceName: null,
@@ -62,6 +63,8 @@ describe('delete.modal.controller.spec.js', function() {
         bodyText: 'body',
         maskText: 'mask',
         continueAction: continueAction});
+
+      vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
     });
     vm.deleteResource();
     expect(continueAction).toHaveBeenCalled();
@@ -76,7 +79,7 @@ describe('delete.modal.controller.spec.js', function() {
   });
 
   it('handles a delete error from custom action', function() {
-    inject(function($controller) {
+    inject(function($controller, $q) {
       vm = $controller('DeleteModalController', {$scope: scope,
         resourceType: null,
         resourceName: null,
@@ -85,6 +88,8 @@ describe('delete.modal.controller.spec.js', function() {
         bodyText: 'body',
         maskText: 'mask',
         continueAction: continueAction});
+      
+      vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
     });
     vm.deleteResource();
     expect(continueAction).toHaveBeenCalled();

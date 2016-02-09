@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($stateParams, $scope, TagStore, DeleteModalService, formMaskDelay, SameOwnerStateNavigationService) {
+  function CategoryEditorController($stateParams, TagStore, DeleteModalService, SameOwnerStateNavigationService) {
     var vm = this;
     var store;
 
@@ -15,6 +15,7 @@
     vm.doLoad = doLoad;
     vm.loadError = undefined;
     vm.categoryEditor = undefined;
+    vm.categoryEditorMask = undefined;
     vm.siblings = [];
     vm.save = save;
     vm.submitError = undefined;
@@ -58,7 +59,7 @@
       var isNew = vm.dirtyCategory.$new;
       delete vm.submitError;
 
-      formMaskDelay.wrap($scope, vm.dirtyCategory.$save()).then(function() {
+      vm.categoryEditorMask.wrap(vm.dirtyCategory.$save()).then(function() {
         if (isNew) {
           vm.siblings.push(vm.dirtyCategory);
           vm.dirtyCategory = store.create();
@@ -70,7 +71,9 @@
     }
   }
 
-  CategoryEditorController.$inject = ['$stateParams', '$scope', 'TagStore', 'DeleteModalService', 'FormMaskDelay', 'SameOwnerStateNavigationService'];
+  CategoryEditorController.$inject = [
+    '$stateParams', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService'
+  ];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);
 

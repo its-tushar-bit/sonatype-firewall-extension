@@ -5,8 +5,8 @@
       </i>{{vm.dirtyLabel.id ? 'Edit' : 'New'}} Component Label
     </h2>
     <form name="vm.labelEditor" class="clm-form" role="form"
-          ng-submit="vm.labelEditor.$valid && vm.dirtyLabel.isDirty() && vm.save()" novalidate form-mask
-          mask-attach-to-body>
+          ng-submit="vm.labelEditor.$valid && vm.dirtyLabel.isDirty() && vm.save()" novalidate
+          form-mask="vm.labelEditorMask" mask-attach-to-body>
       <div class="section">
         <div class="field">
           <label for="editor-label-name">Component Label Name</label>

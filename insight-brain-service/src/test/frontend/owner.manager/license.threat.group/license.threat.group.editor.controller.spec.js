@@ -9,6 +9,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
   beforeEach(module('ResourceModule'));
 
   var vm,
+      $q,
       scope,
       $timeout,
       $httpBackend,
@@ -22,9 +23,10 @@ describe('license.threat.group.editor.controller.spec.js', function() {
       mockLicenseGroupStore = StoreUtils().createMockStore('licenseGroupStore'),
       mockLTG = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
+  beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
     scope = $rootScope.$new();
     $timeout = _$timeout_;
+    $q = _$q_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     CLMAppLocations = _CLMAppLocations_;
@@ -63,8 +65,8 @@ describe('license.threat.group.editor.controller.spec.js', function() {
   }));
 
   it('Updates siblings list after creating new', inject(function($controller) {
-    spyOn(vm, 'isLTGDirty').andReturn(true);
     vm = $controller('license.threat.group.editor.controller', {$scope: scope});
+    spyOn(vm, 'isLTGDirty').andReturn(true);
 
     $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
     $httpBackend.whenGET(CLMAppLocations.getApplicableLicenseGroupsUrl()).respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
@@ -82,6 +84,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
       $valid: true,
       $setPristine: angular.noop
     };
+    vm.ltgEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
     mockLTG.resolveSave();
@@ -144,6 +147,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     vm.ltgEditor = {
       $valid: true
     };
+    vm.ltgEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
 
     vm.save();
     mockLTG.rejectSave('dagnabbit');

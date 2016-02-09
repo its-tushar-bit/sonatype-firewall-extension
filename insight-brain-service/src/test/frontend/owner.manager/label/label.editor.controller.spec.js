@@ -10,6 +10,7 @@ describe('label.editor.controller.spec.js', function() {
 
   var vm,
       scope,
+      $q,
       $timeout,
       $httpBackend,
       deleteServiceResourceDefer,
@@ -18,9 +19,10 @@ describe('label.editor.controller.spec.js', function() {
       mockLabelStore = StoreUtils().createMockStore('LabelStore'),
       mockLabel = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function($rootScope, $q, _$timeout_, _$httpBackend_) {
+  beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_) {
       scope = $rootScope.$new();
       $timeout = _$timeout_;
+      $q = _$q_;
       deleteServiceResourceDefer = $q.defer();
       mockDeleteService = {
         deleteResource: function() {
@@ -65,6 +67,8 @@ describe('label.editor.controller.spec.js', function() {
     mockLabel.$new = true;
     vm.dirtyLabel = mockLabel;
     vm.labelEditor = {$setPristine: function(){}};
+    vm.labelEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+
     vm.save();
     mockLabel.resolveSave();
     $timeout.flush();
@@ -108,6 +112,7 @@ describe('label.editor.controller.spec.js', function() {
     $timeout.flush();
     $httpBackend.flush();
     vm.dirtyLabel = mockLabel;
+    vm.labelEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
     vm.save();
     mockLabel.rejectSave('dammit');
     $timeout.flush();

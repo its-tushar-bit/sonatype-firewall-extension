@@ -7,7 +7,7 @@
   'use strict';
 
   function OwnerEditorController($scope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings, messages,
-                                 CLMAppLocations, formMaskDelay)
+                                 CLMAppLocations)
   {
     var vm = this,
         deferred;
@@ -22,6 +22,7 @@
     vm.icon = {};
     vm.iconUploadUrl = CLMAppLocations.getAddIconUrl(ownerType);
     vm.ownerEditor = undefined;
+    vm.ownerEditorMask = undefined;
     vm.ownerType = ownerType;
     vm.robot = robot;
     vm.robotUrl = robotUrl;
@@ -73,7 +74,7 @@
       var isNew = owner.$new;
       delete vm.error;
 
-      formMaskDelay.wrap($scope, vm.dirtyOwner.$save().then(function(result) {
+      vm.ownerEditorMask.wrap(vm.dirtyOwner.$save().then(function(result) {
         var form = $('#custom-icon-form');
 
         form.find('input[name=' + ownerType + 'Id]').val(result.id);
@@ -147,7 +148,7 @@
 
   OwnerEditorController.$inject = [
     '$scope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings', 'Messages',
-    'CLMAppLocations', 'FormMaskDelay'
+    'CLMAppLocations'
   ];
 
   angular //

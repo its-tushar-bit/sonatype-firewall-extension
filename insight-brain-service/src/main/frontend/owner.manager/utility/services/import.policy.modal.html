@@ -3,7 +3,7 @@
     <h2>Import Policy</h2>
   </div>
   <form class="clm-form" name='importPolicy' action='{{vm.importPolicyUrl()}}' enctype='multipart/form-data'
-        method='post' ng-upload='vm.uploaded(content)' form-mask="Importing">
+        method='post' ng-upload='vm.uploaded(content)' form-mask="vm.importPolicyMask" mask-message="Importing">
     <div class="clm-modal-body">
       <div class="section">
         <div class="field">

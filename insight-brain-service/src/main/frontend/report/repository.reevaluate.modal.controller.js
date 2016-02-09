@@ -7,14 +7,15 @@
 (function() {
   'use strict';
 
-  function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages, FormMaskDelay) {
+  function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages) {
     var vm = this;
     vm.error = undefined;
     vm.reEvaluatePolicy = reEvaluatePolicy;
+    vm.reEvaluatePolicyMask = undefined;
 
     function reEvaluatePolicy() {
       delete vm.error;
-      FormMaskDelay.wrap($scope, $http.post(CLMLocations.getRepositoryEvaluateUrl($stateParams.repositoryId))).then(function() {
+      vm.reEvaluatePolicyMask.wrap($http.post(CLMLocations.getRepositoryEvaluateUrl($stateParams.repositoryId))).then(function() {
         $scope.$close();
       }, function(error) {
         vm.error = Messages.getHttpErrorMessage(error);
@@ -22,7 +23,7 @@
     }
   }
 
-  RepositoryReEvaluateModalController.$inject = ['$scope', '$http', '$stateParams', 'CLMLocations', 'Messages', 'FormMaskDelay'];
+  RepositoryReEvaluateModalController.$inject = ['$scope', '$http', '$stateParams', 'CLMLocations', 'Messages'];
 
   angular.module('Report').controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController);
 }());

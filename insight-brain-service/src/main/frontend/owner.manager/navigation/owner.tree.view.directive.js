@@ -333,7 +333,7 @@
 
   function ownerTreeView() {
     return {
-      templateUrl: 'owner.manager/navigation/owner.tree.view.directive.html',
+      templateUrl: 'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp,
       controller: OwnerTreeViewController,
       controllerAs: 'vm'
     };

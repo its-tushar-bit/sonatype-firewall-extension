@@ -37,7 +37,8 @@ describe('owner.tree-view.directive.spec.js', function() {
       scope = _$rootScope_.$new();
       var ownerTreeView = angular.element('<div owner-tree-view></div>');
       _$compile_(ownerTreeView)(scope);
-      SpecUtil.respondWithTemplate($httpBackend, 'owner.manager/navigation/owner.tree.view.directive.html');
+      SpecUtil.respondWithTemplate($httpBackend,
+          'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp);
       scope.$digest();
 
       spyOn($state, 'includes').andReturn(false);

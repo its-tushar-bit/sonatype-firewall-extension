@@ -9,38 +9,76 @@
   function OwnerEditorController($scope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings, messages,
                                  CLMAppLocations, formMaskDelay)
   {
-    $scope.dirtyOwner = owner.$new ? owner : owner.$clone(); // only create a copy for an existing
-    $scope.icon = {};
+    var vm = this,
+        deferred;
 
-    $scope.csrfTokenName = $http.defaults.xsrfHeaderName;
-    $scope.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
-    $scope.ownerType = ownerType;
-    $scope.siblings = siblings;
+    vm.cancel = cancel;
+    vm.csrfTokenName = $http.defaults.xsrfHeaderName;
+    vm.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
+    vm.dirtyOwner = owner.$new ? owner : owner.$clone(); // only create a copy for an existing
+    vm.error = undefined;
+    vm.fileUploadComplete = fileUploadComplete;
+    vm.getTypeName = getTypeName;
+    vm.icon = {};
+    vm.iconUploadUrl = CLMAppLocations.getAddIconUrl(ownerType);
+    vm.ownerEditor = undefined;
+    vm.ownerType = ownerType;
+    vm.robot = robot;
+    vm.robotUrl = robotUrl;
+    vm.save = save;
+    vm.siblings = siblings;
+    vm.userIconPreview = undefined;
 
-    $scope.iconUploadUrl = CLMAppLocations.getAddIconUrl(ownerType);
+    $scope.$watch('vm.icon.type', function(iconType) {
+      if (iconType !== 'source') {
+        $('#icon-file').val(''); // reset
+      }
 
-    var deferred;
+      vm.icon.hasRobotSource = (iconType === 'robot');
+      if (!vm.icon.hasRobotSource) {
+        vm.icon.robotHash = null;
+      }
+      else {
+        vm.robot(vm.dirtyOwner && vm.dirtyOwner.name);
+      }
+    });
 
-    $scope.fileUploadComplete = function(content) {
+    $scope.$watch('vm.icon.source', function() {
+      if ($window.URL && vm.icon.source) {
+        vm.userIconPreview = $window.URL.createObjectURL($('#icon-file')[0].files[0]);
+      }
+    });
+
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.dirtyOwner.isDirty()) {
+        event.preventDefault();
+      }
+    });
+
+    $scope.$on('pageChangeAccepted', function() {
+      $scope.$dismiss();
+    });
+
+    function fileUploadComplete(content) {
       if (angular.isString(content) && content) {
         deferred.reject(content);
       }
       else {
-        deferred.resolve($scope.dirtyOwner);
+        deferred.resolve(vm.dirtyOwner);
       }
       deferred = null;
-    };
+    }
 
-    $scope.save = function() {
+    function save() {
       var isNew = owner.$new;
-      delete $scope.error;
+      delete vm.error;
 
-      formMaskDelay.wrap($scope, $scope.dirtyOwner.$save().then(function(result) {
+      formMaskDelay.wrap($scope, vm.dirtyOwner.$save().then(function(result) {
         var form = $('#custom-icon-form');
 
         form.find('input[name=' + ownerType + 'Id]').val(result.id);
 
-        if ($scope.icon.type === '') {
+        if (vm.icon.type === '') {
           // default icon
           return result;
         }
@@ -71,22 +109,23 @@
         }
         $scope.$close();
       }, function(error) {
-        $scope.error = messages.getHttpErrorMessage(error);
+        vm.error = messages.getHttpErrorMessage(error);
       });
-    };
+    }
 
-    $scope.getTypeName = function() {
+    function getTypeName() {
       return ownerType === 'application' ? 'Application' : 'Organization';
-    };
+    }
 
-    $scope.cancel = function() {
+    function cancel() {
       $scope.$dismiss();
-    };
+    }
 
-    $scope.robot = function(name) {
+    function robot(name) {
       var hash = 0;
+
       // Once the user has already generated a robot by hashing the name, continue to provide random robots
-      if (!name || $scope.icon.robotHash) {
+      if (!name || vm.icon.robotHash) {
         hash = Math.floor(Math.random() * 10000);
       }
       else {
@@ -97,50 +136,22 @@
           hash = hash & hash;
         }
       }
-      $scope.icon.robotHash = hash;
-    };
 
-    $scope.robotUrl = function() {
-      return CLMAppLocations.getRobotUrl(ownerType, $scope.icon.robotHash);
-    };
+      vm.icon.robotHash = hash;
+    }
 
-    $scope.$watch('icon.type', function(iconType) {
-      if (iconType !== 'source') {
-        $('#icon-file').val(''); // reset
-      }
-
-      $scope.icon.hasRobotSource = (iconType === 'robot');
-      if (!$scope.icon.hasRobotSource) {
-        $scope.icon.robotHash = null;
-      }
-      else {
-        $scope.robot($scope.dirtyOwner && $scope.dirtyOwner.name);
-      }
-    });
-
-    $scope.$watch('icon.source', function() {
-      if ($window.URL && $scope.icon.source) {
-        $scope.userIconPreview = $window.URL.createObjectURL($('#icon-file')[0].files[0]);
-      }
-    });
-
-    $scope.$on('pageChangeStarted', function(event) {
-      if ($scope.dirtyOwner.isDirty()) {
-        event.preventDefault();
-      }
-    });
-
-    $scope.$on('pageChangeAccepted', function() {
-      $scope.$dismiss();
-    });
+    function robotUrl() {
+      return CLMAppLocations.getRobotUrl(ownerType, vm.icon.robotHash);
+    }
   }
+
   OwnerEditorController.$inject = [
     '$scope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings', 'Messages',
     'CLMAppLocations', 'FormMaskDelay'
   ];
 
-  angular
-    .module('owner.manager.module')
-    .controller('OwnerEditorController', OwnerEditorController);
+  angular //
+      .module('owner.manager.module') //
+      .controller('owner.editor.controller', OwnerEditorController);
 
 }(angular));

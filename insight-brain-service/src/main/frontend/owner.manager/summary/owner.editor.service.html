@@ -2,42 +2,42 @@
   <div class="clm-modal-header">
     <h2>
       <i class="fa inverse size-20px"
-           ng-class="{ 'fa-terminal': ownerType === 'application', 'fa-sitemap': ownerType === 'organization'}">
-      </i> {{:: dirtyOwner.id ? 'Edit' : 'New'}} {{:: getTypeName()}}
+           ng-class="{ 'fa-terminal': vm.ownerType === 'application', 'fa-sitemap': vm.ownerType === 'organization'}">
+      </i> {{:: vm.dirtyOwner.id ? 'Edit' : 'New'}} {{:: vm.getTypeName()}}
     </h2>
   </div>
-  <form name="customIconForm" id="custom-icon-form" ng-upload="fileUploadComplete(content)" action="{{::iconUploadUrl}}"
+  <form name="customIconForm" id="custom-icon-form" ng-upload="vm.fileUploadComplete(content)" action="{{::vm.iconUploadUrl}}"
         class="hide">
-    <input id="icon-file" type="file" name="file" accept="image/*" file-model="icon.source" required>
-    <input name="{{::ownerType}}Id" value="{{dirtyOwner.id}}" type="text"/>
-    <input name="hasRobotSource" ng-model="icon.hasRobotSource" type="text"/>
-    <input name="robotHash" ng-model="icon.robotHash" type="text"/>
-    <input name="{{::csrfTokenName}}" value="{{::csrfTokenValue}}" type="text"/>
+    <input id="icon-file" type="file" name="file" accept="image/*" file-model="vm.icon.source" required>
+    <input name="{{::vm.ownerType}}Id" value="{{vm.dirtyOwner.id}}" type="text"/>
+    <input name="hasRobotSource" ng-model="vm.icon.hasRobotSource" type="text"/>
+    <input name="robotHash" ng-model="vm.icon.robotHash" type="text"/>
+    <input name="{{::vm.csrfTokenName}}" value="{{::vm.csrfTokenValue}}" type="text"/>
   </form>
-  <form name="ownerEditor" role="form" ng-submit="save()" class="clm-form" form-mask>
+  <form name="vm.ownerEditor" role="form" ng-submit="vm.save()" class="clm-form" form-mask>
     <div class="clm-modal-body">
       <div class="section">
         <div class="field">
-          <label for="editor-owner-name">{{::getTypeName()}} Name</label>
-          <input type="text" ng-model="dirtyOwner.name" name="name" id="editor-owner-name"
+          <label for="editor-owner-name">{{::vm.getTypeName()}} Name</label>
+          <input type="text" ng-model="vm.dirtyOwner.name" name="name" id="editor-owner-name"
                  ng-maxlength="60"
                  ng-required="true"
                  focus-input="true"
                  has-whitespace="suggestedName"
                  valid-name-characters
-                 is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="id" messages="{duplicate: 'Name is already in use'}"
+                 is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id" messages="{duplicate: 'Name is already in use'}"
                  clm-input>
         </div>
-        <div ng-if="ownerType === 'application' && !(dirtyOwner.id)" class="field">
+        <div ng-if="vm.ownerType === 'application' && !(vm.dirtyOwner.id)" class="field">
           <label for="editor-owner-public-id">Application Id</label>
           <input type="text" name="publicId" id="editor-owner-public-id"
                  ng-maxlength="200"
-                 ng-model="dirtyOwner.publicId"
+                 ng-model="vm.dirtyOwner.publicId"
                  ng-required="true"
                  no-spaces="true"
                  has-whitespace="suggestedName"
                  valid-name-characters
-                 is-duplicate is-duplicate-array="siblings" is-duplicate-id-field="id" messages="{duplicate: 'ID is already in use'}"
+                 is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id" messages="{duplicate: 'ID is already in use'}"
                  clm-input>
         </div>
       </div>
@@ -47,54 +47,54 @@
             <label>Icon</label>
             <div>
               <label class="radio">
-                <input type="radio" name="iconType" ng-model="icon.type" ng-value="null">
+                <input type="radio" name="iconType" ng-model="vm.icon.type" ng-value="null">
                 <span>Use a default icon</span>
               </label>
               <label class="radio">
-                <input type="radio" name="iconType" ng-model="icon.type" value="custom">
+                <input type="radio" name="iconType" ng-model="vm.icon.type" value="custom">
                 <span>Upload a custom icon</span>
               </label>
               <label class="radio">
-                <input type="radio" name="iconType" ng-model="icon.type" value="robot">
+                <input type="radio" name="iconType" ng-model="vm.icon.type" value="robot">
                 <span>Get a robot</span>
               </label>
             </div>
           </div>
           <div class="field-right">
-            <div ng-show="icon.type === 'custom'" id="custom-icon-selector">
+            <div ng-show="vm.icon.type === 'custom'" id="custom-icon-selector">
               <div class="sub-section">
                 <label for="icon-file" class='btn' firefox-input-click>
                   <i class="fa fa-upload"></i> Upload Icon Image
                 </label>
               </div>
-              <div ng-if="userIconPreview">
-                <img ng-src="{{userIconPreview}}" class="owner-icon-large">
-                <img ng-src="{{userIconPreview}}" class="owner-icon">
-                <img ng-src="{{userIconPreview}}" class="owner-icon-tiny">
+              <div ng-if="vm.userIconPreview">
+                <img ng-src="{{vm.userIconPreview}}" class="owner-icon-large">
+                <img ng-src="{{vm.userIconPreview}}" class="owner-icon">
+                <img ng-src="{{vm.userIconPreview}}" class="owner-icon-tiny">
               </div>
             </div>
-            <div ng-if="icon.type === 'robot'" id="robot-icon-selector">
+            <div ng-if="vm.icon.type === 'robot'" id="robot-icon-selector">
               <div class="sub-section">
-                <button class="btn" type="button" ng-click="robot(dirtyOwner.name)">
+                <button class="btn" type="button" ng-click="vm.robot(vm.dirtyOwner.name)">
                   <i class="fa fa-refresh"></i> Get Another Robot
                 </button>
               </div>
               <div>
-                <img ng-src="{{robotUrl()}}" class="owner-icon-large">
-                <img ng-src="{{robotUrl()}}" class="owner-icon">
-                <img ng-src="{{robotUrl()}}" class="owner-icon-tiny">
+                <img ng-src="{{vm.robotUrl()}}" class="owner-icon-large">
+                <img ng-src="{{vm.robotUrl()}}" class="owner-icon">
+                <img ng-src="{{vm.robotUrl()}}" class="owner-icon-tiny">
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="clm-modal-footer" ng-class="{ error : error }">
-      <div ng-if="error" class="section with-icon"><i class="fa fa-warning"></i> {{error}}</div>
-      <button ng-if="!error" class="btn btn-primary" type="submit" ng-disabled="ownerEditor.$invalid">
-        {{dirtyOwner.id ? 'Update' : 'Create'}}
+    <div class="clm-modal-footer" ng-class="{ error : vm.error }">
+      <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i> {{vm.error}}</div>
+      <button ng-if="!vm.error" class="btn btn-primary" type="submit" ng-disabled="vm.ownerEditor.$invalid">
+        {{vm.dirtyOwner.id ? 'Update' : 'Create'}}
       </button>
-      <button ng-if="error" class="btn btn-error" type="submit" ng-disabled="ownerEditor.$invalid">
+      <button ng-if="vm.error" class="btn btn-error" type="submit" ng-disabled="vm.ownerEditor.$invalid">
         <i class="fa fa-refresh"></i>Retry
       </button>
       <button class="btn" type="button" ng-click="$dismiss()">Cancel</button>

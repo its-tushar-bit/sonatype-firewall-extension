@@ -14,7 +14,7 @@
           backdrop: 'static',
           keyboard: false,
           windowClass: 'owner-editor-modal clm-modal',
-          controller: 'OwnerEditorController',
+          controller: 'owner.editor.controller as vm',
           templateUrl: 'owner.manager/summary/owner.editor.service.html',
           resolve: {
             owner: function() {
@@ -34,8 +34,8 @@
 
   OwnerEditorService.$inject = ['$modal'];
 
-  angular
-    .module('owner.manager.module')
-    .service('OwnerEditorService', OwnerEditorService);
+  angular //
+      .module('owner.manager.module') //
+      .service('OwnerEditorService', OwnerEditorService);
 
 }(angular));

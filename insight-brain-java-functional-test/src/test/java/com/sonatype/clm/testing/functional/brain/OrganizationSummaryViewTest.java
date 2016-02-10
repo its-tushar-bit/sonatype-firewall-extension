@@ -64,7 +64,7 @@ public class OrganizationSummaryViewTest
 
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
-    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
 
       if (i == 0) {
@@ -88,13 +88,14 @@ public class OrganizationSummaryViewTest
   }
 
   private void testApplicationCategoryTile_Empty() {
+    final int hierarchySize = getHierarchySize(organization.getId());
     CategoryTile categoryTile = new CategoryTileOrgContext();
     categoryTile.subHeader().shouldBe(visible).shouldHave(categoryTile.subHeaderText(organization.getName()));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(categoryTile.buttonText());
 
-    categoryTile.categoryLists().shouldHaveSize(getHierarchySize(organization.getId()));
+    categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 
-    for (int i = 0; i < categoryTile.categoryLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = categoryTile.categoryList(i);
       list.elements().shouldBe(empty);
 
@@ -127,11 +128,12 @@ public class OrganizationSummaryViewTest
 
     refresh();
 
+    final int hierarchySize = owners.size();
     CategoryTile categoryTile = new CategoryTileOrgContext();
     assertThat(ownerTags.size(), equalTo(owners.size()));
-    categoryTile.categoryLists().shouldHaveSize(owners.size());
+    categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 
-    for (int i = 0; i < categoryTile.categoryLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = categoryTile.categoryList(i);
 
       if (i == 0) {
@@ -143,7 +145,7 @@ public class OrganizationSummaryViewTest
 
       list.elements().shouldHaveSize(ownerTags.get(i).size());
 
-      for (int j = 0; j < list.elements().size(); j++) {
+      for (int j = 0; j < ownerTags.get(i).size(); j++) {
         TileSimpleListElement actualCategory = list.element(j);
         Tag expectedCategory = ownerTags.get(i).get(j);
 

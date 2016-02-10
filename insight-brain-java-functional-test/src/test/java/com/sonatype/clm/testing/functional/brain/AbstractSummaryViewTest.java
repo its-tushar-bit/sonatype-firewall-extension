@@ -144,7 +144,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the labels tile
     OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < labelTile.labelLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
 
       if (i == 0) {
@@ -170,7 +170,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the access tile
     OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
 
-    for (int i = 0; i < accessTile.accessLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
 
       if (i == 0) {
@@ -194,7 +194,7 @@ public abstract class AbstractSummaryViewTest
 
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
-    for (int i = 0; i < policyTile.policyLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
 
       if (i == 0) {
@@ -252,7 +252,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the labels tile
     OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < labelTile.labelLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
 
       if (i == 0) {
@@ -260,7 +260,7 @@ public abstract class AbstractSummaryViewTest
         list.emptyDescriptor().shouldNot(exist);
         list.elements().shouldHaveSize(localLabels.size());
 
-        for (int j = 0; j < list.elements().size(); j++) {
+        for (int j = 0; j < localLabels.size(); j++) {
           TileSimpleListElement actualLabel = list.element(j);
           Label expectedLabel = localLabels.get(j);
 
@@ -299,7 +299,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the ltgs
     OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
 
       if (i == 0) {
@@ -307,7 +307,7 @@ public abstract class AbstractSummaryViewTest
         list.emptyDescriptor().shouldNot(exist);
         list.elements().shouldHaveSize(locaLTGs.size());
 
-        for (int j = 0; j < list.elements().size(); j++) {
+        for (int j = 0; j < locaLTGs.size(); j++) {
           ThreatGroupTileSimpleListElement actualLTG = list.element(j);
           LicenseThreatGroup expectedLTG = locaLTGs.get(j);
 
@@ -339,7 +339,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the access tile
     OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
 
-    for (int i = 0; i < accessTile.accessLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
       list.emptyDescriptor().shouldNotBe(visible);
 
@@ -376,7 +376,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the policy tile
     OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
 
-    for (int i = 0; i < policyTile.policyLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
       list.emptyDescriptor().shouldNotBe(visible);
 
@@ -469,14 +469,15 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
+    final int hierarchySize = parentOwners.size() + 1;
     LabelTile labelTile = new LabelTile();
     assertThat(inheritedLabels.size(), equalTo(parentOwners.size()));
-    labelTile.labelLists().shouldHaveSize(parentOwners.size() + 1);
+    labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
     OwnerSummaryPage.SummaryTile.labelsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < labelTile.labelLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       TileSimpleList list = labelTile.labelList(i);
 
       if (i == 0) {
@@ -485,11 +486,12 @@ public abstract class AbstractSummaryViewTest
         list.elements().shouldBe(empty);
       }
       else {
-        list.elements().shouldHaveSize(inheritedLabels.get(i - 1).size());
+        final int expectedLabelCount = inheritedLabels.get(i - 1).size();
+        list.elements().shouldHaveSize(expectedLabelCount);
         list.subsectionHeader().shouldBe(visible)
             .shouldHave(LabelTile.inheritedText(parentOwners.get(i - 1).getName()));
 
-        for (int j = 0; j < list.elements().size(); j++) {
+        for (int j = 0; j < expectedLabelCount; j++) {
           TileSimpleListElement actualLabel = list.element(j);
           Label expectedLabel = inheritedLabels.get(i - 1).get(j);
 
@@ -565,7 +567,8 @@ public abstract class AbstractSummaryViewTest
     // scroll to the ltgs
     OwnerSummaryPage.SummaryTile.ltgsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+    final int hierarchyCount = ltgTile.ltgLists().size();
+    for (int i = 0; i < hierarchyCount; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
 
       if (i == 0) {
@@ -582,11 +585,12 @@ public abstract class AbstractSummaryViewTest
       else {
         int expectedDefaultLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(i - 1).getId()) ? LicenseThreatGroupDAO.DEFAULT_LICENSE_THREAT_GROUP_COUNT
             : 0;
-        list.elements().shouldHaveSize(inheritedLTGs.get(i - 1).size() + expectedDefaultLTGSize);
+        int expectedLTGCount = inheritedLTGs.get(i - 1).size() + expectedDefaultLTGSize;
+        list.elements().shouldHaveSize(expectedLTGCount);
         list.ownerName().shouldBe(visible)
             .shouldHave(LicenseThreatGroupTile.inheritedText(parentOwners.get(i - 1).getName()));
 
-        for (int j = 0; j < list.elements().size(); j++) {
+        for (int j = 0; j < expectedLTGCount; j++) {
           ThreatGroupTileSimpleListElement actualLTG = list.element(j);
 
           if (inheritedLTGs.size() < i) {
@@ -611,7 +615,7 @@ public abstract class AbstractSummaryViewTest
     // scroll to the access tile
     OwnerSummaryPage.SummaryTile.accessButton().shouldBe(visible).click();
 
-    for (int i = 0; i < accessTile.accessLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
 
       if (i == 0) {
@@ -640,14 +644,15 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testPolicyTile_Inherited(List<List<Policy>> inheritedPolicies, List<Owner> parentOwners) {
+    int hierarchySize = parentOwners.size() + 1;
     PolicyTile policyTile = new PolicyTile();
     assertThat(inheritedPolicies.size(), equalTo(parentOwners.size()));
-    policyTile.policyLists().shouldHaveSize(parentOwners.size() + 1);
+    policyTile.policyLists().shouldHaveSize(hierarchySize);
 
     // scroll to the policy tile
     OwnerSummaryPage.SummaryTile.policyButton().shouldBe(visible).click();
 
-    for (int i = 0; i < policyTile.policyLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
 
       if (i == 0) {

@@ -131,10 +131,12 @@ public class ApplicationSummaryViewTest
     stages.add(StageTypes.RELEASE);
     stages.add(StageTypes.OPERATE);
 
-    ActionDropDown.actionButton().click();
-    ActionDropDown.reportLinks().shouldHaveSize(stages.size());
+    final int stagesSize = stages.size();
 
-    for (int i = 0; i < ActionDropDown.reportLinks().size(); i++) {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.reportLinks().shouldHaveSize(stagesSize);
+
+    for (int i = 0; i < stagesSize; i++) {
       ActionDropDown.reportLink(i).shouldBe(visible, CLM.DISABLED)
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
     }
@@ -148,10 +150,11 @@ public class ApplicationSummaryViewTest
 
     refresh();
 
+    final int policyEvaluationsSize = policyEvaluations.size();
     ActionDropDown.actionButton().click();
-    ActionDropDown.reportLinks().shouldHaveSize(policyEvaluations.size());
+    ActionDropDown.reportLinks().shouldHaveSize(policyEvaluationsSize);
 
-    for (int i = 0; i < ActionDropDown.reportLinks().size(); i++) {
+    for (int i = 0; i < policyEvaluationsSize; i++) {
       ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED)
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
 
@@ -179,7 +182,7 @@ public class ApplicationSummaryViewTest
 
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
-    for (int i = 0; i < ltgTile.ltgLists().size(); i++) {
+    for (int i = 0; i < hierarchySize; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
 
       if (i != hierarchySize - 1) {

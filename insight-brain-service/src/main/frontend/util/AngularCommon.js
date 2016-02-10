@@ -333,41 +333,6 @@ var AngularStateUtils = {
   ]);
 
   /**
-   * Common handling of errors returned by the server.
-   * Usage: assign the return value of any failed $http call to $scope.error and surround
-   * the DOM content depending on the $http call with this directive.
-   */
-  angularCommon.directive('loadWrapper', ['Messages', function(messages) {
-    return {
-      restrict : 'A',
-      priority : 99,
-      transclude : true,
-      replace : true,
-      template : '<div>' +
-                   '<div ng-if="!error && isLoading()"><i class="fa fa-spin fa-circle-o-notch"></i> Loading....</div>' +
-                   '<div ng-if="!error && !isLoading()"><div ng-transclude></div></div>' + // ng-if is important for intial-value
-                   '<div load-error="error" reload="reload()" message="errorMessage" />' +
-                 '</div>',
-      scope : {
-        error : '=loadWrapper',
-        errorMessage : '=message',
-        loading : '=?',
-        reload : '&'
-      },
-      link: function($scope) {
-        $scope.isLoading = function () {
-          return $scope.loading;
-        };
-        $scope.getDetails = function() {
-          return messages.getHttpErrorMessage($scope.error);
-        };
-      }
-    };
-  }]);
-
-
-
-  /**
    * Full width, closeable, alerts built from an array
    * @scope alerts {Object} An array of alerts, each an object with properties msg and type (error, success, info)
    * @scope noClose {Boolean} optionally hide the 'close' button

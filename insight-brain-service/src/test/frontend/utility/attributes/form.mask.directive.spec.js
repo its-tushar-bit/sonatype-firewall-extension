@@ -88,6 +88,30 @@ describe('form.mask.directive.spec.js', function() {
       expect(results).toEqual({data: 123});
     }));
 
+    it('Directive properly skips success mask', inject(function($compile, $q, $timeout) {
+      $compile(element.attr('mask-skip-success', ''))(scope);
+
+      expect(scope.formMask).toBeDefined();
+      var maskController = scope.formMask,
+          deferred = $q.defer();
+
+      spyOn(maskController, 'activateMask');
+      spyOn(maskController, 'showSuccessMask');
+      spyOn(maskController, 'removeMask');
+      spyOn(deferred.promise, 'then').andCallThrough();
+
+      maskController.wrap(deferred.promise);
+
+      expect(maskController.activateMask).toHaveBeenCalled();
+      expect(deferred.promise.then).toHaveBeenCalled();
+
+      deferred.resolve({data: 123});
+      $timeout.flush();
+      $timeout.flush(800);
+      expect(maskController.removeMask).toHaveBeenCalled();
+      expect(maskController.showSuccessMask).not.toHaveBeenCalled();
+    }));
+
     function getFormMaskElement() {
       return attachToBody ? angular.element($('div.form-mask', $('body'))) : element.find('div.form-mask');
     }

@@ -1,8 +1,9 @@
 (function(angular) {
   'use strict';
 
-  function FormMaskController($q, $timeout) {
-    var maskController = this;
+  function FormMaskController($q, $timeout, $attrs) {
+    var maskController = this,
+        skipSuccess = $attrs.hasOwnProperty('maskSkipSuccess');
 
     maskController.wrap = wrap;
 
@@ -13,7 +14,9 @@
       promise.then(function() {
         var args = arguments;
 
-        maskController.showSuccessMask();
+        if (!skipSuccess) {
+          maskController.showSuccessMask();
+        }
 
         $timeout(function() {
           maskController.removeMask();
@@ -28,7 +31,7 @@
     }
   }
 
-  FormMaskController.$inject = ['$q', '$timeout'];
+  FormMaskController.$inject = ['$q', '$timeout', '$attrs'];
 
   angular.module('utility').controller('form.mask.controller', FormMaskController);
 

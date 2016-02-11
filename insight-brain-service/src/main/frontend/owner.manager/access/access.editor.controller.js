@@ -16,6 +16,8 @@
     vm.accessEditor = undefined;
     vm.accessEditorMask = undefined;
     vm.accessEditorSearch = undefined;
+    vm.accessEditorSearchMask = undefined;
+    vm.searchInProgress = false;
     vm.loadError = undefined;
     vm.query = undefined;
     vm.role = undefined;
@@ -139,14 +141,18 @@
       if (vm.query) {
         delete vm.searchError;
         var pickedUsers = currentlyPicked();
-        $http.get(CLMAppLocations.getFindUsersUrl(), {
+        vm.searchInProgress= true;
+
+        vm.accessEditorSearchMask.wrap($http.get(CLMAppLocations.getFindUsersUrl(), {
           params: {
             q: vm.query
           }
-        }).then(function(result) {
+        })).then(function(result) {
+          vm.searchInProgress = false;
           vm.members = result.data.members;
           updatePickedUsers(pickedUsers);
         }, function(error) {
+          vm.searchInProgress = false;
           vm.searchError = Messages.getHttpErrorMessage(error);
         });
       }

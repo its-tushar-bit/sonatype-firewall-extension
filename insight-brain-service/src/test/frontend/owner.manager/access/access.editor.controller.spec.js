@@ -135,4 +135,25 @@ describe('access.editor.controller.spec.js', function() {
     expect(mockRootScope.$broadcast).toHaveBeenCalledWith('resource.data.modified');
     expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-access', { roleId : 'abcdef' });
   });
+
+  it('Search in progress flag properly set', function() {
+    inject(function($controller) {
+      vm = $controller('access.editor.controller', {
+        $scope: scope, isAuthorized: true
+      });
+    });
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
+    $httpBackend.flush();
+
+    vm.query = 'arbitrary';
+    vm.accessEditorSearchMask = {wrap: SpecUtil.promiseWrapper($q)};
+    $httpBackend.expectGET(CLMAppLocations.getFindUsersUrl() +
+        '?q=arbitrary').respond(AccessMockData.getMoreRoleMappings());
+
+    expect(vm.searchInProgress).toBeFalsy();
+    vm.search();
+    expect(vm.searchInProgress).toBeTruthy();
+    $httpBackend.flush();
+    expect(vm.searchInProgress).toBeFalsy();
+  });
 });

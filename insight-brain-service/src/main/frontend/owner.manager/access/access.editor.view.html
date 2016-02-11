@@ -10,9 +10,9 @@
           <label for="access-user-search-input">Search Users</label>
           <div class="sub-label">use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)</div>
           <input id="access-user-search-input" type="text" name="search" ng-model="vm.query" ng-maxlength="60"
-                  clm-input required/><!--
+                 ng-disabled="vm.searchInProgress" clm-input required/><!--
        --><button id="user-search-button" class="btn" type="submit" submit-validation submit-dirty="vm.query"
-                  submit-type="search">Search</button><!--
+                  ng-disabled="vm.searchInProgress" submit-type="search">Search</button><!--
        --><div ng-if="vm.searchError" class="section with-icon warning"><i class="fa fa-warning"></i>Search failed. {{vm.searchError}}</div>
         </div>
       </div>
@@ -29,8 +29,10 @@
         </div>
         <div class="field">
           <label for="access-associated-users">Associated Users</label>
-          <double-column-picker id="access-associated-users" list="vm.members" hide-filter="true" left-column-name="Available"
-                                right-column-name="Associated" item-name-param="displayName"></double-column-picker>
+          <double-column-picker id="access-associated-users" list="vm.members" hide-filter="true"
+                                left-column-name="Available" right-column-name="Associated"
+                                item-name-param="displayName" form-mask="vm.accessEditorSearchMask"
+                                mask-message="Searching" mask-skip-success></double-column-picker>
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.retry()">

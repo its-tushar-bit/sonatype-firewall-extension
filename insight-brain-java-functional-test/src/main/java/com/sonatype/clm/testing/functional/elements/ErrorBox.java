@@ -5,25 +5,25 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
+
 import com.codeborne.selenide.SelenideElement;
 
-public class ErrorBox
-{
-  private final SelenideElement root;
+import static com.codeborne.selenide.Selenide.$;
 
-  public ErrorBox(SelenideElement root) {
-    this.root = root;
+public class ErrorBox
+    extends BasicElement<ErrorBox>
+{
+  public ErrorBox(String... selector) {
+    super(selector);
   }
 
   public SelenideElement message() {
-    return root.find("div:first-child");
+    return $(SelectorUtils.selector(selector, "div:first-child"));
   }
 
   public SelenideElement retryButton() {
-    return root.find("button");
-  }
-
-  public SelenideElement root() {
-    return root;
+    return $(SelectorUtils.selector(selector, "button"));
   }
 }

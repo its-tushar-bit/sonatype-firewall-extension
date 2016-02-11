@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
@@ -17,8 +19,13 @@ public abstract class BasicElement<T extends BasicElement<T>>
 
   private SelenideElement element;
 
-  protected BasicElement(String selector) {
-    this.selector = selector;
+  protected BasicElement(String... selectors) {
+    if (selectors.length == 1) {
+      this.selector = selectors[0];
+    }
+    else {
+      this.selector = SelectorUtils.selector(selectors);
+    }
   }
 
   public T should(Condition... conditions) {

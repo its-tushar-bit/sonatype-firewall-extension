@@ -100,27 +100,26 @@ public abstract class AbstractSummaryViewTest
     open(OwnerSummaryPage.url(currentOwner.getType().toString(), "fakeid"));
 
     ErrorBox error = OwnerSummaryPage.SummaryTile.error();
-    error.root().shouldBe(visible);
+    error.shouldBe(visible);
     error.message().shouldHave(text("Could not find an " + currentOwner.getType().toString()));
     error.retryButton().shouldBe(visible, enabled);
   }
 
   @Test
   public void testActionDropDown() {
-    ActionDropDown.actionButton().shouldBe(visible);
     ActionDropDown.menu().shouldNotBe(visible);
-    ActionDropDown.actionButton().click();
+    ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.menu().shouldBe(visible);
     ActionDropDown.actionButton().click();
+    ActionDropDown.menu().shouldNotBe(visible);
   }
 
   @Test
   public void testEditAppOrgNameLink() {
     String shortTypeName = currentOwner.getType().toString().equalsIgnoreCase("application") ? "App" : "Org";
     ActionDropDown.actionButton().click();
-    ActionDropDown.editOwner().shouldHave(text(shortTypeName));
     OwnerEditorDialog.root().shouldNotBe(visible);
-    ActionDropDown.editOwner().click();
+    ActionDropDown.editOwner().shouldHave(text(shortTypeName)).click();
     OwnerEditorDialog.root().shouldBe(visible);
     OwnerEditorDialog.title().shouldHave(text(currentOwner.getType().toString()));
   }
@@ -535,8 +534,7 @@ public abstract class AbstractSummaryViewTest
     assertThat(currentOwner, is(not(nullValue())));
 
     ActionDropDown.actionButton().click();
-    ActionDropDown.deleteOwnerButton().shouldBe(visible).shouldHave(text(ownerName));
-    ActionDropDown.deleteOwnerButton().click();
+    ActionDropDown.deleteOwnerButton().shouldBe(visible).shouldHave(text(ownerName)).click();
 
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(DeleteModal.headerText(currentOwner.getType().toString()));
@@ -678,8 +676,6 @@ public abstract class AbstractSummaryViewTest
         list.threatLegendHeaderColumn().downArrow().shouldNotHave(PolicyTileHeaderColumn.DOWN_SELECTED);
         list.threatLegendHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
 
-        policyElement1 = list.element(1);
-        policyElement2 = list.element(2);
         assertPolicy(policyElement1, actualPolicy1);
         assertPolicy(policyElement2, actualPolicy2);
 
@@ -687,21 +683,19 @@ public abstract class AbstractSummaryViewTest
         list.nameHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
         list.nameHeaderColumn().downArrow().shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED);
 
-        policyElement1 = list.element(1);
-        policyElement2 = list.element(2);
         assertPolicy(policyElement1, actualPolicy2);
         assertPolicy(policyElement2, actualPolicy1);
-
       }
     }
   }
 
   private void assertPolicyHeader(PolicyTileList list) {
     list.selectedHeaderElements().shouldHaveSize(1);
-    list.selectedHeaderColumn().root.shouldBe(visible).shouldHave(PolicyTileHeaderColumn.COLUMN_SELECTED);
-    list.selectedHeaderColumn().downArrow().shouldBe(visible).shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED); // initial
-                                                                                                                // state
-    list.selectedHeaderColumn().upArrow().shouldBe(visible).shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
+
+    PolicyTileHeaderColumn column = list.selectedHeaderColumn();
+    column.root.shouldBe(visible).shouldHave(PolicyTileHeaderColumn.COLUMN_SELECTED);
+    column.downArrow().shouldBe(visible).shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED); // initial state
+    column.upArrow().shouldBe(visible).shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
   }
 
   private void assertPolicy(PolicyTileListElement policy, Policy actualPolicy) {

@@ -113,73 +113,75 @@
            reload="vm.doLoad()">
         <h2><i class="fa fa-bank size-20px slate"></i>Policy</h2>
         <div class="sub-header">applying to {{vm.ownerName}}</div>
-        <div class="simple-list" ng-repeat="ownerPolicyList in vm.policiesByOwner">
-          <h4 class="subsection-header" ng-if="!ownerPolicyList.inherited">Local
-            <button id="add-policy-button" class="btn btn-tertiary" same-owner-edit-sref="create-policy">
-              <i class="fa fa-plus"></i>Add a Policy
-            </button>
-          </h4>
-          <h4 class="subsection-header" ng-if="ownerPolicyList.inherited && ownerPolicyList.policies.length > 0">
-            Inherited from {{ownerPolicyList.ownerName}}
-          </h4>
-
-          <div class="empty-list" ng-if="!ownerPolicyList.inherited && ownerPolicyList.policies.length <= 0">
-            No local policies defined
-          </div>
-          <table sort="-threatLevel" class="policy-list" cols="8">
-            <thead>
-              <tr class="simple" ng-if="ownerPolicyList.policies.length > 0">
-                <th sort-column="-threatLevel">
-                  <span class="header-text">THREAT</span>
-                </th>
-                <th sort-column="name, -threatLevel" class="threat-name">
-                  <span class="header-text">NAME</span>
-                </th>
-                <th sort-column="actions.proxy[0].actionTypeId, -threatLevel">
-                  <span class="header-text">PROXY</span>
-                </th>
-                <th sort-column="actions.develop[0].actionTypeId, -threatLevel">
-                  <span class="header-text">DEVELOP</span>
-                </th>
-                <th sort-column="actions.build[0].actionTypeId, -threatLevel">
-                  <span class="header-text">BUILD</span>
-                </th>
-                <th sort-column="actions['stage-release'][0].actionTypeId, -threatLevel">
-                  <span class="header-text">STAGE</span>
-                </th>
-                <th sort-column="actions.release[0].actionTypeId, -threatLevel">
-                  <span class="header-text">RELEASE</span>
-                </th>
-                <th sort-column="actions.operate[0].actionTypeId, -threatLevel">
-                  <span class="header-text">OPERATE</span>
-                </th>
-                <th></th>
+        <div>
+          <div class="simple-list" ng-repeat="ownerPolicyList in vm.policiesByOwner">
+            <h4 class="subsection-header" ng-if="!ownerPolicyList.inherited">Local
+              <button id="add-policy-button" class="btn btn-tertiary" same-owner-edit-sref="create-policy">
+                <i class="fa fa-plus"></i>Add a Policy
+              </button>
+            </h4>
+            <h4 class="subsection-header" ng-if="ownerPolicyList.inherited && ownerPolicyList.policies.length > 0">
+              Inherited from {{ownerPolicyList.ownerName}}
+            </h4>
+  
+            <div class="empty-list" ng-if="!ownerPolicyList.inherited && ownerPolicyList.policies.length <= 0">
+              No local policies defined
+            </div>
+            <table sort="-threatLevel" class="policy-list" cols="8">
+              <thead>
+                <tr class="simple" ng-if="ownerPolicyList.policies.length > 0">
+                  <th sort-column="-threatLevel">
+                    <span class="header-text">THREAT</span>
+                  </th>
+                  <th sort-column="name, -threatLevel" class="threat-name">
+                    <span class="header-text">NAME</span>
+                  </th>
+                  <th sort-column="actions.proxy[0].actionTypeId, -threatLevel">
+                    <span class="header-text">PROXY</span>
+                  </th>
+                  <th sort-column="actions.develop[0].actionTypeId, -threatLevel">
+                    <span class="header-text">DEVELOP</span>
+                  </th>
+                  <th sort-column="actions.build[0].actionTypeId, -threatLevel">
+                    <span class="header-text">BUILD</span>
+                  </th>
+                  <th sort-column="actions['stage-release'][0].actionTypeId, -threatLevel">
+                    <span class="header-text">STAGE</span>
+                  </th>
+                  <th sort-column="actions.release[0].actionTypeId, -threatLevel">
+                    <span class="header-text">RELEASE</span>
+                  </th>
+                  <th sort-column="actions.operate[0].actionTypeId, -threatLevel">
+                    <span class="header-text">OPERATE</span>
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tr class="simple clickable" ng-repeat="policy in ownerPolicyList.policies | orderBy:sortVm.sortFields"
+                  ng-click="vm.editPolicy(policy.id, ownerPolicyList.inherited)">
+                <td class="threat-name" colspan="2"><span class='threat-legend threat policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
+                <td ng-repeat="action in vm.actionStages">
+                  <i ng-class="{'fa fa-exclamation-triangle warn' : policy.actions[action][0].actionTypeId === 'warn',
+                    'fa fa-exclamation-circle fail' : policy.actions[action][0].actionTypeId === 'fail'}"></i><!--
+                  -->{{policy.actions[action][0].actionTypeId || 'no action'}}
+                </td>
+                <td><i class="fa fa-chevron-right"></i></td>
               </tr>
-            </thead>
-            <tr class="simple clickable" ng-repeat="policy in ownerPolicyList.policies | orderBy:sortVm.sortFields"
-                ng-click="vm.editPolicy(policy.id, ownerPolicyList.inherited)">
-              <td class="threat-name" colspan="2"><span class='threat-legend threat policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
-              <td ng-repeat="action in vm.actionStages">
-                <i ng-class="{'fa fa-exclamation-triangle warn' : policy.actions[action][0].actionTypeId === 'warn',
-                  'fa fa-exclamation-circle fail' : policy.actions[action][0].actionTypeId === 'fail'}"></i><!--
-                -->{{policy.actions[action][0].actionTypeId || 'no action'}}
-              </td>
-              <td><i class="fa fa-chevron-right"></i></td>
-            </tr>
-          </table>
-        </div>
-        <div class="simple-list" id="continuous-monitoring">
-          <h4 class="subsection-header">
-            Continuous monitoring
-          </h4>
-          <ul>
-            <li class="simple clickable" same-owner-edit-sref="monitor-policy">
-              <div class="title">
-                {{::vm.monitoredStage.stageName}}
-              </div>
-              <i class="fa fa-chevron-right"></i>
-            </li>
-          </ul>
+            </table>
+          </div>
+          <div class="simple-list" id="continuous-monitoring">
+            <h4 class="subsection-header">
+              Continuous monitoring
+            </h4>
+            <ul>
+              <li class="simple clickable" same-owner-edit-sref="monitor-policy">
+                <div class="title">
+                  {{::vm.monitoredStage.stageName}}
+                </div>
+                <i class="fa fa-chevron-right"></i>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

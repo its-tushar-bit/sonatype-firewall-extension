@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -63,8 +64,10 @@ public class ApplicationCategoryEditorTest
   @Test
   public void testNoCategories() {
     refreshOrOpen(ApplicationCategoryEditorPage.urlToEdit(application.getPublicId()));
-    ApplicationCategoryEditorPage.errorBox().root().shouldBe(visible);
-    ApplicationCategoryEditorPage.errorBox().message().shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
+
+    ErrorBox errorBox = ApplicationCategoryEditorPage.errorBox();
+    errorBox.shouldBe(visible);
+    errorBox.message().shouldHave(ApplicationCategoryEditorPage.NO_CATEGORIES_DEFINED);
   }
 
   @Test

@@ -15,6 +15,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class ApplicationCategoryEditorPage
 {
+  private static final String ROOT_ID = "#application-category-editor";
   public static final Condition NO_CATEGORIES_DEFINED = Condition.text("No application categories defined.");
 
   public static String urlToEdit(String ownerId) {
@@ -22,7 +23,7 @@ public class ApplicationCategoryEditorPage
   }
 
   public static SelenideElement root() {
-    return $("#application-category-editor");
+    return $(ROOT_ID);
   }
 
   public static AssociationEditor associationEditor() {
@@ -38,6 +39,6 @@ public class ApplicationCategoryEditorPage
   }
 
   public static ErrorBox errorBox() {
-    return new ErrorBox(root().$(".clm-alert"));
+    return new ErrorBox(ROOT_ID, ".clm-alert");
   }
 }

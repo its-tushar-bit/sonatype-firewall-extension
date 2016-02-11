@@ -21,8 +21,10 @@ public class OwnerSummaryPage
 
   public static class SummaryTile
   {
+    private static final String ROOT_ID = "#owner-summary";
+
     private static SelenideElement root() {
-      return $("#owner-summary");
+      return $(ROOT_ID);
     }
 
     public static SelenideElement name() {
@@ -82,7 +84,7 @@ public class OwnerSummaryPage
     }
 
     public static ErrorBox error() {
-      return new ErrorBox(root().find(".clm-alert.alert-error"));
+      return new ErrorBox(ROOT_ID, ".clm-alert.alert-error");
     }
 
     public static SelenideElement appCategoriesButton() {

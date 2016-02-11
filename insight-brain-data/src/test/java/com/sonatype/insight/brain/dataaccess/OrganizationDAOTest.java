@@ -51,6 +51,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
@@ -515,8 +516,7 @@ public class OrganizationDAOTest
   public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
     Organization organization = tempEntity.newOrganization("testCascadeDeleteToSecurityVulnerabilityOverrides");
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        organization.getId(), ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "source", "refrenceId",
-        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+        organization.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
     dao.delete(organization);
 

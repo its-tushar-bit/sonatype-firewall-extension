@@ -1302,23 +1302,23 @@ public class TemporaryEntity
   }
 
   public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(String ownerId,
-                                                                        ComponentIdentifier componentIdentifier,
+                                                                        String hash,
                                                                         String source,
                                                                         String refrenceId,
                                                                         SecurityVulnerabilityOverrideStatus status)
   {
-    return newSecurityVulnerabilityOverride(ownerId, componentIdentifier, source, refrenceId, status, null /* comment */);
+    return newSecurityVulnerabilityOverride(ownerId, hash, source, refrenceId, status, null /* comment */);
   }
 
   public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(String ownerId,
-                                                                        ComponentIdentifier componentIdentifier,
+                                                                        String hash,
                                                                         String source,
                                                                         String refrenceId,
                                                                         SecurityVulnerabilityOverrideStatus status,
                                                                         String comment)
   {
-    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(ownerId, componentIdentifier, source,
-        refrenceId, status, comment);
+    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(ownerId, hash, source, refrenceId,
+        status, comment);
     securityVulnerabilityOverrideDAO.insert(override);
     securityVulnerabilityOverrides.add(override);
     return override;

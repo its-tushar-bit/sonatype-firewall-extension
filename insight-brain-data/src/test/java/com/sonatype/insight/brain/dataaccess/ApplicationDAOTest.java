@@ -63,6 +63,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyCollectionOf;
@@ -581,8 +582,7 @@ public class ApplicationDAOTest
   @Test
   public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        application.getId(), ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "source", "refrenceId",
-        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+        application.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
     applicationDAO.delete(application);
 

@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
+
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -179,8 +180,7 @@ public class RepositoryDAOTest
   @Test
   public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
-        repository.getId(), ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "source", "refrenceId",
-        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+        repository.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
     dao.delete(repository);
 

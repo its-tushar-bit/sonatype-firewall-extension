@@ -53,7 +53,7 @@ public abstract class AbstractAuditGAVMigrator
     else {
       File[] auditDirs = baseAuditDir.listFiles();
       if (auditDirs == null || auditDirs.length == 0) {
-        log.info("Found no audit data.", baseAuditDir.getAbsolutePath());
+        log.info("Found no audit data in {}.", baseAuditDir.getAbsolutePath());
         markerFile.createNewFile();
         return migratedFileCount;
       }

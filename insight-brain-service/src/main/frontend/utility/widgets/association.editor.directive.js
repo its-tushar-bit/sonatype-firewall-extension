@@ -19,10 +19,15 @@
       },
       replace: true,
       templateUrl: 'utility/widgets/association.editor.directive.html',
-      controller: 'AssociationEditorController',
+      controller: AssociationEditorController,
       controllerAs: 'vm',
       bindToController: true
     };
+  }
+
+  function AssociationEditorController() {
+    var vm = this;
+    vm.ceil = Math.ceil;
   }
 
   angular.module('utility').directive('associationEditor', AssociationEditor);

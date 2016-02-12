@@ -19,65 +19,108 @@
         disabled: '=?ngDisabled'
       },
       templateUrl: 'utility/widgets/dropdown.selector.directive.tpl.html',
-      controller: 'dropdown.selector.controller',
+      controller: DropdownSelectorController,
       controllerAs: 'vm',
       bindToController: true,
       require: ['ngModel', '^form'],
-      link: function(scope, element, attr, ctrls) {
-        var ctrl = ctrls[0],
-            form = ctrls[1];
+      link: DropdownSelectorLink
+    };
 
-        form.$addControl(ctrl);
+    function DropdownSelectorLink(scope, element, attr, ctrls) {
+      var ctrl = ctrls[0],
+          form = ctrls[1];
 
-        scope.vm.getSelectedViewValue = getSelectedViewValue;
-        scope.vm.formatSelectedModel = formatSelectedModel;
-        scope.vm.selectItem = selectItem;
+      form.$addControl(ctrl);
 
-        ctrl.$viewChangeListeners.push(function() {
-          scope.$eval(attr.ngChange);
+      scope.vm.getSelectedViewValue = getSelectedViewValue;
+      scope.vm.formatSelectedModel = formatSelectedModel;
+      scope.vm.selectItem = selectItem;
+
+      ctrl.$viewChangeListeners.push(function() {
+        scope.$eval(attr.ngChange);
+      });
+
+      ctrl.$formatters.push(scope.vm.formatSelectedModel);
+      ctrl.$parsers.push(scope.vm.parseSelectedModel);
+      ctrl.$isEmpty = isEmpty;
+
+      scope.$watch('vm.disabled', function(disabled) {
+        element[disabled ? 'addClass' : 'removeClass']('disabled');
+      });
+
+      if (scope.vm.noOptionsString) {
+        scope.$watch('vm.options.length', function(hasOptions) {
+          element[hasOptions ? 'removeClass' : 'addClass']('no-options');
         });
+      }
 
-        ctrl.$formatters.push(scope.vm.formatSelectedModel);
-        ctrl.$parsers.push(scope.vm.parseSelectedModel);
-        ctrl.$isEmpty = isEmpty;
+      function getSelectedViewValue() {
+        return ctrl.$viewValue;
+      }
 
-        scope.$watch('vm.disabled', function(disabled) {
-          element[disabled ? 'addClass' : 'removeClass']('disabled');
-        });
-
-        if (scope.vm.noOptionsString) {
-          scope.$watch('vm.options.length', function(hasOptions) {
-            element[hasOptions ? 'removeClass' : 'addClass']('no-options');
-          });
+      function formatSelectedModel(modelValue) {
+        if (scope.vm.optionValueParam) {
+          modelValue = scope.vm.optionModelMap[modelValue];
         }
 
-        function getSelectedViewValue() {
-          return ctrl.$viewValue;
+        if (modelValue) {
+          return scope.vm.optionNameParam ? modelValue[scope.vm.optionNameParam] : modelValue;
         }
-
-        function formatSelectedModel(modelValue) {
-          if (scope.vm.optionValueParam) {
-            modelValue = scope.vm.optionModelMap[modelValue];
-          }
-
-          if (modelValue) {
-            return scope.vm.optionNameParam ? modelValue[scope.vm.optionNameParam] : modelValue;
-          }
-          else {
-            return scope.vm.emptyOptionString || 'None Selected';
-          }
-        }
-
-        function isEmpty(viewValue) {
-          return !viewValue || viewValue === (scope.vm.emptyOptionString || 'None Selected');
-        }
-
-        function selectItem(item) {
-          ctrl.$setViewValue(scope.vm.optionNameParam ? item[scope.vm.optionNameParam] : item);
+        else {
+          return scope.vm.emptyOptionString || 'None Selected';
         }
       }
-    };
+
+      function isEmpty(viewValue) {
+        return !viewValue || viewValue === (scope.vm.emptyOptionString || 'None Selected');
+      }
+
+      function selectItem(item) {
+        ctrl.$setViewValue(scope.vm.optionNameParam ? item[scope.vm.optionNameParam] : item);
+      }
+    }
   }
+
+  function DropdownSelectorController($scope, $element) {
+    var vm = this;
+
+    vm.parseSelectedModel = parseSelectedModel;
+    vm.optionModelMap = undefined;
+    vm.optionViewMap = undefined;
+
+    if (vm.optionValueParam || vm.optionNameParam) {
+      $scope.$watch('vm.options', buildOptionMaps, true);
+      buildOptionMaps();
+    }
+
+    function buildOptionMaps() {
+      vm.optionModelMap = {};
+      vm.optionViewMap = {};
+
+      vm.options.forEach(function(option) {
+        if (vm.optionValueParam) {
+          vm.optionModelMap[option[vm.optionValueParam]] = option;
+        }
+
+        if (vm.optionNameParam) {
+          vm.optionViewMap[option[vm.optionNameParam]] = option;
+        }
+      });
+
+      if (vm.optionValueParam && vm.formatSelectedModel) {
+        // Re-run formatter with updated map
+        var ctrl = $element.controller('ngModel');
+        ctrl.$setViewValue(vm.formatSelectedModel(ctrl.$modelValue));
+      }
+    }
+
+    function parseSelectedModel(viewValue) {
+      var selected = vm.optionNameParam ? vm.optionViewMap[viewValue] : viewValue;
+      return vm.optionValueParam ? selected[vm.optionValueParam] : selected;
+    }
+  }
+
+  DropdownSelectorController.$inject = ['$scope', '$element'];
 
   angular.module('utility').directive('dropdownSelector', DropdownSelector);
 

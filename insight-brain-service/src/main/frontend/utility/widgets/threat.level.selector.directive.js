@@ -15,10 +15,21 @@
         disabled: '=?ngDisabled'
       },
       templateUrl: 'utility/widgets/threat.level.selector.directive.html',
-      controller: 'threat.level.selector.controller',
+      controller: ThreatLevelSelectorController,
       controllerAs: 'vm',
       bindToController: true
     };
+  }
+
+  function ThreatLevelSelectorController() {
+    var vm = this;
+
+    vm.threatLevels = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+    vm.selectLevel = selectLevel;
+
+    function selectLevel(threatLevel) {
+      vm.threatLevelModel = parseInt(threatLevel);
+    }
   }
 
   angular.module('utility').directive('threatLevelSelector', ThreatLevelSelector);

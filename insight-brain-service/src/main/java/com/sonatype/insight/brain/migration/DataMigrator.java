@@ -19,6 +19,7 @@ import javax.inject.Named;
 public class DataMigrator
 {
   private final LicenseOverrideMigrator licenseOverrideMigrator;
+  private final SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator;
   private final PolicyMigrator policyMigrator;
   private final PolicyEvaluationMigrator policyEvaluationMigrator;
   private final WaivedPolicyViolationMigrator waivedPolicyViolationMigrator;
@@ -43,7 +44,8 @@ public class DataMigrator
                       LicenseOverrideAuditGAVMigrator licenseOverrideAuditMigrator,
                       BomAuditGAVMigrator bomAuditMigrator,
                       SecurityAuditGAVMigrator securityAuditMigrator,
-                      RootOrganizationConfigMigrator rootOrganizationConfigMigrator)
+                      RootOrganizationConfigMigrator rootOrganizationConfigMigrator,
+                      SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
@@ -57,6 +59,7 @@ public class DataMigrator
     this.bomAuditMigrator = bomAuditMigrator;
     this.securityAuditMigrator = securityAuditMigrator;
     this.rootOrganizationConfigMigrator = rootOrganizationConfigMigrator;
+    this.securityVulnerabilityOverrideMigrator = securityVulnerabilityOverrideMigrator;
   }
 
   /**
@@ -75,5 +78,6 @@ public class DataMigrator
     bomAuditMigrator.migrate();
     securityAuditMigrator.migrate();
     rootOrganizationConfigMigrator.migrate();
+    securityVulnerabilityOverrideMigrator.migrate();
   }
 }

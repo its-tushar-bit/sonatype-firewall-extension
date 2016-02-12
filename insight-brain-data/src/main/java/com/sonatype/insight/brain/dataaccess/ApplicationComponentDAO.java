@@ -35,6 +35,12 @@ public class ApplicationComponentDAO
     return getList(tx, sQuery, appId);
   }
 
+  public List<ApplicationComponent> getByApplicationId(String appId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationId(tx, appId);
+    }
+  }
+
   public List<ApplicationComponent> getByApplicationIdAndStageTypeId(String appId, String stageTypeId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationIdAndStageTypeId(tx, appId, stageTypeId);

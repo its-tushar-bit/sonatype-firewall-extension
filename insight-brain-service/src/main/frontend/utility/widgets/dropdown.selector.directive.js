@@ -48,6 +48,10 @@
         element[disabled ? 'addClass' : 'removeClass']('disabled');
       });
 
+      scope.$watch('vm.options', function() {
+        ctrl.$setPristine();
+      });
+
       if (scope.vm.noOptionsString) {
         scope.$watch('vm.options.length', function(hasOptions) {
           element[hasOptions ? 'removeClass' : 'addClass']('no-options');

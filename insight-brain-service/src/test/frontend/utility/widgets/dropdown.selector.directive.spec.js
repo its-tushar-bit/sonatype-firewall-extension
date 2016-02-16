@@ -17,6 +17,7 @@ describe('dropdown.selector.directive.spec.js', function() {
       SpecUtil.respondWithTemplate($httpBackend, 'utility/widgets/dropdown.selector.directive.tpl.html');
 
       scope = angular.extend(scope, {
+        form: null,
         testModel: null,
         optionNameParam: 'name',
         options: [{name: 'cherry'}, {name: 'orange'}, {name: 'raspberry'}],
@@ -26,8 +27,8 @@ describe('dropdown.selector.directive.spec.js', function() {
         disabled: false
       });
 
-      element = $compile('<form><dropdown-selector ng-model="testModel" options="options" ng-disabled="disabled" ' +
-          'ng-change="onSelect(testModel)" empty-option-string="{{emptyOptionString}}" ' +
+      element = $compile('<form name="form"><dropdown-selector name="dropdown" ng-model="testModel" options="options" ' +
+          'ng-disabled="disabled" ng-change="onSelect(testModel)" empty-option-string="{{emptyOptionString}}" ' +
           'option-name-param="{{optionNameParam}}" no-options-string="{{noOptionsString}}"></dropdown-selector>' +
           '</form>')(scope).children();
 
@@ -78,6 +79,20 @@ describe('dropdown.selector.directive.spec.js', function() {
       expect(element.attr('class').split(' ')).toContain('no-options');
       expect(element.find('span.warning').length).toBe(1);
       expect(element.find('span.warning').text()).toEqual('No Berries Available');
+    });
+
+    it('Directive sets ngModelController to pristine when options change', function() {
+      var scope = element.scope(),
+          dropdownCtrl = scope.form.dropdown,
+          vm = element.isolateScope().vm;
+
+      expect(dropdownCtrl.$pristine).toBeTruthy();
+      vm.selectItem({name: 'orange'});
+      scope.$digest();
+      expect(dropdownCtrl.$pristine).toBeFalsy();
+      scope.options = [{name: 'blackberry'}, {name: 'strawberry'}];
+      scope.$digest();
+      expect(dropdownCtrl.$pristine).toBeTruthy();
     });
   });
 

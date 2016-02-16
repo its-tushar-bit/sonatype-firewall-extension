@@ -56,6 +56,9 @@ describe('policy.tile.controller.spec.js', function() {
         expect(policy.name).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].name);
         expect(policy.threatLevel).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].threatLevel);
         expect(policy.actions).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions);
+        expect(policy.enforcementAction).toBeDefined();
+        expect(policy.enforcementAction['build']).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId);
+        expect(policy.enforcementAction['stage-release']).toEqual(PolicyTileMockData.getApplicablePolicies().policiesByOwner[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId);
       });
     });
     expect(vm.monitoredStage.stageName).toBe('Develop');

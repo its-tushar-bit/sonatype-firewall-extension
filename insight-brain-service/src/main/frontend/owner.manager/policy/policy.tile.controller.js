@@ -31,13 +31,27 @@
       ]).then(function(results) {
         vm.actionStages = [];
         vm.policiesByOwner = results[0].data.policiesByOwner;
+        var stages = results[1];
+
         vm.policiesByOwner.forEach(function(policyOwner, index) {
           policyOwner.inherited = index > 0;
+          policyOwner.policies.forEach(function(policy) {
+            policy.enforcementAction = {};
+            stages.forEach(function(actionStage) {
+              if (policy.actions[actionStage.stageTypeId]) {
+                policy.actions[actionStage.stageTypeId].some(function(action) {
+                  if (action.actionTypeId === 'warn' || action.actionTypeId === 'fail') {
+                    policy.enforcementAction[actionStage.stageTypeId] = action.actionTypeId;
+                    return true;
+                  }
+                });
+              }
+            });
+          });
         });
 
         vm.ownerName = vm.policiesByOwner[0].ownerName;
 
-        var stages = results[1];
         stages.forEach(function(actionStage) {
           vm.actionStages.push(actionStage.stageTypeId);
         });

@@ -20,11 +20,11 @@ public class Checkbox
     this.labelElement = labelElement;
   }
 
-  private SelenideElement input() {
+  public SelenideElement input() {
     return labelElement.$("input[type='checkbox']");
   }
 
-  private SelenideElement label() {
+  public SelenideElement label() {
     return labelElement.$("input[type='checkbox'] + span");
   }
 

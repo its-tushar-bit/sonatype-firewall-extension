@@ -2,7 +2,7 @@
   <div class="tile summary-tile" load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
     <h2>
       <i class="fa size-20px fa-university slate">
-      </i>{{::vm.dirtyPolicy.id ? 'Edit' : 'New'}} Policy
+      </i>{{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}} Policy
     </h2>
     <ul class="nav nav-pills">
       <li class="active"><a data-toggle="pill" id="policy-summary-button" data-target="#policy-edit-summary">Summary</a></li>
@@ -22,7 +22,7 @@
         <div class="section">
           <div class="inline-fields">
             <div class="field">
-              <label for="editor-policy-name">Policy Name</label>
+              <label for="editor-policy-name" ng-class="{disabled: vm.readOnly}">Policy Name</label>
               <input id="editor-policy-name" type="text" name="policy" required
                      ng-model="vm.dirtyPolicy.name"
                      ng-maxlength="60"
@@ -30,12 +30,14 @@
                      valid-name-characters
                      is-duplicate is-duplicate-array="vm.siblings" is-duplicate-id-field="id"
                      messages="{duplicate: 'Name is already in use'}"
+                     ng-disabled="vm.readOnly"
                      clm-input>
             </div>
             <div class="field">
-              <label for="editor-policy-threat-level">Threat Level</label>
+              <label for="editor-policy-threat-level" ng-class="{disabled: vm.readOnly}">Threat Level</label>
               <threat-level-selector id="editor-policy-threat-level"
-                                     ng-model='vm.dirtyPolicy.threatLevel' threat-type="policy"></threat-level-selector>
+                                     ng-model='vm.dirtyPolicy.threatLevel' threat-type="policy"
+                                     ng-disabled="vm.readOnly"></threat-level-selector>
             </div>
           </div>
         </div>
@@ -45,20 +47,22 @@
         <div class="section">
           <div class="inline-fields">
             <div class="field">
-              <label for="editor-policy-inherit">This Policy Inherits to</label>
+              <label for="editor-policy-inherit" ng-class="{disabled: vm.readOnly}">This Policy Inherits to</label>
               <div id="editor-policy-inherit" class="editor-policy-inherit">
-                <label class="radio">
-                  <input type="radio" name="policy-inherit" ng-model="vm.hasPolicyCategories" ng-value="false">
+                <label class="radio" ng-class="{disabled: vm.readOnly}">
+                  <input type="radio" name="policy-inherit" ng-model="vm.hasPolicyCategories" ng-value="false"
+                         ng-disabled="vm.readOnly">
                   <span>All Applications in {{ vm.ownerName}}</span>
                 </label>
-                <label class="radio">
-                  <input type="radio" ng-disabled="vm.categories.length === 0" name="policy-inherit"
+                <label class="radio" ng-class="{disabled: vm.categories.length === 0 || vm.readOnly}">
+                  <input type="radio" ng-disabled="vm.categories.length === 0 || vm.readOnly" name="policy-inherit"
                          ng-model="vm.hasPolicyCategories" ng-value="true">
                   <span>Applications of the specified Application Categories in {{ vm.ownerName}}</span>
                 </label>
                 <association-editor ng-show="vm.hasPolicyCategories" id="associated-categories" items="vm.categories"
                                     checkbox-param="isApplied"
-                                    description="name" icon="hexagon"/>
+                                    description="name" icon="hexagon"
+                                    ng-disabled="vm.readOnly"/>
               </div>
             </div>
           </div>
@@ -66,19 +70,21 @@
       </div>
       <div id="policy-edit-constraints" class="editor-section">
         <div class="editor-section-header">Constraints</div>
-        <policy-editor-constraints constraints="vm.dirtyPolicy.constraints"></policy-editor-constraints>
+        <policy-editor-constraints constraints="vm.dirtyPolicy.constraints" ng-disabled="vm.readOnly"></policy-editor-constraints>
       </div>
       <div id="policy-edit-actions" class="editor-section">
         <div class="editor-section-header">Actions and Notifications</div>
-        <policy-editor-actions actions="vm.dirtyPolicy.actions" monitor-notify-actions="vm.dirtyPolicy.monitorNotifyActions"></policy-editor-actions>
+        <policy-editor-actions actions="vm.dirtyPolicy.actions" monitor-notify-actions="vm.dirtyPolicy.monitorNotifyActions"
+                ng-disabled="vm.readOnly"></policy-editor-actions>
       </div>
       <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.isPolicyDirty()"
-                submit-type="vm.dirtyPolicy.id ? 'update' : 'create'">
+                submit-type="vm.dirtyPolicy.id ? 'update' : 'create'"
+                ng-disabled="vm.readOnly">
           {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}
         </button><!--
         --><button id="delete-policy-button" class='btn btn-tertiary' type="button"
-                ng-click="vm.deletePolicy()" ng-if="vm.dirtyPolicy && !vm.dirtyPolicy.$new">
+                ng-click="vm.deletePolicy()" ng-if="vm.dirtyPolicy && !vm.dirtyPolicy.$new" ng-disabled="vm.readOnly">
           <i class="fa fa-fw fa-trash"></i>Delete Policy
         </button>
       </div>

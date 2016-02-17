@@ -105,6 +105,7 @@ describe('policy.editor.controller.spec.js', function() {
       vm = $controller('policy.editor.controller',
           {$scope: scope, $stateParams: {policyId: '456'}});
       mockPolicy.id = '456';
+      mockPolicy.ownerId = 'orgownerid';
 
       resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
           '123');
@@ -191,6 +192,19 @@ describe('policy.editor.controller.spec.js', function() {
         expect(vm.categories.length).toBe(0);
         expect(vm.hasPolicyCategories).toBeFalsy();
       }
+    }));
+
+    it('Sets readOnly', inject(function($controller) {
+      vm = $controller('policy.editor.controller',
+          {$scope: scope, $stateParams: {policyId: '456'}});
+      mockPolicy.id = '456';
+
+      expect(vm.readOnly).toBeUndefined();
+
+      resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
+          '123');
+      
+      expect(vm.readOnly).toBeDefined();
     }));
 
     function resolveLoadData(policyStoreData, policyId) {

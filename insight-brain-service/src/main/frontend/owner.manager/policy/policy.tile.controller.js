@@ -69,10 +69,8 @@
       delete vm.error;
     }
 
-    function editPolicy(policyId, inherited) {
-      if (!inherited) {
-        SameOwnerStateNavigationService.goEdit('policy', {policyId: policyId});
-      }
+    function editPolicy(policyId) {
+      SameOwnerStateNavigationService.goEdit('policy', {policyId: policyId});
     }
   }
 

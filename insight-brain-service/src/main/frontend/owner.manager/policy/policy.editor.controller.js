@@ -28,6 +28,7 @@
     vm.hasPolicyCategories = false;
     vm.submitError = undefined;
     vm.ownerName = undefined;
+    vm.readOnly = undefined;
 
     vm.doLoad();
 
@@ -77,14 +78,13 @@
         policyHierarchy.forEach(function(owner, index) {
           vm.siblings = vm.siblings.concat(owner.policies);
 
-          if ($stateParams.policyId && index === 0) {
-            owner.policies.some(function(policyCandidate) {
-              if ($stateParams.policyId === policyCandidate.id) {
-                vm.dirtyPolicy = policyCandidate.$clone();
-                return true;
-              }
-            });
-          }
+          owner.policies.some(function(policyCandidate) {
+            if ($stateParams.policyId === policyCandidate.id) {
+              vm.readOnly = index !== 0;
+              vm.dirtyPolicy = policyCandidate.$clone();
+              return true;
+            }
+          });
         });
       }
 
@@ -93,7 +93,11 @@
         var appliedCategoriesById = vm.hasPolicyCategories ? availableCategories.map(function(category) {
           return category.id;
         }) : [];
-        vm.categories = categoriesByOwner[0].tags;
+        if (vm.dirtyPolicy) {
+          vm.categories = categoriesByOwner.filter(function(owner) {
+            return owner.ownerId === vm.dirtyPolicy.ownerId ;
+          })[0].tags;
+        }
         vm.categories.forEach(function(category) {
           category.isApplied = appliedCategoriesById.indexOf(category.id) > -1;
         });
@@ -109,7 +113,7 @@
         return $q.reject(error);
       }
 
-      if (vm.policyEditor.$valid && vm.isPolicyDirty()) {
+      if (vm.policyEditor.$valid && vm.isPolicyDirty() && !vm.readOnly) {
         var savePolicy = vm.dirtyPolicy.$save().then(function() {
           return vm.isApp ? $q.when([]) : $http.put(CLMAppLocations.getPolicyTagUrl(vm.dirtyPolicy.id),
               vm.hasPolicyCategories ? appliedCategories : []);

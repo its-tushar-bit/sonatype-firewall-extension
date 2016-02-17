@@ -288,6 +288,7 @@
         padding-left: 24px;
         cursor: pointer;
         display: inline-block;
+        color: $off-black;
       }
 
       & + span:before, & + span:after {
@@ -346,6 +347,10 @@
           border-color: $grey-4;
           background-color: $grey-4;
         }
+
+        & + span {
+          color: $slate;
+        }
       }
     }
   }
@@ -399,6 +404,7 @@
       & + span {
         display: block;
         position: relative;
+        color: $off-black;
       }
 
       & + span:before {

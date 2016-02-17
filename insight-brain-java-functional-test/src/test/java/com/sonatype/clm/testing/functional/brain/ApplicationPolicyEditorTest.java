@@ -41,7 +41,7 @@ public class ApplicationPolicyEditorTest
   }
 
   @Override
-  protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2) {
+  protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2, boolean isReadOnly) {
     assertInheritanceSectionDoesNotExist();
   }
 

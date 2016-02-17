@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -129,21 +130,60 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   public void testEditPolicy() {
-    Policy policy = tempEntity.newPolicy(currentOwner.getId(), "original name", 1);
+    String ownerId = currentOwner.getId();
+    Tag[] categories = createCategories(
+        OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
+    Policy policy = createPolicy(ownerId, categories);
+
+    refresh();
+
+    SummaryTile.localPolicy(policy.getName()).click();
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false);
+
+    testEditPolicy_summarySection();
+    testEditPolicy_inheritanceSection();
+    testEditPolicy_constraintSection(policy);
+    testEditPolicy_actionsNotificationsSection(policy);
+    testDeletePolicy(policyDAO.getById(policy.getId()));
+  }
+
+  @Test
+  public void testDisabledPolicy() {
+    String inheritedOwnerId = currentOwner.getParentOwnerId();
+    Tag[] categories = createCategories(inheritedOwnerId);
+    Policy policy = createPolicy(inheritedOwnerId, categories);
+
+    refresh();
+
+    SummaryTile.localPolicy(policy.getName()).click();
+    assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
+  }
+
+  private Tag[] createCategories(String ownerId) {
+    Tag category1 = tempEntity.newTag(ownerId, "Cat_1", blue);
+    Tag category2 = tempEntity.newTag(ownerId, "Cat_2", red);
+    return new Tag[]{category1, category2};
+  }
+
+  private Policy createPolicy(String ownerId, Tag[] categories) {
+    Policy policy = tempEntity.newPolicy(ownerId, "original name", 1);
     Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
     constraint1.addCondition(new Condition("AgeInDays", "older than", "730"));
     Constraint constraint2 = new Constraint(policy.getId() + "2", "Second Constraint with Two Conditions",
         LogicalOperator.AND);
-    constraint2.addCondition(new Condition("License Threat Group", "is",
-        tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG", 5).getId()));
     constraint2.addCondition(
-        new Condition("Label", "is", tempEntity.newLabel(currentOwner.getId(), "my Label").getId()));
+        new Condition("License Threat Group", "is", tempEntity.newLicenseThreatGroup(ownerId, "my LTG", 5).getId()));
+    constraint2.addCondition(new Condition("Label", "is", tempEntity.newLabel(ownerId, "my Label").getId()));
     Constraint constraint3 = new Constraint(policy.getId() + "3", "Third Constraint with Two Conditions",
         LogicalOperator.OR);
     constraint3.addCondition(new Condition("RelativePopularity", "<", "50"));
     constraint3.addCondition(new Condition("Coordinates", "do not match", "blah:blah:blah"));
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
+
+    if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      tempEntity.newPolicyTag(policy.getId(), categories[0].getId());
+    }
 
     policy.addAction(Stage.ID_DEVELOP, new Action(Action.ID_WARN));
     policy.addAction(Stage.ID_BUILD, new Action(Action.ID_FAIL));
@@ -156,26 +196,8 @@ public abstract class AbstractPolicyEditorTest
 
     tempEntity.newLicenseThreatGroup(currentOwner.getId(), "my LTG 2", 10);
 
-    Tag category1 = null;
-    Tag category2 = null;
-
-    if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      category1 = tempEntity.newTag(currentOwner.getId(), "Cat_1", blue);
-      category2 = tempEntity.newTag(currentOwner.getId(), "Cat_2", red);
-      tempEntity.newPolicyTag(policy.getId(), category1.getId());
-    }
-
     policyDAO.update(policy);
-    refresh();
-
-    SummaryTile.localPolicy(policy.getName()).click();
-    assertEditPolicyStateIsCorrect(policy, category1, category2);
-
-    testEditPolicy_summarySection();
-    testEditPolicy_inheritanceSection();
-    testEditPolicy_constraintSection(policy);
-    testEditPolicy_actionsNotificationsSection(policy);
-    testDeletePolicy(policyDAO.getById(policy.getId()));
+    return policy;
   }
 
   private void testEditPolicy_summarySection() {
@@ -376,8 +398,9 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.actionsAndNotificationsPill().click();
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
 
-    actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED).click();
-    actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED);
+    SelenideElement twisty = actionItemList.build().twisty();
+    twisty.shouldHave(ActionItem.EXPANDED).click();
+    twisty.shouldHave(ActionItem.COLLAPSED);
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
@@ -402,9 +425,8 @@ public abstract class AbstractPolicyEditorTest
     buildNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
     buildNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
 
-    actionItemList.build().notifications().shouldHaveSize(4);
-    actionItemList.build().notifications().shouldHave(
-        texts("test@foo.com", "Developer", "test@sonatype.com", "Application Evaluator"));
+    actionItemList.build().notifications()
+        .shouldHave(texts("test@foo.com", "Developer", "test@sonatype.com", "Application Evaluator"));
 
     actionItemList.build().getNotificationByName("test@foo.com").deleteButton().click();
     actionItemList.build().notifications().shouldHaveSize(3);
@@ -412,8 +434,8 @@ public abstract class AbstractPolicyEditorTest
     FormMask.seeAndWaitForDismissal();
     actionItemList.build().notificationCount().shouldHave(text("3"));
 
-    actionItemList.build().twisty().shouldHave(ActionItem.COLLAPSED).click();
-    actionItemList.build().twisty().shouldHave(ActionItem.EXPANDED);
+    twisty.shouldHave(ActionItem.COLLAPSED).click();
+    twisty.shouldHave(ActionItem.EXPANDED);
 
     policy = policyDAO.getById(policy.getId());
     List<Action> actions = policy.getActions(Stage.ID_BUILD);
@@ -433,8 +455,9 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.actionsAndNotificationsPill().click();
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
 
-    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED).click();
-    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED);
+    SelenideElement twisty = actionItemList.continuousMonitoring().twisty();
+    twisty.shouldHave(ActionItem.EXPANDED).click();
+    twisty.shouldHave(ActionItem.COLLAPSED);
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
@@ -469,8 +492,6 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     actionItemList.continuousMonitoring().notificationCount().shouldHave(text("2"));
-    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.COLLAPSED).click();
-    actionItemList.continuousMonitoring().twisty().shouldHave(ActionItem.EXPANDED);
 
     policy = policyDAO.getById(policy.getId());
     List<NotifyAction> actions = policy.getMonitorNotifyActions();
@@ -486,33 +507,6 @@ public abstract class AbstractPolicyEditorTest
 
   private void testEditPolicy_actionsNotificationsSection_stageActions(Policy policy) {
     ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
-    assertActionItemListNames(actionItemList);
-    assertActionItemListHasBuildNotifications(actionItemList);
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
-
-    // Policy actions for Developer and Build are set to Warn and Fail, respectively.
-    actionItemList.develop().failRadio().shouldNotBe(selected);
-    actionItemList.develop().warnRadio().shouldBe(selected);
-    actionItemList.develop().noActionRadio().shouldNotBe(selected);
-
-    actionItemList.build().failRadio().shouldBe(selected);
-    actionItemList.build().warnRadio().shouldNotBe(selected);
-    actionItemList.build().noActionRadio().shouldNotBe(selected);
-
-
-    // The rest of the stages should have no-action selected
-    actionItemList.proxy().failRadio().shouldNotBe(selected);
-    actionItemList.proxy().warnRadio().shouldNotBe(selected);
-    actionItemList.proxy().noActionRadio().shouldBe(selected);
-    actionItemList.operate().failRadio().shouldNotBe(selected);
-    actionItemList.operate().warnRadio().shouldNotBe(selected);
-    actionItemList.operate().noActionRadio().shouldBe(selected);
-    actionItemList.release().failRadio().shouldNotBe(selected);
-    actionItemList.release().warnRadio().shouldNotBe(selected);
-    actionItemList.release().noActionRadio().shouldBe(selected);
-    actionItemList.stageRelease().failRadio().shouldNotBe(selected);
-    actionItemList.stageRelease().warnRadio().shouldNotBe(selected);
-    actionItemList.stageRelease().noActionRadio().shouldBe(selected);
 
     // Set proxy to warn, operate to fail
     actionItemList.proxy().warnRadio().click();
@@ -647,38 +641,125 @@ public abstract class AbstractPolicyEditorTest
 
     summary.policyName().clear();
 
-    assertThreatLevelSelectorState(PolicyEditorPage.DEFAULT_THREAT_LEVEL);
+    assertThreatLevelSelectorState(PolicyEditorPage.DEFAULT_THREAT_LEVEL, false);
   }
 
-  private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2) {
+  private void assertEditPolicyStateIsCorrect(Policy policy, Tag category1, Tag category2, boolean isReadOnly) {
     waitUntilUrl(
         PolicyEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), policy.getId()));
-    PolicyEditorPage.title().shouldHave(text("Edit"));
+    PolicyEditorPage.title().shouldHave(text(isReadOnly ? "View" : "Edit"));
 
-    assertEditPolicyStateIsCorrect_summarySection(policy);
-    assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2);
+    assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly);
+    assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);
+    assertEditPolicyStateIsCorrect_actionsNotificationsSection(isReadOnly);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    PolicyEditorPage.deleteButton().shouldBe(visible, isReadOnly ? disabled : enabled);
   }
 
-  private void assertEditPolicyStateIsCorrect_summarySection(Policy policy) {
+  private void assertEditPolicyStateIsCorrect_summarySection(Policy policy, boolean isReadOnly) {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value(policy.getName()));
-    assertThreatLevelSelectorState(policy.getThreatLevel());
+    summary.policyName().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(CLM.INITIAL_VALUE)
+        .shouldHave(value(policy.getName()));
+    assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
   }
 
-  private void assertThreatLevelSelectorState(int selectedThreatLevel) {
-    ThreatLevelSelector.root().shouldBe(visible);
-    ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-    ThreatLevelSelector.threatLevelList().shouldBe(visible);
-    ThreatLevelSelector.threatLevelListItems().shouldHaveSize(ThreatLevelSelector.NUM_THREAT_LEVELS);
+  private void assertEditPolicyStateIsCorrect_actionsNotificationsSection(boolean isReadOnly) {
+    PolicyEditorPage.actionsAndNotificationsPill().click();
+    testEditPolicyStateIsCorrect_actionsNotificationsSection_notifications(isReadOnly);
+    testEditPolicyStateIsCorrect_actionsNotificationsSection_monitoring(isReadOnly);
+    testEditPolicyStateIsCorrect_actionsNotificationsSection_stageActions(isReadOnly);
+  }
 
-    for (int i = 0; i < ThreatLevelSelector.NUM_THREAT_LEVELS; i++) {
-      ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible);
-      assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
+  private void testEditPolicyStateIsCorrect_actionsNotificationsSection_notifications(boolean isReadOnly) {
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+
+    SelenideElement twisty = actionItemList.build().twisty();
+    twisty.shouldHave(ActionItem.EXPANDED).click();
+    twisty.shouldHave(ActionItem.COLLAPSED);
+
+    AddNotificationItem buildNotification = actionItemList.build().addNotification();
+
+    if (isReadOnly) {
+      buildNotification.addButton().shouldNot(exist);
+      buildNotification.notificationType().root().shouldNot(exist);
+      buildNotification.email().shouldNot(exist);
     }
+    else {
+      buildNotification.addButton().shouldBe(visible, DISABLED);
+      buildNotification.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
+      buildNotification.email().shouldBe(visible);
+    }
+    buildNotification.role().root().shouldNot(exist);
 
-    ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
-        .click();
+    actionItemList.build().notifications().shouldHaveSize(2).shouldHave(
+        texts("test@foo.com", "Developer"));
+  }
+
+  private void testEditPolicyStateIsCorrect_actionsNotificationsSection_monitoring(boolean isReadOnly) {
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+
+    SelenideElement twisty = actionItemList.continuousMonitoring().twisty();
+    twisty.shouldHave(ActionItem.EXPANDED).click();
+    twisty.shouldHave(ActionItem.COLLAPSED);
+
+    AddNotificationItem continuousMonitoring = actionItemList.continuousMonitoring().addNotification();
+
+    if (isReadOnly) {
+      continuousMonitoring.addButton().shouldNot(exist);
+      continuousMonitoring.notificationType().root().shouldNot(exist);
+      continuousMonitoring.email().shouldNot(exist);
+    }
+    else {
+      continuousMonitoring.addButton().shouldBe(visible).shouldHave(DISABLED);
+      continuousMonitoring.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
+      continuousMonitoring.email().shouldBe(visible);
+    }
+    continuousMonitoring.role().root().shouldNot(exist);
+
+    actionItemList.continuousMonitoring().notifications().shouldHave(
+        texts("test@foo.com"));
+  }
+
+  private void testEditPolicyStateIsCorrect_actionsNotificationsSection_stageActions(boolean isReadOnly) {
+    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly ? disabled : enabled;
+    ActionItemList actionItemList = PolicyEditorPage.actionsNotificationsSection().actionItemList();
+    assertActionItemListNames(actionItemList);
+    assertActionItemListHasBuildNotifications(actionItemList);
+
+    // Policy actions for Developer and Build are set to Warn and Fail, respectively.
+    ActionItem develop = actionItemList.develop();
+    develop.failRadio().input().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+    develop.warnRadio().input().shouldBe(selected, visible, disabledOrEnabled);
+    develop.noActionRadio().input().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
+
+    actionItemList.build().failRadio().shouldBe(selected);
+
+    // The rest of the stages should have no-action selected
+    actionItemList.proxy().noActionRadio().input().shouldBe(selected);
+    actionItemList.operate().noActionRadio().input().shouldBe(selected);
+    actionItemList.release().noActionRadio().input().shouldBe(selected);
+    actionItemList.stageRelease().noActionRadio().input().shouldBe(selected);
+  }
+
+  private void assertThreatLevelSelectorState(int selectedThreatLevel, boolean isReadOnly) {
+    ThreatLevelSelector.root().shouldBe(visible);
+    if (isReadOnly) {
+      ThreatLevelSelector.caretButton().shouldBe(visible).shouldHave(DISABLED);
+      ThreatLevelSelector.threatLevelList().shouldNotBe(visible);
+    }
+    else {
+      ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
+      ThreatLevelSelector.threatLevelList().shouldBe(visible);
+
+      ThreatLevelSelector.threatLevelListItems().shouldHaveSize(ThreatLevelSelector.NUM_THREAT_LEVELS);
+
+      for (int i = 0; i < ThreatLevelSelector.NUM_THREAT_LEVELS; i++) {
+        ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible).shouldHave(text(Integer.toString(10 - i)));
+      }
+
+      ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
+          .click();
+    }
   }
 
   private void assertActionItemListNames(ActionItemList actionItemList) {
@@ -721,5 +802,6 @@ public abstract class AbstractPolicyEditorTest
 
   protected abstract void testEditPolicy_inheritanceSection();
 
-  protected abstract void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2);
+  protected abstract void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2,
+      boolean isReadOnly);
 }

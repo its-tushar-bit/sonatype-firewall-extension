@@ -15,7 +15,8 @@
         icon: '@',
         description: '@',
         isRadioButton: '@',
-        selected: '='
+        selected: '=',
+        disabled: '=?ngDisabled'
       },
       replace: true,
       templateUrl: 'utility/widgets/association.editor.directive.html',

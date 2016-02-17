@@ -158,7 +158,7 @@
                 </tr>
               </thead>
               <tr class="simple clickable" ng-repeat="policy in ownerPolicyList.policies | orderBy:sortVm.sortFields"
-                  ng-click="vm.editPolicy(policy.id, ownerPolicyList.inherited)">
+                  ng-click="vm.editPolicy(policy.id)">
                 <td class="threat-name" colspan="2"><span class='threat-legend threat policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
                 <td ng-repeat="action in vm.actionStages">
                   <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[action] === 'warn',

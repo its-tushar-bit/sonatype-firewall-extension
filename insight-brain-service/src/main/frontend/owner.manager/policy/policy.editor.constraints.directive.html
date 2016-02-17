@@ -3,11 +3,12 @@
     <div class="constraint-summary" ng-if="!vm.editConstraintMap[constraint.id]">
       <div class="button-container">
         <button class="btn btn-tertiary btn-icon-only edit-constraint-button" type="button"
-                ng-click="vm.editConstraintMap[constraint.id] = true"><!--
+                ng-click="vm.editConstraintMap[constraint.id] = true"
+                ng-disabled="vm.disabled"><!--
         --><i class="fa fa-pencil"></i>
         </button>
         <button class="btn btn-tertiary btn-icon-only delete-constraint-button" type="button"
-                ng-click="vm.deleteConstraint($index)" ng-disabled="vm.constraints.length < 2"><!--
+                ng-click="vm.deleteConstraint($index)" ng-disabled="vm.constraints.length < 2 || vm.disabled"><!--
         --><i class="fa fa-trash"></i>
         </button>
       </div>
@@ -110,7 +111,8 @@
       </div>
     </div>
   </div>
-  <button id="add-constraint-button" class='btn' type="button" ng-click="vm.addConstraint()" click-scroll>
+  <button id="add-constraint-button" class='btn' type="button" ng-click="vm.addConstraint()" click-scroll
+          ng-disabled="vm.disabled">
     <i class="fa fa-plus"></i>Add Constraint
   </button>
 </div>

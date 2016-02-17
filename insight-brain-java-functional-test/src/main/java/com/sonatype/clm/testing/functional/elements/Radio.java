@@ -20,11 +20,11 @@ public class Radio
     this.labelElement = labelElement;
   }
 
-  private SelenideElement input() {
+  public SelenideElement input() {
     return labelElement.$("input[type='radio']");
   }
 
-  private SelenideElement label() {
+  public SelenideElement label() {
     return labelElement.$("input[type='radio'] + span");
   }
 

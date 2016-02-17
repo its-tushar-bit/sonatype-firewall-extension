@@ -12,7 +12,8 @@
       controller: 'policy.editor.constraints.controller',
       controllerAs: 'vm',
       scope: {
-        constraints: '='
+        constraints: '=',
+        disabled: '=?ngDisabled'
       },
       bindToController: true
     };

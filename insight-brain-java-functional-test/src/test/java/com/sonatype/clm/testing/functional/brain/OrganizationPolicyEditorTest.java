@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.junit.Before;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -85,24 +87,24 @@ public class OrganizationPolicyEditorTest
   }
 
   @Override
-  protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2) {
+  protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2, boolean isReadOnly) {
     InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
 
-    inheritance.allChildrenInheritRadio().shouldBe(visible).shouldNotBe(selected);
-    inheritance.allChildrenInheritRadio().shouldHave(allRadioText(organization.getName()));
-    inheritance.specifiedChildrenInheritRadio().shouldBe(visible).shouldBe(selected);
-    inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(organization.getName()));
+    inheritance.allChildrenInheritRadio().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
+    inheritance.allChildrenInheritRadio().label().shouldHave(allRadioText(organization.getName()));
+    inheritance.specifiedChildrenInheritRadio().input().shouldBe(visible).shouldBe(selected);
+    inheritance.specifiedChildrenInheritRadio().label().shouldHave(specifiedRadioText(organization.getName()));
     inheritance.associationEditor().root().shouldBe(visible);
 
     inheritance.associationEditor().rows().shouldHaveSize(2);
     assertThat(inheritance.associationEditor().columnCount(), is(equalTo(1)));
     AssociationEditorElement category1Item = inheritance.associationEditor().item(0, 0);
-    category1Item.checkBox().shouldBe(visible).shouldBe(selected);
+    category1Item.checkBox().input().shouldBe(visible, selected, isReadOnly ? disabled : enabled);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
     category1Item.icon().shouldBe(visible).shouldHave(cssClass(category1.getColor().toValue()));
 
     AssociationEditorElement category2Item = inheritance.associationEditor().item(1, 0);
-    category2Item.checkBox().shouldBe(visible).shouldNotBe(selected);
+    category2Item.checkBox().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
   }

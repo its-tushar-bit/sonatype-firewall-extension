@@ -13,7 +13,8 @@
       controllerAs: 'vm',
       scope: {
         actions: '=',
-        monitorNotifyActions: '='
+        monitorNotifyActions: '=',
+        disabled: '=?ngDisabled'
       },
       bindToController: true
     };

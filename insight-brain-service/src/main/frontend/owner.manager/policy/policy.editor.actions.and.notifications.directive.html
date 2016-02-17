@@ -9,20 +9,23 @@
           <span>{{::actionStage.stageName}}</span>
         </td>
         <td>
-          <label class="radio" ng-if="actionStage.stageTypeId !== 'monitoring'">
-            <input type="radio" ng-model="vm.getActionItem(actionStage.stageTypeId)[0]" ng-value="null" ng-change="vm.conditionallyAddOrRemoveAction(actionStage.stageTypeId, null)"><!--
+          <label class="radio" ng-if="actionStage.stageTypeId !== 'monitoring'" ng-class="{disabled: vm.disabled}">
+            <input type="radio" ng-model="vm.getActionItem(actionStage.stageTypeId)[0]" ng-value="null" ng-change="vm.conditionallyAddOrRemoveAction(actionStage.stageTypeId, null)"
+                   ng-disabled="vm.disabled"><!--
               --><span>No action</span><!--
           --></label>
         </td>
         <td>
-          <label class="radio" ng-if="actionStage.stageTypeId !== 'monitoring'">
-            <input type="radio" ng-model="vm.getActionItem(actionStage.stageTypeId)[0].actionTypeId" value="warn" ng-change="vm.conditionallyAddOrRemoveAction(actionStage.stageTypeId, 'warn')"><!--
+          <label class="radio" ng-if="actionStage.stageTypeId !== 'monitoring'" ng-class="{disabled: vm.disabled}">
+            <input type="radio" ng-model="vm.getActionItem(actionStage.stageTypeId)[0].actionTypeId" value="warn" ng-change="vm.conditionallyAddOrRemoveAction(actionStage.stageTypeId, 'warn')"
+                   ng-disabled="vm.disabled"><!--
               --><span><i class="fa fa-exclamation-triangle warn"></i>Warn</span><!--
           --></label>
         </td>
         <td>
-          <label class="radio" ng-if="actionStage.stageTypeId !== 'monitoring'">
-            <input type="radio" ng-model="vm.getActionItem(actionStage.stageTypeId)[0].actionTypeId" value="fail" ng-change="vm.conditionallyAddOrRemoveAction(actionStage.stageTypeId, 'fail')"><!--
+          <label class="radio" ng-if="actionStage.stageTypeId !== 'monitoring'" ng-class="{disabled: vm.disabled}">
+            <input type="radio" ng-model="vm.getActionItem(actionStage.stageTypeId)[0].actionTypeId" value="fail" ng-change="vm.conditionallyAddOrRemoveAction(actionStage.stageTypeId, 'fail')"
+                   ng-disabled="vm.disabled"><!--
               --><span><i class="fa fa-exclamation-circle fail"></i>Fail</span><!--
           --></label>
         </td>
@@ -33,7 +36,7 @@
       <tr ng-if="actionStage.isExpanded">
         <td colspan="5">
           <div class="section add-notification">
-            <div class="inline-fields">
+            <div class="inline-fields" ng-if="!vm.disabled">
               <div class="field">
                 <label for="editor-notification-type-{{actionStage.stageName}}">Notification Type</label>
                 <dropdown-selector id="editor-notification-type-{{actionStage.stageName}}" class="editor-notification-type" ng-model="vm.notificationTypeMap[actionStage.stageTypeId]"
@@ -72,7 +75,8 @@
           <div class="notification-list" ng-class="{empty : !vm.hasNotifications(actionStage.stageTypeId)}">
             <ul>
               <li ng-repeat="action in (actionStage.stageTypeId === 'monitoring' ? vm.monitorNotifyActions : vm.actions[actionStage.stageTypeId]) | filter:{actionTypeId:'notify'}">
-                <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeNotification(actionStage.stageTypeId, action.target)"><!--
+                <button class='btn btn-tertiary btn-icon-only' type="button" ng-click="vm.removeNotification(actionStage.stageTypeId, action.target)"
+                        ng-disabled="vm.disabled"><!--
                --><i class="fa fa-trash"></i>
                 </button>
                 <span>

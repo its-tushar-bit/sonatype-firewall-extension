@@ -385,7 +385,9 @@ public class HdsClient
   private HttpEntity buildEntity(HttpServletRequest request) throws IOException {
     File uploadFile = (File) request.getAttribute(UPLOAD_FILE_ATTRIBUTE);
     if (uploadFile != null) {
-      return new FileEntity(uploadFile, ContentType.create(request.getContentType()));
+      ContentType contentType = request.getContentType() != null ? ContentType.create(request.getContentType())
+          : ContentType.DEFAULT_BINARY;
+      return new FileEntity(uploadFile, contentType);
     }
 
     return new InputStreamEntity(request.getInputStream(), request.getContentLength());

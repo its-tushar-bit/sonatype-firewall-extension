@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.api.v1.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v1.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 /**
  * @since 1.13.0
@@ -47,7 +47,7 @@ public class ApiSecurityDataAdapter
       sv.source = vuln.getSource();
       sv.reference = vuln.getRefId();
       sv.severity = vuln.getSeverity();
-      sv.status = SecurityVulnerabilityStatus.OPEN.getName();
+      sv.status = SecurityVulnerabilityOverrideStatus.OPEN.getName();
       sv.url = vuln.getUrl();
       sv.threatCategory = SecurityThreatLevel.getBySeverity(vuln.getSeverity()).getName();
       securityData.securityIssues.add(sv);

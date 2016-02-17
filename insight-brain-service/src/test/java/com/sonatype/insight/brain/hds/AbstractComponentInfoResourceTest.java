@@ -22,8 +22,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -115,7 +115,7 @@ public abstract class AbstractComponentInfoResourceTest
         .setEffectiveLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("GPL-1.0"))));
     componentDetails.setEffectiveLicenseStatus(LicenseStatus.Overridden);
     SecurityVulnerability sv = new SecurityVulnerability("refid", "source", 1F);
-    sv.setStatus(SecurityVulnerabilityStatus.OPEN.getName());
+    sv.setStatus(SecurityVulnerabilityOverrideStatus.OPEN.getName());
     componentDetails.setSecurityVulnerabilities(Collections.singletonList(sv));
     componentDetails.setCatalogDate(new Date().getTime());
     componentDetails.setWebsite("http://www.example.com");

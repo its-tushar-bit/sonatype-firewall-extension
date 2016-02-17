@@ -26,11 +26,11 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -175,7 +175,8 @@ public class ComponentDAO
           final Float severity = JsonUtils.getNullableFloat(securityVulnerabilityJson.get("score"));
           final String statusString = JsonUtils.getNullableString(securityVulnerabilityJson.get("status"));
           final String urlString = JsonUtils.getNullableString(securityVulnerabilityJson.get("url"));
-          final SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName(statusString);
+          final SecurityVulnerabilityOverrideStatus status = SecurityVulnerabilityOverrideStatus
+              .getByName(statusString);
 
           List<Component> components = componentsByKey.get(key);
           if (components != null) {
@@ -276,7 +277,7 @@ public class ComponentDAO
       JsonNode jsonSVNode = jsonSVNodes.get(i);
       String statusString = JsonUtils.getNullableString(jsonSVNode.get("status"));
       if (statusString != null) {
-        SecurityVulnerabilityStatus status = SecurityVulnerabilityStatus.getByName(statusString);
+        SecurityVulnerabilityOverrideStatus status = SecurityVulnerabilityOverrideStatus.getByName(statusString);
         String source = jsonSVNode.get("source").asText();
         String refId = jsonSVNode.get("reference").asText();
         for (SecurityVulnerability sv : svs) {

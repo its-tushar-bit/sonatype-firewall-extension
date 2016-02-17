@@ -18,12 +18,12 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.Component;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 import org.hamcrest.core.IsCollectionContaining;
 import org.junit.Before;
@@ -56,7 +56,7 @@ public class ComponentDAOTest
   private com.sonatype.insight.brain.model.component.SecurityVulnerability newSV(String refId,
                                                                                  String source,
                                                                                  Float severity,
-                                                                                 SecurityVulnerabilityStatus status)
+                                                                                 SecurityVulnerabilityOverrideStatus status)
   {
     com.sonatype.insight.brain.model.component.SecurityVulnerability sv = new com.sonatype.insight.brain.model.component.SecurityVulnerability(
         source, refId, severity);
@@ -129,7 +129,7 @@ public class ComponentDAOTest
     assertTrue(component.getLicenseOverrideIds().isEmpty());
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1");
     assertSecurityVulnerabilities(component.getSecurityVulnerabilities(),
-        newSV("12345", "osvdb", 4f, SecurityVulnerabilityStatus.OPEN));
+        newSV("12345", "osvdb", 4f, SecurityVulnerabilityOverrideStatus.OPEN));
 
     assertEquals(2, component.getLabelIds().size());
     assertThat(component.getLabelIds(), IsCollectionContaining.hasItems(appLabel.getId(), orgLabel.getId()));

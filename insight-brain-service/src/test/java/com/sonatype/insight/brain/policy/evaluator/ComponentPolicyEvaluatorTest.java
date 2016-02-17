@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -40,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 
 import org.junit.Assert;
@@ -725,7 +725,7 @@ public class ComponentPolicyEvaluatorTest
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "9"));
     constraint.addCondition(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is not",
-        SecurityVulnerabilityStatus.NOT_APPLICABLE.getId()));
+        SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.getId()));
 
     Policy policy = new Policy("pid", "Security-High");
     policy.addConstraint(constraint);
@@ -734,7 +734,7 @@ public class ComponentPolicyEvaluatorTest
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("12345678901234567890");
     component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
-        SecurityVulnerabilityStatus.NOT_APPLICABLE));
+        SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE));
     component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 4.0f));
 
     Component component2 = ComponentFactory.forGav("g1", "a1", "v2", MatchState.EXACT);
@@ -756,7 +756,7 @@ public class ComponentPolicyEvaluatorTest
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "9"));
     constraint.addCondition(new Condition(SecurityVulnerabilityStatusConditionType.ID, "is not",
-        SecurityVulnerabilityStatus.NOT_APPLICABLE.getId()));
+        SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.getId()));
 
     Policy policy = new Policy("pid", "pname");
     policy.addConstraint(constraint);
@@ -765,7 +765,7 @@ public class ComponentPolicyEvaluatorTest
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     component1.setHash("12345678901234567890");
     component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 8.0f,
-        SecurityVulnerabilityStatus.NOT_APPLICABLE));
+        SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE));
     component1.addSecurityVulnerability(new SecurityVulnerability("cve", "CVE-1234-1234", 4.0f));
 
     Component component2 = ComponentFactory.forGav("g1", "a1", "v2", MatchState.EXACT);

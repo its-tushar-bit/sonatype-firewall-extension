@@ -28,9 +28,9 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -179,7 +179,7 @@ public class ComponentDetailsLoader
     }
     if (componentDetails.getSecurityVulnerabilities() != null) {
       for (SecurityVulnerability issue : componentDetails.getSecurityVulnerabilities()) {
-        issue.setStatus(SecurityVulnerabilityStatus.OPEN.getName());
+        issue.setStatus(SecurityVulnerabilityOverrideStatus.OPEN.getName());
         for (com.sonatype.insight.brain.model.component.SecurityVulnerability sv : component
             .getSecurityVulnerabilities()) {
           if (issue.getRefId().equals(sv.getRefId()) && issue.getSource().equals(sv.getSource())) {

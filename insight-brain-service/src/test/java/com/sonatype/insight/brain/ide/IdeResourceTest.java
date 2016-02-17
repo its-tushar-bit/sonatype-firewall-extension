@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilityStatus;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -42,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
 
@@ -352,7 +352,7 @@ public class IdeResourceTest
 
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     Condition condition1 = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
-        SecurityVulnerabilityStatus.ACKNOWLEDGED.getId());
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getId());
     constraint1.addCondition(condition1);
     Policy policy1 = new Policy("PolicyId1", "Policy Name 1");
     policy1.setThreatLevel(8);

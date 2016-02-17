@@ -65,4 +65,55 @@ describe('PermissionService.js', function() {
     }));
   });
 
+  describe('isContextAuthorized', function() {
+    it('Single Perm, Allowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN']).respond(['ADMIN']);
+      PermissionService.isContextAuthorized(['ADMIN'], 'repository_container').then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Single Perm, Disallowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN']).respond([]);
+      PermissionService.isContextAuthorized(['ADMIN'], 'repository_container').then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(false);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Multiple Perms, Allowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2']).respond(
+          ['ADMIN', 'ADMIN2']);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Multiple Perms, Disallowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2']).respond(['ADMIN2']);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(false);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Multiple Perms in different order, Allowed', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2']).respond(['ADMIN2', 'ADMIN']);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).toHaveBeenCalledWith(true);
+      expect(errorSpy).not.toHaveBeenCalled();
+    }));
+
+    it('Server Error', inject(function(PermissionService, CLMAppLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2']).respond(500, 'foo');
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
+      $httpBackend.flush();
+      expect(successSpy).not.toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledWith([{ data : 'foo', status : 500, statusText : '', config : jasmine.any(Object), headers : jasmine.any(Function) }]);
+    }));
+  });
+
 });

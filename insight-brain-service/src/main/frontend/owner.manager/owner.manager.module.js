@@ -9,7 +9,7 @@
   angular.module('owner.manager.module',
       [
         'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
-        'utility'
+        'utility', 'PermissionServiceModule'
       ])
       .config([
         '$stateProvider', function($stateProvider) {
@@ -41,6 +41,14 @@
           }).state('management.edit', {
             parent: 'management',
             abstract: true
+          }).state('management.view.repositories', {
+            parent: 'management.view',
+            url: '/repositories',
+            views: {
+              '@management': {
+                templateUrl: 'owner.manager/summary/repositories.summary.view.html?' + clmBuildTimestamp
+              }
+            }
           });
 
           ownerTypes.forEach(function(ownerType) {

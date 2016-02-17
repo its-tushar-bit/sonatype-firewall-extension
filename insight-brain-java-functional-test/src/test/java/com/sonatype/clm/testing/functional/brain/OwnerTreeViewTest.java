@@ -29,6 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 
 public class OwnerTreeViewTest
@@ -129,6 +130,27 @@ public class OwnerTreeViewTest
     applicationTreeViewElement.click();
     applicationTreeViewElement.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
+  }
+
+  @Test
+  public void testSelectedRepositories() {
+    SelenideElement repositoriesTreeViewElement = OwnerTreeView.repositories();
+    repositoriesTreeViewElement.shouldBe(visible).click();
+    repositoriesTreeViewElement.shouldBe(CLM.SELECTED);
+  }
+
+  @Test
+  public void testSelectedRepositoriesNoPermissions() {
+    createUser();
+    logout();
+    login();
+
+    refreshOrOpen(OrganizationManagementPage.URL);
+    SelenideElement repositoriesTreeViewElement = OwnerTreeView.repositories();
+    repositoriesTreeViewElement.shouldNotBe(visible);
+
+    logout();
+    loginAsAdmin();
   }
 
   @Test

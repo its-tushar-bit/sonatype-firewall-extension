@@ -29,6 +29,15 @@
         </div>
       </a>
     </div>
+    <div id="tree-view-repositories-group" class="tree-view-group" ng-if="vm.showRepositories">
+      <a class="tree-view-item" ui-sref-active="selected" ui-sref="management.view.repositories">
+        <div class="twisty-container">
+          <span class="twisty empty"></span>
+        </div>
+        <i class="fa fa-database fa-lg tree-view-icon"></i>
+        Repositories
+      </a>
+    </div>
     <div class="tree-view-group tree-view-organization-group"
          ng-repeat="organization in vm.organizations | orderBy:'name'"
          ng-if="organization.isVisible">

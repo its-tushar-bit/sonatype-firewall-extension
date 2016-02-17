@@ -7,7 +7,7 @@
   'use strict';
 
   function OwnerTreeViewController($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore,
-    OwnerEditor)
+    OwnerEditor, PermissionService)
   {
     var vm = this, organizations, applications, organizationWatcher, applicationWatcher,
         lastOrganizations = [], lastApplications = [];
@@ -124,13 +124,15 @@
 
       var loadPromises = [
         organizationStore.refresh(),
-        applicationStore.refresh()
+        applicationStore.refresh(),
+        PermissionService.isContextAuthorized(['READ'], 'repository_container')
       ];
 
       $q.all(loadPromises).then(function(results) {
         vm.organizations = [];
         organizations = results[0];
         applications = results[1];
+        vm.showRepositories = results[2];
 
         organizationsCollectionChanged();
         applicationsCollectionChanged();
@@ -324,7 +326,8 @@
     }
   }
   OwnerTreeViewController.$inject = [
-    '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore', 'OwnerEditorService'
+    '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore', 'OwnerEditorService',
+    'PermissionService'
   ];
 
   angular

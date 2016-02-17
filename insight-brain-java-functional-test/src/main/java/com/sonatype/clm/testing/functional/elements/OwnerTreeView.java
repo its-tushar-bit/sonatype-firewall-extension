@@ -38,6 +38,10 @@ public class OwnerTreeView
     });
   }
 
+  public static SelenideElement repositories() {
+    return $("#tree-view-repositories-group .tree-view-item");
+  }
+
   public static class RootOrganizationNode
   {
     public static SelenideElement treeViewElement() {

@@ -162,6 +162,17 @@
           return baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details';
         },
 
+        /*
+         * @since 1.18.0
+         */
+        getPermissionContextTestUrl : function(ownerType, ownerId) {
+          var path = ownerType;
+          if (ownerId) {
+            path += '/' + ownerId;
+          }
+          return baseUrl.get() + '/rest/user/permissions/' + path;
+        },
+
         isApplication: isApplication,
         isOrganization: isOrganization,
         isGlobal: function() {

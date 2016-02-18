@@ -262,6 +262,10 @@
         width: 100%;
       }
 
+      td:not(first-child) {
+        cursor: default;
+      }
+
       td {
         @extend .regular;
         font-size: 14px;

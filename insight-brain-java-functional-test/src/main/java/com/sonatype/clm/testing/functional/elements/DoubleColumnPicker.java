@@ -75,5 +75,13 @@ public class DoubleColumnPicker
     public Checkbox checkbox() {
       return new Checkbox(root);
     }
+
+    public SelenideElement tooltip() {
+      return $("div.tooltip.top");
+    }
+
+    public SelenideElement root() {
+      return root;
+    }
   }
 }

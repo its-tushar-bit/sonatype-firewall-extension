@@ -156,4 +156,19 @@ describe('access.editor.controller.spec.js', function() {
     $httpBackend.flush();
     expect(vm.searchInProgress).toBeFalsy();
   });
+
+  it('Creates correct tooltip message', function() {
+    inject(function($controller) {
+      vm = $controller('access.editor.controller', {
+        $scope: scope
+      });
+    });
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
+    $httpBackend.flush();
+
+    expect(vm.getTooltip({realm: 'foo'})).toBe('foo');
+    expect(vm.getTooltip({realm: 'foo', email: 'test@test.com'})).toBe('foo\ntest@test.com');
+    // existing LDAP entry but connection is down so no realm/email
+    expect(vm.getTooltip({displayName: 'test'})).toBe(null);
+  });
 });

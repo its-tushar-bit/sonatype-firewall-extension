@@ -29,10 +29,11 @@
         </div>
         <div class="field">
           <label for="access-associated-users">Associated Users</label>
-          <double-column-picker id="access-associated-users" list="vm.members" hide-filter="true"
+          <double-column-picker id="access-associated-users" class="wide" list="vm.members" hide-filter="true"
                                 left-column-name="Available" right-column-name="Associated"
-                                item-name-param="displayName" form-mask="vm.accessEditorSearchMask"
-                                mask-message="Searching" mask-skip-success></double-column-picker>
+                                item-name-param="displayName" icon-fn="vm.getIconName(item)" tooltip-fn="vm.getTooltip(item)"
+                                form-mask="vm.accessEditorSearchMask" mask-message="Searching"
+                                mask-skip-success></double-column-picker>
         </div>
       </div>
       <div class="editor-footer" submit-wrapper="vm.submitError" retry="vm.retry()">

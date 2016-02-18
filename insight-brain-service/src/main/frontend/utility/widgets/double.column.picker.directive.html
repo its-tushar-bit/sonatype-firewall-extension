@@ -41,19 +41,27 @@
     <tr class="list-row">
       <td>
         <div class="td-container available-list">
-          <label class="checkbox" title="{{item[vm.itemNameParam]}}"  ng-class="{disabled: vm.disabled}"
-                 ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam">
+          <label class="checkbox" ng-class="{disabled: vm.disabled}"
+                 ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam"
+                 data-tooltip="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}" data-tooltip-placement="top"
+                 data-tooltip-popup-delay="200" data-tooltip-enable="{{!!vm.tooltipFn({item: item})}}">
             <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(false)" ng-disabled="vm.disabled"/>
-            <span>{{item[vm.itemNameParam]}}</span>
+            <span>
+              <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
+            </span>
           </label>
         </div>
       </td>
       <td>
         <div class="td-container picked-list">
-          <label class="checkbox" title="{{item[vm.itemNameParam]}}"  ng-class="{disabled: vm.disabled}"
-                 ng-repeat="item in vm.list | filter: vm.listFilter(true)| orderBy: vm.itemNameParam">
+          <label class="checkbox" ng-class="{disabled: vm.disabled}"
+                 ng-repeat="item in vm.list | filter: vm.listFilter(true)| orderBy: vm.itemNameParam"
+                 data-tooltip="{{vm.tooltipFn ? vm.tooltipFn({item: item}) : item[vm.itemNameParam]}}" data-tooltip-placement="top"
+                 data-tooltip-popup-delay="200" data-tooltip-enable="{{!!vm.tooltipFn({item: item})}}">
             <input type="checkbox" ng-model="item.checked" ng-change="vm.uncheckTheAllCheckbox(true)" ng-disabled="vm.disabled"/>
-            <span>{{item[vm.itemNameParam]}}</span>
+            <span>
+              <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
+            </span>
           </label>
         </div>
       </td>

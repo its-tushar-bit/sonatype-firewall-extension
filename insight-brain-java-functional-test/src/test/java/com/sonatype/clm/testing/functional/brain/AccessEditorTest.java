@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -87,6 +88,11 @@ public class AccessEditorTest
     AccessEditorPage.searchBox().val("*");
     AccessEditorPage.searchButton().shouldBe(enabled).click();
     DoubleColumnPicker.availableItems().shouldHaveSize(1);
+    DoubleColumnPicker.availableItem(0).root().hover();
+    DoubleColumnPicker.availableItem(0).tooltip().shouldBe(visible).shouldHave(text("CLM admin@localhost"));
+    AccessEditorPage.title().hover(); // hide the tooltip
+    DoubleColumnPicker.availableItem(0).tooltip().shouldNot(exist);
+
     DoubleColumnPicker.checkAllLeft().click();
     AccessEditorPage.saveButton().shouldHave(DISABLED);
     DoubleColumnPicker.pickCheckedItemsButton().click();
@@ -121,6 +127,10 @@ public class AccessEditorTest
     AccessEditorPage.searchBox().val("*");
     AccessEditorPage.searchButton().shouldBe(enabled).click();
     DoubleColumnPicker.availableItems().shouldHaveSize(1);
+    DoubleColumnPicker.availableItem(0).root().hover();
+    DoubleColumnPicker.availableItem(0).tooltip().shouldBe(visible).shouldHave(text("CLM admin@localhost"));
+    AccessEditorPage.title().hover(); // hide the tooltip
+    DoubleColumnPicker.availableItem(0).tooltip().shouldNot(exist);
     DoubleColumnPicker.checkAllLeft().click();
     DoubleColumnPicker.pickCheckedItemsButton().shouldBe(enabled).click();
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);

@@ -888,12 +888,18 @@
 
 double-column-picker {
   display: inline-block;
+  width: 620px;
+
+  &.wide {
+    width: 660px;
+  }
 
   .double-column-picker {
+    width: inherit;
     table {
       border: 1px solid $grey-4;
       table-layout: fixed;
-      width: 620px;
+      width: inherit;
 
       &.disabled {
         border: 1px solid $grey-3;
@@ -974,6 +980,15 @@ double-column-picker {
             padding-top: 9px;
             height: 10 * $list-item-height;
 
+            .tooltip.top {
+              margin-left: -90px;
+
+              .tooltip-inner {
+                white-space:pre-wrap;
+                text-align: left;
+              }
+            }
+
             label {
               height: $list-item-height;
               padding-right: 8px;
@@ -984,6 +999,10 @@ double-column-picker {
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow-x: hidden;
+                .fa {
+                  color: $slate;
+                  margin-right: 8px;
+                }
               }
             }
           }

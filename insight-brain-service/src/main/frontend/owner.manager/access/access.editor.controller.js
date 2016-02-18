@@ -31,6 +31,8 @@
     vm.removeRole = removeRole;
     vm.save = save;
     vm.search = search;
+    vm.getIconName = getIconName;
+    vm.getTooltip = getTooltip;
 
     vm.doLoad();
 
@@ -176,6 +178,14 @@
           vm.members.push(pickedUser);
         }
       });
+    }
+
+    function getIconName(item) {
+      return item.type === 'USER' ? 'fa-user' : 'fa-group';
+    }
+
+    function getTooltip(item) {
+      return item.realm ? item.realm + (item.email ? '\n' + item.email : '') : null;
     }
   }
 

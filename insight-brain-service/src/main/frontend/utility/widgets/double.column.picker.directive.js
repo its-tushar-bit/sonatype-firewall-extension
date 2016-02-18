@@ -16,7 +16,9 @@
         leftColumnName: '@',
         rightColumnName: '@',
         itemNameParam: '@',
-        disabled: '=?ngDisabled'
+        disabled: '=?ngDisabled',
+        iconFn: '&?',
+        tooltipFn: '&?'
       },
       templateUrl: 'utility/widgets/double.column.picker.directive.html',
       controller: DoubleColumnPickerController,

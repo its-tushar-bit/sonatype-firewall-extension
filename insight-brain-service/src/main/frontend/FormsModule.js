@@ -46,50 +46,6 @@
     };
   };
 
-  function applyInitialValueDropdown() {
-    return {
-      restrict: 'E',
-      require: '?ngModel',
-      link: function(scope, element, attrs, ngModelController) {
-        if (element.parents('.clm-form').length > 0) {
-          var initialValue;
-          element.addClass('initial-value');
-
-          if (ngModelController) {
-            var initialValueWatch = scope.$watch(function() {
-              return ngModelController.$viewValue;
-            }, function(viewValue) {
-              // viewValue is properly initialized once it is no longer 'NaN'
-              // Source: https://github.com/angular/angular.js/blob/v1.0.6/src/ng/directive/input.js#L879
-              if (initialValue === undefined && !(angular.isNumber(viewValue) && isNaN(viewValue))) {
-                initialValue = viewValue || '';
-                initialValueWatch();
-              }
-            });
-
-            scope.$watch(function() {
-              return ngModelController.$pristine;
-            }, function(isPristine) {
-              if (isPristine) {
-                initialValue = ngModelController.$viewValue || '';
-                element.addClass('initial-value');
-              }
-            });
-
-            ngModelController.$viewChangeListeners.push(function() {
-              if (ngModelController.$viewValue === initialValue) {
-                element.addClass('initial-value');
-              }
-              else {
-                element.removeClass('initial-value');
-              }
-            });
-          }
-        }
-      }
-    };
-  }
-
   var module = angular.module('FormsModule', ['AngularCommon'])
   /**
    * Watches for changes to the input validity and shows a popover above the input field if invalid input is seen, or
@@ -308,6 +264,4 @@
 
   // The same for text areas
   module.directive('textarea', [applyInitialValue]);
-
-  module.directive('dropdownSelector', [applyInitialValueDropdown]);
 }());

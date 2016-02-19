@@ -42,6 +42,14 @@ public class SidebarResourceTest
     assertValidOwnerDetailsDTO(response);
   }
 
+  @Test
+  public void testGetOwnerDetails_Repositories() throws Exception {
+    HttpResponse response = restRequest().path(SidebarResource.GET_GLOBAL_OWNER_DETAILS_PATH)
+        .parameter(OwnerType.REPOSITORY_CONTAINER).get();
+
+    assertValidOwnerDetailsDTO(response);
+  }
+
   private void assertValidOwnerDetailsDTO(HttpResponse response) {
     assertResponseStatus(200, response);
     assertNotNull(response.getBodyBytes());

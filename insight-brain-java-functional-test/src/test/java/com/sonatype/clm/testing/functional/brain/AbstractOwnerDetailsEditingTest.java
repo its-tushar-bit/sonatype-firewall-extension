@@ -75,15 +75,26 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
-    OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
     assertThat(OwnerDetailTreeView.headerHref(),
         containsString(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId())));
 
-    testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
-    testRouting_Policies(OwnerDetailTreeView.policyGroup());
-    testRouting_ComponentLabels(OwnerDetailTreeView.componentLabelGroup());
-    testRouting_LicenseThreatGroups(OwnerDetailTreeView.LTGGroup());
-    testRouting_Access(OwnerDetailTreeView.accessGroup());
+    if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
+      OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+      testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
+      testRouting_Policies(OwnerDetailTreeView.policyGroup());
+      testRouting_ComponentLabels(OwnerDetailTreeView.componentLabelGroup());
+      testRouting_LicenseThreatGroups(OwnerDetailTreeView.LTGGroup());
+      testRouting_Access(OwnerDetailTreeView.accessGroup());
+    }
+    else {
+      OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text("Repositories"));
+      OwnerDetailTreeView.applicationCategoryGroup().root().shouldNotBe(visible);
+      OwnerDetailTreeView.policyGroup().root().shouldNotBe(visible);
+      OwnerDetailTreeView.componentLabelGroup().root().shouldNotBe(visible);
+      OwnerDetailTreeView.LTGGroup().root().shouldNotBe(visible);
+      OwnerDetailTreeView.accessGroup().root().shouldBe(visible);
+      //CLM-5937 should also test the access routing testRouting_Access(OwnerDetailTreeView.accessGroup());
+    }
   }
 
   private void testRouting_ApplicationCategories(OwnerDetailTreeViewGroup detailGroup) {

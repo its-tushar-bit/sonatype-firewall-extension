@@ -175,6 +175,7 @@
 
         isApplication: isApplication,
         isOrganization: isOrganization,
+        isRepositories: isRepositories,
         isGlobal: function() {
           return !isApplication() && !isOrganization();
         }

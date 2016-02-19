@@ -12,7 +12,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
         $httpBackend,
         CLMLocations,
         CLMAppLocations,
-        mockOwnerStore = StoreUtils().createMockStore(storeName);
+        mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null;
 
     beforeEach(inject(function($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMAppLocations_) {
       $scope = $rootScope.$new();
@@ -22,6 +22,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       CLMAppLocations = _CLMAppLocations_;
 
       spyOn(CLMAppLocations, 'isApplication').andReturn(type === 'application');
+      spyOn(CLMAppLocations, 'isRepositories').andReturn(type === 'repositories');
       spyOn(CLMAppLocations, 'getEntityId').andReturn(owner[type === 'application' ? 'publicId' : 'id']);
 
       vm = $controller('OwnerDetailTreeViewController', {
@@ -45,7 +46,7 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       expect(vm.error).toBeUndefined();
 
       if (vm.isApp) {
-        expect(vm.areAnyCategoriesDefined).toBeFalsy()
+        expect(vm.areAnyCategoriesDefined).toBeFalsy();
       }
     });
 
@@ -60,9 +61,15 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     it('Properly Displaying Owner Name Loading Error', function() {
       resolveGet([{}, {}], [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
-      expect(vm.ownerName).toBeUndefined();
-      expect(vm.error).toBe('Could not find an ' + type + ' with ID ' +
-          CLMAppLocations.getEntityId() + '.');
+      if (!vm.isRepositories) {
+        expect(vm.ownerName).toBeUndefined();
+        expect(vm.error).toBe('Could not find an ' + type + ' with ID ' +
+        CLMAppLocations.getEntityId() + '.');
+      }
+      else {
+        expect(vm.ownerName).toBe('Repositories');
+        expect(vm.error).toBeFalsy()
+      }
     });
 
     it('Properly Updating Data via broadcast', inject(function($rootScope) {
@@ -73,7 +80,9 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
       expect(vm.error.data).toEqual('Bad Request');
 
       $rootScope.$broadcast('resource.data.modified');
-      mockOwnerStore.resolveRefresh([owner]);
+      if (mockOwnerStore) {
+        mockOwnerStore.resolveRefresh([owner]);
+      }
       $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond(SidebarResourceMockData.getOwnerDetailsUrl());
 
       if (vm.isApp) {
@@ -89,7 +98,9 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     }));
 
     function resolveGet(ownerData, detailsDataArray) {
-      mockOwnerStore.resolveGet(ownerData);
+      if (mockOwnerStore) {
+        mockOwnerStore.resolveGet(ownerData);
+      }
       $httpBackend.expectGET(CLMAppLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
 
       if (vm.isApp) {
@@ -101,5 +112,5 @@ describe('owner.detail.tree.view.directive.spec.js', function() {
     }
   }
 
-  OwnerUtils.runTestsForOwnerTypes(createTests);
+  OwnerUtils.runTestsForAllOwnerTypes(createTests);
 });

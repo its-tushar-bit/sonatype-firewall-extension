@@ -27,23 +27,23 @@ public class OwnerDetailTreeView
   }
 
   public static OwnerDetailTreeViewGroup applicationCategoryGroup() {
-    return new OwnerDetailTreeViewGroup(root().$$(".tree-view-group").get(0));
+    return new OwnerDetailTreeViewGroup($("#applicationCategoryTreeViewGroup"));
   }
 
   public static OwnerDetailTreeViewGroup policyGroup() {
-    return new OwnerDetailTreeViewGroup(root().$$(".tree-view-group").get(1));
+    return new OwnerDetailTreeViewGroup($("#policyTreeViewGroup"));
   }
 
   public static OwnerDetailTreeViewGroup componentLabelGroup() {
-    return new OwnerDetailTreeViewGroup(root().$$(".tree-view-group").get(2));
+    return new OwnerDetailTreeViewGroup($("#labelTreeViewGroup"));
   }
 
   public static OwnerDetailTreeViewGroup LTGGroup() {
-    return new OwnerDetailTreeViewGroup(root().$$(".tree-view-group").get(3));
+    return new OwnerDetailTreeViewGroup($("#licenseThreatGroupTreeViewGroup"));
   }
 
   public static OwnerDetailTreeViewGroup accessGroup() {
-    return new OwnerDetailTreeViewGroup(root().$$(".tree-view-group").get(4));
+    return new OwnerDetailTreeViewGroup($("#accessTreeViewGroup"));
   }
 
   public static class OwnerDetailTreeViewGroup

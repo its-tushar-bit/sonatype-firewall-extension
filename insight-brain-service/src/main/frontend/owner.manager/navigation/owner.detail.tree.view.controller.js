@@ -13,6 +13,7 @@
 
     vm.areAnyCategoriesDefined = undefined;
     vm.isApp = CLMAppLocations.isApplication();
+    vm.isRepositories = CLMAppLocations.isRepositories();
     vm.state = $state;
     vm.ownerName = undefined;
     vm.details = undefined;
@@ -29,29 +30,37 @@
 
     function doLoad() {
       var promises = [
-        (vm.isApp ? ApplicationStore : OrganizationStore)[vm.error ? 'refresh' : 'get'](),
         $http.get(CLMAppLocations.getOwnerDetailsUrl())
       ];
 
       if (vm.isApp) {
+        promises.push(ApplicationStore[vm.error ? 'refresh' : 'get']());
         promises.push($http.get(CLMLocations.getApplicableOrganizationTags(CLMAppLocations.getEntityId())));
+      }
+      else if (!vm.isRepositories) {
+        promises.push(OrganizationStore[vm.error ? 'refresh' : 'get']());
       }
 
       $q.all(promises).then(function(results) {
-        results[0].some(function(candidate) {
-          if (candidate[vm.isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
-            vm.ownerName = candidate.name;
-            return true;
-          }
-        });
-
-        vm.details = results[1].data;
+        vm.details = results[0].data;
         var allMembersByRoles = vm.details.roles.membersByRole;
         vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
-        if (vm.isApp) {
-          vm.areAnyCategoriesDefined = results[2].data.length > 0;
+        if (!vm.isRepositories) {
+          results[1].some(function(candidate) {
+            if (candidate[vm.isApp ? 'publicId' : 'id'] === CLMAppLocations.getEntityId()) {
+              vm.ownerName = candidate.name;
+              return true;
+            }
+          });
+
+          if (vm.isApp) {
+            vm.areAnyCategoriesDefined = results[2].data.length > 0;
+          }
+        }
+        else {
+          vm.ownerName = 'Repositories';
         }
 
         if (!vm.ownerName) {

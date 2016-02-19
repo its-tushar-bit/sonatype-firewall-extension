@@ -20,7 +20,8 @@
     function refactorStateParams(ownerState) {
       return function(to, params) {
         var isApp = $state.current.name.indexOf('application') !== -1,
-            type = isApp ? 'application' : 'organization',
+            isRepositories = $state.current.name.indexOf('repositories') !== -1,
+            type = isApp ? 'application' : isRepositories ? 'repositories' : 'organization',
             ownerId = isApp ? 'applicationPublicId' : 'organizationId';
 
         to = 'management.' + ownerState + '.' + type + (to ? ('.' + to ) : '');

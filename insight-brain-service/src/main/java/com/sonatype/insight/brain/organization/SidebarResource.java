@@ -23,9 +23,11 @@ import com.sonatype.insight.brain.utils.IdUtils;
 @Path(SidebarResource.RESOURCE_PATH)
 public class SidebarResource
 {
-  public static final String RESOURCE_PATH = "rest/sidebar/{ownerType:application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH = "rest/sidebar";
 
-  public static final String GET_OWNER_DETAILS_PATH = "/details";
+  public static final String GET_OWNER_DETAILS_PATH = "/{ownerType:application|organization}/{ownerId}/details";
+
+  public static final String GET_GLOBAL_OWNER_DETAILS_PATH = "/{ownerType:repository_container}/details";
 
   private final SidebarService sidebarService;
 
@@ -47,5 +49,17 @@ public class SidebarResource
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     return sidebarService.getOwnerDetails(ownerType, internalOwnerId);
+  }
+
+  /**
+   * Returns a owner's entities that can be managed by the Owner Management UI.
+   *
+   * @since 1.20.0
+   */
+  @GET
+  @Path(GET_GLOBAL_OWNER_DETAILS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public OwnerDetailsDTO getGlobalOwnerDetails(@PathParam("ownerType") final OwnerType ownerType) {
+    return getOwnerDetails(ownerType, IdUtils.getInternalOwnerId(ownerType, null));
   }
 }

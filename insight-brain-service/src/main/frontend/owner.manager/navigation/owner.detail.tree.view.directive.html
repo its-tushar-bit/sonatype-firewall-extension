@@ -3,7 +3,7 @@
     <div class="tree-view-header">
       <a same-owner-view-sref><i class="fa fa-chevron-left size-14px"></i>{{vm.ownerName}}</a>
     </div>
-    <div class="tree-view-group">
+    <div id="applicationCategoryTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
       <a class="tree-view-item" ng-click="vm.categoryState.isExpanded = vm.state.$current.name.endsWith('category') ? true : !vm.categoryState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"
@@ -41,7 +41,7 @@
         -->{{ category.name }}
       </a>
     </div>
-    <div class="tree-view-group">
+    <div id="policyTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
       <a class="tree-view-item"
          ng-click="vm.policyState.isExpanded = vm.state.$current.name.endsWith('policy') ? true : !vm.policyState.isExpanded">
         <div class="twisty-container">
@@ -74,7 +74,7 @@
         <i class="fa fa-repeat size-16px size-fw tree-view-icon"></i>Continuous Monitoring
       </a>
     </div>
-    <div class="tree-view-group">
+    <div id="labelTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
       <a class="tree-view-item"
          ng-click="vm.labelState.isExpanded = vm.state.$current.name.endsWith('label') ? true : !vm.labelState.isExpanded">
         <div class="twisty-container">
@@ -101,7 +101,7 @@
         -->{{ label.label }}
       </a>
     </div>
-    <div class="tree-view-group">
+    <div id="licenseThreatGroupTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
       <a class="tree-view-item"
          ng-click="vm.ltgState.isExpanded = vm.state.$current.name.endsWith('license-threat-group') ? true : !vm.ltgState.isExpanded">
         <div class="twisty-container">
@@ -128,7 +128,7 @@
         -->{{ licenseThreatGroup.name }}
       </a>
     </div>
-    <div class="tree-view-group">
+    <div id="accessTreeViewGroup" class="tree-view-group">
       <a class="tree-view-item" ng-click="vm.accessState.isExpanded = vm.state.$current.name.endsWith('access') ? true : !vm.accessState.isExpanded">
         <div class="twisty-container">
           <span class="twisty"

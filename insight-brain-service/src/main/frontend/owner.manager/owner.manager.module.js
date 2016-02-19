@@ -49,6 +49,14 @@
                 templateUrl: 'owner.manager/summary/repositories.summary.view.html?' + clmBuildTimestamp
               }
             }
+          }).state('management.edit.repositories', {
+            parent: 'management.edit',
+            url: '/edit/repositories',
+            views: {
+              'navigation@management': {
+                template: '<owner-detail-tree-view></owner-detail-tree-view>'
+              }
+            }
           });
 
           ownerTypes.forEach(function(ownerType) {

@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -184,16 +185,40 @@ public class AuthorizationChecker
                                                   Iterable<String> contextIds,
                                                   Map<String, Boolean> resultByContextId)
   {
+    List<String> uncachedContextIds = new ArrayList<>();
+
+    // consult the cache first (walking up the hierarchy)
     for (String contextId : contextIds) {
-      Boolean result = resultByContextId.get(contextId);
-      if (result == null) {
-        result = isUserHavingAnyRoleInContext(user, roleIds, contextId);
-        resultByContextId.put(contextId, result);
+      Boolean permit = resultByContextId.get(contextId);
+      if (permit != null) {
+        if (permit) {
+          // due to inheritance, the permit also implies to all child contexts
+          for (String childId : uncachedContextIds) {
+            resultByContextId.put(childId, true);
+          }
+          return true;
+        }
+        // this context and none of its ancestors permit access
+        break;
       }
-      if (result) {
+      uncachedContextIds.add(contextId);
+    }
+
+    // consult the database about the uncached contexts (walking down the hierarchy)
+    for (int i = uncachedContextIds.size() - 1; i >= 0; i--) {
+      String contextId = uncachedContextIds.get(i);
+      boolean permit = isUserHavingAnyRoleInContext(user, roleIds, contextId);
+      resultByContextId.put(contextId, permit);
+      if (permit) {
+        // due to inheritance, the permit also implies to all child contexts
+        for (i--; i >= 0; i--) {
+          String childId = uncachedContextIds.get(i);
+          resultByContextId.put(childId, true);
+        }
         return true;
       }
     }
+
     return false;
   }
 

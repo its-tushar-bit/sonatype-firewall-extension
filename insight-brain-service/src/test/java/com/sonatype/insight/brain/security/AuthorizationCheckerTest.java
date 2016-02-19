@@ -243,6 +243,24 @@ public class AuthorizationCheckerTest
     }
   }
 
+  /**
+   * The authz filtering expects the {@link ContextResolver} to iterate contexts from the bottom of the hierarchy
+   * upwards. This better hold true or permissions would be "inherited" into the wrong direction.
+   */
+  @Test
+  public void testFilter_ContextsAreEvaluatedInProperOrder() {
+    Organization org = tempEntity.newOrganization();
+    List<Application> entities = Arrays.asList(tempEntity.newApplication(org.getId()),
+        tempEntity.newApplication(org.getId()));
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, entities.get(0).getId(), role.getId());
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+    assertThat(checker.filterByPermission(userPrincipal, Permission.READ, entities, Context.APPLICATION),
+        is((Object) Arrays.asList(entities.get(0))));
+  }
+
   @Test
   public void testIsPermitted_GlobalPermission_GlobalContext() {
     // The user has a global permission granted via a role in global context.

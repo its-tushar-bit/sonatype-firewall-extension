@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
-      return resolveContextIdsForOwner(app.getId());
+      return resolveContextIdsForOwner(app);
     }
   };
 
@@ -99,7 +100,7 @@ class ContextResolver
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
-      return resolveContextIdsForOwner(org.getId());
+      return resolveContextIdsForOwner(org);
     }
   };
 
@@ -130,7 +131,7 @@ class ContextResolver
     public Iterable<String> resolveContextIds(Repository repository) {
       if (repository.getId() != null) {
         // Existing repository
-        return resolveContextIdsForOwner(repository.getId());
+        return resolveContextIdsForOwner(repository);
       }
       else {
         // New repository
@@ -147,6 +148,32 @@ class ContextResolver
       return REPOSITORY.resolveContextIds(repository);
     }
   };
+
+  private static Function<Owner, String> PARENT_ID_FUNCTION = new Function<Owner, String>()
+  {
+    @Override
+    public String apply(Owner owner) {
+      String parentId = owner.getParentOwnerId();
+      if (parentId == null) {
+        parentId = MembershipMapping.GLOBAL_CONTEXT_ID;
+      }
+      return parentId;
+    }
+  };
+
+  /**
+   * More efficient variant of {@link #resolveContextIdsForOwner(String)} that avoids superfluous entity lookups when we
+   * already have the entity in memory. Note that avoiding unnecessary entity lookups from the DB is the very reason
+   * {@link ContextIdResolver#resolveContextIds(Object)} returns just an {@code Iterable} as opposed to
+   * {@code Collection}, it enables lazy-loading and is critical to the performance.
+   */
+  private Iterable<String> resolveContextIdsForOwner(final Owner owner) {
+    if (owner.getParentOwnerId() == null) {
+      return Arrays.asList(owner.getId(), MembershipMapping.GLOBAL_CONTEXT_ID);
+    }
+    return Iterables.concat(Arrays.asList(owner.getId(), owner.getParentOwnerId()),
+        Iterables.transform(ownerDAO.walkHierarchy(owner.getParentOwnerId()), PARENT_ID_FUNCTION));
+  }
 
   private Iterable<String> resolveContextIdsForOwner(final String ownerId) {
     // Get an Iterable<Owner> and transform it to Iterable<owner Id>

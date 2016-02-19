@@ -51,8 +51,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 @Path(ApplicationResource.RESOURCE_PATH)
@@ -76,8 +74,6 @@ public class ApplicationResource
   public static final String GET_APPLICATION_ICON_PATH = ICON_PATH + "/{applicationPublicId}";
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
-
-  private static final Logger log = LoggerFactory.getLogger(ApplicationResource.class);
 
   private final ApplicationAdapter applicationAdapter;
 
@@ -304,9 +300,7 @@ public class ApplicationResource
 
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application, String scanId)
   {
-    final String applicationPublicId = application.getPublicId();
     final String applicationId = application.getId();
-    log.debug("Found application with public id {}", applicationPublicId);
 
     PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(applicationId, scanId);
     if (evaluation == null) {
@@ -318,10 +312,6 @@ public class ApplicationResource
   }
 
   private void loadPolicyEvaluations(final ApplicationManagementSummaryDTO applicationManagement) {
-
-    final String applicationPublicId = applicationManagement.getPublicId();
-    log.debug("Found application with public id {}", applicationPublicId);
-
     File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
     applicationManagement.setScansCount(scans != null ? scans.length : 0);
 

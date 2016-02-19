@@ -20,10 +20,6 @@ public class RepositoriesSummaryPage
 
   public static class SummaryTile
   {
-    private static SelenideElement root() {
-      return $(REPOSITORIES_SUMMARY_SELECTOR);
-    }
-
     public static SelenideElement name() {
       return $(SelectorUtils.selector(REPOSITORIES_SUMMARY_SELECTOR, "h1"));
     }

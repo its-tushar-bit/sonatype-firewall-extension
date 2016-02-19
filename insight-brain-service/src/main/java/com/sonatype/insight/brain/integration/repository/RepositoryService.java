@@ -333,15 +333,14 @@ public class RepositoryService
       if (!repository.isEnabled()) {
         log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
             repository.getPublicId(), repository.getId());
+        repository.setEnabled(true);
       }
-      repository.setEnabled(true);
       if (withQuarantine) {
         if (!repository.isQuarantineEnabled()) {
           log.info("Enabled quarantine for repository {}:{} ({})", repository.getRepositoryManagerId(),
               repository.getPublicId(), repository.getId());
+          repository.setQuarantineEnabled(true);
         }
-        // If this is for quarantine make sure it's enabled in IQ
-        repository.setQuarantineEnabled(true);
       }
       if (componentEvaluationDataRequestList != null && componentEvaluationDataRequestList.components != null
           && !componentEvaluationDataRequestList.components.isEmpty()) {

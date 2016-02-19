@@ -171,10 +171,10 @@ public class AuthorizationChecker
                           ContextIdResolver<T> resolver)
   {
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
-    Map<String, Boolean> resultByContextId = new HashMap<>(256);
+    Map<String, Boolean> permitsByContextId = new HashMap<>(256);
     for (T entity : entities) {
       Iterable<String> contextIds = resolver.resolveContextIds(entity);
-      if (isUserHavingAnyRoleInAnyContext(user, roleIds, contextIds, resultByContextId)) {
+      if (isUserHavingAnyRoleInAnyContext(user, roleIds, contextIds, permitsByContextId)) {
         filtered.add(entity);
       }
     }
@@ -183,18 +183,18 @@ public class AuthorizationChecker
   private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user,
                                                   Set<String> roleIds,
                                                   Iterable<String> contextIds,
-                                                  Map<String, Boolean> resultByContextId)
+                                                  Map<String, Boolean> permitsByContextId)
   {
     List<String> uncachedContextIds = new ArrayList<>();
 
     // consult the cache first (walking up the hierarchy)
     for (String contextId : contextIds) {
-      Boolean permit = resultByContextId.get(contextId);
+      Boolean permit = permitsByContextId.get(contextId);
       if (permit != null) {
         if (permit) {
           // due to inheritance, the permit also implies to all child contexts
           for (String childId : uncachedContextIds) {
-            resultByContextId.put(childId, true);
+            permitsByContextId.put(childId, true);
           }
           return true;
         }
@@ -208,12 +208,12 @@ public class AuthorizationChecker
     for (int i = uncachedContextIds.size() - 1; i >= 0; i--) {
       String contextId = uncachedContextIds.get(i);
       boolean permit = isUserHavingAnyRoleInContext(user, roleIds, contextId);
-      resultByContextId.put(contextId, permit);
+      permitsByContextId.put(contextId, permit);
       if (permit) {
         // due to inheritance, the permit also implies to all child contexts
         for (i--; i >= 0; i--) {
           String childId = uncachedContextIds.get(i);
-          resultByContextId.put(childId, true);
+          permitsByContextId.put(childId, true);
         }
         return true;
       }

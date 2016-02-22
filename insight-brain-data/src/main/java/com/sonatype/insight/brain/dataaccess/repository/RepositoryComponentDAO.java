@@ -136,4 +136,10 @@ public class RepositoryComponentDAO
       log.debug("Deleted repository component with id {} in {} ms.", repositoryComponent.getId(), duration);
     }
   }
+
+  public List<RepositoryComponent> getUnquarantinedByRepositoryId(String repositoryId, Date sinceUtcTimestamp) {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1 AND entity.unquarantineTime IS NOT NULL AND entity.unquarantineTime>=?2";
+    return getList(sQuery, repositoryId, sinceUtcTimestamp);
+  }
 }

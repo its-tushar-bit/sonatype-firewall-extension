@@ -14,10 +14,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 
 import com.yammer.metrics.annotation.Timed;
@@ -43,6 +45,8 @@ public class RepositoryResource
   static final String COMPONENTS_PATH = "components/{pathname: .+}";
 
   public static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
+
+  static final String UNQUARANTINED_COMPONENTS_PATH = "components/unquarantined";
 
   private final RepositoryService repositoryService;
 
@@ -120,5 +124,17 @@ public class RepositoryResource
                               @PathParam("pathname") String pathname)
   {
     repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname);
+  }
+
+  @GET
+  @Path(UNQUARANTINED_COMPONENTS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public UnquarantinedComponentList getUnquarantinedComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+                                                               @PathParam("repositoryPublicId") String repositoryPublicId,
+                                                               @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp)
+  {
+    return repositoryService.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId,
+        sinceUtcTimestamp);
   }
 }

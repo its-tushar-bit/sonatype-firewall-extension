@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -71,6 +72,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -1914,5 +1916,37 @@ public class RepositoryServiceTest
     policy.setActions(ProxyStageType.ID, Collections.singletonList(new Action(Action.ID_FAIL)));
     new PolicyDAO().update(policy);
     return policy;
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    long since = System.currentTimeMillis();
+    // Component that was never quarantined
+    tempEntity.newRepositoryComponent(repository.getId(), "pathnameNotQuarantined");
+    // Component quarantined after the "since" time and not un-quarantined
+    tempEntity.newRepositoryComponent(repository.getId(), "pathnameQuarantined",
+        new Date(since + 1) /* quarantineTime */, null /* unquarantineTime */);
+    // Component un-quarantined before the "since" time
+    tempEntity.newRepositoryComponent(repository.getId(), "pathnameUnquarantinedBefore",
+        new Date(since - 1) /* quarantineTime */, new Date(since - 1) /* unquarantineTime */);
+    // Component un-quarantined after the "since" time
+    tempEntity.newRepositoryComponent(repository.getId(), "pathnameUnquarantinedAfter",
+        new Date(since) /* quarantineTime */, new Date(since) /* unquarantineTime */);
+    UnquarantinedComponentList result = repositoryService.getUnquarantinedComponents(REPO_MAN_INSTANCE_ID,
+        REPO_PUBLIC_ID, since);
+    assertThat(result.pathnames, contains("pathnameUnquarantinedAfter"));
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents_RepositoryDoesNotExist() throws Exception {
+    try {
+      repositoryService.getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0);
+      fail("Expected exception");
+    }
+    catch (NotFoundException expected) {
+      assertThat(expected.getMessage(), is(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID)));
+    }
   }
 }

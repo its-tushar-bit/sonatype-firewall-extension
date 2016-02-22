@@ -26,6 +26,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -657,5 +658,40 @@ public class RepositoryService
     }
 
     repositoryPolicyEvaluator.evaluate(repository, request, false);
+  }
+
+  UnquarantinedComponentList getUnquarantinedComponents(String repositoryManagerInstanceId,
+                                                        String repositoryPublicId,
+                                                        long sinceUtcTimestamp)
+  {
+    checkLicenseFeature();
+
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
+
+    log.debug("Getting unquarantined components for repository {}:{} ({}), since {}.", repositoryManagerInstanceId,
+        repositoryPublicId, repository.getId(), sinceUtcTimestamp);
+
+    return getUnquarantinedComponents(repository, sinceUtcTimestamp);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  UnquarantinedComponentList getUnquarantinedComponents(@AuthzContext(Key.REPOSITORY) Repository repository,
+                                                        long sinceUtcTimestamp)
+  {
+    long start = System.currentTimeMillis();
+
+    UnquarantinedComponentList result = new UnquarantinedComponentList();
+    List<RepositoryComponent> unquarantinedComponents = repositoryComponentDAO.getUnquarantinedByRepositoryId(
+        repository.getId(), new Date(sinceUtcTimestamp));
+
+    for (RepositoryComponent unquarantinedComponent : unquarantinedComponents) {
+      result.pathnames.add(unquarantinedComponent.getPathname());
+    }
+
+    log.debug("Retrieved {} unquarantined components for repository ID {} in {} ms.", result.pathnames.size(),
+        repository.getId(), System.currentTimeMillis() - start);
+
+    return result;
   }
 }

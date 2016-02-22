@@ -395,4 +395,21 @@ public class RepositoryServiceAuthzTest
     login();
     repositoryService.reevaluateComponent(repo.getId(), "some-hash");
   }
+
+  @Test
+  public void testGetUnquarantinedComponents_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    repositoryService.getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetUnquarantinedComponents_Unauthenticated() {
+    repositoryService.getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetUnquarantinedComponents_Unauthorized() {
+    login();
+    repositoryService.getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+  }
 }

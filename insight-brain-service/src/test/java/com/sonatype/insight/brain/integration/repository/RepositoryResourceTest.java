@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -151,5 +153,21 @@ public class RepositoryResourceTest
     HttpResponse response = restRequest().path(RepositoryResource.COMPONENTS_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    Date now = new Date();
+    String pathname = "test/pathname";
+    tempEntity.newRepositoryComponent(repository.getId(), pathname, now, now);
+
+    HttpResponse response = restRequest().path(RepositoryResource.UNQUARANTINED_COMPONENTS_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .query("sinceUtcTimestamp=" + (now.getTime())).get();
+    assertResponseStatus(200, response);
+    UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
+    assertThat(result.pathnames, contains(pathname));
   }
 }

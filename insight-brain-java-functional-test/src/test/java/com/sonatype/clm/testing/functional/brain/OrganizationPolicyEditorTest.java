@@ -8,11 +8,15 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.InheritanceSection;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
@@ -20,7 +24,9 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.clm.testing.functional.elements.InheritanceSection.ALL_TEXT_ROOT_ORG;
 import static com.sonatype.clm.testing.functional.elements.InheritanceSection.allRadioText;
 import static com.sonatype.clm.testing.functional.elements.InheritanceSection.specifiedRadioText;
 import static org.hamcrest.Matchers.equalTo;
@@ -107,5 +113,14 @@ public class OrganizationPolicyEditorTest
     category2Item.checkBox().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
     category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
+  }
+
+  @Test
+  public void testRootOrgPolicyHasProperInheritedText() {
+    open(OwnerSummaryPage.url(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID));
+
+    SummaryTile.addPolicyButton().click();
+
+    PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().label().shouldHave(ALL_TEXT_ROOT_ORG);
   }
 }

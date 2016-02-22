@@ -52,7 +52,8 @@
                 <label class="radio" ng-class="{disabled: vm.readOnly}">
                   <input type="radio" name="policy-inherit" ng-model="vm.hasPolicyCategories" ng-value="false"
                          ng-disabled="vm.readOnly">
-                  <span>All Applications in {{ vm.ownerName}}</span>
+                  <span ng-if="::!vm.isRoot()">All Applications in {{vm.ownerName}}</span>
+                  <span ng-if="::vm.isRoot()">All Applications and Repositories</span>
                 </label>
                 <label class="radio" ng-class="{disabled: vm.categories.length === 0 || vm.readOnly}">
                   <input type="radio" ng-disabled="vm.categories.length === 0 || vm.readOnly" name="policy-inherit"

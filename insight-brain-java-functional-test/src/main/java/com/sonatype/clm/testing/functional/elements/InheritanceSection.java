@@ -12,6 +12,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class InheritanceSection
     extends PolicyEditorSection
 {
+  public static final Condition ALL_TEXT_ROOT_ORG = Condition.text("All Applications and Repositories");
   public InheritanceSection() {
     super($("#policy-edit-inheritance"));
   }

@@ -23,8 +23,8 @@
                 <th id='report-list-header-app'>
                   <div sort-columns='name'>Application Name</div>
                 </th>
-                <th id='report-list-header-{{stage.stageTypeId}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
-                  <div>{{stage.stageName}} Violations</div>
+                <th id='report-list-header-{{::stage.stageTypeId}}' ng-repeat='stage in stages | filterReportColumns' class='stage-column'>
+                  <div>{{::stage.stageName}} Violations</div>
                 </th>
                 <th id='report-list-header-contact'><div>Contact</div></th>
                 <th id='report-list-header-org'>
@@ -34,17 +34,17 @@
             </thead>
             <tr ng-repeat='application in applications | filter: isVisible | orderBy:getSortField()'>
               <td>
-                <a href='index.html#/management/application/{{encodeURIComponent(application.publicId)}}/policies'>
-                  <img ng-src='../../rest/application/icon/{{encodeURIComponent(application.publicId)}}'
+                <a href='index.html#/management/application/{{::encodeURIComponent(application.publicId)}}/policies'>
+                  <img ng-src='../../rest/application/icon/{{::encodeURIComponent(application.publicId)}}'
                     onerror="this.src='img/defaulticon_application.png';"
-                    class='image-thumbnail'/>{{application.name}}
+                    class='image-thumbnail'/>{{::application.name}}
                 </a>
               </td>
               <td ng-repeat='stage in stages | filterReportColumns'>
                 <div ng-if='application.policyEvaluationsResults[stage.stageTypeId]'>
                   <div>
                     <a class='no-hover-underline' style='vertical-align: middle;' title='View Report'
-                        href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
+                        href='#/reports/{{::encodeURIComponent(application.publicId)}}/{{::application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
                       <div chiclets critical="application.policyEvaluationsResults[stage.stageTypeId].criticalComponentCount"
                         severe="application.policyEvaluationsResults[stage.stageTypeId].severeComponentCount"
                         moderate="application.policyEvaluationsResults[stage.stageTypeId].moderateComponentCount"></div>
@@ -52,20 +52,20 @@
                     </a>
                   </div>
                   <div>
-                    <a title='View Report' href='#/reports/{{encodeURIComponent(application.publicId)}}/{{application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
-                      {{application.policyEvaluations[stage.stageTypeId].time | ago}}</a>
+                    <a title='View Report' href='#/reports/{{::encodeURIComponent(application.publicId)}}/{{::application.policyEvaluations[stage.stageTypeId].scanId | EncodeURIComponent}}'>
+                      {{::application.policyEvaluations[stage.stageTypeId].time | ago}}</a>
                   </div>
                 </div>
               </td>
               <td>
                 <span ng-if='application.contact.error'>
-                  <i class='icon-warning-sign' tooltip='{{application.contact.error}}' tooltip-placement='left'></i>
+                  <i class='icon-warning-sign' tooltip='{{::application.contact.error}}' tooltip-placement='left'></i>
                 </span>
-                <span>{{application.contact.displayName || application.contact.internalName}}</span>
+                <span>{{::application.contact.displayName || application.contact.internalName}}</span>
               </td>
               <td>
-                <a href='index.html#/management/organization/{{encodeURIComponent(application.organizationId)}}/policies'>
-                  {{application.organizationName}}
+                <a href='index.html#/management/organization/{{::encodeURIComponent(application.organizationId)}}/policies'>
+                  {{::application.organizationName}}
                 </a>
               </td>
             </tr>

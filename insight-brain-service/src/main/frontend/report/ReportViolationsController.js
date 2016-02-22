@@ -6,7 +6,7 @@
  /* global angular */
 (function() {
   'use strict';
-  var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation']);
+  var reportListModule = angular.module('ReportViolations', ['AngularCommon', 'CLMLocation', 'vs-repeat']);
 
   reportListModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations',
     function($scope, $http, $q, clmLocations) {

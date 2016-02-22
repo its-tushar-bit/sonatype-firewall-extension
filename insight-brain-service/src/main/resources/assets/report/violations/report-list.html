@@ -33,6 +33,7 @@
                 </th>
               </tr>
             </thead>
+            <tbody vs-repeat vs-scroll-parent=".scrollable-container-inner">
             <tr ng-repeat='application in applications | filter: isVisible | orderBy:getSortField()'>
               <td>
                 <a href='index.html#/management/application/{{::encodeURIComponent(application.publicId)}}/policies'>
@@ -70,6 +71,7 @@
                 </a>
               </td>
             </tr>
+            </tbody>
           </table>
         </div>
       </div>

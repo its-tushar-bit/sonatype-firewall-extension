@@ -152,6 +152,7 @@
     <js>/lib/bootstrap-slider-2.0.0-sonatype-1.js</js>
     <js>/lib/angular-ui-router-0.2.15.min.js</js>
     <js>/lib/angular-ui-utils-0.0.3.js</js>
+    <js>/lib/angular-vs-repeat/angular-vs-repeat-1.1.4.js</js>
     <js>/lib/ui-bootstrap-tpls-0.8.0.js</js>
     <js>/lib/bootstrap2-toggle-2.2.0.min.js</js>
     <js>/lib/X-editable/xeditable-0.1.8.min.js</js>

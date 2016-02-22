@@ -22,21 +22,22 @@ class ReportViolationsSpec
   def "Organization Sorting"() {
     given:
       ReportViolationsPage page = at ReportViolationsPage
-      waitFor { page.reportViolationRows.size() == 2 }
+      // angular-vs-repeat adds a psuedo row before and after content
+      waitFor { page.reportViolationRows.size() == 4 }
 
     when: "org header is clicked"
       clickHeader(orgNameHeader)
 
     then: "rows sorted by organization"
-      page.reportViolationRows[0].orgName.text() == "org1"
-      page.reportViolationRows[1].orgName.text() == "org2"
+      page.reportViolationRows[1].orgName.text() == "org1"
+      page.reportViolationRows[2].orgName.text() == "org2"
 
     when: "org header is clicked again"
       clickHeader(orgNameHeader)
 
     then: "rows reverse sorted by organization"
-      page.reportViolationRows[0].orgName.text() == "org2"
-      page.reportViolationRows[1].orgName.text() == "org1"
+      page.reportViolationRows[1].orgName.text() == "org2"
+      page.reportViolationRows[2].orgName.text() == "org1"
   }
 
   def "Filter organization"() {
@@ -47,8 +48,8 @@ class ReportViolationsSpec
       page.filter << "org2"
 
     then:
-      reportViolationRows.size() == 1
-      reportViolationRows[0].orgName.text() == "org2"
+      reportViolationRows.size() == 3
+      reportViolationRows[1].orgName.text() == "org2"
   }
 
   def "Stages are listed in chronological order"() {

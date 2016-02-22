@@ -23,13 +23,14 @@ import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrg
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.GreedyTable;
+import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
-import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileHeaderColumn;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
@@ -63,6 +64,9 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.COLUMN_SELECTED;
+import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.DOWN_SELECTED;
+import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.UP_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.PolicyTileList.threatLevel;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -204,7 +208,7 @@ public abstract class AbstractSummaryViewTest
         list.ownerName().shouldNotBe(visible);
       }
 
-      list.elements().shouldBe(empty);
+      list.rows().shouldBe(empty);
     }
   }
 
@@ -380,40 +384,40 @@ public abstract class AbstractSummaryViewTest
       list.emptyDescriptor().shouldNotBe(visible);
 
       if (i == 0) {
-        list.elements().shouldHaveSize(3); // 2 elements plus header
+        list.rows().shouldHaveSize(3); // 2 rows plus header
         list.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
         assertPolicyHeader(list);
 
-        PolicyTileListElement policyElement1 = list.element(1);
+        PolicyTileListElement policyElement1 = list.row(1);
         Policy actualPolicy1 = localPolicies.get(0);
         assertPolicy(policyElement1, actualPolicy1);
-        PolicyTileListElement policyElement2 = list.element(2);
+        PolicyTileListElement policyElement2 = list.row(2);
         Policy actualPolicy2 = localPolicies.get(1);
         assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldHave(PolicyTileHeaderColumn.UP_SELECTED);
-        list.threatLegendHeaderColumn().downArrow().shouldNotHave(PolicyTileHeaderColumn.DOWN_SELECTED);
-        list.threatLegendHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
+        list.nameHeaderColumn().upArrow().shouldHave(UP_SELECTED);
+        list.threatLegendHeaderColumn().downArrow().shouldNotHave(DOWN_SELECTED);
+        list.threatLegendHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
 
-        policyElement1 = list.element(1);
-        policyElement2 = list.element(2);
+        policyElement1 = list.row(1);
+        policyElement2 = list.row(2);
         assertPolicy(policyElement1, actualPolicy1);
         assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
-        list.nameHeaderColumn().downArrow().shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED);
+        list.nameHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
+        list.nameHeaderColumn().downArrow().shouldHave(DOWN_SELECTED);
 
-        policyElement1 = list.element(1);
-        policyElement2 = list.element(2);
+        policyElement1 = list.row(1);
+        policyElement2 = list.row(2);
         assertPolicy(policyElement1, actualPolicy2);
         assertPolicy(policyElement2, actualPolicy1);
       }
       else {
         list.ownerName().shouldNotBe(visible);
-        list.elements().shouldHaveSize(0);
+        list.rows().shouldHaveSize(0);
       }
     }
   }
@@ -660,28 +664,28 @@ public abstract class AbstractSummaryViewTest
       else {
         list.emptyDescriptor().shouldNotBe(visible);
         list.ownerName().shouldBe(visible).shouldHave(PolicyTile.inheritedText(parentOwners.get(i - 1).getName()));
-        list.elements().shouldHaveSize(3); // 2 elements plus header
+        list.rows().shouldHaveSize(3); // 2 rows plus header
 
         assertPolicyHeader(list);
 
-        PolicyTileListElement policyElement1 = list.element(1);
+        PolicyTileListElement policyElement1 = list.row(1);
         Policy actualPolicy1 = inheritedPolicies.get(i - 1).get(0);
         assertPolicy(policyElement1, actualPolicy1);
-        PolicyTileListElement policyElement2 = list.element(2);
+        PolicyTileListElement policyElement2 = list.row(2);
         Policy actualPolicy2 = inheritedPolicies.get(i - 1).get(1);
         assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldHave(PolicyTileHeaderColumn.UP_SELECTED);
-        list.threatLegendHeaderColumn().downArrow().shouldNotHave(PolicyTileHeaderColumn.DOWN_SELECTED);
-        list.threatLegendHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
+        list.nameHeaderColumn().upArrow().shouldHave(UP_SELECTED);
+        list.threatLegendHeaderColumn().downArrow().shouldNotHave(DOWN_SELECTED);
+        list.threatLegendHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
 
         assertPolicy(policyElement1, actualPolicy1);
         assertPolicy(policyElement2, actualPolicy2);
 
         list.nameHeaderColumn().anchor().click();
-        list.nameHeaderColumn().upArrow().shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
-        list.nameHeaderColumn().downArrow().shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED);
+        list.nameHeaderColumn().upArrow().shouldNotHave(UP_SELECTED);
+        list.nameHeaderColumn().downArrow().shouldHave(DOWN_SELECTED);
 
         assertPolicy(policyElement1, actualPolicy2);
         assertPolicy(policyElement2, actualPolicy1);
@@ -692,10 +696,10 @@ public abstract class AbstractSummaryViewTest
   private void assertPolicyHeader(PolicyTileList list) {
     list.selectedHeaderElements().shouldHaveSize(1);
 
-    PolicyTileHeaderColumn column = list.selectedHeaderColumn();
-    column.root.shouldBe(visible).shouldHave(PolicyTileHeaderColumn.COLUMN_SELECTED);
-    column.downArrow().shouldBe(visible).shouldHave(PolicyTileHeaderColumn.DOWN_SELECTED); // initial state
-    column.upArrow().shouldBe(visible).shouldNotHave(PolicyTileHeaderColumn.UP_SELECTED);
+    HeaderColumn column = list.selectedHeaderColumn();
+    column.root.shouldBe(visible).shouldHave(COLUMN_SELECTED);
+    column.downArrow().shouldBe(visible).shouldHave(DOWN_SELECTED); // initial state
+    column.upArrow().shouldBe(visible).shouldNotHave(UP_SELECTED);
   }
 
   private void assertPolicy(PolicyTileListElement policy, Policy actualPolicy) {
@@ -760,9 +764,9 @@ public abstract class AbstractSummaryViewTest
     PolicyTile policyTile = new PolicyTile();
     PolicyTileList policyList = policyTile.policyList(0);
     policyList.emptyDescriptor().shouldNotBe(visible);
-    policyList.elements().shouldHaveSize(2); // 1 element plus header
+    policyList.rows().shouldHaveSize(2); // 1 row plus header
     policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
-    PolicyTileListElement policyElement = policyList.element(1);
+    PolicyTileListElement policyElement = policyList.row(1);
     policyElement.name().shouldBe(visible).shouldHave(text("Test"));
     policyElement.proxy().shouldBe(visible).shouldHave(text("warn"));
 

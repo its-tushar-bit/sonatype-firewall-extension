@@ -6,30 +6,26 @@
 package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class PolicyTileList
-    extends BasicElement<PolicyTileList>
+    extends GreedyTable<PolicyTileListElement>
 {
 
   public PolicyTileList(String... selectors) {
     super(selectors);
   }
 
-  public ElementsCollection elements() {
-    return $$(selector(selector, "tr"));
-  }
-
-  public PolicyTileListElement element(int num) {
+  @Override
+  public PolicyTileListElement row(int num) {
     return new PolicyTileListElement(selector, "tbody tr", nthChild(num));
   }
 
@@ -41,21 +37,12 @@ public class PolicyTileList
     return $(selector(selector, ".empty-list"));
   }
 
-  public PolicyTileHeaderColumn threatLegendHeaderColumn() {
-    return new PolicyTileHeaderColumn($(selector(selector, "thead th", nthChild(1))));
+  public HeaderColumn threatLegendHeaderColumn() {
+    return this.header(1);
   }
 
-  public PolicyTileHeaderColumn nameHeaderColumn() {
-    return new PolicyTileHeaderColumn($(selector(selector, "thead th", nthChild(2))));
-  }
-
-  public ElementsCollection selectedHeaderElements() {
-    return $$(selector(selector, "thead th .up") + ", " + selector(selector, "thead th .down"));
-  }
-
-  public PolicyTileHeaderColumn selectedHeaderColumn() {
-    // XXX this seems very inefficient
-    return new PolicyTileHeaderColumn(selectedHeaderElements().get(0).parent().parent());
+  public HeaderColumn nameHeaderColumn() {
+    return this.header(2);
   }
 
   public static Condition threatLevel(int threatLevel) {
@@ -78,11 +65,11 @@ public class PolicyTileList
     }
 
     public SelenideElement threadLegend() {
-      return $(selector(selector, ".threat"));
+      return $(selector(selector, ".threat-legend"));
     }
 
     public SelenideElement name() {
-      return $(selector(selector, ".threat-name"));
+      return $(selector(selector, "td", nthChild(1)));
     }
 
     public SelenideElement proxy() {
@@ -111,37 +98,6 @@ public class PolicyTileList
 
     public SelenideElement chevron() {
       return $(selector(selector, ".fa-chevron-right"));
-    }
-  }
-
-  public static class PolicyTileHeaderColumn
-  {
-    public static final Condition UP_SELECTED = cssClass("up");
-
-    public static final Condition DOWN_SELECTED = cssClass("down");
-
-    public static final Condition COLUMN_SELECTED = cssClass("selected-column");
-
-    public SelenideElement root;
-
-    public PolicyTileHeaderColumn(SelenideElement root) {
-      this.root = root;
-    }
-
-    public SelenideElement anchor() {
-      return root.$("a");
-    }
-
-    public SelenideElement upArrow() {
-      return root.$(".fa-caret-up");
-    }
-
-    public SelenideElement downArrow() {
-      return root.$(".fa-caret-down");
-    }
-
-    public SelenideElement name() {
-      return root.$(".header-text");
     }
   }
 }

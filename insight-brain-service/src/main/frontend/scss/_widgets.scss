@@ -1395,3 +1395,115 @@ age-in-days-input {
     }
   }
 }
+
+/*
+  ## Greedy Table
+```
+<div class="tile">
+  <div class="simple-list">
+  <table class="greedy-table" cols="8">
+    <thead>
+      <tr>
+        <th class="selected-column"><a class="sort-col up" tabindex="0"><i class="fa fa-caret-up"></i><i class="fa fa-caret-down down"></i>
+          <span class="header-text">COLUMN A</span></a></th>
+        <th class="greedy-column"><a class="sort-col" tabindex="0"><i class="fa fa-caret-up" ></i><i class="fa fa-caret-down"></i>
+          <span class="header-text">COLUMN B</span></a></th>
+        <th><a class="sort-col" tabindex="0"><i class="fa fa-caret-up"></i><i class="fa fa-caret-down"></i>
+          <span class="header-text">COLUMN C</span></a></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="clickable">
+        <td>I am column A</td>
+        <td class="greedy-column">I am greedy B</td>
+        <td>I am column C</td>
+        <td class="chevron-column"><i class="fa fa-chevron-right"></i></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+```
+
+The use of 1% column widths is a result of a partial implementation of a supporting responsive column widths in tables
+which includes the need to support a "greedy" column that will take up the rest of the room.
+The concept of 'optimized column groups' in a table consists of determining the widest column in the group and then
+applying that width to all the other columns in the group. While this was a 'nice to have' for the policy list at this
+time, we still need to be able to figure out the appropriate width to fit the content. This is done by applying a 1%
+width (with white-space: nowrap) to the the columns in question. While we could come up with some static widths to make
+this happen for this particular solution, the thought process is to create a more generic solution that can handle
+dynamic content which will allow for an easier transition when responsive tables are fully implemented.
+
+See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
+*/
+.greedy-table {
+  thead tr {
+    th {
+      text-align: left;
+      background-color: $grey-1;
+      color: $slate;
+
+      &.selected-column {
+        background-color: $grey-2;
+      }
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid $grey-1;
+
+    &.clickable:hover,
+    &.clickable:active {
+      cursor: pointer;
+      border-bottom-color: $grey-4;
+
+      td > .fa-chevron-right {
+        color: $off-black;
+      }
+    }
+
+    &.clickable:active,
+    &.clickable:focus,
+    &.clickable:hover {
+      outline: 0;
+    }
+
+    &.clickable:active {
+      background: $grey-1;
+    }
+  }
+
+  tr {
+    height: 40px;
+    line-height: 40px;
+
+    th, td {
+      padding: 0 12px 0 12px;
+      font-size: 14px;
+
+      &:not(.greedy-column) {
+        width: 1%; // see note in living styleguide
+        white-space: nowrap;
+      }
+    }
+
+    td {
+      &:first-child {
+        @extend .semi-bold;
+      }
+
+      > .fa {
+        margin-right: 8px;
+      }
+
+      &.chevron-column {
+        padding-left: 24px;
+
+        > .fa-chevron-right {
+          font-size: 12px;
+          color: $slate;
+        }
+      }
+    }
+  }
+}

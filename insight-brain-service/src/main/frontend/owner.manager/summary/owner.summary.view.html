@@ -127,13 +127,13 @@
             <div class="empty-list" ng-if="!ownerPolicyList.inherited && ownerPolicyList.policies.length <= 0">
               No local policies defined
             </div>
-            <table sort="-threatLevel" class="policy-list" cols="8">
+            <table sort="-threatLevel" class="greedy-table policy-list" cols="8">
               <thead>
-                <tr class="simple" ng-if="ownerPolicyList.policies.length > 0">
+                <tr ng-if="ownerPolicyList.policies.length > 0">
                   <th sort-column="-threatLevel">
                     <span class="header-text">THREAT</span>
                   </th>
-                  <th sort-column="name, -threatLevel" class="threat-name">
+                  <th sort-column="name, -threatLevel" class="greedy-column">
                     <span class="header-text">NAME</span>
                   </th>
                   <th sort-column="actions.proxy[0].actionTypeId, -threatLevel">
@@ -159,13 +159,13 @@
               </thead>
               <tr class="simple clickable" ng-repeat="policy in ownerPolicyList.policies | orderBy:sortVm.sortFields"
                   ng-click="vm.editPolicy(policy.id)">
-                <td class="threat-name" colspan="2"><span class='threat-legend threat policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
+                <td class="greedy-column" colspan="2"><span class='threat-legend policy-threat-level-{{policy.threatLevel}}'>&nbsp;</span>{{policy.name}}</td>
                 <td ng-repeat="action in vm.actionStages">
                   <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[action] === 'warn',
                     'fa fa-exclamation-circle fail' :policy.enforcementAction[action] === 'fail'}"></i><!--
                   -->{{policy.enforcementAction[action] || 'no action'}}
                 </td>
-                <td><i class="fa fa-chevron-right"></i></td>
+                <td class="chevron-column"><i class="fa fa-chevron-right"></i></td>
               </tr>
             </table>
           </div>

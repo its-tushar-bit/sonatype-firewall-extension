@@ -379,7 +379,8 @@ public class IdeResourceTest
 
     // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
     // the policy again. There should be no policy alerts.
-    setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab_NotMatch.json");
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), ideMatchedComponent.getHash(), "osvdb", "121212",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);
@@ -394,7 +395,8 @@ public class IdeResourceTest
     Assert.assertEquals(0, policyAlerts.size());
 
     // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
-    setSecurityAuditLog(application.getId(), "/IdeResourceTest/SecurityOverride_abababababababababab.json");
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), ideMatchedComponent.getHash(), "osvdb", "36079",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     response = request.get();
     assertResponseStatus(200, response);
     ideMatchedComponent = response.getBody(IdeMatchedComponent.class);

@@ -275,12 +275,7 @@ public class RepositoryPolicyEvaluator
   }
 
   private Component augmentComponentDetails(Repository repository, NamedComponentDetails componentDetails) {
-    try {
-      return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return componentDetailsLoader.augmentComponentDetails(repository, componentDetails);
   }
 
   private ComponentEvaluationDataList getComponentDetailsFromHds(boolean withQuarantine,

@@ -47,10 +47,12 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -1127,6 +1129,57 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponents_SecurityVulnerabilityOverridden() throws Exception {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", SecurityVulnerabilityOverrideStatus.CONFIRMED.getId());
+    Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
+    constraint.addCondition(condition);
+    Policy policy = new Policy("id", "name");
+    policy.setOwnerId(repository.getParentOwnerId());
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String hash = "ababababa";
+    String source = "cve";
+    String referenceId = "CVE-2009-1523";
+    tempEntity.newSecurityVulnerabilityOverride(repository.getId(), hash, source, referenceId,
+        SecurityVulnerabilityOverrideStatus.CONFIRMED);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList = new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    List<SecurityVulnerability> securityVulnerabilities = Collections.singletonList(new SecurityVulnerability(
+        referenceId, source, 2.9F));
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("maven2", "path",
+        hash));
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
+        null /* declaredLicenses */, null /* observedLicenses */, securityVulnerabilities, 0 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Call the service
+    Date before = new Date();
+    repositoryService.evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+        false);
+    Date after = new Date();
+
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents, hasSize(1));
+    RepositoryComponent repositoryComponent = repositoryComponents.get(0);
+    assertRepositoryComponent(repository.getId(), "path", before, after, hash, componentIdentifier,
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), false /* canBeQuarantined */,
+        repositoryComponent);
+
+    List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository
+        .getId());
+    assertThat(policyViolations, hasSize(1));
+    assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), policy.getThreatLevel(),
+        policy.getThreatCategory(), hash, componentIdentifier, before, after, policyViolations.get(0));
+  }
+
+  @Test
   public void testEvaluateComponents_ClaimedComponent() throws Exception {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(IdentificationSourceConditionType.ID, "is", IdentificationSource.MANUAL.getId());
@@ -1484,8 +1537,10 @@ public class RepositoryServiceTest
     componentEvaluationData.hash = hash;
     componentEvaluationData.componentIdentifier = componentIdentifier;
     componentEvaluationData.matchState = matchState.getId();
-    componentEvaluationData.declaredLicenses = declaredLicenses;
-    componentEvaluationData.observedLicenses = observedLicenses;
+    componentEvaluationData.declaredLicenses = declaredLicenses == null ? Collections.<License> emptySet()
+        : declaredLicenses;
+    componentEvaluationData.observedLicenses = observedLicenses == null ? Collections.<License> emptySet()
+        : observedLicenses;
     componentEvaluationData.catalogDate = (long) index;
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;

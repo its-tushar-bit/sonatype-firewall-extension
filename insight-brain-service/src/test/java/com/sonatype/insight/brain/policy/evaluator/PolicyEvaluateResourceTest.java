@@ -51,6 +51,8 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -615,6 +617,51 @@ public class PolicyEvaluateResourceTest
     policyAlerts = policyEval.getAlerts();
     Assert.assertNotNull(policyAlerts);
     Assert.assertEquals(0, policyAlerts.size());
+  }
+
+  @Test
+  public void testEvaluate_SecurityVulnerabilityOverride() throws Exception {
+    String scanId = "testEvaluate_SecurityVulnerabilityOverride";
+
+    Constraint constraint = new Constraint(null /* constraintId */, "Constraint name", LogicalOperator.AND);
+    Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is", "CONFIRMED");
+    constraint.addCondition(condition);
+
+    Action action = new Action(Action.ID_FAIL);
+
+    Policy policy = new Policy(null /* policyId */, "Policy name");
+    policy.setThreatLevel(5);
+    policy.addConstraint(constraint);
+    policy.addAction(Stage.ID_BUILD, action);
+    policy.setOwnerId(app.getId());
+    policyDAO.insert(policy);
+    constraint = policy.getConstraints().get(0);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Simulate that the report is available
+    mockReport(scanId, "/PolicyEvaluateResourceTest/report.zip");
+
+    // Override the security vulnerability
+    tempEntity.newSecurityVulnerabilityOverride(app.getId(), "494308fc2d433720c778" /* hash */, "cve", "CVE-2009-1524",
+        SecurityVulnerabilityOverrideStatus.CONFIRMED, " My comment");
+
+    // Evaluate policy
+    HttpResponse response = evalRequest(applicationPublicId, scanId, stage).post();
+    assertResponseStatus(200, response);
+    PolicyEvaluationResult policyEval = response.getBody(PolicyEvaluationResult.class);
+    assertThat(policyEval.getAffectedComponentCount(), is(1));
+    assertThat(policyEval.getCriticalComponentCount(), is(0));
+    assertThat(policyEval.getSevereComponentCount(), is(1));
+    assertThat(policyEval.getModerateComponentCount(), is(0));
+    List<PolicyAlert> policyAlerts = policyEval.getAlerts();
+    assertThat(policyAlerts, hasSize(1));
+    AbstractPolicyEvaluationTest.assertFactCounts(1, 1, policyAlerts.get(0));
+    Component expectedComponent = ComponentFactory.forGav("org.mortbay.jetty", "jetty", "6.1.15", MatchState.EXACT);
+    expectedComponent.setHash("494308fc2d433720c778");
+    AbstractPolicyEvaluationTest.assertContainsPolicyAlert(expectedComponent, policy.getId(), "Policy name",
+        Action.ID_FAIL, constraint.getId(), "Constraint name", SecurityVulnerabilityStatusConditionType.ID,
+        policyAlerts);
   }
 
   @Test

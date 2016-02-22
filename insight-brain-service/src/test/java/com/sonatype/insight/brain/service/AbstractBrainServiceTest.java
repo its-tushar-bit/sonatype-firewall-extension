@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -36,8 +35,6 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -197,30 +194,6 @@ public abstract class AbstractBrainServiceTest
     String uri = UriBuilder.fromPath("rest/component/summary")
         .queryParam("componentIdentifier", toJson(componentIdentifier)).build().toString();
     setHdsResponseForURI(uri, componentSummary, 200);
-  }
-
-  protected void setSecurityAuditLog(String appId, String jsonResource) {
-    setAuditLog(appId, "security.json", jsonResource);
-  }
-
-  private void setAuditLog(String appId, String jsonFile, String jsonResource) {
-    File logFile = new File(getCLMServer().getAuditDir(appId), jsonFile);
-    logFile.getAbsoluteFile().getParentFile().mkdirs();
-    try {
-      FileUtils.fileWrite(logFile, "UTF-8", toString(jsonResource));
-    }
-    catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private String toString(String resource) {
-    try {
-      return IOUtil.toString(getClass().getResourceAsStream(resource), "UTF-8");
-    }
-    catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
   }
 
   protected static void assertResponseStatus(final int expectedStatus, final HttpResponse response) {

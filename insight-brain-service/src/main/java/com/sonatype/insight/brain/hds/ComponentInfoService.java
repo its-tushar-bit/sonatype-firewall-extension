@@ -241,7 +241,7 @@ public class ComponentInfoService
     return componentDetailsList;
   }
 
-  private Component loadComponent(Owner owner, ComponentDetails componentDetails) throws IOException {
+  private Component loadComponent(Owner owner, ComponentDetails componentDetails) {
     return componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
   }
 

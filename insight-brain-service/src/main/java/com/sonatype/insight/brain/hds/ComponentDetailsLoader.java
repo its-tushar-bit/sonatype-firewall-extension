@@ -31,9 +31,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -53,18 +51,14 @@ public class ComponentDetailsLoader
     NamedComponentDetails getDetails() throws IOException;
   }
 
-  private final InsightWork work;
-
   private final LicenseDAO licenseDAO;
 
   private final HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
   @Inject
-  public ComponentDetailsLoader(InsightWork work,
-                                LicenseDAO licenseDAO,
+  public ComponentDetailsLoader(LicenseDAO licenseDAO,
                                 HashComponentIdentifierDAO hashComponentIdentifierDAO)
   {
-    this.work = work;
     this.licenseDAO = licenseDAO;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
   }
@@ -123,15 +117,12 @@ public class ComponentDetailsLoader
   }
 
   /**
-   * Augments the supplied component details with vulnerability and license overrides. The returned object is a
-   * transcript of the final component details suitable for policy evaluation.
+   * Augments the supplied component details with local data like labels, license and security vulnerability overrides.
+   * The returned object is a transcript of the final component details suitable for policy evaluation.
    */
-  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) throws IOException {
-    // Load the augmented data for licenses and security vulnerabilities
-    ArrayNode svData = AugmentUtil.getSVData(work, owner.getId(), componentDetails.getComponentIdentifier(),
-        componentDetails.getSecurityVulnerabilities());
+  public Component augmentComponentDetails(Owner owner, ComponentDetails componentDetails) {
     ComponentDAO componentDAO = new ComponentDAO();
-    Component component = componentDAO.getComponent(owner, componentDetails, svData);
+    Component component = componentDAO.getComponent(owner, componentDetails);
 
     // Use CLM data to populate the component details
     for (String licenseId : component.getLicenseOverrideIds()) {

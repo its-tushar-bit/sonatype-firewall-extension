@@ -58,9 +58,12 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityOverrideResource;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -661,43 +664,6 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
 
-    // edit the state
-    String edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
-    response = augmentRequest.body(edit).post();
-    assertResponseStatus(200, response);
-
-    // verify the state has changed
-    response = browseRequest.get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), containsString("\"state\" : \"accepted\""));
-
-    // check the audit log reflects this change
-    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}").get();
-    assertResponseStatus(200, response);
-
-    String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
-
-    assertThat(response.getBodyText().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
-
-    // edit the state again
-    edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\" }";
-    response = augmentRequest.body(edit).post();
-    assertResponseStatus(200, response);
-
-    // verify the state has changed again
-    response = browseRequest.get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), containsString("\"state\" : \"confirmed\""));
-
-    // check the audit log reflects this change
-    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}").get();
-    assertResponseStatus(200, response);
-
-    feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"confirmed\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" }, "
-        + "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
-
-    assertThat(response.getBodyText().replaceAll("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
-
     // edit the BoM
     final String bomEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
 
@@ -820,54 +786,55 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testRefreshOnlyOnChange() throws Exception {
+  public void test_SecurityVulnerabilityOverrides() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-    String appId = application.getId();
     final String scanId = "ReportResourceTest_ScanId";
     final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
     setLicenseFingerprint(licenseFingerprint);
 
-    HttpRequest request = restRequest(applicationPublicId, scanId);
-    HttpRequest augmentRequest = request.subpath("augmentData", "security.json").query(
-        "user=test&where=ReportResourceTest");
-    HttpRequest browseRequest = request.subpath("browseReport", "security.json");
+    HttpRequest request = restRequest(applicationPublicId, scanId).subpath("browseReport", "security.json");
 
     mockReport(scanId, "/ReportResourceTest/report.zip");
 
-    // verify nothing has changed
-    HttpResponse response = browseRequest.get();
+    // Verify before any overrides are added
+    HttpResponse response = request.get();
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
+    int found = 0;
+    String svJsonString = response.getBodyText();
+    JsonNode svJsonData = JsonUtils.parse(svJsonString).get("aaData");
+    assertThat(svJsonData.size(), greaterThan(0));
+    for (JsonNode svJsonNode : svJsonData) {
+      assertNull(svJsonNode.get("status"));
+      assertNull(svJsonNode.get("comment"));
+    }
 
-    // edit the state
-    final String edit = "{ \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\" }";
-    response = augmentRequest.body(edit).post();
+    // Override a security vulnerability
+    String hash = "494308fc2d433720c778";
+    String source = "cve";
+    String referenceId = "CVE-2009-1524";
+    String comment = "My comment";
+    SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(application.getId(), hash,source ,
+        referenceId, SecurityVulnerabilityOverrideStatus.CONFIRMED, comment);
+    response = restRequest().path(SecurityVulnerabilityOverrideResource.RESOURCE_PATH)
+        .parameter(OwnerType.APPLICATION, application.getPublicId()).body(override).put();
     assertResponseStatus(200, response);
+    override = response.getBody(SecurityVulnerabilityOverride.class);
 
-    // check the audit log reflects this change
-    response = request.subpath("auditLog", "security.json").query("key", "{\"hash\":\"1249e25aebb15358bedd\"}").get();
+    response = request.get();
     assertResponseStatus(200, response);
-
-    final String feed = "{ \"aaData\" : [ { \"hash\" : \"1249e25aebb15358bedd\", \"reference\" : \"CVE-2007-5333\", \"state\" : \"accepted\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"security.json\" } ] }";
-
-    assertThat(response.getBodyText().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
-
-    // force the internal modification count to make it look like we're already up-to-date
-    int oldModCount = ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, 888);
-
-    // verify nothing has changed
-    response = browseRequest.get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
-
-    // put back the accurate modification count, which should lead to a refresh
-    ReportService.MODIFICATION_COUNTS.put(appId + '-' + scanId, oldModCount);
-
-    // verify the state has changed
-    response = browseRequest.get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), containsString("\"state\" : \"accepted\""));
+    found = 0;
+    svJsonString = response.getBodyText();
+    svJsonData = JsonUtils.parse(svJsonString).get("aaData");
+    for (JsonNode svJsonNode : svJsonData) {
+      if (hash.equals(svJsonNode.get("hash").asText()) && source.equals(svJsonNode.get("source").asText())
+          && referenceId.equals(svJsonNode.get("reference").asText())) {
+        assertThat(svJsonNode.get("status").asText(), is(SecurityVulnerabilityOverrideStatus.CONFIRMED.getName()));
+        assertThat(svJsonNode.get("comment").asText(), is(comment));
+        found++;
+      }
+    }
+    assertThat("Did not find expected overridden security vulnerability", found, is(1));
   }
 
   @Test

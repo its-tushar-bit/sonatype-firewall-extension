@@ -115,7 +115,7 @@ public class ComponentDAOTest
     matchedComponent.addDeclaredLicenseId("Apache-2.0");
     matchedComponent.addObservedLicenseId("MIT");
     matchedComponent.addSecurityVulnerability(new SecurityVulnerability("12345", "osvdb", 4f));
-    Component component = componentDAO.getComponent(application, matchedComponent, null);
+    Component component = componentDAO.getComponent(application, matchedComponent);
     assertNotNull(component);
     assertEquals(matchedComponent.getHash(), component.getHash());
     assertEquals(matchedComponent.getComponentIdentifier(), component.getComponentIdentifier());
@@ -140,7 +140,7 @@ public class ComponentDAOTest
     MatchedComponent matchedComponent = new MatchedComponent();
     matchedComponent.setHash(COMP_HASH);
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
-    Component component = componentDAO.getComponent(application, matchedComponent, null);
+    Component component = componentDAO.getComponent(application, matchedComponent);
     assertNotNull(component);
     assertTrue(component.getLicenseOverrideIds().isEmpty());
 
@@ -151,7 +151,7 @@ public class ComponentDAOTest
     LicenseOverride orgLicenseOverride = new LicenseOverride(organization.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My comment");
     licenseOverrideDAO.insert(orgLicenseOverride);
-    component = componentDAO.getComponent(application, matchedComponent, null);
+    component = componentDAO.getComponent(application, matchedComponent);
     assertNotNull(component);
     assertTrue(component.getLicenseOverrideIds().size() == 1);
     assertTrue(component.getLicenseOverrideIds().contains("GPL-3.0"));
@@ -160,7 +160,7 @@ public class ComponentDAOTest
     LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My comment");
     licenseOverrideDAO.insert(appLicenseOverride);
-    component = componentDAO.getComponent(application, matchedComponent, null);
+    component = componentDAO.getComponent(application, matchedComponent);
     assertNotNull(component);
     assertTrue(component.getLicenseOverrideIds().size() == 1);
     assertTrue(component.getLicenseOverrideIds().contains("GPL-2.0"));
@@ -173,7 +173,7 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addDeclaredLicenseId("Apache-2.0-GPL-3.0");
-    Component component = componentDAO.getComponent(application, matchedComponent, null);
+    Component component = componentDAO.getComponent(application, matchedComponent);
     assertNotNull(component);
     assertEquals(component.getDeclaredLicenseIds().toString(), 3, component.getDeclaredLicenseIds().size());
     assertTrue(component.getDeclaredLicenseIds().contains("Apache-2.0"));
@@ -189,7 +189,7 @@ public class ComponentDAOTest
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-2.0");
     matchedComponent.addObservedLicenseId("Apache-2.0-GPL-3.0");
-    Component component = componentDAO.getComponent(application, matchedComponent, null);
+    Component component = componentDAO.getComponent(application, matchedComponent);
     assertNotNull(component);
     assertEquals(component.getObservedLicenseIds().toString(), 3, component.getObservedLicenseIds().size());
     assertTrue(component.getObservedLicenseIds().contains("Apache-2.0"));

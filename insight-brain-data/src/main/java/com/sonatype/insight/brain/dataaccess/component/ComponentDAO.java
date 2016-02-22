@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -44,6 +46,8 @@ public class ComponentDAO
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+
+  private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
 
   private OwnerDAO ownerDAO = new OwnerDAO();
 
@@ -61,6 +65,19 @@ public class ComponentDAO
     if (licenseOverride != null) {
       component.setLicenseOverrideStatus(licenseOverride.getStatus());
       component.setLicenseOverrideIds(licenseOverride.getLicenseIds());
+    }
+  }
+
+  private void loadSVOverrides(Owner owner, Component component) {
+    List<SecurityVulnerabilityOverride> overrides = securityVulnerabilityOverrideDAO.getByOwnerIdAndHash(owner.getId(),
+        component.getHash());
+    for (SecurityVulnerabilityOverride override : overrides) {
+      for (SecurityVulnerability sv : component.getSecurityVulnerabilities()) {
+        if (sv.getSource().equals(override.getSource()) && sv.getRefId().equals(override.getReferenceId())) {
+          sv.setStatus(override.getStatus());
+          break;
+        }
+      }
     }
   }
 
@@ -212,7 +229,7 @@ public class ComponentDAO
     return result;
   }
 
-  public Component getComponent(Owner owner, ComponentInfo componentInfo, ArrayNode jsonSVNode) {
+  public Component getComponent(Owner owner, ComponentInfo componentInfo) {
     Component component = new Component();
 
     component.setHash(componentInfo.getHash());
@@ -235,7 +252,12 @@ public class ComponentDAO
       loadLicenseThreatGroups(owner.getId(), component);
     }
 
-    addSecurityVulnerabilities(component, componentInfo.getSecurityVulnerabilities(), jsonSVNode);
+    if (componentInfo.getSecurityVulnerabilities() != null) {
+      for (com.sonatype.clm.dto.model.SecurityVulnerability sv : componentInfo.getSecurityVulnerabilities()) {
+        component.addSecurityVulnerability(new SecurityVulnerability(sv.getSource(), sv.getRefId(), sv.getSeverity()));
+      }
+      loadSVOverrides(owner, component);
+    }
 
     loadComponentLabels(owner.getId(), component, new ComponentLabelDAO());
 
@@ -252,42 +274,6 @@ public class ComponentDAO
     loadLicenseThreatGroups(application.getId(), component);
 
     return component;
-  }
-
-  private void addSecurityVulnerabilities(Component component,
-                                          List<com.sonatype.clm.dto.model.SecurityVulnerability> issues,
-                                          ArrayNode jsonSVNode)
-  {
-    if (issues == null) {
-      return;
-    }
-    for (com.sonatype.clm.dto.model.SecurityVulnerability issue : issues) {
-      component.addSecurityVulnerability(new SecurityVulnerability(issue.getSource(), issue.getRefId(), issue
-          .getSeverity()));
-    }
-    processJsonSVData(component, jsonSVNode);
-  }
-
-  private void processJsonSVData(Component component, ArrayNode jsonSVNodes) {
-    if (jsonSVNodes == null) {
-      return;
-    }
-    List<SecurityVulnerability> svs = component.getSecurityVulnerabilities();
-    for (int i = 0; i < jsonSVNodes.size(); i++) {
-      JsonNode jsonSVNode = jsonSVNodes.get(i);
-      String statusString = JsonUtils.getNullableString(jsonSVNode.get("status"));
-      if (statusString != null) {
-        SecurityVulnerabilityOverrideStatus status = SecurityVulnerabilityOverrideStatus.getByName(statusString);
-        String source = jsonSVNode.get("source").asText();
-        String refId = jsonSVNode.get("reference").asText();
-        for (SecurityVulnerability sv : svs) {
-          if (sv.getSource().equals(source) && sv.getRefId().equals(refId)) {
-            sv.setStatus(status);
-            break;
-          }
-        }
-      }
-    }
   }
 
   private void loadComponentLabels(String ownerId, Component component, ComponentLabelDAO componentLabelDAO) {

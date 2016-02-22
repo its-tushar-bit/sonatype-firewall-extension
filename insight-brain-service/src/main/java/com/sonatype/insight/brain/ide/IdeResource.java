@@ -31,7 +31,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.hds.AugmentUtil;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
@@ -45,10 +44,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.CLMEnforcementPoint;
-
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @Named
 @Path(IdeResource.RESOURCE_PATH)
@@ -61,19 +57,15 @@ public class IdeResource
 
   private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private final InsightWork work;
-
   private final BaseUrl baseUrl;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   @Inject
-  public IdeResource(InsightWork work,
-                     BaseUrl baseUrl,
+  public IdeResource(BaseUrl baseUrl,
                      HdsClient client,
                      ComponentPolicyEvaluator componentPolicyEvaluator)
   {
-    this.work = work;
     this.baseUrl = baseUrl;
     this.client = client;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -122,11 +114,8 @@ public class IdeResource
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
         && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
-      ArrayNode svData = AugmentUtil.getSVData(work, applicationId, matchedComponent.getComponentIdentifier(),
-          matchedComponent.getSecurityVulnerabilities());
-
       ComponentDAO componentDAO = new ComponentDAO();
-      Component component = componentDAO.getComponent(app, matchedComponent, svData);
+      Component component = componentDAO.getComponent(app, matchedComponent);
       component.setProprietary(proprietary);
       List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
           Collections.singletonList(component));

@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDA
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -42,6 +43,8 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.json.store.JsonStore;
@@ -197,7 +200,7 @@ public final class Report
     Set<ComponentIdentifier> components = new HashSet<>();
     for (final JsonNode row : security.get("aaData")) {
       final String status = row.path("status").asText();
-      if (!"Not Applicable".equals(status)) {
+      if (!SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.getName().equals(status)) {
         final double severity = row.path("score").asDouble();
         final int threatIndex = 10 - (int) Math.floor(severity);
 
@@ -430,6 +433,32 @@ public final class Report
     log.debug("applyLicenseOverrides: {} components, {} overrides.", licensesAaData.size(), licenseOverrideCount);
   }
 
+  private static void applySecurityVulnerabilityOverrides(ContainerNode<?> securityJsonData, Application application) {
+    SecurityVulnerabilityOverrideDAO overrideDAO = new SecurityVulnerabilityOverrideDAO();
+
+    ArrayNode securityAaData = (ArrayNode) securityJsonData.get("aaData");
+    Iterator<JsonNode> iterSecurityData = securityAaData.iterator();
+    int overrideCount = 0;
+    while (iterSecurityData.hasNext()) {
+      ObjectNode securityJsonNode = (ObjectNode) iterSecurityData.next();
+      String hash = securityJsonNode.get("hash").asText();
+      String source = securityJsonNode.get("source").asText();
+      String referenceId = securityJsonNode.get("reference").asText();
+      SecurityVulnerabilityOverride override = overrideDAO.getByOwnerIdHashSourceAndReferenceId(application.getId(),
+          hash, source, referenceId);
+      if (override != null) {
+        overrideCount++;
+        securityJsonNode.put("status", override.getStatus().getName());
+        if (override.getComment() != null) {
+          securityJsonNode.put("comment", override.getComment());
+        }
+      }
+    }
+
+    log.debug("applySecurityVulnerabilityOverrides: {} components, {} overrides.", securityJsonData.size(),
+        overrideCount);
+  }
+
   private static void addLicenseOverridesForClaimedComponents(ArrayNode licensesAaData,
                                                               Collection<HashComponentIdentifier> hashComponentIdentifiers,
                                                               Application application)
@@ -526,8 +555,7 @@ public final class Report
     // must start from un-edited data
     ContainerNode<?> securityJsonData = loadReportEntry(reportFile, "security.json");
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
-    // now apply any data edits
-    auditStore.augment(securityJsonData, "security.json");
+    applySecurityVulnerabilityOverrides(securityJsonData, application);
     saveReportEntry(reportFile, "security.json", securityJsonData);
 
     // must start from un-edited data

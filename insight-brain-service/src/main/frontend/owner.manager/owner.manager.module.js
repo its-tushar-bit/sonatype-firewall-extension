@@ -46,7 +46,7 @@
             url: '/repositories',
             views: {
               '@management': {
-                templateUrl: 'owner.manager/summary/repositories.summary.view.html?' + clmBuildTimestamp
+                templateUrl: 'owner.manager/repositories/repositories.summary.view.html?' + clmBuildTimestamp
               }
             }
           }).state('management.edit.repositories', {

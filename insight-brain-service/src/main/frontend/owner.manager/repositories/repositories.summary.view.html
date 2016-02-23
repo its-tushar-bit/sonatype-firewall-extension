@@ -1,0 +1,60 @@
+<div class="tile-container">
+  <div class="summary-tile-container">
+    <div class="tile summary-tile" id="repositories-summary">
+      <h1><i class="fa fa-database"></i> Repositories</h1>
+      <ul class="nav nav-pills">
+        <li class="active"><a data-toggle="pill" id="repositories-configuration-button"
+                              data-target="#repositories-pill-configuration">Configuration</a></li>
+        <li><a data-toggle="pill" id="repositories-access-button" data-target="#repositories-pill-access">Access</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tile-scroll-container" scrollspy="#repositories-summary">
+    <div id="repositories-pill-configuration" class="tile"
+         ng-controller="repositories.configuration.tile.controller as vm">
+      <div load-wrapper="vm.error" loading="!vm.repositories" reload="vm.doLoad()"
+           error-message="Unable to load repositories.">
+        <h2><i class="fa fa-sliders size-20px inverse"></i>Configuration</h2>
+        <div class="simple-list">
+          <div class="subsection-divider"></div>
+          <div class="empty-list" ng-if="vm.repositories.length <= 0">There are no repositories registered with the
+            server.
+          </div>
+          <table sort="repository.publicId" class="greedy-table repository-configuration-list" cols="3"
+                 ng-if="vm.repositories.length > 0">
+            <thead>
+            <tr>
+              <th sort-column="repository.publicId" class="greedy-column">
+                <span class="header-text">REPOSITORY</span>
+              </th>
+              <th sort-column="managerInstanceId, repository.publicId">
+                <span class="header-text">REPOSITORY MANAGER</span>
+              </th>
+              <th sort-column="-repository.enabled, repository.publicId">
+                <span class="header-text">STATUS</span>
+              </th>
+              <th></th>
+            </tr>
+            </thead>
+            <tr ng-repeat="repository in vm.repositories | orderBy:sortVm.sortFields">
+              <td class="greedy-column">{{repository.repository.publicId}}</td>
+              <td>{{repository.managerInstanceId}}</td>
+              <td><i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--
+              -->{{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
+              </td>
+              <td>
+                <button type="button" class="btn btn-tertiary btn-icon-only" ng-click="vm.removeRepository(repository)">
+                  <i class="icon-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <access-tile id="repositories-pill-access"></access-tile>
+  </div>
+</div>

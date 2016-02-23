@@ -25,7 +25,7 @@ public class RepositoriesSummaryPage
     }
 
     public static SelenideElement configButton() {
-      return $("#repositories-config-button");
+      return $("#repositories-configuration-button");
     }
 
     public static SelenideElement accessButton() {

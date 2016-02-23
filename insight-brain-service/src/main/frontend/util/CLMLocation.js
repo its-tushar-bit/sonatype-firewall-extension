@@ -220,6 +220,13 @@
          */
         getRepositoryEvaluateUrl: function(repositoryId) {
           return baseUrl.get() + '/rest/repositories/' + repositoryId + '/evaluate';
+        },
+
+        /**
+         * @since 1.19.0
+         */
+        getRepositoriesUrl: function() {
+          return baseUrl.get() + '/rest/repositories/';
         }
       };
     }

@@ -11,11 +11,18 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.RepositoriesAccessTile;
+import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
+import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
+import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage.SummaryTile;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -32,11 +39,22 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
+import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
+import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 public class RepositoriesSummaryPageTest
     extends AbstractFunctionalTest
 {
   private static final int HIERARCHY_SIZE = 2;
+
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
+
+  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
   @BeforeClass
   public static void startup() {
@@ -50,13 +68,71 @@ public class RepositoriesSummaryPageTest
   }
 
   @Test
-  public void testRepositorySummaryView()
+  public void repositorySummaryViewTest()
   {
     SelenideElement nameElement = SummaryTile.name();
     nameElement.isDisplayed();
     nameElement.shouldHave(text("Repositories"));
     SummaryTile.configButton().isDisplayed();
     SummaryTile.accessButton().isDisplayed();
+
+    repositorySummaryViewTest_configurationTile();
+  }
+
+  private void repositorySummaryViewTest_configurationTile() {
+    RepositoryConfigurationTile configurationTile = new RepositoryConfigurationTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+
+    configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
+    configurationTable.rows().shouldHaveSize(0);
+
+    List<Repository> repositories = new ArrayList<>();
+    repositories.add(tempEntity.newRepository(tempEntity.newRepositoryManager(), "a123", false));
+    repositories.add(tempEntity.newRepository(tempEntity.newRepositoryManager(), "b123", true));
+
+    refresh();
+
+    configurationTile = new RepositoryConfigurationTile();
+    configurationTable = configurationTile.configurationTable();
+    configurationTable.rows().shouldHaveSize(3); // 2 repository rows and header
+    configurationTile.emptyDescriptor().shouldNotBe(visible);
+
+    for (int i = 0; i < repositories.size(); i++) {
+      ConfigurationTableRow configurationRow = configurationTable.row(i + 1);
+      Repository repository = repositories.get(i);
+
+      configurationRow.publicId().shouldHave(text(repository.getPublicId()));
+      configurationRow.managerId()
+          .shouldHave(text(repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId()));
+      configurationRow.status().shouldHave(text(repository.isEnabled() ? "Enabled" : "Disabled"));
+      configurationRow.statusIcon().shouldHave(repository.isEnabled() ? ENABLED_ICON : DISABLED_ICON);
+
+    }
+
+    repositorySummaryViewTest_configurationTile_deleteRepository(configurationTable.row(2), repositories.get(1));
+    repositorySummaryViewTest_configurationTile_deleteRepository(configurationTable.row(1), repositories.get(0));
+  }
+
+  private void repositorySummaryViewTest_configurationTile_deleteRepository(ConfigurationTableRow repositoryRow,
+      Repository repositoryToDelete)
+  {
+    repositoryRow.deleteButton().shouldBe(visible, enabled).click();
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(text("Remove Repository"));
+    DeleteModal.body().shouldHave(ConfigurationTableRow.deleteRepositoryText(repositoryToDelete.getPublicId()));
+    DeleteModal.continueButton().shouldBe(visible);
+    DeleteModal.cancelButton().shouldBe(visible).click();
+    DeleteModal.root().shouldNotBe(visible);
+
+    assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(not(nullValue())));
+
+    repositoryRow.deleteButton().shouldBe(visible, enabled).click();
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.continueButton().shouldBe(visible).click();
+    DeleteModal.cancelButton().shouldBe(visible);
+    DeleteModal.root().shouldNotBe(visible);
+
+    assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(nullValue()));
   }
 
   @Test

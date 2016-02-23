@@ -238,6 +238,11 @@ $tile-scroll-container-z-index: 0;
       }
     }
 
+    div.subsection-divider {
+      padding-top: 20px;
+      border-bottom: 1px solid $grey-3;
+    }
+
     div.empty-list {
       height: 40px;
       line-height: 34px;
@@ -505,6 +510,16 @@ $tile-scroll-container-z-index: 0;
         &.warn {
           color: $orange;
         }
+      }
+    }
+
+    .greedy-table.repository-configuration-list {
+      .fa-check-circle {
+        color: $valid-green;
+      }
+
+      .fa-times-circle {
+        color: $grey-4;
       }
     }
   }

@@ -202,6 +202,25 @@ public class RestClientFactoryTest
   }
 
   @Test
+  public void testRestClientRepository_GetUnquarantinedComponents() throws Exception {
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    repository.getUnquarantinedComponents(0L);
+
+    verify(firewallClient).getUnquarantinedComponents(0L);
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
   public void testRestClientRepository_GetPolicyEvaluationSummary() throws Exception {
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = new RepositoryPolicyEvaluationSummary();
     policyEvaluationSummary.setAffectedComponentCount(3);

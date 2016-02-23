@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -188,6 +189,12 @@ public class RestClientFactory
     @Override
     public void removeComponent(String pathname) throws IOException {
       newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId).removeComponent(pathname);
+    }
+
+    @Override
+    public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
+          .getUnquarantinedComponents(sinceUtcTimestamp);
     }
   }
 

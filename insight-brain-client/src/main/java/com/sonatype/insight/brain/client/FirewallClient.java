@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -32,6 +33,8 @@ public class FirewallClient
   private static final String QUARANTINE_PATH = "quarantine";
 
   private static final String COMPONENTS_PATH = "components";
+
+  private static final String UNQUARANTINED_COMPONENTS_PATH = "components/unquarantined";
 
   private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
@@ -131,6 +134,25 @@ public class FirewallClient
     final String jsonResult = result.text();
     try {
       return JsonUtils.parse(jsonResult, RepositoryPolicyEvaluationSummary.class);
+    }
+    catch (final IOException e) {
+      throw new IOException("Could not parse: " + jsonResult, e);
+    }
+  }
+
+  public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
+    Result result = getRequest(
+        path(RESOURCE_PATH, repositoryManagerInstanceId, repositoryPublicId, UNQUARANTINED_COMPONENTS_PATH)
+            .query("sinceUtcTimestamp", Long.toString(sinceUtcTimestamp)));
+    int status = result.status();
+    if (status >= 300) {
+      String msg = result.message();
+      throw new HttpResponseException(status, msg);
+    }
+
+    final String jsonResult = result.text();
+    try {
+      return JsonUtils.parse(jsonResult, UnquarantinedComponentList.class);
     }
     catch (final IOException e) {
       throw new IOException("Could not parse: " + jsonResult, e);

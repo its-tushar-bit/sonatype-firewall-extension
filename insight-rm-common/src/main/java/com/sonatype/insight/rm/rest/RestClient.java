@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 
@@ -72,5 +73,7 @@ public interface RestClient
         throws IOException;
 
     RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
+
+    UnquarantinedComponentList getUnquarantinedComponents(long sinceUtcTimestamp) throws IOException;
   }
 }

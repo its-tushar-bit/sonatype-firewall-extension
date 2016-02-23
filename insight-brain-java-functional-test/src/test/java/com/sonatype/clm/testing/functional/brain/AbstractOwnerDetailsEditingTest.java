@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerDetailsEditingPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -95,6 +97,13 @@ public abstract class AbstractOwnerDetailsEditingTest
       OwnerDetailTreeView.accessGroup().root().shouldBe(visible);
       //CLM-5937 should also test the access routing testRouting_Access(OwnerDetailTreeView.accessGroup());
     }
+  }
+
+  @After
+  public void cleanup() {
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    membershipMappingDAO
+        .delete(membershipMappingDAO.getByContextIdAndRoleId(currentOwner.getId(), ROLES.get(0).getId()).get(0));
   }
 
   private void testRouting_ApplicationCategories(OwnerDetailTreeViewGroup detailGroup) {

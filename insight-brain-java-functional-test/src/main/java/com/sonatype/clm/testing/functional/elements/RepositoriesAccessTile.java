@@ -5,10 +5,10 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-public class AccessTile
+public class RepositoriesAccessTile
     extends BaseAccessTile
 {
-  public AccessTile() {
-    super("#owner-pill-access");
+  public RepositoriesAccessTile() {
+    super("#repositories-pill-access");
   }
 }

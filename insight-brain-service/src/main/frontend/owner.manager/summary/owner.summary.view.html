@@ -260,48 +260,7 @@
         </div>
       </div>
     </div>
-    
-    <div class="tile" id="owner-pill-access" ng-controller="AccessTileController as vm">
-      <div load-wrapper="vm.error" loading="!(vm.ownerName)" reload="vm.doLoad()">
-        <h2><i class="fa fa-key size-20px slate"></i>Access</h2>
 
-        <div class="sub-header">
-          {{vm.ownerName}} users by role
-        </div>
-        <div class="simple-list" ng-repeat="memberOwner in vm.membersByRole[0].membersByOwner">
-          <h4 class="subsection-header" ng-if="!memberOwner.inherited">Local
-            <button id="add-role-button" ng-class="{disabled: !vm.rolesWithoutLocalMembersExist}" class="btn btn-tertiary"
-                    data-tooltip="{{ vm.rolesWithoutLocalMembersExist ? '' : 'All of the available roles are already associated with ' + vm.ownerName + '.' }}"
-                    data-tooltip-placement="top" data-tooltip-append-to-body="true" ng-click="vm.addAccess()">
-              <i class="fa fa-plus"></i>Add Role
-            </button>
-          </h4>
-          <h4 class="subsection-header" ng-if="memberOwner.inherited && memberOwner.hasMembers">
-            Inherited from {{memberOwner.ownerName}}
-          </h4>
-
-          <div class="empty-list" ng-if="!memberOwner.inherited && !memberOwner.hasMembers">
-            No local access configured
-          </div>
-          <table class="access-list" ng-if="memberOwner.hasMembers">
-            <tr class="simple" ng-class="{'clickable' : !memberOwner.inherited}"
-                ng-repeat="role in vm.membersByRole | filter:vm.filterRolesWithMembers($parent.$index)" ng-click="vm.editAccess(role.roleId, memberOwner.inherited)">
-              <td class="role">{{role.roleName}}</td>
-              <td class="members">
-                <span ng-repeat="member in role.membersByOwner[$parent.$index].members">
-                  <span class="list-within-list">
-                    <i class="fa size-16px slate" ng-class="{'fa-user' : member.type === 'USER', 'fa-users' : member.type === 'GROUP' }"></i>
-                    <span>{{member.displayName}}</span>  
-                  </span>
-                </span>
-              </td>
-              <td>
-                <i class="fa fa-chevron-right" ng-if="!memberOwner.inherited"></i>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </div>
-    </div>
+    <access-tile id="owner-pill-access"></access-tile>
   </div>
 </div>

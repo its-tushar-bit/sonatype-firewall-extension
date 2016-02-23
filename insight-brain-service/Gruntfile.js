@@ -290,10 +290,8 @@
                 '<%= config.frontend %>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css',
                 '<%= config.frontend %>/lib/components-font-awesome/css/font-awesome.css',
                 '<%= config.temp %>/styleguide.css',
-                '<%= config.frontend %>/lib/jquery/jquery-1.8.3.min.js',
-                '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular.js',
-                '<%= config.frontend %>/lib/angular-' + angularVersion + '/angular-sanitize.js',
-                '<%= config.frontend %>/lib/ui-bootstrap-tpls-0.8.0.min.js',
+                '<%= config.frontend %>/lib/jquery/jquery.min.js',
+                '<%= config.frontend %>/lib/angular/angular.min.js',
                 '<%= config.frontend %>/util/AngularCommon.js',
                 '<%= config.frontend %>/FormsModule.js',
                 '<%= config.styleguideSrc %>/styleguide.js'

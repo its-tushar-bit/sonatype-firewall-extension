@@ -2,21 +2,80 @@
   ##Buttons
 
   ```
-  <div>
-    <button class='btn'>Default</button> <button class='btn' disabled='true'>Default</button> <a href='#' class='btn'>Default</a> <a href='#' class='btn disabled'>Default</a> 
-  </div>
-  <div>
-    <button class='btn btn-primary'>Primary</button> <button class='btn btn-primary' disabled='true'>Primary</button> <a href='#' class='btn btn-primary'>Primary</a> <a href='#' class='btn btn-primary disabled'>Primary</a> 
-  </div>
-  <div>
-    <button class='btn btn-tertiary'>Tertiary</button> <button class='btn btn-tertiary' disabled='true'>Tertiary</button> <a href='#' class='btn btn-tertiary'>Tertiary</a> <a href='#' class='btn btn-tertiary disabled'>Tertiary</a> 
-  </div>
-  <div>
-    <button class='btn btn-error'><i class='fa fa-retry'></i>Error</button> <button class='btn btn-error' disabled='true'>Error</button> <a href='#' class='btn btn-error'>Error</a> <a href='#' class='btn btn-error disabled'>Error</a> 
-  </div>
-  <div>
+  <table>
+    <thead>
+      <tr>
+        <td>Button</td>
+        <td>Disabled</td>
+        <td>Link</td>
+        <td>Link Disabled</td>
+      </td>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <button class='btn'>Default</button>
+        </td>
+        <td>
+          <button class='btn' disabled='true'>Default</button>
+        </td>
+        <td>
+          <a href='#' class='btn'>Default</a>
+        </td>
+        <td>
+          <a href='#' class='btn' disabled='true'>Default</a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button class='btn btn-primary'>Primary</button>
+        </td>
+        <td>
+          <button class='btn btn-primary' disabled='true'>Primary</button>
+        </td>
+        <td>
+          <a href='#' class='btn btn-primary'>Primary</a>
+        </td>
+        <td>
+          <a href='#' class='btn btn-primary' disabled='true'>Primary</a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button class='btn btn-tertiary'>Tertiary</button>
+        </td>
+        <td>
+          <button class='btn btn-tertiary' disabled='true'>Tertiary</button>
+        </td>
+        <td>
+          <a href='#' class='btn btn-tertiary'>Tertiary</a>
+        </td>
+        <td>
+          <a href='#' class='btn btn-tertiary' disabled='true'>Tertiary</a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <button class='btn btn-error'>Error</button>
+        </td>
+        <td>
+          <button class='btn btn-error' disabled='true'>Error</button>
+        </td>
+        <td>
+          <a href='#' class='btn btn-error'>Error</a>
+        </td>
+        <td>
+          <a href='#' class='btn btn-error' disabled='true'>Error</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  ```
+
+  ###Buttons with icons
+  ```
+    <button class='btn btn-error'><i class='fa fa-refresh'></i>Error</button>
     <button class='btn btn-icon-only'><i class='fa fa-arrow-right'></i></button>
-  </div>
   ```
 */
 .btn {

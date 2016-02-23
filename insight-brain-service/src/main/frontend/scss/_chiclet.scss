@@ -1,4 +1,12 @@
-/* Threat Chiclets */
+/*
+  ##Threat Chiclets
+
+  ```
+  <div ng-app="styleModule">
+    <div chiclets critical="4" severe="3" moderate="2" none="1"></div>
+  </div>
+  ```
+*/
 .threat-chiclet {
   @extend .bold;
   display: inline-block;

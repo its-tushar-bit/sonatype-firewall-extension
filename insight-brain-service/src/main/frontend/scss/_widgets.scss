@@ -63,7 +63,7 @@
       <span>An error occurred loading data. (Unable to reach CLM server)</span>
     </div>
     <div>
-      <button type="button" class="btn btn-danger"><i class="fa fa-refresh"></i>Retry</button>
+      <button type="button" class="btn btn-error"><i class="fa fa-refresh"></i>Retry</button>
     </div>
   </div>
   ```
@@ -824,65 +824,67 @@
   ## Double Column Picker
 
   ```html
-  <div class="double-column-picker">
-    <table>
-      <tr class="filter-row">
-        <td colspan="2">
-          <div class="td-container">
-            <i class="fa fa-filter size-16px size-fw"></i>
-            <input placeholder="I'm a filter"/>
-          </div>
-        </td>
-      </tr>
-      <tr class="info-row">
-        <td>
-          <div class="td-container">
-            <div class="title">Left Column</div>
-            <div class="tools">
-              <input id="leftAllBox" class="checkbox-primary" type="checkbox"/>
-              <label for="leftAllBox">all</label>
-              <button class="btn btn-tertiary btn-icon-only" type="button"><i class="fa fa-arrow-right"></i></button>
+  <double-column-picker>
+    <div class="double-column-picker">
+      <table>
+        <tr class="filter-row">
+          <td colspan="2">
+            <div class="td-container">
+              <i class="fa fa-filter size-16px size-fw"></i>
+              <input placeholder="I'm a filter"/>
             </div>
-          </div>
-        </td>
-        <td>
-          <div class="td-container">
-            <div class="title">Right Column</div>
-            <div class="tools">
-              <input id="rightAllBox" class="checkbox-primary" type="checkbox"/>
-              <label for="rightAllBox">all</label>
-              <button class="btn btn-tertiary btn-icon-only" type="button"><i class="fa fa-arrow-left"></i></button>
+          </td>
+        </tr>
+        <tr class="info-row">
+          <td>
+            <div class="td-container">
+              <div class="title">Left Column</div>
+              <div class="tools">
+                <input id="leftAllBox" class="checkbox-primary" type="checkbox"/>
+                <label for="leftAllBox">all</label>
+                <button class="btn btn-tertiary btn-icon-only" type="button"><i class="fa fa-arrow-right"></i></button>
+              </div>
             </div>
-          </div>
-        </td>
-      </tr>
-      <tr class="list-row">
-        <td>
-          <div class="td-container available-list">
-            <div class="list-item">
-              <input id="leftItemId1" class="checkbox-primary" type="checkbox"/>
-              <label for="leftItemId1">Left Item 1</label>
+          </td>
+          <td>
+            <div class="td-container">
+              <div class="title">Right Column</div>
+              <div class="tools">
+                <input id="rightAllBox" class="checkbox-primary" type="checkbox"/>
+                <label for="rightAllBox">all</label>
+                <button class="btn btn-tertiary btn-icon-only" type="button"><i class="fa fa-arrow-left"></i></button>
+              </div>
             </div>
-            <div class="list-item">
-              <input id="leftItemId2" class="checkbox-primary" type="checkbox"/>
-              <label for="leftItemId2">Left Item 2</label>
+          </td>
+        </tr>
+        <tr class="list-row">
+          <td>
+            <div class="td-container available-list">
+              <div class="list-item">
+                <input id="leftItemId1" class="checkbox-primary" type="checkbox"/>
+                <label for="leftItemId1">Left Item 1</label>
+              </div>
+              <div class="list-item">
+                <input id="leftItemId2" class="checkbox-primary" type="checkbox"/>
+                <label for="leftItemId2">Left Item 2</label>
+              </div>
             </div>
-          </div>
-        </td>
-        <td>
-          <div class="td-container picked-list">
-            <div class="list-item">
-              <input id="rightItemId1" class="checkbox-primary" type="checkbox"/>
-              <label for="rightItemId1">Right Item 1</label>
-            </div>
-            <div class="list-item">
-              <input id="rightItemId2" class="checkbox-primary" type="checkbox"/>
-              <label for="rightItemId2">Right Item 2</label>
-            </div>
-        </td>
-      </tr>
-    </table>
-  </div>
+          </td>
+          <td>
+            <div class="td-container picked-list">
+              <div class="list-item">
+                <input id="rightItemId1" class="checkbox-primary" type="checkbox"/>
+                <label for="rightItemId1">Right Item 1</label>
+              </div>
+              <div class="list-item">
+                <input id="rightItemId2" class="checkbox-primary" type="checkbox"/>
+                <label for="rightItemId2">Right Item 2</label>
+              </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </double-column-picker>
   ```
 */
 

@@ -4,8 +4,6 @@
  ##CLM Modals
 
 ```
-<div class='modal-backdrop'>
-</div>
 <div class='clm-modal'>
   <div class='clm-modal-header'>
     <h2>A Modal Title</h2>
@@ -22,8 +20,6 @@
 ##CLM Modal Error
 
 ```
-<div class='modal-backdrop'>
-</div>
 <div class='clm-modal'>
   <div class='clm-modal-header'>
     <h2>A Modal Title</h2>
@@ -40,8 +36,6 @@
 ##CLM Modal Warning
 
 ```
-<div class='modal-backdrop'>
-</div>
 <div class='clm-modal'>
   <div class='clm-modal-header'>
     <h2>A Modal Title</h2>
@@ -121,7 +115,7 @@
   ##Delete Modal
 
   ```
-  <div id="delete-modal">
+  <div class="clm-modal delete-modal">
     <div class="clm-modal-header">
       <h2>
         <i class="fa size-20px fa-trash"></i> Delete Label
@@ -141,7 +135,7 @@
     </div>
   </div>
 
-  <div id="delete-modal">
+  <div class="clm-modal delete-modal">
     <div class="clm-modal-header">
       <h2>
         <i class="fa size-20px fa-trash"></i> Delete Label

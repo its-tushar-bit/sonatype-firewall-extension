@@ -940,7 +940,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetSecurityVulnerabilities() throws Exception {
+  public void testGetSecurityVulnerabilities_Repository() throws Exception {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     String hash = "01234567890123456789";
     SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
@@ -953,6 +953,29 @@ public class ComponentInfoServiceTest
 
     ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
         OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES, httpRequestMock);
+    assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
+    SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
+    assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));
+    assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
+    assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
+    assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
+    assertThat(retrievedVulnerability.getStatus(), is(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName()));
+  }
+
+  @Test
+  public void testGetSecurityVulnerabilities_Application() throws Exception {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
+    String hash = "01234567890123456789";
+    SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
+    hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
+    hdsComponentDetails.setHash(hash);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+
+    tempEntity.newSecurityVulnerabilityOverride(application.getId(), hash, "source", "refId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
+
+    ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
+        OwnerType.APPLICATION, application.getPublicId(), hash, MAVEN_COORDINATES, httpRequestMock);
     assertThat(retrievedVulnerabilities.securityVulnerabilities, hasSize(1));
     SecurityVulnerability retrievedVulnerability = retrievedVulnerabilities.securityVulnerabilities.get(0);
     assertThat(retrievedVulnerability.getRefId(), is(vulnerability.getRefId()));

@@ -281,8 +281,8 @@ public class ComponentInfoService
    * @since 1.18.0
    */
   @Authorize(permission = Permission.READ)
-  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                                     @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+  public ComponentSecurityVulnerabilities getSecurityVulnerabilities(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+                                                                     @AuthzContext(AuthzContext.Key.ID) final String ownerId,
                                                                      final String hash,
                                                                      final ComponentIdentifier componentIdentifier,
                                                                      final HttpServletRequest httpRequest)
@@ -291,9 +291,11 @@ public class ComponentInfoService
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
+    String internalId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    Owner owner = new OwnerDAO().getById(internalId);
 
     ComponentDetails componentDetails = getComponentDetailsFromHDS(null, hash, componentIdentifier, httpRequest);
-    componentDetailsLoader.augmentComponentDetails(new OwnerDAO().getById(ownerId), componentDetails);
+    componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }
 

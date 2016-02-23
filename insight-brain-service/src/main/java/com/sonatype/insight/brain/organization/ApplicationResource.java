@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.organization;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -286,9 +288,7 @@ public class ApplicationResource
         .createApplicationManagementSummaries(applications);
 
     // Now evaluate the policy for each
-    for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaryDTOs) {
-      loadPolicyEvaluations(applicationManagement);
-    }
+    loadPolicyEvaluations(applicationManagementSummaryDTOs);
 
     return applicationManagementSummaryDTOs;
   }
@@ -296,7 +296,7 @@ public class ApplicationResource
   private ApplicationManagementSummaryDTO getApplicationManagementSummary(final Application application) {
     final ApplicationManagementSummaryDTO applicationManagement = applicationAdapter
         .createApplicationManagementSummary(application);
-    loadPolicyEvaluations(applicationManagement);
+    loadPolicyEvaluations(Arrays.asList(applicationManagement));
 
     return applicationManagement;
   }
@@ -314,38 +314,40 @@ public class ApplicationResource
     return summary;
   }
 
-  private void loadPolicyEvaluations(final ApplicationManagementSummaryDTO applicationManagement) {
-    File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
-    applicationManagement.setScansCount(scans != null ? scans.length : 0);
-
-    final List<PolicyEvaluation> policyEvaluationList = getMostRecentPolicyEvaluations(applicationManagement.getId());
-    Map<String, PolicyEvaluation> policyEvaluations = new HashMap<>();
-    Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
-    for (PolicyEvaluation policyEvaluation : policyEvaluationList) {
-      policyEvaluations.put(policyEvaluation.getStageTypeId(), policyEvaluation);
-
-      final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-          .createPolicyEvaluationResult(policyEvaluation);
-      // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
-      policyEvaluationResult.setAlerts(null);
-
-      policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
+  private void loadPolicyEvaluations(List<ApplicationManagementSummaryDTO> applicationManagementSummaries) {
+    Map<String, ApplicationManagementSummaryDTO> summariesByAppId = new HashMap<>();
+    for (ApplicationManagementSummaryDTO summary : applicationManagementSummaries) {
+      summariesByAppId.put(summary.getId(), summary);
+      summary.setPolicyEvaluations(new HashMap<String, PolicyEvaluation>());
     }
-
-    applicationManagement.setPolicyEvaluations(policyEvaluations);
-    applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
-  }
-
-  private List<PolicyEvaluation> getMostRecentPolicyEvaluations(final String appId) {
-    final List<PolicyEvaluation> policyEvaluations = new ArrayList<>();
-    PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
+    Set<String> stageTypeIds = new HashSet<>();
     for (StageType stageType : StageTypes.getAll()) {
-      PolicyEvaluation eval = policyEvaluationDAO.getLastByApplicationIdAndStageId(appId, stageType.getId());
-      if (eval != null) {
-        policyEvaluations.add(eval);
+      stageTypeIds.add(stageType.getId());
+    }
+    List<PolicyEvaluation> policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIds(summariesByAppId
+        .keySet());
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      if (stageTypeIds.contains(policyEvaluation.getStageTypeId())) {
+        ApplicationManagementSummaryDTO summary = summariesByAppId.get(policyEvaluation.getApplicationId());
+        summary.getPolicyEvaluations().put(policyEvaluation.getStageTypeId(), policyEvaluation);
       }
     }
-    return policyEvaluations;
+
+    for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaries) {
+      File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
+      applicationManagement.setScansCount(scans != null ? scans.length : 0);
+
+      Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
+      for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
+        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
+            .createPolicyEvaluationResult(policyEvaluation);
+        // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
+        policyEvaluationResult.setAlerts(null);
+
+        policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
+      }
+      applicationManagement.setPolicyEvaluationsResults(policyEvaluationResults);
+    }
   }
 
   @Override

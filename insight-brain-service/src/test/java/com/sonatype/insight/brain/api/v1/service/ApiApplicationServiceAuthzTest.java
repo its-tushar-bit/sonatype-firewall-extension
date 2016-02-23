@@ -73,7 +73,7 @@ public class ApiApplicationServiceAuthzTest
 
   @Test
   public void testAddApplication_Authorized() {
-    grantWritePermission(org.getId());
+    grantAddApplicationPermission(org.getId());
 
     ApiApplicationDTO applicationDTO = createApplicationDTO();
     applicationDTO = apiApplicationService.addApplication(applicationDTO);
@@ -90,7 +90,7 @@ public class ApiApplicationServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testAddApplication_UnauthorizedButAuthenticated() {
-    login();
+    grantWritePermission(org.getId());
     ApiApplicationDTO applicationDTO = createApplicationDTO();
     apiApplicationService.addApplication(applicationDTO);
   }

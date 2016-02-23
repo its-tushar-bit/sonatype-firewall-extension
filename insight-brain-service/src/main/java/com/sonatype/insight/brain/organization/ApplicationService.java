@@ -134,7 +134,7 @@ public class ApplicationService
     return applicationDAO.getAll();
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.ADD_APPLICATION)
   public Application addApplication(@AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application) {
     applicationHelper.addApplication(application);
     return application;

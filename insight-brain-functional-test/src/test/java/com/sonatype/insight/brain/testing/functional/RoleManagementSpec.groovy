@@ -55,12 +55,13 @@ extends BaseSpec {
     roleEditorPage.pageTitle.text() == 'Developer'
 
     DisplayedPermissionCategory policyCategory = roleEditorPage.permissionCategory(PermissionCategory.CLM.displayName)
-    policyCategory.permissions.size() == 5
+    policyCategory.permissions.size() == 6
     assertPermission(policyCategory.permission(0), !ON, !ENABLED, Permission.CLAIM_COMPONENT)
     assertPermission(policyCategory.permission(1), !ON, !ENABLED, Permission.WRITE)
     assertPermission(policyCategory.permission(2), ON, !ENABLED, Permission.READ)
     assertPermission(policyCategory.permission(3), !ON, !ENABLED, Permission.EVALUATE_APPLICATION)
     assertPermission(policyCategory.permission(4), ON, !ENABLED, Permission.EVALUATE_COMPONENT)
+    assertPermission(policyCategory.permission(5), !ON, !ENABLED, Permission.ADD_APPLICATION)
 
     DisplayedPermissionCategory systemCategory = roleEditorPage.permissionCategory(PermissionCategory.ADMINISTRATOR.displayName)
     systemCategory.permissions.size() == 4

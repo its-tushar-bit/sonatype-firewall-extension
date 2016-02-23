@@ -108,4 +108,8 @@ public class AbstractServiceAuthzTest
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
     login();
   }
+
+  protected void grantAddApplicationPermission(String contextId) {
+    grantPermission(contextId, Permission.ADD_APPLICATION);
+  }
 }

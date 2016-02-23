@@ -53,7 +53,7 @@ public class ApplicationServiceAuthzTest
 
   @Test
   public void testAddApplication_Authorized() {
-    grantWritePermission(org.getId());
+    grantAddApplicationPermission(org.getId());
 
     Application application = new Application();
     application.setName("My Application");
@@ -77,6 +77,12 @@ public class ApplicationServiceAuthzTest
     catch (UnauthenticatedException ignore) {
       // Properly thrown exception.
     }
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddApplication_Unauthorized() {
+    grantWritePermission(app.getId());
+    applicationService.addApplication(new Application());
   }
 
   @Test

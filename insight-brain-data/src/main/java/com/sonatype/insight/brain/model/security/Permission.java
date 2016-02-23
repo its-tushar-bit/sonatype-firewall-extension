@@ -29,7 +29,9 @@ public enum Permission
 
   EVALUATE_APPLICATION("Evaluate", PermissionCategory.CLM, "Applications", false /* global */, true /* allowedInCustomRoles */),
 
-  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual Components", false /* global */, true /* allowedInCustomRoles */);
+  EVALUATE_COMPONENT("Evaluate", PermissionCategory.CLM, "Individual Components", false /* global */, true /* allowedInCustomRoles */),
+
+  ADD_APPLICATION("Add", PermissionCategory.CLM, "Applications", false /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 

@@ -49,7 +49,7 @@ public class RolePermissionDAOTest
         perms,
         containsInAnyOrder(Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.MANAGE_PROPRIETARY,
             Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT,
-            Permission.CLAIM_COMPONENT));
+            Permission.CLAIM_COMPONENT, Permission.ADD_APPLICATION));
   }
 
   @Test
@@ -61,7 +61,7 @@ public class RolePermissionDAOTest
     assertThat(
         perms,
         containsInAnyOrder(Permission.WRITE, Permission.READ, Permission.EVALUATE_APPLICATION,
-            Permission.EVALUATE_COMPONENT, Permission.VIEW_ROLES));
+            Permission.EVALUATE_COMPONENT, Permission.VIEW_ROLES, Permission.ADD_APPLICATION));
   }
 
   @Test

@@ -144,7 +144,7 @@ public class ApiApplicationService
     applicationHelper.deleteApplicationById(applicationId);
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.ADD_APPLICATION)
   Application addApplication(final TransactionContext tx,
                              @AuthzContext(AuthzContext.Key.APPLICATION_OWNER) final Application application)
   {

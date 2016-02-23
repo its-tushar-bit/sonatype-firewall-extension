@@ -65,7 +65,7 @@ public class RoleServiceTest
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
     assertListedPermissions(category, Permission.CLAIM_COMPONENT, Permission.WRITE, Permission.READ,
-        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT);
+        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
 
   @Test
@@ -87,7 +87,7 @@ public class RoleServiceTest
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
     assertListedPermissions(category, Permission.CLAIM_COMPONENT, Permission.WRITE, Permission.READ,
-        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT);
+        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
 
   @Test
@@ -107,7 +107,7 @@ public class RoleServiceTest
     category = roleDTO.permissionCategories.get(1);
     assertThat(category.displayName, is(PermissionCategory.CLM.getDisplayName()));
     assertListedPermissions(category, Permission.CLAIM_COMPONENT, Permission.WRITE, Permission.READ,
-        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT);
+        Permission.EVALUATE_APPLICATION, Permission.EVALUATE_COMPONENT, Permission.ADD_APPLICATION);
   }
 
   private void setAllowedPermissions(final RoleDTO roleDTO, final List<Permission> permissions) {

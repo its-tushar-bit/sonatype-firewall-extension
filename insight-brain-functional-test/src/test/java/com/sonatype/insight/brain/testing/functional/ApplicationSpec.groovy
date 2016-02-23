@@ -23,7 +23,7 @@ class ApplicationSpec
     createUser()
     org = temporaryEntity.newOrganization('test organization')
 
-    grantPermissions(getUsername(), org.getId(), Permission.WRITE, Permission.READ)
+    grantPermissions(getUsername(), org.getId(), Permission.ADD_APPLICATION, Permission.WRITE, Permission.READ)
     loginAsUserVia(OwnerManagementPage)
   }
 

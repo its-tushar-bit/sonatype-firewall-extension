@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -50,11 +51,33 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIds(Set<String> appIds) {
+    if (appIds.size() >= 2000) {
+      return getLastByApplicationIdsManualFilter(appIds);
+    }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
         " LastPolicyEvaluation lpe" + //
         " WHERE pe.id = lpe.policyEvaluationId" + //
         " AND lpe.applicationId in (?1)";
     return getList(sQuery, appIds);
+  }
+
+  /**
+   * As measurements have shown (cf. CLM-6085), H2 doesn't handle an {@code IN} operator with a huge list of values well
+   * and at some point it is faster to just load all entities and filter them manually afterwards. Per those
+   * measurements, this method outperforms the {@code IN} operator when the input exceeds ~2000 applications, even if
+   * 80% of the loaded entities are dropped.
+   */
+  private List<PolicyEvaluation> getLastByApplicationIdsManualFilter(Set<String> appIds) {
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
+        " LastPolicyEvaluation lpe" + //
+        " WHERE pe.id = lpe.policyEvaluationId";
+    List<PolicyEvaluation> evals = new ArrayList<>(appIds.size());
+    for (PolicyEvaluation eval : getList(sQuery)) {
+      if (appIds.contains(eval.getApplicationId())) {
+        evals.add(eval);
+      }
+    }
+    return evals;
   }
 
   /**

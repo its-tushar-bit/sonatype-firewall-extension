@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -292,6 +293,7 @@ public class ComponentInfoService
     }
 
     ComponentDetails componentDetails = getComponentDetailsFromHDS(null, hash, componentIdentifier, httpRequest);
+    componentDetailsLoader.augmentComponentDetails(new OwnerDAO().getById(ownerId), componentDetails);
     return new ComponentSecurityVulnerabilities(componentDetails.getSecurityVulnerabilities());
   }
 

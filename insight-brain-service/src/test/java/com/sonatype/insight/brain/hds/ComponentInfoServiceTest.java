@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -943,10 +944,12 @@ public class ComponentInfoServiceTest
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_COORDINATES);
     String hash = "01234567890123456789";
     SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
-    vulnerability.setStatus("status");
     hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
     hdsComponentDetails.setHash(hash);
     mockHdsGetComponentDetails(hdsComponentDetails);
+
+    tempEntity.newSecurityVulnerabilityOverride(repository.getId(), hash, "source", "refId",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED, "abcd");
 
     ComponentSecurityVulnerabilities retrievedVulnerabilities = componentInfoService.getSecurityVulnerabilities(
         OwnerType.REPOSITORY, repository.getId(), hash, MAVEN_COORDINATES, httpRequestMock);
@@ -956,6 +959,6 @@ public class ComponentInfoServiceTest
     assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
     assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
     assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
-    assertThat(retrievedVulnerability.getStatus(), is(vulnerability.getStatus()));
+    assertThat(retrievedVulnerability.getStatus(), is(SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getName()));
   }
 }

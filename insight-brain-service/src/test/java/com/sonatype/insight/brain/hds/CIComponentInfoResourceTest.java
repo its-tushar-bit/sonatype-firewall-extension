@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVuln
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -106,7 +107,6 @@ public class CIComponentInfoResourceTest
     String hash = "hash";
     hdsComponentDetails.setHash(hash);
     SecurityVulnerability vulnerability = new SecurityVulnerability("refId", "source", 5.0f, "summary");
-    vulnerability.setStatus("status");
     hdsComponentDetails.setSecurityVulnerabilities(Collections.singletonList(vulnerability));
 
     setHdsResponseForURI(convertToHdsUrl(detailsRequest(repository.getId(), MAVEN_COORDINATES, hash, null, null)
@@ -123,7 +123,7 @@ public class CIComponentInfoResourceTest
     assertThat(retrievedVulnerability.getSource(), is(vulnerability.getSource()));
     assertThat(retrievedVulnerability.getSeverity(), is(vulnerability.getSeverity()));
     assertThat(retrievedVulnerability.getSummary(), is(vulnerability.getSummary()));
-    assertThat(retrievedVulnerability.getStatus(), is(vulnerability.getStatus()));
+    assertThat(retrievedVulnerability.getStatus(), is(SecurityVulnerabilityOverrideStatus.OPEN.getName()));
   }
 
   @Test

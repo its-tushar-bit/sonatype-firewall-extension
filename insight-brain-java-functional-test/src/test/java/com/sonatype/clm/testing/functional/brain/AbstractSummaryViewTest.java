@@ -23,7 +23,6 @@ import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrg
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.GreedyTable;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;

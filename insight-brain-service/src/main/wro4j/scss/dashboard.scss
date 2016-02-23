@@ -714,6 +714,8 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     position: absolute;
     top: 0;
     line-height: 30px;
+    // c.f. insight-brain-service/src/main/frontend/scss/_content.scss:82
+    -webkit-transform: translate3d(0, 0, 0);
   }
 
   th:first-child>div {

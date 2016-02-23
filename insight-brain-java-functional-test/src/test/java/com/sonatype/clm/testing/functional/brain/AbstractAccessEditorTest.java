@@ -16,17 +16,14 @@ import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -47,7 +44,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-public class AccessEditorTest
+public abstract class AbstractAccessEditorTest
     extends AbstractFunctionalTest
 {
   private static final List<Role> APPLICATION_ROLES = new RoleDAO().getApplicationRoles();
@@ -56,7 +53,7 @@ public class AccessEditorTest
 
   private final RoleDAO roleDAO = new RoleDAO();
 
-  private Organization organization;
+  private Owner currentOwner;
 
   @BeforeClass
   public static void beforeClass() {
@@ -64,24 +61,20 @@ public class AccessEditorTest
     loginAsAdmin();
   }
 
-  @Before
-  public void init() {
-    organization = tempEntity.newOrganization();
-    refreshOrOpen(OwnerSummaryPage.url("organization", organization.getId()));
-    refresh(); // TODO remove after CLM-5827
+  protected void init(Owner owner) {
+    this.currentOwner = owner;
+    open(OwnerSummaryPage.url(owner.getType().toString(), owner.getPublicId()));
   }
 
   @Test
   public void testAddRole() {
-    SummaryTile.accessButton().click();
-    SummaryTile.addRoleButton().click();
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(),
-        AccessEditorPage.urlToCreate("organization", organization.getId()));
+    goFromSummaryToAddRole();
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size());
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
 
     AccessEditorPage.roleDropdown().selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
     String roleName = AccessEditorPage.roleDropdown().listItem(1).text();
-    assertThat(getMembershipMappings(organization.getId(), roleName), is(empty()));
+    assertThat(getMembershipMappings(currentOwner.getId(), roleName), is(empty()));
     AccessEditorPage.roleDropdown().listItem(1).click();
     AccessEditorPage.saveButton().shouldHave(DISABLED);
     AccessEditorPage.searchButton().shouldHave(DISABLED);
@@ -97,13 +90,12 @@ public class AccessEditorTest
     AccessEditorPage.saveButton().shouldHave(DISABLED);
     DoubleColumnPicker.pickCheckedItemsButton().click();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.root().shouldBe(visible).shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
     OwnerDetailTreeView.accessGroup().item(2).root().shouldHave(text(roleName));
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1,
-        AccessEditorPage.urlToCreate("organization", organization.getId()));
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1);
     assertThatRoleNotAvailableInDropdown(roleName);
-    assertThat(getMembershipMappings(organization.getId(), roleName), hasSize(1));
+    assertThat(getMembershipMappings(currentOwner.getId(), roleName), hasSize(1));
   }
 
   @Test
@@ -111,13 +103,12 @@ public class AccessEditorTest
     User u1 = tempEntity.newUser();
     User u2 = tempEntity.newUser();
     Role role = APPLICATION_ROLES.get(0);
-    tempEntity.newMembershipMapping(organization.getId(), role.getId(), u1.getUsername());
-    tempEntity.newMembershipMapping(organization.getId(), role.getId(), u2.getUsername());
-    assertThat(getMembershipMappings(organization.getId(), role.getName()), hasSize(2));
-    refresh();
-    OwnerSummaryPage.SummaryTile.localAccessRole(role.getName()).click();
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u2.getUsername());
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(2));
+    goFromSummaryToEditRole(role);
 
-    waitUntilUrl(AccessEditorPage.urlToEdit("organization", organization.getId(), role.getId()));
+    waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
     OwnerDetailTreeView.accessGroup().item(2).root().shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(text(role.getName()));
     assertCommonInitialStateIsCorrect();
@@ -137,56 +128,52 @@ public class AccessEditorTest
     // shouldn't submit on enter. Assert by checking that 'save' button is still enabled
     AccessEditorPage.searchBox().pressEnter();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.root().shouldBe(visible).shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
     assertCommonInitialStateIsCorrect();
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
-    assertThat(getMembershipMappings(organization.getId(), role.getName()), hasSize(3));
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(3));
   }
 
   @Test
   public void testRemoveBySavingWithNoPickedUsers() {
-    Application app = tempEntity.newApplication(organization.getId());
     User u1 = tempEntity.newUser();
-    Role role = APPLICATION_ROLES.get(0);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), u1.getUsername());
-    assertThat(getMembershipMappings(app.getId(), role.getName()), hasSize(1));
-    open(AccessEditorPage.urlToEdit("application", app.getPublicId(), role.getId()));
-    refresh(); // TODO remove after CLM-5827
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3); // access, add role, current
+    Role role = APPLICATION_ROLES.get(2);
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(1));
+    open(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    AccessEditorPage.title().hover(); // hide the tooltip
+    int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
     DoubleColumnPicker.checkAllRight().click();
     DoubleColumnPicker.unpickCheckedItemsButton().click();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
     DeleteModal.body().shouldBe(visible);
-    DeleteModal.body().shouldHave(AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), "application"));
+    DeleteModal.body().shouldHave(AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType().toString()));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     DeleteModal.body().shouldNotBe(visible);
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(),
-        AccessEditorPage.urlToCreate("application", app.getPublicId()));
-    assertThat(getMembershipMappings(organization.getId(), role.getName()), is(empty()));
+    OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
   }
 
   @Test
   public void testRemove() {
-    Application app = tempEntity.newApplication(organization.getId());
     User u1 = tempEntity.newUser();
-    Role role = APPLICATION_ROLES.get(0);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(), u1.getUsername());
-    assertThat(getMembershipMappings(app.getId(), role.getName()), hasSize(1));
-    open(AccessEditorPage.urlToEdit("application", app.getPublicId(), role.getId()));
-    refresh(); // TODO remove after CLM-5827
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3); // access, add role, current
+    Role role = APPLICATION_ROLES.get(2);
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), u1.getUsername());
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(1));
+    open(AccessEditorPage.urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), role.getId()));
+    AccessEditorPage.title().hover(); // hide the tooltip
+    int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
     AccessEditorPage.removeRoleButton().click();
     DeleteModal.body().shouldBe(visible);
-    DeleteModal.body().shouldHave(AccessEditorPage.confirmRemovalText(role.getName(), "application"));
+    DeleteModal.body().shouldHave(AccessEditorPage.confirmRemovalText(role.getName(), currentOwner.getType().toString()));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
     DeleteModal.body().shouldNotBe(visible);
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(2);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size(),
-        AccessEditorPage.urlToCreate("application", app.getPublicId()));
-    assertThat(getMembershipMappings(organization.getId(), role.getName()), is(empty()));
+    OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), is(empty()));
   }
 
   private void assertThatRoleNotAvailableInDropdown(final String roleName) {
@@ -195,8 +182,7 @@ public class AccessEditorTest
     assertThat(asList(roleNames), not(contains(roleName)));
   }
 
-  private void assertAddRoleInitialStateIsCorrect(int numAvailableRoles, String url) {
-    waitUntilUrl(url);
+  private void assertAddRoleInitialStateIsCorrect(int numAvailableRoles) {
     OwnerDetailTreeView.accessGroup().item(1).root().shouldBe(CLM.SELECTED);
     AccessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
     AccessEditorPage.roleDropdown().listItems().shouldHaveSize(numAvailableRoles);
@@ -215,4 +201,8 @@ public class AccessEditorTest
   private List<MembershipMapping> getMembershipMappings(final String ownersId, final String roleName) {
     return membershipMappingDAO.getByContextIdAndRoleId(ownersId, roleDAO.getByName(roleName).getId());
   }
+
+  abstract void goFromSummaryToAddRole();
+
+  abstract void goFromSummaryToEditRole(final Role role); // TODO remove after repository config tile lands
 }

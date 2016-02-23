@@ -9,7 +9,9 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class RepositoriesSummaryPage
 {
@@ -30,6 +32,14 @@ public class RepositoriesSummaryPage
 
     public static SelenideElement accessButton() {
       return $("#repositories-access-button");
+    }
+
+    public static SelenideElement addRoleButton() {
+      return $("#add-role-button");
+    }
+
+    public static SelenideElement localAccessRole(String roleName) {
+      return $$("#repositories-pill-access table td.role").findBy(text(roleName));
     }
   }
 }

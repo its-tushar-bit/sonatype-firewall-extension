@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.DropdownSelector;
+import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -29,7 +30,9 @@ public class AccessEditorPage
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/access";
+    return "new/assets/index.html#/management/edit/" +
+        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "repositories" :
+            ownerType + "/" + ownerId) + "/access";
   }
 
   public static SelenideElement title() {
@@ -57,11 +60,15 @@ public class AccessEditorPage
   }
 
   public static Condition confirmRemovalThroughUpdateText(String roleName, String ownerType) {
-    return text("You are about to remove the " + roleName + " role from this " + ownerType
-        + ". Next time, consider using the \"Remove Role\" button; it will save you some clicks!");
+    return text("You are about to remove the " + roleName + " role from " +
+        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "all repositories" :
+            "this " + ownerType) +
+        ". Next time, consider using the \"Remove Role\" button; it will save you some clicks!");
   }
 
   public static Condition confirmRemovalText(String roleName, String ownerType) {
-    return text("You are about to remove the " + roleName + " role from this " + ownerType + ".");
+    return text("You are about to remove the " + roleName + " role from " +
+        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "all repositories" :
+            "this " + ownerType) + ".");
   }
 }

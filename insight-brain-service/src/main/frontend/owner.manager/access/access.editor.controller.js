@@ -83,8 +83,9 @@
     }
 
     function removeRole(customMessage) {
-      DeleteModalService.deleteCustom('Remove Role',
-          customMessage || 'You are about to remove the ' + vm.role.roleName + ' role from this ' + ownerType + '.',
+      customMessage = customMessage ? ' ' + customMessage : '';
+      DeleteModalService.deleteCustom('Remove Role', 'You are about to remove the ' + vm.role.roleName + ' role from ' +
+          (ownerType === 'repository_container' ? 'all repositories' : 'this ' + ownerType) + '.' + customMessage,
           'Removing',
           function() {
             return $http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId), []);
@@ -100,9 +101,7 @@
       if (isValid()) {
         delete vm.submitError;
         if (currentlyPicked().length === 0) {
-          vm.removeRole('You are about to remove the ' + vm.role.roleName + ' role from this ' + ownerType +
-              '. Next time, consider using the ' +
-              '"Remove Role" button; it will save you some clicks!');
+          vm.removeRole('Next time, consider using the "Remove Role" button; it will save you some clicks!');
         }
         else {
           vm.accessEditorMask.wrap($http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId),

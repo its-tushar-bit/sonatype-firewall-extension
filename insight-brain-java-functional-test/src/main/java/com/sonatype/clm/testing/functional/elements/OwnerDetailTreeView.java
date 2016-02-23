@@ -66,6 +66,10 @@ public class OwnerDetailTreeView
       return root().$$(".tree-view-item");
     }
 
+    public ElementsCollection entryItems() {
+      return root().$$(".tree-view-item:nth-child(n+3)"); // skip root and 'Add ...' entries
+    }
+
     public OwnerDetailTreeViewItem item(int num) {
       return new OwnerDetailTreeViewItem(root().$$(".tree-view-item").get(num));
     }

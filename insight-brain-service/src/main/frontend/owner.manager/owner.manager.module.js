@@ -57,6 +57,26 @@
                 template: '<owner-detail-tree-view></owner-detail-tree-view>'
               }
             }
+          }).state('management.edit.repositories.add-access', {
+            parent: 'management.edit.repositories',
+            url: '/access',
+            views: {
+              '@management': {
+                controller: 'access.editor.controller',
+                controllerAs: 'vm',
+                templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+              }
+            }
+          }).state('management.edit.repositories.edit-access', {
+            parent: 'management.edit.repositories',
+            url: '/access/{roleId}',
+            views: {
+              '@management': {
+                controller: 'access.editor.controller',
+                controllerAs: 'vm',
+                templateUrl: 'owner.manager/access/access.editor.view.html?' + clmBuildTimestamp
+              }
+            }
           });
 
           ownerTypes.forEach(function(ownerType) {

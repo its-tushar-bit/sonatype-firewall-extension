@@ -204,6 +204,8 @@ public class TemporaryEntity
 
   private Collection<RepositoryManager> repositoryManagers;
 
+  private Collection<MembershipMapping> membershipMappings;
+
   @Override
   protected void before() {
     apps = new ArrayList<>();
@@ -222,6 +224,7 @@ public class TemporaryEntity
     licenseThreatGroups = new ArrayList<>();
     policyMonitorings = new ArrayList<>();
     repositoryManagers = new ArrayList<>();
+    membershipMappings = new ArrayList<>();
   }
 
   @Override
@@ -230,6 +233,11 @@ public class TemporaryEntity
      * For our purposes, it's irrelevant whether the entity has been manually deleted or updated in the meantime, we
      * just want it gone. Hence the defensive coding below to avoid optimistic lock errors and other JPA fun.
      */
+    for (MembershipMapping membershipMapping : membershipMappings) {
+      if ((membershipMapping = membershipMappingDAO.getById(membershipMapping.getId())) != null) {
+        membershipMappingDAO.delete(membershipMapping);
+      }
+    }
     for (DashboardFilter dashboardFilter : dashboardFilters) {
       if ((dashboardFilter = dashboardFilterDAO.getByUsername(dashboardFilter.getUsername())) != null) {
         dashboardFilterDAO.delete(dashboardFilter);
@@ -414,6 +422,10 @@ public class TemporaryEntity
     Collections.addAll(this.licenseOverrides, licenseOverrides);
   }
 
+  public void register(MembershipMapping... membershipMappings) {
+    Collections.addAll(this.membershipMappings, membershipMappings);
+  }
+
   public Application newApplicationWithParent(String appPublicId) {
     // Application Name must be unique
     return newApplicationWithParent(appPublicId, "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
@@ -536,6 +548,7 @@ public class TemporaryEntity
   {
     MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, memberName, memberType);
     membershipMappingDAO.insert(membershipMapping);
+    membershipMappings.add(membershipMapping);
     return membershipMapping;
   }
 

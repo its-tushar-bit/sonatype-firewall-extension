@@ -95,7 +95,9 @@ public abstract class AbstractAccessEditorTest
     OwnerDetailTreeView.accessGroup().item(2).root().shouldHave(text(roleName));
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1);
     assertThatRoleNotAvailableInDropdown(roleName);
-    assertThat(getMembershipMappings(currentOwner.getId(), roleName), hasSize(1));
+    List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
+    tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
+    assertThat(membershipMappings, hasSize(1));
   }
 
   @Test
@@ -130,6 +132,8 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     assertCommonInitialStateIsCorrect();
+    List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), role.getName());
+    tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     DoubleColumnPicker.pickedItems().shouldHaveSize(3);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(3));
   }

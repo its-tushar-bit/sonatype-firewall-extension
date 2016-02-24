@@ -17,15 +17,6 @@ import org.junit.BeforeClass;
 public class RepositoriesAccessEditorTest
     extends AbstractAccessEditorTest
 {
-
-  @BeforeClass
-  public static void removeRepositoryMappings() {
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    for (MembershipMapping m : membershipMappingDAO.getByContextId(RepositoryContainer.REPOSITORY_CONTAINER_ID)) {
-      membershipMappingDAO.delete(m);
-    }
-  }
-
   @Before
   public void init() {
     super.init(RepositoryContainer.SINGLETON);

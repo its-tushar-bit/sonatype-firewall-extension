@@ -15,9 +15,14 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
@@ -32,24 +37,32 @@ public class ApplicationHelper
 
   private final OrganizationDAO organizationDAO;
 
+  private final MembershipMappingDAO membershipMappingDAO;
+
   private final UserDirectory userDirectory;
 
   private final ApplicationCleaner applicationCleaner;
 
   private final CLMLicenseManager licenseManager;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public ApplicationHelper(final ApplicationDAO applicationDAO,
                            final OrganizationDAO organizationDAO,
+                           final MembershipMappingDAO membershipMappingDAO,
                            final UserDirectory userDirectory,
                            final ApplicationCleaner applicationCleaner,
-                           final CLMLicenseManager licenseManager)
+                           final CLMLicenseManager licenseManager,
+                           final CurrentUser currentUser)
   {
     this.applicationDAO = applicationDAO;
     this.licenseManager = licenseManager;
     this.organizationDAO = organizationDAO;
     this.userDirectory = userDirectory;
     this.applicationCleaner = applicationCleaner;
+    this.currentUser = currentUser;
+    this.membershipMappingDAO = membershipMappingDAO;
   }
 
   public Application getApplicationByIdNotNull(final String applicationId) {
@@ -59,6 +72,7 @@ public class ApplicationHelper
   public Application addApplication(final TransactionContext tx, final Application application) {
     validate(application);
     applicationDAO.insert(tx, application);
+    addUserToApplicationOwnerRole(tx, application);
     return application;
   }
 
@@ -114,5 +128,10 @@ public class ApplicationHelper
             + " that does not exist.");
       }
     }
+  }
+
+  private void addUserToApplicationOwnerRole(final TransactionContext tx, Application application) {
+    membershipMappingDAO.insert(tx,
+        new MembershipMapping(application.getId(), Role.OWNER_ROLE_ID, currentUser.getUsername(), MemberType.USER));
   }
 }

@@ -11,8 +11,12 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
+import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -92,5 +96,18 @@ public class ApplicationServiceTest
     catch (InvalidApplicationException e) {
       assertThat(e.getMessage(), is("Applications cannot have the root organization as parent."));
     }
+  }
+
+  @Test
+  public void testAddApplication_addsUserToOwnerRole() {
+    Organization org = tempEntity.newOrganization();
+    Application app = new Application("appPublicId", "appName", org.getId());
+    app = applicationService.addApplication(app);
+    tempEntity.register(app);
+    List<MembershipMapping> mappings = new MembershipMappingDAO().getByContextIdAndRoleId(app.getId(),
+        Role.OWNER_ROLE_ID);
+    assertThat(mappings.size(), is(1));
+    assertThat(mappings.get(0).getMemberName(), is(USERNAME));
+    assertThat(mappings.get(0).getMemberType(), is(MemberType.USER));
   }
 }

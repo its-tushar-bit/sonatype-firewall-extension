@@ -35,6 +35,11 @@ public class Role
    */
   public static final String CLM_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
 
+  /**
+   * The id of the "Owner" role in the role database table.
+   */
+  public static final String OWNER_ROLE_ID = "1cddabf7fdaa47d6833454af10e0a3ef";
+
   @Id
   @Column(name = "role_id")
   private String id;

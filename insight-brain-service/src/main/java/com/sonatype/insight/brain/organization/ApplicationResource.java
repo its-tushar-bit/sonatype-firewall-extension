@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -334,9 +333,6 @@ public class ApplicationResource
     }
 
     for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaries) {
-      File[] scans = work.getScanDir(applicationManagement.getId()).listFiles();
-      applicationManagement.setScansCount(scans != null ? scans.length : 0);
-
       Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
       for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
         final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator

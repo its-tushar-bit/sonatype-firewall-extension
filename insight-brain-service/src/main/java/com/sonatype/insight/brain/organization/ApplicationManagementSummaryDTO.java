@@ -27,8 +27,6 @@ public class ApplicationManagementSummaryDTO
 
   private Map<String, PolicyEvaluationResult> policyEvaluationsResults;
 
-  private int scansCount;
-
   private ContactDTO contact;
 
   public String getId() {
@@ -86,14 +84,6 @@ public class ApplicationManagementSummaryDTO
 
   public void setPolicyEvaluationsResults(Map<String, PolicyEvaluationResult> policyEvaluationsResults) {
     this.policyEvaluationsResults = policyEvaluationsResults;
-  }
-
-  public int getScansCount() {
-    return scansCount;
-  }
-
-  public void setScansCount(int scansCount) {
-    this.scansCount = scansCount;
   }
 
   /**

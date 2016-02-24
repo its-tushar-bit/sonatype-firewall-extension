@@ -505,7 +505,6 @@ public class ApplicationResourceTest
 
     applications = response.getBody(ApplicationManagementSummaryDTO[].class);
     Assert.assertNotNull(applications);
-    Assert.assertEquals(1, applications[0].getScansCount());
 
     // Test GetApplication
     response = restRequest().path(ApplicationResource.GET_APPLICATION_MANAGEMENT_SUMMARY)

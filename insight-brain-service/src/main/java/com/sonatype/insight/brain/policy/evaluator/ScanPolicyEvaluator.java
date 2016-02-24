@@ -280,19 +280,18 @@ public class ScanPolicyEvaluator
     }
   }
 
-  private void calculateCounters(PolicyEvaluationResult policyEvaluationResult) {
+  private void calculateCounters(PolicyEvaluationResult policyEvaluationResult, List<PolicyViolation> policyViolations)
+  {
     final Map<String, Integer> componentThreatLevels = new HashMap<>();
-    for (final PolicyAlert alert : policyEvaluationResult.getAlerts()) {
-      final PolicyFact trigger = alert.getTrigger();
-      final int policyThreatLevel = trigger.getThreatLevel();
-      for (final ComponentFact component : trigger.getComponentFacts()) {
-        final String id = component.getComponentId();
-        final Integer level = componentThreatLevels.get(id);
-        if (level == null || level < policyThreatLevel) {
-          componentThreatLevels.put(id, policyThreatLevel);
-        }
+    for (PolicyViolation policyViolation : policyViolations) {
+      final int policyThreatLevel = policyViolation.getThreatLevel();
+      final String id = policyViolation.getHash();
+      final Integer level = componentThreatLevels.get(id);
+      if (level == null || level < policyThreatLevel) {
+        componentThreatLevels.put(id, policyThreatLevel);
       }
     }
+
     int criticalCount = 0, severeCount = 0, moderateCount = 0;
     for (final int level : componentThreatLevels.values()) {
       if (level >= 8) {
@@ -313,11 +312,19 @@ public class ScanPolicyEvaluator
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation) {
-    List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(policyEvaluation);
+    return createPolicyEvaluationResult(policyEvaluation, true);
+  }
+
+  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation, boolean createAlerts) {
+    List<PolicyViolation> policyViolations = policyViolationDAO.getActiveByEvaluationId(policyEvaluation.getId());
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
-    policyEvaluationResult.setAlerts(policyAlerts);
-    calculateCounters(policyEvaluationResult);
     policyEvaluationResult.setReevaluation(policyEvaluation.isReevaluation());
+    calculateCounters(policyEvaluationResult, policyViolations);
+    if (createAlerts) {
+      List<PolicyAlert> policyAlerts = PolicyAlertUtil.createPolicyAlerts(policyViolations,
+          policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring());
+      policyEvaluationResult.setAlerts(policyAlerts);
+    }
     return policyEvaluationResult;
   }
 

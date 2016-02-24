@@ -335,10 +335,10 @@ public class ApplicationResource
     for (ApplicationManagementSummaryDTO applicationManagement : applicationManagementSummaries) {
       Map<String, PolicyEvaluationResult> policyEvaluationResults = new HashMap<>();
       for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
-        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-            .createPolicyEvaluationResult(policyEvaluation);
         // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
-        policyEvaluationResult.setAlerts(null);
+        // they are also time-consuming when we deal with thousands of applications/evaluations
+        final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(
+            policyEvaluation, false);
 
         policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
       }

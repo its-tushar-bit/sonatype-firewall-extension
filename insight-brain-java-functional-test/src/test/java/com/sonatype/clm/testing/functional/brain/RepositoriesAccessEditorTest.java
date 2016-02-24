@@ -11,8 +11,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 public class RepositoriesAccessEditorTest
     extends AbstractAccessEditorTest
@@ -20,6 +20,14 @@ public class RepositoriesAccessEditorTest
   @Before
   public void init() {
     super.init(RepositoryContainer.SINGLETON);
+  }
+
+  @After
+  public void cleanup() {
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    for (MembershipMapping mapping : membershipMappingDAO.getByContextId(RepositoryContainer.REPOSITORY_CONTAINER_ID)) {
+      membershipMappingDAO.delete(mapping);
+    }
   }
 
   protected void goFromSummaryToAddRole() {

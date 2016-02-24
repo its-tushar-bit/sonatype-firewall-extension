@@ -126,6 +126,9 @@ public class RepositoryResource
     repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 
+  /**
+   * @since 1.20
+   */
   @GET
   @Path(UNQUARANTINED_COMPONENTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)

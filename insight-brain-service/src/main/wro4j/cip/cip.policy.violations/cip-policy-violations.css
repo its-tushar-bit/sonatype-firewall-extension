@@ -90,3 +90,10 @@
 #add-waiver-modal .modal-footer .alert {
   max-width: 330px
 }
+
+/* XXX Remove in favour of new-ui styling */
+.modal-body.modal-error {
+  background: #f2dede;
+  border-color: #b94a48;
+  color: #b94a48;
+}

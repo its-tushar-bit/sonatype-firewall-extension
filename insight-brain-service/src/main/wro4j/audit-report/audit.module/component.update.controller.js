@@ -7,18 +7,18 @@
 (function () {
   'use strict';
 
-  function ComponentUpdateController($scope, $rootScope, $http, $q, Messages, OwnerContext, hash) {
+  function ComponentUpdateController($scope, $rootScope, $http, $q, Messages, OwnerContext, componentKey, reevaluate) {
     var vm = this;
 
     vm.error = null;
     vm.doProcess = doProcess;
-    vm.reevaluated = false;
+    vm.reevaluated = !reevaluate;
 
     doProcess();
 
     function doProcess() {
       if (!vm.reevaluated) {
-        reevaluate();
+        doReevaluate();
       }
       else {
         updateComponent();
@@ -30,7 +30,7 @@
 
       // emit an event
       var promises = [];
-      $rootScope.$broadcast('component.evaluation.updated', hash, promises);
+      $rootScope.$broadcast('component.evaluation.updated', componentKey, promises);
       $q.all(promises).then(function () {
         $scope.$dismiss();
       }, function (error) {
@@ -38,10 +38,10 @@
       });
     }
 
-    function reevaluate() {
+    function doReevaluate() {
       delete vm.error;
 
-      $http.post(Brain.getComponentReevaluationUrl(OwnerContext, hash)).success(function () {
+      $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).success(function () {
         vm.reevaluated = true;
         updateComponent();
       }).error(function () {
@@ -49,7 +49,8 @@
       });
     }
   }
-  ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext', 'hash'];
+  ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext',
+                                       'componentKey', 'reevaluate'];
 
   angular.module('audit').controller('component.update.controller', ComponentUpdateController);
 }());

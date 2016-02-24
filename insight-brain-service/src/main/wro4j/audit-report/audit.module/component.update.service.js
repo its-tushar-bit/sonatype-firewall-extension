@@ -9,16 +9,19 @@
 
   function ComponentUpdateService($modal) {
     return {
-      update: function(hash) {
-        if (hash) {
+      reevaluate: function(componentKey, reevaluate) {
+        if (componentKey) {
           $modal.open({
             templateUrl: 'audit.module/component.update.html',
             controller: 'component.update.controller as vm',
             backdrop: 'static',
             keyboard: false,
             resolve: {
-              hash: function() {
-                return hash;
+              componentKey: function() {
+                return componentKey;
+              },
+              reevaluate: function() {
+                return reevaluate;
               }
             }
           });

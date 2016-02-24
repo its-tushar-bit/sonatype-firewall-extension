@@ -586,6 +586,7 @@
                 <include>resources/assets/SpecUtil.js</include>
                 <include>resources/assets/**/lib/*.js</include>
                 <include>resources/assets/**/*MockData.js</include>
+                <include>resources/assets/cip/**/*.js</include>
                 <include>resources/assets/**/cip*.js</include>
                 <include>resources/assets/**/CIP*.js</include>
                 <include>resources/assets/brain-client/*.js</include>

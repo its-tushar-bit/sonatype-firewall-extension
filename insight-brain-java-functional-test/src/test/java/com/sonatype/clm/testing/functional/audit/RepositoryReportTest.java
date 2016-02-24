@@ -8,15 +8,19 @@ package com.sonatype.clm.testing.functional.audit;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.AddLabelModal;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP.RemoveLabelModal;
@@ -33,6 +37,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Row;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage.Table;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.AddWaiverDialog;
+import com.sonatype.clm.testing.functional.pages.WaiverCip.UnquarantineDialog;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -77,6 +82,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 public class RepositoryReportTest
@@ -151,6 +157,34 @@ public class RepositoryReportTest
   }
 
   @Test
+  public void testUnquarantine() throws Exception {
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("severe", "threat", "1.0."), true);
+    tempEntity.newRepositoryPolicyViolation(component, 6, false, "Really Bad");
+
+    component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("no", "threat", "1.0."), true);
+    setupHDSFirewallResponse(component.getHash());
+
+    open(RepositoryReportPage.url(repo.getId()));
+
+    // Components with violations cannot be unquarantined
+    openCIP(0, "Policy");
+    WaiverCip.unquarantineButton().shouldBe(visible, CLM.DISABLED).click();
+    UnquarantineDialog.releaseButton().shouldNot(appear);
+    Table.row(0).component().click(); // hide CIP
+
+    // Unquarantine a component
+    openCIP(1, "Policy");
+    WaiverCip.unquarantineButton().shouldBe(visible).shouldNotBe(CLM.DISABLED).click();
+    UnquarantineDialog.releaseButton().should(appear).click();
+    UnquarantineDialog.releaseButton().should(disappear);
+
+    component = new RepositoryComponentDAO().getById(component.getId());
+    assertFalse(component.isQuarantined());
+  }
+
+  @Test
   public void testPage() throws Exception {
     // one no violation, unknown
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
@@ -221,7 +255,20 @@ public class RepositoryReportTest
     testUnknownComponentCIP();
   }
 
+  private void setupHDSFirewallResponse(String hash) throws IOException {
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<ComponentEvaluationData>();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = hash;
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<License>();
+    componentEvaluationData.observedLicenses = new HashSet<License>();
+    hdsResult.components.add(componentEvaluationData);
+    testCLMServer.getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
+  }
+
   private void setupHDSResponse() throws IOException {
+
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails",
         FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetails.json")), 200);
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails/list",

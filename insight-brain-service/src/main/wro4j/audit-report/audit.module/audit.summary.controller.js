@@ -32,7 +32,7 @@
       });
     };
 
-    $scope.$on('component.evaluation.updated', function(event, hash, promises) {
+    $scope.$on('component.evaluation.updated', function(event, componentKey, promises) {
       promises.push($scope.doLoad());
     });
 

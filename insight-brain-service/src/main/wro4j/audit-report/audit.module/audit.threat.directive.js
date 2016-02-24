@@ -228,8 +228,14 @@
           }
         });
 
-        $scope.$on('component.evaluation.updated', function (event, hash, promises) {
-          promises.push($http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId, hash))
+        $scope.$on('component.evaluation.updated', function (event, componentKey, promises) {
+          function matches(component) {
+            return !Object.keys(componentKey).some(function (key) {
+              return component[key] !== componentKey[key];
+            });
+          }
+
+          promises.push($http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId, componentKey))
             .success(function(data) {
                 var dataView = vm.grid.dataView,
                     maxId = -1,
@@ -249,7 +255,7 @@
                 dataView.getItems().forEach(function(item) {
                   maxId = Math.max(maxId, item.id);
 
-                  if (item.hash === hash) {
+                  if (matches(item)) {
                     if (newItemMap[item.pathname] && newItemMap[item.pathname][item.policyName]) {
                       // update id
                       newItemMap[item.pathname][item.policyName].id = item.id;

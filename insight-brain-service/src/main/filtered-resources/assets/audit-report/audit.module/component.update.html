@@ -10,7 +10,7 @@
     </div>
   </div>
   <div ng-if="vm.error">
-    <div class="modal-body" class="error" style="background:#f2dede; border-color:#b94a48; color:#b94a48">
+    <div class="modal-body error modal-error">
       <div ng-if="!vm.reevaluated">An error occurred reevaluating the component. ({{vm.error}})</div>
       <div ng-if="vm.reevaluated">An error occurred while reloading data. ({{vm.error}})</div>
     </div>

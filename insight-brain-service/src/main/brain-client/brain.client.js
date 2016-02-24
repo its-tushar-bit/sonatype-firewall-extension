@@ -142,11 +142,11 @@ var clmBuildTimestamp = '${build.timestamp}';
     /**
      * @since 1.19.0
      */
-    'getRepositoryResultsUrl': function (repositoryId, hash) {
+    'getRepositoryResultsUrl': function (repositoryId, componentKey) {
       var path = 'rest/repositories/' + encodeURIComponent(repositoryId) + '/report/details';
 
-      if (hash) {
-        path += '?' + param({hash: hash});
+      if (componentKey) {
+        path += '?' + param(componentKey);
       }
 
       return basePath + path;

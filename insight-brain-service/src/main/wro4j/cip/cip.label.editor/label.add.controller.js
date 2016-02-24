@@ -19,7 +19,7 @@
       var parts = $scope.label.selectedOwner.split('$$');
       $http.post(CLM.path + 'rest/label/component/' + parts[1] + '/' + parts[0] + '/' +
               component.hash, label).success(function() {
-        $scope.$emit('component.data.changed', component.hash);
+        $scope.$emit('reevaluate.component', {hash: component.hash});
         $scope.$close(label);
       }).error(function() {
         $scope.labelSaving = false;

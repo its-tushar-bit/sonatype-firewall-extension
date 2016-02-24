@@ -1240,10 +1240,23 @@ public class TemporaryEntity
                                                     MatchState matchState,
                                                     ComponentIdentifier identifier)
   {
+    return newRepositoryComponent(repositoryId, matchState, identifier, false);
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId,
+                                                    MatchState matchState,
+                                                    ComponentIdentifier identifier,
+                                                    boolean quarantined)
+  {
     String pathname = uuid();
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(),
         pathname.substring(0, 20), identifier, matchState.getId(), IdentificationSource.SONATYPE.getId(), new Date(),
         true /* canBeQuarantined */);
+
+    if (quarantined) {
+      repositoryComponent.setQuarantineTime(new Date());
+    }
+
     repositoryComponentDAO.insert(repositoryComponent);
     return repositoryComponent;
   }

@@ -292,6 +292,7 @@
     <js>/cip/cip.policy.violations/cip.policy.violations.directive.js</js>
     <js>/cip/cip.policy.violations/policy.violations.controller.js</js>
     <js>/cip/cip.policy.violations/view.waiver.controller.js</js>
+    <js>/cip/cip.policy.violations/release.quarantine.controller.js</js>
 
     <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
   </group>

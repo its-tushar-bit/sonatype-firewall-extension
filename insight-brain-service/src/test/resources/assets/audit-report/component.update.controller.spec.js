@@ -8,7 +8,8 @@ describe('component.update.controller', function() {
       ownerId: 'foo',
       ownerType: 'repository'
     });
-    $provide.value('hash', 'abcd');
+    $provide.value('componentKey', {hash: 'abcd'});
+    $provide.value('reevaluate', true);
   }));
 
   beforeEach(inject(function($rootScope, $controller, $q) {

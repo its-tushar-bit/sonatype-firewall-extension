@@ -93,11 +93,43 @@
       </div>
     </div>
   </script>
-  <div style="width:100%;text-align:right;margin-bottom:5px;">
-    <button id="view-existing-waivers" class="btn" ng-click="viewWaivers()">View Existing Waivers</button>
+  <script type="text/ng-template" id="release-quarantine-tmpl">
+    <div id="release-quarantine-modal">
+      <div class="modal-header">
+        <h3>Release Quarantine</h3>
+      </div>
+      <div ng-if="!vm.error">
+        <div class="modal-body">
+          Releasing the quarantine on this component will allow users of this Nexus repository to download and use the artifact.
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" ng-disabled="vm.activeRequest" ng-click="vm.release()">Release</button>
+          <button class="btn" ng-click="$dismiss()">Cancel</button>
+        </div>
+      </div>
+      <div ng-if="vm.error">
+        <div class="modal-body modal-error">
+          <i class="icon icon-warning-sign"></i> Failed to release the quarantine. ({{vm.error}})
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" type="button" ng-disabled="vm.activeRequest" ng-click="vm.release()">Retry</button>
+          <button class="btn" type="button" ng-click="$dismiss()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </script>
+  <div style="width:100%;margin-bottom:5px;" class="clearfix">
+    <button id="view-existing-waivers" class="btn pull-right" ng-click="viewWaivers()">View Existing Waivers</button>
+    <div ng-if="quarantined">
+      <span><i class="icon icon-ban-circle"></i> Quarantined </span>
+      <a id="release-quarantine" class="btn"
+              tooltip="{{processedPolicyAlerts.length > 0 ? 'To release: resolve all violations and re-evaluate the repository' : ''}}"
+              ng-class="{ disabled: processedPolicyAlerts.length > 0}"
+              ng-click="$event.preventDefault(); processedPolicyAlerts.length === 0 && releaseQuarantine()">Release Quarantine</a>
+    </div>
   </div>
   <div class="cip-policy-wrapper">
-    <table class="table table-condensed table-striped cip-policy-table" border="0" cellpadding="0" cellspacing="0">
+    <table class="table table-condensed table-striped cip-policy-table">
       <thead>
         <tr>
           <th class="cip-policy-table-header">Policy/<em>Action</em></th>

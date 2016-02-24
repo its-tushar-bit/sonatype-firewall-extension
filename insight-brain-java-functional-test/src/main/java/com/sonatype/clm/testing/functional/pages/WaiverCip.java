@@ -16,6 +16,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class WaiverCip
     extends ReportCip
@@ -165,6 +166,15 @@ public class WaiverCip
     }
   }
 
+  public static class UnquarantineDialog
+  {
+    private static final String ROOT = "#release-quarantine-modal";
+
+    public static SelenideElement releaseButton() {
+      return $(selector(ROOT, ".btn.btn-primary"));
+    }
+  }
+
   public static PolicyWaiverRow row(int num) {
     return new PolicyWaiverRow(rows().get(num));
   }
@@ -175,5 +185,9 @@ public class WaiverCip
 
   public static SelenideElement viewWaivers() {
     return $("#view-existing-waivers");
+  }
+
+  public static SelenideElement unquarantineButton() {
+    return $(selector(CONTAINER_ID, "a.btn"));
   }
 }

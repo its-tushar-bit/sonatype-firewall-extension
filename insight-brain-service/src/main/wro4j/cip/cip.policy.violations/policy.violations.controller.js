@@ -19,6 +19,8 @@
       });
     }
 
+    $scope.quarantined = SelectedComponent.get().quarantined;
+
     $scope.doLoad = function() {
       $scope.processedPolicyAlerts = null;
       $scope.error = null;
@@ -45,6 +47,15 @@
       });
     };
 
+    $scope.releaseQuarantine = function() {
+      $modal.open({
+        templateUrl: 'release-quarantine-tmpl',
+        controller: 'release.quarantine.controller as vm',
+        backdrop: 'static',
+        keyboard: false
+      });
+    };
+
     $scope.viewWaivers = function() {
       $modal.open({
         templateUrl: 'view-waivers-modal-tmpl',
@@ -55,7 +66,7 @@
     };
     $scope.alerts = [];
 
-    $scope.$on('component.evaluation.updated', function(event, hash, promises) {
+    $scope.$on('component.evaluation.updated', function(event, componentKey, promises) {
       promises.push($scope.doLoad());
     });
 

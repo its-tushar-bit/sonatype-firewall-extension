@@ -17,7 +17,7 @@
         $scope.labelRemoveError = null;
         $http['delete'](CLM.path + 'rest/label/component/' + label.ownerType + '/' + label.ownerId + '/' +
                 SelectedComponent.get().hash + '/' + label.id).success(function() {
-          $scope.$emit('component.data.changed', SelectedComponent.get().hash);
+          $scope.$emit('reevaluate.component', {hash: SelectedComponent.get().hash});
           $scope.$close();
         }).error(function() {
           $scope.labelDeleting = false;

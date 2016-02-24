@@ -71,7 +71,7 @@
       $http.post(CLM.path + 'rest/policyWaiver/' + $scope.owner.type + '/' + $scope.waiver.ownerId,
               $scope.waiver).success(function() {
         $scope.waiverSaving = false;
-        $scope.$emit('component.data.changed', $scope.waiver.hash);
+        $scope.$emit('reevaluate.component', $scope.waiver.hash ? { hash: $scope.waiver.hash } : null);
         $scope.$close();
       }).error(function() {
         $scope.waiverSaving = false;

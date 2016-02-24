@@ -68,7 +68,7 @@
       }
       else {
         // new style
-        $scope.$emit('component.data.changed', component.hash);
+        $scope.$emit('reevaluate.component', {hash: component.hash});
       }
     }
 

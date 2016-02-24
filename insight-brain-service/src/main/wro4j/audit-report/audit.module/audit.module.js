@@ -12,8 +12,11 @@ window.CLM = {
   'use strict';
   
   function init($rootScope, ComponentUpdateService) {
-    $rootScope.$on('component.data.changed', function (event, hash) {
-      ComponentUpdateService.update(hash);
+    $rootScope.$on('reevaluate.component', function (event, componentKey) {
+      ComponentUpdateService.reevaluate(componentKey, true);
+    });
+    $rootScope.$on('reload.component', function (event, componentKey) {
+      ComponentUpdateService.reevaluate(componentKey, false);
     });
   }
   init.$inject = ['$rootScope', 'component.update.service'];

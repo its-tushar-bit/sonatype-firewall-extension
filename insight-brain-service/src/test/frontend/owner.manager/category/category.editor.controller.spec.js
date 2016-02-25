@@ -16,6 +16,7 @@ describe('category.editor.controller.spec.js', function() {
       mockDeleteService,
       SameOwnerStateNavigationService = {goEdit: function(to, params) {}},
       mockCategoryStore = StoreUtils().createMockStore('TagStore'),
+      mockApplicationStore = StoreUtils().createMockStore('ApplicationStore'),
       mockCategory = ResourceUtils().createMockResource(),
       mockOwner = {store: {create: function(){return 'stub';}}, tags: [mockCategory]};
 
@@ -25,7 +26,7 @@ describe('category.editor.controller.spec.js', function() {
         $q = _$q_;
         deleteServiceResourceDefer = $q.defer();
         mockDeleteService = {
-          deleteResource: function() {
+          deleteCustom: function() {
             return deleteServiceResourceDefer.promise;
           }
         }
@@ -37,7 +38,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    mockCategoryStore.resolveGet([mockOwner]);
+    resolveLoad([mockOwner]);
     $timeout.flush();
     expect(mockOwner.store.create).toHaveBeenCalled();
   });
@@ -46,7 +47,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    mockCategoryStore.resolveGet([{store: {create: function(){}}, tags: ['a', 'b']},{tags: ['c']}]);
+    resolveLoad([{store: {create: function(){}}, tags: ['a', 'b']},{tags: ['c']}]);
     $timeout.flush();
     expect(vm.siblings).toContain('a');
     expect(vm.siblings).toContain('b');
@@ -54,11 +55,31 @@ describe('category.editor.controller.spec.js', function() {
     expect(vm.siblings.length).toBe(3);
   });
 
+  it('Captures names of associated apps', function() {
+    inject(function($controller) {
+      vm = $controller('category.editor.controller',
+          {$stateParams: {categoryId: 'testCatId'}, $scope: scope, DeleteModalService: mockDeleteService});
+    });
+    var spy = spyOn(mockDeleteService, 'deleteCustom').andReturn(deleteServiceResourceDefer.promise);
+    mockCategoryStore.resolveGet([{tags: [{id: 'testCatId_neg'}, {id: 'testCatId', $clone: angular.noop}]}]);
+    mockCategoryStore.resolveGetApplied(
+        {data: {applicationTagsByOwner: [{applicationTags: [{applicationId: 'testApp'}]}]}});
+    mockApplicationStore.resolveGet([{id: 'testApp_neg', name: 'Test App Neg'}, {id: 'testApp', name: 'Test App'}]);
+
+    $timeout.flush();
+
+    vm.dirtyCategory = {$delete: angular.noop};
+
+    vm.deleteCategory();
+
+    expect(spy.mostRecentCall.args[1]).toMatch('in use by the following applications: Test App.');
+  });
+
   it('Updates siblings list after creating new', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
-    })
-    mockCategoryStore.resolveGet([{store: {create: function(){}}, tags:[]}]);
+    });
+    resolveLoad([{store: {create: function(){}}, tags:[]}]);
     $timeout.flush();
     mockCategory.$new = true;
     vm.dirtyCategory = mockCategory;
@@ -79,7 +100,7 @@ describe('category.editor.controller.spec.js', function() {
       vm = $controller('category.editor.controller', {$stateParams: {categoryId:'456'}, $scope: scope});
     });
     mockCategory.id = '456';
-    mockCategoryStore.resolveGet([mockOwner]);
+    resolveLoad([mockOwner]);
     $timeout.flush();
     expect(vm.dirtyCategory.$clone).toHaveBeenCalled();
     expect(vm.dirtyCategory.id).toBe('456');
@@ -89,7 +110,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$stateParams: {categoryId:'789'}, $scope: scope});
     });
-    mockCategoryStore.resolveGet([{tags: [{id:'123'}, {id:'456'}]}]);
+    resolveLoad([{tags: [{id:'123'}, {id:'456'}]}]);
     $timeout.flush();
     expect(vm.dirtyCategory).toBeUndefined();
     expect(vm.loadError).toBeDefined();
@@ -99,7 +120,7 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    mockCategoryStore.resolveGet([mockOwner]);
+    resolveLoad([mockOwner]);
     $timeout.flush();
     vm.dirtyCategory = mockCategory;
     vm.categoryEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
@@ -117,7 +138,7 @@ describe('category.editor.controller.spec.js', function() {
           {$scope: scope, SameOwnerStateNavigationService: SameOwnerStateNavigationService, $stateParams: {categoryId: '1'}, DeleteModalService: mockDeleteService});
     });
     mockCategory.id = '1';
-    mockCategoryStore.resolveGet([mockOwner]);
+    resolveLoad([mockOwner]);
     $timeout.flush();
     // when
     vm.deleteCategory();
@@ -127,4 +148,14 @@ describe('category.editor.controller.spec.js', function() {
     expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-category');
   });
 
-})
+  function resolveLoad(categoryStorePayload) {
+    categoryStorePayload[0].tags.forEach(function(cat) {
+      cat.$clone = jasmine.createSpy().andReturn(cat);
+    });
+    mockCategoryStore.resolveGet(categoryStorePayload);
+    mockApplicationStore.resolveGet([{id: 'testAppId'}]);
+    mockCategoryStore.resolveGetApplied(
+        {data: {applicationTagsByOwner: [{applicationTags: [{applicationId: 'testAppId'}]}]}});
+  }
+
+});

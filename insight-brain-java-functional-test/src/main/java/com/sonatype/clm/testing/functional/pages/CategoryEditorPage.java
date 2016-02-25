@@ -7,8 +7,10 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ColorPicker;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
 public class CategoryEditorPage
@@ -52,5 +54,15 @@ public class CategoryEditorPage
 
   public static SelenideElement deleteButton() {
     return $("#delete-category-button");
+  }
+
+  public static Condition deleteWarningText() {
+    return deleteWarningText(null);
+  }
+
+  public static Condition deleteWarningText(String applicationNames) {
+    String baseMessage = "Are you sure you want to delete this application category?";
+    return text(applicationNames == null ? baseMessage :
+        baseMessage + " It is in use by the following applications: " + applicationNames + ".");
   }
 }

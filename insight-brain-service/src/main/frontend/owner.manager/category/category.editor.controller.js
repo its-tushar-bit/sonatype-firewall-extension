@@ -6,9 +6,11 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($stateParams, TagStore, DeleteModalService, SameOwnerStateNavigationService) {
-    var vm = this;
-    var store;
+  function CategoryEditorController($q, $stateParams, TagStore, ApplicationStore, DeleteModalService, SameOwnerStateNavigationService) {
+    var vm = this,
+        store,
+        associatedAppNames = [],
+        warningMessage;
 
     vm.dirtyCategory = undefined;
     vm.deleteCategory = deleteCategory;
@@ -23,13 +25,17 @@
     vm.doLoad();
 
     function deleteCategory() {
-      DeleteModalService.deleteResource('Category', vm.dirtyCategory.name, vm.dirtyCategory).then(function() {
+      DeleteModalService.deleteCustom('Delete Category', warningMessage, 'Deleting',
+          angular.bind(vm.dirtyCategory, vm.dirtyCategory.$delete)).then(function() {
         SameOwnerStateNavigationService.goEdit('create-category');
       });
     }
 
     function doLoad() {
-      TagStore[vm.loadError ? 'refresh' : 'get']().then(function(tagStore) {
+      var promises = [TagStore[vm.loadError ? 'refresh' : 'get'](), TagStore.getApplied(), ApplicationStore.get()];
+      $q.all(promises).then(function(results) {
+        var tagStore = results[0];
+
         tagStore.forEach(function(owner){
           vm.siblings = vm.siblings.concat(owner.tags);
         });
@@ -38,9 +44,20 @@
           vm.dirtyCategory = store.create();
         } else {
           tagStore[0].tags.forEach(function(categoryCandidate) {
-
             if (categoryCandidate.id === $stateParams.categoryId) {
               vm.dirtyCategory = categoryCandidate.$clone();
+              // gather the names of associated applications
+              results[1].data.applicationTagsByOwner[0].applicationTags.forEach(function(applicationTag) {
+                results[2].forEach(function(application) {
+                  if (application.id === applicationTag.applicationId) {
+                    associatedAppNames.push(application.name);
+                  }
+                });
+              });
+              warningMessage = 'Are you sure you want to delete this application category?';
+              if (associatedAppNames.length > 0) {
+                warningMessage += ' It is in use by the following applications: ' + associatedAppNames.join(', ') + '.';
+              }
               return true;
             }
           });
@@ -72,7 +89,7 @@
   }
 
   CategoryEditorController.$inject = [
-    '$stateParams', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService'
+    '$q', '$stateParams', 'TagStore', 'ApplicationStore', 'DeleteModalService', 'SameOwnerStateNavigationService'
   ];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);

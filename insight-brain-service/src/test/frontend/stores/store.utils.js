@@ -19,6 +19,7 @@ var StoreUtils = function() {
     me.rejectRefresh = rejectPromise('refresh');
 
     me.resolveGetApplicable = resolvePromise('getApplicable');
+    me.resolveGetApplied = resolvePromise('getApplied');
     me.resolveSave = resolvePromise('save');
     me.resolveRemove = resolvePromise('remove');
 
@@ -27,6 +28,7 @@ var StoreUtils = function() {
         promises = {
           get: $q.defer(),
           getApplicable: $q.defer(),
+          getApplied: $q.defer(),
           save: $q.defer(),
           remove: $q.defer(),
           refresh: $q.defer()

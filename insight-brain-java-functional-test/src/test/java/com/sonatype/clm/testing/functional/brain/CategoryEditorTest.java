@@ -13,7 +13,9 @@ import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -44,6 +46,8 @@ public class CategoryEditorTest
   private static final String CATEGORY_NAME = "a category";
 
   private TagDAO tagDAO = new TagDAO();
+
+  private ApplicationTagDAO appTagDao = new ApplicationTagDAO();
 
   private Organization org;
 
@@ -138,7 +142,7 @@ public class CategoryEditorTest
     // then
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(DeleteModal.headerText("Category"));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(category.getName()));
+    DeleteModal.body().shouldHave(CategoryEditorPage.deleteWarningText());
     // when
     DeleteModal.cancelButton().click();
     // then
@@ -157,6 +161,31 @@ public class CategoryEditorTest
 
     category = tagDAO.getById(category.getId());
     assertThat(category, is(nullValue()));
+  }
+
+  @Test
+  public void testDeleteCategoryAssociatedToAnApp() {
+    // given
+    Tag category = tempEntity.newTag(org.getId());
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationTag(app.getId(), category.getId());
+
+    refreshOrOpen(CategoryEditorPage.urlToEdit(org.getId(), category.getId()));
+    refresh();
+    // when
+    CategoryEditorPage.deleteButton().shouldBe(visible).click();
+    // then
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(DeleteModal.headerText("Category"));
+    DeleteModal.body().shouldHave(CategoryEditorPage.deleteWarningText(app.getName()));
+    DeleteModal.continueButton().shouldBe(visible).click();
+    // then the modal should be hidden 800 ms after delete REST call is successful
+    DeleteModal.root().shouldNotBe(visible);
+
+    waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
+
+    assertThat(tagDAO.getById(category.getId()), is(nullValue()));
+    assertThat(appTagDao.getByApplicationIdAndTagId(app.getId(), category.getId()), is(nullValue()));
   }
 
   private void assertInitialStateIsCorrect() {

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.scan.util.HashUtils;
 
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
@@ -361,7 +362,7 @@ public class HdsClientTest
   }
 
   @Test
-  public void testAppIdOnRequests() throws Exception {
+  public void testObfuscatedAppIdOnRequests() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()
@@ -385,10 +386,10 @@ public class HdsClientTest
 
     client.get(request, analytics, InputStream.class, testPath, null, new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, HashUtils.hash(analytics.getOwnerId(), HashUtils.SHA1)));
 
     client.put(analytics, String.class, testPath, File.createTempFile("test", ".tmp"), new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, HashUtils.hash(analytics.getOwnerId(), HashUtils.SHA1)));
   }
 }

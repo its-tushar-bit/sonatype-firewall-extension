@@ -30,10 +30,12 @@ public class RepositoriesAccessEditorTest
     }
   }
 
+  @Override
   protected void goFromSummaryToAddRole() {
     SummaryTile.addRoleButton().click();
   }
 
+  @Override
   protected void goFromSummaryToEditRole(Role role) {
     refresh();
     SummaryTile.localAccessRole(role.getName()).click();

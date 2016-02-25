@@ -514,6 +514,10 @@ $tile-scroll-container-z-index: 0;
     }
 
     .greedy-table.repository-configuration-list {
+      tr {
+        line-height: 18px;
+      }
+
       .fa-check-circle {
         color: $valid-green;
       }

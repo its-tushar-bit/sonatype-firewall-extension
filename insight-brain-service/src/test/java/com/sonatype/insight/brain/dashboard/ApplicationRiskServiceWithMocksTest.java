@@ -65,9 +65,6 @@ public class ApplicationRiskServiceWithMocksTest
   @Mock
   private PolicyEvaluationDAO policyEvaluationDAO;
 
-  // no need to mock if pure
-  private PolicyViolationAdapter policyViolationAdapter = new PolicyViolationAdapter();
-
   @Mock
   private PolicyDAO policyDAO;
 
@@ -106,7 +103,7 @@ public class ApplicationRiskServiceWithMocksTest
 
     dashboardUtils = new DashboardUtils(licenseManager, stageTypeService);
     applicationRiskService = new ApplicationRiskService(applicationService, applicationAdapter, policyEvaluationDAO,
-        policyViolationDAO, policyViolationAdapter, dashboardUtils);
+        policyViolationDAO, dashboardUtils);
   }
 
   private ContactDTO contactDTO = new ContactDTO(appUsername, "displayName", "email@example.com", "realm");

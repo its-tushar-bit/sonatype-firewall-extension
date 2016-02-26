@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -265,6 +267,30 @@ public class PolicyViolationDAOTest
     assertThat(policyViolations, hasSize(2));
     List<String> foundViolationIds = Arrays.asList(policyViolations.get(0).getId(), policyViolations.get(1).getId());
     assertThat(foundViolationIds, containsInAnyOrder(activeViolation1.getId(), activeViolation2.getId()));
+  }
+
+  @Test
+  public void testGetActiveByEvaluationIds_InOperatorOptimizationForH2() {
+    Policy policy = tempEntity.newPolicy(applicationId, "name");
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), applicationId);
+
+    PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scan-1");
+    PolicyViolation activeViolation1 = tempEntity.newPolicyViolation(evaluation1, policy, "gid", "aid", "1", "hash-1",
+        null);
+    tempEntity.newWaivedPolicyViolation(evaluation1, policy, policyWaiver);
+
+    PolicyEvaluation evaluation2 = tempEntity
+        .newPolicyEvaluation(applicationId, evaluation1.getStageTypeId(), "scan-2");
+    tempEntity.newPolicyViolation(evaluation2, policy, "gid", "aid", "2", "hash-2", null);
+
+    Set<String> evaluationIds = new LinkedHashSet<>();
+    while (evaluationIds.size() < PolicyViolationDAO.IN_OPERATOR_THRESHOLD) {
+      evaluationIds.add(tempEntity.uuid());
+    }
+    evaluationIds.add(evaluation1.getId());
+    List<PolicyViolation> policyViolations = new PolicyViolationDAO().getActiveByEvaluationIds(evaluationIds);
+    assertThat(policyViolations, hasSize(1));
+    assertThat(policyViolations.get(0).getId(), is(activeViolation1.getId()));
   }
 
   @Test

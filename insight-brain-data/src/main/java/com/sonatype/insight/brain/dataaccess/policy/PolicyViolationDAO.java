@@ -23,6 +23,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class PolicyViolationDAO
     extends AbstractOperationalSqlDAO<PolicyViolation>
 {
+  static final int IN_OPERATOR_THRESHOLD = 2000;
+
   @Override
   protected PolicyViolation getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
@@ -53,6 +55,26 @@ public class PolicyViolationDAO
   public List<PolicyViolation> getActiveByEvaluationIds(Set<String> evaluationIds) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.policyEvaluationId IN (?1) AND entity.isWaived=false";
+    if (evaluationIds.size() >= IN_OPERATOR_THRESHOLD) {
+      // As measurements have shown (cf. CLM-6085), H2 doesn't handle an {@code IN} operator with a huge list of values
+      // well and query time increases superlinear. Making multiple queries with smaller chunks of the input set keeps
+      // the performance more linear. The chunk size below has been found to be a good compromise between DB query
+      // overhead and individual query time.
+      List<PolicyViolation> violations = new ArrayList<>(evaluationIds.size());
+      int chunkSize = 200;
+      List<String> evalIds = new ArrayList<>(chunkSize);
+      for (String evaluationId : evaluationIds) {
+        evalIds.add(evaluationId);
+        if (evalIds.size() >= chunkSize) {
+          violations.addAll(getList(sQuery, evalIds));
+          evalIds.clear();
+        }
+      }
+      if (!evalIds.isEmpty()) {
+        violations.addAll(getList(sQuery, evalIds));
+      }
+      return violations;
+    }
     return getList(sQuery, evaluationIds);
   }
 

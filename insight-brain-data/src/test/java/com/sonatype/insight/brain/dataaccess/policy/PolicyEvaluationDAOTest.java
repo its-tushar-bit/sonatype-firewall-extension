@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -367,6 +368,32 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  public void testGetLastByApplicationIdsAndStageIds_InOperatorOptimizationForH2() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    Date time1 = new Date();
+    Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, "scanId1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scanId2", time1);
+    tempEntity.newPolicyEvaluation(applicationId, ReleaseStageType.ID, "scanId3", time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scanId4", time2);
+
+    Set<String> appIds = new LinkedHashSet<>();
+    while (appIds.size() < PolicyEvaluationDAO.IN_OPERATOR_THRESHOLD) {
+      appIds.add(tempEntity.uuid());
+    }
+    appIds.add(applicationId);
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIdsAndStageIds(appIds,
+        Collections.singleton(BuildStageType.ID));
+    assertThat(policyEvaluations, hasSize(1));
+    PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
+    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
+    assertThat(policyEvaluation.getTime(), is(time2));
+    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+  }
+
+  @Test
   public void testValidateForObsoleteScan_Insert() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
@@ -425,6 +452,31 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId3", time2);
 
     List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIds(Sets.newHashSet(applicationId));
+    assertThat(policyEvaluations, hasSize(1));
+    PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
+    assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));
+    assertThat(policyEvaluation.getTime(), is(time2));
+    assertThat(policyEvaluation.isForObsoleteScan(), is(false));
+  }
+
+  @Test
+  public void testGetLastByApplicationIds_InOperatorOptimizationForH2() {
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    String stageTypeId = ReleaseStageType.ID;
+    Date time1 = new Date();
+    Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scanId1", time1);
+    tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId2", time1);
+    Date time2 = new Date(time1.getTime() + 1000);
+    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(applicationId, stageTypeId, "scanId3", time2);
+
+    Set<String> appIds = new LinkedHashSet<>();
+    while (appIds.size() < PolicyEvaluationDAO.IN_OPERATOR_THRESHOLD) {
+      appIds.add(tempEntity.uuid());
+    }
+    appIds.add(applicationId);
+    List<PolicyEvaluation> policyEvaluations = dao.getLastByApplicationIds(appIds);
     assertThat(policyEvaluations, hasSize(1));
     PolicyEvaluation policyEvaluation = policyEvaluations.get(0);
     assertThat(policyEvaluation.getId(), equalTo(pe2.getId()));

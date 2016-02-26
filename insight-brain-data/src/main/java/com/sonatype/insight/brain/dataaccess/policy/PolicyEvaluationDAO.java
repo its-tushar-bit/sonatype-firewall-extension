@@ -22,6 +22,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class PolicyEvaluationDAO
     extends AbstractOperationalSqlDAO<PolicyEvaluation>
 {
+  static final int IN_OPERATOR_THRESHOLD = 2000;
 
   @Override
   protected PolicyEvaluation getById(TransactionContext tx, String id) {
@@ -51,7 +52,7 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIds(Set<String> appIds) {
-    if (appIds.size() >= 2000) {
+    if (appIds.size() >= IN_OPERATOR_THRESHOLD) {
       return getLastByApplicationIdsManualFilter(appIds);
     }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
@@ -93,12 +94,34 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
+    if (appIds.size() >= IN_OPERATOR_THRESHOLD) {
+      return getLastByApplicationIdsAndStageIdsManualFilter(appIds, stageTypeIds);
+    }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
         " LastPolicyEvaluation lpe" + //
         " WHERE pe.id = lpe.policyEvaluationId" + //
         " AND lpe.applicationId in (?1)" + //
         " AND lpe.stageTypeId in (?2)";
     return getList(sQuery, appIds, stageTypeIds);
+  }
+
+  /**
+   * H2-specific optimization, see comment on {@link #getLastByApplicationIdsManualFilter(Set)} for more details.
+   */
+  private List<PolicyEvaluation> getLastByApplicationIdsAndStageIdsManualFilter(Set<String> appIds,
+                                                                                Set<String> stageTypeIds)
+  {
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
+        " LastPolicyEvaluation lpe" + //
+        " WHERE pe.id = lpe.policyEvaluationId" + //
+        " AND lpe.stageTypeId in (?1)";
+    List<PolicyEvaluation> evals = new ArrayList<>(appIds.size());
+    for (PolicyEvaluation eval : getList(sQuery, stageTypeIds)) {
+      if (appIds.contains(eval.getApplicationId())) {
+        evals.add(eval);
+      }
+    }
+    return evals;
   }
 
   public PolicyEvaluation getLastByApplicationIdAndStageId(String appId, String stageTypeId) {

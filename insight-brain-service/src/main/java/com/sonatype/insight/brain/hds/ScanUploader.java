@@ -48,7 +48,7 @@ public class ScanUploader
     this.work = work;
   }
 
-  protected ScanReceipt upload(HttpServletRequest request, String applicationPublicId, String... params)
+  protected ScanReceipt upload(HttpServletRequest request, String applicationPublicId)
       throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
@@ -66,7 +66,7 @@ public class ScanUploader
     request.setAttribute(HdsClient.UPLOAD_FILE_ATTRIBUTE, scanFile);
 
     HdsClientAnalytics analytics = HdsClientAnalytics.forApplication(appId);
-    final ScanReceipt receipt = client.get(request, analytics, ScanReceipt.class, HDS_PATH, null, params);
+    final ScanReceipt receipt = client.get(request, analytics, ScanReceipt.class, HDS_PATH, null);
 
     if (StringUtils.isNotBlank(receipt.getScanId())) {
       FileUtils.rename(scanFile, work.getScanFile(appId, receipt.getScanId()));

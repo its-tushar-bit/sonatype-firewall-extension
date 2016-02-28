@@ -16,12 +16,19 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.Recover;
+import org.h2.tools.RunScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DiagnosticsCli
 {
   private static final Logger log = LoggerFactory.getLogger(DiagnosticsCli.class);
+
+  private static final String DB_USERNAME = "sa";
+
+  private static final String DB_PASSWORD = "";
 
   public static void main(String[] args) {
     Parameters params = new Parameters(args);
@@ -46,7 +53,7 @@ public class DiagnosticsCli
   public void run(Parameters params) throws Exception {
     Locale.setDefault(Locale.ENGLISH);
 
-    File ods = new File(params.getWorkDirectory(), "data/ods").getAbsoluteFile();
+    File ods = new File(params.getWorkDirectory(), "data/ods").getAbsoluteFile().toPath().normalize().toFile();
     File h2 = new File(ods.getPath() + ".h2.db");
     if (!h2.isFile()) {
       throw new IllegalArgumentException("The specified work directory is invalid, found no database file at " + h2);
@@ -57,12 +64,17 @@ public class DiagnosticsCli
     String version = new String(Files.readAllBytes(new File(ods + ".ver").toPath()), "UTF-8");
     log.info("Schema version: {}", version);
 
+    if (params.isRecover()) {
+      recoverDatabase(ods);
+      return;
+    }
+
     if (!params.isCompact()) {
       logDiskSpeed(h2);
     }
 
     String dbUrl = "jdbc:h2:" + ods.getPath() + ";DATABASE_TO_UPPER=FALSE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000";
-    try (Connection connection = DriverManager.getConnection(dbUrl, "sa", "")) {
+    try (Connection connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD)) {
       connection.setAutoCommit(true);
       if (params.isCompact()) {
         compactDatabase(connection);
@@ -225,6 +237,44 @@ public class DiagnosticsCli
     }
     catch (Exception e) {
       log.error("Failed to load database settings: " + e.getMessage(), e);
+    }
+  }
+
+  private void recoverDatabase(File ods) throws Exception {
+    File sqlFile = new File(ods.getParentFile(), ods.getName() + ".h2.sql");
+    File recoveredOds = new File(ods.getParentFile(), "recovered-ods");
+    File recoveredDb = new File(recoveredOds.getParentFile(), recoveredOds.getName() + ".h2.db");
+    String dbUrl = "jdbc:h2:" + recoveredOds.getAbsolutePath() + ";TRACE_LEVEL_FILE=0";
+
+    log.info("Recovering database to {}", sqlFile);
+    Recover.execute(ods.getParent(), ods.getName());
+
+    log.info("Loading database into {}", recoveredDb);
+    DeleteDbFiles.execute(recoveredOds.getParent(), recoveredOds.getName(), true);
+    log.info("  This might take a while, please be patient...");
+    RunScript.execute(dbUrl, DB_USERNAME, DB_PASSWORD, sqlFile.getAbsolutePath(), null, false);
+
+    if (!sqlFile.delete()) {
+      log.warn("{} could not be deleted, please delete this temporary file manually", sqlFile);
+    }
+
+    // recovered databases are bloated
+    try (Connection connection = DriverManager.getConnection(dbUrl, DB_USERNAME, DB_PASSWORD)) {
+      compactDatabase(connection);
+    }
+
+    File odsDb = new File(ods.getParentFile(), ods.getName() + ".h2.db");
+    File originalDb = new File(ods.getParentFile(), "original-ods" + ".h2.db");
+    try {
+      Files.move(odsDb.toPath(), originalDb.toPath());
+      log.info("The original/corrupted database was backed up to {}", originalDb);
+      Files.move(recoveredDb.toPath(), odsDb.toPath());
+      log.info("The recovered database was moved to {}", odsDb);
+    }
+    catch (Exception e) {
+      log.warn("The recovered database could not be moved to replace the corrupted database:");
+      log.warn("  {}", e.toString());
+      log.info("Please manually backup {} and move {} into its place", odsDb, recoveredDb);
     }
   }
 }

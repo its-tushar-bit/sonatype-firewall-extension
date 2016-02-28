@@ -22,6 +22,9 @@ public class Parameters
   @Parameter(names = { "-c", "--compact-database" }, description = "Compact the database by reclaiming empty space")
   private boolean compact;
 
+  @Parameter(names = { "-r", "--recover-database" }, description = "Recover a corrupted database")
+  private boolean recover;
+
   @Parameter(names = { "-h", "--help" }, description = "Show this help screen")
   private boolean help;
 
@@ -79,5 +82,9 @@ public class Parameters
 
   public boolean isCompact() {
     return compact;
+  }
+
+  public boolean isRecover() {
+    return recover;
   }
 }

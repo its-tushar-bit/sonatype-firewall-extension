@@ -8,14 +8,16 @@ package com.sonatype.insight.brain.client;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -32,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -246,6 +249,32 @@ public class FirewallClientTest
 
     try {
       client.evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
+      fail("Expected exception");
+    }
+    catch (HttpResponseException e) {
+      assertEquals(404, e.getStatusCode());
+      assertEquals(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID), e.getMessage());
+    }
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents() throws Exception {
+    long timestamp = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    RepositoryComponent component = tempEntity
+        .newRepositoryComponent(repository.getId(), "pathname", new Date(timestamp), new Date());
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+    UnquarantinedComponentList components = client.getUnquarantinedComponents(timestamp);
+    assertThat(components.pathnames, contains(component.getPathname()));
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents_Error() throws Exception {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID);
+
+    try {
+      client.getUnquarantinedComponents(System.currentTimeMillis());
       fail("Expected exception");
     }
     catch (HttpResponseException e) {

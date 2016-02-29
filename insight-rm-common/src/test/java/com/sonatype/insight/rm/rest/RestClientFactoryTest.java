@@ -22,8 +22,10 @@ import com.sonatype.insight.rm.rest.RestClient.Repository;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -218,6 +220,62 @@ public class RestClientFactoryTest
 
     verify(firewallClient).getUnquarantinedComponents(0L);
     verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
+  public void testRestClientRepository_GetUnquarantinedComponents_UnknownRepository() throws Exception {
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    HttpResponseException httpResponseException = new HttpResponseException(404,
+        "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManagerInstanceId +
+            " and publicId=" + repositoryPublicId + ".");
+    when(firewallClient.getUnquarantinedComponents(any(Long.class)))
+        .thenThrow(httpResponseException);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    try {
+      repository.getUnquarantinedComponents(0L);
+      fail("Exception expected");
+    }
+    catch (HttpResponseException e) {
+      assertThat(e, sameInstance(httpResponseException));
+      verify(firewallClient).getUnquarantinedComponents(0L);
+      verifyNoMoreInteractions(firewallClient);
+    }
+  }
+
+  @Test
+  public void testRestClientRepository_GetUnquarantinedComponents_MethodNotAllowedOlderIQServer() throws Exception {
+    HttpResponseException httpResponseException = new HttpResponseException(405, "Method Not Allowed.");
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    when(firewallClient.getUnquarantinedComponents(any(Long.class)))
+        .thenThrow(httpResponseException);
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository = client.forRepository(repositoryManagerInstanceId, repositoryPublicId);
+    try {
+      repository.getUnquarantinedComponents(0L);
+      fail("Exception expected");
+    }
+    catch (UnsupportedOperationException e) {
+      assertThat((HttpResponseException) e.getCause(), sameInstance(httpResponseException));
+      verify(firewallClient).getUnquarantinedComponents(0L);
+      verifyNoMoreInteractions(firewallClient);
+    }
   }
 
   @Test

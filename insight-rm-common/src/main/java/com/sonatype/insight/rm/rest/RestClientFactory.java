@@ -115,7 +115,7 @@ public class RestClientFactory
 
     @Override
     public Resource getResource(String path) throws IOException, URISyntaxException {
-      return getResource(path, Collections.<String, String[]> emptyMap());
+      return getResource(path, Collections.<String, String[]>emptyMap());
     }
 
     @Override
@@ -193,8 +193,17 @@ public class RestClientFactory
 
     @Override
     public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {
-      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
-          .getUnquarantinedComponents(sinceUtcTimestamp);
+      try {
+        return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId)
+            .getUnquarantinedComponents(sinceUtcTimestamp);
+      }
+      catch (HttpResponseException e) {
+        if (e.getStatusCode() == 405) {
+          throw new UnsupportedOperationException("IQ Server doesn't support unquarantined component updates, " +
+              "upgrade it to version 1.20, or newer, to support it.", e);
+        }
+        throw e;
+      }
     }
   }
 

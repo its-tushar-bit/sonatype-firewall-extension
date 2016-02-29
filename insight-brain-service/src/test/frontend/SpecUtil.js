@@ -1,6 +1,7 @@
 window.CLM = {
   path: '../brain/'
 };
+window.clmBuildTimestamp = '';
 window.angularDebug = true;
 var SpecUtil = {
   setupProviders: function(applicationId, organizationId) {

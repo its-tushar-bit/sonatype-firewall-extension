@@ -6,5 +6,5 @@
 (function() {
   'use strict';
   angular.module('managementApp',
-    ['MainModule', 'OrganizationModule', 'ApplicationModule', 'proprietary.configuration.module', 'UserModule', 'RoleModule', 'LdapConfiguration', 'owner.manager.module']);
+    ['MainModule', 'proprietary.configuration.module', 'UserModule', 'RoleModule', 'LdapConfiguration', 'owner.manager.module']);
 }());

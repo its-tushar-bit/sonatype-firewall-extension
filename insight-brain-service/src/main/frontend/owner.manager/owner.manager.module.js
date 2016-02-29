@@ -9,7 +9,7 @@
   angular.module('owner.manager.module',
       [
         'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
-        'utility', 'PermissionServiceModule'
+        'utility', 'PermissionServiceModule', 'Policy'
       ])
       .config([
         '$stateProvider', function($stateProvider) {

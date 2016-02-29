@@ -64,7 +64,6 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.MediaTypeUtils;
@@ -116,8 +115,6 @@ public class ReportResource
 
   private final ComponentDetailsLoader componentDetailsLoader;
 
-  private final CurrentUser currentUser;
-
   private final VersionService versionService;
 
   @Inject
@@ -129,7 +126,6 @@ public class ReportResource
                         ApiReportDataServiceV2 reportDataService,
                         ReleaseGraphService releaseGraphService,
                         ComponentDetailsLoader componentDetailsLoader,
-                        CurrentUser currentUser,
                         VersionService versionService)
   {
     this.reportService = reportService;
@@ -140,7 +136,6 @@ public class ReportResource
     this.reportDataService = reportDataService;
     this.releaseGraphService = releaseGraphService;
     this.componentDetailsLoader = componentDetailsLoader;
-    this.currentUser = currentUser;
     this.versionService = versionService;
   }
 

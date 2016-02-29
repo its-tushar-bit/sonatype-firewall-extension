@@ -24,6 +24,10 @@
         return $state.current.name.indexOf('repositories') !== -1;
       }
 
+      function isRootOrg() {
+        return isOrganization() && $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
+      }
+
       function getServicePath() {
         return isApplication() ? 'application' : isOrganization() ? 'organization' :
             isRepositories() ? 'repository_container' : 'global';
@@ -175,6 +179,7 @@
 
         isApplication: isApplication,
         isOrganization: isOrganization,
+        isRootOrg: isRootOrg,
         isRepositories: isRepositories,
         isGlobal: function() {
           return !isApplication() && !isOrganization();

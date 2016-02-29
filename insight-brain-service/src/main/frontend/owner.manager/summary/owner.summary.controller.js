@@ -15,6 +15,7 @@
 
     vm.error = undefined;
     vm.isApp = CLMAppLocations.isApplication();
+    vm.isRootOrg = CLMAppLocations.isRootOrg();
     vm.owner = undefined;
     vm.stages = undefined;
     vm.doLoad = doLoad;

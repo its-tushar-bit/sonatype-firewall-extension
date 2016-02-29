@@ -7,7 +7,7 @@
   'use strict';
 
   function PolicyEditorController($q, $http, $stateParams, PolicyHierarchyStore, DeleteModalService,
-                                  SameOwnerStateNavigationService, CLMAppLocations, $state)
+                                  SameOwnerStateNavigationService, CLMAppLocations)
   {
     var vm = this,
         originalCategories,
@@ -29,7 +29,7 @@
     vm.submitError = undefined;
     vm.ownerName = undefined;
     vm.readOnly = undefined;
-    vm.isRoot = isRoot;
+    vm.isRootOrg = CLMAppLocations.isRootOrg();
 
     vm.doLoad();
 
@@ -148,15 +148,11 @@
     function isPolicyDirty() {
       return vm.dirtyPolicy.isDirty() || isInheritanceSectionDirty();
     }
-
-    function isRoot() {
-      return $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
-    }
   }
 
   PolicyEditorController.$inject = [
     '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService', 'SameOwnerStateNavigationService',
-    'CLMAppLocations', '$state'
+    'CLMAppLocations'
   ];
 
   angular //

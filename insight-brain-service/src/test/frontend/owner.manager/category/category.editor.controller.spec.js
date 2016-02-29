@@ -61,14 +61,21 @@ describe('category.editor.controller.spec.js', function() {
           {$stateParams: {categoryId: 'testCatId'}, $scope: scope, DeleteModalService: mockDeleteService});
     });
     var spy = spyOn(mockDeleteService, 'deleteCustom').andReturn(deleteServiceResourceDefer.promise);
-    mockCategoryStore.resolveGet([{tags: [{id: 'testCatId_neg'}, {id: 'testCatId', $clone: angular.noop}]}]);
-    mockCategoryStore.resolveGetApplied(
-        {data: {applicationTagsByOwner: [{applicationTags: [{applicationId: 'testApp'}]}]}});
+    mockCategory.id = 'testCatId';
+    mockCategoryStore.resolveGet([{tags: [{id: 'testCatId_neg'}, mockCategory]}]);
+    mockCategoryStore.resolveGetApplied({
+      data: {
+        applicationTagsByOwner: [
+          {
+            applicationTags: [
+              {applicationId: 'testApp', tagId: 'testCatId'}, {applicationId: 'testApp', tagId: 'testCatId_neg'}
+            ]
+          }
+        ]
+      }
+    });
     mockApplicationStore.resolveGet([{id: 'testApp_neg', name: 'Test App Neg'}, {id: 'testApp', name: 'Test App'}]);
-
     $timeout.flush();
-
-    vm.dirtyCategory = {$delete: angular.noop};
 
     vm.deleteCategory();
 

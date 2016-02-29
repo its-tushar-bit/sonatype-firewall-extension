@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.functional.brain;
+
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
+import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+
+import com.codeborne.selenide.Condition;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+public class OrganizationLTGEditorTest
+    extends AbstractLTGEditorTest
+{
+
+  private Organization organization;
+
+  @Before
+  public void init() {
+    organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
+    super.init(organization);
+  }
+
+  @Test
+  public void testCreateLTG() {
+    String ltgName = "Test LTG";
+    
+    SummaryTile.addLTGButton().click();
+    assertNewLTGStateIsCorrect();
+    LTGEditorPage.ltgName().val("$$$"); // invalid characters
+    PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();
+    LTGEditorPage.saveButton().shouldHave(DISABLED);
+
+    LTGEditorPage.ltgName().val(ltgName);
+    PopoverViolations.on(LTGEditorPage.ltgName()).shouldNotExist();
+    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
+
+    assertNewLTGStateIsCorrect();
+    LicenseThreatGroup ltg = ltgDAO.getByOwnerIdAndName(currentOwner.getId(), ltgName);
+    assertThat(ltg, notNullValue());
+    assertThat(ltg.getName(), is(ltgName));
+    assertThat(ltg.getThreatLevel(), is(LTGEditorPage.DEFAULT_THREAT_LEVEL));
+    assertThat(ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId()), empty());
+  }
+
+  @Override
+  protected void assertNewLTGStateIsCorrect() {
+    waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
+    LTGEditorPage.title().shouldHave(text("New"));
+    LTGEditorPage.ltgName().shouldBe(visible, Condition.empty).shouldHave(CLM.INITIAL_VALUE);
+    assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
+    LTGEditorPage.saveButton().shouldHave(DISABLED);
+  }
+}

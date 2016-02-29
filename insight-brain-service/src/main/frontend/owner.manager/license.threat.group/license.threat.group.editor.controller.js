@@ -6,12 +6,13 @@
 (function(angular) {
   'use strict';
 
-  function LicenseThreatGroupEditorController($q, $http, $stateParams, CLMLocations, licenseGroupStore, CLMAppLocations,
+  function LicenseThreatGroupEditorController($q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMAppLocations,
                                               DeleteModalService, SameOwnerStateNavigationService)
   {
     var originalPickedLicenseIds = [],
         vm = this;
 
+    vm.isApp = CLMAppLocations.isApplication();
     vm.availableLicenses = [];
     vm.deleteLTG = deleteLTG;
     vm.dirtyLTG = undefined;
@@ -23,12 +24,23 @@
     vm.save = save;
     vm.siblings = [];
     vm.submitError = undefined;
+    vm.nextLTG = undefined;
 
     vm.doLoad();
 
     function deleteLTG() {
       DeleteModalService.deleteResource('License Threat Group', vm.dirtyLTG.name, vm.dirtyLTG).then(function() {
-        SameOwnerStateNavigationService.goEdit('create-license-threat-group');
+        if (vm.isApp) {
+          if (vm.nextLTG) {
+            SameOwnerStateNavigationService.goEdit('edit-license-threat-group', {licenseThreatGroupId: vm.nextLTG.id});
+          }
+          else {
+            $state.go('management.view.application', {applicationPublicId: $stateParams.applicationPublicId});
+          }
+        }
+        else {
+          SameOwnerStateNavigationService.goEdit('create-license-threat-group');
+        }
       });
     }
 
@@ -46,6 +58,13 @@
         vm.availableLicenses = results[0].data;
 
         results[1].data.licenseThreatGroupsByOwner.forEach(function(owner) {
+          owner.licenseThreatGroups.some(function(ltg, index) {
+            if ($stateParams.licenseThreatGroupId && ltg.id === $stateParams.licenseThreatGroupId) {
+              vm.nextLTG = owner.licenseThreatGroups[index + 1] || owner.licenseThreatGroups[index - 1];
+              return true;
+            }
+          });
+
           vm.siblings = vm.siblings.concat(owner.licenseThreatGroups);
         });
 
@@ -123,7 +142,7 @@
   }
 
   LicenseThreatGroupEditorController.$inject = [
-    '$q', '$http', '$stateParams', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations', 'DeleteModalService',
+    '$q', '$http', '$stateParams', '$state', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations', 'DeleteModalService',
     'SameOwnerStateNavigationService'
   ];
 

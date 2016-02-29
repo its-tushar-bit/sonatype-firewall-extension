@@ -101,7 +101,7 @@
         -->{{ label.label }}
       </a>
     </div>
-    <div id="licenseThreatGroupTreeViewGroup" ng-if="!vm.isRepositories" class="tree-view-group">
+    <div id="licenseThreatGroupTreeViewGroup" ng-if="!vm.isRepositories && (vm.details.licenseThreatGroups.length > 0 || !vm.isApp)" class="tree-view-group">
       <a class="tree-view-item"
          ng-click="vm.ltgState.isExpanded = vm.state.$current.name.endsWith('license-threat-group') ? true : !vm.ltgState.isExpanded">
         <div class="twisty-container">

@@ -13,6 +13,9 @@ describe('license.threat.group.editor.controller.spec.js', function() {
       scope,
       $timeout,
       $httpBackend,
+      $state = {
+        go: jasmine.createSpy('go')
+      },
       deleteServiceResourceDefer,
       mockDeleteService,
       CLMLocations,
@@ -179,6 +182,33 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     $timeout.flush();
 
     expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-license-threat-group');
+  }));
+
+  it('After last app LTG delete goes to summary page', inject(function($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+      SameOwnerStateNavigationService: SameOwnerStateNavigationService,
+      $stateParams: {licenseThreatGroupId: '1', applicationPublicId: '123'},
+      $state: $state,
+      DeleteModalService: mockDeleteService
+    });
+    
+    vm.isApp = true;
+
+    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
+    $httpBackend.whenGET(CLMAppLocations.getApplicableLicenseGroupsUrl()).respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
+
+    mockLTG.id = '1';
+    mockLTG.licenses = [];
+    mockLicenseGroupStore.resolveGet([mockLTG]);
+    $timeout.flush();
+    $httpBackend.flush();
+
+    vm.deleteLTG();
+    deleteServiceResourceDefer.resolve();
+    $timeout.flush();
+
+    expect($state.go).toHaveBeenCalledWith('management.view.application', {applicationPublicId : '123'});
   }));
 
   it('Picks the licenses that are already included with the LTG', inject(function($controller) {

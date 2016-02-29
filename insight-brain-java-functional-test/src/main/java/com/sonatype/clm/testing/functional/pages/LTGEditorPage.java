@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.insight.brain.model.OwnerType;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -13,13 +15,14 @@ public class LTGEditorPage
 {
   public static final int DEFAULT_THREAT_LEVEL = 5;
 
-  public static String urlToEdit(String ownerId, String licenseThreatGroupId) {
-    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/licenseThreatGroup/"
-        + licenseThreatGroupId;
+  public static String urlToEdit(OwnerType ownerType, String ownerId, String licenseThreatGroupId) {
+    return "new/assets/index.html#/management/edit/" + ownerType.toString() + "/" + ownerId +
+        "/licenseThreatGroup/" + licenseThreatGroupId;
   }
 
-  public static String urlToCreate(String ownerId) {
-    return "new/assets/index.html#/management/edit/organization/" + ownerId + "/licenseThreatGroup";
+  public static String urlToCreate(OwnerType ownerType, String ownerId) {
+    return "new/assets/index.html#/management/edit/" + ownerType.toString() + "/" + ownerId +
+        "/licenseThreatGroup";
   }
 
   public static SelenideElement title() {

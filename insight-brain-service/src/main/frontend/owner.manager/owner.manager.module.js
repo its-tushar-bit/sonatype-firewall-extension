@@ -166,6 +166,16 @@
                   templateUrl: 'owner.manager/policy/monitored.stage.editor.view.html?' + clmBuildTimestamp
                 }
               }
+            }).state('management.edit.' + ownerType.name + '.edit-license-threat-group', {
+              parent: 'management.edit.' + ownerType.name,
+              url: '/licenseThreatGroup/{licenseThreatGroupId}',
+              views: {
+                '@management': {
+                  controller: 'license.threat.group.editor.controller',
+                  controllerAs: 'vm',
+                  templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' + clmBuildTimestamp
+                }
+              }
             });
           });
 
@@ -202,16 +212,6 @@
           }).state('management.edit.organization.create-license-threat-group', {
             parent: 'management.edit.organization',
             url: '/licenseThreatGroup',
-            views: {
-              '@management': {
-                controller: 'license.threat.group.editor.controller',
-                controllerAs: 'vm',
-                templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' + clmBuildTimestamp
-              }
-            }
-          }).state('management.edit.organization.edit-license-threat-group', {
-            parent: 'management.edit.organization',
-            url: '/licenseThreatGroup/{licenseThreatGroupId}',
             views: {
               '@management': {
                 controller: 'license.threat.group.editor.controller',

@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
-import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -22,38 +21,38 @@ import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class LTGEditorTest
+public abstract class AbstractLTGEditorTest
     extends AbstractFunctionalTest
 {
-  private Organization organization;
+  protected Owner currentOwner;
 
-  private LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+  protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private LicenseDAO licenseDAO = new LicenseDAO();
+  protected LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
 
-  private LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  protected LicenseDAO licenseDAO = new LicenseDAO();
+
+  protected LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @BeforeClass
   public static void beforeClass() {
@@ -61,41 +60,18 @@ public class LTGEditorTest
     loginAsAdmin();
   }
 
-  @Before
-  public void init() {
-    organization = tempEntity.newOrganization();
-    refreshOrOpen(OwnerSummaryPage.url("organization", organization.getId()));
-  }
-
-  @Test
-  public void testCreateLTG() {
-    String ltgName = "Test LTG";
-
-    SummaryTile.addLTGButton().click();
-    assertNewLTGStateIsCorrect();
-    LTGEditorPage.ltgName().val("$$$"); // invalid characters
-    PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();
-    LTGEditorPage.saveButton().shouldHave(DISABLED);
-
-    LTGEditorPage.ltgName().val(ltgName);
-    PopoverViolations.on(LTGEditorPage.ltgName()).shouldNotExist();
-    LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
-
-    assertNewLTGStateIsCorrect();
-    LicenseThreatGroup ltg = ltgDAO.getByOwnerIdAndName(organization.getId(), ltgName);
-    assertThat(ltg, notNullValue());
-    assertThat(ltg.getName(), is(ltgName));
-    assertThat(ltg.getThreatLevel(), is(LTGEditorPage.DEFAULT_THREAT_LEVEL));
-    assertThat(ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId()), empty());
+  protected void init(Owner currentOwner) {
+    this.currentOwner = currentOwner;
+    open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
   }
 
   @Test
   public void testEditLTG() {
-    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId(), "original name", 1);
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(currentOwner.getId(), "original name", 1);
     refresh();
 
     SummaryTile.localLTG(ltg.getName()).click();
-    waitUntilUrl(LTGEditorPage.urlToEdit(organization.getId(), ltg.getId()));
+    waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
@@ -143,16 +119,7 @@ public class LTGEditorTest
     assertThat(ltgDAO.getById(ltg.getId()), is(nullValue()));
   }
 
-  private void assertNewLTGStateIsCorrect() {
-    waitUntilUrl(LTGEditorPage.urlToCreate(organization.getId()));
-    LTGEditorPage.title().shouldHave(text("New"));
-    LTGEditorPage.ltgName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
-    assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
-    LTGEditorPage.saveButton().shouldHave(DISABLED);
-  }
-
-  private void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {
+  protected void assertThreatLevelSelectorDefaultState(int selectedThreatLevel) {
     ThreatLevelSelector.root().shouldBe(visible);
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
     ThreatLevelSelector.threatLevelList().shouldBe(visible);
@@ -193,4 +160,6 @@ public class LTGEditorTest
       DoubleColumnPicker.pickedItem(i).name().shouldHave(text(pickedLicenseNames.get(i)));
     }
   }
+
+  protected abstract void assertNewLTGStateIsCorrect();
 }

@@ -194,27 +194,30 @@ public abstract class AbstractOwnerDetailsEditingTest
   }
 
   private void testRouting_LicenseThreatGroups(OwnerDetailTreeViewGroup detailGroup) {
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+    if (!currentOwner.getType().equals(OwnerType.APPLICATION)) {
+      detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+      detailGroup.twisty().click();
+      detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
 
-    if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
       detailGroup.items().shouldHaveSize(3);
       detailGroup.item(1).root().shouldBe(visible).click();
       detailGroup.item(1).root().shouldBe(CLM.SELECTED);
-      waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getPublicId()));
+      waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner.getType(), currentOwner.getPublicId()));
 
       back();
 
       detailGroup.item(2).root().shouldBe(visible).shouldHave(text(ltg.getName())).click();
       detailGroup.item(2).root().shouldBe(CLM.SELECTED);
-      waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getPublicId(), ltg.getId()));
+      waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg.getId()));
 
       back();
-    }
 
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+      detailGroup.twisty().click();
+      detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+    }
+    else {
+      detailGroup.twisty().shouldNotBe(visible);
+    }
   }
 
   private void testRouting_Access(OwnerDetailTreeViewGroup detailGroup) {

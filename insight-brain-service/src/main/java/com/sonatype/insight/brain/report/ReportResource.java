@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.report;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -78,7 +77,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.codehaus.plexus.util.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -460,36 +458,6 @@ public class ReportResource
       }
     }
     return componentAlerts;
-  }
-
-  @POST
-  @Path("augmentData/{path}")
-  @Authorize(permission = Permission.WRITE)
-  public Response augmentData(@AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String applicationPublicId,
-                              @PathParam("path") final String path,
-                              @QueryParam("where") final String where,
-                              @Context final HttpServletRequest request,
-                              final InputStream stream) throws IOException
-  {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    String appId = application.getId();
-
-    if (path.endsWith(".json") && request.getContentLength() > 0) {
-      final ContainerNode<?> data;
-      try {
-        data = JsonUtils.parse(IOUtil.toByteArray(stream));
-      }
-      finally {
-        IOUtil.close(stream);
-      }
-
-      // Save the data in the audit log
-      final JsonStore store = JsonUtils.fileStore(work.getAuditDir(appId));
-      store.commit(path, JsonUtils.stamp(currentUser.getUsername(), currentUser.getIP(request), where, data));
-
-      return Response.ok().build();
-    }
-    return Response.status(Status.BAD_REQUEST).build();
   }
 
   @GET

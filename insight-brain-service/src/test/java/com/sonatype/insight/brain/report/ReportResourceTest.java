@@ -641,55 +641,6 @@ public class ReportResourceTest
   }
 
   @Test
-  public void testAugmentDataAndAuditLog() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
-    final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    HttpRequest request = restRequest(applicationPublicId, scanId);
-    HttpRequest augmentRequest = request.subpath("augmentData", "security.json").query(
-        "user=test&where=ReportResourceTest");
-    HttpRequest browseRequest = request.subpath("browseReport", "security.json");
-
-    mockReport(scanId, "/ReportResourceTest/report.zip");
-
-    // attempt a bad edit (no augmented data)
-    HttpResponse response = augmentRequest.post();
-    assertResponseStatus(400, response); // bad request; no changes
-
-    // verify nothing has changed
-    response = browseRequest.get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
-
-    // edit the BoM
-    final String bomEdit = "[{\"groupId\":\"commons-pool\",\"artifactId\":\"commons-pool\",\"version\":\"1.4\",\"modified\":\"true\"}]:";
-
-    response = request.subpath("augmentData", "bom.json").query("user=test&where=ReportResourceTest").body(bomEdit)
-        .post();
-    assertResponseStatus(200, response);
-
-    // verify the BoM change has been applied
-    response = request.subpath("browseReport", "bom.json").get();
-    assertResponseStatus(200, response);
-    boolean found = false;
-    final String bomJsonString = response.getBodyText();
-    final JsonNode bomJsonData = JsonUtils.parse(bomJsonString).get("aaData");
-    for (JsonNode bomJsonNode : bomJsonData) {
-      if ("commons-pool".equals(bomJsonNode.get("groupId").asText())
-          && "commons-pool".equals(bomJsonNode.get("artifactId").asText())
-          && "1.4".equals(bomJsonNode.get("version").asText())) {
-        found = true;
-        Assert.assertEquals("true", bomJsonNode.path("modified").asText());
-        break;
-      }
-    }
-    Assert.assertTrue("Did not find augmented record in BoM", found);
-  }
-
-  @Test
   public void test_LicenseOverrides_Organization() throws Exception {
     final String applicationPublicId = "ReportResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
@@ -835,38 +786,6 @@ public class ReportResourceTest
       }
     }
     assertThat("Did not find expected overridden security vulnerability", found, is(1));
-  }
-
-  @Test
-  public void testCanAuditNonReportData() throws Exception {
-    final String applicationPublicId = "ReportResourceTest_AppId";
-    tempEntity.newApplicationWithParent(applicationPublicId);
-    final String scanId = "ReportResourceTest_ScanId";
-    final String licenseFingerprint = "ReportResourceTest_LicenseFingerprint";
-    setLicenseFingerprint(licenseFingerprint);
-
-    HttpRequest request = restRequest(applicationPublicId, scanId);
-
-    mockReport(scanId, "/ReportResourceTest/report.zip");
-
-    // audit non-report data
-    final String extra = "{ \"policy\" : \"TEST\", \"result\" : \"OK\" }";
-    HttpResponse response = request.subpath("augmentData", "extra.json").query("user=test&where=ReportResourceTest")
-        .body(extra).post();
-    assertResponseStatus(200, response);
-
-    // verify can still access report
-    response = request.subpath("browseReport", "security.json").get();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), not(containsString("\"state\" : \"accepted\"")));
-
-    // check the audit log reflects this change
-    response = request.subpath("auditLog", "extra.json").get();
-    assertResponseStatus(200, response);
-
-    final String feed = "{ \"aaData\" : [ { \"policy\" : \"TEST\", \"result\" : \"OK\", \"user\" : \"admin\", \"ip\" : \"127.0.0.1\", \"where\" : \"ReportResourceTest\", \"filename\" : \"extra.json\" } ] }";
-
-    assertThat(response.getBodyText().replaceFirst("\"time\" : [0-9]+,", ""), equalToIgnoringWhiteSpace(feed));
   }
 
   @Test

@@ -23,15 +23,6 @@ public class ReportResourceAuthzTest
   }
 
   @Test
-  public void testAugmentData() throws Exception {
-    grantWritePermission(app.getId());
-
-    HttpRequest request = restRequest().path("augmentData/{path}").parameter(app.getPublicId(), "scanId", "test.json")
-        .body("{}");
-    testAuthzPost(request);
-  }
-
-  @Test
   public void testAuditLog() throws Exception {
     grantReadPermission(app.getId());
 

@@ -17,6 +17,8 @@ describe('category.editor.controller.spec.js', function() {
       SameOwnerStateNavigationService = {goEdit: function(to, params) {}},
       mockCategoryStore = StoreUtils().createMockStore('TagStore'),
       mockApplicationStore = StoreUtils().createMockStore('ApplicationStore'),
+      mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
+      mockPolicyTagStore = StoreUtils().createMockStore('PolicyTagStore'),
       mockCategory = ResourceUtils().createMockResource(),
       mockOwner = {store: {create: function(){return 'stub';}}, tags: [mockCategory]};
 
@@ -47,12 +49,12 @@ describe('category.editor.controller.spec.js', function() {
     inject(function($controller) {
       vm = $controller('category.editor.controller', {$scope: scope});
     });
-    resolveLoad([{store: {create: function(){}}, tags: ['a', 'b']},{tags: ['c']}]);
+    resolveLoad([{store: {create: function(){}}, tags: [{id: 'a'},{id: 'b'}]},{tags: [{id: 'c'}]}]);
     $timeout.flush();
-    expect(vm.siblings).toContain('a');
-    expect(vm.siblings).toContain('b');
-    expect(vm.siblings).toContain('c');
     expect(vm.siblings.length).toBe(3);
+    expect(vm.siblings[0].id).toBe('a');
+    expect(vm.siblings[1].id).toBe('b');
+    expect(vm.siblings[2].id).toBe('c');
   });
 
   it('Captures names of associated apps', function() {
@@ -75,6 +77,9 @@ describe('category.editor.controller.spec.js', function() {
       }
     });
     mockApplicationStore.resolveGet([{id: 'testApp_neg', name: 'Test App Neg'}, {id: 'testApp', name: 'Test App'}]);
+    mockPolicyStore.resolveGet([]);
+    mockPolicyTagStore.resolveGetApplied({data: []});
+
     $timeout.flush();
 
     vm.deleteCategory();
@@ -156,11 +161,18 @@ describe('category.editor.controller.spec.js', function() {
   });
 
   function resolveLoad(categoryStorePayload) {
-    categoryStorePayload[0].tags.forEach(function(cat) {
+    categoryStorePayload.forEach(function(owner){
+      owner.tags.forEach(function(cat) {
       cat.$clone = jasmine.createSpy().andReturn(cat);
     });
+    });
+
     mockCategoryStore.resolveGet(categoryStorePayload);
     mockApplicationStore.resolveGet([{id: 'testAppId'}]);
+    mockPolicyStore.resolveGet([]);
+    mockPolicyTagStore.resolveGetApplied({
+      data: []
+    });
     mockCategoryStore.resolveGetApplied(
         {data: {applicationTagsByOwner: [{applicationTags: [{applicationId: 'testAppId'}]}]}});
   }

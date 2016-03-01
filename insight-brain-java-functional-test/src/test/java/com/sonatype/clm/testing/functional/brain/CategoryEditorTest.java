@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.ErrorModal;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.apache.commons.lang.StringUtils;
@@ -186,6 +188,19 @@ public class CategoryEditorTest
 
     assertThat(tagDAO.getById(category.getId()), is(nullValue()));
     assertThat(appTagDao.getByApplicationIdAndTagId(app.getId(), category.getId()), is(nullValue()));
+  }
+
+  @Test
+  public void testDeleteCategoryAssociatedToPolicy() {
+    Tag category = tempEntity.newTag(org.getId());
+    Policy policy = tempEntity.newPolicy("policy");
+    tempEntity.newPolicyTag(policy.getId(), category.getId());
+
+    refreshOrOpen(CategoryEditorPage.urlToEdit(org.getId(), category.getId()));
+    refresh();
+    CategoryEditorPage.deleteButton().shouldBe(visible).click();
+    ErrorModal.closeButton().shouldBe(visible).click();
+    ErrorModal.root().shouldNotBe(visible);
   }
 
   private void assertInitialStateIsCorrect() {

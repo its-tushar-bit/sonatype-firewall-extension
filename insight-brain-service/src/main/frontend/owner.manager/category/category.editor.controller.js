@@ -6,9 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($q, $stateParams, TagStore, ApplicationStore, DeleteModalService, SameOwnerStateNavigationService) {
+  function CategoryEditorController($stateParams, TagStore, DeleteModalService, SameOwnerStateNavigationService, $q,
+                                    PolicyTagStore, PolicyHierarchyStore, ApplicationStore, ErrorModalService)
+  {
     var vm = this,
         store,
+        tagPolicyList = [],
         associatedAppNames = [],
         warningMessage;
 
@@ -25,27 +28,40 @@
     vm.doLoad();
 
     function deleteCategory() {
-      DeleteModalService.deleteCustom('Delete Category', warningMessage, 'Deleting',
+      if (tagPolicyList.length) {
+        ErrorModalService.show('Delete Application Category',
+            'You cannot delete this application category because it is associated with the following policies: ' +
+            tagPolicyList.join(', '));
+      }
+      else {
+        DeleteModalService.deleteCustom('Delete Category', warningMessage, 'Deleting',
           angular.bind(vm.dirtyCategory, vm.dirtyCategory.$delete)).then(function() {
-        SameOwnerStateNavigationService.goEdit('create-category');
-      });
+          SameOwnerStateNavigationService.goEdit('create-category');
+        });
+      }
     }
 
     function doLoad() {
-      var promises = [TagStore[vm.loadError ? 'refresh' : 'get'](), TagStore.getApplied(), ApplicationStore.get()];
-      $q.all(promises).then(function(results) {
-        var tagStore = results[0];
+      var promises = [
+        TagStore[vm.loadError ? 'refresh' : 'get'](), TagStore.getApplied(), ApplicationStore.get(),
+        PolicyHierarchyStore.get(), PolicyTagStore.getApplied()
+      ], policyMap = {};
 
-        tagStore.forEach(function(owner){
+      $q.all(promises).then(function(results) {
+        results[0].forEach(function(owner) {
           vm.siblings = vm.siblings.concat(owner.tags);
         });
-        store = tagStore[0].store;
+
+        //the first owner is the local one
+        var owner = results[0][0];
+        store = owner.store;
         if (!$stateParams.categoryId) {
           vm.dirtyCategory = store.create();
-        } else {
-          tagStore[0].tags.forEach(function(categoryCandidate) {
-            if (categoryCandidate.id === $stateParams.categoryId) {
-              vm.dirtyCategory = categoryCandidate.$clone();
+        }
+        else {
+          owner.tags.some(function(tag) {
+            if (tag.id === $stateParams.categoryId) {
+              vm.dirtyCategory = tag.$clone();
               // gather the names of associated applications
               results[1].data.applicationTagsByOwner[0].applicationTags.forEach(function(applicationTag) {
                 if (applicationTag.tagId === vm.dirtyCategory.id) {
@@ -60,6 +76,18 @@
               if (associatedAppNames.length > 0) {
                 warningMessage += ' It is in use by the following applications: ' + associatedAppNames.join(', ') + '.';
               }
+              //gather a map of policy id/names
+              results[3].forEach(function(owner) {
+                owner.policies.forEach(function(policy) {
+                  policyMap[policy.id] = policy.name;
+                });
+              });
+              //gather list of policy names using this application category
+              results[4].data.forEach(function(policyTag) {
+                if (policyTag.tagId === $stateParams.categoryId) {
+                  tagPolicyList.push(policyMap[policyTag.policyId]);
+                }
+              });
               return true;
             }
           });
@@ -91,7 +119,8 @@
   }
 
   CategoryEditorController.$inject = [
-    '$q', '$stateParams', 'TagStore', 'ApplicationStore', 'DeleteModalService', 'SameOwnerStateNavigationService'
+    '$stateParams', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q', 'PolicyTagStore',
+    'PolicyHierarchyStore', 'ApplicationStore', 'ErrorModalService'
   ];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);

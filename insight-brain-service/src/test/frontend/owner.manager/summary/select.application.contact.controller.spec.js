@@ -26,7 +26,7 @@ describe('select.application.contact.controller.spec.js', function() {
         deleteCustom: function() {
           return deleteServiceResourceDefer.promise;
         }
-      }
+      };
       $httpBackend = _$httpBackend_;
   }));
 
@@ -35,7 +35,7 @@ describe('select.application.contact.controller.spec.js', function() {
       vm = $controller('select.application.contact.controller', {$scope: scope, owner: {contact: {internalName: 'JohnDoe'}}});
     });
     vm.search();
-    $httpBackend.whenGET("/rest/user/global/global/query").respond({members: [{internalName: 'Foo'}, {internalName: 'JohnDoe'}]});
+    $httpBackend.whenGET("/rest/user/global/global/query?groups=false").respond({members: [{internalName: 'Foo'}, {internalName: 'JohnDoe'}]});
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.selected).toBeDefined();

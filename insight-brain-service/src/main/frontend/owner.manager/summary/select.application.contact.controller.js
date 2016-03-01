@@ -28,7 +28,8 @@
       delete vm.selected;
       $http.get(CLMAppLocations.getFindUsersUrl(), {
         params : {
-          q : vm.query
+          q : vm.query,
+          groups: false
         }
       }).then(function (result) {
         vm.users = result.data.members;

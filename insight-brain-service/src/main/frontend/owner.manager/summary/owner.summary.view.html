@@ -247,14 +247,14 @@
             No local threat groups defined
           </div>
           <ul>
-            <li class="simple clickable" ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups"
+            <li class="simple" ng-class="{ clickable: !ownerLicenseGroupList.inherited }" ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups"
                 ng-click="vm.editLTG(licenseThreatGroup.id, ownerLicenseGroupList.inherited)">
               <span class='threat-legend threat-level-{{licenseThreatGroup.threatLevel}}'>&nbsp;</span>
 
               <div class="threat-group-title">
                 {{licenseThreatGroup.name}}
               </div>
-              <i class="fa fa-chevron-right"></i>
+              <i ng-if="!ownerLicenseGroupList.inherited" class="fa fa-chevron-right"></i>
             </li>
           </ul>
         </div>

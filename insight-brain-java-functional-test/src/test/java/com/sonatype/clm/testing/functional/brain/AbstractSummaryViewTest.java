@@ -601,7 +601,7 @@ public abstract class AbstractSummaryViewTest
                 .shouldHave(ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
           }
 
-          actualLTG.chevron().shouldBe(visible);
+          actualLTG.chevron().shouldNotBe(visible);
         }
       }
     }

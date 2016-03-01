@@ -53,7 +53,7 @@ public class OrganizationPolicyEditorTest
     inheritance.root.shouldBe(visible);
     inheritance.allChildrenInheritRadio().shouldBe(visible).shouldBe(selected);
     inheritance.allChildrenInheritRadio().shouldHave(allRadioText(organization.getName()));
-    inheritance.specifiedChildrenInheritRadio().shouldBe(visible).shouldNotBe(selected);
+    inheritance.specifiedChildrenInheritRadio().shouldBe(visible, enabled).shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(organization.getName()));
     inheritance.associationEditor().root().shouldNotBe(visible);
   }

@@ -169,7 +169,7 @@ describe('policy.editor.controller.spec.js', function() {
 
     it('Properly loads categories', inject(function($controller) {
       vm = $controller('policy.editor.controller',
-          {$scope: scope, $stateParams: {policyId: '456'}});
+          {$scope: scope, $stateParams: {organizationId: 'orgownerid', policyId: '456'}});
       mockPolicy.id = '456';
 
       resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],

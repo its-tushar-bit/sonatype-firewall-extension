@@ -6,8 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function OwnerEditorController($scope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings, messages,
-                                 CLMAppLocations)
+  function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings,
+                                 messages, CLMAppLocations)
   {
     var vm = this,
         deferred;
@@ -101,6 +101,7 @@
         }
         return deferred.promise;
       })).then(function(updatedOwner) {
+        $rootScope.$broadcast('owner.updated', updatedOwner, ownerType, isNew);
         if (isNew) {
           $state.go('management.view.' + ownerType, ownerType === 'application' ? {
             applicationPublicId: updatedOwner.publicId
@@ -147,8 +148,8 @@
   }
 
   OwnerEditorController.$inject = [
-    '$scope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings', 'Messages',
-    'CLMAppLocations'
+    '$scope', '$rootScope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings',
+    'Messages', 'CLMAppLocations'
   ];
 
   angular //

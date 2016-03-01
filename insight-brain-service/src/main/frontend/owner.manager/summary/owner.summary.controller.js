@@ -6,10 +6,10 @@
 (function(angular) {
   'use strict';
 
-  function OwnerSummaryController($state, $scope, $q, $http, $window, OwnerEditor, ApplicationStore, OrganizationStore,
-                                  CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
+  function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, OwnerEditor, ApplicationStore,
+                                  OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
                                   SelectApplicationContactService, EvaluateApplicationModalService,
-                                  ImportPolicyModalService)
+                                  ImportPolicyModalService, ownerConstant)
   {
     var vm = this;
 
@@ -32,7 +32,7 @@
     var siblings,
         stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
         idField = vm.isApp ? 'publicId' : 'id',
-        type = vm.isApp ? 'application' : 'organization',
+        type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,
         id = $state.params[stateIdField];
 
     vm.doLoad();
@@ -98,6 +98,7 @@
 
     function deleteOwner() {
       DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function() {
+        $rootScope.$broadcast('owner.deleted', vm.owner, type);
         vm.goToParentView();
       });
     }
@@ -130,9 +131,10 @@
   }
 
   OwnerSummaryController.$inject = [
-    '$state', '$scope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore', 'OrganizationStore',
-    'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService', 'SelectApplicationContactService',
-    'evaluate.application.modal.service', 'import.policy.modal.service'
+    '$state', '$scope', '$rootScope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore',
+    'OrganizationStore', 'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService',
+    'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
+    'owner.constant'
   ];
 
   angular//

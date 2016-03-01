@@ -59,8 +59,9 @@
                                 collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
         </div><!--
            --><i class="fa fa-sitemap tree-view-icon icon-12px inverse"></i><!--
-           --><span data-tooltip="{{organization.synthetic ? 'You do not have permission to view this organization.' : ''}}"
-                    data-tooltip-placement="right" data-tooltip-append-to-body="true">
+           --><span
+              data-tooltip="{{::organization.synthetic ? 'You do not have permission to view this organization.' : ''}}"
+              data-tooltip-placement="right" data-tooltip-append-to-body="true">
                 {{organization.name}}
               </span>
         <div class="tree-view-new-application"

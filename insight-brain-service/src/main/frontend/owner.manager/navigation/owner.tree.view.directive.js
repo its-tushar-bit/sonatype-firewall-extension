@@ -6,16 +6,17 @@
 (function(angular) {
   'use strict';
 
-  function OwnerTreeViewController($q, $scope, $state, $stateParams, $timeout, organizationStore, applicationStore,
-    OwnerEditor, PermissionService)
+  function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLocations, organizationStore,
+                                   applicationStore, OwnerEditor, PermissionService, ownerConstant)
   {
-    var vm = this, organizations, applications, organizationWatcher, applicationWatcher,
-        lastOrganizations = [], lastApplications = [];
+    var vm = this;
 
     vm.filter = {
       value: ''
     };
     vm.$state = $state;
+    vm.rootOrganization = undefined;
+    vm.organizations = undefined;
 
     vm.createApplication = createApplication;
     vm.createOrganization = createOrganization;
@@ -25,136 +26,138 @@
     $scope.$watch('vm.filter.value', filter, function(error) {
       vm.error = error;
     });
-    $scope.$on('$destroy', function() {
-      clearCollectionWatchers();
+
+    $scope.$on('owner.updated', function(e, owner, type, isNew) {
+      owner = angular.copy(owner);
+      owner.isVisible = true;
+      if (isNew) {
+        if (type === ownerConstant.APPLICATION_TYPE) {
+          seekOrganizationById(owner.organizationId, function(organization) {
+            organization.applications.push(owner);
+            vm.selectedParentOrganization = organization;
+            organization.isExpanded = true;
+          });
+        }
+        else {
+          owner.isExpanded = true;
+          owner.applications = [];
+          vm.organizations.push(owner);
+        }
+      }
+      else {
+        if (type === ownerConstant.APPLICATION_TYPE) {
+          seekApplication(owner, function(application) {
+            application.name = owner.name;
+          });
+        }
+        else if (owner.id === ownerConstant.ROOT_ORGANIZATION_ID) {
+          vm.rootOrganization.name = owner.name;
+        }
+        else {
+          seekOrganizationById(owner.id, function(organization) {
+            organization.name = owner.name;
+          });
+        }
+      }
+    });
+
+    $scope.$on('owner.deleted', function(e, owner, ownerType) {
+      if (ownerType === ownerConstant.APPLICATION_TYPE) {
+        seekApplication(owner, function(application, organization, index) {
+          organization.applications.splice(index, 1);
+        });
+      }
+      else {
+        seekOrganizationById(owner.id, function(organization, index) {
+          vm.organizations.splice(index, 1);
+        });
+      }
+    });
+
+    $scope.$on('$stateChangeSuccess', function() {
+      vm.selectedParentOrganization = null;
+      assignSelectedParentOrganization();
     });
 
     vm.doLoad();
 
-    function assignSelectedParentOrganization() {
-      vm.organizations.some(function(organization){
-        if (isOrganizationChildSelected(organization)) {
-          vm.selectedParentOrganization = organization;
+    function doLoad() {
+      delete vm.error;
+      delete vm.rootOrganization;
+
+      var loadPromises = [
+        $http.get(CLMLocations.getOwnerListUrl()),
+        PermissionService.isContextAuthorized(['READ'], 'repository_container')
+      ];
+
+      $q.all(loadPromises).then(function(results) {
+        vm.organizations = results[0].data.organizations;
+        vm.showRepositories = results[1];
+
+        vm.organizations.forEach(function(organization, index) {
+          organization.isVisible = true;
+          organization.isExpanded = $state.includes('management.view.organization', {organizationId: organization.id});
+
+          organization.applications.forEach(function(application) {
+            application.isVisible = true;
+          });
+
+          if (organization.id === ownerConstant.ROOT_ORGANIZATION_ID) {
+            vm.rootOrganization = organization;
+            vm.organizations.splice(index, 1);
+          }
+        });
+
+        assignSelectedParentOrganization();
+      });
+    }
+
+    function seekApplication(application, fn) {
+      vm.organizations.some(function(organization) {
+        if (organization.id === application.organizationId) {
+          organization.applications.some(function(app, index) {
+            if (app.id === application.id) {
+              fn(app, organization, index);
+              return true;
+            }
+          });
           return true;
         }
       });
     }
 
-    function applicationsCollectionChanged() {
-      var found,
-          difference = getCollectionDifference(applications, lastApplications);
-
-      if (difference.removed) {
-        difference.removed.some(function(removedApplication) {
-          vm.organizations.some(function(organization) {
-            found = false;
-            if (removedApplication.organizationId === organization.id) {
-              organization.applications.some(function(application, applicationIndex) {
-                if (removedApplication.id === application.id) {
-                  organization.applications.splice(applicationIndex, 1);
-                  found = true;
-                  return found;
-                }
-              });
-            }
-            return found;
-          });
-        });
-      }
-      if (difference.added) {
-        var touchedOrganizations = {};
-        difference.added.forEach(function(addedApplication) {
-          found = false;
-          vm.organizations.some(function(organization) {
-            if (addedApplication.organizationId === organization.id) {
-              found = true;
-              organization.applications.push(newApplication(addedApplication));
-              touchedOrganizations[organization.id] = organization;
-              return found;
-            }
-          });
-          // Create synthetic organizations for application parents which the user does not have permissions
-          // These do not need to be backed by a Resource as the user cannot edit them
-          if (!found) {
-            var syntheticOrganization = newOrganization({
-              id: addedApplication.organizationId,
-              name: addedApplication.organizationName
-            });
-            syntheticOrganization.synthetic = true;
-            syntheticOrganization.applications.push(newApplication(addedApplication));
-            vm.organizations.push(syntheticOrganization);
-            touchedOrganizations[syntheticOrganization.id] = syntheticOrganization;
-          }
-        });
-
-        for (var key in touchedOrganizations) {
-          if (touchedOrganizations.hasOwnProperty(key)) {
-            touchedOrganizations[key].isExpanded = $state.includes('management.view.organization',
-                {organizationId: touchedOrganizations[key].id}) || isOrganizationChildSelected(touchedOrganizations[key]);
-          }
+    function seekOrganizationById(organizationId, fn) {
+      vm.organizations.some(function(organization, index) {
+        if (organization.id === organizationId) {
+          fn(organization, index);
+          return true;
         }
-      }
-
-      lastApplications = angular.copy(applications);
+      });
     }
 
-    function clearCollectionWatchers() {
-      if (organizationWatcher) {
-        organizationWatcher();
-      }
-      if (applicationWatcher) {
-        applicationWatcher();
-      }
+    function assignSelectedParentOrganization() {
+      vm.organizations.some(function(organization) {
+        if (isOrganizationChildSelected(organization)) {
+          vm.selectedParentOrganization = organization;
+          organization.isExpanded = true;
+          return true;
+        }
+      });
     }
 
     function createApplication(parent) {
       var application = applicationStore.create();
       application.organizationId = parent.id;
-      OwnerEditor.open(application, 'application', applications);
+      var applications = vm.organizations.map(function(organization) {
+        return organization.applications;
+      });
+      applications = [].concat.apply([], applications);
+      OwnerEditor.open(application, ownerConstant.APPLICATION_TYPE, applications);
     }
 
     function createOrganization() {
-      OwnerEditor.open(organizationStore.create(), 'organization', organizations);
-    }
-
-    function doLoad() {
-      delete vm.error;
-      delete vm.rootOrganization;
-      clearCollectionWatchers();
-
-      var loadPromises = [
-        organizationStore.refresh(),
-        applicationStore.refresh(),
-        PermissionService.isContextAuthorized(['READ'], 'repository_container')
-      ];
-
-      $q.all(loadPromises).then(function(results) {
-        vm.organizations = [];
-        organizations = results[0];
-        applications = results[1];
-        vm.showRepositories = results[2];
-
-        organizationsCollectionChanged();
-        applicationsCollectionChanged();
-        assignSelectedParentOrganization();
-
-        $scope.$on('$stateChangeSuccess', function () {
-          vm.selectedParentOrganization = null;
-          assignSelectedParentOrganization();
-        });
-
-        // Apply this after first digest to prevent collection changed event on first load
-        $timeout(function() {
-          organizationWatcher = $scope.$watch(function() {
-            return organizations.length;
-          }, organizationsCollectionChanged);
-          applicationWatcher = $scope.$watch(function() {
-            return applications.length;
-          }, applicationsCollectionChanged);
-        });
-      }, function(error) {
-        vm.error = error;
-      });
+      var organizations = vm.organizations.concat(vm.rootOrganization);
+      OwnerEditor.open(organizationStore.create(), ownerConstant.ORGANIZATION_TYPE, organizations);
     }
 
     function filter() {
@@ -168,7 +171,7 @@
         var organizationFuse = new Fuse(vm.organizations, {
           id: 'id',
           threshold: 0.3,
-          keys: [ 'name' ]
+          keys: ['name']
         });
 
         filteredOrganizations = organizationFuse.search(filterValue);
@@ -188,7 +191,7 @@
           var applicationFuse = new Fuse(organization.applications, {
             id: 'id',
             threshold: 0.3,
-            keys: [ 'name' ]
+            keys: ['name']
           });
           filteredApplications = applicationFuse.search(filterValue);
         }
@@ -197,46 +200,19 @@
           var application = organization.applications[j];
 
           application.isVisible = organizationVisible || !filterValue || filterValue.length < 3 ||
-          filteredApplications.indexOf(application.id) > -1;
+              filteredApplications.indexOf(application.id) > -1;
           anyApplicationVisible = anyApplicationVisible || application.isVisible;
         }
 
-        organization.isExpanded = !filterValue ||
-        filterValue.length < 3 ? organization.isExpanded : anyApplicationVisible;
+        organization.isExpanded = Boolean(filterValue && (filterValue.length < 3 ? false : anyApplicationVisible)) ||
+            isOrganizationChildSelected(organization);
         organization.isVisible = organizationVisible || anyApplicationVisible;
       }
     }
 
-    function getCollectionDifference(newCollection, oldCollection) {
-      var removedOwners, addedOwners;
-
-      if (oldCollection.length > newCollection.length) {
-        var newCollectionIds = {};
-        newCollection.forEach(function(newOwner) {
-          newCollectionIds[newOwner.id] = true;
-        });
-        removedOwners = oldCollection.filter(function(oldOwner) {
-          return !newCollectionIds[oldOwner.id];
-        });
-      } else {
-        var oldCollectionIds = {};
-        oldCollection.forEach(function(oldOwner) {
-          oldCollectionIds[oldOwner.id] = true;
-        });
-        addedOwners = newCollection.filter(function(newOwner) {
-          return !oldCollectionIds[newOwner.id];
-        });
-      }
-
-      return {
-        added: addedOwners,
-        removed: removedOwners
-      };
-    }
-
     function goToOrganizationIfNotSynthetic(organization) {
       if (!organization.synthetic) {
-        $state.go('management.view.organization', { organizationId: organization.id});
+        $state.go('management.view.organization', {organizationId: organization.id});
       }
     }
 
@@ -256,78 +232,11 @@
 
       return false;
     }
-
-    function newApplication(applicationResource) {
-      var application = {
-        id: applicationResource.id,
-        name: applicationResource.name,
-        organizationId: applicationResource.organizationId,
-        publicId: applicationResource.publicId,
-        isVisible: true
-      };
-
-      $scope.$watch(function() {
-        return applicationResource.name;
-      }, function(newApplicationName) {
-        application.name = newApplicationName;
-      });
-
-      return application;
-    }
-
-    function newOrganization(organizationResource) {
-      var organization = {
-        id: organizationResource.id,
-        name: organizationResource.name,
-        parentOrganizationId: organizationResource.parentOrganizationId,
-        applications: [],
-        isVisible: true,
-        isExpanded: $state.includes('management.view.organization', {organizationId: organizationResource.id})
-      };
-
-      $scope.$watch(function() {
-        return organizationResource.name;
-      }, function(newOrganizationName) {
-        organization.name = newOrganizationName;
-      });
-
-      return organization;
-    }
-
-    function organizationsCollectionChanged() {
-      var difference = getCollectionDifference(organizations, lastOrganizations);
-
-      if (difference.removed) {
-        difference.removed.forEach(function(removedOrganization) {
-          vm.organizations.some(function(organization, organizationIndex) {
-            if (removedOrganization.id === organization.id) {
-              vm.organizations.splice(organizationIndex, 1);
-              return true;
-            }
-          });
-        });
-      }
-      if (difference.added) {
-        difference.added.forEach(function(addedOrganization) {
-          vm.organizations.push(newOrganization(addedOrganization));
-        });
-      }
-
-      lastOrganizations = angular.copy(organizations);
-
-      //set root org then dump it from the list
-      vm.organizations.some(function(organization, index) {
-        if (!organization.parentOrganizationId && !organization.synthetic) {
-          vm.rootOrganization = organization;
-          vm.organizations.splice(index,1);
-          return true;
-        }
-      });
-    }
   }
+
   OwnerTreeViewController.$inject = [
-    '$q', '$scope', '$state', '$stateParams', '$timeout', 'OrganizationStore', 'ApplicationStore', 'OwnerEditorService',
-    'PermissionService'
+    '$q', '$scope', '$state', '$stateParams', '$http', 'CLMLocations', 'OrganizationStore', 'ApplicationStore',
+    'OwnerEditorService', 'PermissionService', 'owner.constant'
   ];
 
   angular

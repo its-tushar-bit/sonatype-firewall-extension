@@ -227,6 +227,13 @@
          */
         getRepositoriesUrl: function() {
           return baseUrl.get() + '/rest/repositories/';
+        },
+
+        /**
+         * @since 1.20.0
+         */
+        getOwnerListUrl: function() {
+          return baseUrl.get() + '/rest/sidebar';
         }
       };
     }

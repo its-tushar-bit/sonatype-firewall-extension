@@ -9,7 +9,7 @@
   angular.module('owner.manager.module',
       [
         'Stores', 'Labels', 'Tags', 'LicenseThreatGroup', 'ui.bootstrap', 'ui.router', 'AngularCommon', 'FormsModule',
-        'utility', 'PermissionServiceModule', 'Policy'
+        'utility', 'PermissionServiceModule', 'Policy', 'CLMLocation'
       ])
       .config([
         '$stateProvider', function($stateProvider) {
@@ -173,7 +173,8 @@
                 '@management': {
                   controller: 'license.threat.group.editor.controller',
                   controllerAs: 'vm',
-                  templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' + clmBuildTimestamp
+                  templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +
+                  clmBuildTimestamp
                 }
               }
             });
@@ -216,7 +217,8 @@
               '@management': {
                 controller: 'license.threat.group.editor.controller',
                 controllerAs: 'vm',
-                templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' + clmBuildTimestamp
+                templateUrl: 'owner.manager/license.threat.group/license.threat.group.editor.view.html?' +
+                clmBuildTimestamp
               }
             }
           });

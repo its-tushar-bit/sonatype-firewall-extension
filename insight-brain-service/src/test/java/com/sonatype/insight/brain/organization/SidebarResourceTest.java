@@ -24,6 +24,16 @@ public class SidebarResourceTest
   }
 
   @Test
+  public void testGetOwnerList() throws Exception {
+    HttpResponse response = restRequest().get();
+
+    assertResponseStatus(200, response);
+    assertNotNull(response.getBodyBytes());
+    OwnerListDTO ownerListDTO = response.getBody(OwnerListDTO.class);
+    assertNotNull(ownerListDTO);
+  }
+
+  @Test
   public void testGetOwnerDetails_Organization() throws Exception {
     HttpResponse response = restRequest().path(SidebarResource.GET_OWNER_DETAILS_PATH)
         .parameter(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).get();

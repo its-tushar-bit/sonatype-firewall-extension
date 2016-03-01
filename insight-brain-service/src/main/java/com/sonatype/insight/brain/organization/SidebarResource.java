@@ -37,6 +37,17 @@ public class SidebarResource
   }
 
   /**
+   * Returns the owner hierarchy for use in the Owner Tree View
+   *
+   * @since 1.20.0
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public OwnerListDTO getOwnerList() {
+    return sidebarService.getOwnerList();
+  }
+
+  /**
    * Returns a owner's entities that can be managed by the Owner Management UI.
    *
    * @since 1.18.0

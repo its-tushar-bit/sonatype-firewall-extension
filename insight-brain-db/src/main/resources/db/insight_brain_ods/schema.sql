@@ -467,6 +467,7 @@ CREATE TABLE repository_component (
   CONSTRAINT repository_component_uk UNIQUE KEY (repository_id, pathname)
 );
 CREATE INDEX repository_component_hash_idx ON repository_component(hash);
+CREATE INDEX repository_component_repository_unquarantine_idx ON repository_component(repository_id, unquarantine_time);
 
 CREATE TABLE repository_policy_violation (
   repository_policy_violation_id varchar(50) NOT NULL,

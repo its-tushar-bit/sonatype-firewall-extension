@@ -34,7 +34,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
 {
   protected OrganizationDAO orgDAO = new OrganizationDAO();
 
-  private HttpRequest restRequest(String ownerId) {
+  protected HttpRequest restRequest(String ownerId) {
     return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(getOwnerType(), ownerId);
   }
 
@@ -80,62 +80,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     Assert.assertNotNull(new LicenseThreatGroupDAO().getById(ltg.getId()));
   }
 
-  protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {
-    HttpRequest request = restRequest(ownerPublicId);
-
-    // Get all groups
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-    LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    int initialLicenseThreatGroupCount = groups.length;
-
-    // Add a group
-    LicenseThreatGroup group = new LicenseThreatGroup();
-    group.setOwnerId(ownerId);
-    group.setName("AAA My group");
-    group.setThreatLevel(10);
-    response = request.body(group).post();
-    assertResponseStatus(200, response);
-    group = response.getBody(LicenseThreatGroup.class);
-    assertLicenseThreatGroup(ownerId, "AAA My group", 10, group);
-
-    // Get all groups
-    response = request.get();
-    assertResponseStatus(200, response);
-    groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
-    assertLicenseThreatGroup(ownerId, "AAA My group", 10, groups[0]);
-
-    // Update a group
-    group.setName("AAA My updated group");
-    response = request.body(group).put();
-    assertResponseStatus(200, response);
-    group = response.getBody(LicenseThreatGroup.class);
-    assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, group);
-
-    // Get all groups
-    response = request.get();
-    assertResponseStatus(200, response);
-    groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
-    assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
-
-    // Delete a group
-    response = request.subpath(group.getId()).delete();
-    assertResponseStatus(204, response);
-
-    // Get all groups
-    response = request.get();
-    assertResponseStatus(200, response);
-    groups = response.getBody(LicenseThreatGroup[].class);
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(initialLicenseThreatGroupCount, groups.length);
-  }
-
-  private void assertLicenseThreatGroup(String ownerId, String name, int threatLevel, LicenseThreatGroup actual) {
+  protected void assertLicenseThreatGroup(String ownerId, String name, int threatLevel, LicenseThreatGroup actual) {
     Assert.assertEquals(ownerId, actual.getOwnerId());
     Assert.assertEquals(name, actual.getName());
     Assert.assertEquals(threatLevel, actual.getThreatLevel());

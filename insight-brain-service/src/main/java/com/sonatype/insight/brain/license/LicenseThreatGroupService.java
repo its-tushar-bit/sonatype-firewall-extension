@@ -92,14 +92,11 @@ public class LicenseThreatGroupService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public LicenseThreatGroup addLicenseThreatGroup(@AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
-                                                  @AuthzContext(AuthzContext.Key.ID) String ownerId,
+  public LicenseThreatGroup addLicenseThreatGroup(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
                                                   final LicenseThreatGroup licenseThreatGroup)
   {
-    ownerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-
     licenseThreatGroup.setId(null);
-    licenseThreatGroup.setOwnerId(ownerId);
+    licenseThreatGroup.setOwnerId(orgId);
     licenseThreatGroupDAO.insert(licenseThreatGroup);
 
     return licenseThreatGroup;

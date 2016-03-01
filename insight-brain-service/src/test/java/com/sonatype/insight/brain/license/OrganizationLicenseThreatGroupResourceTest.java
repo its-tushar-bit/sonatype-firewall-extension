@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.license;
 
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupWithLicenses;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -85,6 +89,61 @@ public class OrganizationLicenseThreatGroupResourceTest
     for (LicenseThreatGroupWithLicenses ltgwl : altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups) {
       assertThat(ltgwl.licenses, hasSize(1));
     }
+  }
+
+  protected void testCRUD(String ownerPublicId, String ownerId) throws Exception {
+    HttpRequest request = restRequest(ownerPublicId);
+
+    // Get all groups
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    LicenseThreatGroup[] groups = response.getBody(LicenseThreatGroup[].class);
+    Assert.assertNotNull(groups);
+    int initialLicenseThreatGroupCount = groups.length;
+
+    // Add a group
+    LicenseThreatGroup group = new LicenseThreatGroup();
+    group.setOwnerId(ownerId);
+    group.setName("AAA My group");
+    group.setThreatLevel(10);
+    response = request.body(group).post();
+    assertResponseStatus(200, response);
+    group = response.getBody(LicenseThreatGroup.class);
+    assertLicenseThreatGroup(ownerId, "AAA My group", 10, group);
+
+    // Get all groups
+    response = request.get();
+    assertResponseStatus(200, response);
+    groups = response.getBody(LicenseThreatGroup[].class);
+    Assert.assertNotNull(groups);
+    Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
+    assertLicenseThreatGroup(ownerId, "AAA My group", 10, groups[0]);
+
+    // Update a group
+    group.setName("AAA My updated group");
+    response = request.body(group).put();
+    assertResponseStatus(200, response);
+    group = response.getBody(LicenseThreatGroup.class);
+    assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, group);
+
+    // Get all groups
+    response = request.get();
+    assertResponseStatus(200, response);
+    groups = response.getBody(LicenseThreatGroup[].class);
+    Assert.assertNotNull(groups);
+    Assert.assertEquals(initialLicenseThreatGroupCount + 1, groups.length);
+    assertLicenseThreatGroup(ownerId, "AAA My updated group", 10, groups[0]);
+
+    // Delete a group
+    response = request.subpath(group.getId()).delete();
+    assertResponseStatus(204, response);
+
+    // Get all groups
+    response = request.get();
+    assertResponseStatus(200, response);
+    groups = response.getBody(LicenseThreatGroup[].class);
+    Assert.assertNotNull(groups);
+    Assert.assertEquals(initialLicenseThreatGroupCount, groups.length);
   }
 
   @Override

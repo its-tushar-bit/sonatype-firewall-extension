@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 @Named
 @Path(LicenseThreatGroupResource.RESOURCE_PATH)
@@ -63,7 +64,10 @@ public class LicenseThreatGroupResource
                                                   @PathParam("ownerId") String ownerId,
                                                   LicenseThreatGroup licenseThreatGroup)
   {
-    return licenseThreatGroupService.addLicenseThreatGroup(ownerType, ownerId, licenseThreatGroup);
+    if (ownerType.equals(OwnerType.APPLICATION)) {
+      throw new BadRequestException("Applications are not allowed to add license threat groups.");
+    }
+    return licenseThreatGroupService.addLicenseThreatGroup(ownerId, licenseThreatGroup);
   }
 
   @PUT

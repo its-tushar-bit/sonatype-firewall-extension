@@ -138,6 +138,7 @@
 
     <js>/cip/ci-license-tab.js</js>
 
+    <js>/cip/ci-vulnerability-tab.js</js>
     <js>/cip/ci-version-graph.js</js>
   </group>
 
@@ -315,11 +316,8 @@
 
   <group name='cip.vulnerability.editor'>
     <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module.js</js>
-    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.create.service.js</js>
-    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.controller.js</js>
-    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.directive.js</js>
-    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.table.controller.js</js>
-    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.table.directive.js</js>
+    <js>/audit-report/cip/cip.vulnerability.editor/*.js</js>
+    <css>/cip/cip.vulnerability.editor/*.scss</css>
   </group>
 
   <group name='cip-claim-component'>

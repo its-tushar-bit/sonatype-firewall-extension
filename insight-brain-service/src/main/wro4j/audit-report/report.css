@@ -485,3 +485,7 @@ i.unknown-format {
   display: block;
   white-space: initial;
 }
+
+#audit-report {
+  width: 990px;
+}

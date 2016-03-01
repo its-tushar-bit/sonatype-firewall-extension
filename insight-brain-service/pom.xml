@@ -572,6 +572,10 @@
                 <include>wro4j/cip/**/*module.js</include>
                 <include>wro4j/cip/*.js</include>
                 <include>wro4j/cip/**/*.js</include>
+                <include>wro4j/audit-report/cip/cip.vulnerability.editor/*module.js</include>
+                <include>wro4j/audit-report/cip/cip.vulnerability.editor/*.js</include>
+                <include>wro4j/audit-report/cip/vulnerability.details/*module.js</include>
+                <include>wro4j/audit-report/cip/vulnerability.details/*.js</include>
                 <include>wro4j/util/AngularCommon.js</include>
                 <include>wro4j/util/CLMAppLocation.js</include>
                 <include>wro4j/util/CLMLocation.js</include>

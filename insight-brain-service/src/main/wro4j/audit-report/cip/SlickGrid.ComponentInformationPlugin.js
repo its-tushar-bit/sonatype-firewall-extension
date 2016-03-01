@@ -59,8 +59,15 @@
     }
   };
 
-  ComponentInformationPanelPlugin.prototype.rowChangedFn = function() {
+  ComponentInformationPanelPlugin.prototype.rowChangedFn = function(e, args) {
     var me = this;
+
+    // The row selection & content may not actually have changed...
+    if (args.rows.length === 1 && args.rows[0] === me.currentRow) {
+      if (angular.equals(me.grid.getDataItem(args.rows[0]), me.selectedComponent.get())) {
+        return;
+      }
+    }
 
     //do in future to allow proper row to get selected
     setTimeout(function() {

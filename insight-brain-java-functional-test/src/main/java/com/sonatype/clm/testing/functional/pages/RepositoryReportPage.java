@@ -193,6 +193,10 @@ public class RepositoryReportPage
       return $("#informationPanel");
     }
 
+    public static SelenideElement cipCloseButton() {
+      return $("#informationPanel .close");
+    }
+
     public static SelenideElement cipTab(String name) {
       return cip().$$(".nav > li a").find(text(name));
     }

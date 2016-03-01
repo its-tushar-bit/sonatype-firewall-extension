@@ -96,6 +96,7 @@ public abstract class AbstractFunctionalTest
   @BeforeClass
   public static void setup() {
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
+
     /*
      * Temporary workaround to an issue when running tests with phantomjs driver < 2.0.0. The issue is that the
      * phantomjs browser does not render the app/org summary page properly. All items outside of the default scroll

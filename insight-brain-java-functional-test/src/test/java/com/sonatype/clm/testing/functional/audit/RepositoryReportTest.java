@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -59,20 +60,36 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.present;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 public class RepositoryReportTest
@@ -86,6 +103,8 @@ public class RepositoryReportTest
   private Policy policy;
 
   private String criticalComponentHash;
+
+  private InsightWork insightWork;
 
   @BeforeClass
   public static void startup() {
@@ -101,6 +120,8 @@ public class RepositoryReportTest
     policy = createPolicy(10, "Extremely Bad", MatchStateConditionType.ID, "is", MatchState.EXACT.toString());
 
     createPolicy(9, "Not in summary", CoordinatesConditionType.ID, "match", "critical:*");
+
+    insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
   }
 
   @Test
@@ -397,9 +418,6 @@ public class RepositoryReportTest
     // label persisted
     assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash).size(), is(2));
 
-    // CIP should disappear
-    RepositoryReportPage.Table.cip().shouldNotBe(visible);
-
     // new table row for the policy violation
     Filter.allViolationsButton().click();
     assertRow(RepositoryReportPage.Table.rowByName("Bad Label"), new ExpectedRow(Table.IGNORED_SCORE, "Bad Label",
@@ -531,6 +549,12 @@ public class RepositoryReportTest
   }
 
   private void testVulnerabilityCIP() throws IOException {
+    // PhantomJS for some reason renders the % based width as 10001px which makes some elements non-visible.
+    Selenide.executeJavaScript(
+        "$('head').append($('<style/>').text('#vulnerability-editor-table-wrapper .topBorder, #vulnerability-editor-table-wrapper .well { width: 435px !important; }'));");
+
+    tempEntity.newSecurityVulnerabilityOverride(repo.getId(), criticalComponentHash, "cve", "CVE-1234-56789",
+        SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     openCIP(0, "Vulnerabilities");
 
     VulnerabilityCIP.rows().shouldHaveSize(3);
@@ -546,7 +570,8 @@ public class RepositoryReportTest
             + criticalComponentHash,
         FileUtils.readFileToString(new File("src/test/resources/vulnerabilityDetails/vulnerabilityDetails.json")), 200);
 
-    VulnerabilityCIP.row(0).info().click();
+    SVTableRow row = VulnerabilityCIP.row(0);
+    row.info().click();
 
     SVDetailModal.root().shouldBe(Condition.visible);
 
@@ -555,8 +580,25 @@ public class RepositoryReportTest
 
     SVDetailModal.closeButton().shouldBe(Condition.enabled).click();
 
+    row.identifier().click();
+    row.shouldBe(SVTableRow.ROW_SELECTED);
+
+    VulnerabilityCIP.Editor.status().shouldBe(visible).shouldHave(text("Acknowledged"))
+        .val("string:" + SecurityVulnerabilityOverrideStatus.OPEN.toString());
+    VulnerabilityCIP.Editor.comment().val("woot");
+    VulnerabilityCIP.Editor.saveButton().click();
+
+    row.status().shouldHave(text("Open"));
+    assertNull(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(repo.getId(),
+        criticalComponentHash, "cve", "CVE-1234-56789"));
+
+    ArrayNode allLogJsonData = JsonUtils.read(new File(insightWork.getAuditDir(repo.getId()), "security.json"));
+    assertNotNull(allLogJsonData);
+    assertThat(allLogJsonData.size(), is(1));
+    assertThat(allLogJsonData.get(0).get("data").get("comment").asText(), is("woot"));
+
     // close CIP
-    RepositoryReportPage.Table.row(0).component().click();
+    RepositoryReportPage.Table.cipCloseButton().click();
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 

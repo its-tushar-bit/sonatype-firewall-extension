@@ -437,7 +437,7 @@ body {
 }
 
 /* icons */
-.slick-cell i {
+.slick-cell > i {
   vertical-align: middle;
   width: 23px;
 }

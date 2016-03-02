@@ -133,7 +133,7 @@ public final class Report
     return new ReportEntry(reportEntry.name, reportEntry.time, augmentedIndexHtmlContent.getBytes("UTF-8"));
   }
 
-  public static void applyChanges(final Application application, final File reportFile, final File auditDir)
+  static void applyChanges(final Application application, final File reportFile, final File auditDir)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -157,14 +157,6 @@ public final class Report
     final ContainerNode<?> security = JsonUtils.parse(getEntry(reportFile, "security.json").buf);
     final ContainerNode<?> licenses = JsonUtils.parse(getEntry(reportFile, "licenses.json").buf);
     final ContainerNode<?> partialMatched = JsonUtils.parse(getEntry(reportFile, "partialmatched.json").buf);
-
-    for (final String name : auditStore.list()) {
-      // make sure we don't wipe out the earlier component-identification changes
-      if (!"security.json".equals(name) && !"licenses.json".equals(name) && !"partialmatched.json".equals(name)
-          && !"bom.json".equals(name)) {
-        applyChanges(reportFile, name, auditStore);
-      }
-    }
 
     if (ReportType.SAMPLE.equals(reportType)) {
       return;
@@ -561,8 +553,6 @@ public final class Report
     // must start from un-edited data
     ContainerNode<?> partialmatchedJsonData = loadReportEntry(reportFile, "partialmatched.json");
     removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
-    // now apply any data edits
-    auditStore.augment(partialmatchedJsonData, "partialmatched.json");
     saveReportEntry(reportFile, "partialmatched.json", partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
@@ -627,18 +617,6 @@ public final class Report
 
   public static void deletePdf(final File reportFile) {
     Pdf.delete(reportFile);
-  }
-
-  private static ContainerNode<?> applyChanges(final File reportFile, final String name, final JsonStore auditStore)
-      throws IOException
-  {
-    ContainerNode<?> table = null;
-    final ReportEntry entry = extractEntry(reportFile, name); // must start from un-edited data
-    if (entry != null) {
-      table = auditStore.augment(JsonUtils.parse(entry.buf), name);
-      saveReportEntry(reportFile, name, table);
-    }
-    return table;
   }
 
   private static ReportEntry extractEntry(final File reportFile, final String name) throws IOException {

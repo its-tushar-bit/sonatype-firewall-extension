@@ -130,7 +130,7 @@ public class ComponentInfoService
       componentDetails = createEmptyComponentDetails(hash, identifier);
     }
 
-    Component component = loadComponent(owner, componentDetails);
+    Component component = componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     component.setProprietary(proprietary);
 
     // Evaluate the policies
@@ -234,16 +234,12 @@ public class ComponentInfoService
 
     for (ComponentDetails componentDetails : componentDetailsList.getList()) {
       componentDetails.setMatchState(StringUtils.isEmpty(matchState) ? MatchState.EXACT.getId() : matchState);
-      loadComponent(owner, componentDetails);
+      componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     }
 
     log.debug("Loaded component details list in {} ms.", System.currentTimeMillis() - start);
 
     return componentDetailsList;
-  }
-
-  private Component loadComponent(Owner owner, ComponentDetails componentDetails) {
-    return componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
   }
 
   /**
@@ -267,7 +263,7 @@ public class ComponentInfoService
 
     ComponentDetails componentDetails = getComponentDetailsFromHDS(null, null, componentIdentifier, httpRequest);
 
-    loadComponent(owner, componentDetails);
+    componentDetailsLoader.augmentComponentDetails(owner, componentDetails);
     result.declaredlicenses = getLicensesWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
     result.observedlicenses = getLicensesWithThreatLevels(owner, componentDetails.getObservedLicenses());
     result.effectiveLicenses = getLicensesWithThreatLevels(owner, componentDetails.getEffectiveLicenses());

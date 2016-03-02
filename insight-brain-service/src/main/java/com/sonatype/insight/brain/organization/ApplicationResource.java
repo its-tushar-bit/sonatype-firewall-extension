@@ -286,7 +286,6 @@ public class ApplicationResource
     final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs = applicationAdapter
         .createApplicationManagementSummaries(applications);
 
-    // Now evaluate the policy for each
     loadPolicyEvaluations(applicationManagementSummaryDTOs);
 
     return applicationManagementSummaryDTOs;

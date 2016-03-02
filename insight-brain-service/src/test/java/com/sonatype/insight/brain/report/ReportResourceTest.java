@@ -80,7 +80,15 @@ import org.jvnet.mock_javamail.Mailbox;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -91,10 +99,6 @@ import static org.junit.Assert.assertTrue;
 public class ReportResourceTest
     extends AbstractResourceTest
 {
-
-  private static final ComponentIdentifier COMMONS_POOL_ID = ComponentIdentifier.createMavenCoordinates("commons-pool",
-      "commons-pool", "1.4");
-
   private HttpRequest restRequest(String appId, String scanId) {
     return restRequest().path(ReportResource.RESOURCE_PATH).parameter(appId, scanId);
   }
@@ -670,7 +674,9 @@ public class ReportResourceTest
     Assert.assertEquals("Did not find expected license", 1, found);
 
     // Override the license at organization level
-    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), COMMONS_POOL_ID,
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("commons-pool",
+        "commons-pool", "1.4");
+    LicenseOverride orgLicenseOverride = new LicenseOverride(application.getOrganizationId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-3.0", "My org license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
         .parameter(OwnerType.ORGANIZATION, application.getOrganizationId()).body(orgLicenseOverride).post();
@@ -703,7 +709,7 @@ public class ReportResourceTest
     Assert.assertEquals("Did not find expected overridden license", 1, found);
 
     // Override the license at application level
-    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), COMMONS_POOL_ID,
+    LicenseOverride appLicenseOverride = new LicenseOverride(application.getId(), componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0", "My app license override");
     response = restRequest().path(LicenseOverrideResource.RESOURCE_PATH)
         .parameter(OwnerType.APPLICATION, application.getPublicId()).body(appLicenseOverride).post();

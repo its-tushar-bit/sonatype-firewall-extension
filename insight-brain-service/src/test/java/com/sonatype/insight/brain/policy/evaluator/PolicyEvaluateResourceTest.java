@@ -549,7 +549,7 @@ public class PolicyEvaluateResourceTest
   }
 
   @Test
-  public void testEvaluate_LicenseOverride_DefinedAtOrgLevel() throws Exception {
+  public void testEvaluate_LicenseOverride() throws Exception {
     String scanId = "testEvaluate_LicenseOverride_DefinedAtOrgLevel";
 
     Constraint constraint1 = new Constraint(null /* constraintId */, "Constraint 1", LogicalOperator.AND);

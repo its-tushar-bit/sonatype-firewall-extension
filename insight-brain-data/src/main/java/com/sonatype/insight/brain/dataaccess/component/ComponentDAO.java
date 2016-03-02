@@ -81,7 +81,7 @@ public class ComponentDAO
     }
   }
 
-  public List<Component> getAll(byte[] bomData) {
+  private List<Component> getAll(byte[] bomData) {
     List<Component> components = new ArrayList<>();
 
     JsonNode bomJson = loadJson(bomData);
@@ -129,6 +129,12 @@ public class ComponentDAO
     return components;
   }
 
+  /**
+   * Loads component data for an application from report data and from the database.
+   * 
+   * WARNING! This method is used by the PolicyEvaluationMigrator to load data for migration, so it must remain
+   * compatible with the data format(s) and source(s) at the time the PolicyEvaluationMigrator was introduced.
+   */
   public List<Component> getAll(Application application,
                                 final byte[] licenseData,
                                 final byte[] securityData,
@@ -286,7 +292,7 @@ public class ComponentDAO
   public void loadLicenseThreatGroups(String ownerId, Component component) {
     // Gather all license ids
     Set<String> licenseIds = new LinkedHashSet<>();
-    if (!component.getLicenseOverrideIds().isEmpty()) {
+    if (component.isLicenseOverridden()) {
       licenseIds.addAll(component.getLicenseOverrideIds());
     }
     else {

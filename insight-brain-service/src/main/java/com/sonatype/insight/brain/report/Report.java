@@ -243,7 +243,7 @@ public final class Report
         final Component matchedComponent = new ComponentDAO().getComponent(application, matchedComponentJsonNode);
         ObjectNode matchedComponentNode = (ObjectNode) matchedComponentJsonNode;
         matchedComponentNode.put("effectiveLicenseThreat", matchedComponent.getLicenseThreatLevel());
-        if (!matchedComponent.getLicenseOverrideIds().isEmpty()) {
+        if (matchedComponent.isLicenseOverridden()) {
           matchedComponentNode.put("overriddenLicenseThreat", matchedComponent.getLicenseThreatLevel());
         }
       }

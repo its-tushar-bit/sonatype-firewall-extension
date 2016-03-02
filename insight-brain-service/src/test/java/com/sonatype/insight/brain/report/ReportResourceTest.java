@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportDataDTOV2;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.component.HashComponentIdentifierDTO;
 import com.sonatype.insight.brain.component.HashComponentIdentifierResource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -117,8 +118,7 @@ public class ReportResourceTest
     Date createTime = new Date();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     hashComponentIdentifier.setCreateTime(createTime);
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+    tempEntity.newClaimedComponent(hashComponentIdentifier);
 
     String applicationPublicId = "testClaimedComponent_AppId";
     tempEntity.newApplicationWithParent(applicationPublicId);
@@ -186,8 +186,6 @@ public class ReportResourceTest
     assertFalse(partialmatched.contains("commons-httpclient"));
     assertTrue(partialmatched.contains("c32df577f739535648b0"));
     assertTrue(partialmatched.contains("org.slf4j.api_1.6.1.v20100831-0715.jar"));
-
-    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test
@@ -204,8 +202,7 @@ public class ReportResourceTest
     Date createTime = new Date();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     hashComponentIdentifier.setCreateTime(createTime);
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+    tempEntity.newClaimedComponent(hashComponentIdentifier);
 
     String applicationPublicId = "testClaimedComponent_AppId";
     Application application = tempEntity.newApplicationWithParent(applicationPublicId);
@@ -231,8 +228,6 @@ public class ReportResourceTest
     assertTrue(licensesJsonData.contains(hash));
     assertTrue(licensesJsonData.contains(artifactId));
     assertFalse(licensesJsonData.contains("commons-httpclient"));
-
-    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test
@@ -263,6 +258,8 @@ public class ReportResourceTest
     mockComponentSummary(componentIdentifier, ComponentSummary.create(false));
     response = restRequest().path(HashComponentIdentifierResource.RESOURCE_PATH).body(hashComponentIdentifier).post();
     assertResponseStatus(200, response);
+    HashComponentIdentifierDTO hashComponentIdentifierDTO = response.getBody(HashComponentIdentifierDTO.class);
+    tempEntity.register(new HashComponentIdentifierDAO().getById(hashComponentIdentifierDTO.id));
 
     response = request.subpath("bom.json").get();
     assertResponseStatus(200, response);
@@ -314,10 +311,6 @@ public class ReportResourceTest
     assertFalse(StringUtils.isEmpty(partialmatched));
     assertFalse(partialmatched.contains(hash));
     assertFalse(partialmatched.contains("commons-httpclient"));
-
-    HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
-    hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hashComponentIdentifier.getHash());
-    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
   }
 
   @Test

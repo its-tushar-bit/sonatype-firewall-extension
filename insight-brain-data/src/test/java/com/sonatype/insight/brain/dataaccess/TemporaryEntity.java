@@ -830,6 +830,10 @@ public class TemporaryEntity
     HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
     claimedComponent.setComment("testing");
     claimedComponent.setCreateTime(new Date());
+    return newClaimedComponent(claimedComponent);
+  }
+
+  public HashComponentIdentifier newClaimedComponent(HashComponentIdentifier claimedComponent) {
     hashComponentIdentifierDAO.insert(claimedComponent);
     claimedComponents.add(claimedComponent);
     return claimedComponent;

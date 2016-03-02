@@ -533,6 +533,7 @@
                 <source>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</source>
                 <source>frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</source>
                 <source>frontend/lib/datepicker/bootstrap-datepicker.js</source>
+                <source>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</source>
                 <source>frontend/cip/cip-test-util.js</source>
               </preloadSources>
               <sourceIncludes>

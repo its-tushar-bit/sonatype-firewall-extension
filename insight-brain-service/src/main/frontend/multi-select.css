@@ -15,7 +15,7 @@
   vertical-align: middle;
 }
 
-.multi-dropdown .dropdown-menu {
+.multi-dropdown .dropdown-scroll {
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: auto;

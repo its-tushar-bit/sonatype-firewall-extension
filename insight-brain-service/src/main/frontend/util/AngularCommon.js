@@ -94,7 +94,7 @@ var AngularStateUtils = {
   'use strict';
 
   var angularCommon;
-  angularCommon = angular.module('AngularCommon', ['CommonServices', 'ui.bootstrap', 'ngSanitize']);
+  angularCommon = angular.module('AngularCommon', ['CommonServices', 'ui.bootstrap', 'ngSanitize', 'vs-repeat']);
 
   angularCommon.controller('DeleteResourceController', ['$scope', '$http', 'CLMAppLocations', 'selected', function ($scope, $http, CLMAppLocations, selected) {
     $scope.deletedEnabled = true;
@@ -860,14 +860,16 @@ var AngularStateUtils = {
                    '<span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                    '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0 auto 5px auto;width:160px;display:block" placeholder="Search" ng-click="$event.stopPropagation()"></li>' +
-                     '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }" ng-click="$event.stopPropagation()">' + // stopPropagation to avoid Bootstrap closing popout
-                       '<label class="checkbox" ng-class="{ \'has-owner\': item.owner }">' +
-                         '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
-                         '<span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
-                         '<div class="multi-dropdown-item name" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</div>' +
-                         '<div ng-if="item.owner" class="multi-dropdown-item owner" ng-class="{ \'no-color\' : !item.color, color : item.color }">in {{item.owner}}</div>' +
-                       '</label>' +
-                     '</li>' +
+                     '<div vs-repeat class="dropdown-scroll">' +
+                       '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }" ng-click="$event.stopPropagation()">' + // stopPropagation to avoid Bootstrap closing popout
+                         '<label class="checkbox" ng-class="{ \'has-owner\': item.owner }">' +
+                           '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
+                           '<span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
+                           '<div class="multi-dropdown-item name" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</div>' +
+                           '<div ng-if="item.owner" class="multi-dropdown-item owner" ng-class="{ \'no-color\' : !item.color, color : item.color }">in {{item.owner}}</div>' +
+                         '</label>' +
+                       '</li>' +
+                     '</div>' +
                    '</ul>' +
                  '</div>',
       scope : {

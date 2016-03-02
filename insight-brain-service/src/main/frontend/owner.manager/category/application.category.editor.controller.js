@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryEditorController($q, $http, ApplicationStore, CLMAppLocations, CLMLocations)
+  function ApplicationCategoryEditorController($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations)
   {
     var originalCategoryArray,
         vm = this;
@@ -24,6 +24,12 @@
     vm.areCategoriesDirty = areCategoriesDirty;
 
     vm.doLoad();
+
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.areCategoriesDirty()) {
+        event.preventDefault();
+      }
+    });
 
     function doLoad() {
       if (vm.isApp) {
@@ -88,7 +94,9 @@
     }
   }
 
-  ApplicationCategoryEditorController.$inject = ['$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'];
+  ApplicationCategoryEditorController.$inject = [
+    '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations'
+  ];
 
   angular//
       .module('owner.manager.module')//

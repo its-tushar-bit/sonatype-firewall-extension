@@ -118,8 +118,7 @@ describe('policy.editor.constraints.controller.spec.js', function() {
     expect(vm.constraints[2].conditions.length).toBe(1);
     expect(vm.constraints[2].conditions[0]).toEqual({
       conditionTypeId: 'AgeInDays',
-      operator: 'older than',
-      value: null
+      operator: 'older than'
     });
     expect(vm.editConstraintMap[vm.constraints[2].id]).toBeTruthy();
 

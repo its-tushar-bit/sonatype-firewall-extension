@@ -182,6 +182,7 @@ describe('license.threat.group.editor.controller.spec.js', function() {
     $timeout.flush();
 
     expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-license-threat-group');
+    SpecUtil.expectStateChangeNotPrevented(scope);
   }));
 
   it('After last app LTG delete goes to summary page', inject(function($controller) {
@@ -230,4 +231,32 @@ describe('license.threat.group.editor.controller.spec.js', function() {
       expect(license.picked).toBeTruthy();
     });
   }));
+
+  describe('Page Changes', function() {
+    beforeEach(inject(function($controller) {
+      vm = $controller('license.threat.group.editor.controller', {$scope: scope});
+
+      $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
+      $httpBackend.whenGET(CLMAppLocations.getApplicableLicenseGroupsUrl()).respond(
+          LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
+      $httpBackend.flush();
+      $timeout.flush();
+
+      vm.dirtyLTG = mockLTG;
+    }));
+
+    it('clean', function() {
+      spyOn(vm.dirtyLTG, 'isDirty').andReturn(false);
+
+      SpecUtil.expectStateChangeNotPrevented(scope);
+      expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();
+    });
+
+    it('dirty', function() {
+      spyOn(vm.dirtyLTG, 'isDirty').andReturn(true);
+
+      SpecUtil.expectStateChangePrevented(scope);
+      expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();
+    });
+  });
 });

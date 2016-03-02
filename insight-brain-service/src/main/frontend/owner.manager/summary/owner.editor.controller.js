@@ -29,6 +29,7 @@
     vm.save = save;
     vm.siblings = siblings;
     vm.userIconPreview = undefined;
+    vm.unsavedModalVisible = false;
 
     $scope.$watch('vm.icon.type', function(iconType) {
       if (iconType !== 'source') {
@@ -52,8 +53,13 @@
 
     $scope.$on('pageChangeStarted', function(event) {
       if (vm.dirtyOwner.isDirty()) {
+        vm.unsavedModalVisible = true;
         event.preventDefault();
       }
+    });
+
+    $scope.$on('pageChangeCanceled', function() {
+      vm.unsavedModalVisible = false;
     });
 
     $scope.$on('pageChangeAccepted', function() {

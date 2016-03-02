@@ -101,6 +101,33 @@ describe('application.category.editor.controller.spec.js', function() {
             expect(vm.loadError).toBeDefined();
           }
       );
+
+      describe('Page Changes', function() {
+        beforeEach(function() {
+          mockApplicationStore.resolveGet([owner]);
+          $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond(
+              TagResourceMockData.getApplicableOrganizationTags());
+          $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(
+              TagResourceMockData.getApplicationTagUrl());
+
+          $timeout.flush();
+          $httpBackend.flush();
+        });
+
+        it('clean', function() {
+          spyOn(vm, 'areCategoriesDirty').andReturn(false);
+
+          SpecUtil.expectStateChangeNotPrevented(scope);
+          expect(vm.areCategoriesDirty).toHaveBeenCalled();
+        });
+
+        it('dirty', function() {
+          spyOn(vm, 'areCategoriesDirty').andReturn(true);
+
+          SpecUtil.expectStateChangePrevented(scope);
+          expect(vm.areCategoriesDirty).toHaveBeenCalled();
+        });
+      });
     }
   }
 

@@ -5,20 +5,25 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
-public class MainHeader
+public class UnsavedModal
+    extends BasicElement<UnsavedModal>
 {
-
-  public static SelenideElement userMenuToggle() {
-    return $("#user-menu-dropdown-toggle");
+  public UnsavedModal() {
+    super(".unsaved-modal");
+  }
+  
+  public SelenideElement continueButton() {
+    return $(selector(selector, ".btn-primary"));
   }
 
-  public static SelenideElement dashboardNavigationButton() {
-    return $(selector(".header-navigation-menu li", nthChild(1), "a"));
+  public SelenideElement cancelButton() {
+    return $(selector(selector, ".btn:not(.btn-primary)"));
   }
 }

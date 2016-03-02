@@ -13,6 +13,7 @@
       controllerAs: 'vm',
       scope: {
         constraints: '=',
+        isNewPolicy: '=',
         disabled: '=?ngDisabled'
       },
       bindToController: true

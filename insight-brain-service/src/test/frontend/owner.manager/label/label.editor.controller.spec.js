@@ -137,6 +137,36 @@ describe('label.editor.controller.spec.js', function() {
     $timeout.flush();
     // then
     expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-label');
+    expect(mockLabel.$revert).toHaveBeenCalled();
   });
 
+  describe('Page Changes', function() {
+    beforeEach(inject(function($controller) {
+      $httpBackend.whenGET("/rest/label/global/global/applicable").respond({labelsByOwner: []});
+      vm = $controller('label.editor.controller', {
+        $scope: scope
+      });
+
+      mockLabelStore.resolveGet([mockLabel]);
+      $timeout.flush();
+      $httpBackend.flush();
+
+      vm.dirtyLabel = mockLabel;
+      vm.dirtyLabel.isDirty = angular.noop;
+    }));
+
+    it('clean', function() {
+      spyOn(vm.dirtyLabel, 'isDirty').andReturn(false);
+
+      SpecUtil.expectStateChangeNotPrevented(scope);
+      expect(vm.dirtyLabel.isDirty).toHaveBeenCalled();
+    });
+
+    it('dirty', function() {
+      spyOn(vm.dirtyLabel, 'isDirty').andReturn(true);
+
+      SpecUtil.expectStateChangePrevented(scope);
+      expect(vm.dirtyLabel.isDirty).toHaveBeenCalled();
+    });
+  });
 })

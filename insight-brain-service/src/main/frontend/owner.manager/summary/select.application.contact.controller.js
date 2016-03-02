@@ -20,7 +20,23 @@
     vm.submitError = undefined;
     vm.updateContact = updateContact;
     vm.selectContactFormMask = undefined;
+    vm.unsavedModalVisible = false;
     vm.users = undefined;
+
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.isDirty()) {
+        vm.unsavedModalVisible = true;
+        event.preventDefault();
+      }
+    });
+
+    $scope.$on('pageChangeCanceled', function() {
+      vm.unsavedModalVisible = false;
+    });
+
+    $scope.$on('pageChangeAccepted', function() {
+      $scope.$dismiss();
+    });
 
     function search() {
       delete vm.searchError;

@@ -6,7 +6,8 @@
 (function(angular) {
   'use strict';
 
-  function MonitoredStageEditorController($q, StageTypeStore, PolicyMonitoringStore, Messages, MonitoredStageService)
+  function MonitoredStageEditorController($scope, $q, StageTypeStore, PolicyMonitoringStore, Messages,
+                                          MonitoredStageService)
   {
     var originalStage,
         vm = this;
@@ -22,6 +23,12 @@
     vm.continuousMonitoringEditorMask = undefined;
 
     vm.doLoad();
+
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.isDirty()) {
+        event.preventDefault();
+      }
+    });
 
     function doLoad() {
       delete vm.loadError;
@@ -56,7 +63,7 @@
   }
 
   MonitoredStageEditorController.$inject = [
-    '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'monitored.stage.service'
+    '$scope', '$q', 'StageTypeStore', 'PolicyMonitoringStore', 'Messages', 'monitored.stage.service'
   ];
 
   angular //

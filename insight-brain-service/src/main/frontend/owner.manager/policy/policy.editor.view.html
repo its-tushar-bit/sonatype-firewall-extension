@@ -71,7 +71,8 @@
       </div>
       <div id="policy-edit-constraints" class="editor-section">
         <div class="editor-section-header">Constraints</div>
-        <policy-editor-constraints constraints="vm.dirtyPolicy.constraints" ng-disabled="vm.readOnly"></policy-editor-constraints>
+        <policy-editor-constraints constraints="vm.dirtyPolicy.constraints" is-new-policy="vm.dirtyPolicy.$new"
+                                   ng-disabled="vm.readOnly"></policy-editor-constraints>
       </div>
       <div id="policy-edit-actions" class="editor-section">
         <div class="editor-section-header">Actions and Notifications</div>

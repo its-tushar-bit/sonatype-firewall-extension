@@ -165,6 +165,7 @@ describe('policy.editor.controller.spec.js', function() {
       $timeout.flush();
 
       expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-policy');
+      expect(mockPolicy.$revert).toHaveBeenCalled();
     }));
 
     it('Properly loads categories', inject(function($controller) {
@@ -203,9 +204,35 @@ describe('policy.editor.controller.spec.js', function() {
 
       resolveLoadData([{policies: [mockPolicy, {id: '123'}], policyTags: [], store: {create: angular.noop}}],
           '123');
-      
+
       expect(vm.readOnly).toBeDefined();
     }));
+
+    describe('Page Changes', function() {
+      beforeEach(inject(function($controller) {
+        vm = $controller('policy.editor.controller', {
+          $scope: scope
+        });
+
+        resolveLoadData(mockPolicyStoreData, undefined);
+        vm.dirtyPolicy = mockPolicy;
+        vm.dirtyPolicy.isDirty = angular.noop;
+      }));
+
+      it('clean', function() {
+        spyOn(vm.dirtyPolicy, 'isDirty').andReturn(false);
+
+        SpecUtil.expectStateChangeNotPrevented(scope);
+        expect(vm.dirtyPolicy.isDirty).toHaveBeenCalled();
+      });
+
+      it('dirty', function() {
+        spyOn(vm.dirtyPolicy, 'isDirty').andReturn(true);
+
+        SpecUtil.expectStateChangePrevented(scope);
+        expect(vm.dirtyPolicy.isDirty).toHaveBeenCalled();
+      });
+    });
 
     function resolveLoadData(policyStoreData, policyId) {
       mockPolicyStore.resolveGet(policyStoreData);

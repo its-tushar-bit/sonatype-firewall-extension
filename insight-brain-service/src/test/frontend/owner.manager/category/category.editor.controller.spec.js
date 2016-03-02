@@ -158,6 +158,33 @@ describe('category.editor.controller.spec.js', function() {
     $timeout.flush();
     // then
     expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-category');
+    expect(mockCategory.$revert).toHaveBeenCalled();
+  });
+
+  describe('Page Changes', function() {
+    beforeEach(inject(function($controller) {
+      vm = $controller('category.editor.controller', {
+        $scope: scope
+      });
+
+      resolveLoad([mockOwner]);
+      vm.dirtyCategory = mockCategory;
+      vm.dirtyCategory.isDirty = angular.noop;
+    }));
+
+    it('clean', function() {
+      spyOn(vm.dirtyCategory, 'isDirty').andReturn(false);
+
+      SpecUtil.expectStateChangeNotPrevented(scope);
+      expect(vm.dirtyCategory.isDirty).toHaveBeenCalled();
+    });
+
+    it('dirty', function() {
+      spyOn(vm.dirtyCategory, 'isDirty').andReturn(true);
+
+      SpecUtil.expectStateChangePrevented(scope);
+      expect(vm.dirtyCategory.isDirty).toHaveBeenCalled();
+    });
   });
 
   function resolveLoad(categoryStorePayload) {

@@ -6,10 +6,11 @@
 (function(angular) {
   'use strict';
 
-  function LicenseThreatGroupEditorController($q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMAppLocations,
+  function LicenseThreatGroupEditorController($scope, $q, $http, $stateParams, $state, CLMLocations, licenseGroupStore, CLMAppLocations,
                                               DeleteModalService, SameOwnerStateNavigationService)
   {
     var originalPickedLicenseIds = [],
+        isNavigatingAfterRemove,
         vm = this;
 
     vm.isApp = CLMAppLocations.isApplication();
@@ -28,8 +29,16 @@
 
     vm.doLoad();
 
+    $scope.$on('pageChangeStarted', function(event) {
+      if (!isNavigatingAfterRemove && vm.isLTGDirty()) {
+        event.preventDefault();
+      }
+    });
+
     function deleteLTG() {
       DeleteModalService.deleteResource('License Threat Group', vm.dirtyLTG.name, vm.dirtyLTG).then(function() {
+        isNavigatingAfterRemove = true;
+
         if (vm.isApp) {
           if (vm.nextLTG) {
             SameOwnerStateNavigationService.goEdit('edit-license-threat-group', {licenseThreatGroupId: vm.nextLTG.id});
@@ -142,8 +151,8 @@
   }
 
   LicenseThreatGroupEditorController.$inject = [
-    '$q', '$http', '$stateParams', '$state', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations', 'DeleteModalService',
-    'SameOwnerStateNavigationService'
+    '$scope', '$q', '$http', '$stateParams', '$state', 'CLMLocations', 'licenseGroupStore', 'CLMAppLocations',
+    'DeleteModalService', 'SameOwnerStateNavigationService'
   ];
 
   angular.module('owner.manager.module').controller('license.threat.group.editor.controller',

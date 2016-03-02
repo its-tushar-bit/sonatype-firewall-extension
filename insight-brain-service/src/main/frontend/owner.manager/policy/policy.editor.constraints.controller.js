@@ -114,8 +114,8 @@
           vm.conditionTypesMap[type.id] = type;
         });
 
-        if (vm.constraints.length === 0) {
-          vm.addConstraint();
+        if (vm.isNewPolicy) {
+          vm.editConstraintMap[vm.constraints[0].id] = true;
         }
       }, function(error) {
         vm.loadError = error;
@@ -171,8 +171,7 @@
         conditions: [
           {
             conditionTypeId: 'AgeInDays',
-            operator: 'older than',
-            value: null
+            operator: 'older than'
           }
         ],
         operator: 'OR'

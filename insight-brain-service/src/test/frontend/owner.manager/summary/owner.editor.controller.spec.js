@@ -39,21 +39,21 @@ describe('owner.editor.controller.spec.js', function() {
       }));
 
       describe('Page Changes', function() {
-        it('clean', inject(function($rootScope) {
+        it('clean', function() {
           spyOn(vm.dirtyOwner, 'isDirty').andReturn(false);
-          var event = $rootScope.$broadcast('pageChangeStarted');
 
+          SpecUtil.expectStateChangeNotPrevented(controllerScope);
+          expect(vm.unsavedModalVisible).toBeFalsy();
           expect(vm.dirtyOwner.isDirty).toHaveBeenCalled();
-          expect(event.defaultPrevented).toBeFalsy();
-        }));
+        });
 
-        it('dirty', inject(function($rootScope) {
+        it('dirty', function() {
           spyOn(vm.dirtyOwner, 'isDirty').andReturn(true);
-          var event = $rootScope.$broadcast('pageChangeStarted');
 
+          SpecUtil.expectStateChangePrevented(controllerScope);
+          expect(vm.unsavedModalVisible).toBeTruthy();
           expect(vm.dirtyOwner.isDirty).toHaveBeenCalled();
-          expect(event.defaultPrevented).toBeTruthy();
-        }));
+        });
 
         it('Closes', inject(function($rootScope) {
           $rootScope.$broadcast('pageChangeAccepted');

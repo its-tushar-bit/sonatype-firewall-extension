@@ -85,4 +85,33 @@ describe('select.application.contact.controller.spec.js', function() {
     expect(vm.isDirty()).toBe(true);
 
   });
+
+  describe('Page Changes', function() {
+    beforeEach(inject(function($controller) {
+      vm = $controller('select.application.contact.controller', {$scope: scope, owner: {}});
+    }));
+
+    it('clean', function() {
+      spyOn(vm, 'isDirty').andReturn(false);
+
+      SpecUtil.expectStateChangeNotPrevented(scope);
+      expect(vm.unsavedModalVisible).toBeFalsy();
+      expect(vm.isDirty).toHaveBeenCalled();
+    });
+
+    it('dirty', function() {
+      spyOn(vm, 'isDirty').andReturn(true);
+
+      SpecUtil.expectStateChangePrevented(scope);
+      expect(vm.unsavedModalVisible).toBeTruthy();
+      expect(vm.isDirty).toHaveBeenCalled();
+    });
+
+    it('Closes', function() {
+      scope.$dismiss = jasmine.createSpy();
+
+      scope.$broadcast('pageChangeAccepted');
+      expect(scope.$dismiss).toHaveBeenCalled();
+    });
+  });
 })

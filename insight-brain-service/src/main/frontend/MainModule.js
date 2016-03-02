@@ -168,8 +168,8 @@
           });
         }
 
-        $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState) {
-          if (toState.name !== fromState.name && !isShowingModal) {
+        $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
+          if (!isShowingModal) {
             var e = $rootScope.$broadcast('pageChangeStarted');
             if (e.defaultPrevented) {
               event.preventDefault();
@@ -182,16 +182,26 @@
               }).result.then(function() {
                 resetIsShowing();
                 $state.go(toState, toParams);
-              }, resetIsShowing);
+                $rootScope.$broadcast('pageChangeAccepted');
+              }, function() {
+                resetIsShowing();
+                $rootScope.$broadcast('pageChangeCanceled');
+              });
             }
-
-            $rootScope.$broadcast('pageChangeAccepted');
+            else {
+              $rootScope.$broadcast('pageChangeAccepted');
+            }
           }
         });
 
         var fn = function() {
           if (!isShowingModal) {
             var e = $rootScope.$broadcast('pageChangeStarted');
+
+            $timeout(function() {
+              $rootScope.$broadcast('pageChangeCanceled');
+            });
+
             return e.defaultPrevented ? e.message ||
                 'The page may contain unsaved changes, continuing will discard them.' : undefined;
           }

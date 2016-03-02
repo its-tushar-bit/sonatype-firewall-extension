@@ -6,11 +6,12 @@
 (function(angular) {
   'use strict';
 
-  function AccessEditorController($rootScope, $stateParams, $http, CLMAppLocations, Messages, LocalRoleService,
+  function AccessEditorController($rootScope, $scope, $stateParams, $http, CLMAppLocations, Messages, LocalRoleService,
                                   SameOwnerStateNavigationService, DeleteModalService)
   {
     var originalMembers,
         ownerType,
+        isNavigatingAfterRemove,
         vm = this;
 
     vm.accessEditor = undefined;
@@ -35,6 +36,12 @@
     vm.getTooltip = getTooltip;
 
     vm.doLoad();
+
+    $scope.$on('pageChangeStarted', function(event) {
+      if (!isNavigatingAfterRemove && isDirty()) {
+        event.preventDefault();
+      }
+    });
 
     function doLoad() {
       delete vm.loadError;
@@ -69,16 +76,25 @@
       });
     }
 
-    function isValid() {
+    function isDirty(){
       function internalName(user) {
         return user.internalName;
       }
 
       if (vm.isNew) {
-        return vm.role && (currentlyPicked().length > 0);
+        return vm.role || currentlyPicked().length > 0;
       }
       else {
         return !angular.equals(currentlyPicked().map(internalName).sort(), originalMembers.map(internalName).sort());
+      }
+    }
+
+    function isValid() {
+      if (vm.isNew) {
+        return vm.role && currentlyPicked().length > 0;
+      }
+      else {
+        return isDirty();
       }
     }
 
@@ -91,6 +107,7 @@
             return $http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId), []);
           }
       ).then(function() {
+        isNavigatingAfterRemove = true;
         vm.availableRoles.push(vm.role);
         $rootScope.$broadcast('resource.data.modified');
         SameOwnerStateNavigationService.goEdit('add-access');
@@ -189,7 +206,7 @@
   }
 
   AccessEditorController.$inject = [
-    '$rootScope', '$stateParams', '$http', 'CLMAppLocations', 'Messages', 'local.role.service',
+    '$rootScope', '$scope', '$stateParams', '$http', 'CLMAppLocations', 'Messages', 'local.role.service',
     'SameOwnerStateNavigationService', 'DeleteModalService'
   ];
 

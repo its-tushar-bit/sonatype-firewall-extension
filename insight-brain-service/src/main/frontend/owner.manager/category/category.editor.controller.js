@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function CategoryEditorController($stateParams, TagStore, DeleteModalService, SameOwnerStateNavigationService, $q,
+  function CategoryEditorController($scope, $stateParams, TagStore, DeleteModalService, SameOwnerStateNavigationService, $q,
                                     PolicyTagStore, PolicyHierarchyStore, ApplicationStore, ErrorModalService)
   {
     var vm = this,
@@ -27,6 +27,12 @@
 
     vm.doLoad();
 
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.dirtyCategory.isDirty()) {
+        event.preventDefault();
+      }
+    });
+
     function deleteCategory() {
       if (tagPolicyList.length) {
         ErrorModalService.show('Delete Application Category',
@@ -35,7 +41,9 @@
       }
       else {
         DeleteModalService.deleteCustom('Delete Category', warningMessage, 'Deleting',
-          angular.bind(vm.dirtyCategory, vm.dirtyCategory.$delete)).then(function() {
+            angular.bind(vm.dirtyCategory, vm.dirtyCategory.$delete)).then(function() {
+          // Model needs to be clean in order to navigate
+          vm.dirtyCategory.$revert();
           SameOwnerStateNavigationService.goEdit('create-category');
         });
       }
@@ -119,8 +127,8 @@
   }
 
   CategoryEditorController.$inject = [
-    '$stateParams', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q', 'PolicyTagStore',
-    'PolicyHierarchyStore', 'ApplicationStore', 'ErrorModalService'
+    '$scope', '$stateParams', 'TagStore', 'DeleteModalService', 'SameOwnerStateNavigationService', '$q',
+    'PolicyTagStore', 'PolicyHierarchyStore', 'ApplicationStore', 'ErrorModalService'
   ];
 
   angular.module('owner.manager.module').controller('category.editor.controller', CategoryEditorController);

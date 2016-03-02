@@ -64,4 +64,26 @@ describe('monitored.stage.editor.controller.spec.js', function() {
     mockPolicyMonitoringStore.resolveRemove();
     $timeout.flush();
   });
+
+  describe('Page Changes', function() {
+    beforeEach(function() {
+      mockStageTypeStore.resolveGet([]);
+      mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+      $timeout.flush();
+    });
+
+    it('clean', function() {
+      spyOn(vm, 'isDirty').andReturn(false);
+
+      SpecUtil.expectStateChangeNotPrevented(scope);
+      expect(vm.isDirty).toHaveBeenCalled();
+    });
+
+    it('dirty', function() {
+      spyOn(vm, 'isDirty').andReturn(true);
+
+      SpecUtil.expectStateChangePrevented(scope);
+      expect(vm.isDirty).toHaveBeenCalled();
+    });
+  });
 });

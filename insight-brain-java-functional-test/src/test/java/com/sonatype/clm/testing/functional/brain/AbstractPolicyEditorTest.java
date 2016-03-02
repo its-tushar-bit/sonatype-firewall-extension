@@ -21,9 +21,12 @@ import com.sonatype.clm.testing.functional.elements.ConstraintSection.Constraint
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
@@ -40,6 +43,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -52,6 +56,8 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.back;
+import static com.codeborne.selenide.Selenide.forward;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.blue;
@@ -126,6 +132,8 @@ public abstract class AbstractPolicyEditorTest
     Action devRole = monitorActions.get(0);
     assertThat(devRole.getActionTypeId(), is(Action.ID_NOTIFY));
     assertThat(devRole.getTargetType(), is("role"));
+
+    testCreatePolicy_navigatingAwayWithUnsavedData();
   }
 
   @Test
@@ -157,6 +165,38 @@ public abstract class AbstractPolicyEditorTest
 
     SummaryTile.localPolicy(policy.getName()).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
+  }
+
+  private void testCreatePolicy_navigatingAwayWithUnsavedData(){
+    String editorUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
+    UnsavedModal unsavedModal = new UnsavedModal();
+
+    // Assert no Modal appears when the editor is clean
+    unsavedModal.shouldNotBe(visible);
+    MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
+    unsavedModal.shouldNotBe(visible);
+    waitUntilUrl(DashboardPage.NEW_URL);
+    DashboardPage.body().shouldBe(visible);
+
+    back();
+    waitUntilUrl(editorUrl);
+
+    PolicyEditorPage.constraintSection().constraintEditor(0).ageCondition(0).value().age().val("10");
+
+    // Assert Modal appears when the editor is dirty and continues to new page
+    MainHeader.dashboardNavigationButton().click();
+    unsavedModal.cancelButton().shouldBe(visible).click();
+    waitUntilUrl(editorUrl);
+    DashboardPage.body().shouldNotBe(visible);
+
+    MainHeader.dashboardNavigationButton().click();
+    unsavedModal.continueButton().shouldBe(visible).click();
+    waitUntilUrl(DashboardPage.NEW_URL);
+    DashboardPage.body().shouldBe(visible);
+
+    back();
+    waitUntilUrl(editorUrl);
+    DashboardPage.body().shouldNotBe(visible);
   }
 
   private Tag[] createCategories(String ownerId) {

@@ -111,5 +111,17 @@ var SpecUtil = {
 
       return deferred.promise;
     };
+  },
+
+  expectStateChangePrevented: function($scope) {
+    var event =  $scope.$broadcast('pageChangeStarted');
+
+    expect(event.defaultPrevented).toBeTruthy();
+  },
+
+  expectStateChangeNotPrevented: function($scope) {
+    var event =  $scope.$broadcast('pageChangeStarted');
+
+    expect(event.defaultPrevented).toBeFalsy();
   }
 };

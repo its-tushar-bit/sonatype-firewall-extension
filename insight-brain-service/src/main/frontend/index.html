@@ -194,11 +194,16 @@
     <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
   </div>
   <script type="text/ng-template" id="unsaved-modal">
-    <div class="clm-modal">
+    <div class="clm-modal unsaved-modal">
       <div class="clm-modal-header"><h3>Unsaved Changes</h3></div>
-      <div class="clm-modal-body">The page may contain unsaved changes, continuing will discard them.</div>
+      <div class="clm-modal-body">
+        <div class="clm-alert alert"><i class="fa fa-warning"></i>The page may contain unsaved changes,
+          continuing will discard them.
+        </div>
+      </div>
       <div class='clm-modal-footer'>
-        <button class='btn' ng-click="$close()">Continue</button> <button class='btn' ng-click="$dismiss()">Cancel</button>
+        <button class='btn btn-primary' ng-click="$close()">Continue</button>
+        <button class='btn' ng-click="$dismiss()">Cancel</button>
       </div>
     </div>
   </script>

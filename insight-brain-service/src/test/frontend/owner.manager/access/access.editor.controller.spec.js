@@ -110,6 +110,7 @@ describe('access.editor.controller.spec.js', function() {
     expect(vm.availableRoles.length).toBe(1);
     expect(mockRootScope.$broadcast).toHaveBeenCalledWith('resource.data.modified');
     expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('add-access');
+    SpecUtil.expectStateChangeNotPrevented(scope);
   });
 
   it('Adding the last role removes it from available, broadcasts update and transfers to edit', function() {
@@ -170,5 +171,26 @@ describe('access.editor.controller.spec.js', function() {
     expect(vm.getTooltip({realm: 'foo', email: 'test@test.com'})).toBe('foo\ntest@test.com');
     // existing LDAP entry but connection is down so no realm/email
     expect(vm.getTooltip({displayName: 'test'})).toBe(null);
+  });
+
+  describe('Page Changes', function() {
+    beforeEach(inject(function($controller) {
+      vm = $controller('access.editor.controller', {
+        $scope: scope
+      });
+
+      $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getMoreRoleMappings());
+      $httpBackend.flush();
+    }));
+
+    it('clean', function() {
+      SpecUtil.expectStateChangeNotPrevented(scope);
+    });
+
+    it('dirty', function() {
+      vm.role = 'dirty';
+
+      SpecUtil.expectStateChangePrevented(scope);
+    });
   });
 });

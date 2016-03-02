@@ -68,40 +68,11 @@ public class LabelEditorTest
   }
 
   @Test
-  public void testInputValidation() {
+  public void testLabelCreate() {
     // given
     SummaryTile.addLabelButton().click();
     assertInitialStateIsCorrect();
-    // when invalid name
-    LabelEditorPage.labelName().val("$$$");
-    // then error on name, disabled save
-    popoverViolations(LabelEditorPage.labelName()).shouldBe(visible).shouldHave(text("Use valid characters"));
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
-    // when valid name, but no color
-    LabelEditorPage.labelName().val("valid name");
-    // then error on name is gone, but save still disabled. TODO check color 'field' validation error after CLM-5436
-    popoverViolations(LabelEditorPage.labelName()).shouldNot(exist);
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
-    // when select color
-    LabelEditorPage.colorPicker().color(light_green).click();
-    // then save enabled
-    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED);
-    // when invalid description - too long
-    LabelEditorPage.description().val(StringUtils.repeat("a", 256));
-    // then error on description and disabled save
-    popoverViolations(LabelEditorPage.description()).shouldBe(visible).shouldHave(text("Maximum length"));
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
-    // when valid description
-    LabelEditorPage.description().val("Description");
-    popoverViolations(LabelEditorPage.description()).shouldNot(exist);
-    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED);
-  }
-
-  @Test
-  public void testLabelSave() {
-    // given
-    SummaryTile.addLabelButton().click();
-    assertInitialStateIsCorrect();
+    testLabelCreate_testInputValidation();
     // when
     LabelEditorPage.labelName().val(LABEL_NAME);
     LabelEditorPage.description().val("a description");
@@ -187,6 +158,32 @@ public class LabelEditorTest
 
     label = labelDAO.getById(label.getId());
     assertThat(label, is(nullValue()));
+  }
+
+  private void testLabelCreate_testInputValidation() {
+    // when invalid name
+    LabelEditorPage.labelName().val("$$$");
+    // then error on name, disabled save
+    popoverViolations(LabelEditorPage.labelName()).shouldBe(visible).shouldHave(text("Use valid characters"));
+    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    // when valid name, but no color
+    LabelEditorPage.labelName().val("valid name");
+    // then error on name is gone, but save still disabled. TODO check color 'field' validation error after CLM-5436
+    popoverViolations(LabelEditorPage.labelName()).shouldNot(exist);
+    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    // when select color
+    LabelEditorPage.colorPicker().color(light_green).click();
+    // then save enabled
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED);
+    // when invalid description - too long
+    LabelEditorPage.description().val(StringUtils.repeat("a", 256));
+    // then error on description and disabled save
+    popoverViolations(LabelEditorPage.description()).shouldBe(visible).shouldHave(text("Maximum length"));
+    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    // when valid description
+    LabelEditorPage.description().val("Description");
+    popoverViolations(LabelEditorPage.description()).shouldNot(exist);
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED);
   }
 
   private void assertInitialStateIsCorrect() {

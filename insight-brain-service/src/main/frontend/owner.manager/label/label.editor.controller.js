@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LabelEditorController($q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
+  function LabelEditorController($scope, $q, $http, $stateParams, LabelStore, CLMAppLocations, DeleteModalService,
                                  SameOwnerStateNavigationService)
   {
     var vm = this;
@@ -23,8 +23,16 @@
 
     vm.doLoad();
 
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.dirtyLabel.isDirty()) {
+        event.preventDefault();
+      }
+    });
+
     function deleteLabel() {
       DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function() {
+        // Model needs to be clean in order to navigate
+        vm.dirtyLabel.$revert();
         SameOwnerStateNavigationService.goEdit('create-label');
       });
     }
@@ -71,7 +79,7 @@
   }
 
   LabelEditorController.$inject = [
-    '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
+    '$scope', '$q', '$http', '$stateParams', 'LabelStore', 'CLMAppLocations', 'DeleteModalService',
     'SameOwnerStateNavigationService'
   ];
 

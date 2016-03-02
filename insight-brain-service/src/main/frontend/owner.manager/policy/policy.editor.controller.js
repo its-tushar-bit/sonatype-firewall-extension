@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function PolicyEditorController($q, $http, $stateParams, PolicyHierarchyStore, DeleteModalService,
+  function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, DeleteModalService,
                                   SameOwnerStateNavigationService, CLMAppLocations)
   {
     var vm = this,
@@ -33,8 +33,16 @@
 
     vm.doLoad();
 
+    $scope.$on('pageChangeStarted', function(event) {
+      if (vm.dirtyPolicy.isDirty()) {
+        event.preventDefault();
+      }
+    });
+
     function deletePolicy() {
       DeleteModalService.deleteResource('Policy', vm.dirtyPolicy.name, vm.dirtyPolicy).then(function() {
+        // Model needs to be clean in order to navigate
+        vm.dirtyPolicy.$revert();
         SameOwnerStateNavigationService.goEdit('create-policy');
       });
     }
@@ -154,8 +162,8 @@
   }
 
   PolicyEditorController.$inject = [
-    '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService', 'SameOwnerStateNavigationService',
-    'CLMAppLocations'
+    '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService',
+    'SameOwnerStateNavigationService', 'CLMAppLocations'
   ];
 
   angular //

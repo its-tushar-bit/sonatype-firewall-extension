@@ -172,7 +172,18 @@
       var policyStoreTemplate = {
         template: {
           threatLevel: 5,
-          constraints: [],
+          constraints: [
+            {
+              id: '' + new Date().getTime(),
+              conditions: [
+                {
+                  conditionTypeId: 'AgeInDays',
+                  operator: 'older than'
+                }
+              ],
+              operator: 'OR'
+            }
+          ],
           actions: {}
         },
         getUrl: CLMAppLocations.getApplicablePolicies,

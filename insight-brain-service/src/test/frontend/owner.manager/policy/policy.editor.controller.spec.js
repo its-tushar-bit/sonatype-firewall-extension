@@ -215,22 +215,20 @@ describe('policy.editor.controller.spec.js', function() {
         });
 
         resolveLoadData(mockPolicyStoreData, undefined);
-        vm.dirtyPolicy = mockPolicy;
-        vm.dirtyPolicy.isDirty = angular.noop;
       }));
 
       it('clean', function() {
-        spyOn(vm.dirtyPolicy, 'isDirty').andReturn(false);
+        spyOn(vm, 'isPolicyDirty').andReturn(false);
 
         SpecUtil.expectStateChangeNotPrevented(scope);
-        expect(vm.dirtyPolicy.isDirty).toHaveBeenCalled();
+        expect(vm.isPolicyDirty).toHaveBeenCalled();
       });
 
       it('dirty', function() {
-        spyOn(vm.dirtyPolicy, 'isDirty').andReturn(true);
+        spyOn(vm, 'isPolicyDirty').andReturn(true);
 
         SpecUtil.expectStateChangePrevented(scope);
-        expect(vm.dirtyPolicy.isDirty).toHaveBeenCalled();
+        expect(vm.isPolicyDirty).toHaveBeenCalled();
       });
     });
 

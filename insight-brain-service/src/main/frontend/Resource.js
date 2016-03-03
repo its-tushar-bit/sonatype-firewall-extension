@@ -164,7 +164,7 @@
             // Ignore methods we added, or that AngularJS has (prefixed with $$)
             angular.forEach(this, function(value, key) {
               if (!(me[key] instanceof LinkedResource) && resourceStore.objectMethods.indexOf(key) === -1 &&
-                  !(key.length >= 2 && key.substring(0, 2) === '$$') && me[key] !== undefined) {
+                  !(key.length >= 2 && key.substring(0, 2) === '$$')) {
                 currentProperties.push(key);
               }
             });
@@ -192,7 +192,8 @@
                   match = match && angular.equals(original[property], me[property]);
                 }
                 else {
-                  match = match && original[property] === me[property];
+                  // Note: we consider undefined, empty string and null as equal
+                  match = match && (original[property] === me[property] || (!original[property] && !me[property]));
                 }
               }
               else {

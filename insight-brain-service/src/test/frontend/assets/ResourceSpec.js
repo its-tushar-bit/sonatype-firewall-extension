@@ -552,7 +552,20 @@ describe('Resource', function() {
 
     it('Property with explicitly undefined value', function() {
       data[0].blah = undefined;
+      expect(data[0].isDirty()).toEqual(true);
+    });
+
+    it('Properties with empty string, null or undefined values', function() {
+      data[0].$updateOriginal({id: undefined, name: 'foo', arr: ['a', 'b'], obj: {id: 'bar', name: 'bar'}});
       expect(data[0].isDirty()).toEqual(false);
+      data[0].id = "";
+      expect(data[0].isDirty()).toEqual(false);
+      data[0].id = null;
+      expect(data[0].isDirty()).toEqual(false);
+      data[0].id = undefined;
+      expect(data[0].isDirty()).toEqual(false);
+      data[0].id = "123";
+      expect(data[0].isDirty()).toEqual(true);
     });
   });
 

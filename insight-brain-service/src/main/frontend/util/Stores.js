@@ -171,6 +171,8 @@
     'CLMAppLocations', 'CachedHierarchyStore', function(CLMAppLocations, CachedHierarchyStore) {
       var policyStoreTemplate = {
         template: {
+          id: undefined,
+          name: undefined,
           threatLevel: 5,
           constraints: [
             {
@@ -178,13 +180,15 @@
               conditions: [
                 {
                   conditionTypeId: 'AgeInDays',
-                  operator: 'older than'
+                  operator: 'older than',
+                  value: null
                 }
               ],
               operator: 'OR'
             }
           ],
-          actions: {}
+          actions: {},
+          monitorNotifyActions: []
         },
         getUrl: CLMAppLocations.getApplicablePolicies,
         crudUrl: CLMAppLocations.getPolicyUrl,

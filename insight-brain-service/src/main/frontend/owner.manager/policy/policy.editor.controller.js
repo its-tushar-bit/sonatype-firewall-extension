@@ -34,7 +34,7 @@
     vm.doLoad();
 
     $scope.$on('pageChangeStarted', function(event) {
-      if (vm.dirtyPolicy.isDirty()) {
+      if (vm.isPolicyDirty()) {
         event.preventDefault();
       }
     });

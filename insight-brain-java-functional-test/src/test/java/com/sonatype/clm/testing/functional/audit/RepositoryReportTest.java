@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.LabelsCIP;
@@ -42,10 +43,12 @@ import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -54,6 +57,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
@@ -61,6 +65,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -100,7 +105,9 @@ public class RepositoryReportTest
 
   private Repository repo;
 
-  private Policy policy;
+  private Policy extremelyBadPolicy;
+
+  private Policy notInSummaryPolicy;
 
   private String criticalComponentHash;
 
@@ -117,9 +124,9 @@ public class RepositoryReportTest
     // repositoryPublicId has a character requiring encoding
     repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "ce&ntral");
 
-    policy = createPolicy(10, "Extremely Bad", MatchStateConditionType.ID, "is", MatchState.EXACT.toString());
-
-    createPolicy(9, "Not in summary", CoordinatesConditionType.ID, "match", "critical:*");
+    extremelyBadPolicy = createPolicy(10, "Extremely Bad", MatchStateConditionType.ID, "is",
+        MatchState.EXACT.toString());
+    notInSummaryPolicy = createPolicy(9, "Not in summary", CoordinatesConditionType.ID, "match", "critical:*");
 
     insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
   }
@@ -180,13 +187,13 @@ public class RepositoryReportTest
     open(RepositoryReportPage.url(repo.getId()));
 
     // Components with violations cannot be unquarantined
-    openCIP(0, "Policy");
+    openCip(0, "Policy");
     WaiverCip.unquarantineButton().shouldBe(visible, CLM.DISABLED).click();
     UnquarantineDialog.releaseButton().shouldNot(appear);
     Table.row(0).component().click(); // hide CIP
 
     // Unquarantine a component
-    openCIP(1, "Policy");
+    openCip(1, "Policy");
     WaiverCip.unquarantineButton().shouldBe(visible).shouldNotBe(CLM.DISABLED).click();
     UnquarantineDialog.releaseButton().should(appear).click();
     UnquarantineDialog.releaseButton().should(disappear);
@@ -217,7 +224,7 @@ public class RepositoryReportTest
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, CRITICAL_IDENTIFIER);
 
     tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(), 10, component.getPathname(), false, true,
-        policy.getId(), policy.getName(), component.getComponentIdentifier());
+        extremelyBadPolicy.getId(), extremelyBadPolicy.getName(), component.getComponentIdentifier());
     criticalComponentHash = component.getHash();
 
     // one with multiple violations
@@ -255,15 +262,6 @@ public class RepositoryReportTest
     testAllViolationsFilter();
     testQuarantinedFilter();
     testWaivedFilter();
-
-    setupHDSResponse();
-    testLicenseCIP();
-    testVulnerabilityCIP();
-    testVersionGraphCIP();
-    testPolicyCIP();
-    testLabelsCIP();
-
-    testUnknownComponentCIP();
   }
 
   private void setupHDSFirewallResponse(String hash) {
@@ -278,17 +276,32 @@ public class RepositoryReportTest
     testCLMServer.getInsightServer().setResponseForURI("/rest/component/details/firewall", hdsResult, 200);
   }
 
-  private void setupHDSResponse() throws IOException {
-
+  private void setupHdsResponse() throws IOException {
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails",
         FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetails.json")), 200);
     testCLMServer.getInsightServer().setResponseForURI("rest/ci/componentDetails/list",
         FileUtils.readFileToString(new File("src/test/resources/componentDetails/componentDetailsList.json")), 200);
   }
 
-  private void testUnknownComponentCIP() {
+  private void cipSetup() throws IOException {
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
+        CRITICAL_IDENTIFIER);
+    criticalComponentHash = component.getHash();
+
+    createPolicyViolation(component, extremelyBadPolicy);
+    createPolicyViolation(component, notInSummaryPolicy);
+
+    setupHdsFirewallResponse();
+    setupHdsResponse();
+  }
+
+  @Test
+  public void testUnknownComponentCip() throws Exception {
+    tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
+    open(RepositoryReportPage.url(repo.getId()));
+
     // Open CIP for unknown component
-    RepositoryReportPage.Table.row(5).component().click();
+    RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
 
     RepositoryReportPage.Table.cipTab("Component Info").shouldBe(visible);
@@ -299,17 +312,16 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.cipTab("Labels").shouldNotBe(visible);
     RepositoryReportPage.Table.cipTab("Licenses").shouldNotBe(visible);
     RepositoryReportPage.Table.cipTab("Vulnerabilities").shouldNotBe(visible);
-
-    // close CIP
-    RepositoryReportPage.Table.row(5).component().click();
-    RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
-  private void testLicenseCIP() {
+  @Test
+  public void testLicenseCip() throws Exception {
+    cipSetup();
+    open(RepositoryReportPage.url(repo.getId()));
     tempEntity.newLicenseOverride(RepositoryContainer.REPOSITORY_CONTAINER_ID, CRITICAL_IDENTIFIER,
         LicenseOverrideStatus.ACKNOWLEDGED, (Set<String>) null);
 
-    openCIP(0, "License");
+    openCip(0, "License");
 
     // License sidebar
     LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(0), texts("Apache-2.0"));
@@ -369,7 +381,11 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.closeCipButton().shouldBe(visible).click();
   }
 
-  private void testVersionGraphCIP() {
+  @Test
+  public void testVersionGraphCip() throws Exception {
+    cipSetup();
+    open(RepositoryReportPage.url(repo.getId()));
+
     // open CIP
     RepositoryReportPage.Table.row(0).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
@@ -381,7 +397,7 @@ public class RepositoryReportTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestPolicyThreat().shouldHave(text(String.valueOf(policy.getThreatLevel())));
+    VersionsCIP.highestPolicyThreat().shouldHave(text(String.valueOf(extremelyBadPolicy.getThreatLevel())));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"), cssClass("critical"));
     VersionsCIP.securityCount().shouldHave(text("3"));
     VersionsCIP.matchState().shouldHave(text("exact"));
@@ -392,14 +408,18 @@ public class RepositoryReportTest
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
   }
 
-  private void testLabelsCIP() {
+  @Test
+  public void testLabelsCip() throws Exception {
+    cipSetup();
+    open(RepositoryReportPage.url(repo.getId()));
+
     Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.blue);
     Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.red);
     tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elJunko.getId(), criticalComponentHash);
     createPolicy(1, "Bad Label", LabelConditionType.ID, "is", elMagnifico.getId());
 
     // open CIP to labels
-    openCIP(0, "Labels");
+    openCip(0, "Labels");
 
     LabelsCIP.appliedLabels().shouldHaveSize(1);
     LabelsCIP.appliedLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.blue)).action().should(exist);
@@ -422,9 +442,10 @@ public class RepositoryReportTest
     Filter.allViolationsButton().click();
     assertRow(RepositoryReportPage.Table.rowByName("Bad Label"), new ExpectedRow(Table.IGNORED_SCORE, "Bad Label",
         "critical : threat : 1.0", false, false), false);
+    RepositoryReportPage.Table.rows().shouldHaveSize(3);
 
     // re-open CIP
-    openCIP(0, "Labels");
+    openCip(0, "Labels");
 
     // Remove the label we added
     LabelsCIP.appliedLabels().shouldHaveSize(2);
@@ -444,14 +465,18 @@ public class RepositoryReportTest
     // CIP should disappear
     RepositoryReportPage.Table.cip().shouldNotBe(visible);
     // Bad labels is gone
-    RepositoryReportPage.Table.rows().shouldHaveSize(8);
+    RepositoryReportPage.Table.rows().shouldHaveSize(2);
 
     // reset filter
     Filter.summaryViolationsButton().click();
   }
 
-  private void testPolicyCIP() {
-    openCIP(0, "Policy");
+  @Test
+  public void testPolicyCip() throws Exception {
+    cipSetup();
+    open(RepositoryReportPage.url(repo.getId()));
+
+    openCip(0, "Policy");
 
     // Check existing violations
     WaiverCip.rows().shouldHaveSize(2);
@@ -487,7 +512,7 @@ public class RepositoryReportTest
     ReportCip.policyTab().should(disappear);
 
     // Verify table has been updated and violation is waived
-    RepositoryReportPage.Table.rows().shouldHaveSize(7);
+    RepositoryReportPage.Table.rows().shouldHaveSize(1);
     Filter.allViolationsButton().click();
     RepositoryReportPage.Table.row(0).waived().should(exist).click();
 
@@ -506,7 +531,7 @@ public class RepositoryReportTest
     ViewWaiversDialog.closeButton().should(appear).click();
 
     // re-open CIP
-    openCIP(0, "Policy");
+    openCip(0, "Policy");
 
     // Waive first violation
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();
@@ -548,14 +573,17 @@ public class RepositoryReportTest
     Filter.summaryViolationsButton().click();
   }
 
-  private void testVulnerabilityCIP() throws IOException {
+  @Test
+  public void testVulnerabilityCip() throws Exception {
+    cipSetup();
+    open(RepositoryReportPage.url(repo.getId()));
     // PhantomJS for some reason renders the % based width as 10001px which makes some elements non-visible.
     Selenide.executeJavaScript(
         "$('head').append($('<style/>').text('#vulnerability-editor-table-wrapper .topBorder, #vulnerability-editor-table-wrapper .well { width: 435px !important; }'));");
 
     tempEntity.newSecurityVulnerabilityOverride(repo.getId(), criticalComponentHash, "cve", "CVE-1234-56789",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
-    openCIP(0, "Vulnerabilities");
+    openCip(0, "Vulnerabilities");
 
     VulnerabilityCIP.rows().shouldHaveSize(3);
 
@@ -718,7 +746,7 @@ public class RepositoryReportTest
     }
   }
 
-  private static void openCIP(int row, String tab) {
+  private static void openCip(int row, String tab) {
     RepositoryReportPage.Table.row(row).component().click();
     RepositoryReportPage.Table.cip().shouldBe(visible);
     RepositoryReportPage.Table.cipTab(tab).click();
@@ -734,6 +762,24 @@ public class RepositoryReportTest
     constraint.setConditions(Collections.singletonList(condition));
     p.setConstraints(Collections.singletonList(constraint));
     return tempEntity.newPolicy(p);
+  }
+
+  private void createPolicyViolation(RepositoryComponent component, Policy policy) {
+    Constraint constraint = policy.getConstraints().get(0);
+    ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),
+        constraint.getOperator().name());
+
+    Component c = new Component(component.getComponentIdentifier());
+    c.setMatchState(MatchState.EXACT);
+    constraintFact.addConditionFact(
+        ComponentPolicyEvaluator.createConditionFact(policy.getConstraints().get(0).getConditions().get(0), c));
+
+    RepositoryPolicyViolation violation = tempEntity.newRepositoryPolicyViolation(component.getRepositoryId(),
+        policy.getThreatLevel(), component.getPathname(), false, true, policy.getId(), policy.getName(),
+        component.getComponentIdentifier());
+
+    violation.setConstraintFacts(Collections.singletonList(constraintFact));
+    new RepositoryPolicyViolationDAO().update(violation);
   }
 
   private ExpectedRow UNKNOWN;

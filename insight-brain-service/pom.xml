@@ -27,12 +27,9 @@
     <saga.version>1.5.2</saga.version>
     <jasmine.brain.id.new>test-brain-assets-new</jasmine.brain.id.new>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
-    <jasmine.cip.id.new>test-cip-assets-new</jasmine.cip.id.new>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
     <jasmine.audit.id>test-audit-assets</jasmine.audit.id>
-    <jasmine.version.graph.id.new>test-version-graph-assets-new</jasmine.version.graph.id.new>
     <jasmine.version.graph.id>test-version-graph-assets</jasmine.version.graph.id>
-    <jasmine.view.details.id.new>test-view-details-assets-new</jasmine.view.details.id.new>
     <jasmine.view.details.id>test-view-details-assets</jasmine.view.details.id>
     <grunt.task>build</grunt.task>
     <wro4j.brain.resources>${project.build.directory}/generated/assets/</wro4j.brain.resources>
@@ -520,39 +517,6 @@
         <!-- Only the last execution of this plugin is subject to collection of coverage information, unfortunately. -->
         <executions>
           <execution>
-            <id>${jasmine.cip.id.new}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>frontend/lib/jquery/jquery.js</source>
-                <source>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</source>
-                <source>frontend/lib/angular/angular.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</source>
-                <source>frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</source>
-                <source>frontend/lib/datepicker/bootstrap-datepicker.js</source>
-                <source>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</source>
-                <source>frontend/cip/cip-test-util.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>frontend/brain-client/*.js</include>
-                <include>frontend/cip/*.js</include>
-                <include>frontend/util/*.js</include>
-              </sourceIncludes>
-              <specIncludes>
-                <include>frontend/SpecUtil.js</include>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/**/*MockData.js</include>
-                <include>frontend/**/cip*.js</include>
-                <include>frontend/**/CIP*.js</include>
-                <include>frontend/brain-client/*.js</include>
-              </specIncludes>
-              <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
-            </configuration>
-          </execution>
-          <execution>
             <id>${jasmine.cip.id}</id>
             <phase>test</phase>
             <goals>
@@ -596,7 +560,7 @@
                 <include>resources/assets/**/CIP*.js</include>
                 <include>resources/assets/brain-client/*.js</include>
               </specIncludes>
-              <junitXmlReportFileName>TEST-cip-legacy.xml</junitXmlReportFileName>
+              <junitXmlReportFileName>TEST-cip.xml</junitXmlReportFileName>
             </configuration>
           </execution>
           <execution>
@@ -694,7 +658,7 @@
                 <exclude>frontend/brain-client/**/*.js</exclude>
                 <exclude>frontend/version-graph/**/*.js</exclude>
               </specExcludes>
-              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
+              <junitXmlReportFileName>TEST-server-new.xml</junitXmlReportFileName>
             </configuration>
           </execution>
           <execution>
@@ -738,32 +702,7 @@
                 <exclude>resources/assets/brain-client/**/*.js</exclude>
                 <exclude>resources/assets/version-graph/**/*.js</exclude>
               </specExcludes>
-              <junitXmlReportFileName>TEST-server-legacy.xml</junitXmlReportFileName>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.version.graph.id.new}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>frontend/lib/jquery/jquery.js</source>
-                <source>frontend/lib/angular/angular.min.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-route.min.js</source>
-                <source>frontend/lib/protovis/protovis.min.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>frontend/brain-client/*.js</include>
-                <include>frontend/version-graph/appcheck.js</include>
-                <include>frontend/version-graph/cip.js</include>
-                <include>frontend/ComponentDisplayModule.js</include>
-              </sourceIncludes>
-              <specIncludes>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/version-graph/VersionGraphSpec.js</include>
-              </specIncludes>
+              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
             </configuration>
           </execution>
           <execution>
@@ -792,28 +731,6 @@
               <specIncludes>
                 <include>resources/assets/**/lib/*.js</include>
                 <include>resources/assets/version-graph/VersionGraphSpec.js</include>
-              </specIncludes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>${jasmine.view.details.id.new}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <preloadSources>
-                <source>frontend/lib/jquery/jquery.js</source>
-                <source>frontend/lib/angular/angular.js</source>
-                <source>frontend/lib/angular-${angularjs.version}/angular-route.min.js</source>
-              </preloadSources>
-              <sourceIncludes>
-                <include>frontend/brain-client/*.js</include>
-                <include>frontend/version-graph/viewdetails.js</include>
-              </sourceIncludes>
-              <specIncludes>
-                <include>frontend/**/lib/*.js</include>
-                <include>frontend/version-graph/ViewDetailsSpec.js</include>
               </specIncludes>
             </configuration>
           </execution>
@@ -1180,12 +1097,6 @@
       E.g. mvn phantomjs:install jasmine:test -P test-brain
     -->
     <profile>
-      <id>test-cip-new</id>
-      <properties>
-        <jasmine.cip.id.new>default-cli</jasmine.cip.id.new>
-      </properties>
-    </profile>
-    <profile>
       <id>test-cip</id>
       <properties>
         <jasmine.cip.id>default-cli</jasmine.cip.id>
@@ -1210,21 +1121,9 @@
       </properties>
     </profile>
     <profile>
-      <id>test-version-graph-new</id>
-      <properties>
-        <jasmine.version.graph.id.new>default-cli</jasmine.version.graph.id.new>
-      </properties>
-    </profile>
-    <profile>
       <id>test-version-graph</id>
       <properties>
         <jasmine.version.graph.id>default-cli</jasmine.version.graph.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-view-details-new</id>
-      <properties>
-        <jasmine.view.details.id.new>default-cli</jasmine.view.details.id.new>
       </properties>
     </profile>
     <profile>

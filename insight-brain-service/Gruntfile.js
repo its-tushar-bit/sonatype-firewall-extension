@@ -67,21 +67,6 @@
         ]
       },
       copy: {
-        build_cip: {
-          expand: true,
-          cwd: '<%= config.frontend %>',
-          src: [
-            'cip/**/*.js',
-            'policy/js/cip-loader.js'
-          ],
-          dest: '<%= config.generated %>'
-        },
-        build_brain_client: {
-          files: {
-            '<%= config.generated %>/policy/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js',
-            '<%= config.generated %>/js/brain.client.js': '<%= config.frontend %>/brain-client/brain.client.js'
-          }
-        },
         build: {
           expand: true,
           cwd: '<%= config.frontend %>',
@@ -114,24 +99,6 @@
           dest: '<%= config.generated %>'
         }
       },
-      csslint: {
-        build: [
-          '<%= config.frontend %>/**/*.css',
-          '!<%= config.frontend %>/lib/**/*'
-        ]
-      },
-      cssmin: {
-        build_cip: {
-          files: {
-            '<%= config.generated %>/cip/cip.css': [
-              '<%= config.frontend %>/cip/*.css',
-              '<%= config.frontend %>/version-graph/content.css',
-              '<%= config.temp %>/scss/cip.css',
-              '<%= config.frontend %>/multi-select.css'
-            ]
-          }
-        }
-      },
       "file-creator": {
         styleguide: {
           files: [
@@ -149,18 +116,8 @@
         build: {
           src: [
             '<%= config.generated %>/**/*.{js,css}',
-            '!<%= config.generated %>/lib/**/*',
-            '!<%= config.generated %>/**/brain.client.js',
-            '!<%= config.generated %>/policy/js/cip-loader.js'
+            '!<%= config.generated %>/lib/**/*'
           ]
-        }
-      },
-      filerev_replace: {
-        options: {
-          assets_root: '<%= config.generated %>/policy/js'
-        },
-        compiled_assets: {
-          src: '<%= config.generated %>/policy/js/cip-loader.js'
         }
       },
       html2js: {
@@ -181,25 +138,13 @@
         },
         build: [
           '<%= config.frontend %>/**/*.js',
-          '!<%= config.frontend %>/lib/**/*',
-          '!<%= config.frontend %>/policy/js/cip-loader.js'
+          '!<%= config.frontend %>/lib/**/*'
         ]
       },
       template: {
         options: {
           data: function() {
             return grunt.config.get();
-          }
-        },
-        build_cip: {
-          files: {
-            '<%= config.generated %>/policy/js/cip-loader.js': '<%= config.generated %>/policy/js/cip-loader.js',
-            '<%= config.generated %>/policy/js/brain.client.js': '<%= config.generated %>/policy/js/brain.client.js',
-            '<%= config.generated %>/js/brain.client.js': '<%= config.generated %>/js/brain.client.js',
-
-            // Included for CLM Application Reports
-            '<%= config.generated %>/policy-assets/js/cip-loader.js': '<%= config.generated %>/policy/js/cip-loader.js',
-            '<%= config.generated %>/policy-assets/js/brain.client.js': '<%= config.generated %>/js/brain.client.js'
           }
         },
         build: {
@@ -226,47 +171,19 @@
             staging: '<%= config.temp %>',
             type: 'html'
           }
-        },
-        // build_version_graph relies on the symmetry between ide/eclipse and rm/nexus. If this symmetry is broken
-        // a task target for each will be required
-        build_version_graph: {
-          files: {
-            src: [
-              '<%= config.frontend %>/version-graph/*/*/index.html',
-              '<%= config.frontend %>/version-graph/*/*/viewdetails.html'
-            ]
-          },
-          options: {
-            // useminPrepare has a bug with relative paths https://github.com/yeoman/grunt-usemin/issues/297
-            dest: '<%= config.generated %>/version-graph/ide/eclipse',
-            staging: '<%= config.temp %>/concat/version-graph/ide',
-            type: 'html'
-          }
         }
       },
       usemin: {
         html: [
-          '<%= config.generated %>/index.html',
-          '<%= config.generated %>/version-graph/ide/eclipse/index.html',
-          '<%= config.generated %>/version-graph/ide/eclipse/viewdetails.html',
-          '<%= config.generated %>/version-graph/rm/nexus/index.html',
-          '<%= config.generated %>/version-graph/rm/nexus/viewdetails.html'
+          '<%= config.generated %>/index.html'
         ],
         options: {
           assetsDirs: [
-            '<%= config.generated %>/',
-            '<%= config.generated %>/version-graph/ide/eclipse',
-            '<%= config.generated %>/version-graph/rm/nexus'
+            '<%= config.generated %>/'
           ]
         }
       },
       sass: {
-        build_cip: {
-          files: {
-            '<%= config.temp %>/scss/cip.css': '<%= config.frontend %>/scss/cip.scss',
-            '<%= config.temp %>/scss/viewdetails.css': '<%= config.frontend %>/scss/viewdetails.scss'
-          }
-        },
         build: {
           files: {
             '<%= config.temp %>/scss/bootstrap.css': '<%= config.frontend %>/lib/bootstrap/bootstrap.scss',
@@ -336,23 +253,17 @@
     grunt.registerTask('build', [
       'configure_override:build',
 
-      // Current CSS will fail build if linted
-      //'csslint:build',
       'jshint',
       'clean',
       'copy:build',
-      'copy:build_cip',
-      'copy:build_brain_client',
       'sass',
       'html2js:build',
       'useminPrepare',
       'concat:generated',
       'uglify:generated',
       'cssmin:generated',
-      'cssmin:build_cip',
       'filerev',
       'usemin',
-      'filerev_replace',
       'template',
 
       'clean:temp'
@@ -370,11 +281,8 @@
 
       'clean',
       'copy:develop',
-      'copy:build_cip',
-      'copy:build_brain_client',
       'sass',
       'copy:develop_sass',
-      'cssmin:build_cip',
       'template',
       'clean:temp'
     ]);
@@ -386,11 +294,8 @@
       'bower:install',
       'clean',
       'copy:develop',
-      'copy:build_cip',
-      'copy:build_brain_client',
       'sass',
       'copy:develop_sass',
-      'cssmin:build_cip',
       'template',
       'watch',
       'clean:temp'

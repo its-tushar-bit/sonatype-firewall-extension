@@ -1775,7 +1775,7 @@ public class RepositoryServiceTest
     RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository, "hash1");
     tempEntity.newRepositoryComponent(repository, "hash2");
 
-    // add violations for a different repository, which should not be included in current repo details
+    // Add a component for a different repository, which should not be included in current repo details
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     tempEntity.newRepositoryComponent(repositoryOther, "hash1");
 
@@ -1799,7 +1799,7 @@ public class RepositoryServiceTest
     RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "hash1");
     tempEntity.newRepositoryComponent(repository, "hash1");
 
-    // add violations for a different repository, which should not be included in current repo details
+    // Add a component for a different repository, which should not be included in current repo details
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     tempEntity.newRepositoryComponent(repositoryOther.getId(), component.getPathname());
 

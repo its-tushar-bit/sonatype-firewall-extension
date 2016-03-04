@@ -72,9 +72,10 @@ public class RepositoryReportResource
   @Produces(MediaType.APPLICATION_JSON)
   @Timed
   public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId,
-                                                       @QueryParam("hash") String hash)
+                                                       @QueryParam("hash") String hash,
+                                                       @QueryParam("pathname") String pathname)
   {
-    return repositoryService.getReportDetails(repositoryId, hash);
+    return repositoryService.getReportDetails(repositoryId, hash, pathname);
   }
 
   /**

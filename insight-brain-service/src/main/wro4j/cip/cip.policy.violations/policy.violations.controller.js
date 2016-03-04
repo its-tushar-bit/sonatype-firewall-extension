@@ -33,6 +33,12 @@
       });
     };
 
+    $scope.hasQuarantiningViolations = function () {
+      return !angular.isArray($scope.processedPolicyAlerts) || $scope.processedPolicyAlerts.some(function(alert) {
+        return alert.blocksUnquarantine;
+      });
+    };
+
     $scope.waiveComponent = function(policyAlert) {
       $modal.open({
         templateUrl: 'add-waiver-modal-tmpl',
@@ -53,6 +59,8 @@
         controller: 'release.quarantine.controller as vm',
         backdrop: 'static',
         keyboard: false
+      }).result.then(function() {
+        $scope.quarantined = false;
       });
     };
 

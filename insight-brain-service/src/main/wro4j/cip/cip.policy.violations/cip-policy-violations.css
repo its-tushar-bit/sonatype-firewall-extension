@@ -5,6 +5,14 @@
   border-right: 1px solid #CFD0D2;
 }
 
+.cip-policy-table .actions .icon {
+  opacity: 0.6;
+}
+
+.cip-policy-table .actions {
+  color: #555555;
+}
+
 .cip-policy-table-header {
   border-left: 1px solid #CFD0D2 !important;
   border-top: 1px solid #CFD0D2 !important;

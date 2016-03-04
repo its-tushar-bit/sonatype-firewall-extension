@@ -123,9 +123,9 @@
     <div ng-if="quarantined">
       <span><i class="icon icon-ban-circle"></i> Quarantined </span>
       <a id="release-quarantine" class="btn"
-              tooltip="{{processedPolicyAlerts.length > 0 ? 'To release: resolve all violations and re-evaluate the repository' : ''}}"
-              ng-class="{ disabled: processedPolicyAlerts.length > 0}"
-              ng-click="$event.preventDefault(); processedPolicyAlerts.length === 0 && releaseQuarantine()">Release Quarantine</a>
+              tooltip="{{hasQuarantiningViolations() ? 'To release: resolve all failing violations and re-evaluate the repository' : ''}}"
+              ng-class="{disabled: hasQuarantiningViolations()}"
+              ng-click="$event.preventDefault(); !hasQuarantiningViolations() && releaseQuarantine()">Release Quarantine</a>
     </div>
   </div>
   <div class="cip-policy-wrapper">
@@ -141,10 +141,11 @@
       <tr ng-repeat="policyAlert in processedPolicyAlerts">
         <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{::getThreatColor(policyAlert.threatLevel)}}">
           <div>
-            <b>{{policyAlert.name}}</b>
+            <b>{{::policyAlert.name}}</b>
           </div>
-          <ul style="color: #555555;">
-            <li ng-repeat="action in policyAlert.actions"><i>{{action.actionSummary}}</i></li>
+          <ul class="actions" ng-if="::(policyAlert.actions.length || policyAlert.blocksUnquarantine)">
+            <li ng-if="::quarantined && policyAlert.blocksUnquarantine"><i>Proxy fail</i> <i class="icon icon-ban-circle"></i></li>
+            <li ng-repeat="action in policyAlert.actions"><i>{{::action.actionSummary}}</i></li>
           </ul>
         </td>
         <td valign="top" align="left">

@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -16,6 +17,8 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class WaiverCip
@@ -116,27 +119,30 @@ public class WaiverCip
   }
 
   public static class PolicyWaiverRow
+      extends BasicElement<PolicyWaiverRow>
   {
-    private SelenideElement element;
-
-    PolicyWaiverRow(SelenideElement element) {
-      this.element = element;
+    PolicyWaiverRow(String... selectors) {
+      super(selectors);
     }
 
     public SelenideElement policyName() {
-      return element.find("td:nth-child(1)");
+      return $(selector(selector, "td:nth-child(1)"));
+    }
+
+    public ElementsCollection actions() {
+      return $$(selector(selector, "td:nth-child(1)", "ul li"));
     }
 
     public ElementsCollection constraints() {
-      return element.findAll("td:nth-child(2) b");
+      return $$(selector(selector, "td:nth-child(2) b"));
     }
 
     public ElementsCollection conditions() {
-      return element.findAll("td:nth-child(3) > div > div");
+      return $$(selector(selector, "td:nth-child(3) > div > div"));
     }
 
     public SelenideElement waiveButton() {
-      return element.find(".btn-primary");
+      return $(selector(selector, ".btn-primary"));
     }
 
     public void shouldBe(int threatLevel, String policyName, String[] expectedConstraints, String[] expectedConditions)
@@ -175,12 +181,16 @@ public class WaiverCip
     }
   }
 
+  private static String[] getRowSelector() {
+    return new String[] { CONTAINER_ID, ".cip-policy-table tbody tr" };
+  }
+
   public static PolicyWaiverRow row(int num) {
-    return new PolicyWaiverRow(rows().get(num));
+    return new PolicyWaiverRow(selector(getRowSelector()), nthChild(num + 1));
   }
 
   public static ElementsCollection rows() {
-    return $$(CONTAINER_ID + " .cip-policy-table tbody tr");
+    return $$(selector(getRowSelector()));
   }
 
   public static SelenideElement viewWaivers() {

@@ -104,7 +104,7 @@ public class RepositoryReevaluationTaskTest
     repositoryComponentDAO.update(component);
     unknownComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
 
-    tempEntity.newRepositoryPolicyViolation(component, 1, true, "old");
+    tempEntity.newRepositoryPolicyViolation(component, 1, true, "old", null);
 
     // policy things should violate
     policy = createPolicy();

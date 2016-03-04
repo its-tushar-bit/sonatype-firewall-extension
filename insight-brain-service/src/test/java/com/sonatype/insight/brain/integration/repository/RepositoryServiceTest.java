@@ -252,10 +252,11 @@ public class RepositoryServiceTest
         componentIdentifier);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, false, "policyId3", "policyName3",
         componentIdentifier);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, true, "policyId4", "policyName4",
-        componentIdentifier);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, true, Action.ID_FAIL, "policyId4",
+        "policyName4", componentIdentifier);
 
     tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
+    tempEntity.newRepositoryComponent(repository.getId(), "path4", new Date(), null);
 
     RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = repositoryService.getPolicyThreats(repository.getId(),
         pathname);
@@ -265,6 +266,11 @@ public class RepositoryServiceTest
     assertThat(repositoryViolationDTO.policyId, is("policyId1"));
     assertThat(repositoryViolationDTO.policyName, is("policyName1"));
     assertThat(repositoryViolationDTO.policyThreatLevel, is(8));
+    assertFalse(repositoryViolationDTO.blocksUnquarantine);
+
+    repositoryViolationDTO = repositoryService.getPolicyThreats(repository.getId(), "path4").activePolicyViolations
+        .get(0);
+    assertTrue(repositoryViolationDTO.blocksUnquarantine);
   }
 
   @Test
@@ -1745,7 +1751,8 @@ public class RepositoryServiceTest
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     createRepositoryPolicyViolation(repositoryOther, pathname1, 6);
 
-    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null);
+    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null,
+        null);
 
     assertThat(reportDetails.size(), is(6));
 
@@ -1772,7 +1779,8 @@ public class RepositoryServiceTest
     final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
     tempEntity.newRepositoryComponent(repositoryOther, "hash1");
 
-    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), "hash1");
+    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), "hash1",
+        null);
 
     assertThat(reportDetails.size(), is(2));
 
@@ -1781,6 +1789,25 @@ public class RepositoryServiceTest
       assertTrue(detail.getPathname().equals(component1.getPathname())
           || detail.getPathname().equals(component2.getPathname()));
     }
+  }
+
+  @Test
+  public void testGetReportDetails_byPathname() throws Exception {
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "hash1");
+    tempEntity.newRepositoryComponent(repository, "hash1");
+
+    // add violations for a different repository, which should not be included in current repo details
+    final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
+    tempEntity.newRepositoryComponent(repositoryOther.getId(), component.getPathname());
+
+    final List<RepositoryReportDetail> reportDetails = repositoryService.getReportDetails(repository.getId(), null,
+        component.getPathname());
+
+    assertThat(reportDetails.size(), is(1));
+    assertThat(reportDetails.get(0).getPathname(), is(component.getPathname()));
   }
 
   @Test

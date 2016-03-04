@@ -179,7 +179,8 @@ public class RepositoryService
       List<PolicyThreats.PolicyConstraint> constraints = policyThreatsAdapter
           .toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
       activeRepositoryViolationDTOs.add(new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
-          repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(), constraints));
+          repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
+          Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints));
     }
 
     return new RepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
@@ -434,7 +435,7 @@ public class RepositoryService
     return policyEvaluationSummary;
   }
 
-  public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash) {
+  public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash, String pathname) {
     checkLicenseFeature();
 
     final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
@@ -442,20 +443,29 @@ public class RepositoryService
     log.debug("Get report details for repository {}:{} ({})", repository.getRepositoryManagerId(),
         repository.getPublicId(), repository.getId());
 
-    return getReportDetails(repository, hash);
+    return getReportDetails(repository, hash, pathname);
   }
 
   @Authorize(permission = Permission.READ)
-  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository, String hash)
+  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository,
+                                                String hash,
+                                                String pathname)
   {
     final List<RepositoryReportDetail> details = new ArrayList<>();
 
     final List<RepositoryComponent> componentList;
-    if (hash == null) {
-      componentList = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    if (hash != null) {
+      if (pathname != null) {
+        throw new BadRequestException("Either a pathname or a hash is supported, not both.");
+      }
+      componentList = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
+    }
+    else if (pathname != null) {
+      componentList = Collections
+          .singletonList(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname));
     }
     else {
-      componentList = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
+      componentList = repositoryComponentDAO.getByRepositoryId(repository.getId());
     }
 
     for (final RepositoryComponent component : componentList) {

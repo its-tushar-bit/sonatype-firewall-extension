@@ -23,6 +23,8 @@ public class RepositoryPolicyViolationDTO
 
   public List<PolicyConstraint> constraints;
 
+  public boolean blocksUnquarantine;
+
   // Needed for de-serialization
   public RepositoryPolicyViolationDTO() {
   }
@@ -30,11 +32,13 @@ public class RepositoryPolicyViolationDTO
   public RepositoryPolicyViolationDTO(final String policyId,
                                       final String policyName,
                                       final int policyThreatLevel,
+                                      final boolean blocksUnquarantine,
                                       final List<PolicyThreats.PolicyConstraint> constraints)
   {
     this.policyId = policyId;
     this.policyName = policyName;
     this.policyThreatLevel = policyThreatLevel;
     this.constraints = constraints;
+    this.blocksUnquarantine = blocksUnquarantine;
   }
 }

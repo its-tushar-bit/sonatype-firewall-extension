@@ -39,7 +39,8 @@
               threatLevel: activeViolation.policyThreatLevel,
               hash: policyThreat.hash,
               constraints: activeViolation.constraints,
-              actions: actions
+              actions: actions,
+              blocksUnquarantine: activeViolation.blocksUnquarantine
             });
           });
           deferred.resolve(processedPolicyAlerts);

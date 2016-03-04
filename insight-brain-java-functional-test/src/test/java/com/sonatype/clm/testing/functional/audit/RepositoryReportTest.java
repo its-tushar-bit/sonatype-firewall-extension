@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
@@ -178,16 +179,18 @@ public class RepositoryReportTest
   public void testUnquarantine() throws Exception {
     RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("severe", "threat", "1.0."), true);
-    tempEntity.newRepositoryPolicyViolation(component, 6, false, "Really Bad");
+    tempEntity.newRepositoryPolicyViolation(component, 6, false, "Really Bad", Action.ID_FAIL);
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("no", "threat", "1.0."), true);
+    tempEntity.newRepositoryPolicyViolation(component, 3, false, "Whatever", null);
     setupHDSFirewallResponse(component.getHash());
 
     open(RepositoryReportPage.url(repo.getId()));
 
     // Components with violations cannot be unquarantined
     openCip(0, "Policy");
+    WaiverCip.row(0).actions().shouldHave(texts("Proxy fail"));
     WaiverCip.unquarantineButton().shouldBe(visible, CLM.DISABLED).click();
     UnquarantineDialog.releaseButton().shouldNot(appear);
     Table.row(0).component().click(); // hide CIP
@@ -211,15 +214,15 @@ public class RepositoryReportTest
     // one of each threat level
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("ignored", "threat", "1.0."));
-    tempEntity.newRepositoryPolicyViolation(component, 1, false, "Meh");
+    tempEntity.newRepositoryPolicyViolation(component, 1, false, "Meh", null);
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("moderate", "threat", "1.0."));
-    tempEntity.newRepositoryPolicyViolation(component, 3, false, "Sorta Bad");
+    tempEntity.newRepositoryPolicyViolation(component, 3, false, "Sorta Bad", null);
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("severe", "threat", "1.0."));
-    tempEntity.newRepositoryPolicyViolation(component, 6, false, "Really Bad");
+    tempEntity.newRepositoryPolicyViolation(component, 6, false, "Really Bad", null);
 
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, CRITICAL_IDENTIFIER);
 
@@ -228,20 +231,20 @@ public class RepositoryReportTest
     criticalComponentHash = component.getHash();
 
     // one with multiple violations
-    tempEntity.newRepositoryPolicyViolation(component, 9, false, "Not in summary");
+    tempEntity.newRepositoryPolicyViolation(component, 9, false, "Not in summary", null);
 
     // one quarantined, that groups
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("quarantined", "component", "1.0."));
     component.setQuarantineTime(new Date());
     new RepositoryComponentDAO().update(component);
-    tempEntity.newRepositoryPolicyViolation(component, 10, false, "Extremely Bad");
+    tempEntity.newRepositoryPolicyViolation(component, 10, false, "Extremely Bad", null);
 
     // one waived
     component = tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT,
         ComponentIdentifier.createMavenCoordinates("waived", "component", "1.0."));
     new RepositoryComponentDAO().update(component);
-    tempEntity.newRepositoryPolicyViolation(component, 10, true, "Extremely Bad but its cool");
+    tempEntity.newRepositoryPolicyViolation(component, 10, true, "Extremely Bad but its cool", null);
 
     // setup HDS
     setupHdsFirewallResponse();

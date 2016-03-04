@@ -12,9 +12,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Selenide.$;
+
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class PolicyTileList
     extends GreedyTable<PolicyTileListElement>
@@ -30,19 +29,19 @@ public class PolicyTileList
   }
 
   public SelenideElement ownerName() {
-    return $(selector(selector, ".subsection-header"));
+    return child(".subsection-header");
   }
 
   public SelenideElement emptyDescriptor() {
-    return $(selector(selector, ".empty-list"));
+    return child(".empty-list");
   }
 
   public HeaderColumn threatLegendHeaderColumn() {
-    return this.header(1);
+    return this.header(0);
   }
 
   public HeaderColumn nameHeaderColumn() {
-    return this.header(2);
+    return this.header(1);
   }
 
   public static Condition threatLevel(int threatLevel) {
@@ -65,39 +64,39 @@ public class PolicyTileList
     }
 
     public SelenideElement threadLegend() {
-      return $(selector(selector, ".threat-legend"));
+      return child(".threat-legend");
     }
 
     public SelenideElement name() {
-      return $(selector(selector, "td", nthChild(1)));
+      return child("td", nthChild(1));
     }
 
     public SelenideElement proxy() {
-      return $(selector(selector, "td", nthChild(2)));
+      return child("td", nthChild(2));
     }
 
     public SelenideElement develop() {
-      return $(selector(selector, "td", nthChild(3)));
+      return child("td", nthChild(3));
     }
 
     public SelenideElement build() {
-      return $(selector(selector, "td", nthChild(4)));
+      return child("td", nthChild(4));
     }
 
     public SelenideElement stageRelease() {
-      return $(selector(selector, "td", nthChild(5)));
+      return child("td", nthChild(5));
     }
 
     public SelenideElement release() {
-      return $(selector(selector, "td", nthChild(6)));
+      return child("td", nthChild(6));
     }
 
     public SelenideElement operate() {
-      return $(selector(selector, "td", nthChild(7)));
+      return child("td", nthChild(7));
     }
 
     public SelenideElement chevron() {
-      return $(selector(selector, ".fa-chevron-right"));
+      return child(".fa-chevron-right");
     }
   }
 }

@@ -8,23 +8,19 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public abstract class CategoryTile
     extends OwnerTile
 {
-  private static final String CATEGORY_OWNER_ELEMENT_ID = "#owner-pill-app-categories";
-
   public static Condition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
   }
 
   public CategoryTile() {
-    super($(CATEGORY_OWNER_ELEMENT_ID));
+    super("#owner-pill-app-categories");
   }
 
   public ElementsCollection categoryLists() {
-    return root.$$(".simple-list");
+    return children(".simple-list");
   }
 
   public TileSimpleList categoryList(int num) {

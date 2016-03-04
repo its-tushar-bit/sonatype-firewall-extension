@@ -13,26 +13,29 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 public class ActionDropDown
 {
+  private static final String ROOT = "#action-dropdown";
+
   public static SelenideElement root() {
-    return $("#action-dropdown");
+    return $(ROOT);
   }
 
   public static SelenideElement menu() {
-    return root().find(".dropdown-menu");
+    return $(selector(ROOT, ".dropdown-menu"));
   }
 
   public static SelenideElement selectContact() {
-    return root().find("#select-contact-link");
+    return $(selector(ROOT, "#select-contact-link"));
   }
 
   public static SelenideElement editOwner() {
-    return root().find("#app-org-link");
+    return $(selector(ROOT, "#app-org-link"));
   }
 
   public static SelenideElement deleteOwnerButton() {
-    return root().find("#delete-owner-link");
+    return $(selector(ROOT, "#delete-owner-link"));
   }
 
   public static SelenideElement evaluateBinaryButton() {
@@ -44,7 +47,7 @@ public class ActionDropDown
   }
 
   public static SelenideElement actionButton() {
-    return root().find("button");
+    return $(selector(ROOT, "button"));
   }
 
   public static Condition reportLinkText(String stageName) {

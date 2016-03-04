@@ -14,16 +14,11 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 public class ConstraintSection
-    extends PolicyEditorSection
 {
   private static final String rootSelector = "#policy-edit-constraints";
 
-  public ConstraintSection() {
-    super($(rootSelector));
-  }
-
   public ElementsCollection constraintSummaries() {
-    return root.$$(".constraint-summary");
+    return $$(rootSelector + " .constraint-summary");
   }
 
   public ConstraintSummary constraintSummary(int i) {
@@ -99,8 +94,8 @@ public class ConstraintSection
       return $("#editor-constraint-name-" + index);
     }
 
-    public DropdownSelector operator() {
-      return new DropdownSelector($("#editor-constraint-operator-" + index));
+    public Dropdown operator() {
+      return new Dropdown("#editor-constraint-operator-" + index);
     }
 
     public ElementsCollection conditions() {
@@ -135,12 +130,12 @@ public class ConstraintSection
         this.rootSelector = rootSelector;
       }
 
-      public DropdownSelector type() {
-        return new DropdownSelector($(rootSelector + " .editor-condition-type"));
+      public Dropdown type() {
+        return new Dropdown(rootSelector + " .editor-condition-type");
       }
 
-      public DropdownSelector operator() {
-        return new DropdownSelector($(rootSelector + " .editor-condition-operator"));
+      public Dropdown operator() {
+        return new Dropdown(rootSelector + " .editor-condition-operator");
       }
 
       public SelenideElement deleteConditionButton() {
@@ -156,8 +151,8 @@ public class ConstraintSection
         super(rootSelector);
       }
 
-      public DropdownSelector value() {
-        return new DropdownSelector($(rootSelector + " .editor-condition-value"));
+      public Dropdown value() {
+        return new Dropdown(rootSelector + " .editor-condition-value");
       }
     }
 

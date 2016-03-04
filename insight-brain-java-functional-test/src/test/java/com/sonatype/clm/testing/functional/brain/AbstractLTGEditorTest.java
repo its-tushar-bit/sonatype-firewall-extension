@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
+import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.Item;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -75,18 +76,20 @@ public abstract class AbstractLTGEditorTest
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("original name"));
     assertThreatLevelSelectorDefaultState(1);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
+
+    DoubleColumnPicker picker = new DoubleColumnPicker();
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(picker, licenseDAO.getAll().size());
     LTGEditorPage.saveButton().shouldHave(DISABLED);
 
     LTGEditorPage.ltgName().val("updated name");
     changeThreatLevel(6);
-    pickFirstThreeLicenses();
+    pickFirstThreeLicenses(picker);
     LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
     ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
-    DoubleColumnPicker.pickedItems().shouldHaveSize(3);
+    picker.pickedItems().shouldHaveSize(3);
     LTGEditorPage.saveButton().shouldHave(DISABLED);
 
     List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
@@ -98,7 +101,7 @@ public abstract class AbstractLTGEditorTest
     assertThat(includedLicenses.size(), is(3));
 
     for (int i = 0; i < includedLicenses.size(); i++) {
-      DoubleColumnPicker.pickedItem(i).name()
+      picker.pickedItem(i).label()
           .shouldHave(text(licenseDAO.getById(includedLicenses.get(i).getLicenseId()).getLongDisplayName()));
     }
 
@@ -126,8 +129,7 @@ public abstract class AbstractLTGEditorTest
     ThreatLevelSelector.threatLevelListItems().shouldHaveSize(ThreatLevelSelector.NUM_THREAT_LEVELS);
 
     for (int i = 0; i < ThreatLevelSelector.NUM_THREAT_LEVELS; i++) {
-      ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible);
-      assertThat(Integer.parseInt(ThreatLevelSelector.threatLevelListItem(i).text()), is(10 - i));
+      ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible).shouldHave(text(String.valueOf(10 - i)));
     }
 
     ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel))).click();
@@ -136,28 +138,28 @@ public abstract class AbstractLTGEditorTest
   private void changeThreatLevel(int threatLevel) {
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
     ThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
-    assertThat(Integer.parseInt(ThreatLevelSelector.selectedThreatLevel().text()), is(threatLevel));
+    ThreatLevelSelector.selectedThreatLevel().shouldHave(text(String.valueOf(threatLevel)));
   }
 
-  private void pickFirstThreeLicenses() {
-    int initialSize = DoubleColumnPicker.availableItems().size();
+  private void pickFirstThreeLicenses(DoubleColumnPicker picker) {
+    int initialSize = picker.availableItems().size();
     List<String> pickedLicenseNames = new ArrayList<>();
 
     for (int i = 0; i < 3; i++) {
-      DoubleColumnPicker.availableItem(i).checkbox().shouldBe(visible).click();
-      pickedLicenseNames.add(DoubleColumnPicker.availableItem(i).name().text());
+      Item item = picker.availableItem(i);
+      item.shouldBe(visible).click();
+      pickedLicenseNames.add(item.label().text());
     }
 
-    DoubleColumnPicker.pickCheckedItemsButton().shouldBe(enabled).click();
+    picker.pickCheckedItemsButton().shouldBe(enabled).click();
 
-    DoubleColumnPicker.availableItems().shouldHaveSize(initialSize - 3);
-    DoubleColumnPicker.pickedItems().shouldHaveSize(3);
-    DoubleColumnPicker.pickCheckedItemsButton().shouldBe(disabled);
-    DoubleColumnPicker.unpickCheckedItemsButton().shouldBe(enabled);
+    picker.availableItems().shouldHaveSize(initialSize - 3);
+    picker.pickedItems().shouldHaveSize(3);
+    picker.pickCheckedItemsButton().shouldBe(disabled);
+    picker.unpickCheckedItemsButton().shouldBe(enabled);
 
     for (int i = 0; i < 3; i++) {
-      DoubleColumnPicker.pickedItem(i).checkbox().shouldBe(selected);
-      DoubleColumnPicker.pickedItem(i).name().shouldHave(text(pickedLicenseNames.get(i)));
+      picker.pickedItem(i).shouldBe(selected).label().shouldHave(text(pickedLicenseNames.get(i)));
     }
   }
 

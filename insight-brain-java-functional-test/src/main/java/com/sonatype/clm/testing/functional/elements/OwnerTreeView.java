@@ -5,18 +5,18 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import java.util.List;
+import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hasAttribute;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class OwnerTreeView
 {
@@ -28,14 +28,8 @@ public class OwnerTreeView
     return $$(".tree-view-organization-group");
   }
 
-  public static List<OrganizationNode> organizations() {
-    return Lists.transform(organizationElements(), new Function<SelenideElement, OrganizationNode>()
-    {
-      @Override
-      public OrganizationNode apply(final SelenideElement element) {
-        return new OrganizationNode(element);
-      }
-    });
+  public static OrganizationNode organization(int num) {
+    return new OrganizationNode("#organizations .tree-view-organization-group", nthChild(num + 1));
   }
 
   public static SelenideElement repositories() {
@@ -54,63 +48,44 @@ public class OwnerTreeView
   }
 
   public static class OrganizationNode
+      extends BasicElement<OrganizationNode>
   {
-    private final SelenideElement element;
-
     public static final Condition CHILD_SELECTED = cssClass("childSelected");
 
     public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
+
     public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = hasAttribute("data-tooltip", DISABLED_TOOLTIP_CONTENT);
 
-    public OrganizationNode(SelenideElement element) {
-      this.element = element;
+    public OrganizationNode(String... selectors) {
+      super(selectors);
     }
 
     public SelenideElement treeViewElement() {
-      return element.$(".tree-view-item:first-child");
+      return child(".tree-view-item:first-child");
     }
 
     public SelenideElement organizationName() {
-      return element.$(".tree-view-item:first-child > span");
+      return child(".tree-view-item:first-child > span");
     }
 
     public SelenideElement twisty() {
-      return element.$(".twisty");
+      return child(".twisty");
     }
 
     public SelenideElement newApplicationButton() {
-      return element.$(".tree-view-new-application button");
+      return child(".tree-view-new-application button");
     }
 
     public ElementsCollection applicationElements() {
-      return element.findAll(".tree-view-item:not(:first-child)");
+      return children(".tree-view-item:not(:first-child)");
     }
 
     public SelenideElement popup() {
       return $(".tooltip-inner");
     }
 
-    public List<ApplicationNode> applications() {
-      return Lists.transform(applicationElements(), new Function<SelenideElement, ApplicationNode>()
-      {
-        @Override
-        public ApplicationNode apply(final SelenideElement applicationElement) {
-          return new ApplicationNode(applicationElement);
-        }
-      });
-    }
-  }
-
-  public static class ApplicationNode
-  {
-    private final SelenideElement element;
-
-    public ApplicationNode(SelenideElement element) {
-      this.element = element;
-    }
-
-    public SelenideElement treeViewElement() {
-      return element;
+    public SelenideElement application(int num) {
+      return child(".tree-view-item", nthChild(num + 1 + 1 /* The org is the first entry */));
     }
   }
 }

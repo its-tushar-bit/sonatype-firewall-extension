@@ -6,12 +6,14 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ColorPicker;
+
 import com.codeborne.selenide.SelenideElement;
+
 import static com.codeborne.selenide.Selenide.$;
 
 public class LabelEditorPage
 {
-  private static final ColorPicker colorPicker = new ColorPicker($("#editor-label-color-picker"));
+  private static final ColorPicker colorPicker = new ColorPicker("#editor-label-color-picker");
 
   public static String urlToEdit(String ownerType, String ownerId, String labelId) {
     return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label/" + labelId;

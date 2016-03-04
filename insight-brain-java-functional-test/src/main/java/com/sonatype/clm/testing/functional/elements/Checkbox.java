@@ -14,18 +14,18 @@ import com.codeborne.selenide.SelenideElement;
  */
 public class Checkbox
 {
-  private SelenideElement labelElement;
+  protected SelenideElement element;
 
   public Checkbox(SelenideElement labelElement) {
-    this.labelElement = labelElement;
+    this.element = labelElement;
   }
 
   public SelenideElement input() {
-    return labelElement.$("input[type='checkbox']");
+    return element.$("input[type='checkbox']");
   }
 
   public SelenideElement label() {
-    return labelElement.$("input[type='checkbox'] + span");
+    return element.$("input[type='checkbox'] + span");
   }
 
   public void click() {

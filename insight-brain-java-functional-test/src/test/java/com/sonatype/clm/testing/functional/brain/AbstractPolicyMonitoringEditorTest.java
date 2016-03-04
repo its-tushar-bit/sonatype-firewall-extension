@@ -19,7 +19,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
@@ -53,7 +52,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
     MonitoredStageEditorPage.getStageByName("Develop").click();
     MonitoredStageEditorPage.updateButton().shouldNotHave(DISABLED).click();
-    FormMask.root().shouldBe(visible).shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
     assertEditMonitoredStageStateIsCorrect("Develop");
   }
 

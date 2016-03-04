@@ -20,6 +20,6 @@ public class RootOrgMigrate
   }
 
   public static SelenideElement startButton() {
-    return migrateBanner().$("button");
+    return $("#root-org-migrate-banner button");
   }
 }

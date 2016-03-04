@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
+import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
@@ -284,37 +285,38 @@ public class ApplicationSummaryViewTest
         ActionDropDown.actionButton().click();
         ActionDropDown.evaluateBinaryButton().shouldBe(visible).click();
 
-        EvaluateApplicationModal.root().shouldBe(visible);
-        EvaluateApplicationModal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
-        EvaluateApplicationModal.stageDropdown().selectedItem().shouldBe(EvaluateApplicationModal.defaultStageText())
-            .click();
-        EvaluateApplicationModal.stageDropdown().listItems().shouldHaveSize(4);
+        EvaluateApplicationModal modal = new EvaluateApplicationModal();
+        modal.shouldBe(visible);
+        modal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
 
-        EvaluateApplicationModal.stageDropdown().listItem(2).shouldHave(text(StageTypes.RELEASE.getName()));
-        EvaluateApplicationModal.stageDropdown().listItem(2).click();
-        EvaluateApplicationModal.stageDropdown().selectedItem().shouldBe(text(StageTypes.RELEASE.getName()));
+        Dropdown stageDropdown = modal.stageDropdown();
+        stageDropdown.selectedItem().shouldHave(text(EvaluateApplicationModal.SELECT_STAGE_TEXT)).click();
+        stageDropdown.listItems().shouldHaveSize(4);
 
-        EvaluateApplicationModal.notifyRadioButtons().yes().shouldBe(visible, selected);
-        EvaluateApplicationModal.notifyRadioButtons().no().shouldBe(visible).shouldNotBe(selected);
+        stageDropdown.listItem(2).shouldHave(text(StageTypes.RELEASE.getName())).click();
+        stageDropdown.selectedItem().shouldBe(text(StageTypes.RELEASE.getName()));
 
-        EvaluateApplicationModal.cancelButton().shouldBe(visible, enabled);
-        EvaluateApplicationModal.uploadButton().shouldBe(visible, enabled).click();
+        modal.notifyRadioButtons().yes().shouldBe(visible, selected);
+        modal.notifyRadioButtons().no().shouldBe(visible).shouldNotBe(selected);
 
-        EvaluateApplicationModal.bundleFileName().shouldBe(text(tempFile.getName()));
-        EvaluateApplicationModal.bundleAppName().shouldBe(text(application.getName()));
-        EvaluateApplicationModal.bundleStageName().shouldBe(text(StageTypes.RELEASE.getName()));
+        modal.cancelButton().shouldBe(visible, enabled);
+        modal.uploadButton().shouldBe(visible, enabled).click();
+
+        modal.bundleFileName().shouldBe(text(tempFile.getName()));
+        modal.bundleAppName().shouldBe(text(application.getName()));
+        modal.bundleStageName().shouldBe(text(StageTypes.RELEASE.getName()));
 
         // Give a maximum of 1 minute for the file to be uploaded
-        EvaluateApplicationModal.evaluateBundleStatus().waitUntil(text("Done"), 60000);
+        modal.evaluateBundleStatus().waitUntil(text("Done"), 60000);
 
-        EvaluateApplicationModal.closeButton().shouldBe(visible, enabled);
+        modal.closeButton().shouldBe(visible, enabled);
 
         PolicyEvaluation policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(
             application.getId(), StageTypes.RELEASE.getId());
 
         assertThat(policyEvaluations, notNullValue());
 
-        EvaluateApplicationModal.viewReportButton().shouldBe(visible, enabled).click();
+        modal.viewReportButton().shouldBe(visible, enabled).click();
 
         switchToWindow(1);
 

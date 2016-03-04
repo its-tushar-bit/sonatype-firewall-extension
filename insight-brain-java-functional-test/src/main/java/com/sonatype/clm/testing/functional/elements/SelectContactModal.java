@@ -8,59 +8,57 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class SelectContactModal
 {
+  private static final String ROOT = "#select-application-contact-modal";
+
   public static Condition headerText() {
     return text("Select Contact");
   }
 
-  public static SelenideElement root() {
-    return $("#select-application-contact-modal");
-  }
-
   public static SelenideElement header() {
-    return root().$(".clm-modal-header");
+    return $(ROOT + " .clm-modal-header");
   }
 
   public static SelenideElement body() {
-    return root().$(".clm-modal-body");
+    return $(ROOT + " .clm-modal-body");
   }
 
   public static SelenideElement currentUserLabel() {
-    return root().$("#current-contact");
+    return $(ROOT + " #current-contact");
   }
 
   public static SelenideElement searchBox() {
-    return root().$("#user-search-input");
+    return $(ROOT + " #user-search-input");
   }
 
   public static SelenideElement searchButton() {
-    return root().$("#user-search-button");
+    return $(ROOT + " #user-search-button");
   }
 
   public static ElementsCollection users() {
-    return root().findAll("td");
+    return $$(ROOT + " td");
   }
 
   public static SelenideElement updateButton() {
-    return root().$(".btn-primary");
+    return $(ROOT + " .btn-primary");
   }
 
   public static SelenideElement cancelButton() {
-    return root().$("#cancel-select-contact-button");
+    return $(ROOT + " #cancel-select-contact-button");
   }
 
   public static SelenideElement removeButton() {
-    return root().$(".btn-tertiary");
+    return $(ROOT + " .btn-tertiary");
   }
 
   public static Radio userRadio(final String usersName) {
-    SelenideElement td = root().findAll(By.tagName("td")).findBy(text(usersName));
+    SelenideElement td = $$(ROOT + " td").findBy(text(usersName));
     if (td != null) {
       return new Radio(td.find("label.radio"));
     }

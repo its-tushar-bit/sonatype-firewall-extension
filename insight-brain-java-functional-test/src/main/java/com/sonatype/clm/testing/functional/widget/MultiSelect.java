@@ -11,8 +11,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
 public class MultiSelect
@@ -23,15 +21,15 @@ public class MultiSelect
   }
 
   public SelenideElement button() {
-    return $(selector(selector, "button.btn.dropdown-toggle"));
+    return child("button.btn.dropdown-toggle");
   }
 
   public SelenideElement filter() {
-    return $(selector(selector, "ul", "input[type=text]"));
+    return child("ul", "input[type=text]");
   }
 
   public ElementsCollection entries() {
-    return $$(selector(selector, "li[ng-repeat]"));
+    return children("li[ng-repeat]");
   }
 
   public SelenideElement entry(int row) {

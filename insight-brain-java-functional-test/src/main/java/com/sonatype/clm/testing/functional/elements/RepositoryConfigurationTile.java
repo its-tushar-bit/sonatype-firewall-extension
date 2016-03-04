@@ -12,7 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$;
+
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
@@ -32,7 +32,7 @@ public class RepositoryConfigurationTile
   }
 
   public SelenideElement emptyDescriptor() {
-    return $(selector(selector, ".empty-list"));
+    return child(".empty-list");
   }
 
   public static class ConfigurationTable
@@ -60,23 +60,23 @@ public class RepositoryConfigurationTile
       }
 
       public SelenideElement publicId() {
-        return $(selector(selector, "td", nthChild(1)));
+        return child("td", nthChild(1));
       }
 
       public SelenideElement managerId() {
-        return $(selector(selector, "td", nthChild(2)));
+        return child("td", nthChild(2));
       }
 
       public SelenideElement status() {
-        return $(selector(selector, "td", nthChild(3)));
+        return child("td", nthChild(3));
       }
 
       public SelenideElement statusIcon() {
-        return $(selector(selector, "td", nthChild(3), "> .fa"));
+        return child("td", nthChild(3), "> .fa");
       }
 
       public SelenideElement deleteButton() {
-        return $(selector(selector, "td", nthChild(4), "> button"));
+        return child("td", nthChild(4), "> button");
       }
 
       public static Condition deleteRepositoryText(String publicId) {

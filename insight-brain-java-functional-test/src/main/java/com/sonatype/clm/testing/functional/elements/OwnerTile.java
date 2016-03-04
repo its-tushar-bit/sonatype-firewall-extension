@@ -6,21 +6,22 @@
 
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
 public abstract class OwnerTile
+    extends BasicElement<OwnerTile>
 {
-  protected SelenideElement root;
-
-  public OwnerTile(SelenideElement root) {
-    this.root = root;
+  public OwnerTile(String... selectors) {
+    super(selectors);
   }
 
   public SelenideElement subHeader() {
-    return root.$(".sub-header");
+    return child(".sub-header");
   }
 
   public SelenideElement newButton() {
-    return root.$("button");
+    return child("button");
   }
 }

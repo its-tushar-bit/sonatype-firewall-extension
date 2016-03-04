@@ -450,7 +450,7 @@ public abstract class AbstractPolicyEditorTest
     buildNotification.addButton().shouldHave(DISABLED);
     buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
     buildNotification.email().val("test@sonatype.com").shouldBe(visible);
-    buildNotification.role().root().shouldNot(exist);
+    buildNotification.role().shouldNot(exist);
     buildNotification.addButton().shouldNotHave(DISABLED).click();
     buildNotification.addButton().shouldHave(DISABLED);
     buildNotification.email().shouldBe(empty);
@@ -458,7 +458,7 @@ public abstract class AbstractPolicyEditorTest
     buildNotification.notificationType().selectedItem().click();
     buildNotification.notificationType().listItem(1).click();
     buildNotification.email().shouldNot(exist);
-    buildNotification.role().root().shouldBe(visible);
+    buildNotification.role().shouldBe(visible);
     buildNotification.role().selectedItem().click();
     buildNotification.role().listItems().findBy(text("Application Evaluator")).click();
     buildNotification.addButton().shouldNotHave(DISABLED).click();
@@ -469,7 +469,7 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.build().notifications()
         .shouldHave(texts("test@foo.com", "Developer", "test@sonatype.com", "Application Evaluator"));
 
-    actionItemList.build().getNotificationByName("test@foo.com").deleteButton().click();
+    actionItemList.build().getNotification(1).deleteButton().click();
     actionItemList.build().notifications().shouldHaveSize(3);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
@@ -508,7 +508,7 @@ public abstract class AbstractPolicyEditorTest
     monitoringNotification.addButton().shouldHave(DISABLED);
     monitoringNotification.notificationType().selectedItem().shouldHave(text("Email"));
     monitoringNotification.email().val("test@sonatype.com").shouldBe(visible);
-    monitoringNotification.role().root().shouldNot(exist);
+    monitoringNotification.role().shouldNot(exist);
     monitoringNotification.addButton().shouldNotHave(DISABLED).click();
     monitoringNotification.addButton().shouldHave(DISABLED);
     monitoringNotification.email().shouldBe(empty);
@@ -516,7 +516,7 @@ public abstract class AbstractPolicyEditorTest
     monitoringNotification.notificationType().selectedItem().click();
     monitoringNotification.notificationType().listItem(1).click();
     monitoringNotification.email().shouldNot(exist);
-    monitoringNotification.role().root().shouldBe(visible);
+    monitoringNotification.role().shouldBe(visible);
     monitoringNotification.role().selectedItem().click();
     monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
     monitoringNotification.addButton().shouldNotHave(DISABLED).click();
@@ -528,7 +528,7 @@ public abstract class AbstractPolicyEditorTest
     actionItemList.continuousMonitoring().notifications().shouldHave(
         texts("test@foo.com", "test@sonatype.com", "Application Evaluator"));
 
-    actionItemList.continuousMonitoring().getNotificationByName("test@foo.com").deleteButton().click();
+    actionItemList.continuousMonitoring().getNotification(1).deleteButton().click();
     actionItemList.continuousMonitoring().notifications().shouldHaveSize(2);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
@@ -638,7 +638,7 @@ public abstract class AbstractPolicyEditorTest
     buildNotification.addButton().shouldHave(DISABLED);
     buildNotification.notificationType().selectedItem().shouldHave(text("Email"));
     buildNotification.email().val("test@sonatype.com").shouldBe(visible);
-    buildNotification.role().root().shouldNot(exist);
+    buildNotification.role().shouldNot(exist);
     buildNotification.addButton().shouldNotHave(DISABLED).click();
     buildNotification.addButton().shouldHave(DISABLED);
     PolicyEditorPage.saveButton().shouldHave(DISABLED); // disabled because constraint has not been populated
@@ -652,7 +652,7 @@ public abstract class AbstractPolicyEditorTest
     monitoringNotification.notificationType().selectedItem().shouldHave(text("Email")).click();
     monitoringNotification.notificationType().listItem(1).click();
     monitoringNotification.email().shouldNot(exist);
-    monitoringNotification.role().root().shouldBe(visible);
+    monitoringNotification.role().shouldBe(visible);
     monitoringNotification.role().selectedItem().click();
     monitoringNotification.role().listItems().findBy(text("Application Evaluator")).click();
     monitoringNotification.addButton().shouldNotHave(DISABLED).click();
@@ -722,7 +722,7 @@ public abstract class AbstractPolicyEditorTest
 
     if (isReadOnly) {
       buildNotification.addButton().shouldNot(exist);
-      buildNotification.notificationType().root().shouldNot(exist);
+      buildNotification.notificationType().shouldNot(exist);
       buildNotification.email().shouldNot(exist);
     }
     else {
@@ -730,7 +730,7 @@ public abstract class AbstractPolicyEditorTest
       buildNotification.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
       buildNotification.email().shouldBe(visible);
     }
-    buildNotification.role().root().shouldNot(exist);
+    buildNotification.role().shouldNot(exist);
 
     actionItemList.build().notifications().shouldHaveSize(2).shouldHave(
         texts("test@foo.com", "Developer"));
@@ -747,7 +747,7 @@ public abstract class AbstractPolicyEditorTest
 
     if (isReadOnly) {
       continuousMonitoring.addButton().shouldNot(exist);
-      continuousMonitoring.notificationType().root().shouldNot(exist);
+      continuousMonitoring.notificationType().shouldNot(exist);
       continuousMonitoring.email().shouldNot(exist);
     }
     else {
@@ -755,7 +755,7 @@ public abstract class AbstractPolicyEditorTest
       continuousMonitoring.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
       continuousMonitoring.email().shouldBe(visible);
     }
-    continuousMonitoring.role().root().shouldNot(exist);
+    continuousMonitoring.role().shouldNot(exist);
 
     actionItemList.continuousMonitoring().notifications().shouldHave(
         texts("test@foo.com"));
@@ -836,7 +836,7 @@ public abstract class AbstractPolicyEditorTest
   private void changeThreatLevel(int threatLevel) {
     ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
     ThreatLevelSelector.threatLevelListItem(10 - threatLevel).click();
-    assertThat(Integer.parseInt(ThreatLevelSelector.selectedThreatLevel().text()), is(threatLevel));
+    ThreatLevelSelector.selectedThreatLevel().shouldHave(text(String.valueOf(threatLevel)));
   }
 
   protected abstract void assertNewPolicyStateIsCorrect_inheritanceSection();

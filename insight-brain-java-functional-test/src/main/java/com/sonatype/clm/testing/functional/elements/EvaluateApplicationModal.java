@@ -5,79 +5,84 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+
 public class EvaluateApplicationModal
+    extends BasicElement<EvaluateApplicationModal>
 {
-  public static SelenideElement root() {
-    return $("#evaluate-application-modal");
+  private static final String ROOT = "#evaluate-application-modal";
+
+  public static final String SELECT_STAGE_TEXT = "-- Select CLM Stage --";
+
+  public EvaluateApplicationModal() {
+    super(ROOT);
   }
 
-  public static Condition defaultStageText() {
-    return Condition.text("-- Select CLM Stage --");
+
+  public SelenideElement fileInput() {
+    return $("#bundleFile");
   }
 
-  public static SelenideElement fileInput() {
-    return root().$("#bundleFile");
+  public Dropdown stageDropdown() {
+    return new Dropdown(ROOT, "dropdown-selector");
   }
 
-  public static DropdownSelector stageDropdown() {
-    return new DropdownSelector(root().$("dropdown-selector"));
+  public NotifyRadioButtons notifyRadioButtons() {
+    return new NotifyRadioButtons(selector);
   }
 
-  public static NotifyRadioButtons notifyRadioButtons() {
-    return new NotifyRadioButtons(root());
+  public SelenideElement uploadButton() {
+    return $("#evaluate-bundle-upload");
   }
 
-  public static SelenideElement uploadButton() {
-    return root().$("#evaluate-bundle-upload");
+  public SelenideElement cancelButton() {
+    return $("#evaluate-bundle-cancel");
   }
 
-  public static SelenideElement cancelButton() {
-    return root().$("#evaluate-bundle-cancel");
+  public SelenideElement bundleFileName() {
+    return $("#bundle-file-name");
   }
 
-  public static SelenideElement bundleFileName() {
-    return root().$("#bundle-file-name");
+  public SelenideElement bundleAppName() {
+    return $("#bundle-app-name");
   }
 
-  public static SelenideElement bundleAppName() {
-    return root().$("#bundle-app-name");
+  public SelenideElement bundleStageName() {
+    return $("#bundle-stage-name");
   }
 
-  public static SelenideElement bundleStageName() {
-    return root().$("#bundle-stage-name");
+  public SelenideElement evaluateBundleStatus() {
+    return $("#evaluate-bundle-status");
   }
 
-  public static SelenideElement evaluateBundleStatus() {
-    return root().$("#evaluate-bundle-status");
+  public SelenideElement viewReportButton() {
+    return $("#evaluate-bundle-view");
   }
 
-  public static SelenideElement viewReportButton() {
-    return root().$("#evaluate-bundle-view");
-  }
-
-  public static SelenideElement closeButton() {
-    return root().$("#evaluate-bundle-close");
+  public SelenideElement closeButton() {
+    return $("#evaluate-bundle-close");
   }
 
   public static class NotifyRadioButtons
   {
-    private SelenideElement root;
+    private final String root;
 
-    public NotifyRadioButtons(SelenideElement root) {
+    public NotifyRadioButtons(String root) {
       this.root = root;
     }
 
     public SelenideElement yes() {
-      return root.$$("input[type='radio']").get(0);
+      return $(selector(root, "input", "[type='radio']", "[value='true']"));
     }
 
     public SelenideElement no() {
-      return root.$$("input[type='radio']").get(1);
+      return $(selector(root, "input", "[type='radio']", "[value='false']"));
     }
   }
 }

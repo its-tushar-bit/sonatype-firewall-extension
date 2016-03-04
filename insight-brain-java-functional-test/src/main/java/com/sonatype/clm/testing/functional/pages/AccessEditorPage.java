@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.DropdownSelector;
+import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
@@ -39,8 +39,8 @@ public class AccessEditorPage
     return $(ACCESS_EDITOR_ID + " h2");
   }
 
-  public static DropdownSelector roleDropdown() {
-    return new DropdownSelector($(ACCESS_EDITOR_ID + " dropdown-selector"));
+  public static Dropdown roleDropdown() {
+    return new Dropdown(ACCESS_EDITOR_ID, "dropdown-selector");
   }
 
   public static SelenideElement saveButton() {

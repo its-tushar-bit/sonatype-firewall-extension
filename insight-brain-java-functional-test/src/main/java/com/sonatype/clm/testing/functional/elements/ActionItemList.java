@@ -5,14 +5,16 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
@@ -65,31 +67,31 @@ public class ActionItemList
     }
 
     private String actionItemElementSelector(int childNum) {
-      return selector(rootSelector, "tr", nthChild(1), "td", nthChild(childNum));
+      return selector(rootSelector, "tr", nthChild(1), "td", nthChild(childNum + 1));
     }
 
     public SelenideElement name() {
-      return $(actionItemElementSelector(1));
+      return $(actionItemElementSelector(0));
     }
 
     public SelenideElement twisty() {
-      return $(selector(actionItemElementSelector(1), ".twisty"));
+      return $(selector(actionItemElementSelector(0), ".twisty"));
     }
 
     public Radio noActionRadio() {
-      return new Radio($(selector(actionItemElementSelector(2), ".radio")));
+      return new Radio($(selector(actionItemElementSelector(1), ".radio")));
     }
 
     public Radio warnRadio() {
-      return new Radio($(selector(actionItemElementSelector(3), ".radio")));
+      return new Radio($(selector(actionItemElementSelector(2), ".radio")));
     }
 
     public Radio failRadio() {
-      return new Radio($(selector(actionItemElementSelector(4), ".radio")));
+      return new Radio($(selector(actionItemElementSelector(3), ".radio")));
     }
 
     public SelenideElement notificationCount() {
-      return $(selector(actionItemElementSelector(5), ".notification-count"));
+      return $(selector(actionItemElementSelector(4), ".notification-count"));
     }
 
     public static final Condition EXPANDED = cssClass("expand");
@@ -100,27 +102,28 @@ public class ActionItemList
       return new AddNotificationItem(selector(rootSelector, "tr", nthChild(2), ".add-notification"));
     }
 
+    public String notificationsSelector() {
+      return selector(rootSelector, "tr", nthChild(2), ".notification-list li");
+    }
+
     public ElementsCollection notifications() {
-      return $$(selector(rootSelector, "tr", nthChild(2), ".notification-list li"));
+      return $$(notificationsSelector());
     }
 
-    public NotificationItem getNotificationByName(String name) {
-      return new NotificationItem(notifications().find(text(name)));
+    public NotificationItem getNotification(int num) {
+      return new NotificationItem(notificationsSelector(), nthChild(num));
     }
-
   }
 
   public static class NotificationItem
+      extends BasicElement<NotificationItem>
   {
-
-    private final SelenideElement root;
-
-    public NotificationItem(final SelenideElement root) {
-      this.root = root;
+    public NotificationItem(String... selectors) {
+      super(selectors);
     }
 
     public SelenideElement deleteButton() {
-      return root.$("button");
+      return child("button");
     }
   }
 
@@ -133,16 +136,16 @@ public class ActionItemList
       this.rootSelector = rootSelector;
     }
 
-    public DropdownSelector notificationType() {
-      return new DropdownSelector($(selector(rootSelector, ".editor-notification-type")));
+    public Dropdown notificationType() {
+      return new Dropdown(rootSelector, ".editor-notification-type");
     }
 
     public SelenideElement email() {
       return $(selector(rootSelector, ".editor-notification-email"));
     }
 
-    public DropdownSelector role() {
-      return new DropdownSelector($(selector(rootSelector, ".editor-notification-role")));
+    public Dropdown role() {
+      return new Dropdown(rootSelector, ".editor-notification-role");
     }
 
     public SelenideElement addButton() {

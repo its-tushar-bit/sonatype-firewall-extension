@@ -14,11 +14,10 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class PopoverViolations
 {
+  private SelenideElement element;
 
-  public SelenideElement root;
-
-  private PopoverViolations(SelenideElement root) {
-    this.root = root;
+  private PopoverViolations(SelenideElement element) {
+    this.element = element;
   }
 
   public static PopoverViolations on(SelenideElement element) {
@@ -26,14 +25,14 @@ public class PopoverViolations
   }
 
   public void shouldShowMaxLengthError() {
-    root.shouldBe(visible).shouldHave(text("Maximum length"));
+    element.shouldBe(visible).shouldHave(text("Maximum length"));
   }
 
   public void shouldNotExist() {
-    root.shouldNot(exist);
+    element.shouldNot(exist);
   }
 
   public void shouldShowInvalidCharactersError() {
-    root.shouldBe(visible).shouldHave(text("Use valid characters"));
+    element.shouldBe(visible).shouldHave(text("Use valid characters"));
   }
 }

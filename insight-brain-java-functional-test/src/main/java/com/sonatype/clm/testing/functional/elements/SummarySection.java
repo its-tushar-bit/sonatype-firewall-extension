@@ -5,18 +5,20 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class SummarySection
-    extends PolicyEditorSection
+    extends BasicElement<SummarySection>
 {
+  private static final String ROOT = "#policy-edit-summary";
+
   public SummarySection() {
-    super($("#policy-edit-summary"));
+    super(ROOT);
   }
 
   public SelenideElement policyName() {
-    return root.$("#editor-policy-name");
+    return child("#editor-policy-name");
   }
 }

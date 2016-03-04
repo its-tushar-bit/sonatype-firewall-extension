@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,9 +38,9 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
+import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
-import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -70,11 +69,9 @@ public class RepositoriesSummaryPageTest
   @Test
   public void repositorySummaryViewTest()
   {
-    SelenideElement nameElement = SummaryTile.name();
-    nameElement.isDisplayed();
-    nameElement.shouldHave(text("Repositories"));
-    SummaryTile.configButton().isDisplayed();
-    SummaryTile.accessButton().isDisplayed();
+    SummaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+    SummaryTile.configButton().shouldBe(visible);
+    SummaryTile.accessButton().shouldBe(visible);
 
     repositorySummaryViewTest_configurationTile();
   }
@@ -128,8 +125,8 @@ public class RepositoriesSummaryPageTest
 
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();
     DeleteModal.root().shouldBe(visible);
-    DeleteModal.continueButton().shouldBe(visible).click();
     DeleteModal.cancelButton().shouldBe(visible);
+    DeleteModal.continueButton().shouldBe(visible).click();
     DeleteModal.root().shouldNotBe(visible);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(nullValue()));

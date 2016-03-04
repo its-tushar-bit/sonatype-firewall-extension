@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.InheritanceSection;
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
@@ -26,9 +26,9 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.InheritanceSection.ALL_TEXT_ROOT_ORG;
-import static com.sonatype.clm.testing.functional.elements.InheritanceSection.allRadioText;
-import static com.sonatype.clm.testing.functional.elements.InheritanceSection.specifiedRadioText;
+import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.ALL_TEXT_ROOT_ORG;
+import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
+import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.specifiedRadioText;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -47,40 +47,40 @@ public class OrganizationPolicyEditorTest
 
   @Override
   protected void assertNewPolicyStateIsCorrect_inheritanceSection() {
-    InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
+    PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
     PolicyEditorPage.inhertancePill().shouldBe(visible);
-    inheritance.root.shouldBe(visible);
+    inheritance.shouldBe(visible);
     inheritance.allChildrenInheritRadio().shouldBe(visible).shouldBe(selected);
     inheritance.allChildrenInheritRadio().shouldHave(allRadioText(organization.getName()));
     inheritance.specifiedChildrenInheritRadio().shouldBe(visible, enabled).shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(organization.getName()));
-    inheritance.associationEditor().root().shouldNotBe(visible);
+    inheritance.associationEditor().shouldNotBe(visible);
   }
 
   @Override
   protected void testEditPolicy_inheritanceSection() {
-    InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
+    PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();
-    inheritance.associationEditor().root().shouldNotBe(visible);
+    inheritance.associationEditor().shouldNotBe(visible);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
-    FormMask.root().shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
 
     inheritance.allChildrenInheritRadio().shouldBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
-    inheritance.associationEditor().root().shouldBe(visible);
+    inheritance.associationEditor().shouldBe(visible);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
-    FormMask.root().shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
 
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
-    inheritance.associationEditor().root().shouldBe(visible);
+    inheritance.associationEditor().shouldBe(visible);
     inheritance.associationEditor().item(1, 0).checkBox().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     // wait 800ms for mask to go away
-    FormMask.root().shouldNotBe(visible);
+    FormMask.seeAndWaitForDismissal();
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
@@ -94,13 +94,13 @@ public class OrganizationPolicyEditorTest
 
   @Override
   protected void assertEditPolicyStateIsCorrect_inheritanceSection(Tag category1, Tag category2, boolean isReadOnly) {
-    InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
+    PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
     inheritance.allChildrenInheritRadio().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     inheritance.allChildrenInheritRadio().label().shouldHave(allRadioText(organization.getName()));
     inheritance.specifiedChildrenInheritRadio().input().shouldBe(visible).shouldBe(selected);
     inheritance.specifiedChildrenInheritRadio().label().shouldHave(specifiedRadioText(organization.getName()));
-    inheritance.associationEditor().root().shouldBe(visible);
+    inheritance.associationEditor().shouldBe(visible);
 
     inheritance.associationEditor().rows().shouldHaveSize(2);
     assertThat(inheritance.associationEditor().columnCount(), is(equalTo(1)));

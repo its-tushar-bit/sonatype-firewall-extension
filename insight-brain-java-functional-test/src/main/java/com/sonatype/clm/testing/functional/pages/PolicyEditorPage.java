@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ActionsNotificationsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
-import com.sonatype.clm.testing.functional.elements.InheritanceSection;
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 
 import com.codeborne.selenide.SelenideElement;
@@ -62,8 +62,8 @@ public class PolicyEditorPage
     return new ConstraintSection();
   }
 
-  public static InheritanceSection inheritanceSection() {
-    return new InheritanceSection();
+  public static PolicyInheritsToSection inheritanceSection() {
+    return new PolicyInheritsToSection();
   }
 
   public static ActionsNotificationsSection actionsNotificationsSection() {

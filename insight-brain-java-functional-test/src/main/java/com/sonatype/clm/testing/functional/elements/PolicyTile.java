@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 
-import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class PolicyTile
@@ -16,10 +15,8 @@ public class PolicyTile
 {
   private static final String POLICY_HIERARCHY = ".simple-list:not(#continuous-monitoring)";
 
-  private static final String ROOT_ID = "#owner-pill-policy";
-
   public PolicyTile() {
-    super($(ROOT_ID));
+    super("#owner-pill-policy");
   }
 
   public static Condition inheritedText(String parent) {
@@ -31,11 +28,11 @@ public class PolicyTile
   }
 
   public ElementsCollection policyLists() {
-    return root.$$(POLICY_HIERARCHY);
+    return children(POLICY_HIERARCHY);
   }
 
   public PolicyTileList policyList(int num) {
-    return new PolicyTileList(ROOT_ID, POLICY_HIERARCHY, nthChild(num + 1));
+    return new PolicyTileList(selector, POLICY_HIERARCHY, nthChild(num + 1));
   }
 
   public static Condition name() {

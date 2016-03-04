@@ -98,8 +98,7 @@ public class LabelEditorTest
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE).shouldHave(value("original name"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE)
         .shouldHave(value("original description"));
-    LabelEditorPage.colorPicker().root().shouldBe(visible);
-    LabelEditorPage.colorPicker().color(light_green).shouldBe(CLM.SELECTED);
+    LabelEditorPage.colorPicker().shouldBe(visible).color(light_green).shouldBe(CLM.SELECTED);
     LabelEditorPage.saveButton().shouldHave(DISABLED);
     // when
     LabelEditorPage.labelName().val("updated name");
@@ -110,8 +109,7 @@ public class LabelEditorTest
     LabelEditorPage.title().shouldHave(text("Edit"));
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(value("updated name"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
-    LabelEditorPage.colorPicker().root().shouldBe(visible);
-    LabelEditorPage.colorPicker().color(dark_red).shouldBe(CLM.SELECTED);
+    LabelEditorPage.colorPicker().shouldBe(visible).color(dark_red).shouldBe(CLM.SELECTED);
     LabelEditorPage.saveButton().shouldHave(DISABLED);
 
     label = getLabelByName(app.getOrganizationId(), "updated name");
@@ -190,8 +188,7 @@ public class LabelEditorTest
     LabelEditorPage.title().shouldHave(text("New"));
     LabelEditorPage.labelName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     LabelEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
-    LabelEditorPage.colorPicker().root().shouldBe(visible);
-    LabelEditorPage.colorPicker().selectedColor().shouldNot(exist);
+    LabelEditorPage.colorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
     LabelEditorPage.saveButton().shouldHave(DISABLED);
   }
 

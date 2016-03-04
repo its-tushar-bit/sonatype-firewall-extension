@@ -21,7 +21,7 @@ public class AgeInput
     return $(rootSelector + " .age-input");
   }
 
-  public DropdownSelector modifier() {
-    return new DropdownSelector($(rootSelector + " dropdown-selector"));
+  public Dropdown modifier() {
+    return new Dropdown(rootSelector, "dropdown-selector");
   }
 }

@@ -5,33 +5,38 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
 public class ThreatGroupTileSimpleList
+    extends BasicElement<ThreatGroupTileSimpleList>
 {
-
-  protected SelenideElement root;
-
-  public ThreatGroupTileSimpleList(SelenideElement root) {
-    this.root = root;
+  public ThreatGroupTileSimpleList(String... selectors) {
+    super(selectors);
   }
 
   public ElementsCollection elements() {
-    return root.$$("li");
+    return children("li");
   }
 
   public ThreatGroupTileSimpleListElement element(int num) {
-    return new ThreatGroupTileSimpleListElement(elements().get(num));
+    return new ThreatGroupTileSimpleListElement(selector, "li", nthChild(num + 1));
   }
 
   public SelenideElement ownerName() {
-    return root.$(".subsection-header");
+    return child(".subsection-header");
   }
 
   public SelenideElement emptyDescriptor() {
-    return root.$(".empty-list");
+    return child(".empty-list");
   }
 
   public static Condition threatLevel(int threatLevel) {
@@ -40,25 +45,22 @@ public class ThreatGroupTileSimpleList
 
   public static class ThreatGroupTileSimpleListElement
   {
+    private final String selector;
 
-    public SelenideElement root;
-
-    public ThreatGroupTileSimpleListElement(SelenideElement root) {
-      this.root = root;
+    public ThreatGroupTileSimpleListElement(String... selectors) {
+      selector = SelectorUtils.selector(selectors);
     }
 
     public SelenideElement chevron() {
-      return root.$(".fa-chevron-right");
+      return $(SelectorUtils.selector(selector, ".fa-chevron-right"));
     }
 
     public SelenideElement threatLevel() {
-      return root.$(".threat-legend");
+      return $(SelectorUtils.selector(selector, ".threat-legend"));
     }
 
     public SelenideElement name() {
-      return root.$(".threat-group-title");
+      return $(SelectorUtils.selector(selector, ".threat-group-title"));
     }
-
   }
-
 }

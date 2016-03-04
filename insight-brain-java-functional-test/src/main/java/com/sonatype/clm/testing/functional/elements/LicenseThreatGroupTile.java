@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 
-import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class LicenseThreatGroupTile
     extends OwnerTile
@@ -16,7 +16,7 @@ public class LicenseThreatGroupTile
   private static final String LTG_OWNER_ELEMENT_ID = "#owner-pill-ltgs";
 
   public LicenseThreatGroupTile() {
-    super($(LTG_OWNER_ELEMENT_ID));
+    super(LTG_OWNER_ELEMENT_ID);
   }
 
   public static Condition inheritedText(String parent) {
@@ -24,10 +24,10 @@ public class LicenseThreatGroupTile
   }
 
   public ElementsCollection ltgLists() {
-    return root.$$(".simple-list");
+    return children(".simple-list");
   }
 
   public ThreatGroupTileSimpleList ltgList(int num) {
-    return new ThreatGroupTileSimpleList(ltgLists().get(num));
+    return new ThreatGroupTileSimpleList("#ltg-summary-hierarchy", ".simple-list", nthChild(num + 1));
   }
 }

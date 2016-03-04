@@ -5,29 +5,23 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.insight.brain.model.Color;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class ColorPicker
+    extends BasicElement<ColorPicker>
 {
-  private SelenideElement root;
-
-  public ColorPicker(SelenideElement root) {
-    this.root = root;
-  }
-
-  public SelenideElement root() {
-    return root;
+  public ColorPicker(String... selectors) {
+    super(selectors);
   }
 
   public SelenideElement color(final Color color) {
-    return $(root, "." + color.toValue());
+    return child("." + color.toValue());
   }
 
   public SelenideElement selectedColor() {
-    return $(root, ".color-picker-row > div.selected");
+    return child(".color-picker-row > div.selected");
   }
 }

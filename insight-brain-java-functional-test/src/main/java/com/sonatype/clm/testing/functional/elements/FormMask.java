@@ -12,12 +12,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class FormMask
 {
-  public static SelenideElement root() {
-    return $(".form-mask");
-  }
-
   public static SelenideElement seeAndWaitForDismissal() {
-    SelenideElement mask = root();
+    SelenideElement mask = $(".form-mask");
 
     try {
       mask.shouldBe(visible);

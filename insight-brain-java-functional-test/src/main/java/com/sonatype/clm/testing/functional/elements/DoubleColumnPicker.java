@@ -5,83 +5,92 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+
 public class DoubleColumnPicker
+    extends BasicElement<DoubleColumnPicker>
 {
-  public static SelenideElement root() {
-    return $("double-column-picker");
+
+  private static final String AVAILABLE_ITEM_LIST = ".list-row .available-list";
+
+  private static final String AVAILABLE_ITEM = selector(AVAILABLE_ITEM_LIST, "label");
+
+  private static final String PICKED_ITEM_LIST = ".list-row .picked-list";
+
+  private static final String PICKED_ITEM = selector(PICKED_ITEM_LIST, "label");
+
+  private static final String ROOT = "double-column-picker";
+
+  public DoubleColumnPicker() {
+    super(ROOT);
   }
 
-  public static SelenideElement filter() {
-    return root().$(".filter-row input");
+  public SelenideElement filter() {
+    return child(".filter-row input");
   }
 
-  public static Checkbox checkAllLeft() {
-    return new Checkbox(root().$$(".info-row .tools label.checkbox").get(0));
+  public Checkbox checkAllLeft() {
+    return new Checkbox(children(".info-row .tools label.checkbox").get(0));
   }
 
-  public static Checkbox checkAllRight() {
-    return new Checkbox(root().$$(".info-row .tools label.checkbox").get(1));
+  public Checkbox checkAllRight() {
+    return new Checkbox(children(".info-row .tools label.checkbox").get(1));
   }
 
-  public static SelenideElement pickCheckedItemsButton() {
-    return root().$$(".info-row .tools button").get(0);
+  public SelenideElement pickCheckedItemsButton() {
+    return children(".info-row .tools button").get(0);
   }
 
-  public static SelenideElement unpickCheckedItemsButton() {
-    return root().$$(".info-row .tools button").get(1);
+  public SelenideElement unpickCheckedItemsButton() {
+    return children(".info-row .tools button").get(1);
   }
 
-  public static SelenideElement availableItemList() {
-    return root().$(".list-row .available-list");
+  public SelenideElement availableItemList() {
+    return child(AVAILABLE_ITEM_LIST);
   }
 
-  public static SelenideElement pickedItemList() {
-    return root().$(".list-row .picked-list");
+  public ElementsCollection availableItems() {
+    return children(AVAILABLE_ITEM);
   }
 
-  public static ElementsCollection availableItems() {
-    return availableItemList().$$("label");
+  public SelenideElement pickedItemList() {
+    return child(PICKED_ITEM_LIST);
   }
 
-  public static ElementsCollection pickedItems() {
-    return pickedItemList().$$("label");
+  public ElementsCollection pickedItems() {
+    return children(PICKED_ITEM);
   }
 
-  public static DoubleColumnPickerListItem availableItem(int num) {
-    return new DoubleColumnPickerListItem(availableItems().get(num));
+  public Item availableItem(int num) {
+    return new Item(AVAILABLE_ITEM, nthChild(num + 1));
   }
 
-  public static DoubleColumnPickerListItem pickedItem(int num) {
-    return new DoubleColumnPickerListItem(pickedItems().get(num));
+  public Item pickedItem(int num) {
+    return new Item(PICKED_ITEM, nthChild(num + 1));
   }
 
-  public static class DoubleColumnPickerListItem
+  public static class Item
+      extends Checkbox
   {
-    private SelenideElement root;
-
-    public DoubleColumnPickerListItem(SelenideElement root) {
-      this.root = root;
-    }
-
-    public SelenideElement name() {
-      return root.$("span");
-    }
-
-    public Checkbox checkbox() {
-      return new Checkbox(root);
+    public Item(String... selectors) {
+      super($(selector(selectors)));
     }
 
     public SelenideElement tooltip() {
       return $("div.tooltip.top");
     }
 
-    public SelenideElement root() {
-      return root;
+    public Item hover() {
+      element.hover();
+      return this;
     }
   }
 }

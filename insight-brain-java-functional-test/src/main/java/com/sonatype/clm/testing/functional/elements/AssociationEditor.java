@@ -5,25 +5,22 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class AssociationEditor
+    extends BasicElement<AssociationEditor>
 {
-  private SelenideElement root;
-
   private static final String ROOT_SELECTOR = ".association-editor-wrapper";
 
-  public AssociationEditor(SelenideElement root) {
-    this.root = root.$(ROOT_SELECTOR);
-  }
-
-  public SelenideElement root() {
-    return root;
+  public AssociationEditor(String selector) {
+    super(selector, ROOT_SELECTOR);
   }
 
   public ElementsCollection rows() {
-    return root.$$(".association-editor-row");
+    return children(".association-editor-row");
   }
 
   public int columnCount() {

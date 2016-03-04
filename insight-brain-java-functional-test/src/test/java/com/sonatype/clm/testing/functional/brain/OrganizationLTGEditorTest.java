@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
@@ -66,7 +67,8 @@ public class OrganizationLTGEditorTest
     LTGEditorPage.title().shouldHave(text("New"));
     LTGEditorPage.ltgName().shouldBe(visible, Condition.empty).shouldHave(CLM.INITIAL_VALUE);
     assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(licenseDAO.getAll().size());
+    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(new DoubleColumnPicker(),
+        licenseDAO.getAll().size());
     LTGEditorPage.saveButton().shouldHave(DISABLED);
   }
 }

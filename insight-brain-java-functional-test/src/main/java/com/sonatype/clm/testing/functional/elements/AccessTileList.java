@@ -5,63 +5,64 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
 public class AccessTileList
+    extends BasicElement<AccessTileList>
 {
-
-  protected SelenideElement root;
-
-  public AccessTileList(SelenideElement root) {
-    this.root = root;
+  public AccessTileList(String... selector) {
+    super(selector);
   }
 
   public ElementsCollection elements() {
-    return root.$$("tr");
+    return children("tr");
   }
 
   public AccessTileListElement element(int num) {
-    return new AccessTileListElement(elements().get(num));
+    return new AccessTileListElement(selector, "tr", nthChild(num + 1));
   }
 
   public SelenideElement ownerName() {
-    return root.$(".subsection-header");
+    return child(".subsection-header");
   }
 
   public SelenideElement emptyDescriptor() {
-    return root.$(".empty-list");
+    return child(".empty-list");
   }
 
   public static class AccessTileListElement
+      extends BasicElement<AccessTileListElement>
   {
 
     public SelenideElement root;
 
-    public AccessTileListElement(SelenideElement root) {
-      this.root = root;
+    public AccessTileListElement(String... selectors) {
+      super(selectors);
     }
 
     public SelenideElement chevron() {
-      return root.$(".fa-chevron-right");
+      return child(".fa-chevron-right");
     }
 
     public SelenideElement role() {
-      return root.$(".role");
+      return child(".role");
     }
 
     public SelenideElement members() {
-      return root.$(".members");
+      return child(".members");
     }
 
     public SelenideElement userIcon() {
-      return root.$(".fa-user");
+      return child(".fa-user");
     }
 
     public SelenideElement groupIcon() {
-      return root.$(".fa-users");
+      return child(".fa-users");
     }
-
   }
-
 }

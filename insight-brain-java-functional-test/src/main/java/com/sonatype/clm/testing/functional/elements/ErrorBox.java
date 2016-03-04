@@ -6,11 +6,8 @@
 package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.SelenideElement;
-
-import static com.codeborne.selenide.Selenide.$;
 
 public class ErrorBox
     extends BasicElement<ErrorBox>
@@ -20,10 +17,10 @@ public class ErrorBox
   }
 
   public SelenideElement message() {
-    return $(SelectorUtils.selector(selector, "div:first-child"));
+    return child("div:first-child");
   }
 
   public SelenideElement retryButton() {
-    return $(SelectorUtils.selector(selector, "button"));
+    return child("button");
   }
 }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.elements.InheritanceSection;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -46,8 +45,7 @@ public class ApplicationPolicyEditorTest
   }
 
   private void assertInheritanceSectionDoesNotExist() {
-    InheritanceSection inheritance = PolicyEditorPage.inheritanceSection();
-    inheritance.root.shouldNotBe(visible);
+    PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
     PolicyEditorPage.inhertancePill().shouldNotBe(visible);
   }
 }

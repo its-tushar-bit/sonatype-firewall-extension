@@ -110,8 +110,7 @@ public class CategoryEditorTest
         .shouldHave(value("original name"));
     CategoryEditorPage.description().shouldBe(visible).shouldHave(CLM.INITIAL_VALUE)
         .shouldHave(value("original description"));
-    CategoryEditorPage.colorPicker().root().shouldBe(visible);
-    CategoryEditorPage.colorPicker().color(light_green).shouldBe(CLM.SELECTED);
+    CategoryEditorPage.colorPicker().shouldBe(visible).color(light_green).shouldBe(CLM.SELECTED);
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
     // when
     CategoryEditorPage.categoryName().val("updated name");
@@ -122,8 +121,7 @@ public class CategoryEditorTest
     CategoryEditorPage.title().shouldHave(text("Edit"));
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(value("updated name"));
     CategoryEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
-    CategoryEditorPage.colorPicker().root().shouldBe(visible);
-    CategoryEditorPage.colorPicker().color(dark_red).shouldBe(CLM.SELECTED);
+    CategoryEditorPage.colorPicker().shouldBe(visible).color(dark_red).shouldBe(CLM.SELECTED);
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
 
     category = getCategoryByName(org.getId(), "updated name");
@@ -207,8 +205,7 @@ public class CategoryEditorTest
     CategoryEditorPage.title().shouldHave(text("New"));
     CategoryEditorPage.categoryName().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     CategoryEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
-    CategoryEditorPage.colorPicker().root().shouldBe(visible);
-    CategoryEditorPage.colorPicker().selectedColor().shouldNot(exist);
+    CategoryEditorPage.colorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
   }
 

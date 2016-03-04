@@ -5,30 +5,31 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-public class DropdownSelector
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
+public class Dropdown
+    extends BasicElement<Dropdown>
 {
-  private SelenideElement root;
+  private static final String ITEM_SELECTOR = "ul.dropdown-menu li";
 
-  public DropdownSelector(SelenideElement root) {
-    this.root = root;
-  }
-
-  public SelenideElement root() {
-    return root;
+  public Dropdown(String... selectors) {
+    super(selectors);
   }
 
   public SelenideElement selectedItem() {
-    return root().$(".selected-item");
+    return child(".selected-item");
   }
 
   public ElementsCollection listItems() {
-    return root().$$("ul.dropdown-menu li");
+    return children(ITEM_SELECTOR);
   }
 
   public SelenideElement listItem(int num) {
-    return listItems().get(num);
+    return child(ITEM_SELECTOR, nthChild(num + 1));
   }
 }

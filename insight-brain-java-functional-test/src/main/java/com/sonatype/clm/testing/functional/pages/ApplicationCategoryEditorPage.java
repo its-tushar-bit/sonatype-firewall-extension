@@ -27,7 +27,7 @@ public class ApplicationCategoryEditorPage
   }
 
   public static AssociationEditor associationEditor() {
-    return new AssociationEditor(root());
+    return new AssociationEditor(ROOT_ID);
   }
 
   public static SelenideElement title() {

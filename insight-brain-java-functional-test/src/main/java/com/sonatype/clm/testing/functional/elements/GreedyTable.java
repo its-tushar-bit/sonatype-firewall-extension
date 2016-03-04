@@ -12,8 +12,8 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
 
@@ -25,7 +25,7 @@ public abstract class GreedyTable<RowElement>
   }
 
   public ElementsCollection rows() {
-    return $$(selector(selector, "tr"));
+    return children("tr");
   }
 
   public abstract RowElement row(int i);
@@ -34,8 +34,8 @@ public abstract class GreedyTable<RowElement>
     return $$(selector(selector, "thead th .up") + ", " + selector(selector, "thead th .down"));
   }
 
-  public HeaderColumn header(int i) {
-    return new HeaderColumn($(selector(selector, "thead th", nthChild(i))));
+  public HeaderColumn header(int num) {
+    return new HeaderColumn(child("thead th", nthChild(num + 1)));
   }
 
   public HeaderColumn selectedHeaderColumn() {

@@ -18,7 +18,7 @@ public class CategoryEditorPage
 
   private static SelenideElement root = $("#category-editor");
 
-  private static final ColorPicker colorPicker = new ColorPicker($("#editor-category-color-picker"));
+  private static final ColorPicker colorPicker = new ColorPicker("#editor-category-color-picker");
 
   public static String urlToEdit(String ownerId, String categoryId) {
     return "new/assets/index.html#/management/edit/organization/" + ownerId + "/category/" + categoryId;

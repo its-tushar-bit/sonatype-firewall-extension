@@ -8,15 +8,11 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class LabelTile
     extends OwnerTile
 {
-  private static final String LABEL_OWNER_ELEMENT_ID = "#owner-pill-comp-labels";
-
   public LabelTile() {
-    super($(LABEL_OWNER_ELEMENT_ID));
+    super("#owner-pill-comp-labels");
   }
 
   public static Condition inheritedText(String parent) {
@@ -28,7 +24,7 @@ public class LabelTile
   }
 
   public ElementsCollection labelLists() {
-    return root.$$(".simple-list");
+    return children(".simple-list");
   }
 
   public TileSimpleList labelList(int num) {

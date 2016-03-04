@@ -5,16 +5,21 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.Condition;
 
-import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class InheritanceSection
-    extends PolicyEditorSection
+public class PolicyInheritsToSection
+    extends BasicElement<PolicyInheritsToSection>
 {
   public static final Condition ALL_TEXT_ROOT_ORG = Condition.text("All Applications and Repositories");
-  public InheritanceSection() {
-    super($("#policy-edit-inheritance"));
+
+  private static final String ROOT = "#policy-edit-inheritance";
+
+  public PolicyInheritsToSection() {
+    super(ROOT);
   }
 
   public static Condition allRadioText(String ownerName) {
@@ -26,14 +31,14 @@ public class InheritanceSection
   }
 
   public Radio allChildrenInheritRadio() {
-    return new Radio(root.$$("#editor-policy-inherit label").get(0));
+    return new Radio(child("#editor-policy-inherit label", nthChild(1)));
   }
 
   public Radio specifiedChildrenInheritRadio() {
-    return new Radio(root.$$("#editor-policy-inherit label").get(1));
+    return new Radio(child("#editor-policy-inherit label", nthChild(2)));
   }
 
   public AssociationEditor associationEditor() {
-    return new AssociationEditor(root);
+    return new AssociationEditor(ROOT);
   }
 }

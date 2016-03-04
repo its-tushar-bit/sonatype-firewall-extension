@@ -858,9 +858,9 @@ var AngularStateUtils = {
       template : '<div class="btn-group" ng-class="{ open : open }">' +
                    '<button class="btn dropdown-toggle" ng-click="open = !open" ng-class="{ \'btn-small\': small }" type="button">' +
                    '<span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
-                   '<ul vs-repeat class="dropdown-menu multiselect-container">' +
+                     '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0 auto 5px auto;width:160px;display:block" placeholder="Search" ng-click="$event.stopPropagation()"></li>' +
-                     '<div class="dropdown-scroll">' +
+                     '<div vs-repeat class="dropdown-scroll">' +
                        '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }" ng-click="$event.stopPropagation()">' + // stopPropagation to avoid Bootstrap closing popout
                          '<label class="checkbox" ng-class="{ \'has-owner\': item.owner }">' +
                            '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +

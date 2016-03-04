@@ -13,7 +13,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class DoubleColumnPicker
     extends BasicElement<DoubleColumnPicker>
@@ -21,11 +21,11 @@ public class DoubleColumnPicker
 
   private static final String AVAILABLE_ITEM_LIST = ".list-row .available-list";
 
-  private static final String AVAILABLE_ITEM = selector(AVAILABLE_ITEM_LIST, "label");
+  private static final String AVAILABLE_ITEM = createSelector(AVAILABLE_ITEM_LIST, "label");
 
   private static final String PICKED_ITEM_LIST = ".list-row .picked-list";
 
-  private static final String PICKED_ITEM = selector(PICKED_ITEM_LIST, "label");
+  private static final String PICKED_ITEM = createSelector(PICKED_ITEM_LIST, "label");
 
   private static final String ROOT = "double-column-picker";
 
@@ -81,7 +81,7 @@ public class DoubleColumnPicker
       extends Checkbox
   {
     public Item(String... selectors) {
-      super($(selector(selectors)));
+      super($(createSelector(selectors)));
     }
 
     public SelenideElement tooltip() {

@@ -20,7 +20,7 @@ import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class LicenseCIP
 {
@@ -39,31 +39,31 @@ public class LicenseCIP
   }
 
   public static SelenideElement scope() {
-    return $(selector(ROOT_ID, "select[name=scope]"));
+    return $(createSelector(ROOT_ID, "select[name=scope]"));
   }
 
   public static ElementsCollection scopes() {
-    return $$(selector(ROOT_ID, "select[name=scope]", "option"));
+    return $$(createSelector(ROOT_ID, "select[name=scope]", "option"));
   }
 
   public static SelenideElement status() {
-    return $(selector(ROOT_ID, "select[name=status]"));
+    return $(createSelector(ROOT_ID, "select[name=status]"));
   }
 
   public static ElementsCollection statuses() {
-    return $$(selector(ROOT_ID, "select[name=status]", "option"));
+    return $$(createSelector(ROOT_ID, "select[name=status]", "option"));
   }
 
   public static MultiSelect licenseSelector() {
-    return new MultiSelect(selector(ROOT_ID, ".multi-dropdown"));
+    return new MultiSelect(createSelector(ROOT_ID, ".multi-dropdown"));
   }
 
   public static SelenideElement comment() {
-    return $(selector(ROOT_ID, "textarea[name=comment]"));
+    return $(createSelector(ROOT_ID, "textarea[name=comment]"));
   }
 
   public static SelenideElement updateButton() {
-    return $(selector(ROOT_ID, "button[type=submit]"));
+    return $(createSelector(ROOT_ID, "button[type=submit]"));
   }
 
   public static CollectionCondition licenseThreats(final Integer... expectedThreats) {

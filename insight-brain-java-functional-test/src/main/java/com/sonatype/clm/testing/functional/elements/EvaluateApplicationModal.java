@@ -11,7 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class EvaluateApplicationModal
     extends BasicElement<EvaluateApplicationModal>
@@ -78,11 +78,11 @@ public class EvaluateApplicationModal
     }
 
     public SelenideElement yes() {
-      return $(selector(root, "input", "[type='radio']", "[value='true']"));
+      return $(createSelector(root, "input", "[type='radio']", "[value='true']"));
     }
 
     public SelenideElement no() {
-      return $(selector(root, "input", "[type='radio']", "[value='false']"));
+      return $(createSelector(root, "input", "[type='radio']", "[value='false']"));
     }
   }
 }

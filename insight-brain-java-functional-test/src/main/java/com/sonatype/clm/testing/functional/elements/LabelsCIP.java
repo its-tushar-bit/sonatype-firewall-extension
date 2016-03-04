@@ -16,7 +16,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class LabelsCIP
 {
@@ -29,19 +29,19 @@ public class LabelsCIP
   private static final String REFRESH_ICON = ".icon-refresh";
 
   public static Label appliedLabel(int index) {
-    return new Label(selector(APPLIED_LABELS, CLM_LABEL, nthChild(index)));
+    return new Label(createSelector(APPLIED_LABELS, CLM_LABEL, nthChild(index)));
   }
 
   public static ElementsCollection appliedLabels() {
-    return $$(selector(APPLIED_LABELS, CLM_LABEL));
+    return $$(createSelector(APPLIED_LABELS, CLM_LABEL));
   }
 
   public static SelenideElement refreshAppliedButton() {
-    return $(selector(APPLIED_LABELS, REFRESH_ICON));
+    return $(createSelector(APPLIED_LABELS, REFRESH_ICON));
   }
 
   public static Label availableLabel(int index) {
-    return new Label(selector(AVAILABLE_LABELS, CLM_LABEL, nthChild(index)));
+    return new Label(createSelector(AVAILABLE_LABELS, CLM_LABEL, nthChild(index)));
   }
 
   public static SelenideElement availableLabelsContainer() {
@@ -49,11 +49,11 @@ public class LabelsCIP
   }
 
   public static ElementsCollection availableLabels() {
-    return $$(selector(AVAILABLE_LABELS, CLM_LABEL));
+    return $$(createSelector(AVAILABLE_LABELS, CLM_LABEL));
   }
 
   public static SelenideElement refreshAvailableButton() {
-    return $(selector(AVAILABLE_LABELS, REFRESH_ICON));
+    return $(createSelector(AVAILABLE_LABELS, REFRESH_ICON));
   }
 
   public static class Label
@@ -68,7 +68,7 @@ public class LabelsCIP
     }
 
     public SelenideElement action() {
-      return $(selector(this.selector, "i"));
+      return $(createSelector(this.selector, "i"));
     }
   }
 
@@ -81,19 +81,19 @@ public class LabelsCIP
     }
 
     public static SelenideElement cancelButton() {
-      return $(selector(ROOT, ".btn:not(.btn-primary)"));
+      return $(createSelector(ROOT, ".btn:not(.btn-primary)"));
     }
 
     public static SelenideElement saveButton() {
-      return $(selector(ROOT, ".btn-primary"));
+      return $(createSelector(ROOT, ".btn-primary"));
     }
 
     public static ElementsCollection scopes() {
-      return $$(selector(ROOT, ".radio"));
+      return $$(createSelector(ROOT, ".radio"));
     }
 
     public static SelenideElement radio(int i) {
-      return $(selector(ROOT, ".radio", nthChild(i), "input"));
+      return $(createSelector(ROOT, ".radio", nthChild(i), "input"));
     }
   }
 
@@ -106,7 +106,7 @@ public class LabelsCIP
     }
 
     public static SelenideElement confirmButton() {
-      return $(selector(ROOT, ".btn-danger"));
+      return $(createSelector(ROOT, ".btn-danger"));
     }
   }
 }

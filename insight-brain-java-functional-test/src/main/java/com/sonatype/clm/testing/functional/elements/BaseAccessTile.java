@@ -11,7 +11,7 @@ import com.codeborne.selenide.ElementsCollection;
 import static com.codeborne.selenide.Selenide.$$;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class BaseAccessTile
     extends OwnerTile
@@ -29,7 +29,7 @@ public class BaseAccessTile
   }
 
   private String accessListSelector() {
-    return selector(selector, ".simple-list");
+    return createSelector(selector, ".simple-list");
   }
 
   public ElementsCollection accessLists() {

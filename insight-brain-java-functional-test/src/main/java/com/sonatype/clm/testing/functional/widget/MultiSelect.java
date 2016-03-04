@@ -11,13 +11,13 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class MultiSelect
     extends BasicElement<MultiSelect>
 {
   public MultiSelect(String selector) {
-    super(selector(selector, "div"));
+    super(createSelector(selector, "div"));
   }
 
   public SelenideElement button() {

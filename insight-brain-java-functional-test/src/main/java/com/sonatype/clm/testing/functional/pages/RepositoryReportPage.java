@@ -15,7 +15,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class RepositoryReportPage
 {
@@ -177,7 +177,7 @@ public class RepositoryReportPage
     public static final Condition IGNORED_SCORE = cssClass("ignoredScore");
 
     public static Row row(int num) {
-      return new Row($(selector(TABLE_ROW_SELECTOR, "[row='" + num + "']")));
+      return new Row($(createSelector(TABLE_ROW_SELECTOR, "[row='" + num + "']")));
     }
 
     public static ElementsCollection rows() {

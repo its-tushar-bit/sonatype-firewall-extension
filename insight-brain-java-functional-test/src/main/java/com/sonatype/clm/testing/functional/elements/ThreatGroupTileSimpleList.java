@@ -48,19 +48,19 @@ public class ThreatGroupTileSimpleList
     private final String selector;
 
     public ThreatGroupTileSimpleListElement(String... selectors) {
-      selector = SelectorUtils.selector(selectors);
+      selector = SelectorUtils.createSelector(selectors);
     }
 
     public SelenideElement chevron() {
-      return $(SelectorUtils.selector(selector, ".fa-chevron-right"));
+      return $(SelectorUtils.createSelector(selector, ".fa-chevron-right"));
     }
 
     public SelenideElement threatLevel() {
-      return $(SelectorUtils.selector(selector, ".threat-legend"));
+      return $(SelectorUtils.createSelector(selector, ".threat-legend"));
     }
 
     public SelenideElement name() {
-      return $(SelectorUtils.selector(selector, ".threat-group-title"));
+      return $(SelectorUtils.createSelector(selector, ".threat-group-title"));
     }
   }
 }

@@ -23,7 +23,7 @@ public class RepositoriesSummaryPage
   public static class SummaryTile
   {
     public static SelenideElement name() {
-      return $(SelectorUtils.selector(REPOSITORIES_SUMMARY_SELECTOR, "h1"));
+      return $(SelectorUtils.createSelector(REPOSITORIES_SUMMARY_SELECTOR, "h1"));
     }
 
     public static SelenideElement configButton() {

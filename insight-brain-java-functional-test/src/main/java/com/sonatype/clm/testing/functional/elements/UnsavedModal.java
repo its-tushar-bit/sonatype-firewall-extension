@@ -10,7 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class UnsavedModal
     extends BasicElement<UnsavedModal>
@@ -20,10 +20,10 @@ public class UnsavedModal
   }
   
   public SelenideElement continueButton() {
-    return $(selector(selector, ".btn-primary"));
+    return $(createSelector(selector, ".btn-primary"));
   }
 
   public SelenideElement cancelButton() {
-    return $(selector(selector, ".btn:not(.btn-primary)"));
+    return $(createSelector(selector, ".btn:not(.btn-primary)"));
   }
 }

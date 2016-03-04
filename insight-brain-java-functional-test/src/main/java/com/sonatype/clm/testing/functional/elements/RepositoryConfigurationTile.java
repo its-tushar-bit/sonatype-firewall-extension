@@ -14,7 +14,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class RepositoryConfigurationTile
     extends BasicElement<RepositoryConfigurationTile>
@@ -28,7 +28,7 @@ public class RepositoryConfigurationTile
   }
 
   public ConfigurationTable configurationTable() {
-    return new ConfigurationTable(selector(selector, ".greedy-table.repository-configuration-list"));
+    return new ConfigurationTable(createSelector(selector, ".greedy-table.repository-configuration-list"));
   }
 
   public SelenideElement emptyDescriptor() {

@@ -9,7 +9,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class MainHeader
 {
@@ -19,6 +19,6 @@ public class MainHeader
   }
 
   public static SelenideElement dashboardNavigationButton() {
-    return $(selector(".header-navigation-menu li", nthChild(1), "a"));
+    return $(createSelector(".header-navigation-menu li", nthChild(1), "a"));
   }
 }

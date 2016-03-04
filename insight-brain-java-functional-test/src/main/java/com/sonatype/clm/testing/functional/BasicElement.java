@@ -5,14 +5,14 @@
  */
 package com.sonatype.clm.testing.functional;
 
-import com.sonatype.clm.testing.functional.utils.SelectorUtils;
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 @SuppressWarnings("unchecked")
 public abstract class BasicElement<T extends BasicElement<T>>
@@ -26,7 +26,7 @@ public abstract class BasicElement<T extends BasicElement<T>>
       this.selector = selectors[0];
     }
     else {
-      this.selector = SelectorUtils.selector(selectors);
+      this.selector = createSelector(selectors);
     }
   }
 
@@ -65,11 +65,11 @@ public abstract class BasicElement<T extends BasicElement<T>>
   }
 
   protected SelenideElement child(String... selectors) {
-    return $(SelectorUtils.selector(selector, SelectorUtils.selector(selectors)));
+    return $(createSelector(selector, createSelector(selectors)));
   }
 
   protected ElementsCollection children(String... selectors) {
-    return $$(SelectorUtils.selector(selector, SelectorUtils.selector(selectors)));
+    return $$(createSelector(selector, createSelector(selectors)));
   }
 
   private SelenideElement getElement() {

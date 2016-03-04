@@ -12,7 +12,7 @@ public class SelectorUtils
   }
 
   // pseudo-classes are assumed to apply to the previous class
-  public static String selector(String... selectors) {
+  public static String createSelector(String... selectors) {
     StringBuilder sb = new StringBuilder();
 
     for (String selector : selectors) {

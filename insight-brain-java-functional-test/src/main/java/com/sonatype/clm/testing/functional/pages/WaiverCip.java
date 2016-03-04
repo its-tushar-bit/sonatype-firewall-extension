@@ -19,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class WaiverCip
     extends ReportCip
@@ -126,23 +126,23 @@ public class WaiverCip
     }
 
     public SelenideElement policyName() {
-      return $(selector(selector, "td:nth-child(1)"));
+      return $(createSelector(selector, "td:nth-child(1)"));
     }
 
     public ElementsCollection actions() {
-      return $$(selector(selector, "td:nth-child(1)", "ul li"));
+      return $$(createSelector(selector, "td:nth-child(1)", "ul li"));
     }
 
     public ElementsCollection constraints() {
-      return $$(selector(selector, "td:nth-child(2) b"));
+      return $$(createSelector(selector, "td:nth-child(2) b"));
     }
 
     public ElementsCollection conditions() {
-      return $$(selector(selector, "td:nth-child(3) > div > div"));
+      return $$(createSelector(selector, "td:nth-child(3) > div > div"));
     }
 
     public SelenideElement waiveButton() {
-      return $(selector(selector, ".btn-primary"));
+      return $(createSelector(selector, ".btn-primary"));
     }
 
     public void shouldBe(int threatLevel, String policyName, String[] expectedConstraints, String[] expectedConditions)
@@ -177,7 +177,7 @@ public class WaiverCip
     private static final String ROOT = "#release-quarantine-modal";
 
     public static SelenideElement releaseButton() {
-      return $(selector(ROOT, ".btn.btn-primary"));
+      return $(createSelector(ROOT, ".btn.btn-primary"));
     }
   }
 
@@ -186,11 +186,11 @@ public class WaiverCip
   }
 
   public static PolicyWaiverRow row(int num) {
-    return new PolicyWaiverRow(selector(getRowSelector()), nthChild(num + 1));
+    return new PolicyWaiverRow(createSelector(getRowSelector()), nthChild(num + 1));
   }
 
   public static ElementsCollection rows() {
-    return $$(selector(getRowSelector()));
+    return $$(createSelector(getRowSelector()));
   }
 
   public static SelenideElement viewWaivers() {
@@ -198,6 +198,6 @@ public class WaiverCip
   }
 
   public static SelenideElement unquarantineButton() {
-    return $(selector(CONTAINER_ID, "a.btn"));
+    return $(createSelector(CONTAINER_ID, "a.btn"));
   }
 }

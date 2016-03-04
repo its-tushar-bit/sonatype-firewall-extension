@@ -12,7 +12,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.selector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
 public class ThreatLevelSelector
 {
@@ -25,22 +25,22 @@ public class ThreatLevelSelector
   }
 
   public static SelenideElement selectedThreatLevel() {
-    return $(selector(ROOT, ".selected-threat-level"));
+    return $(createSelector(ROOT, ".selected-threat-level"));
   }
 
   public static SelenideElement caretButton() {
-    return $(selector(ROOT, ".caret-button"));
+    return $(createSelector(ROOT, ".caret-button"));
   }
 
   public static SelenideElement threatLevelList() {
-    return $(selector(ROOT, "ul.dropdown-menu"));
+    return $(createSelector(ROOT, "ul.dropdown-menu"));
   }
 
   public static ElementsCollection threatLevelListItems() {
-    return $$(selector(ROOT, "ul.dropdown-menu li"));
+    return $$(createSelector(ROOT, "ul.dropdown-menu li"));
   }
 
   public static SelenideElement threatLevelListItem(int num) {
-    return $(selector(ROOT, "ul.dropdown-menu li", nthChild(num + 1)));
+    return $(createSelector(ROOT, "ul.dropdown-menu li", nthChild(num + 1)));
   }
 }

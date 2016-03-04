@@ -75,6 +75,10 @@
         vm.actions[stageId] = vm.actions[stageId].filter(function(action) {
           return action.target !== removalTarget || action.actionTypeId !== 'notify';
         });
+
+        if (!vm.actions[stageId].length) {
+          delete vm.actions[stageId];
+        }
       }
       vm.updateAvailableRoles(stageId);
     }

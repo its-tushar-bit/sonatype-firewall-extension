@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizationNode;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -18,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
+import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -79,6 +81,8 @@ public class CreateOwnerTest
     orgNode.treeViewElement().click();
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
 
+    testIconDirtyState();
+
     // open application
     OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
@@ -130,6 +134,8 @@ public class CreateOwnerTest
     RootOrganizationNode.treeViewElement().shouldBe(visible, enabled).click();
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
+    testIconDirtyState();
+
     OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.INITIAL_VALUE);
     OwnerEditorDialog.publicId().shouldNot(exist);
     OwnerEditorDialog.saveButton().shouldBe(disabled);
@@ -157,6 +163,16 @@ public class CreateOwnerTest
 
     OwnerTreeView.organizationElements().shouldHaveSize(2);
     OwnerTreeView.organizationElements().findBy(text(NAME));
+  }
+
+  private void testIconDirtyState() {
+    OwnerEditorDialog.robotIcon().click();
+
+    UnsavedModal unsavedModal = new UnsavedModal();
+    WebDriverRunner.getWebDriver().navigate().back();
+    unsavedModal.cancelButton().shouldBe(visible).click();
+
+    OwnerEditorDialog.defaultIcon().click();
   }
 
   private Organization getOrgByName(String name) {

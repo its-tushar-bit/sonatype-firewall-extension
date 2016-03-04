@@ -10,7 +10,10 @@
                                  messages, CLMAppLocations)
   {
     var vm = this,
-        deferred;
+        deferred,
+        //default to null as that is the value we use for the 'default selection'
+        //keep in mind we aren't currently loading any data to say what the existing icon type is
+        originalIconType = null;
 
     vm.cancel = cancel;
     vm.csrfTokenName = $http.defaults.xsrfHeaderName;
@@ -52,7 +55,7 @@
     });
 
     $scope.$on('pageChangeStarted', function(event) {
-      if (vm.dirtyOwner.isDirty()) {
+      if (isDirty()) {
         vm.unsavedModalVisible = true;
         event.preventDefault();
       }
@@ -65,6 +68,10 @@
     $scope.$on('pageChangeAccepted', function() {
       $scope.$dismiss();
     });
+
+    function isDirty() {
+      return !(vm.icon.type === originalIconType || (!vm.icon.type && !originalIconType)) || vm.dirtyOwner.isDirty();
+    }
 
     function fileUploadComplete(content) {
       if (angular.isString(content) && content) {

@@ -34,4 +34,16 @@ public class OwnerEditorDialog
   public static SelenideElement cancelButton() {
     return root().find(".clm-modal-footer button[type=button]");
   }
+
+  public static Radio defaultIcon() {
+    return new Radio($("#owner-editor-icon-default"));
+  }
+
+  public static Radio customIcon() {
+    return new Radio($("#owner-editor-icon-custom"));
+  }
+
+  public static Radio robotIcon() {
+    return new Radio($("#owner-editor-icon-robot"));
+  }
 }

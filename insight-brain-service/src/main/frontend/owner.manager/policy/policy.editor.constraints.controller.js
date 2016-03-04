@@ -131,19 +131,7 @@
 
       if (conditionType.valueType) {
         var availableValues = conditionType.valueType.availableValues;
-
-        switch (conditionType.valueType.dataType) {
-          case 'Integer':
-          case 'Float':
-            condition.value = 0;
-            break;
-          case 'String':
-            condition.value = '';
-            break;
-          default :
-            condition.value = (availableValues && availableValues.length > 0) ? availableValues[0].id : null;
-            break;
-        }
+        condition.value = (availableValues && availableValues.length > 0) ? availableValues[0].id : null;
       }
     }
 

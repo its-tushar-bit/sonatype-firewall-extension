@@ -170,6 +170,26 @@ public abstract class AbstractPolicyEditorTest
     String editorUrl = WebDriverRunner.getWebDriver().getCurrentUrl();
     UnsavedModal unsavedModal = new UnsavedModal();
 
+    ConstraintEditSection constraintEditor = PolicyEditorPage.constraintSection().constraintEditor(0);
+    ActionItem proxyAction = PolicyEditorPage.actionsNotificationsSection().actionItemList().proxy();
+
+    //make sure certain fields are making the editor dirty
+    PolicyEditorPage.constraintsPill().click();
+    constraintEditor.addConditiontButton().click();
+    handleUnsavedChangesDialog(unsavedModal, editorUrl);
+    constraintEditor.condition(1).deleteConditionButton().click();
+    constraintEditor.condition(0).type().selectedItem().click();
+    constraintEditor.condition(0).type().listItem(0).click();
+    handleUnsavedChangesDialog(unsavedModal, editorUrl);
+    constraintEditor.condition(0).type().selectedItem().click();
+    constraintEditor.condition(0).type().listItem(9).click();
+    PolicyEditorPage.actionsAndNotificationsPill().click();
+    proxyAction.twisty().click();
+    proxyAction.addNotification().email().val("someemail@email.com");
+    proxyAction.addNotification().addButton().click();
+    handleUnsavedChangesDialog(unsavedModal, editorUrl);
+    proxyAction.getNotificationByName("someemail@email.com").deleteButton().click();
+
     // Assert no Modal appears when the editor is clean
     unsavedModal.shouldNotBe(visible);
     MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
@@ -182,11 +202,7 @@ public abstract class AbstractPolicyEditorTest
 
     PolicyEditorPage.constraintSection().constraintEditor(0).ageCondition(0).value().age().val("10");
 
-    // Assert Modal appears when the editor is dirty and continues to new page
-    MainHeader.dashboardNavigationButton().click();
-    unsavedModal.cancelButton().shouldBe(visible).click();
-    waitUntilUrl(editorUrl);
-    DashboardPage.body().shouldNotBe(visible);
+    handleUnsavedChangesDialog(unsavedModal, editorUrl);
 
     MainHeader.dashboardNavigationButton().click();
     unsavedModal.continueButton().shouldBe(visible).click();
@@ -195,6 +211,14 @@ public abstract class AbstractPolicyEditorTest
 
     back();
     waitUntilUrl(editorUrl);
+    DashboardPage.body().shouldNotBe(visible);
+  }
+
+  private void handleUnsavedChangesDialog(UnsavedModal unsavedModal, String url) {
+    // Assert Modal appears when the editor is dirty and continues to new page
+    MainHeader.dashboardNavigationButton().click();
+    unsavedModal.cancelButton().shouldBe(visible).click();
+    waitUntilUrl(url);
     DashboardPage.body().shouldNotBe(visible);
   }
 

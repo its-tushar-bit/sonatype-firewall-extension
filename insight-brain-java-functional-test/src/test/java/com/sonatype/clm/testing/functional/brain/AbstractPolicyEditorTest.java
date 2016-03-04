@@ -57,7 +57,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
-import static com.codeborne.selenide.Selenide.forward;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.blue;
@@ -248,6 +247,8 @@ public abstract class AbstractPolicyEditorTest
     FormMask.seeAndWaitForDismissal();
     changeThreatLevel(6);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
+
+    FormMask.seeAndWaitForDismissal();
 
     refresh();
 

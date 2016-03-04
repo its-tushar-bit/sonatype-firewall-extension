@@ -188,7 +188,7 @@ public abstract class AbstractPolicyEditorTest
     proxyAction.addNotification().email().val("someemail@email.com");
     proxyAction.addNotification().addButton().click();
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
-    proxyAction.getNotificationByName("someemail@email.com").deleteButton().click();
+    proxyAction.getNotification(1).deleteButton().click();
 
     // Assert no Modal appears when the editor is clean
     unsavedModal.shouldNotBe(visible);

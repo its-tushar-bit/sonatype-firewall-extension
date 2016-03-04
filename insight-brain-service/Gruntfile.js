@@ -138,7 +138,8 @@
         },
         build: [
           '<%= config.frontend %>/**/*.js',
-          '!<%= config.frontend %>/lib/**/*'
+          '!<%= config.frontend %>/lib/**/*',
+          '!<%= config.frontend %>/policy/js/cip-loader.js'
         ]
       },
       template: {
@@ -216,7 +217,7 @@
             }
           },
           files: {
-            '<%= config.styleguide %>': '<%= config.frontend %>/scss/*.scss'
+            '<%= config.styleguide %>': '<%= config.styleguideSrc %>/*.scss'
           }
         }
       },

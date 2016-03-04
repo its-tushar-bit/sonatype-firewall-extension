@@ -52,13 +52,6 @@
           <input type='text' id='inlinefield2' class='ng-valid'>
         </div>
       </div>
-      <div class="field form-horizontal">
-        <label for="search-box">Search</label>
-        <div class="sub-label">uses ‘*’ as wildcard (ex. ‘Asim*’ matches ‘Asimov’)</div>
-        <input id="search-box" type="text" name="search" ng-keyup="$event.keyCode == 13 && vm.query && vm.search()" clm-input/><!--
-     --><button id="search-button" class="btn" type="button">Search</button><!--
-     --><div class="section with-icon warning"><i class="fa fa-warning"></i> Search failed. This is why.</div>
-      </div>
     </div>
   </form>
   ```
@@ -342,7 +335,7 @@
 
     &.disabled {
       cursor: not-allowed;
-      
+
       input[type=radio] {
         & + span:before {
           border-color: $grey-4;
@@ -456,7 +449,7 @@
 
     &.disabled {
       cursor: not-allowed;
-      
+
       input[type=checkbox] {
         & + span:before {
           border-color: $grey-4;

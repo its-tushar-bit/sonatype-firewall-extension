@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
@@ -67,6 +68,8 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
 
+    HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forApplication(app.getId());
+
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
     when(
         hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), any(String.class), any(File.class),
@@ -74,8 +77,7 @@ public class ScanUploaderTest
 
     scanUploader.upload(tempDir.newFile(), app);
     HdsClientAnalytics analytics = analyticsArg.getValue();
-    assertThat(analytics.getOwnerType(), is(OwnerType.APPLICATION));
-    assertThat(analytics.getOwnerId(), is(app.getId()));
+    assertThat(analytics, is(equalTo(expectedAnalyticsData)));
 
     ServletInputStream stream = mock(ServletInputStream.class);
     when(stream.read(any(byte[].class))).thenReturn(-1);
@@ -89,7 +91,6 @@ public class ScanUploaderTest
 
     scanUploader.upload(servletRequest, app.getPublicId());
     analytics = analyticsArg.getValue();
-    assertThat(analytics.getOwnerType(), is(OwnerType.APPLICATION));
-    assertThat(analytics.getOwnerId(), is(app.getId()));
+    assertThat(analytics, is(equalTo(expectedAnalyticsData)));
   }
 }

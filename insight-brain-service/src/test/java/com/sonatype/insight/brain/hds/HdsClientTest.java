@@ -362,7 +362,7 @@ public class HdsClientTest
   }
 
   @Test
-  public void testObfuscatedAppIdOnRequests() throws Exception {
+  public void testAppIdOnRequests() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
     handler = new AbstractHandler()
@@ -386,10 +386,10 @@ public class HdsClientTest
 
     client.get(request, analytics, InputStream.class, testPath, null, new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, HashUtils.hash(analytics.getOwnerId(), HashUtils.SHA1)));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
 
     client.put(analytics, String.class, testPath, File.createTempFile("test", ".tmp"), new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
-    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, HashUtils.hash(analytics.getOwnerId(), HashUtils.SHA1)));
+    assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
   }
 }

@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.util.Objects;
+
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.scan.util.HashUtils;
 
 /**
  * Carries data that should be included in requests to the HDS for the purpose of analytics.
@@ -25,7 +28,7 @@ public class HdsClientAnalytics
   public static HdsClientAnalytics forApplication(String appId) {
     HdsClientAnalytics analytics = new HdsClientAnalytics();
     analytics.ownerType = OwnerType.APPLICATION;
-    analytics.ownerId = appId;
+    analytics.ownerId = obfuscate(appId);
     return analytics;
   }
 
@@ -35,5 +38,31 @@ public class HdsClientAnalytics
 
   public String getOwnerId() {
     return ownerId;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    HdsClientAnalytics that = (HdsClientAnalytics) o;
+
+    return Objects.equals(this.ownerType, that.ownerType) && Objects.equals(this.ownerId, that.ownerId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(ownerType, ownerId);
+  }
+
+  /**
+   * @since 1.20
+   */
+  private static String obfuscate(String source) {
+    return HashUtils.hash(source, HashUtils.SHA1);
   }
 }

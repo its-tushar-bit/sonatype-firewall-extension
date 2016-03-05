@@ -413,7 +413,7 @@ public class HdsClient
     }
     if (analytics != null) {
       req.setHeader(OWNER_TYPE_HEADER, analytics.getOwnerType().toString());
-      req.setHeader(OWNER_ID_HEADER, HashUtils.hash(analytics.getOwnerId(), HashUtils.SHA1));
+      req.setHeader(OWNER_ID_HEADER, analytics.getOwnerId());
     }
 
     req.setHeader("X-Brain-Version", version);

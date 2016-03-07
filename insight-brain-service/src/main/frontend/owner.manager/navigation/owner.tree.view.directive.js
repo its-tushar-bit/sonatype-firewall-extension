@@ -94,7 +94,8 @@
         vm.organizations = results[0].data.organizations;
         vm.showRepositories = results[1];
 
-        vm.organizations.forEach(function(organization, index) {
+        for (var i = vm.organizations.length - 1; i >= 0; i--) {
+          var organization = vm.organizations[i];
           organization.isVisible = true;
           organization.isExpanded = $state.includes('management.view.organization', {organizationId: organization.id});
 
@@ -104,9 +105,9 @@
 
           if (organization.id === ownerConstant.ROOT_ORGANIZATION_ID) {
             vm.rootOrganization = organization;
-            vm.organizations.splice(index, 1);
+            vm.organizations.splice(i, 1);
           }
-        });
+        }
 
         assignSelectedParentOrganization();
       });

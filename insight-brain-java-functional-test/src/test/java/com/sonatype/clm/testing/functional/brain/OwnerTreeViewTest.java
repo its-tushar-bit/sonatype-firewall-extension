@@ -46,7 +46,8 @@ public class OwnerTreeViewTest
   @Before
   public void before() {
     ImmutableMap<String, List<String>> organizations = ImmutableMap.<String, List<String>> builder()
-        .put("Red Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
+        // At least one name alphabetically before and after Root Organization to test Root Organization is extracted
+        .put("Silver Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
         .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
         .put("Blue Squadron", Arrays.asList("Merrick Simms")).build();
 
@@ -69,7 +70,7 @@ public class OwnerTreeViewTest
   public void testInitialLoad() {
     assertOrganizationLoaded(OwnerTreeView.organization(0), "Blue Squadron", "Merrick Simms");
     assertOrganizationLoaded(OwnerTreeView.organization(1), "Green Squadron", "Arvel Crynyd", "Jake Farrell");
-    assertOrganizationLoaded(OwnerTreeView.organization(2), "Red Squadron", "Biggs Darklighter", "Garven Dreis",
+    assertOrganizationLoaded(OwnerTreeView.organization(2), "Silver Squadron", "Biggs Darklighter", "Garven Dreis",
         "Luke Skywalker");
   }
 
@@ -152,7 +153,7 @@ public class OwnerTreeViewTest
   @Test
   public void testApplicationFuzzyFilter() {
     OwnerTreeView.filter().setValue("Skiwalkr");
-    assertSingleApplicationVisible("Red Squadron", "Luke Skywalker");
+    assertSingleApplicationVisible("Silver Squadron", "Luke Skywalker");
   }
 
   @Test

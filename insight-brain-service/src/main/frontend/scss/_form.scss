@@ -572,6 +572,10 @@
 .toggle-checkbox .toggle {
   margin-right: 16px;
   border-width: 2px;
+
+  .toggle-group label {
+    border: none;
+  }
 }
 
 .toggle-checkbox .toggle:not([disabled='disabled']):hover {

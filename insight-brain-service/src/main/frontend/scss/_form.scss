@@ -384,6 +384,7 @@
     @extend .regular;
     font-size: 14px;
     display: block;
+    position: relative;
     &:not(.disabled) {
       cursor: pointer;
     }

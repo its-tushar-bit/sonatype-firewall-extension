@@ -219,9 +219,8 @@
               critical : isOverlapping(8, 10, $scope.filters.policyThreatLevel)
             };
 
-            $http.get(CLMLocations[urlField](), {
-              params : params
-            }).success(function (data) {
+            $http.post(CLMLocations[urlField](), params
+            ).success(function (data) {
               if (angular.equals(newFilter, $scope.filters)) {
                 $scope.data = data;
               }
@@ -555,9 +554,8 @@
         $scope.doLoad = function(){
           $scope.data = null;
           $scope.error = null;
-          $http.get(CLMLocations.getDashboardViewingSummaryUrl(), {
-            params: filterToParams($scope.filters)
-          }).success(function (data) {
+          $http.post(CLMLocations.getDashboardViewingSummaryUrl(), filterToParams($scope.filters)
+          ).success(function (data) {
             $scope.data = data;
           }).error(function () {
             $scope.error = arguments;
@@ -583,9 +581,8 @@
           $scope.doLoad = function() {
             $scope.data = null;
             $scope.error = null;
-            $http.get(CLMLocations.getDashboardComponentMatchSummaryUrl(), {
-              params: filterToParams($scope.filters)
-            }).success(function(data) {
+            $http.post(CLMLocations.getDashboardComponentMatchSummaryUrl(), filterToParams($scope.filters)
+            ).success(function(data) {
               $scope.data = data;
 
               $scope.data.items = [{
@@ -716,9 +713,8 @@
       $scope.doLoad = function() {
         $scope.data = null;
         $scope.error = null;
-        $http.get(CLMLocations.getPolicySummaryUrl(), {
-          params: filterToParams($scope.filters)
-        }).success(function(data) {
+        $http.post(CLMLocations.getPolicySummaryUrl(), filterToParams($scope.filters)
+        ).success(function(data) {
           $scope.policySummaryData = generateModel(data);
         }).error(function() {
           $scope.error = arguments;

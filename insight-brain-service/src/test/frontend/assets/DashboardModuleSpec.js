@@ -1,16 +1,11 @@
 describe('DashboardModule', function() {
-  function startsWith(url) {
-    return new RegExp('^' + url + '\?.*');
-  }
-
   var scope, commonFilters = {
     applicationIds: ['1', '2'],
     policyThreatTypes: ['3', '4'],
     stageTypeIds: ['5', '6'],
     applicationTagIds: ['7', '8'],
     policyThreatLevel: [3, 9]
-  }, commonFilterQuery = '?applicationIds=1&applicationIds=2&policyThreatCategories=3,' +
-    '4&policyThreatLevelRange=3,9&stageIds=5&stageIds=6&tagIds=7&tagIds=8';
+  };
 
   beforeEach(module('DashboardModule'));
 
@@ -197,7 +192,7 @@ describe('DashboardModule', function() {
         }));
 
         it('Filter Set', inject(function (CLMLocations, $httpBackend) {
-          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
+          $httpBackend.expectPOST(CLMLocations[directive.urlFn]()).respond('foo');
           scope.$apply(function () {
             scope.filters =  {
               applicationIds: ['foo'],
@@ -211,7 +206,7 @@ describe('DashboardModule', function() {
           expect(directiveScope.data).toEqual('foo');
 
           // Filter is changed
-          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('bar');
+          $httpBackend.expectPOST(CLMLocations[directive.urlFn]()).respond('bar');
           scope.$apply(function () {
             scope.filters = angular.copy(scope.filters);
             scope.filters.applicationIds = ['bar'];
@@ -221,7 +216,7 @@ describe('DashboardModule', function() {
         }));
 
         it('Drops Requests That Don\'t Match', inject(function (CLMLocations, $httpBackend) {
-          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
+          $httpBackend.expectPOST(CLMLocations[directive.urlFn]()).respond('foo');
           scope.$apply(function () {
             scope.filters =  {
               applicationIds: ['foo'],
@@ -233,7 +228,7 @@ describe('DashboardModule', function() {
           });
 
           // Before the request completes the user alters the filter again
-          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('bar');
+          $httpBackend.expectPOST(CLMLocations[directive.urlFn]()).respond('bar');
           scope.$apply(function () {
             scope.filters = angular.copy(scope.filters);
             scope.filters.applicationIds = ['bar'];
@@ -243,7 +238,7 @@ describe('DashboardModule', function() {
         }));
 
         it('Errors', inject(function (CLMLocations, $httpBackend) {
-          $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond(500, 'foo');
+          $httpBackend.expectPOST(CLMLocations[directive.urlFn]()).respond(500, 'foo');
           scope.$apply(function () {
             scope.filters =  {
               applicationIds: ['foo'],
@@ -260,7 +255,7 @@ describe('DashboardModule', function() {
 
         it('Derives Policy Threat Level Categories from Filter', inject(function (CLMLocations, $httpBackend) {
           for (var i = 0; i <= 10; i++) {
-            $httpBackend.expectGET(startsWith(CLMLocations[directive.urlFn]())).respond('foo');
+            $httpBackend.expectPOST(CLMLocations[directive.urlFn]()).respond('foo');
             scope.$apply(function () {
               scope.filters =  {
                 applicationIds: [],
@@ -295,7 +290,7 @@ describe('DashboardModule', function() {
     it('Predefined filters sent in GET request', inject(function($compile, $httpBackend, CLMLocations) {
       scope.filters = commonFilters;
 
-      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl() + commonFilterQuery).respond();
+      $httpBackend.expectPOST(CLMLocations.getDashboardViewingSummaryUrl()).respond();
       $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.error).toBeNull();
@@ -311,7 +306,7 @@ describe('DashboardModule', function() {
         matchedComponents: 300
       };
 
-      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl()).respond(data);
+      $httpBackend.expectPOST(CLMLocations.getDashboardViewingSummaryUrl()).respond(data);
       $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.data).toEqual(data);
@@ -319,7 +314,7 @@ describe('DashboardModule', function() {
     }));
 
     it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {
-      $httpBackend.expectGET(CLMLocations.getDashboardViewingSummaryUrl()).respond(404, 'You screwed up');
+      $httpBackend.expectPOST(CLMLocations.getDashboardViewingSummaryUrl()).respond(404, 'You screwed up');
       $compile(angular.element('<div dashboard-view-summary filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.error).toBeDefined();
@@ -588,25 +583,24 @@ describe('DashboardModule', function() {
         colorCss : 'match-none',
         label : 'Unknown'
       }]
-    }, url;
+    };
 
-    beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
+    beforeEach(inject(function($rootScope, $httpBackend) {
       scope = $rootScope.$new();
       scope.filters = commonFilters;
       $httpBackend.expectGET('dashboard-component-match-results').respond('<div></div>');
-      url = CLMLocations.getDashboardComponentMatchSummaryUrl() + commonFilterQuery;
     }));
 
-    it('Data loaded from server into model properly', inject(function($compile, $httpBackend) {
-      $httpBackend.expectGET(url).respond(data);
+    it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
+      $httpBackend.expectPOST(CLMLocations.getDashboardComponentMatchSummaryUrl()).respond(data);
       $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.data).toEqual(expectedData);
       expect(scope.$$childHead.error).toBeNull();
     }));
 
-    it('Error propogated to scope', inject(function($compile, $httpBackend) {
-      $httpBackend.expectGET(url).respond(404, 'You screwed up');
+    it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {
+      $httpBackend.expectPOST(CLMLocations.getDashboardComponentMatchSummaryUrl()).respond(404, 'You screwed up');
       $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
       $httpBackend.flush();
       expect(scope.$$childHead.error).toBeDefined();
@@ -694,7 +688,7 @@ describe('DashboardModule', function() {
   });
 
   describe('Policy Summary table', function() {
-    var url, policySummaryData = {
+    var policySummaryData = {
       totalNew: 100,
       totalFixed: 48,
       totalWaived: 2,
@@ -712,13 +706,12 @@ describe('DashboardModule', function() {
 
     };
 
-    beforeEach(inject(function($rootScope, $httpBackend, CLMLocations) {
+    beforeEach(inject(function($rootScope) {
       scope = $rootScope.$new();
-      url = CLMLocations.getPolicySummaryUrl() + commonFilterQuery;
     }));
 
-    it('Data loaded from server properly', inject(function($httpBackend, $controller) {
-      $httpBackend.expectGET(url).respond(policySummaryData);
+    it('Data loaded from server properly', inject(function($httpBackend, $controller, CLMLocations) {
+      $httpBackend.expectPOST(CLMLocations.getPolicySummaryUrl()).respond(policySummaryData);
       $controller('PolicyTrendController', { $scope: scope, filters: commonFilters });
       $httpBackend.flush();
       assertPolicySummaryBlock('Discovered', 100, undefined, undefined, 17, policySummaryData.weeklyDeltaNew,
@@ -737,8 +730,8 @@ describe('DashboardModule', function() {
       expect(scope.error).toBeFalsy();
     }));
 
-    it('Error propogated to scope', inject(function($httpBackend, $controller) {
-      $httpBackend.expectGET(url).respond(404, 'You screwed up');
+    it('Error propogated to scope', inject(function($httpBackend, $controller, CLMLocations) {
+      $httpBackend.expectPOST(CLMLocations.getPolicySummaryUrl()).respond(404, 'You screwed up');
       $controller('PolicyTrendController', { $scope: scope, filters: commonFilters });
       $httpBackend.flush();
       expect(scope.error).toBeDefined();

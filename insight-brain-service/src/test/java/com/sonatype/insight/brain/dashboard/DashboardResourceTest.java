@@ -50,7 +50,8 @@ public class DashboardResourceTest
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.GET_NEWEST_RISKS_PATH)
+        .body(new RisksFilterDTO()).post();
 
     assertResponseStatus(200, response);
     NewestRiskDTO[] dtos = response.getBody(NewestRiskDTO[].class);
@@ -65,7 +66,8 @@ public class DashboardResourceTest
 
     createFirstOccurrencePolicyViolation(app, buildPolicy, BuildStageType.ID);
 
-    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_SUMMARY_PATH)
+        .body(new RisksFilterDTO()).post();
 
     assertResponseStatus(200, response);
     PolicySummaryDTO dto = response.getBody(PolicySummaryDTO.class);
@@ -157,7 +159,8 @@ public class DashboardResourceTest
 
   @Test
   public void testGetFilterSummary() throws Exception {
-    HttpResponse response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.FILTERS_SUMMARY_PATH)
+        .body(new RisksFilterDTO()).post();
     assertResponseStatus(200, response);
     FilterSummaryDTO dto = response.getBody(FilterSummaryDTO.class);
     assertThat(dto, is(notNullValue()));
@@ -165,7 +168,8 @@ public class DashboardResourceTest
 
   @Test
   public void testGetComponentSummary() throws Exception {
-    HttpResponse response = restRequest().path(DashboardResource.COMPONENTS_SUMMARY_PATH).get();
+    HttpResponse response = restRequest().path(DashboardResource.COMPONENTS_SUMMARY_PATH)
+        .body(new RisksFilterDTO()).post();
     assertResponseStatus(200, response);
     ComponentSummaryDTO dto = response.getBody(ComponentSummaryDTO.class);
     assertThat(dto, is(notNullValue()));

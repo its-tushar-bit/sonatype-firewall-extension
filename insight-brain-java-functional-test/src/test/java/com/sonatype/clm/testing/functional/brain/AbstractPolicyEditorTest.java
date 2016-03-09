@@ -702,6 +702,9 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().val("$$$"); // invalid characters
     PopoverViolations.on(summary.policyName()).shouldShowInvalidCharactersError();
 
+    summary.policyName().val("1  2"); // double spaces
+    PopoverViolations.on(summary.policyName()).shouldShowInvalidSpacingError();
+
     summary.policyName().val("Acceptable Name");
     PopoverViolations.on(summary.policyName()).shouldNotExist();
 

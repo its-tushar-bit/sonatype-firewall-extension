@@ -35,4 +35,8 @@ public class PopoverViolations
   public void shouldShowInvalidCharactersError() {
     element.shouldBe(visible).shouldHave(text("Use valid characters"));
   }
+
+  public void shouldShowInvalidSpacingError() {
+    element.shouldBe(visible).shouldHave(text("No leading, trailing or double spaces or tabs"));
+  }
 }

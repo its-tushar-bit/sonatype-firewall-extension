@@ -125,6 +125,8 @@
   }
 
   #policy-edit-constraints {
+    $button-container-width: 32px + 32px + 8px;
+
     .constraint {
       padding-left: 8px;
       padding-bottom: 7px;
@@ -151,6 +153,9 @@
           @extend .semi-bold;
           font-size: 16px;
           padding-bottom: 1px;
+          padding-right: $button-container-width;
+          overflow: hidden;
+          text-overflow: ellipsis;
           color: $off-black;
         }
 

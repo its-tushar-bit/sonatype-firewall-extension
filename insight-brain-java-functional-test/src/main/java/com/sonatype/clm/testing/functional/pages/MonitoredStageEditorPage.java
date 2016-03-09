@@ -20,7 +20,7 @@ public class MonitoredStageEditorPage
   public static final String ROOT = "#continuous-monitoring-editor";
 
   public static String url(String ownerType, String ownerId) {
-    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/monitoring";
+    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/monitoring";
   }
 
   public static String inheritFromParentDoNotMonitorText(String parentsName) {

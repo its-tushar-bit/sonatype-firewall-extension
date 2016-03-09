@@ -19,7 +19,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSele
 
 public class RepositoryReportPage
 {
-  private static final String BASE_URL = "audit-report/index.html";
+  private static final String BASE_URL = "assets/audit-report/index.html";
 
   public static String url(String repositoryId) {
     return BASE_URL + "?repositoryId=" + repositoryId;

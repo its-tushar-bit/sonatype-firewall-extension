@@ -205,16 +205,6 @@ extends GebReportingSpec {
     return loginAsUserVia(getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR, initialPage, args)
   }
 
-  void createOrganization(name = 'test organization') {
-    OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
-    ownerManagementPage.createOrganization(name)
-  }
-
-  void createApplication(name = 'test application', id = 'test-application', orgName = 'test organization') {
-    OwnerManagementPage ownerManagementPage = to(OwnerManagementPage)
-    ownerManagementPage.createApplication(name, id, orgName)
-  }
-
   void setLicensedProducts(String... products) {
     productLicenseManager.setProducts(products)
     clmLicenseManager.installLicense(null)

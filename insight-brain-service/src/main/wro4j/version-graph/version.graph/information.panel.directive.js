@@ -9,7 +9,7 @@
 
   function cipVersionGraph() {
     return {
-      templateUrl: CLM.path + 'assets/version-graph/version-graph.html',
+      templateUrl: CLM.assetsPath + 'version-graph/version-graph.html',
       controllerAs: 'vm',
       controller: 'CIPController'
     };

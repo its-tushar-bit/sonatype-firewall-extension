@@ -45,7 +45,7 @@
           setTimeout(applyFocus, 100);
         }
 
-        var timestamp = (new Date()).getTime(), container = $('<div clm-include="\'' + CLM.path +
+        var timestamp = (new Date()).getTime(), container = $('<div clm-include="\'' + CLM.assetsPath +
             'cip/cip-claim-component.html\'"></div>');
         node.empty();
         container.appendTo(node);

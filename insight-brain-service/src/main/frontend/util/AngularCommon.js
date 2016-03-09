@@ -853,23 +853,14 @@ var AngularStateUtils = {
   * Angular directive for bootstrap-multiselect. Does not do a collection watch for selected items so if this
   * collection is modified outside of the multi select control, update to use $watchCollection
   */
-  angularCommon.directive('multiSelect', [function () {
+  angularCommon.directive('multiSelect', [
+    '$compile', function($compile) {
     return {
       template : '<div class="btn-group" ng-class="{ open : open }">' +
                    '<button class="btn dropdown-toggle" ng-click="open = !open" ng-class="{ \'btn-small\': small }" type="button">' +
                    '<span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                      '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0 auto 5px auto;width:160px;display:block" placeholder="Search" ng-click="$event.stopPropagation()"></li>' +
-                     '<div vs-repeat class="dropdown-scroll">' +
-                       '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }" ng-click="$event.stopPropagation()">' + // stopPropagation to avoid Bootstrap closing popout
-                         '<label class="checkbox" ng-class="{ \'has-owner\': item.owner }">' +
-                           '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
-                           '<span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
-                           '<div class="multi-dropdown-item name" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</div>' +
-                           '<div ng-if="item.owner" class="multi-dropdown-item owner" ng-class="{ \'no-color\' : !item.color, color : item.color }">in {{item.owner}}</div>' +
-                         '</label>' +
-                       '</li>' +
-                     '</div>' +
                    '</ul>' +
                  '</div>',
       scope : {
@@ -878,10 +869,28 @@ var AngularStateUtils = {
         effectiveIdField : '@',
         noneSelectedText : '@',
         summarizeWith : '@',
-        small : '@?'
+        small: '@?',
+        useVsRepeat: '@?'
       },
-      link : function (scope, element) {
+      link: function(scope, element, attrs) {
         var effectiveIdField = scope.effectiveIdField ? scope.effectiveIdField : 'id';
+        var dropdownScrollHtml = '<div class="dropdown-scroll">' +
+            '<li ng-repeat="item in items | filter: { name : filter.name }" ng-class="{ selected : selected[item.id]  }" ng-click="$event.stopPropagation()">' + // stopPropagation to avoid Bootstrap closing popout
+              '<label class="checkbox" ng-class="{ \'has-owner\': item.owner }">' +
+              '<input type="checkbox" ng-model="selected[item.id]" ng-change="updateSelectedIds(item.id)">' +
+              '<span ng-if="item.color" class="multi-dropdown-item-color {{item.color}}Label"></span>' +
+              '<div class="multi-dropdown-item name" ng-class="{ \'no-color\' : !item.color, color : item.color }">{{item.name}}</div>' +
+              '<div ng-if="item.owner" class="multi-dropdown-item owner" ng-class="{ \'no-color\' : !item.color, color : item.color }">in {{item.owner}}</div>' +
+              '</label>' +
+            '</li>' +
+            '</div>';
+
+        var dropdownScroll = angular.element(dropdownScrollHtml);
+        if (attrs.hasOwnProperty('useVsRepeat')) {
+          dropdownScroll.attr('vs-repeat', '');
+        }
+        $compile(dropdownScroll)(scope);
+        element.find('ul').append(dropdownScroll);
 
         function updateSelection() {
           scope.selected = {};
@@ -1335,7 +1344,7 @@ var AngularStateUtils = {
     function() {
       return {
         get: function() {
-          var baseSegments = ['/new/'],
+          var baseSegments = ['/assets/'],
               idx = -1;
 
           for (var i = 0; i < baseSegments.length; i++) {

@@ -51,7 +51,7 @@
           <div class="filter-item-content">
             <div class="filter-item-header">Applications</div>
             <span ng-if='applications.length > 0' class='multi-dropdown' multi-select items='applications'
-                  selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
+                  use-vs-repeat selected-ids='dirtyFilters.applicationIds' effective-id-field='id'
                   summarize-with='applications' none-selected-text='All Applications'></span>
             <span ng-if='applications.length === 0' class="small-text">
               <em id="no-applications">No applications available.</em>

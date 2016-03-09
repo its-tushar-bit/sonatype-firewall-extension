@@ -120,7 +120,7 @@
 }
 
 #detailsparent {
-  background-image:url("../assets/version-graph/artifactInfoIcon.png");
+  background-image:url("../version-graph/artifactInfoIcon.png");
   background-repeat: no-repeat;
   width: 328px;
   min-height: 50px;

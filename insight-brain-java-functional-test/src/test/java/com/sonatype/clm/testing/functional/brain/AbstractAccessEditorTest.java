@@ -165,6 +165,7 @@ public abstract class AbstractAccessEditorTest
         AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType().toString()));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.body().shouldNotBe(visible);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
@@ -185,6 +186,7 @@ public abstract class AbstractAccessEditorTest
         .shouldHave(AccessEditorPage.confirmRemovalText(role.getName(), currentOwner.getType().toString()));
     DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
     DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.body().shouldNotBe(visible);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);

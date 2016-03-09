@@ -202,10 +202,24 @@
         },
 
         /**
+         * @Since 1.17
+         */
+        getAuditReportSummary: function(repositoryId) {
+          return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryId) + '/report/summary';
+        },
+
+        /**
+         * @Since 1.18
+         */
+        getRootOrganizationConfigMigrationUrl: function(organizationId) {
+          return baseUrl.get() + '/rest/migrate/root' + (organizationId ? '/' + organizationId : '');
+        },
+
+        /**
          * @since 1.18
          */
         getRepositoryReportUrl: function(repositoryId) {
-          return baseUrl.get() + '/audit-report/index.html?repositoryId=' + repositoryId;
+          return baseUrl.get() + '/assets/audit-report/index.html?repositoryId=' + repositoryId;
         },
 
         /**

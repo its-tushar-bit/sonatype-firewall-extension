@@ -17,7 +17,7 @@ import static com.codeborne.selenide.Selenide.$$;
 public class OwnerSummaryPage
 {
   public static String url(String contextType, String id) {
-    return "new/assets/index.html#/management/view/" +
+    return "assets/index.html#/management/view/" +
         (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(contextType)) ? "repositories" : contextType + "/" + id);
   }
 

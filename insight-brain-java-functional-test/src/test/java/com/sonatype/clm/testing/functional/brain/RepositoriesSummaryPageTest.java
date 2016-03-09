@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.RepositoriesAccessTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
@@ -127,6 +128,7 @@ public class RepositoriesSummaryPageTest
     DeleteModal.root().shouldBe(visible);
     DeleteModal.cancelButton().shouldBe(visible);
     DeleteModal.continueButton().shouldBe(visible).click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId()), is(nullValue()));

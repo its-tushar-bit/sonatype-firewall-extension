@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.Item;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -116,6 +117,7 @@ public abstract class AbstractLTGEditorTest
     DeleteModal.body().shouldHave(DeleteModal.bodyText(ltg.getName()));
 
     DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     assertNewLTGStateIsCorrect();

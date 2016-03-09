@@ -12,7 +12,7 @@
       // backward-compatibility: redirect old clients (e.g. CI plugin 2.9) to the new management UI
       function loadFn() {
         var query = window.location.search.substring(1).split('&'),
-          baseUrl = window.location.href.split('policy-assets')[0];
+                baseUrl = window.location.href.split('policy')[0];
 
         baseUrl += "assets/index.html#/management/application/";
 

@@ -18,7 +18,7 @@ public class RepositoriesSummaryPage
 
   static final String REPOSITORIES_SUMMARY_SELECTOR = "#repositories-summary";
 
-  public static String URL = "new/assets/index.html#/management/view/repositories";
+  public static String URL = "assets/index.html#/management/view/repositories";
 
   public static class SummaryTile
   {

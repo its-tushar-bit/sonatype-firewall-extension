@@ -43,19 +43,19 @@
 */
 @font-face {
   font-family: Proxima Nova Regular;
-  src: url('../fonts/proximanova-reg-webfont.woff?<%= config.buildTimestamp %>') format('woff');
+  src: url('../fonts/proximanova-reg-webfont.woff') format('woff');
 }
 
 @font-face {
   font-family: Proxima Nova Bold;
   font-weight: bold;
-  src: url('../fonts/proximanova-bold-webfont.woff?<%= config.buildTimestamp %>') format('woff');
+  src: url('../fonts/proximanova-bold-webfont.woff') format('woff');
 }
 
 @font-face {
   font-family: Proxima Nova Semibold;
   font-weight: bold;
-  src: url('../fonts/proximanova-sbold-webfont.woff?<%= config.buildTimestamp %>') format('woff');
+  src: url('../fonts/proximanova-sbold-webfont.woff') format('woff');
 }
 
 .bold {

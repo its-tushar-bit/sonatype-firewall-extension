@@ -51,6 +51,9 @@ describe('Tests for the LdapConfigurationController', function() {
         $state: state,
         isAuthorized : true
       });
+      scope.ldapNameForm = {
+        $save: angular.noop
+      };
 
       httpBackend.flush();
     }));

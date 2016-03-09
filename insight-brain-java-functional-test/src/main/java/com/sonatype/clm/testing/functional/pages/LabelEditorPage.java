@@ -16,11 +16,11 @@ public class LabelEditorPage
   private static final ColorPicker colorPicker = new ColorPicker("#editor-label-color-picker");
 
   public static String urlToEdit(String ownerType, String ownerId, String labelId) {
-    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label/" + labelId;
+    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label/" + labelId;
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "new/assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label";
+    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label";
   }
 
   public static SelenideElement title() {

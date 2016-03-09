@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 public class OwnerDetailsEditingPage
 {
   public static String url(String ownerType, String ownerId) {
-    return "new/assets/index.html#/management/edit/" +
+    return "assets/index.html#/management/edit/" +
         (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "repositories" : ownerType + "/" + ownerId);
   }
 }

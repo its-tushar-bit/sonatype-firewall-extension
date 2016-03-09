@@ -5,7 +5,8 @@
  */
 /*global angular, angularDebug*/
 window.CLM = {
-  path: '../'
+  path: '../../',
+  assetsPath : '../'
 };
 
 (function () {

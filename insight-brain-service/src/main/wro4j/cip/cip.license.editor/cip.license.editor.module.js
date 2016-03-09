@@ -7,5 +7,5 @@
 (function() {
   'use strict';
 
-  angular.module('cip.license.editor', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap']);
+  angular.module('cip.license.editor', ['CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'utility.directives']);
 }());

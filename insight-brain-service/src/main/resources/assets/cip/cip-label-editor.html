@@ -1,4 +1,4 @@
-<div style='padding:5px' class='labelEditor' load-wrapper2="error" reload="doLoad()" error-message="Unable to load labels." loading="!error && !itemLabels">
+<div style='padding:5px' class='labelEditor' load-wrapper="error" reload="doLoad()" error-message="Unable to load labels." loading="!error && !itemLabels">
   <div clm-alerts='alerts'></div>
   <div id="available-labels">
     <h5>Available <i class='icon-refresh' ng-click='doLoad()' spinner></i></h5>
@@ -21,7 +21,7 @@
   </div>
   <script type="text/ng-template" id="add-modal-service">
     <div id="labelAssignScopeModal"
-        load-wrapper2="labelAddError" reload="doLoad()" error-message="Unable to load available label contexts." loading="labelLoading">
+        load-wrapper="labelAddError" reload="doLoad()" error-message="Unable to load available label contexts." loading="labelLoading">
       <div class="modal-header">
         <button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>
         <h3>Label Assignment</h3>
@@ -51,7 +51,7 @@
   </script>
   <script type="text/ng-template" id="delete-modal-service">
     <div id="labelRemoveModal"
-        load-wrapper2="labelRemoveError" reload="doLoad()" error-message="Failed to remove label." loading="false">
+        load-wrapper="labelRemoveError" reload="doLoad()" error-message="Failed to remove label." loading="false">
       <div class="modal-header">
         <h3>Remove Label</h3>
       </div>

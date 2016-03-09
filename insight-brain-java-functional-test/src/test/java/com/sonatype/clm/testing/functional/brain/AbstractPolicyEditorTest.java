@@ -194,7 +194,7 @@ public abstract class AbstractPolicyEditorTest
     unsavedModal.shouldNotBe(visible);
     MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
     unsavedModal.shouldNotBe(visible);
-    waitUntilUrl(DashboardPage.NEW_URL);
+    waitUntilUrl(DashboardPage.URL);
     DashboardPage.body().shouldBe(visible);
 
     back();
@@ -206,7 +206,7 @@ public abstract class AbstractPolicyEditorTest
 
     MainHeader.dashboardNavigationButton().click();
     unsavedModal.continueButton().shouldBe(visible).click();
-    waitUntilUrl(DashboardPage.NEW_URL);
+    waitUntilUrl(DashboardPage.URL);
     DashboardPage.body().shouldBe(visible);
 
     back();
@@ -612,6 +612,7 @@ public abstract class AbstractPolicyEditorTest
     DeleteModal.body().shouldHave(DeleteModal.bodyText(policy.getName()));
 
     DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     assertNewPolicyStateIsCorrect();

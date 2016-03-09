@@ -56,7 +56,7 @@ public class ActionDropDown
   }
 
   public static String reportLinkUrl(String publicId, String scanId) {
-    return Configuration.baseUrl + "new/assets/index.html#/reports/" + publicId + "/" + scanId;
+    return Configuration.baseUrl + "assets/index.html#/reports/" + publicId + "/" + scanId;
   }
 
   public static ElementsCollection reportLinks() {

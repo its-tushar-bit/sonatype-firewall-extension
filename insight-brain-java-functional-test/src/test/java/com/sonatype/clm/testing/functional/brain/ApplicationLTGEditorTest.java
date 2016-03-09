@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage.SummaryTile;
@@ -62,6 +63,7 @@ public class ApplicationLTGEditorTest
     DeleteModal.body().shouldHave(DeleteModal.bodyText(ltg.getName()));
 
     DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner.getType(), currentOwner.getPublicId(), ltg2.getId()));
@@ -71,6 +73,7 @@ public class ApplicationLTGEditorTest
     LTGEditorPage.deleteButton().click();
     DeleteModal.root().shouldBe(visible);
     DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     // no more ltgs left to delete so take user back to the summary page

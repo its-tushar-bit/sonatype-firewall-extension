@@ -18,6 +18,7 @@
   $.extend(true, window, {
     'CLM': {
       'path': getBaseUrl(),
+      'assetsPath': getBaseUrl() + 'assets/',
       'loadPlugin': (function() {
         var pluginsMap = null;
 
@@ -192,7 +193,7 @@
   createApplicationIdProvider();
 
   $.each(styles, function(key, style) {
-    var url = CLM.path + style + '?' + clmBuildTimestamp;
+    var url = CLM.assetsPath + style + '?' + clmBuildTimestamp;
     if (document.createStyleSheet) {
       // Note at most 31 stylesheets can be loaded this way
       document.createStyleSheet(url);

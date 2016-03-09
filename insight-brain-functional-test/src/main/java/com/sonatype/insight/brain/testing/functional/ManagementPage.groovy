@@ -10,9 +10,8 @@ import com.sonatype.insight.brain.testing.functional.modules.NavListModule
 
 
 class ManagementPage
-    extends BasePage
-{
-  static url = "assets/index.html#/management"
+extends BasePage {
+  static url = "assets/index.html#/management/view"
 
   static at = { title == 'IQ Server - Management' || title == 'IQ Server -' }
 

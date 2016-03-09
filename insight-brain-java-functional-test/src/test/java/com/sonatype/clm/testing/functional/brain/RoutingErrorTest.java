@@ -21,7 +21,7 @@ import static com.codeborne.selenide.Selenide.open;
 public class RoutingErrorTest
     extends AbstractFunctionalTest
 {
-  private static String INVALID_URL = "new/assets/index.html#/foo";
+  private static String INVALID_URL = "assets/index.html#/foo";
 
   @BeforeClass
   public static void startup() {

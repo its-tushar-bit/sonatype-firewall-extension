@@ -28,6 +28,6 @@ abstract class BasePage
     helpLinks { module HelpModule }
     systemConfig(required: false) { module SystemConfigModule }
     functionalTestingSupport { $('#functionalTestingSupport') }
-    unsavedModal { $('.modal-header', text: "Unsaved Changes") }
+    unsavedModal { $('.clm-modal-header', text: "Unsaved Changes") }
   }
 }

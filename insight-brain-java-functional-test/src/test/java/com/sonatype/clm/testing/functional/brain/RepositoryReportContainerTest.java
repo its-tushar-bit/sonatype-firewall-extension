@@ -55,17 +55,8 @@ public class RepositoryReportContainerTest
   }
 
   @Test
-  public void testReportContainerOldUI() throws Exception {
-    testReportContainer(false);
-  }
-
-  @Test
-  public void testReportContainerNewUI() throws Exception {
-    testReportContainer(true);
-  }
-
-  private void testReportContainer(boolean newUI) throws Exception {
-    open(RepositoryReportContainerPage.url(newUI, repository.getId()));
+  public void testReportContainer() throws Exception {
+    open(RepositoryReportContainerPage.url(repository.getId()));
 
     Date oldest = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repository.getId());
     assertThat(oldest, is(repositoryComponent.getLastEvaluationTime()));

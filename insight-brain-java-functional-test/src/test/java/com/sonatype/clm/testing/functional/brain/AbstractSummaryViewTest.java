@@ -545,8 +545,7 @@ public abstract class AbstractSummaryViewTest
 
     DeleteModal.root().shouldBe(visible);
     DeleteModal.continueButton().click();
-
-    // Modal should be hidden 800 ms after delete REST call is successful
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());

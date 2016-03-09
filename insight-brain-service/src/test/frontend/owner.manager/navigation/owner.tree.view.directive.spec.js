@@ -39,7 +39,6 @@ describe('owner.tree-view.directive.spec.js', function() {
         _$compile_(ownerTreeView)(scope);
         SpecUtil.respondWithTemplate($httpBackend,
             'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp);
-        SpecUtil.respondWithTemplate($httpBackend, 'utility/attributes/load.wrapper.directive.tpl.html');
         scope.$digest();
 
         spyOn($state, 'includes').andReturn(false);

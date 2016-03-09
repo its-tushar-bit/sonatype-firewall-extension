@@ -25,7 +25,6 @@
     <angularjs.version>1.4.8</angularjs.version>
     <jasmine.version>1.3.1.4</jasmine.version>
     <saga.version>1.5.2</saga.version>
-    <jasmine.brain.id.new>test-brain-assets-new</jasmine.brain.id.new>
     <jasmine.brain.id>test-brain-assets</jasmine.brain.id>
     <jasmine.cip.id>test-cip-assets</jasmine.cip.id>
     <jasmine.audit.id>test-audit-assets</jasmine.audit.id>
@@ -525,11 +524,12 @@
             <configuration>
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
-                <include>wro4j/lib/jquery/jquery-1.8.3.min.js</include>
-                <include>wro4j/lib/bootstrap/bootstrap-2.3.1.min.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</include>
+                <include>frontend/lib/angular/angular.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
                 <include>wro4j/cip/cip-loader.js</include>
               </preloadSources>
               <sourceIncludes>
@@ -541,15 +541,17 @@
                 <include>wro4j/audit-report/cip/cip.vulnerability.editor/*.js</include>
                 <include>wro4j/audit-report/cip/vulnerability.details/*module.js</include>
                 <include>wro4j/audit-report/cip/vulnerability.details/*.js</include>
-                <include>wro4j/util/AngularCommon.js</include>
-                <include>wro4j/util/CLMAppLocation.js</include>
-                <include>wro4j/util/CLMLocation.js</include>
-                <include>wro4j/util/HttpInterceptors.js</include>
-                <include>wro4j/lib/ui-bootstrap-tpls-*.js</include>
-                <include>wro4j/lib/datepicker/bootstrap-datepicker.js</include>
+                <include>frontend/utility/directives/utility.directives.module.js</include>
+                <include>frontend/utility/directives/load.wrapper.directive.js</include>
+                <include>frontend/util/AngularCommon.js</include>
+                <include>frontend/util/CLMAppLocation.js</include>
+                <include>frontend/util/CLMLocation.js</include>
+                <include>frontend/util/HttpInterceptors.js</include>
+                <include>frontend/lib/ui-bootstrap-tpls-*.js</include>
+                <include>frontend/lib/datepicker/bootstrap-datepicker.js</include>
               </sourceIncludes>
               <sourceExcludes>
-                <exclude>wro4j/lib/bootstrap-sass-official/**/*.js</exclude>
+                <exclude>frontend/lib/bootstrap-sass-official/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
                 <include>resources/assets/SpecUtil.js</include>
@@ -572,11 +574,12 @@
             <configuration>
               <preloadSources>
                 <source>resources/assets/cip/cip-test-util.js</source>
-                <include>wro4j/lib/jquery/jquery-1.8.3.min.js</include>
-                <include>wro4j/lib/bootstrap/bootstrap-2.3.1.min.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/bootstrap/bootstrap-2.3.1.min.js</include>
+                <include>frontend/lib/angular/angular.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-sanitize.js</include>
+                <include>frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</include>
                 <include>wro4j/cip/cip-loader.js</include>
               </preloadSources>
               <sourceIncludes>
@@ -588,15 +591,17 @@
                 <include>wro4j/version-graph/**/*.js</include>
                 <include>wro4j/audit-report/**/*module.js</include>
                 <include>wro4j/audit-report/**/*.js</include>
-                <include>wro4j/util/AngularCommon.js</include>
-                <include>wro4j/util/CLMAppLocation.js</include>
-                <include>wro4j/util/CLMLocation.js</include>
-                <include>wro4j/util/HttpInterceptors.js</include>
-                <include>wro4j/lib/ui-bootstrap-tpls-*.js</include>
-                <include>wro4j/lib/datepicker/bootstrap-datepicker.js</include>
+                <include>frontend/utility/directives/utility.directives.module.js</include>
+                <include>frontend/utility/directives/load.wrapper.directive.js</include>
+                <include>frontend/util/AngularCommon.js</include>
+                <include>frontend/util/CLMAppLocation.js</include>
+                <include>frontend/util/CLMLocation.js</include>
+                <include>frontend/util/HttpInterceptors.js</include>
+                <include>frontend/lib/ui-bootstrap-tpls-*.js</include>
+                <include>frontend/lib/datepicker/bootstrap-datepicker.js</include>
               </sourceIncludes>
               <sourceExcludes>
-                <exclude>wro4j/lib/bootstrap-sass-official/**/*.js</exclude>
+                <exclude>frontend/lib/bootstrap-sass-official/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
                 <include>resources/assets/SpecUtil.js</include>
@@ -608,7 +613,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>${jasmine.brain.id.new}</id>
+            <id>${jasmine.brain.id}</id>
             <phase>test</phase>
             <goals>
               <goal>test</goal>
@@ -662,50 +667,6 @@
             </configuration>
           </execution>
           <execution>
-            <id>${jasmine.brain.id}</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <sourceIncludes>
-                <include>wro4j/lib/jquery/jquery-*.min.js</include>
-                <include>wro4j/lib/bootstrap/bootstrap-*.js</include>
-                <include>wro4j/lib/bootstrap-slider-2.0.0-sonatype-1.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-cookies.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-sanitize.js</include>
-                <include>wro4j/lib/ui-bootstrap-tpls-*.js</include>
-                <include>resources/assets/assets/**/*.js</include>
-                <include>wro4j/**/*.module.js</include>
-                <include>wro4j/**/*.js</include>
-              </sourceIncludes>
-              <sourceExcludes>
-                <exclude>wro4j/cip/**/*.js</exclude>
-                <exclude>wro4j/audit-report/**/*.js</exclude>
-                <exclude>wro4j/lib/angular-${angularjs.version}/*.min.js</exclude>
-                <exclude>wro4j/lib/hogan.js</exclude>
-                <exclude>resources/assets/assets/version-graph/protovis-msie.min.js</exclude>
-                <exclude>wro4j/version-graph/**/*.js</exclude>
-              </sourceExcludes>
-              <specIncludes>
-                <include>resources/assets/SpecUtil.js</include>
-                <include>resources/assets/**/lib/*.js</include>
-                <include>resources/assets/**/*MockData.js</include>
-                <include>resources/assets/**/*-spec.js</include>
-                <include>resources/assets/**/*Spec.js</include>
-              </specIncludes>
-              <specExcludes>
-                <exclude>resources/assets/**/cip*.js</exclude>
-                <exclude>resources/assets/**/CIP*.js</exclude>
-                <exclude>resources/assets/brain-client/**/*.js</exclude>
-                <exclude>resources/assets/version-graph/**/*.js</exclude>
-              </specExcludes>
-              <junitXmlReportFileName>TEST-server.xml</junitXmlReportFileName>
-            </configuration>
-          </execution>
-          <execution>
             <id>${jasmine.version.graph.id}</id>
             <phase>test</phase>
             <goals>
@@ -713,9 +674,9 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>wro4j/lib/jquery/jquery-*.min.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/angular/angular.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>brain-client/*.js</include>
                 <include>wro4j/version-graph/protovis.min.js</include>
                 <include>wro4j/version-graph/appcheck.js</include>
@@ -723,7 +684,7 @@
                 <include>wro4j/version-graph/**/*.app.js</include>
                 <include>wro4j/version-graph/app/*.js</include>
                 <include>wro4j/version-graph/version.graph/*.js</include>
-                <include>wro4j/assets/ComponentDisplayModule.js</include>
+                <include>frontend/ComponentDisplayModule.js</include>
               </sourceIncludes>
               <sourceExcludes>
                 <exclude>wro4j/cip/**/*.js</exclude>
@@ -742,9 +703,9 @@
             </goals>
             <configuration>
               <sourceIncludes>
-                <include>wro4j/lib/jquery/jquery-*.min.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular.js</include>
-                <include>wro4j/lib/angular-${angularjs.version}/angular-route.js</include>
+                <include>frontend/lib/jquery/jquery.js</include>
+                <include>frontend/lib/angular/angular.js</include>
+                <include>frontend/lib/angular-${angularjs.version}/angular-route.js</include>
                 <include>brain-client/*.js</include>
                 <include>wro4j/version-graph/viewdetails.js</include>
               </sourceIncludes>
@@ -864,123 +825,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>ro.isdc.wro4j</groupId>
-        <artifactId>wro4j-maven-plugin</artifactId>
-        <version>${wro4j.version}</version>
-        <executions>
-          <execution>
-            <id>external-libraries</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <targetGroups>external</targetGroups>
-              <jsDestinationFolder>${wro4j.brain.resources}assets/js/</jsDestinationFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>cip-loader</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <targetGroups>cip-loader</targetGroups>
-              <cssDestinationFolder>${wro4j.brain.resources}policy/css/</cssDestinationFolder>
-              <jsDestinationFolder>${wro4j.brain.resources}policy/js/</jsDestinationFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>assets</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>jshint</goal>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <options>camelcase,curly,indent=2,eqeqeq,forin,immed,noarg,quotmark='single',undef,unused,strict,trailing,browser,jquery</options>
-              <targetGroups>configuration,core,dashboard,policy,report,util,style</targetGroups>
-              <cssDestinationFolder>${wro4j.brain.resources}assets/css/</cssDestinationFolder>
-              <jsDestinationFolder>${wro4j.brain.resources}assets/js/</jsDestinationFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>css-cip</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <targetGroups>cip</targetGroups>
-              <cssDestinationFolder>${wro4j.brain.resources}cip/</cssDestinationFolder>
-              <jsDestinationFolder>${wro4j.brain.resources}cip/</jsDestinationFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>version-graph</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <targetGroups>version.graph.app,viewdetails</targetGroups>
-              <cssDestinationFolder>${wro4j.brain.resources}assets/version-graph/</cssDestinationFolder>
-              <jsDestinationFolder>${wro4j.brain.resources}assets/version-graph/</jsDestinationFolder>
-            </configuration>
-          </execution>
-          <execution>
-            <id>audit-report</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <targetGroups>audit-report</targetGroups>
-              <cssDestinationFolder>${wro4j.brain.resources}audit-report/</cssDestinationFolder>
-              <jsDestinationFolder>${wro4j.brain.resources}audit-report/</jsDestinationFolder>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <minimize>${wro4j.minimize}</minimize>
-          <wroFile>${basedir}/wro.xml</wroFile>
-          <parallelProcessing>true</parallelProcessing>
-          <extraConfigFile>${basedir}/wro.properties</extraConfigFile>
-          <wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
-          <ignoreMissingResources>false</ignoreMissingResources>
-          <contextFolder>${basedir}/src/main/wro4j/</contextFolder>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-            <configuration>
-              <includes>
-                <include>**/PortAllocator*</include>
-                <include>**/AbstractBrainServiceTest*</include>
-                <include>**/InsightMockServerRule*</include>
-                <include>**/TestInsightBrainService*</include>
-                <include>**/TestInsightBrainServiceRule*</include>
-                <include>**/TestCLMServer*</include>
-                <include>**/AbstractResourceTest*</include>
-                <include>**/TestLicenseFingerprinter*</include>
-                <include>**/TestProductLicenseManager*</include>
-                <include>**/productlicense/license.lic</include>
-                <include>**/SlowMoFilter*</include>
-                <include>**/TemporaryEntity*</include>
-                <include>**/HttpRequest*</include>
-                <include>**/HttpResponse*</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.23</version>
@@ -1015,6 +859,109 @@
             <configuration>
               <srcdir>${basedir}/src/main/frontend</srcdir>
               <arguments>${grunt.task}</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>ro.isdc.wro4j</groupId>
+        <artifactId>wro4j-maven-plugin</artifactId>
+        <version>${wro4j.version}</version>
+        <executions>
+          <execution>
+            <id>external-libraries</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>external</targetGroups>
+              <jsDestinationFolder>${wro4j.brain.resources}assets/js/</jsDestinationFolder>
+            </configuration>
+          </execution>
+          <execution>
+            <id>cip-loader</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>cip-loader</targetGroups>
+              <cssDestinationFolder>${wro4j.brain.resources}policy/css/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}policy/js/</jsDestinationFolder>
+            </configuration>
+          </execution>
+          <execution>
+            <id>css-cip</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>cip</targetGroups>
+              <cssDestinationFolder>${wro4j.brain.resources}cip/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}cip/</jsDestinationFolder>
+            </configuration>
+          </execution>
+          <execution>
+            <id>version-graph</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>version.graph.app,viewdetails</targetGroups>
+              <cssDestinationFolder>${wro4j.brain.resources}version-graph/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}version-graph/</jsDestinationFolder>
+            </configuration>
+          </execution>
+          <execution>
+            <id>audit-report</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <targetGroups>audit-report</targetGroups>
+              <cssDestinationFolder>${wro4j.brain.resources}audit-report/</cssDestinationFolder>
+              <jsDestinationFolder>${wro4j.brain.resources}audit-report/</jsDestinationFolder>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <minimize>${wro4j.minimize}</minimize>
+          <wroFile>${basedir}/wro.xml</wroFile>
+          <parallelProcessing>true</parallelProcessing>
+          <extraConfigFile>${basedir}/wro.properties</extraConfigFile>
+          <wroManagerFactory>ro.isdc.wro.maven.plugin.manager.factory.ConfigurableWroManagerFactory</wroManagerFactory>
+          <ignoreMissingResources>false</ignoreMissingResources>
+          <contextFolder>${basedir}/src/main/</contextFolder>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/PortAllocator*</include>
+                <include>**/AbstractBrainServiceTest*</include>
+                <include>**/InsightMockServerRule*</include>
+                <include>**/TestInsightBrainService*</include>
+                <include>**/TestInsightBrainServiceRule*</include>
+                <include>**/TestCLMServer*</include>
+                <include>**/AbstractResourceTest*</include>
+                <include>**/TestLicenseFingerprinter*</include>
+                <include>**/TestProductLicenseManager*</include>
+                <include>**/productlicense/license.lic</include>
+                <include>**/SlowMoFilter*</include>
+                <include>**/TemporaryEntity*</include>
+                <include>**/HttpRequest*</include>
+                <include>**/HttpResponse*</include>
+              </includes>
             </configuration>
           </execution>
         </executions>
@@ -1106,12 +1053,6 @@
       <id>test-audit</id>
       <properties>
         <jasmine.audit.id>default-cli</jasmine.audit.id>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-brain-new</id>
-      <properties>
-        <jasmine.brain.id.new>default-cli</jasmine.brain.id.new>
       </properties>
     </profile>
     <profile>

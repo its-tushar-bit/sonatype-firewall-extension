@@ -89,7 +89,7 @@ public class DoubleColumnPicker
     }
 
     public Item hover() {
-      element.hover();
+      label().hover();
       return this;
     }
   }

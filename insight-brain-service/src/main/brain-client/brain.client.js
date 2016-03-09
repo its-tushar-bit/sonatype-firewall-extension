@@ -70,7 +70,10 @@ var clmBuildTimestamp = '${build.timestamp}';
             if (scripts[i].src) {
               index = scripts[i].src.indexOf('policy-assets/js/brain.client.js');
               if (index === -1) {
-                index = scripts[i].src.indexOf('assets/js/brain.client.js');
+                index = scripts[i].src.indexOf('assets/policy/js/brain.client.js');
+              }
+              if (index === -1) {
+                index = scripts[i].src.indexOf('assets/assets/js/brain.client.js');
               }
 
               if (index !== -1) {

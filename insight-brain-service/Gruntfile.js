@@ -31,7 +31,7 @@
         buildTimestamp: new Date().getTime(),
         frontend: 'src/main/frontend',
         styleguideSrc: 'src/main/styleguide',
-        generated: 'target/classes/assets-new',
+        generated: 'target/classes/assets',
         styleguide: 'target/styleguide',
         temp: '.tmp',
         templates: '**/*.tpl.html'
@@ -152,6 +152,12 @@
           cwd: '<%= config.generated %>',
           src: ['**/index.html', 'css/style-scss.*.css'],
           dest: '<%= config.generated %>'
+        },
+        dev: {
+          expand: true,
+          cwd: '<%= config.generated %>',
+          src: ['**/index.html', 'scss/scss.css'],
+          dest: '<%= config.generated %>'
         }
       },
       uglify: {
@@ -228,7 +234,7 @@
           tasks: [
             'configure_override:develop',
             'copy:develop',
-            'template:build'
+            'template:dev'
           ]
         },
         develop_styles: {
@@ -238,7 +244,7 @@
           tasks: [
             'configure_override:develop',
             'copy:develop',
-            'template:build',
+            'template:dev',
             'sass:build',
             'copy:develop_sass'
           ]
@@ -264,7 +270,7 @@
       'cssmin:generated',
       'filerev',
       'usemin',
-      'template',
+      'template:build',
 
       'clean:temp'
     ]);
@@ -283,7 +289,7 @@
       'copy:develop',
       'sass',
       'copy:develop_sass',
-      'template',
+      'template:dev',
       'clean:temp'
     ]);
 
@@ -296,7 +302,7 @@
       'copy:develop',
       'sass',
       'copy:develop_sass',
-      'template',
+      'template:dev',
       'watch',
       'clean:temp'
     ]);

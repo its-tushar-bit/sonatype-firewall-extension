@@ -30,7 +30,7 @@ public class AccessEditorPage
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "new/assets/index.html#/management/edit/" +
+    return "assets/index.html#/management/edit/" +
         (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "repositories" :
             ownerType + "/" + ownerId) + "/access";
   }

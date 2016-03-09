@@ -437,6 +437,7 @@ public class RepositoryReportTest
     AddLabelModal.saveButton().click();
 
     AddLabelModal.root().shouldNotBe(visible);
+    RepositoryReportPage.waitForComponentUpdater();
 
     // label persisted
     assertThat(new ComponentLabelDAO().getByOwnerIdAndHash(repo.getId(), criticalComponentHash).size(), is(2));
@@ -618,6 +619,8 @@ public class RepositoryReportTest
         .val("string:" + SecurityVulnerabilityOverrideStatus.OPEN.toString());
     VulnerabilityCIP.Editor.comment().val("woot");
     VulnerabilityCIP.Editor.saveButton().click();
+
+    RepositoryReportPage.waitForComponentUpdater();
 
     row.status().shouldHave(text("Open"));
     assertNull(new SecurityVulnerabilityOverrideDAO().getByOwnerIdHashSourceAndReferenceId(repo.getId(),

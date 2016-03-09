@@ -204,8 +204,11 @@
           delete vm.error;
 
           $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId)).success(function (data) {
-            vm.grid = createTable(data, $scope);
-            setFilter();
+            vm.loaded = true;
+            $scope.$applyAsync(function () {
+              vm.grid = createTable(data, $scope);
+              setFilter();
+            });
           }).error(function () {
             vm.error = arguments;
           });

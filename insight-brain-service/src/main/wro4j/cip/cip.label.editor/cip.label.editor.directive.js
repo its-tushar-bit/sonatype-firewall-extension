@@ -9,7 +9,7 @@
 
   function CIPLabelEditor() {
     return {
-      templateUrl: CLM.path + 'cip/cip-label-editor.html',
+      templateUrl: CLM.assetsPath + 'cip/cip-label-editor.html',
       controllerAs: 'vm',
       controller: 'LabelsController'
     };

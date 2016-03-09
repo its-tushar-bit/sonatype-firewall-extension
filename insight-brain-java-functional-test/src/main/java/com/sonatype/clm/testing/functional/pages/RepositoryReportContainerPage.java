@@ -11,8 +11,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class RepositoryReportContainerPage
 {
-  public static String url(boolean newUrl, String repositoryId) {
-    return (newUrl ? "new/" : "") + "assets/index.html#/repository/" + repositoryId + "/result";
+  public static String url(String repositoryId) {
+    return "assets/index.html#/repository/" + repositoryId + "/result";
   }
 
   public static SelenideElement refreshButton() {

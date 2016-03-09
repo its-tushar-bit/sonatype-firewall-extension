@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -148,7 +149,7 @@ public class LabelEditorTest
     // when
     LabelEditorPage.deleteButton().shouldBe(visible).click();
     DeleteModal.continueButton().shouldBe(visible).click();
-    // then the modal should be hidden 800 ms after delete REST call is successful
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     String createLabelUrl = LabelEditorPage.urlToCreate("organization", app.getOrganizationId());

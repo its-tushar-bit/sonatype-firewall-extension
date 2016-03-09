@@ -58,25 +58,9 @@ public class InsightBrainService
     System.setProperty("java.awt.headless", "true");
   }
 
-  public static final String APPLICATION_ASSET_PATH = "/application-assets/";
-
-  public static final String AUDIT_REPORT_ASSET_PATH = "/audit-report/";
-
   public static final String BRAIN_ASSET_PATH = "/assets/";
 
   public static final String POLICY_ASSET_PATH = "/policy-assets/";
-
-  public static final String ORGANIZATION_ASSET_PATH = "/organization-assets/";
-
-  public static final String CONFIGURATION_ASSET_PATH = "/configuration-assets/";
-
-  public static final String SECURITY_ASSET_PATH = "/security-assets/";
-
-  public static final String CIP_ASSET_PATH = "/cip/";
-
-  public static final String REPORT_ASSET_PATH = "/report-assets/";
-
-  public static final String DASHBOARD_ASSET_PATH = "/dashboard-assets/";
 
   private static final String INSTANCE_ID = UUID.randomUUID().toString();
 
@@ -202,18 +186,10 @@ public class InsightBrainService
 
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
-    bootstrap.addBundle(new AssetsBundle("/assets/application/", APPLICATION_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets/audit-report/", AUDIT_REPORT_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets/assets/", BRAIN_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html"));
-    bootstrap.addBundle(new AssetsBundle("/assets/organization/", ORGANIZATION_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets/configuration/", CONFIGURATION_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets/cip/", CIP_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets/security/", SECURITY_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets/report/", REPORT_ASSET_PATH));
-    bootstrap.addBundle(new AssetsBundle("/assets/dashboard/", DASHBOARD_ASSET_PATH));
+    bootstrap.addBundle(new AssetsBundle("/assets/", BRAIN_ASSET_PATH, "index.html"));
 
-    bootstrap.addBundle(new AssetsBundle("/assets-new/", "/new" + BRAIN_ASSET_PATH, "index.html"));
+    // Legacy support for old reports
+    bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html"));
 
     // workaround to let us set different defaults in the core HTTP configuration
     bootstrap.getObjectMapperFactory().registerModule(new HttpConfig.Module());

@@ -4,7 +4,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Audit Report</title>
-    <link href="../assets/css/style.css?${build.timestamp}" rel="stylesheet"/>
     <link href="../cip/cip.css?${build.timestamp}" rel="stylesheet"/>
     <link type="text/css" href="audit-report.css?${build.timestamp}" rel="stylesheet" />
     <script>
@@ -15,8 +14,8 @@
       };
       angularDebug = ${angular.debug};
     </script>
-    <script src="../assets/js/external.js?${build.timestamp}"></script>
-    <script src="../assets/version-graph/protovis.min.js?${build.timestamp}"></script>
+    <script src="../assets/js/external.js?{build.timestamp}"></script>
+    <script src="../lib/protovis/protovis.min.js?${build.timestamp}"></script>
     <script type="text/javascript" src="../assets/js/brain.client.js"></script>
     <script src="audit-report.js?${build.timestamp}"></script>
     <script src="../cip/cip.js?${build.timestamp}"></script>
@@ -24,7 +23,7 @@
   <body ng-app="audit" id="audit-report" ng-cloak>
     <div>
       <div ng-controller="audit.summary.controller">
-        <div id="summary" load-wrapper2="error" reload="doLoad()" error-message="Unable to load summary data." loading="loadActive">
+        <div id="summary" load-wrapper="error" reload="doLoad()" error-message="Unable to load summary data." loading="loadActive">
           <div class="row">
             <div class="span5">
               <span coverage-donut="percentKnownComponents" alt="{{percentKnownComponents}}% of Components Recognized as Open Source"></span>

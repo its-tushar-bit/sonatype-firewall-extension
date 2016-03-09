@@ -10,211 +10,100 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
   <group name='bootstrap-css'>
-    <css>/lib/bootstrap/bootstrap-copyright.scss</css>
-    <css>/lib/bootstrap/bootstrap-variables.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_reset.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_scaffolding.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_grid.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_layouts.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_type.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_code.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_forms.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tables.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_sprites.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_wells.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_close.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_buttons.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_button-groups.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_alerts.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_navs.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_navbar.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_breadcrumbs.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_pagination.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_pager.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_modals.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tooltip.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_popovers.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_thumbnails.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_media.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_labels-badges.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_progress-bars.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_accordion.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_carousel.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_hero-unit.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_utilities.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_responsive-utilities.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_responsive-1200px-min.scss</css>
-  </group>
-
-  <group name='configuration'>
-    <js>/configuration/proprietary.configuration.module.js</js>
-    <js>/configuration/proprietary.configuration.controller.js</js>
-    <js>/configuration/proprietary.configuration.editor.controller.js</js>
-    <js>/configuration/proprietary.configuration.editor.directive.js</js>
-    <js>/configuration/LdapConfigurationController.js</js>
-    <js>/configuration/ProductLicenseController.js</js>
-    <js>/security/UserModule.js</js>
-    <js>/security/RoleModule.js</js>
-  </group>
-
-  <group name='core'>
-    <js>/assets/MainHeader.js</js>
-    <js>/assets/MainModule.js</js>
-    <js>/assets/EditorTools.js</js>
-    <js>/assets/ManagementApp.js</js>
-    <js>/assets/PolicyEditor.js</js>
-    <js>/assets/ReportApp.js</js>
-    <js>/assets/Resource.js</js>
-    <js>/assets/FormsModule.js</js>
-  </group>
-
-  <group name='newcss'>
-    <css>/scss/global.scss</css>
-    <css>/scss/icons.scss</css>
-    <css>/scss/form.scss</css>
-    <css>/scss/chiclet.scss</css>
-    <css>/scss/content.scss</css>
-    <css>/scss/dashboard.scss</css>
-    <css>/scss/threatBars.scss</css>
-    <css>/scss/policy-editor.scss</css>
-    <css>/scss/main-header.scss</css>
-    <css>/scss/roles.scss</css>
-    <css>/scss/reports.scss</css>
-  </group>
-
-  <group name='css'>
-    <group-ref>newcss</group-ref>
-    <css>/applications/application.css</css>
-    <css>/assets/app-security.css</css>
-    <css>/assets/insight.css</css>
-    <css>/assets/dashboard.css</css>
-    <css>/assets/management.css</css>
-    <css>/assets/sonatype-icons.css</css>
-    <css>/assets/threat.css</css>
-    <css>/assets/report-list.css</css>
-    <css>/policy/labels.css</css>
-    <css>/policy/policy.css</css>
-    <css>/user/user.css</css>
-    <css>/assets/multi-select.css</css>
-  </group>
-
-  <group name='dashboard'>
-    <js>/dashboard/FilterController.js</js>
-    <js>/assets/DashboardModule.js</js>
-    <js>/assets/ComponentDisplayModule.js</js>
-    <js>/dashboard/ComponentController.js</js>
-  </group>
-
-  <group name='lib'>
-    <group-ref>bootstrap-css</group-ref>
-    <css>/lib/bootstrap/bootstrap-slider-2.0.0.css</css>
-    <css>/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.css</css>
-    <css>/lib/glyphicons/glyphicons.css</css>
-    <css>/lib/glyphicons/halflings.css</css>
-    <css>/lib/X-editable/xeditable.css</css>
-    <css>/assets/glyphicons-sonatype.css</css>
+    <css>/frontend/lib/bootstrap/bootstrap-copyright.scss</css>
+    <css>/frontend/lib/bootstrap/bootstrap-variables.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_reset.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_scaffolding.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_grid.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_layouts.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_type.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_code.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_forms.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tables.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_sprites.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_wells.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_component-animations.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_close.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_buttons.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_button-groups.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_alerts.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_navs.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_navbar.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_breadcrumbs.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_pagination.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_pager.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_modals.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_tooltip.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_popovers.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_thumbnails.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_media.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_labels-badges.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_progress-bars.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_accordion.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_carousel.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_hero-unit.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_utilities.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_responsive-utilities.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_responsive-1200px-min.scss</css>
   </group>
 
   <group name='cip-loader'>
-    <js>/lib/angular-1.4.8/angular.js</js>
-    <js>/lib/angular-1.4.8/angular-route.js</js>
-    <js>/lib/ui-bootstrap-tpls-0.8.0.js</js>
+    <js>/frontend/lib/angular/angular.js</js>
+    <js>/frontend/lib/angular-1.4.8/angular-route.js</js>
+    <js>/frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</js>
     <group-ref>cip-loader-core</group-ref>
-    <js>/lib/Base64.js</js>
+    <js>/frontend/lib/Base64.js</js>
   </group>
 
   <group name='cip-loader-core'>
     <group-ref>cip</group-ref>
-    <js>/cip/cip-loader.js</js>
-    <js>/cip/cip-component-util.js</js>
+    <js>/wro4j/cip/cip-loader.js</js>
+    <js>/wro4j/cip/cip-component-util.js</js>
 
-    <js>/cip/ci-label-tab.js</js>
+    <js>/wro4j/cip/ci-label-tab.js</js>
 
-    <js>/cip/ci-policy-violations-tab.js</js>
-    <js>/cip/ci.policy.violations.service.js</js>
+    <js>/wro4j/cip/ci-policy-violations-tab.js</js>
+    <js>/wro4j/cip/ci.policy.violations.service.js</js>
 
-    <js>/cip/ci-license-tab.js</js>
+    <js>/wro4j/cip/ci-license-tab.js</js>
 
-    <js>/cip/ci-vulnerability-tab.js</js>
-    <js>/cip/ci-version-graph.js</js>
+    <js>/wro4j/cip/ci-vulnerability-tab.js</js>
+    <js>/wro4j/cip/ci-version-graph.js</js>
   </group>
 
   <group name='external'>
-    <js>/lib/jquery/jquery-1.8.3.min.js</js>
-    <js>/lib/bootstrap/bootstrap-2.3.1.min.js</js>
-    <js>/lib/angular-1.4.8/angular.js</js>
-    <js>/lib/angular-1.4.8/angular-aria.js</js>
-    <js>/lib/angular-1.4.8/angular-cookies.js</js>
-    <js>/lib/angular-1.4.8/angular-route.js</js>
-    <js>/lib/angular-1.4.8/angular-sanitize.js</js>
-    <js>/lib/bootstrap-slider-2.0.0-sonatype-1.js</js>
-    <js>/lib/angular-ui-router-0.2.15.min.js</js>
-    <js>/lib/angular-ui-utils-0.0.3.js</js>
-    <js>/lib/angular-vs-repeat/angular-vs-repeat-1.1.4.js</js>
-    <js>/lib/ui-bootstrap-tpls-0.8.0.js</js>
-    <js>/lib/bootstrap2-toggle-2.2.0.min.js</js>
-    <js>/lib/X-editable/xeditable-0.1.8.min.js</js>
-    <js>/lib/ng-upload-0.3.4.js</js>
-    <js>/lib/d3/d3.js</js>
-    <js>/lib/Base64.js</js>
-    <js>/lib/zeroclipboard/ZeroClipboard-1.3.2.js</js>
-    <js>/lib/fuse.js/fuse.js</js>
-  </group>
-
-  <group name='policy'>
-    <js>/applications/ApplicationController.js</js>
-    <js>/organization/OrganizationController.js</js>
-    <js>/policy/AppSecurityController.js</js>
-    <js>/policy/LabelController.js</js>
-    <js>/policy/LicenseThreatGroupsController.js</js>
-    <js>/policy/PolicyController.js</js>
-    <js>/policy/TagController.js</js>
-    <group-ref>repository</group-ref>
-  </group>
-
-  <group name='repository'>
-    <js>/repository.manager/repository.manager.module.js</js>
-    <js>/repository.manager/repository.manager.configuration.controller.js</js>
-  </group>
-
-  <group name='report'>
-    <js>/report/ReportController.js</js>
-    <js>/report/ReportViolationsController.js</js>
-    <js>/report/repository.reevaluate.modal.controller.js</js>
-    <js>/report/repository.reevaluate.service.js</js>
-    <js>/report/repository.report.controller.js</js>
-  </group>
-
-  <group name='util'>
-    <js>/util/AngularCommon.js</js>
-    <js>/util/CLMAppLocation.js</js>
-    <js>/util/CLMLocation.js</js>
-    <js>/util/HttpInterceptors.js</js>
-    <js>/util/ProductFeatures.js</js>
-    <js>/util/Stores.js</js>
-    <js>/util/PermissionService.js</js>
-    <js>/util/BootstrapAddonsModule.js</js>
-    <js>/util/Validators.js</js>
-    <js>/util/root.organization.migrate.module.js</js>
-    <js>/util/root.organization.migrate.directive.js</js>
-    <js>/util/root.organization.migrate.modal.controller.js</js>
-    <js>/util/root.organization.migrate.modal.service.js</js>
-  </group>
-
-  <group name='style'>
-    <group-ref>lib</group-ref>
-    <group-ref>css</group-ref>
+    <js>/frontend/lib/jquery/jquery.js</js>
+    <js>/frontend/lib/bootstrap/bootstrap-2.3.1.min.js</js>
+    <js>/frontend/lib/angular/angular.js</js>
+    <js>/frontend/lib/angular-1.4.8/angular-aria.js</js>
+    <js>/frontend/lib/angular-1.4.8/angular-cookies.js</js>
+    <js>/frontend/lib/angular-1.4.8/angular-route.js</js>
+    <js>/frontend/lib/angular-1.4.8/angular-sanitize.js</js>
+    <js>/frontend/lib/bootstrap/bootstrap-slider-2.0.0-sonatype-1.js</js>
+    <js>/frontend/lib/angular-ui-router-0.2.15.min.js</js>
+    <js>/frontend/lib/angular-ui-utils-0.0.3.js</js>
+    <js>/frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</js>
+    <js>/frontend/lib/ui-bootstrap-tpls-0.8.0.min.js</js>
+    <js>/frontend/lib/bootstrap-toggle/bootstrap2-toggle-2.2.0.js</js>
+    <js>/frontend/lib/X-editable/xeditable-0.1.8.min.js</js>
+    <js>/frontend/lib/ngUpload/ng-upload.js</js>
+    <js>/frontend/lib/d3/d3.js</js>
+    <js>/frontend/lib/Base64.js</js>
+    <js>/frontend/lib/zeroclipboard/ZeroClipboard-1.3.2.js</js>
+    <js>/frontend/lib/fuse.js/src/fuse.js</js>
   </group>
 
   <group name='cip'>
-    <js>/util/AngularCommon.js</js>
-    <js>/util/CLMAppLocation.js</js>
-    <js>/util/CLMLocation.js</js>
-    <js>/util/HttpInterceptors.js</js>
-    <js>/lib/angular-1.4.8/angular-sanitize.js</js>
+    <js>/frontend/utility/directives/utility.directives.module.js</js>
+    <js>/frontend/utility/directives/load.wrapper.directive.js</js>
+    <js>/frontend/util/AngularCommon.js</js>
+    <js>/frontend/util/CLMAppLocation.js</js>
+    <js>/frontend/util/CLMLocation.js</js>
+    <js>/frontend/util/HttpInterceptors.js</js>
+    <js>/frontend/lib/angular-1.4.8/angular-sanitize.js</js>
+    <js>/frontend/lib/angular-vs-repeat/src/angular-vs-repeat.js</js>
     <group-ref>vulnerability.details</group-ref>
     <group-ref>cip-version-graph</group-ref>
     <group-ref>cip-label-editor</group-ref>
@@ -225,156 +114,158 @@
   </group>
 
   <group name='version-graph'>
-    <css>/version-graph/content.css</css>
-    <js>/version-graph/appcheck.js</js>
-    <js>/version-graph/version.graph/version.graph.module.js</js>
-    <js>/version-graph/version.graph/information.panel.directive.js</js>
-    <js>/version-graph/version.graph/ago.filter.js</js>
-    <js>/version-graph/version.graph/application.controller.js</js>
-    <js>/version-graph/version.graph/cip.controller.js</js>
-    <js>/version-graph/version.graph/coordinates.service.js</js>
-    <js>/version-graph/version.graph/error.message.factory.js</js>
-    <js>/version-graph/version.graph/ago.last.day.filter.js</js>
-    <js>/version-graph/version.graph/applications.service.js</js>
-    <js>/version-graph/version.graph/component.controller.js</js>
-    <js>/version-graph/version.graph/details.controller.js</js>
-    <js>/version-graph/version.graph/graph.directive.js</js>
-    <js>/version-graph/version.graph/licenses.directive.js</js>
-    <js>/version-graph/version.graph/name.part.filter.js</js>
-    <js>/version-graph/version.graph/properties.service.js</js>
-    <js>/version-graph/version.graph/selected.app.service.js</js>
-    <js>/version-graph/version.graph/state.service.js</js>
-    <js>/version-graph/version.graph/status.controller.js</js>
+    <css>/wro4j/version-graph/content.css</css>
+    <js>/wro4j/version-graph/appcheck.js</js>
+    <js>/wro4j/version-graph/version.graph/version.graph.module.js</js>
+    <js>/wro4j/version-graph/version.graph/information.panel.directive.js</js>
+    <js>/wro4j/version-graph/version.graph/ago.filter.js</js>
+    <js>/wro4j/version-graph/version.graph/application.controller.js</js>
+    <js>/wro4j/version-graph/version.graph/cip.controller.js</js>
+    <js>/wro4j/version-graph/version.graph/coordinates.service.js</js>
+    <js>/wro4j/version-graph/version.graph/error.message.factory.js</js>
+    <js>/wro4j/version-graph/version.graph/ago.last.day.filter.js</js>
+    <js>/wro4j/version-graph/version.graph/applications.service.js</js>
+    <js>/wro4j/version-graph/version.graph/component.controller.js</js>
+    <js>/wro4j/version-graph/version.graph/details.controller.js</js>
+    <js>/wro4j/version-graph/version.graph/graph.directive.js</js>
+    <js>/wro4j/version-graph/version.graph/licenses.directive.js</js>
+    <js>/wro4j/version-graph/version.graph/name.part.filter.js</js>
+    <js>/wro4j/version-graph/version.graph/properties.service.js</js>
+    <js>/wro4j/version-graph/version.graph/selected.app.service.js</js>
+    <js>/wro4j/version-graph/version.graph/state.service.js</js>
+    <js>/wro4j/version-graph/version.graph/status.controller.js</js>
   </group>
 
   <group name='version.graph.app'>
     <group-ref>bootstrap-css</group-ref>
-    <js>/lib/jquery/jquery-1.8.3.min.js</js>
-    <js>/lib/angular-1.4.8/angular.js</js>
-    <js>/version-graph/app/version.graph.app.js</js>
-    <js>/version-graph/app/owner.context.service.js</js>
-    <js>/version-graph/app/exception.handler.factory.js</js>
+    <js>/frontend/lib/jquery/jquery.js</js>
+    <js>/frontend/lib/angular/angular.js</js>
+    <js>/wro4j/version-graph/app/version.graph.app.js</js>
+    <js>/wro4j/version-graph/app/owner.context.service.js</js>
+    <js>/wro4j/version-graph/app/exception.handler.factory.js</js>
     <group-ref>version-graph</group-ref>
-    <css>/version-graph/detail-table.css</css>
+    <css>/wro4j/version-graph/detail-table.css</css>
   </group>
 
   <group name='viewdetails'>
     <group-ref>bootstrap-css</group-ref>
-    <css>/scss/global.scss</css>
-    <css>/scss/threatBars.scss</css>
-    <css>/version-graph/viewdetails.css</css>
-    <js>/lib/jquery/jquery-1.8.3.min.js</js>
-    <js>/lib/angular-1.4.8/angular.js</js>
-    <js>/version-graph/viewdetails.js</js>
+    <css>/frontend/scss/_global.scss</css>
+    <css>/frontend/scss/_threatBars.scss</css>
+    <css>/wro4j/version-graph/viewdetails.css</css>
+    <js>/frontend/lib/jquery/jquery.js</js>
+    <js>/frontend/lib/angular/angular.js</js>
+    <js>/wro4j/version-graph/viewdetails.js</js>
   </group>
 
   <group name="vulnerability.details">
-    <js>/audit-report/cip/vulnerability.details/vulnerability.details.module.js</js>
-    <js>/audit-report/cip/vulnerability.details/vulnerability.details.modal.controller.js</js>
-    <js>/audit-report/cip/vulnerability.details/vulnerability.details.service.js</js>
+    <js>/wro4j/audit-report/cip/vulnerability.details/vulnerability.details.module.js</js>
+    <js>/wro4j/audit-report/cip/vulnerability.details/vulnerability.details.modal.controller.js</js>
+    <js>/wro4j/audit-report/cip/vulnerability.details/vulnerability.details.service.js</js>
   </group>
 
   <group name='cip-label-editor'>
-    <css>/cip/cip.label.editor/cip-label-editor.css</css>
-    <js>/cip/cip.label.editor/cip.label.editor.module.js</js>
-    <js>/cip/cip.label.editor/current.label.data.service.js</js>
-    <js>/cip/cip.label.editor/label.add.controller.js</js>
-    <js>/cip/cip.label.editor/label.remove.controller.js</js>
-    <js>/cip/cip.label.editor/labels.controller.js</js>
-    <js>/cip/cip.label.editor/spinner.directive.js</js>
-    <js>/cip/cip.label.editor/tip.directive.js</js>
-    <js>/cip/cip.label.editor/cip.label.editor.directive.js</js>
-    <js>/cip/cip.label.editor/label.modification.service.js</js>
+    <css>/wro4j/cip/cip.label.editor/cip-label-editor.css</css>
+    <js>/wro4j/cip/cip.label.editor/cip.label.editor.module.js</js>
+    <js>/wro4j/cip/cip.label.editor/current.label.data.service.js</js>
+    <js>/wro4j/cip/cip.label.editor/label.add.controller.js</js>
+    <js>/wro4j/cip/cip.label.editor/label.remove.controller.js</js>
+    <js>/wro4j/cip/cip.label.editor/labels.controller.js</js>
+    <js>/wro4j/cip/cip.label.editor/spinner.directive.js</js>
+    <js>/wro4j/cip/cip.label.editor/tip.directive.js</js>
+    <js>/wro4j/cip/cip.label.editor/cip.label.editor.directive.js</js>
+    <js>/wro4j/cip/cip.label.editor/label.modification.service.js</js>
   </group>
 
   <group name='cip-policy-violations'>
-    <js>/cip/cip.policy.violations/cip.policy.violations.module.js</js>
-    <js>/cip/cip.policy.violations/add.waiver.controller.js</js>
-    <js>/cip/cip.policy.violations/cip.policy.violations.directive.js</js>
-    <js>/cip/cip.policy.violations/policy.violations.controller.js</js>
-    <js>/cip/cip.policy.violations/view.waiver.controller.js</js>
-    <js>/cip/cip.policy.violations/release.quarantine.controller.js</js>
+    <js>/wro4j/cip/cip.policy.violations/cip.policy.violations.module.js</js>
+    <js>/wro4j/cip/cip.policy.violations/add.waiver.controller.js</js>
+    <js>/wro4j/cip/cip.policy.violations/cip.policy.violations.directive.js</js>
+    <js>/wro4j/cip/cip.policy.violations/policy.violations.controller.js</js>
+    <js>/wro4j/cip/cip.policy.violations/view.waiver.controller.js</js>
+    <js>/wro4j/cip/cip.policy.violations/release.quarantine.controller.js</js>
 
-    <css>/cip/cip.policy.violations/cip-policy-violations.css</css>
+    <css>/wro4j/cip/cip.policy.violations/cip-policy-violations.css</css>
   </group>
 
   <group name='cip-version-graph'>
-    <js>/cip/cip.version.graph/cip.version.graph.module.js</js>
+    <js>/wro4j/cip/cip.version.graph/cip.version.graph.module.js</js>
     <group-ref>version-graph</group-ref>
   </group>
 
   <group name='cip-license-editor'>
-    <css>/lib/bootstrap/bootstrap-variables.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
-    <css>/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
-    <css>/assets/multi-select.css</css>
-    <css>/cip/cip.license.editor/cip-license-editor.css</css>
-    <js>/cip/cip.license.editor/cip.license.editor.module.js</js>
-    <js>/cip/cip.license.editor/cip.license.editor.directive.js</js>
-    <js>/cip/cip.license.editor/license.editor.controller.js</js>
+    <css>/frontend/lib/bootstrap/bootstrap-variables.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_mixins.scss</css>
+    <css>/frontend/lib/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap/_dropdowns.scss</css>
+    <css>/frontend/multi-select.css</css>
+    <css>/wro4j/cip/cip.license.editor/cip-license-editor.css</css>
+    <js>/wro4j/cip/cip.license.editor/cip.license.editor.module.js</js>
+    <js>/wro4j/cip/cip.license.editor/cip.license.editor.directive.js</js>
+    <js>/wro4j/cip/cip.license.editor/license.editor.controller.js</js>
   </group>
 
   <group name='cip.vulnerability.editor'>
-    <js>/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module.js</js>
-    <js>/audit-report/cip/cip.vulnerability.editor/*.js</js>
-    <css>/cip/cip.vulnerability.editor/*.scss</css>
+    <js>/wro4j/audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module.js</js>
+    <js>/wro4j/audit-report/cip/cip.vulnerability.editor/*.js</js>
+    <css>/wro4j/cip/cip.vulnerability.editor/*.scss</css>
   </group>
 
   <group name='cip-claim-component'>
-    <css>/lib/datepicker/datepicker.css</css>
-    <js>/lib/datepicker/bootstrap-datepicker.js</js>
-    <css>/cip/cip-claim-component.css</css>
-    <js>/cip/cip-claim-component.js</js>
+    <css>/frontend/lib/datepicker/datepicker.css</css>
+    <js>/frontend/lib/datepicker/bootstrap-datepicker.js</js>
+    <css>/wro4j/cip/cip-claim-component.css</css>
+    <js>/wro4j/cip/cip-claim-component.js</js>
   </group>
 
   <group name='repository-cip'>
-    <js>/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
-    <js>/audit-report/cip/component.information.panel.module.js</js>
-    <js>/audit-report/cip/component.information.panel.directive.js</js>
-    <js>/audit-report/cip/repository.policy.violations.service.js</js>
-    <js>/audit-report/cip/cip.tab.pane.directive.js</js>
-    <js>/audit-report/cip/selected.component.service.js</js>
+    <js>/wro4j/audit-report/cip/SlickGrid.ComponentInformationPlugin.js</js>
+    <js>/wro4j/audit-report/cip/component.information.panel.module.js</js>
+    <js>/wro4j/audit-report/cip/component.information.panel.directive.js</js>
+    <js>/wro4j/audit-report/cip/repository.policy.violations.service.js</js>
+    <js>/wro4j/audit-report/cip/cip.tab.pane.directive.js</js>
+    <js>/wro4j/audit-report/cip/selected.component.service.js</js>
   </group>
 
   <group name='audit-report'>
-    <js>/lib/protovis/protovis-tipsy.js</js>
-    <js>/lib/date.format.js</js>
-    <js>/lib/jquery/jquery.tipsy.js</js>
-    <js>/lib/slickgrid/jquery.event.drag-2.0.min.js</js>
-    <css>/audit-report/jquery/jquery-ui.css</css>
-    <css>/lib/slickgrid/slick.grid.css</css>
-    <css>/audit-report/slickgrid/slick.grid.custom.css</css>
-    <css>/lib/slickgrid/slick.pager.css</css>
-    <css>/audit-report/jquery/tipsy.css</css>
+    <js>/frontend/lib/protovis/protovis-tipsy.js</js>
+    <js>/frontend/lib/date.format.js</js>
+    <js>/wro4j/lib/jquery/jquery.tipsy.js</js>
+    <js>/wro4j/lib/slickgrid/jquery.event.drag-2.0.min.js</js>
 
-    <js>/version-graph/appcheck.js</js>
-    <js>/audit-report/insight.js</js>
-    <js>/audit-report/table.js</js>
-    <css>/audit-report/report.css</css>
+    <group-ref>bootstrap-css</group-ref>
+    <css>/wro4j/audit-report/jquery/jquery-ui.css</css>
+    <css>/wro4j/lib/slickgrid/slick.grid.css</css>
+    <css>/wro4j/audit-report/slickgrid/slick.grid.custom.css</css>
+    <css>/wro4j/lib/slickgrid/slick.pager.css</css>
+    <css>/wro4j/audit-report/jquery/tipsy.css</css>
 
-    <js>/lib/slickgrid/slick.core.js</js>
-    <js>/lib/slickgrid/slick.grid.js</js>
-    <js>/lib/slickgrid/slick.dataview.js</js>
-    <js>/lib/slickgrid/slick.groupitemmetadataprovider.js</js>
-    <js>/lib/slickgrid/slick.pager.js</js>
-    <js>/lib/slickgrid/slick.rowselectionmodel.js</js>
-    <js>/lib/slickgrid/slick.checkboxselectcolumn.js</js>
+    <js>/wro4j/version-graph/appcheck.js</js>
+    <js>/wro4j/audit-report/insight.js</js>
+    <js>/wro4j/audit-report/table.js</js>
+    <css>/wro4j/audit-report/report.css</css>
 
-    <js>/audit-report/slickgrid/column-grouping.js</js>
-    <js>/audit-report/slickgrid/filter.js</js>
-    <js>/audit-report/slickgrid/sort.js</js>
-    <js>/audit-report/slickgrid/slick.grid.tipsy.js</js>
+    <js>/wro4j/lib/slickgrid/slick.core.js</js>
+    <js>/wro4j/lib/slickgrid/slick.grid.js</js>
+    <js>/wro4j/lib/slickgrid/slick.dataview.js</js>
+    <js>/wro4j/lib/slickgrid/slick.groupitemmetadataprovider.js</js>
+    <js>/wro4j/lib/slickgrid/slick.pager.js</js>
+    <js>/wro4j/lib/slickgrid/slick.rowselectionmodel.js</js>
+    <js>/wro4j/lib/slickgrid/slick.checkboxselectcolumn.js</js>
+
+    <js>/wro4j/audit-report/slickgrid/column-grouping.js</js>
+    <js>/wro4j/audit-report/slickgrid/filter.js</js>
+    <js>/wro4j/audit-report/slickgrid/sort.js</js>
+    <js>/wro4j/audit-report/slickgrid/slick.grid.tipsy.js</js>
 
     <group-ref>repository-cip</group-ref>
-    <js>/audit-report/audit.module/audit.module.js</js>
-    <js>/audit-report/audit.module/audit.summary.controller.js</js>
-    <js>/audit-report/audit.module/coverage.donut.directive.js</js>
-    <js>/audit-report/audit.module/reevaluator.controller.js</js>
-    <js>/audit-report/audit.module/audit.threat.directive.js</js>
-    <js>/audit-report/audit.module/owner.context.service.js</js>
-    <js>/audit-report/audit.module/repository.violation.table.filter.directive.js</js>
-    <js>/audit-report/audit.module/component.update.controller.js</js>
-    <js>/audit-report/audit.module/component.update.optional.controller.js</js>
-    <js>/audit-report/audit.module/component.update.service.js</js>
+    <js>/wro4j/audit-report/audit.module/audit.module.js</js>
+    <js>/wro4j/audit-report/audit.module/audit.summary.controller.js</js>
+    <js>/wro4j/audit-report/audit.module/coverage.donut.directive.js</js>
+    <js>/wro4j/audit-report/audit.module/reevaluator.controller.js</js>
+    <js>/wro4j/audit-report/audit.module/audit.threat.directive.js</js>
+    <js>/wro4j/audit-report/audit.module/owner.context.service.js</js>
+    <js>/wro4j/audit-report/audit.module/repository.violation.table.filter.directive.js</js>
+    <js>/wro4j/audit-report/audit.module/component.update.controller.js</js>
+    <js>/wro4j/audit-report/audit.module/component.update.optional.controller.js</js>
+    <js>/wro4j/audit-report/audit.module/component.update.service.js</js>
   </group>
 </groups>

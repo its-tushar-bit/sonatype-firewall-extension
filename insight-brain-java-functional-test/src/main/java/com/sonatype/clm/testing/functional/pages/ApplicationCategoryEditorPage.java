@@ -19,7 +19,7 @@ public class ApplicationCategoryEditorPage
   public static final Condition NO_CATEGORIES_DEFINED = Condition.text("No application categories defined.");
 
   public static String urlToEdit(String ownerId) {
-    return "new/assets/index.html#/management/edit/application/" + ownerId + "/category";
+    return "assets/index.html#/management/edit/application/" + ownerId + "/category";
   }
 
   public static SelenideElement root() {

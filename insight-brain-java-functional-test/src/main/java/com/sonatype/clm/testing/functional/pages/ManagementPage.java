@@ -8,6 +8,6 @@ package com.sonatype.clm.testing.functional.pages;
 public class ManagementPage
 {
 
-  public static String URL = "assets/index.html#/management";
+  public static String URL = "assets/index.html#/management/view";
 
 }

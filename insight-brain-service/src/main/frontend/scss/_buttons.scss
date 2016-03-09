@@ -185,3 +185,10 @@
     min-width: 100px;
   }
 }
+
+// Mini
+.btn-mini {
+  padding: $paddingMini;
+  font-size: $fontSizeMini;
+  @include border-radius($borderRadiusSmall);
+}

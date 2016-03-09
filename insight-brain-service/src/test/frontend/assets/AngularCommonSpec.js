@@ -408,6 +408,18 @@ describe('AngularCommon', function() {
     });
   });
 
+  describe('multiSelect vs-repeat', function() {
+    it('supports vs-repeat', inject(function($compile) {
+      var element = angular.element('<div multi-select use-vs-repeat items="tags" selected-ids="appliedTagIds"></div>');
+      $compile(element)(scope);
+      scope.$digest();
+
+      var dropdownList = element.find('.dropdown-scroll');
+      expect(dropdownList.attr('vs-repeat')).toBeDefined();
+      expect(dropdownList.attr('vs-repeat')).toBe('');
+    }));
+  });
+
   describe('multiSelect', function () {
     var directiveScope = null;
 

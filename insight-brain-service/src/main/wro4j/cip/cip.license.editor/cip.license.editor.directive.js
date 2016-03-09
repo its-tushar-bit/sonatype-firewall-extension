@@ -9,7 +9,7 @@
 
   function CIPLicenseEditor() {
     return {
-      templateUrl: CLM.path + 'cip/cip-license-editor.html',
+      templateUrl: CLM.assetsPath + 'cip/cip-license-editor.html',
       controllerAs: 'vm',
       controller: 'LicenseEditorController'
     };

@@ -9,7 +9,7 @@
 
   function CIPLabelEditor() {
     return {
-      templateUrl: CLM.path + 'cip/cip-policy-violations.html',
+      templateUrl: CLM.assetsPath + 'cip/cip-policy-violations.html',
       controllerAs: 'vm',
       controller: 'PolicyViolationsController'
     };

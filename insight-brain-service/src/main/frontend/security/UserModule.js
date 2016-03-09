@@ -15,7 +15,7 @@
                         '<h1 class="page-title">' +
                           '<div class="container administrators">Administrators</div>' +
                         '</h1>' +
-                        '<div class="container administrators" ng-include="\'../policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
+                        '<div class="container administrators" ng-include="\'policy/components/app-security/app-security.html?' + clmBuildTimestamp + '\'"></div>' +
                       '</div>' +
                      '</div>',
           data : {

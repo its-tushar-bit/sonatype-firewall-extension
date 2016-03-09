@@ -226,6 +226,6 @@ class LdapConfigurationSpec
 
     then: 'The LDAP Server is deleted and we are forwarded to the Org management page'
       waitFor { !delete.present }
-      at OwnerManagementPage
+      at ManagementPage
   }
 }

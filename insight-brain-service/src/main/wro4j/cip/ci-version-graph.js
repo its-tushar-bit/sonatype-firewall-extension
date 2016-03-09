@@ -61,7 +61,7 @@
     selectApplication : false,
     openView : angular.noop,
     linkTarget : '_blank',
-    path : CLM.path + 'assets/version-graph/'
+    path: CLM.assetsPath + '/version-graph/'
   };
 
   CLM.loadPlugin(createPlugin, 'Component Info');

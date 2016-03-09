@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
@@ -154,7 +155,7 @@ public class CategoryEditorTest
     CategoryEditorPage.deleteButton().shouldBe(visible).click();
     // then
     DeleteModal.continueButton().shouldBe(visible).click();
-    // then the modal should be hidden 800 ms after delete REST call is successful
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));
@@ -179,7 +180,7 @@ public class CategoryEditorTest
     DeleteModal.header().shouldHave(DeleteModal.headerText("Category"));
     DeleteModal.body().shouldHave(CategoryEditorPage.deleteWarningText(app.getName()));
     DeleteModal.continueButton().shouldBe(visible).click();
-    // then the modal should be hidden 800 ms after delete REST call is successful
+    FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldNotBe(visible);
 
     waitUntilUrl(CategoryEditorPage.urlToCreate(org.getId()));

@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileAppContext;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.RemoveModal;
@@ -118,6 +119,7 @@ public class ApplicationSummaryViewTest
     // remove contact
     SelectContactModal.removeButton().click();
     RemoveModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
     RemoveModal.body().shouldNotBe(visible);
     SelectContactModal.body().shouldNotBe(visible);
     OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));

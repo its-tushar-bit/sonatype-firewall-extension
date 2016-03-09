@@ -169,9 +169,9 @@
       };
 
       $scope.save = function() {
-        $scope.$$childHead.ldapNameForm.$save();
+        $scope.ldapNameForm.$save();
 
-        if (!isDirty() || $scope.$$childHead.ldapNameForm.$invalid) {
+        if (!isDirty() || $scope.ldapNameForm.$invalid) {
           return;
         }
         $scope.saving = true;

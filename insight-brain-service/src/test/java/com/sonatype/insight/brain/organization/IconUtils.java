@@ -29,6 +29,6 @@ class IconUtils
   }
 
   public static byte[] loadIconFromProductAssets(String name) throws IOException {
-    return loadImage("/assets/assets/img/" + name);
+    return loadImage("/assets/img/" + name);
   }
 }

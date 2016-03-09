@@ -1509,3 +1509,50 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
     }
   }
 }
+
+/*
+  #Root Organization Migrate Banner
+
+```
+<root-organization-migrate>
+  <div>
+    <div id="root-org-migrate-banner" class="alert alert-warn">
+      <p>
+        Root Organization Banner
+      </p>
+      <ul>
+        <li>List</li>
+      </ul>
+      <button class="btn btn-primary">Button</button>
+    </div>
+  </div>
+</root-organization-migrate>
+```
+*/
+root-organization-migrate {
+  display: block;
+  margin: 5px 50px 5px 25px;
+}
+
+.dashboard-content root-organization-migrate {
+  margin: 0;
+}
+
+#root-organization-migrate-modal .control-group {
+  margin-top: 20px;
+}
+
+#root-organization-migrate-modal .radio {
+  font-size: 14px;
+  line-height: 22px;
+}
+
+#root-organization-migrate-modal .sonatype-glyphicons.root-org::before {
+  vertical-align: middle;
+  margin-right: 5px;
+  padding-bottom: 3px;
+}
+
+#migrate-organization-wrapper {
+  margin-left: 18px;
+}

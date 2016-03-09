@@ -398,8 +398,12 @@ var AngularStateUtils = {
               }
             }
             var whitespacePass = value.match(/^ | {2,}|\t| $/);
-            suggestionModel.assign(scope,
-                (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
+
+            if (suggestionModel) {
+              suggestionModel.assign(scope,
+                  (value || '').replace(/ {2,}/g, ' ').replace(/^ | $/g, '').replace(/\t/g, ''));
+            }
+
             return whitespacePass;
           }
 
@@ -410,7 +414,7 @@ var AngularStateUtils = {
           }
 
           var failed = null;
-          var suggestionModel = $parse(attr.hasWhitespace);
+          var suggestionModel = attr.hasWhitespace && $parse(attr.hasWhitespace);
           elem.on('keyup', function() {
             if (failed) {
               scope.$apply(function() {

@@ -293,8 +293,8 @@ public class RootOrganizationConfigMigrator
 
       // Move the sourcePolicy to root org
       sourcePolicy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
-      removeEmailNotifications(sourcePolicy);
       // Remove email notifications from sourcePolicy
+      removeEmailNotifications(sourcePolicy);
       policyDAO.update(sourcePolicy);
     }
   }

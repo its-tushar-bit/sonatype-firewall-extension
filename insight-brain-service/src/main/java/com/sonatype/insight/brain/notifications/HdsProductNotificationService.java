@@ -41,7 +41,7 @@ public class HdsProductNotificationService
 
   public static final String HDS_PRODUCT_NOTIFICATION_PATH = "rest/productNotifications";
 
-  private static final long TWENTY_FOUR_HOURS = TimeUnit.DAYS.toMillis(1);
+  private static final long WAIT_TIME = TimeUnit.HOURS.toMillis(3);
 
   private final Date expirationTime;
 
@@ -120,7 +120,7 @@ public class HdsProductNotificationService
   protected boolean isCacheExpired() {
     Date now = new Date();
     if (now.compareTo(expirationTime) >= 0) {
-      expirationTime.setTime(expirationTime.getTime() + TWENTY_FOUR_HOURS);
+      expirationTime.setTime(expirationTime.getTime() + WAIT_TIME);
       return true;
     }
     return false;

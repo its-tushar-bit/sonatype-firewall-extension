@@ -11,7 +11,8 @@
       restrict: 'A',
       scope: {
         submitDirty: '&',
-        submitType: '&'
+        submitType: '&',
+        submitTooltipTarget: '@?' // useful for elements relatively positioned
       },
       require: '^form',
       link: function(scope, element, attrs, formCtrl) {
@@ -57,7 +58,11 @@
             title = 'Unable to ' + (submitType ? submitType : 'save') + ': fields with invalid or missing data.';
           }
 
-          element.tooltip({container: 'body'}).attr('title', title).tooltip('fixTitle');
+          var options = {};
+          if (scope.submitTooltipTarget) {
+            options.container = scope.submitTooltipTarget;
+          }
+          element.tooltip(options).attr('title', title).tooltip('fixTitle');
         }
       }
     };

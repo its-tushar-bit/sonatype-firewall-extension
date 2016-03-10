@@ -83,6 +83,7 @@
       <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.isPolicyDirty()"
                 submit-type="vm.dirtyPolicy.id ? 'update' : 'create'"
+                submit-tooltip-target="body"
                 ng-disabled="vm.readOnly">
           {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}
         </button><!--

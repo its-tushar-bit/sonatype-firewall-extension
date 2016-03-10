@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, AngularUtils */
+/* global angular */
 (function() {
   'use strict';
   var module = angular.module('EditorTools', ['CommonServices', 'CLMAppLocation', 'Stores', 'AngularCommon', 'xeditable', 'ngCookies']);
@@ -19,7 +19,7 @@
       },
       link : function (scope, element) {
         element.on('change', function () {
-          AngularUtils.safeApply(scope, function () {
+          scope.$applyAsync(function () {
             scope.fileModel = element.val();
           });
         });
@@ -63,7 +63,7 @@
           function change() {
             var val = (inputElement.val() || '').trim();
 
-            AngularUtils.safeApply(scope, function () {
+            scope.$applyAsync(function () {
               if (val) {
                 scope.myForm.$setError(null, scope.check(val) || '');
               } else {

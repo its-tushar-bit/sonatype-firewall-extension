@@ -13,16 +13,6 @@ var messageTemplate = {
   msg: 'Something bad happened!'
 };
 var AngularUtils = {
-  safeApply: function(scope, fn) {
-    if (scope.$$phase || scope.$root.$$phase) {
-      //already apply in progress, just call the function
-      fn();
-    }
-    else {
-      //otherwise wrap the function in apply
-      scope.$apply(fn);
-    }
-  },
   alphaSort: function(array, descending, sortProperty) {
     if (array) {
       array.sort(function(a, b) {
@@ -130,7 +120,7 @@ var AngularStateUtils = {
             },
             updater: function(item) {
               if (controller) {
-                $scope.$apply(function() {
+                $scope.$applyAsync(function() {
                   controller.$setViewValue(item);
                 });
               }
@@ -417,14 +407,14 @@ var AngularStateUtils = {
           var suggestionModel = attr.hasWhitespace && $parse(attr.hasWhitespace);
           elem.on('keyup', function() {
             if (failed) {
-              scope.$apply(function() {
+              scope.$applyAsync(function() {
                 failed = checkWhitespace();
               });
             }
           });
 
           elem.on('blur', function() {
-            scope.$apply(function() {
+            scope.$applyAsync(function() {
               failed = checkWhitespace();
             });
           });
@@ -434,13 +424,13 @@ var AngularStateUtils = {
               if (elem.data('editable')) {
                 elem.data('editable').input.$input.on('keyup', function() {
                   if (failed) {
-                    scope.$apply(function() {
+                    scope.$applyAsync(function() {
                       failed = checkWhitespace();
                     });
                   }
                 });
                 elem.data('editable').input.$input.on('blur', function() {
-                  scope.$apply(function() {
+                  scope.$applyAsync(function() {
                     failed = checkWhitespace();
                   });
                 });
@@ -918,7 +908,7 @@ var AngularStateUtils = {
           if (scope.open) {
             var parents = $(event.target).parentsUntil(element);
             if (parents.length > 0 && parents[parents.length-1].tagName === 'HTML') {
-              scope.$apply(function () {
+              scope.$applyAsync(function () {
                 scope.open = false;
               });
             }

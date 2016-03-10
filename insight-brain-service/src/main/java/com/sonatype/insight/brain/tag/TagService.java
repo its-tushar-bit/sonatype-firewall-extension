@@ -130,7 +130,8 @@ class TagService
   public void deleteTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId, String tagId) {
     Tag tag = tagDAO.getByIdNotNull(tagId);
     if (!organizationId.equals(tag.getOrganizationId())) {
-      throw new NotFoundException("Cannot find a tag with id " + tagId + " for organization id " + organizationId);
+      throw new NotFoundException(
+          "Cannot find an application category with id " + tagId + " for organization id " + organizationId);
     }
     tagDAO.delete(tag);
   }
@@ -194,7 +195,7 @@ class TagService
     ApplicationTag appTag = applicationTagDAO.getByApplicationIdAndTagId(
         IdUtils.getInternalOwnerId(OwnerType.APPLICATION, applicationPublicId), tagId);
     if (appTag == null) {
-      throw new NotFoundException("Tag with id " + tagId + " is not applied to application with id "
+      throw new NotFoundException("An application category with id " + tagId + " is not applied to application with id "
           + applicationPublicId);
     }
 
@@ -270,7 +271,8 @@ class TagService
   {
     PolicyTag policyTag = policyTagDAO.getByPolicyIdAndTagId(policyId, tagId);
     if (policyTag == null) {
-      throw new NotFoundException("Tag with id " + tagId + " is not associated with policy with id " + policyId);
+      throw new NotFoundException(
+          "An application category with id " + tagId + " is not associated with policy with id " + policyId);
     }
 
     policyTagDAO.delete(policyTag);

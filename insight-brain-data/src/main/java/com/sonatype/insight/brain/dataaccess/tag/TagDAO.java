@@ -52,7 +52,7 @@ public class TagDAO
 
   public Tag getByOrganizationIdAndName(TransactionContext tx, String organizationId, String name) {
     if (name == null || name.trim().isEmpty()) {
-      throw new DataAccessException("The tag name cannot be null or empty.");
+      throw new DataAccessException("The application category name cannot be null or empty.");
     }
 
     // Tag Name is whitespace and case insensitive
@@ -98,7 +98,7 @@ public class TagDAO
 
   private void validateColor(Color color) {
     if (color == null) {
-      throw new InvalidTagException("The tag color must be assigned.");
+      throw new InvalidTagException("The application category color must be assigned.");
     }
   }
 
@@ -144,7 +144,7 @@ public class TagDAO
     }
     Organization parentOrganization = orgDAO.getByIdNotNull(parentId);
     if (getByOrganizationIdAndName(tx, parentOrganization.getId(), name) != null) {
-      throw new InvalidNameException("A tag with the same name already exists for organization '"
+      throw new InvalidNameException("An application category with the same name already exists for organization '"
           + parentOrganization.getName() + "'");
     }
     validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
@@ -154,7 +154,7 @@ public class TagDAO
     List<Organization> childOrgs = orgDAO.getByParentOrganizationId(tx, org.getId());
     for (Organization childOrg : childOrgs) {
       if (getByOrganizationIdAndName(tx, childOrg.getId(), name) != null) {
-        throw new InvalidNameException("A tag with the same name already exists for organization '"
+        throw new InvalidNameException("An application category with the same name already exists for organization '"
             + childOrg.getName() + "'");
       }
 
@@ -165,7 +165,7 @@ public class TagDAO
   private Tag getByIdNotNull(TransactionContext tx, String id) {
     Tag tag = getById(tx, id);
     if (tag == null) {
-      throw new NotFoundException("Cannot find a tag with ID " + id + ".");
+      throw new NotFoundException("Cannot find an application category with ID " + id + ".");
     }
     return tag;
   }
@@ -181,7 +181,7 @@ public class TagDAO
     // Do not allow the delete if the tag is applied to policies
     List<PolicyTag> policyTags = new PolicyTagDAO().getByTagId(tx, tag.getId());
     if (policyTags.size() > 0) {
-      throw new BadRequestException("Cannot delete the tag because it is associated with policies.");
+      throw new BadRequestException("Cannot delete the application category because it is associated with policies.");
     }
 
     // Cascade to application tags

@@ -94,8 +94,9 @@ public class TagServiceTest
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Cannot find a tag with id " + tag.getId() + " for organization id "
-          + organization2.getId()));
+      assertThat(e.getMessage(),
+          is("Cannot find an application category with id " + tag.getId() + " for organization id "
+              + organization2.getId()));
     }
   }
 
@@ -112,8 +113,9 @@ public class TagServiceTest
       fail("Should have thrown NotFoundException");
     }
     catch (NotFoundException e) {
-      assertThat(e.getMessage(), is("Tag with id " + tag.getId() + " is not applied to application with id "
-          + application2.getPublicId()));
+      assertThat(e.getMessage(),
+          is("An application category with id " + tag.getId() + " is not applied to application with id "
+              + application2.getPublicId()));
     }
   }
 

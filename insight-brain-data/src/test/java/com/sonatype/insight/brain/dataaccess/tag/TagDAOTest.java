@@ -394,7 +394,7 @@ public class TagDAOTest
       fail("Expected InvalidTagException");
     }
     catch (InvalidTagException expected) {
-      assertEquals("The tag color must be assigned.", expected.getMessage());
+      assertEquals("The application category color must be assigned.", expected.getMessage());
     }
   }
 
@@ -409,7 +409,7 @@ public class TagDAOTest
       fail("Expected InvalidTagException");
     }
     catch (InvalidTagException expected) {
-      assertEquals("The tag color must be assigned.", expected.getMessage());
+      assertEquals("The application category color must be assigned.", expected.getMessage());
     }
   }
 
@@ -463,7 +463,8 @@ public class TagDAOTest
       fail("Expected BadRequestException");
     }
     catch (BadRequestException expected) {
-      assertThat(expected.getMessage(), is("Cannot delete the tag because it is associated with policies."));
+      assertThat(expected.getMessage(),
+          is("Cannot delete the application category because it is associated with policies."));
     }
 
     assertThat(new PolicyTagDAO().getByTagId(tag.getId()), hasSize(1));
@@ -575,7 +576,8 @@ public class TagDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("A tag with the same name already exists for organization '" + expectedOrg.getName() + "'",
+      assertEquals(
+          "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'",
           expected.getMessage());
     }
   }
@@ -589,7 +591,8 @@ public class TagDAOTest
       fail("Expected InvalidNameException");
     }
     catch (InvalidNameException expected) {
-      assertEquals("A tag with the same name already exists for organization '" + expectedOrg.getName() + "'",
+      assertEquals(
+          "An application category with the same name already exists for organization '" + expectedOrg.getName() + "'",
           expected.getMessage());
     }
   }

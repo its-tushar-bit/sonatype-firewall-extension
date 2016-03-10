@@ -85,7 +85,7 @@
 
     function addNotification(stageId) {
       var target = vm.notificationValueMap[stageId];
-      if (!targetExists(stageId, target)) {
+      if (target && !targetExists(stageId, target)) {
         if (stageId === monitoringStage) {
           vm.monitorNotifyActions = vm.monitorNotifyActions || [];
         }

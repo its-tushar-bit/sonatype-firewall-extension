@@ -249,7 +249,7 @@
             </div>
             <ul>
               <li class="simple" ng-class="{ clickable: !ownerLicenseGroupList.inherited }"
-                  ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups"
+                  ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups | orderBy: ['-threatLevel', 'name']"
                   ng-click="vm.editLTG(licenseThreatGroup.id, ownerLicenseGroupList.inherited)">
                 <span class='threat-legend threat-level-{{licenseThreatGroup.threatLevel}}'>&nbsp;</span>
 

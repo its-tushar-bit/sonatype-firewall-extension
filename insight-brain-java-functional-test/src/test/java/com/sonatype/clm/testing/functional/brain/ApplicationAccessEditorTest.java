@@ -16,7 +16,8 @@ public class ApplicationAccessEditorTest
 
   @Before
   public void init() {
-    super.init(tempEntity.newApplicationWithParent("test_app_id"));
+    //note the ȧ being used to force a character to be encoded
+    super.init(tempEntity.newApplicationWithParent("test_ȧpp_id"));
   }
 
   @Override

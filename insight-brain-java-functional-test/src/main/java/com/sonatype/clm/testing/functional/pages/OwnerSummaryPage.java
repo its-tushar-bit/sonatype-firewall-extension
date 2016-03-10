@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.SelenideElement;
@@ -17,8 +18,11 @@ import static com.codeborne.selenide.Selenide.$$;
 public class OwnerSummaryPage
 {
   public static String url(String contextType, String id) {
-    return "assets/index.html#/management/view/" +
-        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(contextType)) ? "repositories" : contextType + "/" + id);
+    if (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(contextType))) {
+      return BaseUrl.uriBuilder().fragment("/management/view/repositories").build().toString();
+    }
+
+    return BaseUrl.uriBuilder().fragment("/management/view/{ownerType}/{ownerId}").build(contextType, id).toString();
   }
 
   public static class SummaryTile

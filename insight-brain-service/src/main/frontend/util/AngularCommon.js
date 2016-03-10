@@ -1425,6 +1425,9 @@ var AngularStateUtils = {
         encoded: function() {
           var applicationPublicId = $state.params.applicationPublicId;
           return applicationPublicId ? encodeURI(applicationPublicId) : null;
+        },
+        raw: function() {
+          return $state.params.applicationPublicId;
         }
       };
     }
@@ -1435,6 +1438,9 @@ var AngularStateUtils = {
       encoded: function() {
         var organizationId = $state.params.organizationId;
         return organizationId ? encodeURI(organizationId) : null;
+      },
+      raw: function() {
+        return $state.params.organizationId;
       }
     };
   }]);

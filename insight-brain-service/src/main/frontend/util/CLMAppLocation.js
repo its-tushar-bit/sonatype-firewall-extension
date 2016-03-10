@@ -106,7 +106,9 @@
           return baseUrl.get() + '/rest/' + servicePath +  '/icon' + (!$window.FormData ? '?noFormData=true' : '');
         },
 
-        getEntityId: getId,
+        getEntityId: function() {
+          return isApplication() ? appId.raw() : isOrganization() ? orgId.raw() : 'global';
+        },
 
         getOwnerImageUrl : function (owner) {
           var servicePath = owner.publicId ? 'application' : 'organization',

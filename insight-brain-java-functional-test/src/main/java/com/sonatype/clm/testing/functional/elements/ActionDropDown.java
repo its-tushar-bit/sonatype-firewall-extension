@@ -5,14 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
-
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 public class ActionDropDown
 {
@@ -56,7 +56,7 @@ public class ActionDropDown
   }
 
   public static String reportLinkUrl(String publicId, String scanId) {
-    return Configuration.baseUrl + "assets/index.html#/reports/" + publicId + "/" + scanId;
+    return BaseUrl.uriBuilder().fragment("/reports/{publicId}/{scanId}").build(publicId, scanId).toString();
   }
 
   public static ElementsCollection reportLinks() {

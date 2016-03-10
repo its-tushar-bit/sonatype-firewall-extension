@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.Dropdown;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
@@ -30,9 +31,12 @@ public class AccessEditorPage
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "assets/index.html#/management/edit/" +
-        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "repositories" :
-            ownerType + "/" + ownerId) + "/access";
+    if (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType))) {
+      return BaseUrl.uriBuilder().fragment("/management/edit/repositories/access").build().toString();
+    }
+
+    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/access").build(ownerType, ownerId)
+        .toString();
   }
 
   public static SelenideElement title() {

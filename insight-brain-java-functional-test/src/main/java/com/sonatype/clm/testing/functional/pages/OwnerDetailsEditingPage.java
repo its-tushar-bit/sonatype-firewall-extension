@@ -5,12 +5,17 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.OwnerType;
 
 public class OwnerDetailsEditingPage
 {
   public static String url(String ownerType, String ownerId) {
-    return "assets/index.html#/management/edit/" +
-        (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType)) ? "repositories" : ownerType + "/" + ownerId);
+    if (OwnerType.REPOSITORY_CONTAINER.equals(OwnerType.fromString(ownerType))) {
+      return BaseUrl.uriBuilder().fragment("/management/edit/repositories").build().toString();
+    }
+
+    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}").build(ownerType, ownerId)
+        .toString();
   }
 }

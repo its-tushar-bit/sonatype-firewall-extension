@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.elements.ActionsNotificationsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -19,11 +20,12 @@ public class PolicyEditorPage
   public static final int DEFAULT_THREAT_LEVEL = 5;
 
   public static String urlToEdit(String ownerType, String ownerId, String policyId) {
-    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/policy/" + policyId;
+    return urlToCreate(ownerType, ownerId) + "/" + policyId;
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/policy";
+    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/policy").build(ownerType, ownerId)
+        .toString();
   }
 
   public static SelenideElement title() {

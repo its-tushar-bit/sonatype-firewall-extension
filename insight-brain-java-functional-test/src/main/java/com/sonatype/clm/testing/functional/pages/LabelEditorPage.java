@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ColorPicker;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -16,11 +17,12 @@ public class LabelEditorPage
   private static final ColorPicker colorPicker = new ColorPicker("#editor-label-color-picker");
 
   public static String urlToEdit(String ownerType, String ownerId, String labelId) {
-    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label/" + labelId;
+    return urlToCreate(ownerType, ownerId) + "/" + labelId;
   }
 
   public static String urlToCreate(String ownerType, String ownerId) {
-    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/label";
+    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/label").build(ownerType, ownerId)
+        .toString();
   }
 
   public static SelenideElement title() {

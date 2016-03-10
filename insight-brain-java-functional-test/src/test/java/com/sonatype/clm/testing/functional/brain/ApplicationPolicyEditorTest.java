@@ -23,7 +23,8 @@ public class ApplicationPolicyEditorTest
 
   @Before
   public void init() {
-    application = tempEntity.newApplicationWithParent(getClass().getSimpleName(), YE_OLE_APPLICATION,
+    //note the ȧ being used to force a character to be encoded
+    application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);
 
     super.init(application);

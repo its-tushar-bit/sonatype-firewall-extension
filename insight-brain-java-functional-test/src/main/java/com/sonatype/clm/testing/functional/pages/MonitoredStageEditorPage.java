@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.Radio;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -20,7 +21,8 @@ public class MonitoredStageEditorPage
   public static final String ROOT = "#continuous-monitoring-editor";
 
   public static String url(String ownerType, String ownerId) {
-    return "assets/index.html#/management/edit/" + ownerType + "/" + ownerId + "/monitoring";
+    return BaseUrl.uriBuilder().fragment("/management/edit/{ownerType}/{ownerId}/monitoring").build(ownerType, ownerId)
+        .toString();
   }
 
   public static String inheritFromParentDoNotMonitorText(String parentsName) {

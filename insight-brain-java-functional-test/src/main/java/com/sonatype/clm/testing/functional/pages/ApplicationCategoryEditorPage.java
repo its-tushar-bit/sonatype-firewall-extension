@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AssociationEditor;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -19,7 +20,7 @@ public class ApplicationCategoryEditorPage
   public static final Condition NO_CATEGORIES_DEFINED = Condition.text("No application categories defined.");
 
   public static String urlToEdit(String ownerId) {
-    return "assets/index.html#/management/edit/application/" + ownerId + "/category";
+    return BaseUrl.uriBuilder().fragment("/management/edit/application/{ownerId}/category").build(ownerId).toString();
   }
 
   public static SelenideElement root() {

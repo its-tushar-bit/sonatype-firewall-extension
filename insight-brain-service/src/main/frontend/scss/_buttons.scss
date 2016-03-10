@@ -186,9 +186,12 @@
   }
 }
 
-// Mini
-.btn-mini {
-  padding: $paddingMini;
-  font-size: $fontSizeMini;
-  @include border-radius($borderRadiusSmall);
+// mini buttons (only used in legacy UI pages)
+#ldapName, #proprietary-component-form, .accordion-group.users {
+  .btn-mini {
+    padding: $paddingMini;
+    font-size: $fontSizeMini;
+    @include border-radius($borderRadiusSmall);
+  }
 }
+

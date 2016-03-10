@@ -77,6 +77,14 @@
     <button class='btn btn-error'><i class='fa fa-refresh'></i>Error</button>
     <button class='btn btn-icon-only'><i class='fa fa-arrow-right'></i></button>
   ```
+
+  ###Appended buttons
+  ```
+    <span class="input-append">
+      <input type="text" />
+      <button class='btn btn-icon-only'><i class='fa fa-arrow-right'></i></button>
+    </span>
+  ```
 */
 .btn {
   @extend .semi-bold;
@@ -176,6 +184,10 @@
     width: 32px;
     height: 32px;
     padding: 0;
+  }
+
+  .input-append & {
+    padding: 4px 12px;
   }
 }
 

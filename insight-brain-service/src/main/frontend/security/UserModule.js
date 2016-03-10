@@ -34,7 +34,7 @@
 (function() {
   'use strict';
 
-  var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule'],
+  var module = angular.module('UserModule', ['ui.router', 'SecurityModule', 'CLMLocation', 'ResourceModule', 'utility'],
           ['$stateProvider', function($stateProvider) {
             $stateProvider.state('users', {
               url: '/users',
@@ -67,89 +67,6 @@
 
     return store;
   }]);
-
-  module.controller('UserListController', ['$http', 'CLMLocations', 'UserStore', 'Messages', 'CurrentUser', '$scope',
-      '$modal', '$q', 'isAuthorized', function($http, clmLocations, UserStore, messages, CurrentUser, $scope, $modal, $q, isAuthorized) {
-        var username = null;
-
-        $scope.context = {
-          userEditMap: {},
-          users: []
-        };
-        $scope.isAuthorized = isAuthorized;
-        $scope.doLoad = function() {
-          if (isAuthorized) {
-            $scope.error = null;
-
-            $q.all([UserStore.refresh(), CurrentUser]).then(function(results) {
-              $scope.context.users = results[0];
-              username = results[1].username;
-            }, function(error) {
-              $scope.error = error;
-            });
-          }
-        };
-        $scope.editClick = function(user) {
-          $scope.context.userEditMap[user.id] = user;
-          $scope.$broadcast('userEditClick', {
-            userId: user.id
-          });
-        };
-        $scope.isCurrentUser = function(user) {
-          return username === user.username;
-        };
-        $scope.resetPasswordClick = function(user) {
-          $modal.open({
-            templateUrl: 'reset-password-modal',
-            scope: $scope,
-            backdrop: 'static',
-            keyboard : false,
-            controller: ['$scope', function(scope) {
-              scope.state = 'ready';
-              scope.user = user;
-              scope.cancelClick = function(){
-                scope.$close();
-              };
-              scope.resetClick = function(){
-                scope.state = 'pending';
-                $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').success(function(data) {
-                  scope.newPassword = data.newPassword;
-                  scope.state = 'complete';
-                }).error(function(error){
-                  scope.state = 'failed';
-                  scope.error = error;
-                });
-              };
-              scope.okClick = function(){
-                scope.$close();
-              };
-              scope.flashInstalled = function() {
-                return AngularUtils.hasFlash();
-              };
-            }]
-          });
-        };
-        $scope.removeClick = function(user) {
-          $modal.open({
-            backdrop: 'static',
-            templateUrl: 'delete-user-modal',
-            controller: ['$scope', '$modalInstance', function($localScope, $modalInstance) {
-              $localScope.username = user.username;
-              $localScope.discard = function() {
-                user.$delete().then(function() {
-                  $modalInstance.close();
-                }, function(error) {
-                  $localScope.alerts = [AngularUtils.toAlert(error.data)];
-                });
-              };
-              $localScope.cancel = function() {
-                $modalInstance.close();
-              };
-            }]
-          });
-        };
-        $scope.doLoad();
-      }]);
 
   module.controller('UserController', ['$scope', 'UserStore', function($scope, UserStore) {
     function isDirty() {
@@ -254,7 +171,7 @@
   
   module.directive('zeroClipboard', function() {
     ZeroClipboard.config({
-      moviePath: '../lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
+      moviePath: 'lib/zeroclipboard/ZeroClipboard-1.3.2.swf'
     });
     return {
       restrict: 'A',

@@ -262,7 +262,7 @@ class UserManagementSpec
       waitFor { deleteModal.modal.displayed }
 
     when: 'we confirm deletion'
-      deleteModal.confirm.click()
+      deleteModal.continueButton.click()
 
     then: 'the user is deleted'
       waitFor { headers.size() == 1 }

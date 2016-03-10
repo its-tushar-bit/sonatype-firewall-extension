@@ -115,13 +115,13 @@
   ##Delete Modal
 
   ```
-  <div class="clm-modal delete-modal">
+  <div class="clm-modal">
     <div class="clm-modal-header">
       <h2>
         <i class="fa size-20px fa-trash"></i> Delete Label
       </h2>
     </div>
-    <div class="clm-modal-body">
+    <div class="clm-modal-body warn">
       <div class="clm-alert alert">
         <i class="fa fa-warning"></i>
         <span>You are about to permanently remove Foo from Lifecycle. This action cannot be undone.</span>
@@ -135,7 +135,7 @@
     </div>
   </div>
 
-  <div class="clm-modal delete-modal">
+  <div class="clm-modal">
     <div class="clm-modal-header">
       <h2>
         <i class="fa size-20px fa-trash"></i> Delete Label
@@ -153,9 +153,8 @@
   </div>
   ```
 */
-.clm-modal.unsaved-modal,
-.clm-modal.delete-modal {
-  .clm-modal-body {
+.clm-modal {
+  .clm-modal-body.warn {
     padding: 0;
 
     div.clm-alert {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.testing.functional
 
+import com.sonatype.insight.brain.testing.functional.modules.ClmModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 
 class UserManagementPage
@@ -36,9 +37,9 @@ class UserManagementPage
       index -> header(index).parent().find('button[ng-click="resetPasswordClick(user)"]')
     }
 
-    deleteModal { module ModalModule, title: 'Delete User' }
+    deleteModal { module ClmModalModule, title: 'Delete User' }
 
-    resetModal { module ModalModule, title: 'Reset Password', confirmText: 'Reset' }
+    resetModal { module ClmModalModule, title: 'Reset Password', confirmText: 'Reset' }
     newPasswordField(required: false) { $('#generatedPassword') }
 
     summarySection { index -> $('div.accordion-inner', index) }

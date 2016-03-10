@@ -1,37 +1,34 @@
 <div class='scrollable-root-container' maximize-container-height>
-  <script type='text/ng-template' id='delete-user-modal'>
-<div class="modal-header"><h3>Delete User</h3></div>
-<div class="modal-body"><p>Are you sure you want to delete user <strong>{{username}}</strong>?</p></div>
-<div class="modal-footer">
-  <div clm-alerts="alerts" no-close="true"></div>
-  <button class="btn btn-link btn-cancel" ng-click="cancel()">Cancel</button>
-  <button class="btn btn-danger floatRight" ng-click="discard()">Delete</button>
-</div>
-  </script>
   <script type='text/ng-template' id='reset-password-modal'>
-<div class="modal-header">
-  <button type="button" class="close" ng-click="$close()">&times</button>
-  <h3>Reset Password</h3>
+<div class="clm-modal-header">
+  <h2>Reset Password</h2>
 </div>
 <div ng-switch="state">
-  <div ng-switch-when="ready">
-    <div class="modal-body">
-      <p>Are you sure you want to reset the password for <strong>{{user.username}}</strong>? This action cannot be undone.</p>
+  <div ng-switch-default>
+    <div class="clm-modal-body warn">
+      <div class="clm-alert alert">
+        <i class="fa fa-warning"></i>Are you sure you want to reset the password for <strong>{{::user.username}}</strong>?
+        This action cannot be undone.
+      </div>
     </div>
-    <div class="modal-footer">
+    <div class="clm-modal-footer" ng-class="{error : error}">
+      <div class="section with-icon" ng-if="error">
+        <i class="fa fa-warning"></i> {{ error }}
+      </div>
+      <button class="btn btn-error" type="submit" ng-click="resetClick()" ng-if="error">
+        <i class="fa fa-refresh"></i> Retry
+      </button>
+      <button ng-if="!error" class="btn btn-primary" ng-click="resetClick()">Reset</button>
       <button class="btn" ng-click="cancelClick()">Cancel</button>
-      <button class="btn btn-danger" ng-click="resetClick()">Reset</button>
     </div>
   </div>
   <div ng-switch-when="pending">
-    <div class="modal-body">
+    <div class="clm-modal-body">
       <span>Reset pending...</span>
-    </div>
-    <div class="modal-footer">
     </div>
   </div>
   <div ng-switch-when="complete">
-    <div class="modal-body">
+    <div class="clm-modal-body">
       <form>
         <span style="margin-right:10px;">The new password for <strong>{{user.username}}</strong> is</span>
         <span style="margin-bottom:0px;" ng-class="{ 'input-append' : flashInstalled() }">
@@ -42,15 +39,8 @@
         </span>
       </form>
     </div>
-    <div class="modal-footer">
+    <div class="clm-modal-footer">
       <button class="btn btn-primary" ng-click="okClick()">OK</button>
-    </div>
-  </div>
-  <div ng-switch-when="failed">
-    <div class="modal-body">
-      <span>{{error}}</span>
-    </div>
-    <div class="modal-footer">
     </div>
   </div>
 </div>

@@ -17,7 +17,7 @@
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal delete-modal',
+        windowClass: 'clm-modal',
         controller: 'DeleteModalController as vm',
         templateUrl: 'utility/services/delete.modal.service.html',
         resolve: {
@@ -43,7 +43,7 @@
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        windowClass: 'clm-modal delete-modal',
+        windowClass: 'clm-modal',
         controller: 'DeleteModalController as vm',
         templateUrl: 'utility/services/delete.modal.service.html',
         resolve: {

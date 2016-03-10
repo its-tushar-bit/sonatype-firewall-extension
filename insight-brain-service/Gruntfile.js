@@ -74,7 +74,7 @@
             '**/*.{html,ttf,woff,woff2,png,gif,jpg}',
             '!<%= config.templates %>',
             '!lib/*',
-            'lib/**/*.{js,css,ttf,woff,woff2}',
+            'lib/**/*.{js,css,ttf,woff,woff2,swf}',
             '!lib/**/test/*'
           ],
           dest: '<%= config.generated %>'
@@ -85,7 +85,7 @@
           src: [
             '**/*.{html,js,css,ttf,woff,woff2,png,gif,jpg}',
             '!lib/*',
-            'lib/**/*.{js,css,ttf,woff,woff2}',
+            'lib/**/*.{js,css,ttf,woff,woff2,swf}',
             '!lib/**/test/*'
           ],
           dest: '<%= config.generated %>'

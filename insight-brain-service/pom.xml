@@ -639,6 +639,7 @@
               </preloadSources>
               <sourceIncludes>
                 <include>frontend/**/*.module.js</include>
+                <include>frontend/**/*Module.js</include>
                 <include>frontend/**/*.js</include>
               </sourceIncludes>
               <sourceExcludes>

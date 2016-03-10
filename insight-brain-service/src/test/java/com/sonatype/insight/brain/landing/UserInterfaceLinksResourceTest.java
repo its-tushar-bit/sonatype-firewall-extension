@@ -28,13 +28,13 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToManagement_App() throws Exception {
     HttpResponse response = get(UserInterfaceLinksResource.MANAGEMENT_PATH, "application", "test id");
-    assertRedirect(response, "assets/index.html#/management/application/test%20id/policies");
+    assertRedirect(response, "assets/index.html#/management/view/application/test%20id");
   }
 
   @Test
   public void testLinkToManagement_Org() throws Exception {
     HttpResponse response = get(UserInterfaceLinksResource.MANAGEMENT_PATH, "organization", "test id");
-    assertRedirect(response, "assets/index.html#/management/organization/test%20id/policies");
+    assertRedirect(response, "assets/index.html#/management/view/organization/test%20id");
   }
 
   @Test

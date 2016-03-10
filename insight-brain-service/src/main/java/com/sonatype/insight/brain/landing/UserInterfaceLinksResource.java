@@ -62,8 +62,8 @@ public class UserInterfaceLinksResource
   @Path(MANAGEMENT_PATH)
   public Response linkToManagement(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(
-        "/management/{ownerType}/{ownerId}/policies");
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
+        .fragment("/management/view/{ownerType}/{ownerId}");
     return redirect(uriBuilder.build(ownerType, ownerId));
   }
 

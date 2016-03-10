@@ -858,10 +858,10 @@ var AngularStateUtils = {
   * collection is modified outside of the multi select control, update to use $watchCollection
   */
   angularCommon.directive('multiSelect', [
-    '$compile', function($compile) {
+    '$compile', '$timeout', function($compile, $timeout) {
     return {
       template : '<div class="btn-group" ng-class="{ open : open }">' +
-                   '<button class="btn dropdown-toggle" ng-click="open = !open" ng-class="{ \'btn-small\': small }" type="button">' +
+                   '<button class="btn dropdown-toggle" ng-click="toggleDropdown()" ng-class="{ \'btn-small\': small }" type="button">' +
                    '<span><div>{{getText()}}</div></span> <span class="caret"></span></button>' +
                      '<ul class="dropdown-menu multiselect-container">' +
                      '<li ng-if="items.length > 9"><input type="text" ng-model="filter.name" style="margin:0 auto 5px auto;width:160px;display:block" placeholder="Search" ng-click="$event.stopPropagation()"></li>' +
@@ -889,6 +889,15 @@ var AngularStateUtils = {
             '</li>' +
             '</div>';
 
+        scope.toggleDropdown = function() {
+          scope.open = !scope.open;
+          if (scope.open && attrs.hasOwnProperty('useVsRepeat')) {
+            $timeout(function() {
+              scope.$emit('vsRepeatTrigger');
+            });
+          }
+        };
+        
         var dropdownScroll = angular.element(dropdownScrollHtml);
         if (attrs.hasOwnProperty('useVsRepeat')) {
           dropdownScroll.attr('vs-repeat', '');

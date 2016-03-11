@@ -16,6 +16,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.utils.IdUtils;
 
+import com.yammer.metrics.annotation.Timed;
+
 /**
  * @since 1.18.0
  */
@@ -43,6 +45,7 @@ public class SidebarResource
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public OwnerListDTO getOwnerList() {
     return sidebarService.getOwnerList();
   }

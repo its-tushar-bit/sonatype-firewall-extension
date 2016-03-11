@@ -5,23 +5,21 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 /**
  * Specialized BASIC auth filter that ignores session cookies and instead requires a valid authc header on each request.
  * To be used for the public REST API (stateless).
  */
 public class BasicHttpAuthenticationMandatoryFilter
-    extends BasicHttpAuthenticationFilter
+    extends UserFriendlyBasicHttpAuthenticationFilter
 {
   public static final String INVALID_AUTHENTICATION_MESSAGE = "Invalid authentication.";
+
   public static final String SESSION_COOKIE_MESSAGE = "This REST API is meant for system to system integration and can't be accessed with a web browser.";
 
   @Override
@@ -35,32 +33,20 @@ public class BasicHttpAuthenticationMandatoryFilter
    */
   @Override
   protected boolean sendChallenge(ServletRequest request, ServletResponse response) {
-    setErrorInResponse(request, response);
-    return false;
-  }
+    // in case of a failed login attempt, onLoginFailure() already sent the error response
+    if (response.isCommitted()) {
+      return false;
+    }
 
-  private void setErrorInResponse(ServletRequest request, ServletResponse response) {
-    HttpServletResponse httpResponse = (HttpServletResponse) response;
-
-    httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-    httpResponse.setContentType("text/plain;charset=UTF-8");
+    String message;
     if (getSubject(request, response).isAuthenticated()) {
-      setErrorMessage(httpResponse, SESSION_COOKIE_MESSAGE);
+      message = SESSION_COOKIE_MESSAGE;
     }
     else {
-      setErrorMessage(httpResponse, INVALID_AUTHENTICATION_MESSAGE);
+      message = INVALID_AUTHENTICATION_MESSAGE;
     }
-  }
-
-  private void setErrorMessage(HttpServletResponse httpResponse, String message) {
-    try {
-      PrintWriter writer = httpResponse.getWriter();
-      writer.print(message);
-      writer.close();
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    LoginErrorHandler
+        .sendError((HttpServletResponse) response, new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, message));
+    return false;
   }
 }

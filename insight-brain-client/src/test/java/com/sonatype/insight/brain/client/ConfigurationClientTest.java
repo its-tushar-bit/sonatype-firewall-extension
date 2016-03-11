@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
@@ -83,7 +84,7 @@ public class ConfigurationClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode(), is(401));
-      assertThat(e.getMessage(), is("Unauthorized"));
+      assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
     }
   }
 
@@ -216,7 +217,7 @@ public class ConfigurationClientTest
     }
     catch (HttpResponseException e) {
       assertThat(e.getStatusCode(), is(401));
-      assertThat(e.getMessage(), is("Unauthorized"));
+      assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
     }
   }
 
@@ -384,7 +385,7 @@ public class ConfigurationClientTest
       fail("Expected an HttpResponseException for Unauthorized");
     }
     catch (HttpResponseException e) {
-      MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
+      MatcherAssert.assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
     }
   }
 
@@ -398,7 +399,7 @@ public class ConfigurationClientTest
       fail("Expected an HttpResponseException for Unauthorized");
     }
     catch (HttpResponseException e) {
-      MatcherAssert.assertThat(e.getMessage(), is("Unauthorized"));
+      MatcherAssert.assertThat(e.getMessage(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
     }
   }
 

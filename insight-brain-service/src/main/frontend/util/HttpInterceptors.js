@@ -144,14 +144,9 @@
                         $scope.$close();
                         requestQueue = [];
                       });
-                    }).error(function(data, status) {
+                    }).error(function() {
                       $scope.processingLogin = false;
-                      if (status === 401) {
-                        $scope.loginError = 'Invalid credentials. Please try again.';
-                      } else {
-                        // Non-login related error occurred
-                        $scope.loginError = Messages.getHttpErrorMessage(arguments);
-                      }
+                      $scope.loginError = Messages.getHttpErrorMessage(arguments);
                     });
                   };
                 }]

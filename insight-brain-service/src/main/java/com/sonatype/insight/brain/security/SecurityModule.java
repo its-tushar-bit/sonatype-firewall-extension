@@ -76,6 +76,7 @@ public class SecurityModule
     AntiCsrfFilter antiCsrfFilter = new AntiCsrfFilter(csrfProtection);
     bind(AntiCsrfFilter.class).toInstance(antiCsrfFilter);
     expose(AntiCsrfFilter.class);
+    manager.addFilter("authcBasic", new UserFriendlyBasicHttpAuthenticationFilter());
     manager.addFilter("authcBasicMandatory", new BasicHttpAuthenticationMandatoryFilter());
     manager.addFilter("secureCookies", new SecureCookiesFilter());
     manager.addFilter("antiCsrf", antiCsrfFilter);

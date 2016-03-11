@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -58,20 +59,21 @@ public class UserSessionResourceTest
     // now run the test with bad username
     HttpResponse response = login("admin2", "admin");
     assertResponseStatus(401, response);
-    assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
-    assertEquals("", response.getBodyText());
+    // see: com.sonatype.insight.brain.security.UserFriendlyBasicHttpAuthenticationFilter.sendChallenge()
+    assertEquals(response.getHeader("WWW-Authenticate"), null);
+    assertEquals(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT, response.getBodyText());
 
     // now run the test with bad password
     response = login(User.ADMIN_USERNAME, "wrong password");
     assertResponseStatus(401, response);
-    assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
-    assertEquals("", response.getBodyText());
+    assertEquals(response.getHeader("WWW-Authenticate"), null);
+    assertEquals(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT, response.getBodyText());
 
     // now run the test with no header, validate failure
     response = login();
     assertResponseStatus(401, response);
-    assertEquals(response.getHeader("WWW-Authenticate"), "nonBrowserPromptingBasic realm=\"application\"");
-    assertEquals("", response.getBodyText());
+    assertEquals(response.getHeader("WWW-Authenticate"), null);
+    assertEquals(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT, response.getBodyText());
 
     // now run with valid data
     response = login(User.ADMIN_USERNAME, "admin123");

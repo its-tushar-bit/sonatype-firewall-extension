@@ -47,6 +47,7 @@ class FirstSuccessfulRealmAuthenticator
       log.trace("Iterating through {} realms for PAM authentication", realms.size());
     }
 
+    RuntimeException error = null;
     for (Realm realm : realms) {
       if (realm.supports(token)) {
         log.trace("Attempting to authenticate token [{}] using realm [{}]", token, realm);
@@ -57,13 +58,18 @@ class FirstSuccessfulRealmAuthenticator
           }
           log.trace("Realm [{}] returned null during a multi-realm authentication attempt.", realm);
         }
-        catch (Exception e) {
+        catch (RuntimeException e) {
+          error = e;
           log.debug("Realm [{}] threw an exception during a multi-realm authentication attempt:", realm, e);
         }
       }
       else {
         log.trace("Realm [{}] does not support token {}.  Skipping realm.", realm, token);
       }
+    }
+
+    if (error != null) {
+      throw error;
     }
 
     throw new AuthenticationException("Authentication token of type [" + token.getClass() + "] "

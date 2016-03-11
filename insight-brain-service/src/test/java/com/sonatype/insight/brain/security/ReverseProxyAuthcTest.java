@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -57,6 +58,7 @@ public class ReverseProxyAuthcTest
     assertThat(reverseProxyAuthcConfig.getUsernameHeader(), is("REMOTE_USER"));
     HttpResponse response = restRequest().path("rest/anything").header("REMOTE_USER", "testuser").anon().get();
     assertResponseStatus(401, response);
+    assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
   }
 
   @Test
@@ -114,5 +116,6 @@ public class ReverseProxyAuthcTest
     HttpRequest request = restRequest().header("REMOTE_USER", "unknown-user").anon();
     HttpResponse response = request.subpath("rest/anything").get();
     assertResponseStatus(401, response);
+    assertThat(response.getBodyText(), is(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT));
   }
 }

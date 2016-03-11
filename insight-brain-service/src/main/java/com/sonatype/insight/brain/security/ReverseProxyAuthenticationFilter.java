@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
@@ -53,6 +54,16 @@ public class ReverseProxyAuthenticationFilter
   }
 
   @Override
+  protected boolean onLoginFailure(final AuthenticationToken token,
+                                   final AuthenticationException e,
+                                   final ServletRequest request,
+                                   final ServletResponse response)
+  {
+    LoginErrorHandler.sendError((HttpServletResponse) response, e);
+    return super.onLoginFailure(token, e, request, response);
+  }
+
+  @Override
   protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
     // not yet authenticated (e.g. via session) but if the remote-user header is present, time for a login
     if (isLoginRequest(request, response)) {
@@ -64,10 +75,6 @@ public class ReverseProxyAuthenticationFilter
       }
 
       log.warn("Failed to validate existence of remotely authenticated user '{}'", getUsername(request));
-      HttpServletResponse httpResponse = (HttpServletResponse) response;
-      httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      httpResponse.setContentType("text/plain;charset=UTF-8");
-      httpResponse.getWriter().print("Invalid username");
       return false;
     }
 

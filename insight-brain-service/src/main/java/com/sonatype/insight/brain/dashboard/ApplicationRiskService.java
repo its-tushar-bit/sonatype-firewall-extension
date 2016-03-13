@@ -88,12 +88,14 @@ public class ApplicationRiskService
     long start = System.currentTimeMillis();
 
     List<Application> appsToSearch = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
+    log.debug("Loaded {} applications", appsToSearch.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
     Predicate<PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
         policyThreatLevelFilter);
 
     List<PolicyEvaluation> evaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
         dashboardUtils.getApplicationIds(appsToSearch), dashboardUtils.getStageTypeIds(stageTypes));
+    log.debug("Loaded {} policy evaluations", evaluations.size());
 
     Map<String, PolicyEvaluation> policyEvaluationsById = mapCollectionById(evaluations);
     Map<String, List<PolicyViolation>> policyViolationsByAppId = createAllPolicyViolations(filter, evaluations,
@@ -197,7 +199,9 @@ public class ApplicationRiskService
                                                     final Predicate<PolicyViolation> violationFilter)
   {
     Set<String> evaluationIds = Sets.newHashSet(Iterables.transform(evaluations, DashboardUtils.hasIdIdSelector));
-    return dashboardUtils.filter(policyViolationDAO.getActiveByEvaluationIds(evaluationIds), violationFilter);
+    List<PolicyViolation> violations = policyViolationDAO.getActiveByEvaluationIds(evaluationIds);
+    log.debug("Loaded {} policy violations", violations.size());
+    return dashboardUtils.filter(violations, violationFilter);
   }
 
   private void updateTotalApplicationRisks(final ApplicationRiskScoreDTO applicationRiskScore,

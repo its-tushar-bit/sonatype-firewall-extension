@@ -49,7 +49,7 @@ public class RepositoryReportContainerTest
   public void before() {
     repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "central");
 
-    repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), DateUtils.addDays(new Date(), -3));
+    repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), DateUtils.addHours(new Date(), -84));
 
     setupHDSResponse();
   }

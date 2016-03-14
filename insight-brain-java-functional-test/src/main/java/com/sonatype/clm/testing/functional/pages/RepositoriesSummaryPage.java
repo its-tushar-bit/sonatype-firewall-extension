@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.SelenideElement;
@@ -18,7 +19,7 @@ public class RepositoriesSummaryPage
 
   static final String REPOSITORIES_SUMMARY_SELECTOR = "#repositories-summary";
 
-  public static String URL = "assets/index.html#/management/view/repositories";
+  public static String URL = BaseUrl.uriBuilder().fragment("/management/view/repositories").build().toString();
 
   public static class SummaryTile
   {

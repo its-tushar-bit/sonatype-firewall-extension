@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.InlineEditor;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -13,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LdapConfigurationPage
 {
-  public static String URL = "assets/index.html#/ldap";
+  public static String URL = BaseUrl.uriBuilder().fragment("/ldap").build().toString();
 
   public static SelenideElement root() {
     return $("*[ng-show=ldap]");

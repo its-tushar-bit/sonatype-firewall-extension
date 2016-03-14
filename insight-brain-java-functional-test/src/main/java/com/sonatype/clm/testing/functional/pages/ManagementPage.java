@@ -5,9 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+
 public class ManagementPage
 {
 
-  public static String URL = "assets/index.html#/management/view";
+  public static String URL = BaseUrl.uriBuilder().fragment("/management/view").build().toString();
 
 }

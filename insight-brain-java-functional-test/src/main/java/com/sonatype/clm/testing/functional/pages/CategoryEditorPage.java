@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.ColorPicker;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -21,11 +22,11 @@ public class CategoryEditorPage
   private static final ColorPicker colorPicker = new ColorPicker("#editor-category-color-picker");
 
   public static String urlToEdit(String ownerId, String categoryId) {
-    return "assets/index.html#/management/edit/organization/" + ownerId + "/category/" + categoryId;
+    return urlToCreate(ownerId) + "/" + categoryId;
   }
 
   public static String urlToCreate(String ownerId) {
-    return "assets/index.html#/management/edit/organization/" + ownerId + "/category";
+    return BaseUrl.uriBuilder().fragment("/management/edit/organization/{ownerId}/category").build(ownerId).toString();
   }
 
   public static SelenideElement root() {

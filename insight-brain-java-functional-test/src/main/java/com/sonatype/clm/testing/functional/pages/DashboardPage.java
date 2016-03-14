@@ -5,13 +5,15 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class DashboardPage
 {
-  public static String URL = "assets/index.html#/dashboard/newest-risk";
+  public static String URL = BaseUrl.uriBuilder().fragment("/dashboard/newest-risk").build().toString();
 
   public static SelenideElement body() {
     return $(".dashboard-body-container");

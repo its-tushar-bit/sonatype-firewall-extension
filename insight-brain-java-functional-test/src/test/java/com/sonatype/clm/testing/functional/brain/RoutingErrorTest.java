@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizati
 import com.sonatype.clm.testing.functional.elements.RoutingErrorBox;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
 import org.junit.Before;
@@ -21,7 +22,7 @@ import static com.codeborne.selenide.Selenide.open;
 public class RoutingErrorTest
     extends AbstractFunctionalTest
 {
-  private static String INVALID_URL = "assets/index.html#/foo";
+  private static String INVALID_URL = BaseUrl.uriBuilder().fragment("/foo").build().toString();
 
   @BeforeClass
   public static void startup() {

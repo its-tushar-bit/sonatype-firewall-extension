@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -12,7 +14,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class RepositoryReportContainerPage
 {
   public static String url(String repositoryId) {
-    return "assets/index.html#/repository/" + repositoryId + "/result";
+    return BaseUrl.uriBuilder().fragment("/repository/{repositoryId}/result").build(repositoryId).toString();
   }
 
   public static SelenideElement refreshButton() {

@@ -12,4 +12,6 @@ public class ManagementPage
 
   public static String URL = BaseUrl.uriBuilder().fragment("/management/view").build().toString();
 
+  public static final String ROOT_ORG_URL = "assets/index.html#/management/view/organization/ROOT_ORGANIZATION_ID";
+
 }

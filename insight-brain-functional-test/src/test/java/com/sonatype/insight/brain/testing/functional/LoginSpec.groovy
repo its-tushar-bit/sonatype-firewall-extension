@@ -75,7 +75,7 @@ class LoginSpec
 
     then: "user is not prompted to log in"
       report 'management page'
-      at ManagementPage
+      at RootOrgManagementPage
 
     when: "accessing report application"
       to ReportViolationsPage

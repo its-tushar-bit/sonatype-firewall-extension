@@ -36,6 +36,7 @@ import com.google.relocated.common.base.Predicates;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.mockito.Mockito;
 import org.openqa.selenium.Alert;
@@ -89,6 +90,9 @@ public abstract class AbstractFunctionalTest
       System.exit(1);
     }
   }
+
+  @ClassRule
+  public static TemporaryEntity staticTempEntity = new TemporaryEntity();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();

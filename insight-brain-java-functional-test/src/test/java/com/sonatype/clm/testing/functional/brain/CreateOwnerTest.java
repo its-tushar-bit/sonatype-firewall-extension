@@ -47,17 +47,17 @@ public class CreateOwnerTest
 
   private OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private Organization parentOrg;
+  private static Organization parentOrg;
 
   @BeforeClass
   public static void beforeClass() {
+    parentOrg = staticTempEntity.newOrganization("Parent");
     refreshOrOpen(OrganizationManagementPage.URL);
     loginAsAdmin();
   }
 
   @Before
   public void init() {
-    parentOrg = tempEntity.newOrganization("Parent");
     refreshOrOpen(OrganizationManagementPage.URL);
   }
 

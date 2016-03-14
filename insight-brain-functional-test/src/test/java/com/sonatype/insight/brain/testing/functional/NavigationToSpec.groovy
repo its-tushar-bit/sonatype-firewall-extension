@@ -28,6 +28,6 @@ class NavigationToSpec
       at pageUnderTest
 
     where:
-      pageUnderTest << [ManagementPage, ReportViolationsPage, UserManagementPage, AdministratorsPage]
+      pageUnderTest << [ReportViolationsPage, UserManagementPage, AdministratorsPage]
   }
 }

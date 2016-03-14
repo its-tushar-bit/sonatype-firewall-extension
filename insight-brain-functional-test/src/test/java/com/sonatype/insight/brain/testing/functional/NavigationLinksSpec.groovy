@@ -23,8 +23,8 @@ class NavigationLinksSpec
     when: 'clicking the dropdown and then the Management link'
       mainModule.toManagement()
 
-    then: 'we should end up at the Management page with the Applications nav link shown as active'
-      at ManagementPage
+    then: 'we should end up at the Root Organization page with the Applications nav link shown as active'
+      at RootOrgManagementPage
   }
 
 

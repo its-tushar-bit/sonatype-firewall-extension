@@ -39,7 +39,7 @@ public class OwnerTreeViewTest
 
   @BeforeClass
   public static void startup() {
-    open(OrganizationManagementPage.URL);
+    open(OrganizationManagementPage.ROOT_ORG_URL);
     loginAsAdmin();
   }
 
@@ -62,7 +62,7 @@ public class OwnerTreeViewTest
       }
     }
 
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(OrganizationManagementPage.ROOT_ORG_URL);
     OwnerTreeView.organizationElements().shouldHaveSize(organizations.size());
   }
 

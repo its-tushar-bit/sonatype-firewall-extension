@@ -48,7 +48,7 @@ public class RootOrgMigrateTest
     refreshOrOpen(ReportListPage.URL);
     RootOrgMigrate.migrateBanner().shouldBe(visible);
     RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
-    refreshOrOpen(ManagementPage.URL);
+    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.migrateBanner().shouldBe(visible);
     RootOrgMigrate.migrateConfiguredBanner().shouldNotBe(visible);
   }
@@ -86,7 +86,7 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(true);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
 
-    refreshOrOpen(ManagementPage.URL);
+    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
 
     RootOrgMigrateModal.root().shouldNotBe(visible);
     RootOrgMigrate.migrateBanner().shouldNotBe(visible);
@@ -97,7 +97,7 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(false);
 
-    refreshOrOpen(ManagementPage.URL);
+    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.startButton().shouldBe(visible).click();
 
     RootOrgMigrateModal.root().shouldBe(visible);
@@ -115,7 +115,7 @@ public class RootOrgMigrateTest
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrated()).thenReturn(false);
     Mockito.when(rootOrganizationConfigMigrationUtils.isMigrationScheduled()).thenReturn(true);
 
-    refreshOrOpen(ManagementPage.URL);
+    refreshOrOpen(ManagementPage.ROOT_ORG_URL);
     RootOrgMigrate.migrateBanner().shouldNotBe(visible);
     RootOrgMigrate.migrateConfiguredBanner().shouldBe(visible);
     refreshOrOpen(ReportListPage.URL);

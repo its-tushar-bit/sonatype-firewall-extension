@@ -75,6 +75,7 @@
     });
 
     $scope.$on('$stateChangeSuccess', function() {
+      redirectIfNecessary();
       vm.selectedParentOrganization = null;
       assignSelectedParentOrganization();
     });
@@ -109,8 +110,26 @@
           }
         }
 
+        redirectIfNecessary();
+
         assignSelectedParentOrganization();
       });
+    }
+
+    function redirectIfNecessary() {
+      if ($state.is('management.view')) {
+        var topOrganization = vm.rootOrganization || vm.organizations.filter(function(org) {
+              return !org.synthetic;
+            })[0] || vm.organizations[0];
+        if (topOrganization) {
+          if (topOrganization.synthetic) {
+            $state.go('.application', {applicationPublicId: topOrganization.applications[0].publicId});
+          } 
+          else {
+            $state.go('.organization', {organizationId: topOrganization.id});
+          }
+        }
+      }
     }
 
     function seekApplication(application, fn) {

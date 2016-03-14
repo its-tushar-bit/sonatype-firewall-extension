@@ -1,5 +1,5 @@
 describe('owner.tree-view.directive.spec.js', function() {
-  var scope;
+  var scope, $httpBackend, $state, CLMLocations, CLMAppLocations;
 
   beforeEach(module(function($provide) {
     // $state stub for spying
@@ -23,8 +23,7 @@ describe('owner.tree-view.directive.spec.js', function() {
 
   function runTestsForOwnerTreeViewDirective(permissions) {
     describe('ownerTreeViewDirective', function() {
-      var $httpBackend, $state, CLMLocations, CLMAppLocations,
-          ownerList = SidebarResourceMockData.getOwnerListUrl();
+      var ownerList = SidebarResourceMockData.getOwnerListUrl();
 
       beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
                                  _CLMAppLocations_)
@@ -275,4 +274,52 @@ describe('owner.tree-view.directive.spec.js', function() {
   describe('ownerTreeViewDirective without repositories', function() {
     runTestsForOwnerTreeViewDirective([]);
   });
+
+  describe('management.view redirects', function() {
+    var $timeout;
+
+    beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
+                               _CLMAppLocations_)
+    {
+      $httpBackend = _$httpBackend_;
+      $state = _$state_;
+      $timeout = _$timeout_;
+      CLMLocations = _CLMLocations_;
+      CLMAppLocations = _CLMAppLocations_;
+
+      spyOn($state, 'is').andReturn(true);
+      scope = _$rootScope_.$new();
+      var ownerTreeView = angular.element('<div owner-tree-view></div>');
+      _$compile_(ownerTreeView)(scope);
+      SpecUtil.respondWithTemplate($httpBackend,
+          'owner.manager/navigation/owner.tree.view.directive.html?' + clmBuildTimestamp);
+
+      spyOn($state, 'go');
+    }));
+
+    it('redirects to the root org if accessible', function() {
+      doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl());
+      expect($state.go).toHaveBeenCalledWith('.organization', {organizationId: 'ROOT_ORGANIZATION_ID'});
+    });
+
+    it('redirects to the first non-synthetic org', function() {
+      doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl_noRoot());
+      expect($state.go).toHaveBeenCalledWith('.organization', {organizationId: 'nonSynthOrgID'});
+    });
+
+    it('redirects to the first application if no non-syntehtic orgs present', function() {
+      doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
+      expect($state.go).toHaveBeenCalledWith('.application', {applicationPublicId: 'applicationOnePublicID'});
+    });
+
+    function doLoadWithOwnerList(ownerList) {
+      $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
+      $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      scope.$digest();
+      $httpBackend.flush();
+      $timeout.flush();
+    }
+
+  });
+
 });

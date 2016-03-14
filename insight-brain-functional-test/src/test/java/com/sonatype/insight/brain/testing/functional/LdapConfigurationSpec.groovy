@@ -224,8 +224,8 @@ class LdapConfigurationSpec
       waitFor { deleteConfirm.displayed }
       deleteConfirm.click()
 
-    then: 'The LDAP Server is deleted and we are forwarded to the Org management page'
+    then: 'The LDAP Server is deleted and we are forwarded to the Root Org management page'
       waitFor { !delete.present }
-      at ManagementPage
+      at RootOrgManagementPage
   }
 }

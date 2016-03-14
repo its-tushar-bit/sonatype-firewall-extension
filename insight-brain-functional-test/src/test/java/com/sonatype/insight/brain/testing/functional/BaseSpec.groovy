@@ -197,7 +197,11 @@ extends GebReportingSpec {
       }
       login.login(username, password)
     }
-    verifyAt()
+    if (ManagementPage.class.equals(initialPage)) {
+      at(RootOrgManagementPage)
+    } else {
+      verifyAt()
+    }
     return page
   }
 

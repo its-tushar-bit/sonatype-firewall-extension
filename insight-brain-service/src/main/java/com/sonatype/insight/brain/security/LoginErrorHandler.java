@@ -15,6 +15,9 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.shiro.authc.AuthenticationException;
 
+/**
+ * @since 1.20.0
+ */
 class LoginErrorHandler
 {
   private static final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator();

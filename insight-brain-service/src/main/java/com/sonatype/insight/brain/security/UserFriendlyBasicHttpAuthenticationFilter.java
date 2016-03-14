@@ -15,6 +15,8 @@ import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 
 /**
  * Specialized BASIC auth filter that better conveys why authentication failed.
+ * 
+ * @since 1.20.0
  */
 class UserFriendlyBasicHttpAuthenticationFilter
     extends BasicHttpAuthenticationFilter

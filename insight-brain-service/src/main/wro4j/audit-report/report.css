@@ -481,3 +481,12 @@ i.unknown-format {
 #audit-report {
   width: 990px;
 }
+
+h4 {
+  font-size: 14px;
+}
+
+.nav-tabs > li > a,
+.nav-pills > li > a {
+  cursor: pointer;
+}

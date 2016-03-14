@@ -189,6 +189,11 @@
           ]
         }
       },
+      useminAuditReport: {
+        html: [
+          '<%= config.generated %>/audit-report/index.html'
+        ]
+      },
       sass: {
         build: {
           files: {
@@ -256,6 +261,12 @@
       grunt.config.merge(this.data);
     });
 
+    grunt.registerTask('useminAuditReport', function () {
+      var useminSecondTargetConfig = grunt.config('useminAuditReport');
+      grunt.config.set('usemin', useminSecondTargetConfig);
+      grunt.task.run('usemin');
+    });
+
     grunt.registerTask('build', [
       'configure_override:build',
 
@@ -270,6 +281,7 @@
       'cssmin:generated',
       'filerev',
       'usemin',
+      'useminAuditReport',
       'template:build',
 
       'clean:temp'
@@ -285,7 +297,7 @@
     grunt.registerTask('m2e', [
       'configure_override:develop',
 
-      'clean',
+      'clean:temp',
       'copy:develop',
       'sass',
       'copy:develop_sass',
@@ -298,7 +310,7 @@
 
       'jshint',
       'bower:install',
-      'clean',
+      'clean:temp',
       'copy:develop',
       'sass',
       'copy:develop_sass',

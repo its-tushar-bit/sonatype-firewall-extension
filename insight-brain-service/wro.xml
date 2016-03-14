@@ -231,7 +231,6 @@
     <js>/wro4j/lib/jquery/jquery.tipsy.js</js>
     <js>/wro4j/lib/slickgrid/jquery.event.drag-2.0.min.js</js>
 
-    <group-ref>bootstrap-css</group-ref>
     <css>/wro4j/audit-report/jquery/jquery-ui.css</css>
     <css>/wro4j/lib/slickgrid/slick.grid.css</css>
     <css>/wro4j/audit-report/slickgrid/slick.grid.custom.css</css>

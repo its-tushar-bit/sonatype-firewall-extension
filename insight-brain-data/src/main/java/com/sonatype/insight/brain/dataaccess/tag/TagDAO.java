@@ -199,6 +199,6 @@ public class TagDAO
   }
 
   public List<Tag> getAll(TransactionContext tx) {
-    return getList("SELECT entity FROM Tag entity");
+    return getList(tx, "SELECT entity FROM Tag entity");
   }
 }

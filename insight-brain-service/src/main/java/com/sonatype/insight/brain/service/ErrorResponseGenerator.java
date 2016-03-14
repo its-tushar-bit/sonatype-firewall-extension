@@ -35,7 +35,6 @@ public class ErrorResponseGenerator
     super(false);
   }
 
-  @SuppressWarnings("StatementWithEmptyBody")
   @Override
   protected ErrorResponse buildErrorResponse(final Throwable e) {
     if (e instanceof AuthenticationException) {

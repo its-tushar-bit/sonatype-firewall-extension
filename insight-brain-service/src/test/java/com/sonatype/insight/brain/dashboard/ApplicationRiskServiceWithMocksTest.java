@@ -22,9 +22,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
-import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -39,7 +37,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -81,9 +78,6 @@ public class ApplicationRiskServiceWithMocksTest
   private CurrentUser currentUser;
 
   @Mock
-  private ApplicationAdapter applicationAdapter;
-
-  @Mock
   private CLMLicenseManager licenseManager;
 
   private DashboardUtils dashboardUtils;
@@ -102,11 +96,9 @@ public class ApplicationRiskServiceWithMocksTest
     when(licenseManager.hasDashboard()).thenReturn(true);
 
     dashboardUtils = new DashboardUtils(licenseManager, stageTypeService);
-    applicationRiskService = new ApplicationRiskService(applicationService, applicationAdapter, policyEvaluationDAO,
-        policyViolationDAO, dashboardUtils);
+    applicationRiskService = new ApplicationRiskService(applicationService, policyEvaluationDAO, policyViolationDAO,
+        dashboardUtils);
   }
-
-  private ContactDTO contactDTO = new ContactDTO(appUsername, "displayName", "email@example.com", "realm");
 
   private StageType buildStage = StageTypes.BUILD;
 
@@ -192,12 +184,8 @@ public class ApplicationRiskServiceWithMocksTest
     }
 
     Set<String> returnAppIds = Sets.newHashSet();
-    List<String> appUserNames = Lists.newArrayList();
-    List<ContactDTO> contacts = Lists.newArrayList();
     for (Application app : returnApps) {
       returnAppIds.add(app.getId());
-      appUserNames.add(app.getContactInternalName());
-      contacts.add(contactDTO);
     }
 
     Set<String> policyEvaluationIds = Sets.newHashSet();
@@ -209,7 +197,6 @@ public class ApplicationRiskServiceWithMocksTest
     when(applicationService.getApplicationsByIdsAndTagIds(returnAppIds, null)).thenReturn(returnApps);
     when(policyEvaluationDAO.getLastByApplicationIdsAndStageIds(returnAppIds, stageIds)).thenReturn(policyEvals);
     when(policyViolationDAO.getActiveByEvaluationIds(policyEvaluationIds)).thenReturn(policyViolations);
-    when(applicationAdapter.getContacts(appUserNames)).thenReturn(contacts.toArray(new ContactDTO[contacts.size()]));
 
     return applicationRiskService.getApplicationRisks(returnAppIds, stageIds, null, null, null, limit);
   }
@@ -225,10 +212,6 @@ public class ApplicationRiskServiceWithMocksTest
     assertEquals("Risk name was set right", appName, result.get(0).applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result.get(0).applicationId);
     assertThat(result0.stageRisks, hasSize(1));
-    assertThat(result0.applicationContact.getEmail(), is(contactDTO.getEmail()));
-    assertThat(result0.applicationContact.getDisplayName(), is(contactDTO.getDisplayName()));
-    assertThat(result0.applicationContact.getInternalName(), is(appUsername));
-    assertThat(result0.applicationContact.getRealm(), is(contactDTO.getRealm()));
 
     StageRiskScoreDTO buildStageRisk = result0.getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);
@@ -452,7 +435,6 @@ public class ApplicationRiskServiceWithMocksTest
             Sets.newHashSet(buildStage.getId()))).thenReturn(Lists.newArrayList(policyEvaluation1));
     when(policyViolationDAO.getActiveByEvaluationIds(Sets.newHashSet(policyEvaluation1.getId()))).thenReturn(
         Lists.newArrayList(vio1));
-    when(applicationAdapter.getContacts(Lists.<String> newArrayList())).thenReturn(new ContactDTO[0]);
 
     List<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(
         Sets.newHashSet(application99.getId()), null, null, null, null, Integer.MAX_VALUE);
@@ -463,7 +445,6 @@ public class ApplicationRiskServiceWithMocksTest
     assertEquals("Risk name was set right", appName, result0.applicationName);
     assertEquals("Risk public appID was set right", appPublicId1, result0.applicationId);
     assertThat(result0.stageRisks, hasSize(1));
-    assertThat(result0.applicationContact, nullValue());
 
     StageRiskScoreDTO buildStageRisk = result0.getStageRiskScore(buildStage.getId());
     assertRisk(buildStageRisk.risk, 0, 5, 0, 0, 5);

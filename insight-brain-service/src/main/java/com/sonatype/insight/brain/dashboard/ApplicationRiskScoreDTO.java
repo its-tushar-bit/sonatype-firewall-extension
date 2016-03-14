@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.dashboard;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.organization.ContactDTO;
-
 /**
  * @since 1.11.0
  */
@@ -19,19 +17,15 @@ public class ApplicationRiskScoreDTO
 
   public String applicationId;
 
-  public ContactDTO applicationContact;
-
   public RiskDTO totalApplicationRisk = new RiskDTO();
 
   public List<StageRiskScoreDTO> stageRisks = new ArrayList<>();
 
   public ApplicationRiskScoreDTO(final String applicationName,
-                                 final String applicationId,
-                                 final ContactDTO applicationContact)
+                                 final String applicationId)
   {
     this.applicationName = applicationName;
     this.applicationId = applicationId;
-    this.applicationContact = applicationContact;
   }
 
   public void addStageRiskScore(StageRiskScoreDTO newStageRisk) {

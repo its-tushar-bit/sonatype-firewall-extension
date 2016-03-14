@@ -28,14 +28,10 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
-import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.model.HasStringId;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -51,8 +47,6 @@ public class ApplicationRiskService
 
   private final ApplicationService applicationService;
 
-  private final ApplicationAdapter applicationAdapter;
-
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
@@ -61,13 +55,11 @@ public class ApplicationRiskService
 
   @Inject
   public ApplicationRiskService(ApplicationService applicationService,
-                                ApplicationAdapter applicationAdapter,
                                 PolicyEvaluationDAO policyEvaluationDAO,
                                 PolicyViolationDAO policyViolationDAO,
                                 DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
-    this.applicationAdapter = applicationAdapter;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.dashboardUtils = dashboardUtils;
@@ -137,12 +129,9 @@ public class ApplicationRiskService
                                                                         final Map<String, List<PolicyViolation>> violationsByAppId)
   {
     List<ApplicationRiskScoreDTO> applicationRiskScores = new ArrayList<>();
-    ContactDTO[] contactsForApplications = findContactsForApplications(appsToSearch);
-    for (int i = 0; i < appsToSearch.size(); i++) {
-      Application application = appsToSearch.get(i);
-      ContactDTO contactDTO = (i < contactsForApplications.length) ? contactsForApplications[i] : null;
+    for (Application application : appsToSearch) {
       ApplicationRiskScoreDTO applicationRisk = new ApplicationRiskScoreDTO(application.getName(),
-          application.getPublicId(), contactDTO);
+          application.getPublicId());
 
       List<PolicyViolation> violationsForApp = violationsByAppId.get(application.getId());
       if (violationsForApp != null) {
@@ -168,23 +157,6 @@ public class ApplicationRiskService
     }
 
     return applicationRiskScores;
-  }
-
-  private ContactDTO[] findContactsForApplications(final List<Application> applications) {
-    List<String> contactNames = Lists.newArrayList(Iterables.filter(
-        Iterables.transform(applications, new Function<Application, String>()
-        {
-          @Nullable
-          @Override
-          public String apply(@Nullable final Application application) {
-            return (application == null || application.getContactInternalName() == null) ? null : application
-                .getContactInternalName();
-          }
-        }), Predicates.notNull()));
-
-    // still kind of hazy what happens down in LDAP land if we get nulls for some of the elements,
-    // we may have to deal with that
-    return applicationAdapter.getContacts(contactNames);
   }
 
   private <T extends HasStringId> Map<String, T> mapCollectionById(Collection<T> col) {

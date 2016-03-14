@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import com.sonatype.insight.scan.util.HashUtils;
-
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

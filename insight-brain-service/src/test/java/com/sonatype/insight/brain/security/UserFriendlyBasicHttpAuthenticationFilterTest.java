@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.shiro.authc.AuthenticationException;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -29,12 +28,7 @@ import static org.mockito.Mockito.when;
 
 public class UserFriendlyBasicHttpAuthenticationFilterTest
 {
-  private UserFriendlyBasicHttpAuthenticationFilter userFriendlyBasicHttpAuthenticationFilter;
-
-  @Before
-  public void setUp() {
-    userFriendlyBasicHttpAuthenticationFilter = new UserFriendlyBasicHttpAuthenticationFilter();
-  }
+  private UserFriendlyBasicHttpAuthenticationFilter userFriendlyBasicHttpAuthenticationFilter = new UserFriendlyBasicHttpAuthenticationFilter();
 
   @Test
   public void testOnLoginFailureCallsSendError() throws IOException {

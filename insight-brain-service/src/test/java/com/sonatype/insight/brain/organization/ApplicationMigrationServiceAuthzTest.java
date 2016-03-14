@@ -57,4 +57,31 @@ public class ApplicationMigrationServiceAuthzTest
     assertThat(orgs, hasSize(1));
     assertThat(orgs.get(0).getId(), is(org2.getId()));
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testMigrateApplication_Unauthenticated() {
+    applicationMigrationService.migrateApplication(app.getId(), app.getOrganizationId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testMigrateApplication_Unauthorized_SourceApp() {
+    Organization org = tempEntity.newOrganization();
+    grantAddApplicationPermission(org.getId());
+    applicationMigrationService.migrateApplication(app.getId(), org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testMigrateApplication_Unauthorized_DestinationOrg() {
+    Organization org = tempEntity.newOrganization();
+    grantWritePermission(app.getId());
+    applicationMigrationService.migrateApplication(app.getId(), org.getId());
+  }
+
+  @Test
+  public void testMigrateApplication_Authorized() {
+    Organization org = tempEntity.newOrganization();
+    grantWritePermission(app.getId());
+    grantAddApplicationPermission(org.getId());
+    applicationMigrationService.migrateApplication(app.getId(), org.getId());
+  }
 }

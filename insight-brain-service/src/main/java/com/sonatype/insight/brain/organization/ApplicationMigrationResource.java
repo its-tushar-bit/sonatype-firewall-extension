@@ -10,6 +10,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -30,6 +31,8 @@ public class ApplicationMigrationResource
 
   static final String DESTINATIONS_PATH = "destinations";
 
+  static final String DESTINATION_PATH = DESTINATIONS_PATH + "/{organizationId}";
+
   private final ApplicationMigrationService applicationMigrationService;
 
   @Inject
@@ -42,5 +45,14 @@ public class ApplicationMigrationResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<Organization> getDestinationOrganizations(@PathParam("applicationId") String applicationId) {
     return applicationMigrationService.getDestinationOrganizations(applicationId);
+  }
+
+  @POST
+  @Path(DESTINATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public void migrateApplication(@PathParam("applicationId") String applicationId,
+                                 @PathParam("organizationId") String organizationId)
+  {
+    applicationMigrationService.migrateApplication(applicationId, organizationId);
   }
 }

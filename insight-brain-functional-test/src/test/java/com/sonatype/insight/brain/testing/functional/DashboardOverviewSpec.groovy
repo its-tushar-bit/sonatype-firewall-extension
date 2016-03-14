@@ -69,7 +69,7 @@ extends BaseSpec {
   def setupSpec() {
     org = temporaryEntity.newOrganization('DashboardSpec')
     firstApp = temporaryEntity.newApplication('DashboardSpecAppOne', 'DashboardSpecAppOne', org.id)
-    firstAppTag = temporaryEntity.newTag(org.id, 'DashboardSpecAppOneTag', Color.blue)
+    firstAppTag = temporaryEntity.newTag(org.id, 'DashboardSpecAppOneTag', Color.dark_blue)
     temporaryEntity.newApplicationTag(firstApp.id, firstAppTag.id)
 
     secondApp = temporaryEntity.newApplication('DashboardSpecAppTwo', 'DashboardSpecAppTwo', org.id)
@@ -208,7 +208,7 @@ extends BaseSpec {
     newestRiskPage.filters.applicationTagMultiselect.showDropdown()
     newestRiskPage.filters.applicationTagMultiselect.dropdownCheck(firstAppTag.name).displayed
     newestRiskPage.filters.applicationTagMultiselect.dropdownOwner(firstAppTag.name).text() == 'in ' + org.name
-    newestRiskPage.filters.applicationTagMultiselect.areOptionsColored([(firstAppTag.name): "blue"])
+    newestRiskPage.filters.applicationTagMultiselect.areOptionsColored([(firstAppTag.name): "dark-blue"])
     newestRiskPage.filters.applicationTagMultiselect.hideDropdown()
 
     and: 'policy threat level filter is shown'

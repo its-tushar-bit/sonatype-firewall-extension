@@ -65,13 +65,13 @@ public class TagDAOTest
 
     // Update
     tag.setName("Updated Name");
-    tag.setColor(Color.black);
+    tag.setColor(Color.dark_purple);
     dao.update(tag);
 
     // Get
     tag = dao.getById(tag.getId());
     assertThat(tag, notNullValue());
-    assertTag(organization.getId(), "Updated Name", "testCRUD description", Color.black, tag);
+    assertTag(organization.getId(), "Updated Name", "testCRUD description", Color.dark_purple, tag);
 
     // Delete
     dao.delete(tag);
@@ -410,6 +410,43 @@ public class TagDAOTest
     }
     catch (InvalidTagException expected) {
       assertEquals("The application category color must be assigned.", expected.getMessage());
+    }
+  }
+
+  @Test
+  public void testLegacyColorsInvalid() throws Exception {
+    @SuppressWarnings("deprecation")
+    Color[] legacyColors = new Color[] { Color.white, Color.grey, Color.black, Color.green, Color.red, Color.blue };
+
+    Tag tag = new Tag();
+    tag.setOrganizationId(organization.getId());
+    tag.setName("MyLabel");
+    tag.setDescription("description");
+
+    // Insert
+    for (Color color : legacyColors) {
+      try {
+        tag.setColor(color);
+        dao.insert(tag);
+        fail("Expected InvalidTagException");
+      }
+      catch (InvalidTagException e) {
+        assertEquals("The application category color " + color.toValue() + " is invalid.", e.getMessage());
+      }
+    }
+
+    // Update
+    tag.setColor(Color.dark_blue);
+    dao.insert(tag);
+    for (Color color : legacyColors) {
+      try {
+        tag.setColor(color);
+        dao.update(tag);
+        fail("Expected InvalidTagException");
+      }
+      catch (InvalidTagException e) {
+        assertEquals("The application category color " + color.toValue() + " is invalid.", e.getMessage());
+      }
     }
   }
 

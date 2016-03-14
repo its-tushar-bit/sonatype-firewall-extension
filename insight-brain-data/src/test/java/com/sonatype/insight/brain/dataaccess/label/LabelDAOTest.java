@@ -39,7 +39,7 @@ public class LabelDAOTest
     LabelDAO dao = new LabelDAO();
     for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
       try {
-        dao.insert(new Label(applicationId, labelName, Color.white));
+        dao.insert(new Label(applicationId, labelName, Color.light_green));
         fail("Expected InvalidNameException");
       }
       catch (InvalidNameException e) {
@@ -51,7 +51,7 @@ public class LabelDAOTest
   @Test
   public void testValidateLabelNameInvalidChars_Update() {
     LabelDAO dao = new LabelDAO();
-    Label label = tempEntity.newLabel(applicationId, "label", Color.white);
+    Label label = tempEntity.newLabel(applicationId, "label", Color.light_green);
     for (String labelName : NameHelperTest.INVALID_CHARACTERS) {
       label.setLabel(labelName);
       try {
@@ -67,14 +67,14 @@ public class LabelDAOTest
   @Test
   public void testValidateLabelNameValidChars_Insert() {
     for (String labelName : NameHelperTest.VALID_NAMES) {
-      tempEntity.newLabel(applicationId, labelName, Color.white);
+      tempEntity.newLabel(applicationId, labelName, Color.light_green);
     }
   }
 
   @Test
   public void testValidateLabelNameValidChars_Update() {
     LabelDAO dao = new LabelDAO();
-    Label label = tempEntity.newLabel(applicationId, "label", Color.white);
+    Label label = tempEntity.newLabel(applicationId, "label", Color.light_green);
     for (String labelName : NameHelperTest.VALID_NAMES) {
       label.setLabel(labelName);
       dao.update(label);
@@ -83,13 +83,13 @@ public class LabelDAOTest
 
   @Test
   public void testOlderLabelUpdate() throws Exception {
-    Label oldLabel = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/clearly_not_valid", Color.blue);
+    Label oldLabel = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/clearly_not_valid", Color.dark_blue);
     LabelDAO dao = new LabelDAO();
 
     // Update old label without changing label text.
-    oldLabel.setColor(Color.white);
+    oldLabel.setColor(Color.light_green);
     dao.update(oldLabel);
-    assertLabel(applicationId, "*/clearly_not_valid", Color.white, null, oldLabel);
+    assertLabel(applicationId, "*/clearly_not_valid", Color.light_green, null, oldLabel);
 
     // Attempt to update old label's label text using invalid characters.
     oldLabel.setLabel("*/a_new_invalid_name");
@@ -105,7 +105,7 @@ public class LabelDAOTest
     oldLabel.setLabel("_.- a valid label -._");
     dao.update(oldLabel);
     oldLabel = dao.getByIdNotNull(oldLabel.getId());
-    assertLabel(applicationId, "_.- a valid label -._", Color.white, null, oldLabel);
+    assertLabel(applicationId, "_.- a valid label -._", Color.light_green, null, oldLabel);
   }
 
   @Test
@@ -115,21 +115,21 @@ public class LabelDAOTest
     label.setOwnerId(applicationId);
     label.setLabel("My Label");
     label.setDescription("My label description.");
-    label.setColor(Color.blue);
+    label.setColor(Color.dark_blue);
 
     // Create
     dao.insert(label);
 
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "My Label", Color.blue, "My label description.", label);
+    assertLabel(applicationId, "My Label", Color.dark_blue, "My label description.", label);
 
     // Update
     label.setLabel("My Updated Label");
     dao.update(label);
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "My Updated Label", Color.blue, "My label description.", label);
+    assertLabel(applicationId, "My Updated Label", Color.dark_blue, "My label description.", label);
   }
 
   @Test
@@ -274,7 +274,7 @@ public class LabelDAOTest
     }
 
     // Update
-    label.setColor(Color.white);
+    label.setColor(Color.dark_blue);
     dao.insert(label);
     label.setColor(null);
     try {
@@ -287,6 +287,43 @@ public class LabelDAOTest
   }
 
   @Test
+  public void testLegacyColorsInvalid() throws Exception {
+    @SuppressWarnings("deprecation")
+    Color[] legacyColors = new Color[] { Color.white, Color.grey, Color.black, Color.green, Color.red, Color.blue };
+
+    LabelDAO dao = new LabelDAO();
+    Label label = new Label();
+    label.setOwnerId(applicationId);
+    label.setLabel("MyLabel");
+
+    // Insert
+    for (Color color : legacyColors) {
+      try {
+        label.setColor(color);
+        dao.insert(label);
+        fail("Expected InvalidLabelException");
+      }
+      catch (InvalidLabelException e) {
+        assertEquals("The label color " + color.toValue() + " is invalid.", e.getMessage());
+      }
+    }
+
+    // Update
+    label.setColor(Color.dark_blue);
+    dao.insert(label);
+    for (Color color : legacyColors) {
+      try {
+        label.setColor(color);
+        dao.update(label);
+        fail("Expected InvalidLabelException");
+      }
+      catch (InvalidLabelException e) {
+        assertEquals("The label color " + color.toValue() + " is invalid.", e.getMessage());
+      }
+    }
+  }
+
+  @Test
   public void testCRUD() throws Exception {
     LabelDAO dao = new LabelDAO();
 
@@ -294,14 +331,14 @@ public class LabelDAOTest
     Label label = new Label();
     label.setOwnerId(applicationId);
     label.setLabel("MyLabel");
-    label.setColor(Color.blue);
+    label.setColor(Color.dark_blue);
     label.setDescription("My label   description.");
     dao.insert(label);
     Assert.assertNotNull(label.getId());
 
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "MyLabel", Color.blue, "My label   description.", label);
+    assertLabel(applicationId, "MyLabel", Color.dark_blue, "My label   description.", label);
 
     // Update
     label.setLabel("MyUpdatedLabel");
@@ -309,7 +346,7 @@ public class LabelDAOTest
 
     label = dao.getById(label.getId());
     Assert.assertNotNull(label);
-    assertLabel(applicationId, "MyUpdatedLabel", Color.blue, "My label   description.", label);
+    assertLabel(applicationId, "MyUpdatedLabel", Color.dark_blue, "My label   description.", label);
 
     // Delete
     dao.delete(label);
@@ -327,7 +364,7 @@ public class LabelDAOTest
     Label label = new Label();
     label.setOwnerId(applicationId);
     label.setLabel("MyLabel");
-    label.setColor(Color.blue);
+    label.setColor(Color.dark_blue);
     labelDAO.insert(label);
     Assert.assertNotNull(label.getId());
 
@@ -352,13 +389,13 @@ public class LabelDAOTest
     Label label = new Label();
     label.setOwnerId(applicationId);
     label.setLabel("MyLabel");
-    label.setColor(Color.blue);
+    label.setColor(Color.dark_blue);
     labelDAO.insert(label);
 
     // Add another label with the same name
     label = new Label();
     label.setOwnerId(applicationId);
-    label.setColor(Color.blue);
+    label.setColor(Color.dark_blue);
     label.setLabel("MyLabel");
     try {
       labelDAO.insert(label);
@@ -381,20 +418,20 @@ public class LabelDAOTest
     Label label1 = new Label();
     label1.setOwnerId(applicationId);
     label1.setLabel("MyLabel1");
-    label1.setColor(Color.blue);
+    label1.setColor(Color.dark_blue);
     labelDAO.insert(label1);
 
     // Add another label
     Label label2 = new Label();
     label2.setOwnerId(applicationId);
-    label2.setColor(Color.blue);
+    label2.setColor(Color.dark_blue);
     label2.setLabel("MyLabel2");
     labelDAO.insert(label2);
 
     // Update without changing the name
-    label2.setColor(Color.red);
+    label2.setColor(Color.dark_red);
     labelDAO.update(label2);
-    assertLabel(applicationId, "MyLabel2", Color.red, null, label2);
+    assertLabel(applicationId, "MyLabel2", Color.dark_red, null, label2);
 
     // Update with a conflicting name
     label2.setLabel(label1.getLabel());
@@ -418,7 +455,7 @@ public class LabelDAOTest
     Label label1 = new Label();
     label1.setOwnerId(applicationId);
     label1.setLabel("MyLabel");
-    label1.setColor(Color.blue);
+    label1.setColor(Color.dark_blue);
     labelDAO.insert(label1);
 
     // direct insert of duplicate label
@@ -426,7 +463,7 @@ public class LabelDAOTest
       Label label2 = new Label();
       label2.setOwnerId(organization.getId());
       label2.setLabel("MyLabel");
-      label2.setColor(Color.blue);
+      label2.setColor(Color.dark_blue);
       labelDAO.insert(label2);
       fail("Expected InvalidLabelException");
     }
@@ -442,7 +479,7 @@ public class LabelDAOTest
     Label label2 = new Label();
     label2.setOwnerId(organization.getId());
     label2.setLabel("MyLabel2");
-    label2.setColor(Color.blue);
+    label2.setColor(Color.dark_blue);
     labelDAO.insert(label2);
     try {
       label2.setLabel("MyLabel");
@@ -466,7 +503,7 @@ public class LabelDAOTest
     Label label1 = new Label();
     label1.setOwnerId(organization.getId());
     label1.setLabel("MyLabel");
-    label1.setColor(Color.blue);
+    label1.setColor(Color.dark_blue);
     labelDAO.insert(label1);
 
     // direct insert of duplicate label
@@ -474,7 +511,7 @@ public class LabelDAOTest
       Label label2 = new Label();
       label2.setOwnerId(applicationId);
       label2.setLabel("MyLabel");
-      label2.setColor(Color.blue);
+      label2.setColor(Color.dark_blue);
       labelDAO.insert(label2);
       fail("Expected InvalidLabelException");
     }
@@ -490,7 +527,7 @@ public class LabelDAOTest
     Label label2 = new Label();
     label2.setOwnerId(applicationId);
     label2.setLabel("MyLabel2");
-    label2.setColor(Color.blue);
+    label2.setColor(Color.dark_blue);
     labelDAO.insert(label2);
     try {
       label2.setLabel("MyLabel");
@@ -522,7 +559,7 @@ public class LabelDAOTest
     Label label4 = new Label();
     label4.setOwnerId(org1.getParentOrganizationId());
     label4.setLabel("MyLabel");
-    label4.setColor(Color.blue);
+    label4.setColor(Color.dark_blue);
     try {
       labelDAO.insert(label4);
       fail("Expected InvalidLabelException");
@@ -544,7 +581,7 @@ public class LabelDAOTest
     Label label2 = new Label();
     label2.setOwnerId(organization.getId());
     label2.setLabel("MyLabel");
-    label2.setColor(Color.blue);
+    label2.setColor(Color.dark_blue);
     try {
       labelDAO.insert(label2);
       fail("Expected InvalidLabelException");
@@ -585,7 +622,7 @@ public class LabelDAOTest
   @Test
   public void testLongDescription() {
     LabelDAO labelDAO = new LabelDAO();
-    Label label = new Label(organization.getId(), "testLongDescriptionLabel", Color.black);
+    Label label = new Label(organization.getId(), "testLongDescriptionLabel", Color.dark_purple);
     label.setDescription(StringUtils.leftPad("", LabelDAO.MAX_DESC_SIZE + 1, "a"));
     try {
       labelDAO.insert(label);

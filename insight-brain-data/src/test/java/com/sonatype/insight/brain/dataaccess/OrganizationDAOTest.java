@@ -450,7 +450,7 @@ public class OrganizationDAOTest
 
     Label label = new Label();
     label.setLabel("label");
-    label.setColor(Color.black);
+    label.setColor(Color.dark_purple);
     label.setOwnerId(organization.getId());
     labelDAO.insert(label);
 

@@ -416,8 +416,8 @@ public class RepositoryReportTest
     cipSetup();
     open(RepositoryReportPage.url(repo.getId()));
 
-    Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.blue);
-    Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.red);
+    Label elJunko = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Junko", Color.dark_blue);
+    Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.dark_red);
     tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, elJunko.getId(), criticalComponentHash);
     createPolicy(1, "Bad Label", LabelConditionType.ID, "is", elMagnifico.getId());
 
@@ -425,10 +425,10 @@ public class RepositoryReportTest
     openCip(0, "Labels");
 
     LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.blue)).action().should(exist);
+    LabelsCIP.appliedLabel(1).shouldHave(text("El Junko"), LabelsCIP.Label.color(Color.dark_blue)).action().should(exist);
 
     LabelsCIP.availableLabels().shouldHaveSize(1);
-    LabelsCIP.availableLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.red)).action().click();
+    LabelsCIP.availableLabel(1).shouldHave(text("El Magnifico"), LabelsCIP.Label.color(Color.dark_red)).action().click();
 
     // Modal
     AddLabelModal.root().shouldBe(visible);

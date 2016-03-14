@@ -119,8 +119,8 @@ public class OrganizationSummaryViewTest
       owners.add(owner);
 
       if (owner.getId() != null) {
-        tags.add(tempEntity.newTag(owner.getId(), owner.getName() + " Test Tag 1", Color.black));
-        tags.add(tempEntity.newTag(owner.getId(), owner.getName() + " Test Tag 2", Color.blue));
+        tags.add(tempEntity.newTag(owner.getId(), owner.getName() + " Test Tag 1", Color.dark_purple));
+        tags.add(tempEntity.newTag(owner.getId(), owner.getName() + " Test Tag 2", Color.dark_blue));
 
         ownerTags.add(tags);
       }
@@ -165,7 +165,7 @@ public class OrganizationSummaryViewTest
           actualCategory.description().shouldBe(visible).shouldHave(text(expectedCategory.getDescription()));
         }
 
-        actualCategory.icon().shouldBe(visible).shouldHave(cssClass(expectedCategory.getColor().toString()));
+        actualCategory.icon().shouldBe(visible).shouldHave(cssClass(expectedCategory.getColor().toValue()));
         actualCategory.name().shouldBe(visible).shouldHave(text(expectedCategory.getName()));
       }
     }

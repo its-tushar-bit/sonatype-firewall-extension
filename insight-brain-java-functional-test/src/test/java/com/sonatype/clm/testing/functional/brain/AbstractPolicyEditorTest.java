@@ -59,8 +59,8 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.insight.brain.model.Color.blue;
-import static com.sonatype.insight.brain.model.Color.red;
+import static com.sonatype.insight.brain.model.Color.dark_blue;
+import static com.sonatype.insight.brain.model.Color.dark_red;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -223,8 +223,8 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private Tag[] createCategories(String ownerId) {
-    Tag category1 = tempEntity.newTag(ownerId, "Cat_1", blue);
-    Tag category2 = tempEntity.newTag(ownerId, "Cat_2", red);
+    Tag category1 = tempEntity.newTag(ownerId, "Cat_1", dark_blue);
+    Tag category2 = tempEntity.newTag(ownerId, "Cat_2", dark_red);
     return new Tag[]{category1, category2};
   }
 

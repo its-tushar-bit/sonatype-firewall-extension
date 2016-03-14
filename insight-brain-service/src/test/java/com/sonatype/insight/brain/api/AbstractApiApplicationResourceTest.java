@@ -92,8 +92,8 @@ public abstract class AbstractApiApplicationResourceTest
     app = tempEntity.newApplication("test-app", "test-app", organization.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
     userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");
-    tagA = tempEntity.newTag(organization.getId(), "TagA", Color.red);
-    tagB = tempEntity.newTag(organization.getId(), "TagB", Color.red);
+    tagA = tempEntity.newTag(organization.getId(), "TagA", Color.dark_red);
+    tagB = tempEntity.newTag(organization.getId(), "TagB", Color.dark_red);
   }
 
   @Test

@@ -572,7 +572,7 @@ public class TemporaryEntity
   }
 
   public Label newLabel(String ownerId, String labelText) {
-    return newLabel(ownerId, labelText, Color.white);
+    return newLabel(ownerId, labelText, Color.light_green);
   }
 
   public Label newLabel(String ownerId, String labelText, Color color) {

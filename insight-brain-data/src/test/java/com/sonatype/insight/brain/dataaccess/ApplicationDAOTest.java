@@ -520,7 +520,7 @@ public class ApplicationDAOTest
   @Test
   public void testCascadeDeleteToLabels() {
     LabelDAO labelDAO = new LabelDAO();
-    Label label = new Label(application.getId(), "testCascadeDeleteToLabels", Color.blue);
+    Label label = new Label(application.getId(), "testCascadeDeleteToLabels", Color.dark_blue);
     labelDAO.insert(label);
 
     applicationDAO.delete(application);

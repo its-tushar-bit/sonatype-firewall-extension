@@ -67,7 +67,7 @@ public class LabelResourceTest
     response = request.body(label).post();
     assertResponseStatus(200, response);
     label = response.getBody(Label.class);
-    assertLabel(application.getId(), "MyLabel", Color.white, label);
+    assertLabel(application.getId(), "MyLabel", Color.light_green, label);
 
     // Get all labels
     response = request.get();
@@ -75,14 +75,14 @@ public class LabelResourceTest
     labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(application.getId(), "MyLabel", Color.white, labels[0]);
+    assertLabel(application.getId(), "MyLabel", Color.light_green, labels[0]);
 
     // Update a label
     label.setLabel("MyUpdatedLabel");
     response = request.body(label).put();
     assertResponseStatus(200, response);
     label = response.getBody(Label.class);
-    assertLabel(application.getId(), "MyUpdatedLabel", Color.white, label);
+    assertLabel(application.getId(), "MyUpdatedLabel", Color.light_green, label);
 
     // Get all labels
     response = request.get();
@@ -90,7 +90,7 @@ public class LabelResourceTest
     labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(application.getId(), "MyUpdatedLabel", Color.white, labels[0]);
+    assertLabel(application.getId(), "MyUpdatedLabel", Color.light_green, labels[0]);
 
     // Delete a label
     response = request.subpath(label.getId()).delete();
@@ -126,7 +126,7 @@ public class LabelResourceTest
     Application application1 = tempEntity.newApplicationWithParent(appPublicId1);
     String appPublicId2 = "LabelResourceTest_AppId2";
     tempEntity.newApplicationWithParent(appPublicId2);
-    Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.blue);
+    Label label = tempEntity.newLabel(application1.getId(), "MyLabel", Color.dark_blue);
 
     HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId2).path(label.getId()).delete();
     assertResponseStatus(404, response);
@@ -138,7 +138,7 @@ public class LabelResourceTest
     Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(application1.getId(), "MyLabel", Color.blue, labels[0]);
+    assertLabel(application1.getId(), "MyLabel", Color.dark_blue, labels[0]);
   }
 
   @Test
@@ -161,7 +161,7 @@ public class LabelResourceTest
     response = request.body(label).post();
     assertResponseStatus(200, response);
     label = response.getBody(Label.class);
-    assertLabel(organization.getId(), "MyLabel", Color.white, label);
+    assertLabel(organization.getId(), "MyLabel", Color.light_green, label);
 
     // Get all labels
     response = request.get();
@@ -169,14 +169,14 @@ public class LabelResourceTest
     labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(organization.getId(), "MyLabel", Color.white, labels[0]);
+    assertLabel(organization.getId(), "MyLabel", Color.light_green, labels[0]);
 
     // Update a label
     label.setLabel("MyUpdatedLabel");
     response = request.body(label).put();
     assertResponseStatus(200, response);
     label = response.getBody(Label.class);
-    assertLabel(organization.getId(), "MyUpdatedLabel", Color.white, label);
+    assertLabel(organization.getId(), "MyUpdatedLabel", Color.light_green, label);
 
     // Get all labels
     response = request.get();
@@ -184,7 +184,7 @@ public class LabelResourceTest
     labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(organization.getId(), "MyUpdatedLabel", Color.white, labels[0]);
+    assertLabel(organization.getId(), "MyUpdatedLabel", Color.light_green, labels[0]);
 
     // Delete a label
     response = request.subpath(label.getId()).delete();
@@ -270,7 +270,7 @@ public class LabelResourceTest
     String orgName2 = "LabelResourceTestOrgName2";
     Organization organization2 = tempEntity.newOrganization(orgName2);
 
-    Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.blue);
+    Label label = tempEntity.newLabel(organization1.getId(), "MyLabel", Color.dark_blue);
 
     HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization2.getId()).path(label.getId()).delete();
     assertResponseStatus(404, response);
@@ -283,7 +283,7 @@ public class LabelResourceTest
     Label[] labels = response.getBody(Label[].class);
     Assert.assertNotNull(labels);
     Assert.assertEquals(1, labels.length);
-    assertLabel(organization1.getId(), "MyLabel", Color.blue, labels[0]);
+    assertLabel(organization1.getId(), "MyLabel", Color.dark_blue, labels[0]);
   }
 
   /**

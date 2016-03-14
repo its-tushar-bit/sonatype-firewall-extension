@@ -207,7 +207,7 @@ public class ApplicationSummaryViewTest
   public void testApplicationCategoryTile() {
     testApplicationCategoryTile_noneDefined();
 
-    Tag category = tempEntity.newTag(application.getParentOwnerId(), "Test Tag", Color.blue);
+    Tag category = tempEntity.newTag(application.getParentOwnerId(), "Test Tag", Color.dark_blue);
     refresh();
 
     testApplicationCategoryTile_Empty();
@@ -257,7 +257,7 @@ public class ApplicationSummaryViewTest
     appliedCategoryList.elements().shouldHaveSize(1);
     appliedCategoryList.element(0).name().shouldBe(visible).shouldHave(text(category.getName()));
     appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
-    appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
+    appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toValue()));
     appliedCategoryList.element(0).chevron().shouldNotBe(visible);
   }
 

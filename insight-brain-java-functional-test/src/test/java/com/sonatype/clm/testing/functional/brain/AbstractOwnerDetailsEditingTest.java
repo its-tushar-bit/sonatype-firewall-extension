@@ -183,7 +183,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     detailGroup.item(2).root().shouldBe(visible).shouldHave(text(label.getLabel())).click();
     detailGroup.item(2).root().shouldBe(CLM.SELECTED);
-    detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(label.getColor().toString()));
+    detailGroup.item(2).icon().shouldBe(visible).shouldHave(cssClass(label.getColor().toValue()));
     waitUntilUrl(LabelEditorPage
         .urlToEdit(currentOwner.getType().toString(), currentOwner.getPublicId(), label.getId()));
 

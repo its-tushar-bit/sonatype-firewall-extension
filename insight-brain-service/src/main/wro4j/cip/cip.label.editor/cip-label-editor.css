@@ -8,6 +8,7 @@
   overflow: hidden;
   text-align: center;
   border-color: #AFBFCF;
+  color: #575757;
 }
 
 span.clmLabel {
@@ -20,55 +21,49 @@ span.clmLabel {
   white-space: nowrap;
 }
 
-.clmLabel > option[value="0"] {
-  background-color: white;
-  color: black;
+.clmLabel.light-red {
+  background-color: #edb1af;
 }
 
-.whiteLabel, .clmLabel > option[value="1"] {
-  background-color: #EEEEEE;
-  color: black;
+.clmLabel.yellow {
+  background-color: #f5c648;
 }
 
-.greyLabel, .clmLabel > option[value="2"] {
-  background-color: #BFBFBF;
-  color: black;
+.clmLabel.light-green {
+  background-color: #b6e9ab;
 }
 
-.blackLabel, .clmLabel > option[value="3"] {
-  background-color: #444444;
-  color: white;
+.clmLabel.light-blue {
+  background-color: #97cbee;
 }
 
-.greenLabel, .clmLabel > option[value="4"] {
-  background-color: #46A546;
-  color: white;
+.clmLabel.light-purple {
+  background-color: #dbc6df;
 }
 
-.yellowLabel, .clmLabel > option[value="5"] {
-  background-color: #FAF20F;
-  color: black;
+.clmLabel.dark-red {
+  background-color: #bc012f;
+  color: #fefefe;
 }
 
-.orangeLabel, .clmLabel > option[value="6"] {
-  background-color: #F89406;
-  color: white;
+.clmLabel.orange {
+  background-color: #f4861d;
+  color: #fefefe;
 }
 
-.redLabel, .clmLabel > option[value="7"] {
-  background-color: #C43C35;
-  color: white;
+.clmLabel.dark-green {
+  background-color: #099843;
+  color: #fefefe;
 }
 
-.blueLabel, .clmLabel > option[value="8"] {
-  background-color: #0080FF;
-  color: white;
+.clmLabel.dark-blue {
+  background-color: #006bbf;
+  color: #fefefe;
 }
 
-.clmLabel > .remove {
-  text-shadow: 0 1px 0 #ffffff;
-  opacity: 0.4;
-  filter: alpha(opacity=40);
+.clmLabel.dark-purple {
+  background-color: #885195;
+  color: #fefefe;
 }
 
 .clmLabel > .remove:hover {

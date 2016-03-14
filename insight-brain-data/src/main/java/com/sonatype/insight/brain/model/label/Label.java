@@ -43,7 +43,7 @@ public class Label
 
   @Column(name = "color")
   @Enumerated(EnumType.STRING)
-  private Color color = Color.white;
+  private Color color = Color.light_green;
 
   public Label() {
   }

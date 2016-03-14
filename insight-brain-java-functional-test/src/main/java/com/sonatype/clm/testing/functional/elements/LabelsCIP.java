@@ -15,8 +15,9 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class LabelsCIP
 {
@@ -60,7 +61,7 @@ public class LabelsCIP
       extends BasicElement<Label>
   {
     public static Condition color(Color color) {
-      return cssClass(color.toValue() + "Label");
+      return cssClass(color.toValue());
     }
 
     Label(String selector) {

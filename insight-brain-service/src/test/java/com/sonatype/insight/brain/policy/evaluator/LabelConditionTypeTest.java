@@ -53,9 +53,9 @@ public class LabelConditionTypeTest
   @Test
   public void testEvaluateIs() {
     // Create some labels
-    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.green);
+    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.dark_green);
     String labelId1 = label1.getId();
-    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.red);
+    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.dark_red);
     String labelId2 = label2.getId();
 
     // Create policy constraints
@@ -92,9 +92,9 @@ public class LabelConditionTypeTest
   @Test
   public void testEvaluateIsNot() {
     // Create some labels
-    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.green);
+    Label label1 = tempEntity.newLabel(applicationId, "Good", Color.dark_green);
     String labelId1 = label1.getId();
-    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.red);
+    Label label2 = tempEntity.newLabel(applicationId, "Bad", Color.dark_red);
     String labelId2 = label2.getId();
 
     // Create policy constraints
@@ -133,9 +133,9 @@ public class LabelConditionTypeTest
   @Test
   public void testOrganizationLabelIs() {
     // Create some labels
-    Label label1 = tempEntity.newLabel(organizationId, "Good", Color.green);
+    Label label1 = tempEntity.newLabel(organizationId, "Good", Color.dark_green);
     String labelId1 = label1.getId();
-    Label label2 = tempEntity.newLabel(organizationId, "Bad", Color.red);
+    Label label2 = tempEntity.newLabel(organizationId, "Bad", Color.dark_red);
     String labelId2 = label2.getId();
 
     // Create policy constraints
@@ -185,7 +185,7 @@ public class LabelConditionTypeTest
 
   @Test
   public void testEvaluateLabelNameEdgeCase() {
-    Label label1 = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/comment-end", Color.green);
+    Label label1 = tempEntity.newLabelWithInvalidLabelText(applicationId, "*/comment-end", Color.dark_green);
     String labelId1 = label1.getId();
 
     List<Constraint> constraints = new ArrayList<>();

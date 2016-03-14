@@ -31,7 +31,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.open;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.insight.brain.model.Color.blue;
+import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.light_green;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -75,7 +75,7 @@ public class ApplicationCategoryEditorTest
   public void testCategorySave_SingleColumn() {
     CategoryTile categoryTile = new CategoryTileAppContext();
 
-    Tag category1 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_1", blue);
+    Tag category1 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_1", dark_blue);
     Tag category2 = tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_2", light_green);
 
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
@@ -121,8 +121,8 @@ public class ApplicationCategoryEditorTest
     List<Tag> categories = new ArrayList<>();
 
     for (int i = 0; i < 10; i++) {
-      categories.add(tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_" + i, (i % 2) == 0 ? blue
-          : light_green));
+      categories.add(tempEntity.newTag(application.getOrganizationId(), CATEGORY_NAME + "_" + i,
+          (i % 2) == 0 ? dark_blue : light_green));
     }
 
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));

@@ -215,8 +215,8 @@ public abstract class AbstractSummaryViewTest
   public void testTiles_Local() {
 
     List<Label> localLabels = new ArrayList<>();
-    localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 1", Color.black));
-    localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 2", "With Subtitle", Color.blue));
+    localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 1", Color.dark_purple));
+    localLabels.add(tempEntity.newLabel(currentOwner.getId(), "Temp Local Label 2", "With Subtitle", Color.dark_blue));
 
     List<LicenseThreatGroup> locaLTGs = new ArrayList<>();
     locaLTGs.add(tempEntity.newLicenseThreatGroup(currentOwner.getId(), "Temp Local License 1", 9));
@@ -273,7 +273,7 @@ public abstract class AbstractSummaryViewTest
             actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
           }
 
-          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toString()));
+          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toValue()));
           actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
           actualLabel.chevron().shouldBe(visible);
         }
@@ -443,8 +443,8 @@ public abstract class AbstractSummaryViewTest
       parentOwners.add(owner);
 
       if (owner.getId() != null) {
-        labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 1", Color.black));
-        labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 2", "With Subtitle", Color.blue));
+        labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 1", Color.dark_purple));
+        labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 2", "With Subtitle", Color.dark_blue));
 
         inheritedLabels.add(labels);
 
@@ -504,7 +504,7 @@ public abstract class AbstractSummaryViewTest
             actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
           }
 
-          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toString()));
+          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toValue()));
           actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
           actualLabel.chevron().shouldNot(exist);
         }

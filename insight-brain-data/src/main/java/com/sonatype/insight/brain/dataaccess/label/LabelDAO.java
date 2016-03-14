@@ -54,6 +54,13 @@ public class LabelDAO
   }
 
   /**
+   * @since 1.20
+   */
+  public List<Label> getAll(TransactionContext tx) {
+    return getList(tx, "SELECT label FROM Label label");
+  }
+
+  /**
    * @param inherit inherit boolean if {@code true} the returned list will include labels inherited from organization
    *          hierarchy
    */
@@ -152,6 +159,10 @@ public class LabelDAO
   private void validateLabelColor(Color color) {
     if (color == null) {
       throw new InvalidLabelException("The label color must be assigned.");
+    }
+
+    if (Color.isLegacy(color)) {
+      throw new InvalidLabelException("The label color " + color.toValue() + " is invalid.");
     }
   }
 

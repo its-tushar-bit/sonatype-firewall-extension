@@ -100,6 +100,10 @@ public class TagDAO
     if (color == null) {
       throw new InvalidTagException("The application category color must be assigned.");
     }
+
+    if (Color.isLegacy(color)) {
+      throw new InvalidTagException("The application category color " + color.toValue() + " is invalid.");
+    }
   }
 
   @Override
@@ -192,5 +196,9 @@ public class TagDAO
     }
 
     super.delete(tx, tag);
+  }
+
+  public List<Tag> getAll(TransactionContext tx) {
+    return getList("SELECT entity FROM Tag entity");
   }
 }

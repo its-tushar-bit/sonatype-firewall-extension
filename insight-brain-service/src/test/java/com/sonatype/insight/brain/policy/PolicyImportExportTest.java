@@ -104,6 +104,7 @@ public class PolicyImportExportTest
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testImportAndMergeLabelsForOrg() throws Exception {
     List<Label> orgLabels = createLabels(fromOrg.getId());
     createPolicy(fromOrg.getId(), orgLabels.get(0).getId(), "Org Policy");
@@ -111,13 +112,17 @@ public class PolicyImportExportTest
     exportDTO = detachObjects(exportDTO);
     deleteFromOrg();
 
+    // change the color to a legacy value
+    exportDTO.labels.get(0).setColor(Color.black);
+    exportDTO.labels.get(1).setColor(Color.blue);
+
     Organization toOrg = tempEntity.newOrganization();
 
-    Label oldLabelToUpdate = new Label(toOrg.getId(), orgLabels.get(0).getLabel().toLowerCase(), Color.white);
+    Label oldLabelToUpdate = new Label(toOrg.getId(), orgLabels.get(0).getLabel().toLowerCase(), Color.light_green);
     oldLabelToUpdate.setDescription("anything");
     labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToKeep = new Label(toOrg.getId(), "keepMe", Color.red);
+    Label oldLabelToKeep = new Label(toOrg.getId(), "keepMe", Color.dark_red);
     labelDAO.insert(oldLabelToKeep);
 
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
@@ -132,17 +137,17 @@ public class PolicyImportExportTest
     assertThat(labels, hasSize(3));
 
     Label keptLabel = labels.get(0);
-    assertThat(keptLabel.getColor(), is(Color.red));
+    assertThat(keptLabel.getColor(), is(Color.dark_red));
     assertThat(keptLabel.getLabel(), is("keepMe"));
 
     Label updatedLabel = labels.get(1);
-    assertThat(updatedLabel.getColor(), is(Color.black)); // updated
+    assertThat(updatedLabel.getColor(), is(Color.dark_purple)); // updated
     assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
     assertThat(updatedLabel.getId(), is(oldLabelToUpdate.getId())); // id remains the same
     assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
 
     Label importedLabel = labels.get(2);
-    assertThat(importedLabel.getColor(), is(Color.blue));
+    assertThat(importedLabel.getColor(), is(Color.dark_blue));
     assertThat(importedLabel.getLabel(), is("LABEL2"));
 
     assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
@@ -152,7 +157,7 @@ public class PolicyImportExportTest
   @Test
   public void testImportAndMergeLabelsForApp() throws Exception {
     List<Label> appLabels = createLabels(fromApp.getId());
-    Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), "orgLabel", Color.black);
+    Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), "orgLabel", Color.dark_purple);
 
     createPolicy(fromApp.getId(), appLabels.get(0).getId(), "App Policy 1");
     createPolicy(fromApp.getId(), fromOrgLabel.getId(), "App Policy 2");
@@ -163,13 +168,13 @@ public class PolicyImportExportTest
     Organization toOrg = tempEntity.newOrganization();
     Application toApp = tempEntity.newApplication(toOrg.getId());
 
-    tempEntity.newLabel(toOrg.getId(), "orgLabel", Color.black);
+    tempEntity.newLabel(toOrg.getId(), "orgLabel", Color.dark_purple);
 
-    Label oldLabelToUpdate = new Label(toApp.getId(), appLabels.get(0).getLabel().toLowerCase(), Color.white);
+    Label oldLabelToUpdate = new Label(toApp.getId(), appLabels.get(0).getLabel().toLowerCase(), Color.light_green);
     oldLabelToUpdate.setDescription("anything");
     labelDAO.insert(oldLabelToUpdate);
 
-    Label oldLabelToKeep = tempEntity.newLabel(toApp.getId(), "keepMe", Color.red);
+    Label oldLabelToKeep = tempEntity.newLabel(toApp.getId(), "keepMe", Color.dark_red);
 
     List<Label> oldLabels = Lists.newArrayList(oldLabelToUpdate, oldLabelToKeep);
 
@@ -183,17 +188,17 @@ public class PolicyImportExportTest
     assertThat(labels, hasSize(3));
 
     Label keptLabel = labels.get(0);
-    assertThat(keptLabel.getColor(), is(Color.red));
+    assertThat(keptLabel.getColor(), is(Color.dark_red));
     assertThat(keptLabel.getLabel(), is("keepMe"));
 
     Label updatedLabel = labels.get(1);
-    assertThat(updatedLabel.getColor(), is(Color.black)); // updated
+    assertThat(updatedLabel.getColor(), is(Color.dark_purple)); // updated
     assertThat(updatedLabel.getLabel(), is("LABEL1")); // updated from the lowercase version
     assertThat(updatedLabel.getId(), is(oldLabelToUpdate.getId())); // id remains the same
     assertThat(updatedLabel.getDescription(), nullValue()); // existing description is removed
 
     Label importedLabel = labels.get(2);
-    assertThat(importedLabel.getColor(), is(Color.blue));
+    assertThat(importedLabel.getColor(), is(Color.dark_blue));
     assertThat(importedLabel.getLabel(), is("LABEL2"));
 
     assertThat(exportDTO.policies.get(0).getConstraints().get(0).getConditions().get(0).getValue(),
@@ -233,14 +238,16 @@ public class PolicyImportExportTest
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testImportAndMergeTags_UpdateTag() throws Exception {
-    Tag fromTag = tempEntity.newTag(fromOrg.getId(), "tagname", Color.black);
+    Tag fromTag = tempEntity.newTag(fromOrg.getId(), "tagname", Color.dark_purple);
     Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
     tempEntity.newPolicyTag(policy.getId(), fromTag.getId());
 
     PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
     exportDTO = detachObjects(exportDTO);
     deleteFromOrg();
+    exportDTO.tags.get(0).setColor(Color.black); // change the color to a legacy value
 
     Organization toOrg = tempEntity.newOrganization();
     Tag toTag = tempEntity.newTag(toOrg.getId(), "TAG NAME", Color.yellow);
@@ -257,7 +264,7 @@ public class PolicyImportExportTest
 
   @Test
   public void testImportAndMergeTags_NewTag() throws Exception {
-    Tag tag = tempEntity.newTag(fromOrg.getId(), "Tag Name", Color.black);
+    Tag tag = tempEntity.newTag(fromOrg.getId(), "Tag Name", Color.dark_purple);
     Policy policy = tempEntity.newPolicy(fromOrg.getId(), "Policy Name");
     tempEntity.newPolicyTag(policy.getId(), tag.getId());
 
@@ -353,8 +360,8 @@ public class PolicyImportExportTest
   }
 
   private List<Label> createLabels(String ownerId) {
-    Label label1 = tempEntity.newLabel(ownerId, "LABEL1", Color.black);
-    Label label2 = tempEntity.newLabel(ownerId, "LABEL2", Color.blue);
+    Label label1 = tempEntity.newLabel(ownerId, "LABEL1", Color.dark_purple);
+    Label label2 = tempEntity.newLabel(ownerId, "LABEL2", Color.dark_blue);
     return Lists.newArrayList(label1, label2);
   }
 
@@ -369,8 +376,8 @@ public class PolicyImportExportTest
   public void testExportImport_Update() throws Exception {
     String appId = fromApp.getId();
 
-    Label label1 = tempEntity.newLabel(appId, "label1", Color.blue);
-    Label label2 = tempEntity.newLabel(appId, "label2", Color.red);
+    Label label1 = tempEntity.newLabel(appId, "label1", Color.dark_blue);
+    Label label2 = tempEntity.newLabel(appId, "label2", Color.dark_red);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(appId);
     LicenseThreatGroupLicense licenseThreatGroupLicense = tempEntity.newLicenseThreatGroupLicense(appId,
         licenseThreatGroup.getId());
@@ -399,11 +406,11 @@ public class PolicyImportExportTest
 
     // Delete and re-create one label - it should be reset by import (matched by label case insensitive)
     labelDAO.delete(label1);
-    label1 = tempEntity.newLabel(appId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.black);
+    label1 = tempEntity.newLabel(appId, label1.getLabel().toUpperCase(Locale.ENGLISH), Color.dark_purple);
     // Delete one label - it should be re-created by the import.
     labelDAO.delete(label2);
     // Add a new label - it should be retained through the import.
-    tempEntity.newLabel(appId, "label3", Color.red);
+    tempEntity.newLabel(appId, "label3", Color.dark_red);
 
     // Import
     policyExportResult.tags = Collections.emptyList();
@@ -417,7 +424,7 @@ public class PolicyImportExportTest
     Assert.assertEquals(3, labels.size());
     Assert.assertEquals(label1.getId(), labels.get(0).getId());
     Assert.assertEquals("label1", labels.get(0).getLabel());
-    Assert.assertEquals(Color.blue, labels.get(0).getColor());
+    Assert.assertEquals(Color.dark_blue, labels.get(0).getColor());
     Assert.assertNotEquals(label2.getId(), labels.get(1).getId());
     Assert.assertEquals(label2.getLabel(), labels.get(1).getLabel());
     Assert.assertEquals(label2.getColor(), labels.get(1).getColor());
@@ -464,13 +471,13 @@ public class PolicyImportExportTest
   @Test
   public void testImportDeletionOfExistingAppPolicy() throws Exception {
     tempEntity.newPolicy(fromOrg.getId(), "Org Policy");
-    Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.white);
+    Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromOrg.getId(), orgLabel.getId());
 
     tempEntity.newPolicy(fromApp.getId(), "App Policy");
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(fromApp.getId());
     tempEntity.newLicenseThreatGroupLicense(fromApp.getId(), licenseThreatGroup.getId());
-    Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.white);
+    Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromApp.getId(), appLabel.getId());
 
     // import an empty PolicyExportResult to the app
@@ -498,13 +505,13 @@ public class PolicyImportExportTest
   @Test
   public void testImportDeletionOfExistingOrgPolicy() throws Exception {
     tempEntity.newPolicy(fromOrg.getId(), "Org Policy");
-    Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.white);
+    Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromOrg.getId(), orgLabel.getId());
 
     tempEntity.newPolicy(fromApp.getId(), "App Policy");
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(fromApp.getId());
     tempEntity.newLicenseThreatGroupLicense(fromApp.getId(), licenseThreatGroup.getId());
-    Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.white);
+    Label appLabel = tempEntity.newLabel(fromApp.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromApp.getId(), appLabel.getId());
 
     // import an empty PolicyExportResult to the org
@@ -537,7 +544,7 @@ public class PolicyImportExportTest
     Policy fromOrgPolicy = tempEntity.newPolicy(fromOrg.getId(), "Org Policy");
     LicenseThreatGroup fromOrgLtg = tempEntity.newLicenseThreatGroup(fromOrg.getId());
     tempEntity.newLicenseThreatGroupLicense(fromOrg.getId(), fromOrgLtg.getId());
-    Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.white);
+    Label fromOrgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromOrg.getId(), fromOrgLabel.getId());
     Tag fromOrgTag = tempEntity.newTag(fromOrg.getId());
     tempEntity.newPolicyTag(fromOrgPolicy.getId(), fromOrgTag.getId());
@@ -545,7 +552,7 @@ public class PolicyImportExportTest
     tempEntity.newPolicy(fromApp.getId(), "App Policy");
     LicenseThreatGroup fromAppLtg = tempEntity.newLicenseThreatGroup(fromApp.getId());
     tempEntity.newLicenseThreatGroupLicense(fromApp.getId(), fromAppLtg.getId());
-    Label fromAppLabel = tempEntity.newLabel(fromApp.getId(), Color.white);
+    Label fromAppLabel = tempEntity.newLabel(fromApp.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromApp.getId(), fromAppLabel.getId());
 
     PolicyExportResult policyExportResult = policyImportExport.exportOrganization(fromOrg);
@@ -556,14 +563,14 @@ public class PolicyImportExportTest
     Policy toOrgPolicy = tempEntity.newPolicy(toOrg.getId(), "Org Policy");
     LicenseThreatGroup toOrgLtg = tempEntity.newLicenseThreatGroup(toOrg.getId());
     LicenseThreatGroupLicense toOrgLtgl = tempEntity.newLicenseThreatGroupLicense(toOrg.getId(), toOrgLtg.getId());
-    Label toOrgLabel = tempEntity.newLabel(toOrg.getId(), toOrg.getId(), Color.white);
+    Label toOrgLabel = tempEntity.newLabel(toOrg.getId(), toOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(toOrg.getId(), toOrgLabel.getId());
 
     Application toApp = tempEntity.newApplication(toOrg.getId());
     tempEntity.newPolicy(toApp.getId(), "App Policy");
     LicenseThreatGroup toAppLtg = tempEntity.newLicenseThreatGroup(toApp.getId());
     tempEntity.newLicenseThreatGroupLicense(toApp.getId(), toAppLtg.getId());
-    Label toAppLabel = tempEntity.newLabel(toApp.getId(), Color.white);
+    Label toAppLabel = tempEntity.newLabel(toApp.getId(), Color.light_green);
     tempEntity.newComponentLabel(toApp.getId(), toAppLabel.getId());
 
     policyImportExport.importOrganization(toOrg, policyExportResult);

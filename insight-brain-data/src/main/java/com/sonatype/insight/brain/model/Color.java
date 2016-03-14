@@ -9,12 +9,44 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Color
 {
-  white, grey, black, green, yellow, orange, red, blue,
-  // CLM-5299 will migrate old colors above to the new below.
+  @Deprecated white, @Deprecated grey, @Deprecated black, @Deprecated green, yellow, orange, @Deprecated red, @Deprecated blue,
   light_red, light_green, light_blue, light_purple, dark_red, dark_green, dark_blue, dark_purple;
 
   @JsonValue
   public String toValue() {
     return this.name().replace('_', '-');
+  }
+
+  public static Color getUpdatedColor(Color color) {
+    switch (color) {
+      case black:
+        return Color.dark_purple;
+      case blue:
+        return Color.dark_blue;
+      case green:
+        return Color.dark_green;
+      case grey:
+        return Color.light_purple;
+      case red:
+        return Color.dark_red;
+      case white:
+        return Color.light_green;
+      default:
+        return color;
+    }
+  }
+
+  public static boolean isLegacy(Color color) {
+    switch (color) {
+      case black:
+      case blue:
+      case green:
+      case grey:
+      case red:
+      case white:
+        return true;
+      default:
+        return false;
+    }
   }
 }

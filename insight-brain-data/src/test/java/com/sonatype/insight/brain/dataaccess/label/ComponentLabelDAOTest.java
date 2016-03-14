@@ -147,12 +147,12 @@ public class ComponentLabelDAOTest
   public void testOrganizationInheritance() {
     final LabelDAO labelDAO = new LabelDAO();
     final Label orgLabel = new Label();
-    orgLabel.setColor(Color.white);
+    orgLabel.setColor(Color.light_green);
     orgLabel.setLabel("org-label");
     orgLabel.setOwnerId(organization.getId());
     labelDAO.insert(orgLabel);
     final Label appLabel = new Label();
-    appLabel.setColor(Color.white);
+    appLabel.setColor(Color.light_green);
     appLabel.setLabel("app-label");
     appLabel.setOwnerId(application.getId());
     labelDAO.insert(appLabel);

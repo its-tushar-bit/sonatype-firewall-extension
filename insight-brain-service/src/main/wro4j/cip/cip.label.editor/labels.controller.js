@@ -71,8 +71,8 @@
       }
     };
     $scope.isWhite = function(label) {
-      return label.color === 'green' || label.color === 'black' || label.color === 'orange' ||
-          label.color === 'red' || label.color === 'blue';
+      return label.color === 'dark-green' || label.color === 'dark-purple' || label.color === 'orange' ||
+          label.color === 'dark-red' || label.color === 'dark-blue';
     };
     $scope.isApplied = function(label) {
       var duplicate = false;

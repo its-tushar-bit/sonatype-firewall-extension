@@ -543,6 +543,10 @@
                 <include>wro4j/audit-report/cip/vulnerability.details/*.js</include>
                 <include>frontend/utility/directives/utility.directives.module.js</include>
                 <include>frontend/utility/directives/load.wrapper.directive.js</include>
+                <include>frontend/utility/services/utility.services.module.js</include>
+                <include>frontend/utility/services/unauthenticated.request.queue.service.js</include>
+                <include>frontend/utility/services/login.modal.controller.js</include>
+                <include>frontend/utility/services/login.modal.service.js</include>
                 <include>frontend/util/AngularCommon.js</include>
                 <include>frontend/util/CLMAppLocation.js</include>
                 <include>frontend/util/CLMLocation.js</include>
@@ -593,6 +597,10 @@
                 <include>wro4j/audit-report/**/*.js</include>
                 <include>frontend/utility/directives/utility.directives.module.js</include>
                 <include>frontend/utility/directives/load.wrapper.directive.js</include>
+                <include>frontend/utility/services/utility.services.module.js</include>
+                <include>frontend/utility/services/unauthenticated.request.queue.service.js</include>
+                <include>frontend/utility/services/login.modal.controller.js</include>
+                <include>frontend/utility/services/login.modal.service.js</include>
                 <include>frontend/util/AngularCommon.js</include>
                 <include>frontend/util/CLMAppLocation.js</include>
                 <include>frontend/util/CLMLocation.js</include>

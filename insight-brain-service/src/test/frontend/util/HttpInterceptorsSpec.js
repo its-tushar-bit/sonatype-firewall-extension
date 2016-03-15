@@ -29,7 +29,8 @@ describe('HttpInterceptors.js', function() {
     scope = $rootScope.$new();
   }));
   
-  it('Validate that a failed request is in the queue', inject(function($q, $http, $httpBackend, $rootScope) {
+  it('Validate that a failed request is in the queue', inject(function($q, $http, $httpBackend, UnauthenticatedRequestQueueService) {
+    expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
     $httpBackend.expectPOST('test').respond(401);
     
     var success = false;
@@ -42,7 +43,7 @@ describe('HttpInterceptors.js', function() {
     
     $httpBackend.flush();
     
-    expect(scope.getRequestQueue().length).toEqual(1);
+    expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(1);
   }));
   
   it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function($q, $http, $httpBackend, $rootScope) {

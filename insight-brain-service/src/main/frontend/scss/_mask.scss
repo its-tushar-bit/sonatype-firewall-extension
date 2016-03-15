@@ -1,0 +1,45 @@
+/*
+  #Mask elements
+*/
+/*
+ ##Form Mask
+ Note this requires javascript to position
+
+```
+  <div class="form-mask" style="top:0px; left:0px; width: 300px; height: 150px;">
+    <div class="form-mask-msg" style="margin-top:-67px">
+      <h3><i class="fa fa-circle-o-notch fa-spin"></i> Saving</h3>
+    </div>
+  </div>
+```
+
+```
+  <div class="form-mask" style="top:0px; left:0px; width: 300px; height: 150px;">
+    <div class="form-mask-msg success" style="margin-top:-67px">
+      <h3><i class="fa fa-check-circle"></i> Success!</h3>
+    </div>
+  </div>
+```
+ */
+.form-mask {
+  background-color: rgba($off-white, 0.9);
+  position: fixed;
+  text-align: center;
+  z-index: $form-mask-zindex;
+
+  .form-mask-msg {
+    background-color: $off-white;
+    border: 2px solid $slate;
+    box-shadow: -4px 4px 0px rgba($slate, 0.65);
+    display: inline-block;
+    padding: 12px;
+    position: relative;
+    top: 50%;
+    z-index: $form-mask-zindex + 1;
+
+    &.success {
+      color: $dark-green;
+      border-color: $dark-green
+    }
+  }
+}

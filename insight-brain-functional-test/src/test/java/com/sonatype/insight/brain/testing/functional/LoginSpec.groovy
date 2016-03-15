@@ -17,14 +17,7 @@ class LoginSpec
     then: "username input has focus"
       js.'document.activeElement.id' == login.usernameInput.@id
 
-    and: "login action is disabled"
-      waitFor { login.loginAction.isDisabled() } // Navigator API version of loginAction.@disabled
-
-    when: "credential inputs are filled in"
-      login.usernameInput = "some username"
-      login.passwordInput = "some password"
-
-    then: "login action is enabled"
+    and: "login action is enabled"
       !login.loginAction.isDisabled()
   }
 

@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular, Base64 */
+/* global angular */
 
 // global function
 (function() {
   'use strict';
 
-  var requestQueue = [], httpInterceptors = angular.module('HttpInterceptors', []);
+  var httpInterceptors = angular.module('HttpInterceptors', []);
 
   // This is our unauthenticated interceptor factory, will handle creating the interceptor when necessary
   httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', ['$q', '$rootScope', function($q, $rootScope) {
@@ -56,12 +56,13 @@
   
   //Ideally this would be merged into the above code, no event would be emitted, but sadly, ui.bootstrap (for $modal) has a dependency
   //on $http, therefore putting modal code in an http interceptor creates a circular dependency
-  angular.module('UnauthenticatedResponseHttpInterceptor', ['HttpInterceptors', 'AngularCommon', 'ui.bootstrap', 'CLMLocation']).run([
+  angular.module('UnauthenticatedResponseHttpInterceptor', ['HttpInterceptors', 'AngularCommon', 'ui.bootstrap', 'CLMLocation', 'utility.services']).run([
     '$rootScope',
-    '$modal',
     '$q',
     '$http',
-    function($rootScope, $modal, $q, $http) {
+    'LoginModalService',
+    'UnauthenticatedRequestQueueService',
+    function($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
       $rootScope.$on('userNeedsAuthentication', function(event, response, deferred) {
         // if user is already processing login, this will be a login failure response so reject and let them try
         // again
@@ -69,7 +70,7 @@
           deferred.reject(response);
         } else {
           // add a new function to the queue that will handle resolving the promise retrieved from event emitter
-          requestQueue.push(function() {
+          UnauthenticatedRequestQueueService.addRequest(function() {
             // simply replay the request
             $http(response.config).then(function() {
               deferred.resolve(arguments[0]);
@@ -79,78 +80,8 @@
           });
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
-          if (requestQueue.length === 1) {
-            $modal.open({
-              backdrop: 'static',
-              windowClass: 'loginPanel',
-              keyboard: false,
-              template: '<div class="modal-header" id="loginModalHeader"><h3>User Login</h3></div>' +
-                '<form name="loginForm" class="form-horizontal">' +
-                '<div class="modal-body">' +
-                '<div class="control-group">' +
-                '<label class="control-label" for="login-username">Username</label>' +
-                '<div class="controls">' +
-                '<input type="text" id="login-username"' +
-                ' ng-model="data.username" ng-required="true" autofill focus-input="true">' + '</div>' + '</div>' +
-                '<div class="control-group">' +
-                '<label class="control-label" for="login-password">Password</label>' +
-                '<div class="controls">' +
-                '<input type="password" id="login-password"' +
-                ' ng-model="data.password" ng-required="true" autofill>' + '</div>' + '</div>'  +
-                '</div>' + '<div class="modal-footer">' +
-                '<span id="login-error" ng-show="loginError" class="alert alert-error"' +
-                'style="margin-right:10px;">{{loginError}}</span>' +
-                '<button id="login-action" class="btn btn-primary pull-right" ng-click="signIn()" ' +
-                'ng-disabled="loginForm.$invalid || processingLogin">Sign in</button>' + '</div>'+ '</form>',
-              controller: ['$scope', '$http', 'CLMLocations', 'Messages', '$q',
-                function($scope, $http, CLMLocations, Messages, $q) {
-                  // setup our data for binding
-                  $scope.data = {};
-                  $scope.processingLogin = false;
-
-                  // Remove error when user changes login information
-                  $scope.$watchCollection('data', function() {
-                    $scope.loginError = null;
-                  });
-
-                  $scope.getRequestQueue = function() {
-                    return requestQueue;
-                  };
-
-                  // sign in the user
-                  $scope.signIn = function() {
-                    var authz = Base64.encode($scope.data.username + ':' + $scope.data.password);
-
-                    $scope.loginError = null;
-                    $scope.processingLogin = true;
-
-                    $http.post(CLMLocations.getSessionUrl(), {}, {
-                      clmLogin: true,
-                      headers: {
-                        'Authorization': 'Basic ' + authz
-                      }
-                    }).success(function() {
-                      var promises = [];
-                      // blow through each failed request and resolve them
-                      angular.forEach(requestQueue, function(request) {
-                        promises.push(request());
-                      });
-                      $q.all(promises).then(function() {
-                        $scope.processingLogin = false;
-                        $scope.$close();
-                        requestQueue = [];
-                      }, function(){
-                        $scope.processingLogin = false;
-                        $scope.$close();
-                        requestQueue = [];
-                      });
-                    }).error(function() {
-                      $scope.processingLogin = false;
-                      $scope.loginError = Messages.getHttpErrorMessage(arguments);
-                    });
-                  };
-                }]
-            });
+          if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
+            LoginModalService.show();
           }
         }
       });

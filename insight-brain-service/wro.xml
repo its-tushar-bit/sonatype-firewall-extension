@@ -96,8 +96,17 @@
   </group>
 
   <group name='cip'>
+    <css>/frontend/lib/bootstrap/bootstrap-variables.scss</css>
+    <css>/frontend/scss/_global.scss</css>
+    <css>/frontend/scss/_clm-modal.scss</css>
+    <css>/frontend/scss/_mask.scss</css>
     <js>/frontend/utility/directives/utility.directives.module.js</js>
     <js>/frontend/utility/directives/load.wrapper.directive.js</js>
+    <js>/frontend/utility/directives/form.mask.directive.js</js>
+    <js>/frontend/utility/services/utility.services.module.js</js>
+    <js>/frontend/utility/services/unauthenticated.request.queue.service.js</js>
+    <js>/frontend/utility/services/login.modal.controller.js</js>
+    <js>/frontend/utility/services/login.modal.service.js</js>
     <js>/frontend/util/AngularCommon.js</js>
     <js>/frontend/util/CLMAppLocation.js</js>
     <js>/frontend/util/CLMLocation.js</js>

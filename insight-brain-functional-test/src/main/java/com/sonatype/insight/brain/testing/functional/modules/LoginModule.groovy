@@ -14,7 +14,7 @@ class LoginModule
     extends Module
 {
   static content = {
-    modal(required: false) { $('#loginModalHeader').parent() }
+    modal(required: false) { $('#loginModal') }
     usernameInput { $('#login-username') }
     passwordInput { $('#login-password') }
     loginAction { $('#login-action') }

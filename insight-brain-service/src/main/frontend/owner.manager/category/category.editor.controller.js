@@ -36,7 +36,7 @@
     function deleteCategory() {
       if (tagPolicyList.length) {
         ErrorModalService.show('Delete Application Category',
-            'You cannot delete this application category because it is assigned to the following policies: ' +
+            'You cannot delete this application category because it is associated with the following policies: ' +
             tagPolicyList.join(', '));
       }
       else {

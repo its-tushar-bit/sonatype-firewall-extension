@@ -19,11 +19,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
-public class ApplicationMigrationServiceTest
+public class ApplicationMoveServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private ApplicationMigrationService applicationMigrationService;
+  private ApplicationMoveService applicationMoveService;
 
   @Test
   public void testGetDestinationOrganizations_SortedByName() {
@@ -34,7 +34,7 @@ public class ApplicationMigrationServiceTest
     Organization orgD = tempEntity.newOrganization("Org D");
     Application app = tempEntity.newApplicationWithParent("test-app-id");
 
-    List<Organization> orgs = applicationMigrationService.getDestinationOrganizations(app.getId());
+    List<Organization> orgs = applicationMoveService.getDestinationOrganizations(app.getId());
     assertThat(orgs, hasSize(5));
     assertThat(orgs.get(0).getId(), is(orgA.getId()));
     assertThat(orgs.get(1).getId(), is(orgB.getId()));

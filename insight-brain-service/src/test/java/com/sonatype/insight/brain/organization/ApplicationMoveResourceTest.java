@@ -17,12 +17,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.is;
 
-public class ApplicationMigrationResourceTest
+public class ApplicationMoveResourceTest
     extends AbstractResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ApplicationMigrationResource.RESOURCE_PATH);
+    return super.restRequest().path(ApplicationMoveResource.RESOURCE_PATH);
   }
 
   @Test
@@ -30,8 +30,7 @@ public class ApplicationMigrationResourceTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplicationWithParent("test-app-id");
 
-    HttpResponse response = restRequest().path(ApplicationMigrationResource.DESTINATIONS_PATH).parameter(app.getId())
-        .get();
+    HttpResponse response = restRequest().path(ApplicationMoveResource.DESTINATIONS_PATH).parameter(app.getId()).get();
     assertResponseStatus(200, response);
     Organization[] orgs = response.getBody(Organization[].class);
     assertThat(orgs, is(arrayWithSize(1)));
@@ -40,10 +39,10 @@ public class ApplicationMigrationResourceTest
   }
 
   @Test
-  public void testMigrateApplication() throws Exception {
+  public void testMoveApplication() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
 
-    HttpResponse response = restRequest().path(ApplicationMigrationResource.DESTINATION_PATH)
+    HttpResponse response = restRequest().path(ApplicationMoveResource.DESTINATION_PATH)
         .parameter(app.getId(), app.getOrganizationId()).post();
     assertResponseStatus(204, response);
   }

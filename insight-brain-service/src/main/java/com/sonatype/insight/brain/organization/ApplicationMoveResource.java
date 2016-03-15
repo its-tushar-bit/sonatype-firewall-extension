@@ -24,35 +24,35 @@ import com.sonatype.insight.brain.model.Organization;
  * @since 1.20
  */
 @Named
-@Path(ApplicationMigrationResource.RESOURCE_PATH)
-public class ApplicationMigrationResource
+@Path(ApplicationMoveResource.RESOURCE_PATH)
+public class ApplicationMoveResource
 {
-  static final String RESOURCE_PATH = "rest/migrate/application/{applicationId}";
+  static final String RESOURCE_PATH = "rest/move/application/{applicationId}";
 
   static final String DESTINATIONS_PATH = "destinations";
 
   static final String DESTINATION_PATH = DESTINATIONS_PATH + "/{organizationId}";
 
-  private final ApplicationMigrationService applicationMigrationService;
+  private final ApplicationMoveService applicationMoveService;
 
   @Inject
-  public ApplicationMigrationResource(ApplicationMigrationService applicationMigrationService) {
-    this.applicationMigrationService = applicationMigrationService;
+  public ApplicationMoveResource(ApplicationMoveService applicationMoveService) {
+    this.applicationMoveService = applicationMoveService;
   }
 
   @GET
   @Path(DESTINATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public List<Organization> getDestinationOrganizations(@PathParam("applicationId") String applicationId) {
-    return applicationMigrationService.getDestinationOrganizations(applicationId);
+    return applicationMoveService.getDestinationOrganizations(applicationId);
   }
 
   @POST
   @Path(DESTINATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public void migrateApplication(@PathParam("applicationId") String applicationId,
-                                 @PathParam("organizationId") String organizationId)
+  public void moveApplication(@PathParam("applicationId") String applicationId,
+                              @PathParam("organizationId") String organizationId)
   {
-    applicationMigrationService.migrateApplication(applicationId, organizationId);
+    applicationMoveService.moveApplication(applicationId, organizationId);
   }
 }

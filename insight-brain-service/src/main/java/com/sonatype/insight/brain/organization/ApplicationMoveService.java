@@ -21,14 +21,14 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 
 @Named
-public class ApplicationMigrationService
+public class ApplicationMoveService
 {
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
 
   @Inject
-  public ApplicationMigrationService(ApplicationDAO applicationDAO, OrganizationDAO organizationDAO) {
+  public ApplicationMoveService(ApplicationDAO applicationDAO, OrganizationDAO organizationDAO) {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
   }
@@ -53,19 +53,17 @@ public class ApplicationMigrationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void migrateApplication(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-                                 String organizationId)
+  public void moveApplication(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, String organizationId)
   {
     Application application = applicationDAO.getByIdNotNull(applicationId);
     if (application.getOrganizationId().equals(organizationId)) {
       return;
     }
-    migrateApplication(application, organizationId);
+    moveApplication(application, organizationId);
   }
 
   @Authorize(permission = Permission.ADD_APPLICATION)
-  void migrateApplication(Application application, @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId)
-  {
+  void moveApplication(Application application, @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
     // stay tuned for scenes from our next episode
   }
 }

@@ -44,7 +44,7 @@ public class ApplicationCategoryEditorPage
   }
 
   public static Condition subtitleText(String ownerName) {
-    return Condition.text("Application Categories Assigned To " + ownerName);
+    return Condition.text("Application Categories Assigned to " + ownerName);
   }
 
   public static SelenideElement updateButton() {

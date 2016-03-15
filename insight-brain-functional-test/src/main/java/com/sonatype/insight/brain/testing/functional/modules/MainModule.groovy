@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.testing.functional.modules
 
 import com.sonatype.insight.brain.testing.functional.DashboardOverviewPage
-import com.sonatype.insight.brain.testing.functional.ManagementPage
 import com.sonatype.insight.brain.testing.functional.ReportViolationsPage
+import com.sonatype.insight.brain.testing.functional.RootOrgManagementPage
 
 import geb.Module
 
@@ -19,7 +19,7 @@ class MainModule
 {
   static content = {
     dashboard(to: DashboardOverviewPage, required: false, wait: false) { $('.dashboard') }
-    management(to: ManagementPage) { $('.organizational-design') }
+    management(to: RootOrgManagementPage) { $('.organizational-design') }
     reports(to: ReportViolationsPage) { $('.reporting') }
     version { $('.navbar-version') }
   }

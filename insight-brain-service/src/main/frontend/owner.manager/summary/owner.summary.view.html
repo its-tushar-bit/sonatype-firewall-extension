@@ -45,17 +45,17 @@
             <hexagon class="size-20px outline"></hexagon><!--
             -->Application Categories
           </h2>
-          <div class="sub-header">associated with {{vm.ownerName}}</div>
+          <div class="sub-header">assigned to {{vm.ownerName}}</div>
           <div class="simple-list">
             <h4 class="subsection-header">
               <button class="btn btn-tertiary" ng-class="{disabled: !vm.areAnyCategoriesDefined}"
                       data-tooltip="{{:: vm.areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
-                      data-tooltip-placement="top" data-tooltip-append-to-body="true" ng-click="vm.associateCategories()">
-                <i class="fa fa-pencil"></i>Associate App Categories
+                      data-tooltip-placement="top" data-tooltip-append-to-body="true" ng-click="vm.assignCategories()">
+                <i class="fa fa-pencil"></i>Assign App Categories
               </button>
             </h4>
             <div class="empty-list" ng-if="vm.appliedCategories.length <= 0"><!--
-            -->No application categories {{vm.areAnyCategoriesDefined ? 'associated' : 'defined'}}
+            -->No application categories {{vm.areAnyCategoriesDefined ? 'assigned' : 'defined'}}
             </div>
             <ul>
               <li ng-class="category.description ? 'with-subtitle' : 'simple'"

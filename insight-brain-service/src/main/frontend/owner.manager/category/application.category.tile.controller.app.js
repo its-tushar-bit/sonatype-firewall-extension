@@ -13,7 +13,7 @@
 
     vm.areAnyCategoriesDefined = undefined;
     vm.appliedCategories = undefined;
-    vm.associateCategories = associateCategories;
+    vm.assignCategories = assignCategories;
     vm.doLoad = doLoad;
     vm.error = undefined;
     vm.isApp = CLMAppLocations.isApplication();
@@ -50,7 +50,7 @@
       delete vm.error;
     }
 
-    function associateCategories() {
+    function assignCategories() {
       if (vm.areAnyCategoriesDefined) {
         SameOwnerStateNavigationService.goEdit('category');
       }

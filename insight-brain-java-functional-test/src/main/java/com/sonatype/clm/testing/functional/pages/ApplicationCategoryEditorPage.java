@@ -35,6 +35,18 @@ public class ApplicationCategoryEditorPage
     return $(".tile h2");
   }
 
+  public static Condition titleText() {
+    return Condition.text("Assign Application Categories");
+  }
+
+  public static SelenideElement subtitle() {
+    return $("label[for=associated-categories]");
+  }
+
+  public static Condition subtitleText(String ownerName) {
+    return Condition.text("Application Categories Assigned To " + ownerName);
+  }
+
   public static SelenideElement updateButton() {
     return root().$("button[type=submit]");
   }

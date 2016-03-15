@@ -82,7 +82,8 @@ public class ApplicationCategoryEditorTest
 
     categoryTile.newButton().click();
 
-    ApplicationCategoryEditorPage.title().shouldHave(text(YE_OLE_APPLICATION));
+    ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
+    ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
     assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(1)));
@@ -133,7 +134,8 @@ public class ApplicationCategoryEditorTest
     Tag category1 = categories.get(0);
     Tag category6 = categories.get(5);
 
-    ApplicationCategoryEditorPage.title().shouldHave(text(YE_OLE_APPLICATION));
+    ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
+    ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(5);
     assertThat(ApplicationCategoryEditorPage.associationEditor().columnCount(), is(equalTo(2)));

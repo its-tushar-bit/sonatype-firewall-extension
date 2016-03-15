@@ -3,14 +3,14 @@
        ng-if="!vm.categories || vm.categories.length > 0">
     <h2>
       <hexagon class="outline size-20px"></hexagon><!--
-        -->{{vm.ownerName}} Application Categories
+        -->Assign Application Categories
     </h2>
     <form name="vm.categoryEditor" class="clm-form" role="form"
           ng-submit="vm.categoryEditor.$valid && vm.areCategoriesDirty() && vm.save()"
           form-mask="vm.categoryEditorMask" mask-attach-to-body>
       <div class="section">
         <div class="field">
-          <label for="associated-categories">Associated Application Categories</label>
+          <label for="associated-categories">Application Categories Assigned To {{vm.ownerName}}</label>
 
           <association-editor id="associated-categories"  items="vm.categories" checkbox-param="isApplied"
                description="name" icon="hexagon"/>

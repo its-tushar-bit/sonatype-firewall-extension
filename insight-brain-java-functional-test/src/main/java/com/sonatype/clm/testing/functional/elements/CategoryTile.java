@@ -40,17 +40,17 @@ public abstract class CategoryTile
 
     @Override
     public Condition subHeaderText(String ownerName) {
-      return Condition.text("associated with " + ownerName);
+      return Condition.text("assigned to " + ownerName);
     }
 
     @Override
     public Condition buttonText() {
-      return Condition.text("associate app categories");
+      return Condition.text("assign app categories");
     }
 
     @Override
     public Condition emptyListDescriptorText() {
-      return Condition.text("No application categories associated");
+      return Condition.text("No application categories assigned");
     }
   }
 

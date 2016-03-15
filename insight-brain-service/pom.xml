@@ -554,9 +554,9 @@
                 <exclude>frontend/lib/bootstrap-sass-official/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
-                <include>resources/assets/SpecUtil.js</include>
-                <include>resources/assets/**/lib/*.js</include>
-                <include>resources/assets/**/*MockData.js</include>
+                <include>frontend/SpecUtil.js</include>
+                <include>frontend/**/lib/*.js</include>
+                <include>frontend/**/*MockData.js</include>
                 <include>resources/assets/cip/**/*.js</include>
                 <include>resources/assets/**/cip*.js</include>
                 <include>resources/assets/**/CIP*.js</include>
@@ -604,9 +604,9 @@
                 <exclude>frontend/lib/bootstrap-sass-official/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
-                <include>resources/assets/SpecUtil.js</include>
-                <include>resources/assets/**/lib/*.js</include>
-                <include>resources/assets/**/*MockData.js</include>
+                <include>frontend/SpecUtil.js</include>
+                <include>frontend/**/lib/*.js</include>
+                <include>frontend/**/*MockData.js</include>
                 <include>resources/assets/audit-report/*.js</include>
               </specIncludes>
               <junitXmlReportFileName>TEST-audit.xml</junitXmlReportFileName>
@@ -691,7 +691,7 @@
                 <exclude>wro4j/cip/**/*.js</exclude>
               </sourceExcludes>
               <specIncludes>
-                <include>resources/assets/**/lib/*.js</include>
+                <include>frontend/**/lib/*.js</include>
                 <include>resources/assets/version-graph/VersionGraphSpec.js</include>
               </specIncludes>
             </configuration>
@@ -711,7 +711,7 @@
                 <include>wro4j/version-graph/viewdetails.js</include>
               </sourceIncludes>
               <specIncludes>
-                <include>resources/assets/**/lib/*.js</include>
+                <include>frontend/**/lib/*.js</include>
                 <include>resources/assets/version-graph/ViewDetailsSpec.js</include>
               </specIncludes>
             </configuration>

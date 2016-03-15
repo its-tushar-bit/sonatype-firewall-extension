@@ -197,8 +197,4 @@ public class TagDAO
 
     super.delete(tx, tag);
   }
-
-  public List<Tag> getAll(TransactionContext tx) {
-    return getList(tx, "SELECT entity FROM Tag entity");
-  }
 }

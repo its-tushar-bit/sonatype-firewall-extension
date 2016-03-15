@@ -54,13 +54,6 @@ public class LabelDAO
   }
 
   /**
-   * @since 1.20
-   */
-  public List<Label> getAll(TransactionContext tx) {
-    return getList(tx, "SELECT label FROM Label label");
-  }
-
-  /**
    * @param inherit inherit boolean if {@code true} the returned list will include labels inherited from organization
    *          hierarchy
    */

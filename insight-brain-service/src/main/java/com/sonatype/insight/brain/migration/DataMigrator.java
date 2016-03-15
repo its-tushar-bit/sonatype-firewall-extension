@@ -31,8 +31,6 @@ public class DataMigrator
   private final BomAuditGAVMigrator bomAuditMigrator;
   private final SecurityAuditGAVMigrator securityAuditMigrator;
   private final RootOrganizationConfigMigrator rootOrganizationConfigMigrator;
-  private final LabelColorMigrator labelColorMigrator;
-  private final TagColorMigrator tagColorMigrator;
 
   @Inject
   public DataMigrator(LicenseOverrideMigrator licenseOverrideMigrator,
@@ -47,9 +45,7 @@ public class DataMigrator
                       BomAuditGAVMigrator bomAuditMigrator,
                       SecurityAuditGAVMigrator securityAuditMigrator,
                       RootOrganizationConfigMigrator rootOrganizationConfigMigrator,
-                      SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator,
-                      LabelColorMigrator labelColorMigrator,
-                      TagColorMigrator tagColorMigrator)
+                      SecurityVulnerabilityOverrideMigrator securityVulnerabilityOverrideMigrator)
   {
     this.licenseOverrideMigrator = licenseOverrideMigrator;
     this.policyMigrator = policyMigrator;
@@ -64,8 +60,6 @@ public class DataMigrator
     this.securityAuditMigrator = securityAuditMigrator;
     this.rootOrganizationConfigMigrator = rootOrganizationConfigMigrator;
     this.securityVulnerabilityOverrideMigrator = securityVulnerabilityOverrideMigrator;
-    this.labelColorMigrator = labelColorMigrator;
-    this.tagColorMigrator = tagColorMigrator;
   }
 
   /**
@@ -85,7 +79,5 @@ public class DataMigrator
     securityAuditMigrator.migrate();
     rootOrganizationConfigMigrator.migrate();
     securityVulnerabilityOverrideMigrator.migrate();
-    labelColorMigrator.migrate();
-    tagColorMigrator.migrate();
   }
 }

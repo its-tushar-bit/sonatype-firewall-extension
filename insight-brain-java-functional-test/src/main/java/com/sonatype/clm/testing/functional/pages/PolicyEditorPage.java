@@ -52,8 +52,8 @@ public class PolicyEditorPage
     return $("#policy-inheritance-button");
   }
 
-  public static SelenideElement createPill() {
-    return $("#policy-create-button");
+  public static SelenideElement endOfPagePill() {
+    return $("#policy-endofpage-button");
   }
 
   public static SummarySection summarySection() {

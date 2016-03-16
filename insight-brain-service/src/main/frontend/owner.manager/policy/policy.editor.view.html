@@ -9,7 +9,7 @@
       <li ng-if="!vm.isApp"><a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a></li>
       <li><a data-toggle="pill" id="policy-constraints-button" data-target="#policy-edit-constraints">Constraints</a></li>
       <li><a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions and Notifications</a></li>
-      <li><a data-toggle="pill" id="policy-create-button" data-target="#policy-edit-create">Create</a></li>
+      <li><a data-toggle="pill" id="policy-endofpage-button" data-target="#policy-edit-endofpage">End of Page</a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +80,7 @@
         <policy-editor-actions actions="vm.dirtyPolicy.actions" monitor-notify-actions="vm.dirtyPolicy.monitorNotifyActions"
                 ng-disabled="vm.readOnly"></policy-editor-actions>
       </div>
-      <div id="policy-edit-create" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+      <div id="policy-edit-endofpage" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.isPolicyDirty()"
                 submit-type="vm.dirtyPolicy.id ? 'update' : 'create'"
                 submit-tooltip-target="body"

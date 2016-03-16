@@ -362,7 +362,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.ageCondition(0).value().modifier().listItem(1).shouldHave(text("Months")).click();
     constraintEdit.ageCondition(0).operator().selectedItem().shouldHave(text("older than")).click();
     constraintEdit.ageCondition(0).operator().listItem(1).shouldHave(text("younger than")).click();
-    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
@@ -381,7 +381,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.dropdownCondition(1).operator().listItem(1).shouldHave(text("is not")).click();
     constraintEdit.dropdownCondition(1).value().selectedItem().shouldHave(text("my LTG")).click();
     constraintEdit.dropdownCondition(1).value().listItem(1).shouldHave(text("my LTG 2")).click();
-    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
@@ -403,7 +403,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.inputCondition(2).operator().selectedItem().shouldHave(text("match")).click();
     constraintEdit.inputCondition(2).operator().listItem(1).shouldHave(text("do not match")).click();
     constraintEdit.inputCondition(2).value().shouldBe(empty).val("com.eclipse.*");
-    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
@@ -421,7 +421,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.condition(2).type().listItem(5).shouldHave(text("Security Vulnerability")).click();
     constraintEdit.condition(2).operator().selectedItem().shouldHave(text("present")).click();
     constraintEdit.condition(2).operator().listItem(1).shouldHave(text("absent")).click();
-    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
@@ -444,7 +444,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.conditions().shouldHaveSize(1);
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
-    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     PolicyEditorPage.constraintsPill().click();
@@ -604,7 +604,7 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void testDeletePolicy(Policy policy) {
-    PolicyEditorPage.createPill().click();
+    PolicyEditorPage.endOfPagePill().click();
     PolicyEditorPage.deleteButton().shouldBe(visible, enabled).click();
 
     DeleteModal.root().shouldBe(visible);

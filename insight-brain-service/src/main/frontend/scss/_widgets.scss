@@ -1547,10 +1547,14 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 */
 root-organization-migrate {
   display: block;
-  margin: 5px 50px 5px 25px;
+  margin: 8px 8px 0px 8px;
+
+  #root-org-migrate-banner a {
+    color: $link-blue;
+  }
 }
 
-.dashboard-content root-organization-migrate {
+.dashboard-body-container root-organization-migrate {
   margin: 0;
 }
 

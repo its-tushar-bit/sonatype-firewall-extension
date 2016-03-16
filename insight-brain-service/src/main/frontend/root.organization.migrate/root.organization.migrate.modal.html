@@ -1,23 +1,23 @@
 <div id="root-organization-migrate-modal">
-  <div class="modal-header">
-    <h3><i class="sonatype-glyphicons medium root-org"></i>Configure the Root Organization</h3>
+  <div class="clm-modal-header">
+    <h2><i class="sonatype-glyphicons medium root-org"></i>Configure the Root Organization</h2>
   </div>
   <div load-wrapper="vm.loadError" reload="vm.doLoad()">
-    <div ng-if="!vm.organizations" class="modal-body">
+    <div ng-if="!vm.organizations" class="clm-modal-body">
       <i class='icon-time'></i> Loading
     </div>
-    <div ng-if="vm.waitingForReload" class="modal-body">
+    <div ng-if="vm.waitingForReload" class="clm-modal-body">
       <p>Root organization has been enabled.  The page will reload in a moment, or <a id="reload-app-link" href='#' ng-click='vm.reloadApp()'>refresh</a> now</p>
     </div>
     <div ng-if="vm.organizations && !vm.waitingForReload">
       <form name="rootOrganizationMigrateForm" ng-submit="vm.selectTemplate()">
-        <div class="modal-body">
-          <p>
+        <div class="clm-modal-body">
+          <div>
             Make sure you have <a target="_blank" href="http://links.sonatype.com/products/clm/doc/backup/{{vm.majorMinorVersion}}">backed
             up the IQ Server</a> and read the <a target="_blank" href="http://links.sonatype.com/products/clm/doc/upgrade/{{vm.majorMinorVersion}}">
             upgrade instructions</a> before proceeding. You are about to permanently change your configuration by adding the
             Root Organization to the top of the system hierarchy; there is no undo for this change.
-          </p>
+          </div>
           <div class="control-group">
             <label class="control-label">Configure the Root Organization by:</label>
             <div class="controls">
@@ -37,7 +37,7 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer" ng-class="{ error : vm.error }">
+        <div class="clm-modal-footer" ng-class="{ error : vm.error }">
           <div ng-if="vm.error" class="section with-icon">
             {{ vm.error }}
           </div>

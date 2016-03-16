@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.OwnerType;
@@ -23,6 +24,13 @@ import org.apache.shiro.subject.Subject;
 @Named
 public class PermissionService
 {
+  private final AuthorizationChecker authzChecker;
+
+  @Inject
+  public PermissionService(AuthorizationChecker authzChecker) {
+    this.authzChecker = authzChecker;
+  }
+
   public Set<Permission> hasPermissions(Subject subject,
                                         OwnerType ownerType,
                                         String ownerId,
@@ -53,8 +61,6 @@ public class PermissionService
         default:
           contextMap = Collections.emptyMap();
       }
-
-      AuthorizationChecker authzChecker = new AuthorizationChecker();
 
       for (Permission permission : permissions) {
         if (authzChecker.isPermitted((UserPrincipal) subject.getPrincipal(), permission, contextMap)) {

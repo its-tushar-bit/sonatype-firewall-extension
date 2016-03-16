@@ -23,8 +23,11 @@ class AuthzFilterMethodInterceptor
 
   private final boolean anonymousClientAccessAllowed;
 
-  public AuthzFilterMethodInterceptor(AnnotationResolver resolver, boolean anonymousClientAccessAllowed) {
-    this(new AuthzFilterAnnotationHandler(), resolver, new AuthorizationChecker(), anonymousClientAccessAllowed);
+  public AuthzFilterMethodInterceptor(AnnotationResolver resolver,
+                                      AuthorizationChecker authzChecker,
+                                      boolean anonymousClientAccessAllowed)
+  {
+    this(new AuthzFilterAnnotationHandler(), resolver, authzChecker, anonymousClientAccessAllowed);
   }
 
   AuthzFilterMethodInterceptor(AuthorizationChecker authzChecker) {

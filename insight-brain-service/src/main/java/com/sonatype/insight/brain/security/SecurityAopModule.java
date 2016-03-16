@@ -24,7 +24,9 @@ public class SecurityAopModule
 
   @Override
   protected void configureInterceptors(AnnotationResolver resolver) {
-    bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, anonymousClientAccessAllowed));
-    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, anonymousClientAccessAllowed));
+    AuthorizationChecker authzChecker = new AuthorizationChecker();
+    bind(AuthorizationChecker.class).toInstance(authzChecker);
+    bindShiroInterceptor(new AuthorizeMethodInterceptor(resolver, authzChecker, anonymousClientAccessAllowed));
+    bindShiroInterceptor(new AuthzFilterMethodInterceptor(resolver, authzChecker, anonymousClientAccessAllowed));
   }
 }

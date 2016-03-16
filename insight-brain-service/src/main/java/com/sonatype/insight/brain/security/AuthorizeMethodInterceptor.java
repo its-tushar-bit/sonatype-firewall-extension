@@ -29,8 +29,11 @@ class AuthorizeMethodInterceptor
 
   private final boolean anonymousClientAccessAllowed;
 
-  public AuthorizeMethodInterceptor(AnnotationResolver resolver, boolean anonymousClientAccessAllowed) {
-    this(new AuthorizeAnnotationHandler(), resolver, new AuthorizationChecker(), anonymousClientAccessAllowed);
+  public AuthorizeMethodInterceptor(AnnotationResolver resolver,
+                                    AuthorizationChecker authzChecker,
+                                    boolean anonymousClientAccessAllowed)
+  {
+    this(new AuthorizeAnnotationHandler(), resolver, authzChecker, anonymousClientAccessAllowed);
   }
 
   AuthorizeMethodInterceptor(AuthorizationChecker authzChecker) {

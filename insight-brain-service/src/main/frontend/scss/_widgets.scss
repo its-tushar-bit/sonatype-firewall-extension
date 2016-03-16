@@ -67,8 +67,19 @@
     </div>
   </div>
   ```
+
+  ### Scrollable Alert
+  ```
+  <div class="clm-alert alert alert-scrollable">
+      <i class="fa fa-warning"></i>
+      <span>Top<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+      <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>Bottom</span>
+  </div>
+  ```
 */
 .clm-alert {
+  $maximum-alert-scroll-height: 318px;
+
   margin: 5px;
   padding: 12px 8px;
   border-radius: 0;
@@ -89,6 +100,11 @@
 
   i.fa::before {
     margin-right: 8px;
+  }
+
+  &.alert-scrollable{
+    max-height: $maximum-alert-scroll-height;
+    overflow: auto;
   }
 }
 

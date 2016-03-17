@@ -89,10 +89,6 @@ public class SecurityModule
     configureFilterChainsForIntegrations(manager);
 
     manager.createChain("/*assets/**", "anon"); // assets for the web interface
-    manager.createChain("/audit-report/**", "anon"); // assets for the audit report
-    manager.createChain("/new/*assets/**", "anon"); // assets for the web interface
-    manager.createChain("/cip/**", "anon"); // assets for report CIP
-    manager.createChain("/new/cip/**", "anon"); // assets for report CIP
     manager.createChain("/favicon.ico", "anon"); // favicon for web interface
     manager.createChain("/rest/ide/brain/**", "anon"); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", "anon"); // only redirects

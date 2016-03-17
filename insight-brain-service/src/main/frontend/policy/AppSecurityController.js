@@ -283,7 +283,7 @@
           '<div class="input-prepend input-append">' +
             '<span class="add-on">' +
               '<i class="icon-search" ng-show="!requestActive"> </i>' +
-              '<img src="../img/loading.gif" ng-show="requestActive">' +
+              '<img src="img/loading.gif" ng-show="requestActive">' +
             '</span><input id="user-search-filter" placeholder="Isaac Asim*" type="text" name="filter" ng-model="queryString" focus-input="true">' +
             '<div class="btn-group">' +
               '<button id="user-search-button" type="submit" class="btn" ng-disabled="!queryString">Search</button>' +

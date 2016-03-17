@@ -108,7 +108,7 @@
                     </span>
                     <span ng-if="$parent.expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
                           tooltip='Inherited from parent' tooltip-placement='bottom'>
-                      <img src='../img/icon-elbow-up-gray.png' class='inherited-icon' alt='Inherited'>
+                      <img src='img/icon-elbow-up-gray.png' class='inherited-icon' alt='Inherited'>
                     </span>
                     <span ng-repeat='member in mapping.members | filter: { type: grouping.type } | orderBy:"displayName"'>
                       {{member.displayName}}<span ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))">,</span>

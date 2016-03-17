@@ -548,16 +548,18 @@ var AngularStateUtils = {
 
   angularCommon.directive('focusInput', ['$parse', function($parse) {
     return {
-      require: '^form',
+      require: '?^form',
       link: function(scope, element, attrs, form) {
         var model = $parse(attrs.focusInput);
-        scope.$watch(function() {
-          return form.$pristine;
-        }, function(newVal) {
-          if (model(scope) && newVal) {
-            element[0].focus();
-          }
-        });
+        if (form) {
+          scope.$watch(function() {
+            return form.$pristine;
+          }, function(newVal) {
+            if (model(scope) && newVal) {
+              element[0].focus();
+            }
+          });
+        }
         scope.$watch(model, function(value) {
           if(value) {
             element[0].focus();

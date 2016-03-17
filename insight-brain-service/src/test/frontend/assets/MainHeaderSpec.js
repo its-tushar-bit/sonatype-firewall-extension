@@ -357,7 +357,7 @@ describe('mainHeader', function() {
         }));
 
         it('With Invalid Auth', inject(function ($httpBackend, CLMLocations, Messages) {
-          $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400);
+          $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
 
           dialogScope.save();
           expect(dialogScope.submitActive).toBeTruthy();
@@ -366,7 +366,7 @@ describe('mainHeader', function() {
 
           expect(dialogScope.submitActive).toBeFalsy();
           expect(dialogScope.$close).not.toHaveBeenCalled();
-          expect(dialogScope.error[0]).toEqual({msg:Messages.getHttpErrorMessage([undefined, 400]), type: 'error'});
+          expect(dialogScope.error).toEqual('Super Fail');
         }));
       });
     });

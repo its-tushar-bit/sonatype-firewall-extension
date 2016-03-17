@@ -1,28 +1,38 @@
 <script type='text/ng-template' id='change-password-template'>
-  <div class='modal-header'>
-    <button type="button" class="close"  ng-click='$dismiss()' aria-hidden="true">&times;</button>
-    <h3>Change Password</h3>
+<div>
+  <div class="clm-modal-header">
+    <h2>Change Password</h2>
   </div>
-  <form name='passwordForm' class='clm-form well clm-well' ng-submit='save()'>
-    <div clm-control-group for='originalPassword' label="Current Password">
-      <input clm-input type="password" id="originalPassword" name="originalPassword"
-             ng-model='result.originalPassword' required focus-input='true'>
+  <form name="passwordForm" class="clm-form" ng-submit="save()">
+    <div class="clm-modal-body">
+      <div clm-control-group for="originalPassword" label="Current Password">
+        <input clm-input type="password" id="originalPassword" name="originalPassword"
+               ng-model="result.originalPassword" required focus-input="true">
+      </div>
+      <hr/>
+      <div clm-control-group for="newPassword" label="New Password">
+        <input clm-input type="password" id="newPassword" name="newPassword"
+               ng-model="result.newPassword" required>
+      </div>
+      <div clm-control-group for="confirmPassword" label="Confirm New Password">
+        <input clm-input type="password" id="confirmPassword" name="confirmPassword"
+               ng-model="result.confirmPassword" required ui-validate=" '$value==result.newPassword' "
+               ui-validate-watch=" 'result.newPassword' "
+               messages="{validator: 'Passwords must match!'}">
+      </div>
     </div>
-    <hr/>
-    <div clm-control-group for='newPassword' label="New Password">
-      <input clm-input type="password" id="newPassword" name="newPassword"
-             ng-model='result.newPassword' required>
+    <div class="clm-modal-footer" ng-class="{error: error}">
+      <div ng-if="error" class="section with-icon"><i class="fa fa-warning"></i>{{error}}</div>
+      <button type="submit" class="btn btn-error" id="change-password-submit"
+              ng-if="error"
+              ng-disabled="passwordForm.$invalid || submitActive"><i class="fa fa-refresh"></i>Retry</button>
+      <button type="submit" class="btn btn-primary" id="change-password-submit"
+              ng-if="!error"
+              ng-disabled="passwordForm.$invalid || submitActive">Change</button>
+      <button type="button" class="btn btn-cancel" ng-click="$dismiss()">Cancel</button>
     </div>
-    <div clm-control-group for='confirmPassword' label="Confirm New Password">
-      <input clm-input type="password" id="confirmPassword" name='confirmPassword'
-             ng-model='result.confirmPassword' required ui-validate=" '$value==result.newPassword' "
-             ui-validate-watch=" 'result.newPassword' "
-             messages="{validator: 'Passwords must match!'}">
-    </div>
-    <div clm-alerts="error" no-close="true"></div>
-    <button type='button' class="btn btn-link btn-cancel" ng-click='$dismiss()'>Cancel</button>
-    <button type='submit' class="btn btn-primary pull-right" ng-disabled='passwordForm.$invalid || submitActive'>Change</button>
   </form>
+</div>
 </script>
 <script type='text/ng-template' id='dropdown-detail-panel-template'>
   <div ng-transclude></div>

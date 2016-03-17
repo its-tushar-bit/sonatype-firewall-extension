@@ -19,8 +19,8 @@ class ChangePasswordModule
     oldPassword(required: false) { dialog.originalPassword() }
     newPassword(required: false) { dialog.newPassword() }
     newPasswordValidate(required: false) { dialog.confirmPassword() }
-    invalidCredentialsError(required: false) { dialog.find('div.alert') }
-    ok(required: false) { $('form[name="passwordForm"] button.btn-primary') }
+    invalidCredentialsError(required: false) { dialog.find('div.section.with-icon') }
+    ok(required: false) { $('form[name="passwordForm"] #change-password-submit') }
     cancel(required: false) { $('form[name="passwordForm"] button.btn-cancel)') }
   }
 }

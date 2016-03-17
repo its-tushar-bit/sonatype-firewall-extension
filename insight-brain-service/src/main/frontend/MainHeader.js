@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
- /* global angular, clmServerVersion, clmBuildTimestamp, AngularUtils */
+ /* global angular, clmServerVersion, clmBuildTimestamp */
 (function() {
   'use strict';
 
@@ -35,7 +35,10 @@
     $scope.change = function () {
       modal.open({
         templateUrl : 'change-password-template',
-        backdrop : 'static',
+        animation: false,
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'clm-modal',
         controller : ['$scope', function (scope) {
           scope.result = {};
           scope.save = function () {
@@ -50,7 +53,7 @@
                 scope.$close();
               }).error(function () {
                 scope.submitActive = false;
-                scope.error = [AngularUtils.toAlert(messages.getHttpErrorMessage(arguments))];
+                scope.error = messages.getHttpErrorMessage(arguments);
               });
             }
           };

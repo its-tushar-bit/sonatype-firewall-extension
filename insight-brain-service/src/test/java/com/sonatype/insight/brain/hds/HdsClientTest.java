@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -27,6 +28,9 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
@@ -45,6 +49,7 @@ import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -389,5 +394,102 @@ public class HdsClientTest
     client.put(analytics, String.class, testPath, File.createTempFile("test", ".tmp"), new String[] {});
     assertThat(headers, hasEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString()));
     assertThat(headers, hasEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId()));
+  }
+
+  @Test
+  public void testTransformOtherErrors() throws Exception {
+    testTransformOtherErrors(456);
+    testTransformOtherErrors(567);
+  }
+
+  private void testTransformOtherErrors(final int statusCode) throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(statusCode);
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+      fail("Expected exception");
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), is("The Sonatype HDS returned error " + statusCode + ", please retry in a bit."));
+    }
+  }
+
+  @Test
+  public void testIOExceptionReadingResponse() throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.OK_200);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("Not an integer");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(Integer.class, "/any", null);
+      fail("Expected exception");
+    }
+    catch (BadGatewayException e) {
+      assertThat(
+          e.getMessage(),
+          is("Failed to read response entity received from Sonatype HDS, please retry in a bit."));
+    }
+  }
+
+  @Test
+  public void testIOExceptionFromHttpClientExecute() throws Exception {
+    // Use reflection to get access to the private http client and set it to a mocked instance.
+    Class<?> clientClass = client.getClass();
+    Field httpClientField = clientClass.getDeclaredField("client");
+    httpClientField.setAccessible(true);
+    HttpClient httpClient = mock(HttpClient.class);
+    httpClientField.set(client, httpClient);
+
+    when(httpClient.execute(any(HttpUriRequest.class))).thenThrow(new IOException("Test"));
+
+    try {
+      client.get(String.class, "/any", null);
+      fail("Expected exception");
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), is("The request to Sonatype HDS failed, please retry in a bit."));
+    }
+  }
+
+  @Test
+  public void testTransformInternalServerError_500() throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException, ServletException
+      {
+        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("Some error message");
+        baseRequest.setHandled(true);
+      }
+    };
+
+    try {
+      client.get(String.class, "/any", null);
+      fail("Expected exception");
+    }
+    catch (BadGatewayException e) {
+      assertThat(e.getMessage(), is("The Sonatype HDS returned error 500, please retry in a bit."));
+    }
   }
 }

@@ -33,10 +33,10 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.GatewayTimeoutException;
-import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -225,6 +225,10 @@ public class HdsClient
         }
       }
     }
+    catch (IOException e) {
+      log.error("Failed to read response entity: {}", e.getMessage(), e);
+      throw new BadGatewayException("Failed to read response entity received from Sonatype HDS, please retry in a bit.");
+    }
     finally {
       if (!usingStream) {
         try {
@@ -267,7 +271,10 @@ public class HdsClient
           throw new BadGatewayException(
               "The Sonatype HDS is currently out of service, please retry in a bit. If the outage persists, please contact Sonatype Support.");
         default:
-          throw new InternalServerException("HDS error " + status + ": " + getErrorMessage(response));
+          // Since this is for any other errors, the error message may contain anything, so log it, but don't send it
+          // back to the client.
+          log.error("HDS error " + status + ": " + getErrorMessage(response));
+          throw new BadGatewayException("The Sonatype HDS returned error " + status + ", please retry in a bit.");
       }
     }
     catch (RuntimeException | IOException e) {
@@ -368,7 +375,7 @@ public class HdsClient
     }
   }
 
-  private HttpResponse execute(HttpUriRequest request) throws IOException {
+  private HttpResponse execute(HttpUriRequest request) {
     try {
       return client.execute(request);
     }
@@ -378,6 +385,10 @@ public class HdsClient
     catch (UnknownHostException e) {
       throw new BadGatewayException("The hostname for the Sonatype HDS could not be resolved, "
           + "please verify the network configuration (DNS) at the site where the Sonatype CLM server is operated", e);
+    }
+    catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("The request to Sonatype HDS failed, please retry in a bit.");
     }
   }
 

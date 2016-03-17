@@ -41,7 +41,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
 
 /**
  * @since 1.13.0
@@ -167,7 +166,7 @@ public class ApiComponentEvaluationResourceV2Test
     ApiComponentEvaluationResultDTOV2 details = response.getBody(ApiComponentEvaluationResultDTOV2.class);
     assertThat(details, notNullValue());
     assertThat(details.isError, is(true));
-    assertThat(details.errorMessage, startsWith("Internal Server Error (ID "));
+    assertThat(details.errorMessage, is("The Sonatype HDS returned error 500, please retry in a bit."));
     assertThat(details.applicationId, is(app.getId()));
     assertThat(details.evaluationDate, notNullValue());
     assertThat(details.submittedDate, notNullValue());

@@ -1,91 +1,104 @@
-<script type="text/ng-template" id="install-license-form">
-  <form id="license-form" ng-upload="uploadCompleted(content)" action='{{uploadUrl}}' class='form'
+<div>
+  <script type="text/ng-template" id="install-license-form">
+    <form id="license-form" ng-upload="uploadCompleted(content)" action='{{uploadUrl}}' class='form'
         style='margin: 0px;display: inline-block' method='post'>
-    <label for="license-input" firefox-input-click class='btn btn-primary'>
-      <i class='icon-white icon-plus-sign'></i>&nbsp;{{ license ? 'Update' : 'Install' }} License
-    </label>
-    <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file"
+      <label for="license-input" firefox-input-click class='btn btn-primary'>
+        <i class="fa fa-plus-circle"></i> {{ license ? 'Update' : 'Install' }} License
+      </label>
+      <input style='position:absolute;left:-9999em;' id="license-input" type="file" name="file"
            on-file-change="onFileChanged()" manual-file-clear ng-click="clearValue()"/>
-    <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
-  </form>
-</script>
-<div class='scrollable-root-container' authorization-wrapper="isAuthorized" maximize-container-height>
-  <div id='license'>
-    <h1 class='page-title'>
-      <div class='container config'>Product License</div>
-    </h1>
-    <div class='container config'>
-      <div load-error='error' reload='doLoad()'></div>
-      <div ng-show='!error && !isLoaded()'>
-          <h5><i class='icon icon-time'></i> Loading...</h5>
+      <input type='hidden' name='{{csrfTokenName}}' value='{{csrfTokenValue}}'/>
+    </form>
+  </script>
+  <script type="text/ng-template" id="license-uninstall-modal-template">
+    <div id="license-uninstall-modal">
+      <div class="clm-modal-header">
+        <h2>Uninstall License</h2>
       </div>
-      <div ng-show='!error && isLoaded()'>
-        <div ng-if='!license' style="padding-top:10px">
-          <div ng-include="'install-license-form'"></div>
+      <div class="clm-modal-body">
+        If you uninstall the CLM License, the system will be rendered unusable, are you sure you want to continue?
+      </div>
+      <div class="clm-modal-footer" ng-class="{error: vm.error}">
+        <div ng-if="vm.error" class="section with-icon"><i class="fa fa-warning"></i>{{vm.error}}</div>
+        <button ng-if="vm.error" class="btn btn-error" ng-click="vm.uninstall()">
+          <i class="fa fa-refresh"></i>Retry
+        </button>
+        <button class="btn btn-primary" ng-if="!vm.error" ng-click="vm.uninstall()">Uninstall</button>
+        <button class="btn" ng-click="$dismiss()">Cancel</button>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="eula-modal-template">
+    <div id="eulaModal">
+      <div class="modal-body">
+        <div class="well well-small" style="padding-top:0px;" clm-include="'configuration/components/eula.html'"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="$close()">I Accept</button>
+        <button class="btn" ng-click="$dismiss()">I Decline</button>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="license-installed-modal-template">
+    <div id="licenseInstalledModal">
+      <div class="clm-modal-header">
+        <h2>License Installed!</h2>
+      </div>
+      <div class="clm-modal-body">
+        Your license has been installed. The page will reload in a moment, or <a href="#" ng-click="$event.preventDefault();$close()">refresh</a> now.
+      </div>
+      <div class="clm-modal-footer">
+        <button class="btn btn-primary" ng-click="$close()">Refresh</button>
+      </div>
+    </div>
+  </script>
+  <script type="text/ng-template" id="license-uninstalled-modal-template">
+    <div id="licenseUninstalledModal">
+      <div class="clm-modal-header">
+        <h2>License Uninstalled!</h2>
+      </div>
+      <div class="clm-modal-body">
+        Your license has been uninstalled.  The page will reload in a moment, or <a href="#" ng-click="$event.preventDefault();$close()">refresh</a> now.
+      </div>
+      <div class="clm-modal-footer">
+        <button class="btn btn-primary" ng-click="$close()">Refresh</button>
+      </div>
+    </div>
+  </script>
+  <div class='scrollable-root-container' authorization-wrapper="isAuthorized" maximize-container-height>
+    <div id='license'>
+      <h1 class='page-title'>
+        <div class='container config'>Product License</div>
+      </h1>
+      <div class='container config'>
+        <div load-error='error' reload='doLoad()'></div>
+        <div ng-show='!error && !isLoaded()'>
+            <h5><i class="fa fa-spin fa-circle-o-notch loading-spinner"></i> Loading...</h5>
         </div>
-        <div ng-if='license'>
-          <div class='form-horizontal configuration'>
-            <div class='control-group'>
-              <label class='control-label'>Expires:</label>
-              <div id='license-expiry' class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
-            </div>
-            <div class='control-group'>
-              <label class='control-label'>Fingerprint:</label>
-              <div id='license-fingerprint' class='controls' style='padding-top:5px'>{{license.fingerprint}}</div>
-            </div>
-            <div class='control-group'>
-              <span ng-include="'install-license-form'"></span>
-              <label class='btn btn-remove btn-danger' ng-click='viewUninstallLicense()'>
-                <i class='icon-white icon-minus-sign'></i>&nbsp;Uninstall License
-              </label>
+        <div ng-show='!error && isLoaded()'>
+          <div ng-if='!license' style="padding-top:10px">
+            <div ng-include="'install-license-form'"></div>
+          </div>
+          <div ng-if='license'>
+            <div class='form-horizontal configuration'>
+              <div class='control-group'>
+                <label class='control-label'>Expires:</label>
+                <div id='license-expiry' class='controls' style='padding-top:5px'>{{license.expiryTimestamp | date:'MMMM dd, yyyy'}}</div>
+              </div>
+              <div class='control-group'>
+                <label class='control-label'>Fingerprint:</label>
+                <div id='license-fingerprint' class='controls' style='padding-top:5px'>{{license.fingerprint}}</div>
+              </div>
+              <div class='control-group'>
+                <span ng-include="'install-license-form'"></span>
+                <label class="btn btn-remove" ng-click="viewUninstallLicense()">
+                  <i class="fa fa-minus-circle"></i>Uninstall License
+                </label>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div id="eulaModal" data-backdrop="static" class="modal hide">
-    <div class="modal-body">
-      <div class="well well-small" style="padding-top:0px;" clm-include="'configuration/components/eula.html'"></div>
-    </div>
-    <div class="modal-footer">
-      <button class='btn' data-dismiss='modal' ng-click='eulaDeclined()'>I Decline</button>
-      <button class='btn btn-primary' ng-click='eulaAccepted()'>I Accept</button>
-    </div>
-  </div>
-  <div id="licenseUninstallConfirmationModal" data-backdrop="static" class="modal hide">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
-      <h3>Uninstall License</h3>
-    </div>
-    <div class="modal-body">
-      <p>If you uninstall the CLM License, the system will be rendered unusable, are you sure you want to continue?</p>
-    </div>
-    <div class="modal-footer">
-      <button class='btn' data-dismiss='modal'>Cancel</button>
-      <button class='btn btn-danger' ng-click='uninstallLicense()'>Uninstall</button>
-    </div>
-  </div>
-  <div id="licenseInstalledModal" data-backdrop="static" class="modal hide">
-    <div class="modal-header">
-      <h3>License Installed!</h3>
-    </div>
-    <div class="modal-body">
-      <p>Your license has been installed.  The page will reload in a moment, or <a href='#' ng-click='reload()'>refresh</a> now</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" ng-click="reload()">Refresh</button>
-    </div>
-  </div>
-  <div id="licenseUninstalledModal" data-backdrop="static" class="modal hide">
-    <div class="modal-header">
-      <h3>License Uninstalled!</h3>
-    </div>
-    <div class="modal-body">
-      <p>Your license has been uninstalled.  The page will reload in a moment, or <a href='#' ng-click='reload()'>refresh</a> now</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" ng-click="reload()">Refresh</button>
     </div>
   </div>
 </div>

@@ -27,8 +27,8 @@
       ]);
 
   module.controller('ProductLicenseController', [
-    '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', 'Messages', 'ErrorDialog', 'isAuthorized',
-    function($http, $scope, clmLocations, $timeout, $window, $cookies, Messages, ErrorDialog, isAuthorized) {
+    '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', '$modal', 'Messages', 'ErrorDialog', 'isAuthorized',
+    function($http, $scope, clmLocations, $timeout, $window, $cookies, $modal, Messages, ErrorDialog, isAuthorized) {
 
       $scope.summaryUrl = clmLocations.getLicenseSummaryUrl();
       $scope.uploadUrl = clmLocations.getLicenseUploadUrl();
@@ -55,13 +55,29 @@
       };
 
       function showLicense() {
-        $('#eulaModal').modal('hide');
-        $('#licenseInstalledModal').modal('show');
+        $modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          windowClass: 'clm-modal',
+          templateUrl: 'license-installed-modal-template'
+        }).result.then($scope.reload);
+
+        $timeout($scope.reload, 5000);
+      }
+
+      function showUninstalled() {
+        $modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          windowClass: 'clm-modal',
+          templateUrl: 'license-uninstalled-modal-template'
+        }).result.then($scope.reload);
         $timeout($scope.reload, 5000);
       }
 
       function showError(content) {
-        $('#eulaModal').modal('hide');
         ErrorDialog.open(content);
       }
 
@@ -70,30 +86,41 @@
       };
 
       $scope.viewUninstallLicense = function() {
-        $('#licenseUninstallConfirmationModal').modal('show');
+        $modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          windowClass: 'clm-modal',
+          templateUrl: 'license-uninstall-modal-template',
+          controller: 'uninstall.license.controller as vm'
+        }).result.then(function () {
+          showUninstalled();
+        });
       };
 
       $scope.onFileChanged = function() {
-        $('#eulaModal').modal('show');
-      };
-
-      $scope.eulaDeclined = function() {
-        $window.location.reload();
-      };
-
-      $scope.eulaAccepted = function() {
-        if ($window.FormData) {
-          var form = new FormData();
-          form.append('file', $('#license-input')[0].files[0]);
-          $http.post($scope.uploadUrl, form).success(function() {
-            showLicense();
-          }).error(function () {
-            showError(Messages.getHttpErrorMessage(arguments));
-          });
-        }
-        else {
-          $('#license-form').submit();
-        }
+        $modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          windowClass: 'clm-modal',
+          templateUrl: 'eula-modal-template'
+        }).result.then(function () {
+          if ($window.FormData) {
+            var form = new FormData();
+            form.append('file', $('#license-input')[0].files[0]);
+            $http.post($scope.uploadUrl, form).success(function() {
+              showLicense();
+            }).error(function () {
+              showError(Messages.getHttpErrorMessage(arguments));
+            });
+          }
+          else {
+            $('#license-form').submit();
+          }
+        }, function () {
+          $window.location.reload();
+        });
       };
 
       $scope.uploadCompleted = function(content) {
@@ -108,16 +135,6 @@
         else {
           showLicense();
         }
-      };
-
-      $scope.uninstallLicense = function() {
-        $http['delete']($scope.uploadUrl).success(function() {
-          $('#licenseUninstallConfirmationModal').modal('hide');
-          $('#licenseUninstalledModal').modal('show');
-          $timeout($scope.reload, 5000);
-        }).error(function() {
-          ErrorDialog.open(arguments);
-        });
       };
 
       $scope.isLoaded = function() {

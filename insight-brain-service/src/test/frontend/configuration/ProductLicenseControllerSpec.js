@@ -1,7 +1,9 @@
 describe('ProductLicenseController', function() {
   'use strict';
 
-  var scope, controller, mockWindow, mockLicenseSummary = {expiryTimestamp: 1601182800000};
+  var scope, controller, mockWindow, modalOpenSpy, modalResultSpy, mockLicenseSummary = {
+    expiryTimestamp: 1601182800000
+  };
 
   function getController($controller, scope) {
     return $controller('ProductLicenseController', {
@@ -21,11 +23,21 @@ describe('ProductLicenseController', function() {
       },
       document: {
         createElement: function(){ return null ;}
-      }
+      },
+      FormData: true
     };
 
+    spyOn(window, 'FormData').andReturn({append: angular.noop});
+
     module('ProductLicense', 'HttpInterceptors', function($provide) {
+      modalResultSpy = jasmine.createSpy('modalResultSpy');
+      modalOpenSpy = jasmine.createSpy('modalOpenSpy').andReturn({
+        result: {
+          then: modalResultSpy
+        }
+      });
       $provide.value('$window', mockWindow);
+      $provide.value('$modal', {open: modalOpenSpy});
       SpecUtil.mockPermissionService($provide);
     });
   });
@@ -54,26 +66,6 @@ describe('ProductLicenseController', function() {
       expect(scope.license).toEqual(mockLicenseSummary);
       expect(scope.isLoaded()).toBeTruthy();
     });
-
-    it('should be able to uninstall the license', inject(function($compile, $httpBackend, $timeout, $window) {
-      $httpBackend.expectDELETE(SpecUtil.toRegExp(scope.uploadUrl)).respond(200);
-
-      scope.uninstallLicense();
-
-      $httpBackend.flush();
-      $timeout.flush();
-      expect($window.location.reload).toHaveBeenCalled();
-    }));
-
-    it('should broadcast an error if uninstall fails on the server', inject(function($compile, $httpBackend, ErrorDialog) {
-      $httpBackend.expectDELETE(SpecUtil.toRegExp(scope.uploadUrl)).respond(500);
-      var broadCastError = spyOn(ErrorDialog, 'open');
-
-      scope.uninstallLicense();
-
-      $httpBackend.flush();
-      expect(broadCastError).toHaveBeenCalledWith(jasmine.any(Object));
-    }));
   });
 
   describe('402 Payment Required failure', function() {
@@ -112,82 +104,95 @@ describe('ProductLicenseController', function() {
   });
 
   describe('Modals should show/hide when told to', function(){
-    var eulaModal, licenseInstalledModal, licenseUninstallConfirmationModal, licenseUninstalledModal;
+    var licenseInput;
 
     beforeEach(inject(function($compile, $controller, $httpBackend, CLMLocations){
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
           .respond(mockLicenseSummary);
       controller = getController($controller, scope);
       $httpBackend.flush();
-      eulaModal = $compile('<div id="eulaModal"></div>')(scope);
-      licenseInstalledModal = $compile('<div id="licenseInstalledModal"></div>')(scope);
-      licenseUninstallConfirmationModal = $compile('<div id="licenseUninstallConfirmationModal"></div>')(scope);
-      licenseUninstalledModal = $compile('<div id="licenseUninstalledModal"></div>')(scope);
-      scope.$digest();
-      eulaModal.appendTo('body');
-      licenseInstalledModal.appendTo('body');
-      licenseUninstallConfirmationModal.appendTo('body');
-      licenseUninstalledModal.appendTo('body');
+      licenseInput = $('<input type="file" id="license-input">')
+      licenseInput.appendTo('body');
     }));
 
-      afterEach(function(){
-        eulaModal.remove();
-        licenseInstalledModal.remove();
-        licenseUninstallConfirmationModal.remove();
-        licenseUninstalledModal.remove();
-      });
-
-    it('Should show the eula if a file is changed', function(){
-      expect(eulaModal.hasClass('in')).toBeFalsy();
-      scope.onFileChanged();
-      expect(eulaModal.hasClass('in')).toBeTruthy();
+    afterEach(function(){
+      licenseInput.remove();
     });
 
-    it('Should hide the eula and show the installed modal when license is installed', inject(function($window, $timeout){
-      expect(eulaModal.hasClass('in')).toBeFalsy();
-      expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
-
+    it('Should show the eula if a file is changed', function(){
       scope.onFileChanged();
+      expect(modalOpenSpy).toHaveBeenCalled();
+    });
 
-      expect(eulaModal.hasClass('in')).toBeTruthy();
+    it('Should hide the eula and show the installed modal when license is installed', inject(function($window, $timeout, $httpBackend) {
+      scope.onFileChanged();
+      expect(modalOpenSpy).toHaveBeenCalled();
+      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('eula-modal-template');
 
-      scope.uploadCompleted([]);
+      // trigger success
+      $httpBackend.expectPOST('').respond(204);
+      modalResultSpy.mostRecentCall.args[0]();
+      $httpBackend.flush();
 
-      expect(eulaModal.hasClass('in')).toBeFalsy();
-      expect(licenseInstalledModal.hasClass('in')).toBeTruthy();
+      expect(modalOpenSpy.calls.length).toEqual(2);
+      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('license-installed-modal-template');
+
       $timeout.flush();
       expect($window.location.reload).toHaveBeenCalled();
     }));
 
-    it('Should hide the eula, clear file value and show an error if license install fails', inject(function($window, $timeout, ErrorDialog) {
-      var dialogSpy = spyOn(ErrorDialog, 'open');
+    it('Should hide the eula, clear file value and show an error if license install fails', inject(function($window, $httpBackend, ErrorDialog) {
+      spyOn(ErrorDialog, 'open');
 
       scope.clearValue = angular.noop;
       spyOn(scope, 'clearValue');
 
-      expect(eulaModal.hasClass('in')).toBeFalsy();
-      expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
+      scope.onFileChanged();
+      expect(modalOpenSpy).toHaveBeenCalled();
+
+      // trigger success
+      $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/product/license')).respond(501, "failure");
+      modalResultSpy.mostRecentCall.args[0]();
+      $httpBackend.flush();
+
+      expect(ErrorDialog.open).toHaveBeenCalledWith("failure");
+    }));
+
+    it('Should hide the eula, clear file value and show an error if license install fails - IE9', inject(function($window, $timeout, ErrorDialog) {
+      var dialogSpy = spyOn(ErrorDialog, 'open');
+      $window.FormData = false; // disable
+
+      scope.clearValue = angular.noop;
+      spyOn(scope, 'clearValue');
 
       scope.onFileChanged();
+      expect(modalOpenSpy).toHaveBeenCalled();
 
-      expect(eulaModal.hasClass('in')).toBeTruthy();
+      // trigger success
+      modalResultSpy.mostRecentCall.args[0]();
 
+      // ng-upload does this
       scope.uploadCompleted('fail');
 
       $timeout.flush();
 
-      expect(eulaModal.hasClass('in')).toBeFalsy();
-      expect(licenseInstalledModal.hasClass('in')).toBeFalsy();
       expect(dialogSpy).toHaveBeenCalledWith('fail');
       expect(scope.clearValue).toHaveBeenCalled();
     }));
 
-    it('Should show confirmation when uninstalling license', function(){
-      expect(licenseUninstallConfirmationModal.hasClass('in')).toBeFalsy();
-
+    it('Should show confirmation when uninstalling license', inject(function($window, $timeout) {
       scope.viewUninstallLicense();
+      expect(modalOpenSpy).toHaveBeenCalled();
+      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('license-uninstall-modal-template');
 
-      expect(licenseUninstallConfirmationModal.hasClass('in')).toBeTruthy();
-    });
+      // trigger success
+      modalResultSpy.mostRecentCall.args[0]();
+      expect(modalOpenSpy.calls.length).toEqual(2);
+      expect(modalOpenSpy.mostRecentCall.args[0].templateUrl).toEqual('license-uninstalled-modal-template');
+
+      modalResultSpy.mostRecentCall.args[0]();
+      $timeout.flush();
+      expect($window.location.reload).toHaveBeenCalled();
+    }));
   });
 });

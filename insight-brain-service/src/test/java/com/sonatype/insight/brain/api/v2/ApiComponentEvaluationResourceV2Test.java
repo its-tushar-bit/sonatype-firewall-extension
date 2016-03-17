@@ -492,17 +492,14 @@ public class ApiComponentEvaluationResourceV2Test
     HttpResponse response = null;
     HttpRequest request = restRequest().path(evaluationResult.resultsUrl);
 
-    boolean done = false;
-    int tryCount = 1;
-    while (!done) {
+    for (int tryCount = 1; tryCount <= NUM_TRIES; tryCount++) {
       response = request.get();
-      if (response.getStatusCode() == 200 || tryCount >= NUM_TRIES) {
-        done = true;
+      if (response.getStatusCode() == 200) {
+        break;
       }
       tryCount++;
       Thread.sleep(RETRY_INTERVAL);
     }
-
     return response;
   }
 }

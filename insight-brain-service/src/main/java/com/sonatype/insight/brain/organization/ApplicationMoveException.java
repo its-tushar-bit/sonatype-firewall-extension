@@ -12,10 +12,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @SuppressWarnings("serial")
-class ApplicationMigrationException
+class ApplicationMoveException
     extends WebApplicationException
 {
-  public ApplicationMigrationException(List<String> issues) {
+  public ApplicationMoveException(List<String> issues) {
     super(Response.status(Response.Status.CONFLICT).entity(issues).type(MediaType.APPLICATION_JSON).build());
   }
 }

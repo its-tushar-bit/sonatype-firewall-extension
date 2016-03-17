@@ -278,8 +278,8 @@ class ApplicationViolationsTableRow
   Map<String, Integer> threatColumnPositions
 
   static content = {
-    expand(required: false) { module ExpandoModule, $('td:first-child i.expand') }
-    collapse(required: false) { module ExpandoModule, $('td:first-child i.collapse') }
+    expand(required: false) { module ExpandoModule, $('td:first-child span.expand') }
+    collapse(required: false) { module ExpandoModule, $('td:first-child span.collapse') }
     application { $('td:first-child') }
     netRisk { $('td:nth-child(2)') }
     criticalRisk(required: false) { $("td:nth-child(${threatColumnPositions[ThreatHeaderModule.CRITICAL]})") }

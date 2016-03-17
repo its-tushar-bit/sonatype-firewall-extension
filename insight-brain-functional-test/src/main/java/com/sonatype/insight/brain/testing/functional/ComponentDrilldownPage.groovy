@@ -92,7 +92,7 @@ class ComponentApplicationRow
   static final int OPERATE = 7
 
   static content = {
-    expando { module ExpandoModule, cell(EXPANDO).find('i') }
+    expando { module ExpandoModule, cell(EXPANDO).find('.twisty-container') }
     applicationImage { $('.image-thumbnail') }
     orgApp { cell(ORG_APP).text().trim() }
   }

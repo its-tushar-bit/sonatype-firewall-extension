@@ -124,6 +124,7 @@
   ```
 */
 .twisty-container {
+  cursor: pointer;
   display: inline-block;
 
   .twisty {
@@ -131,7 +132,6 @@
     -webkit-font-smoothing: antialiased;
     display: inline-block;
     width: 0;
-    cursor: pointer;
     vertical-align: text-top;
 
     &.empty {

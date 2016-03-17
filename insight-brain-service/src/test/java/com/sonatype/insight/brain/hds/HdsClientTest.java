@@ -246,6 +246,7 @@ public class HdsClientTest
 
     try {
       client.get(String.class, "/any", null);
+      fail("Expected exception");
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), containsString("401"));
@@ -271,6 +272,7 @@ public class HdsClientTest
 
     try {
       client.get(String.class, "/any", null);
+      fail("Expected exception");
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), containsString("403"));
@@ -296,6 +298,7 @@ public class HdsClientTest
 
     try {
       client.get(String.class, "/any", null);
+      fail("Expected exception");
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), containsString("407"));
@@ -321,6 +324,7 @@ public class HdsClientTest
 
     try {
       client.get(String.class, "/any", null);
+      fail("Expected exception");
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), containsString("Sonatype Support"));
@@ -345,6 +349,7 @@ public class HdsClientTest
 
     try {
       client.get(String.class, "/any", null);
+      fail("Expected exception");
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), containsString("Sonatype Support"));
@@ -357,6 +362,7 @@ public class HdsClientTest
     initClient();
     try {
       client.get(String.class, "/any", null);
+      fail("Expected exception");
     }
     catch (BadGatewayException e) {
       assertThat(e.getMessage(), is("The hostname for the Sonatype HDS could not be resolved,"

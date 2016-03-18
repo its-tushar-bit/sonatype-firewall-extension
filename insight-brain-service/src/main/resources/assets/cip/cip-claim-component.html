@@ -3,7 +3,7 @@
     <h4>Error</h4>
     <p>{{createError}}</p>
     <p>
-      <button type='button' class='btn btn-danger' ng-click='createError = null'>
+      <button type='button' class='btn btn-danger btn-error' ng-click='createError = null'>
         <i class='icon-white  icon-arrow-left'></i> Back
       </button>
     </p>
@@ -82,7 +82,7 @@
           <td class='validation-error'>{{getValidationMessage()}}</td>
           <td>
             <div class='controls' style='text-align: right;'>
-              <button type='none' class='btn btn-danger' ng-show="claimData.identificationSource === 'Manual'"
+              <button type='none' class='btn btn-danger btn-error' ng-show="claimData.identificationSource === 'Manual'"
                       ng-click='revokeClaimSubmit()'>Revoke Claim</button>
               <button type='none' class='btn' ng-show="claimData.identificationSource === 'Manual'"
                       ng-disabled='!claimForm.$dirty' ng-click="resetClaimData()">Cancel</button>

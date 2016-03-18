@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.RemoveModal;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
@@ -124,6 +125,39 @@ public class ApplicationSummaryViewTest
     RemoveModal.body().shouldNotBe(visible);
     SelectContactModal.body().shouldNotBe(visible);
     OwnerSummaryPage.SummaryTile.contact().shouldNotHave(text(tempUser.calculateDisplayName()));
+  }
+
+  @Test
+  public void testApplicationContact_withEditApplicationName() {
+    User tempUser = tempEntity.newUser();
+    OwnerSummaryPage.SummaryTile.name().shouldHave(text(YE_OLE_APPLICATION));
+
+    // open the contact modal
+    ActionDropDown.actionButton().click();
+    ActionDropDown.selectContact().shouldBe(visible).click();
+    SelectContactModal.body().shouldBe(visible);
+    SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
+    SelectContactModal.searchButton().click();
+    SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
+    // update contact
+    SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
+    SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
+    SelectContactModal.body().shouldNotBe(visible);
+    OwnerSummaryPage.SummaryTile.contact().shouldHave(text(tempUser.calculateDisplayName()));
+
+    // edit the application name
+    String shortTypeName = "App";
+    String newAppName = "New Name";
+    ActionDropDown.actionButton().click();
+    OwnerEditorDialog.root().shouldNotBe(visible);
+    ActionDropDown.editOwner().shouldHave(text(shortTypeName)).click();
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text(OwnerType.APPLICATION.toString()));
+    OwnerEditorDialog.name().val(newAppName);
+    OwnerEditorDialog.saveButton().shouldNotBe(DISABLED).click();
+    FormMask.seeAndWaitForDismissal();
+    OwnerSummaryPage.SummaryTile.name().shouldHave(text(newAppName));
+    OwnerSummaryPage.SummaryTile.contact().shouldBe(visible).shouldHave(text(tempUser.calculateDisplayName()));
   }
 
   @Override

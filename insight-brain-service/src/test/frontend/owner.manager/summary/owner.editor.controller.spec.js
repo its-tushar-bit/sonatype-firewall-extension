@@ -117,6 +117,20 @@ describe('owner.editor.controller.spec.js', function() {
           });
           expect(controllerScope.$close).toHaveBeenCalled();
         }));
+
+        it('ContactInternalName properly set', inject(function() {
+          expect(vm.dirtyOwner.contactInternalName).toBeUndefined();
+
+          saveDeferred.reject('retry with contact');
+          $timeout.flush();
+
+          if (type === 'application') {
+            vm.dirtyOwner.contact = {internalName: 'internalName'};
+
+            vm.save();
+            expect(vm.dirtyOwner.contactInternalName).toEqual('internalName');
+          }
+        }));
       });
     });
   }

@@ -87,6 +87,10 @@
       var isNew = owner.$new;
       delete vm.error;
 
+      if (vm.dirtyOwner.contact) {
+        vm.dirtyOwner.contactInternalName = vm.dirtyOwner.contact.internalName;
+      }
+
       vm.ownerEditorMask.wrap(vm.dirtyOwner.$save().then(function(result) {
         var form = $('#custom-icon-form');
 

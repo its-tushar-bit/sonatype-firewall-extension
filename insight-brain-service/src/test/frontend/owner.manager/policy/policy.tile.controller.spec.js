@@ -94,6 +94,22 @@ describe('policy.tile.controller.spec.js', function() {
 
   });
 
+  it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
+    var EventNameConstant = $injector.get('event.name.constant');
+
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    $httpBackend.flush();
+    $timeout.flush();
+
+    $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    $httpBackend.flush();
+    $timeout.flush();
+  }));
+
   function resolveStageTypeStore(value) {
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
     stageTypeStoreDefer.resolve(value);

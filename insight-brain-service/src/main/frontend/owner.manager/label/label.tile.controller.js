@@ -6,7 +6,7 @@
 (function(angular) {
   'use strict';
 
-  function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService) {
+  function LabelTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService, EventNameConstant) {
     var vm = this;
     vm.ownerName = undefined;
     vm.applicableLabels = undefined;
@@ -17,6 +17,7 @@
     vm.doLoad();
 
     $scope.$on('policy.imported', doLoad);
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
     function doLoad() {
       $http.get(CLMAppLocations.getApplicableLabelsUrl()).then(function(result) {
@@ -40,7 +41,9 @@
     }
   }
 
-  LabelTileController.$inject = ['$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'];
+  LabelTileController.$inject = [
+    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+  ];
 
   angular
       .module('owner.manager.module')

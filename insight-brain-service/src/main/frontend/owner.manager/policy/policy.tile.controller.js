@@ -7,7 +7,7 @@
   'use strict';
 
   function PolicyTileController($scope, $q, $http, CLMAppLocations, StageTypeStore, SameOwnerStateNavigationService,
-                                PolicyMonitoringStore, MonitoredStageService)
+                                PolicyMonitoringStore, MonitoredStageService, EventNameConstant)
   {
     var vm = this;
     vm.ownerName = undefined;
@@ -16,12 +16,12 @@
     vm.actionStages = undefined;
     vm.monitoredStage = undefined;
     vm.editPolicy = editPolicy;
-
     vm.doLoad = doLoad;
 
     vm.doLoad();
 
     $scope.$on('policy.imported', doLoad);
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
     function doLoad() {
       $q.all([
@@ -75,8 +75,8 @@
   }
 
   PolicyTileController.$inject = [
-    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore',
-    'SameOwnerStateNavigationService', 'PolicyMonitoringStore', 'monitored.stage.service'
+    '$scope', '$q', '$http', 'CLMAppLocations', 'StageTypeStore', 'SameOwnerStateNavigationService',
+    'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant'
   ];
 
   angular //

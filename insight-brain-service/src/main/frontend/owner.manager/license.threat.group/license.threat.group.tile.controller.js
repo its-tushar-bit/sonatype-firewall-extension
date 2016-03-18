@@ -5,7 +5,9 @@
  */
 (function(angular) {
   'use strict';
-  function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService) {
+  function LicenseThreatGroupTileController($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
+                                            EventNameConstant)
+  {
     var vm = this;
     vm.ownerName = undefined;
     vm.applicableLicenseGroups = undefined;
@@ -16,6 +18,7 @@
     vm.doLoad();
 
     $scope.$on('policy.imported', doLoad);
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
     function doLoad() {
       $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl()).then(function(results) {
@@ -39,7 +42,9 @@
     }
   }
 
-  LicenseThreatGroupTileController.$inject = ['$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'];
+  LicenseThreatGroupTileController.$inject = [
+    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+  ];
 
   angular.module('owner.manager.module').controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController);
 

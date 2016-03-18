@@ -9,11 +9,13 @@ describe('access.tile.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($controller, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function($rootScope, $controller, _$httpBackend_, _CLMAppLocations_) {
         $httpBackend = _$httpBackend_;
         CLMAppLocations = _CLMAppLocations_;
 
-        vm = $controller('AccessTileController');
+        vm = $controller('AccessTileController', {
+          $scope: $rootScope.$new()
+        });
       }
   ));
 
@@ -48,4 +50,16 @@ describe('access.tile.controller.spec.js', function() {
 
     expect(vm.error).toBeUndefined();
   });
+
+  it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
+    var EventNameConstant = $injector.get('event.name.constant');
+
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.flush();
+
+    $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.flush();
+  }));
 });

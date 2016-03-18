@@ -7,7 +7,7 @@
   'use strict';
 
   function OwnerTreeViewController($q, $scope, $state, $stateParams, $http, CLMLocations, organizationStore,
-                                   applicationStore, OwnerEditor, PermissionService, ownerConstant)
+                                   applicationStore, OwnerEditor, PermissionService, ownerConstant, EventNameConstant)
   {
     var vm = this;
 
@@ -79,6 +79,8 @@
       vm.selectedParentOrganization = null;
       assignSelectedParentOrganization();
     });
+
+    $scope.$on(EventNameConstant.RELOAD_OWNER_TREE_DATA, doLoad);
 
     vm.doLoad();
 
@@ -256,7 +258,7 @@
 
   OwnerTreeViewController.$inject = [
     '$q', '$scope', '$state', '$stateParams', '$http', 'CLMLocations', 'OrganizationStore', 'ApplicationStore',
-    'OwnerEditorService', 'PermissionService', 'owner.constant'
+    'OwnerEditorService', 'PermissionService', 'owner.constant', 'event.name.constant'
   ];
 
   angular

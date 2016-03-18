@@ -56,6 +56,18 @@ describe('application.category.tile.controller.org.spec.js', function() {
         expect(vm.ownerName).toBeUndefined();
         expect(vm.appCategoryOwners).toEqual([]);
       });
+
+      it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
+        var EventNameConstant = $injector.get('event.name.constant');
+
+        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.flush();
+
+        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+
+        $httpBackend.expectGET(mockCLMAppLocations.getTagsUrl()).respond(TagResourceMockData.getTagsUrl());
+        $httpBackend.flush();
+      }));
     }
   }
 

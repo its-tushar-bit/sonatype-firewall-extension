@@ -6,7 +6,9 @@
 (function(angular) {
   'use strict';
 
-  function ApplicationCategoryTileControllerOrg($scope, $http, CLMAppLocations, SameOwnerStateNavigationService) {
+  function ApplicationCategoryTileControllerOrg($scope, $http, CLMAppLocations, SameOwnerStateNavigationService,
+                                                EventNameConstant)
+  {
     var vm = this;
 
     vm.appCategoryOwners = [];
@@ -19,6 +21,7 @@
     vm.doLoad();
 
     $scope.$on('policy.imported', doLoad);
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
     function doLoad() {
       if (vm.isOrg) {
@@ -50,7 +53,7 @@
   }
 
   ApplicationCategoryTileControllerOrg.$inject = [
-    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService'
+    '$scope', '$http', 'CLMAppLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
   ];
 
   angular //

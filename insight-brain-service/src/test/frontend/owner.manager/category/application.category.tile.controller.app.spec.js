@@ -81,6 +81,25 @@ describe('application.category.tile.controller.app.spec.js', function() {
             expect(vm.error).toBeDefined();
           }
       );
+
+      it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
+        var EventNameConstant = $injector.get('event.name.constant'),
+            mockAppliedTags = TagResourceMockData.getApplicationTagUrl();
+
+        mockApplicationStore.resolveGet([owner]);
+        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(mockAppliedTags);
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
+        $timeout.flush();
+        $httpBackend.flush();
+
+        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+
+        mockApplicationStore.resolveGet([owner]);
+        $httpBackend.expectGET(CLMLocations.getApplicationTagUrl(mockCLMAppLocations.getEntityId())).respond(mockAppliedTags);
+        $httpBackend.expectGET(CLMLocations.getApplicableOrganizationTags(mockCLMAppLocations.getEntityId())).respond([]);
+        $timeout.flush();
+        $httpBackend.flush();
+      }));
     }
   }
 

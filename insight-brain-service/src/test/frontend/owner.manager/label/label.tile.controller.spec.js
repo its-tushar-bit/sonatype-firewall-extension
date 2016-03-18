@@ -43,4 +43,16 @@ describe('label.tile.controller.spec.js', function() {
 
     expect(vm.error).toBeDefined();
   });
+
+  it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
+    var EventNameConstant = $injector.get('event.name.constant');
+
+    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.flush();
+
+    $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+
+    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.flush();
+  }));
 });

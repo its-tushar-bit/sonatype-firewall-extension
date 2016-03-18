@@ -7,7 +7,7 @@
   'use strict';
 
   function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMAppLocations, CLMLocations,
-                                                SameOwnerStateNavigationService)
+                                                SameOwnerStateNavigationService, EventNameConstant)
   {
     var vm = this;
 
@@ -22,6 +22,7 @@
     vm.doLoad();
 
     $scope.$on('policy.imported', doLoad);
+    $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
     function doLoad() {
       if (vm.isApp) {
@@ -58,7 +59,7 @@
   }
 
   ApplicationCategoryTileControllerApp.$inject = [
-    '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'SameOwnerStateNavigationService'
+    '$scope', '$q', '$http', 'ApplicationStore', 'CLMAppLocations', 'CLMLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
   ];
 
   angular //

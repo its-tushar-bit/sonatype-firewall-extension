@@ -1,5 +1,5 @@
 describe('owner.tree-view.directive.spec.js', function() {
-  var scope, $httpBackend, $state, CLMLocations, CLMAppLocations;
+  var scope, $httpBackend, $state, $timeout, CLMLocations, CLMAppLocations;
 
   beforeEach(module(function($provide) {
     // $state stub for spying
@@ -28,6 +28,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
                                  _CLMAppLocations_)
       {
+        $timeout = _$timeout_;
         $httpBackend = _$httpBackend_;
         $state = _$state_;
         CLMLocations = _CLMLocations_;
@@ -46,7 +47,7 @@ describe('owner.tree-view.directive.spec.js', function() {
         $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
         scope.$digest();
         $httpBackend.flush();
-        _$timeout_.flush();
+        $timeout.flush();
       }));
 
       it('loads organizations and applications', function() {
@@ -265,6 +266,18 @@ describe('owner.tree-view.directive.spec.js', function() {
 
         expect(scope.vm.organizations[0].applications[0].name).toBe('foo');
       });
+
+      it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
+        var EventNameConstant = $injector.get('event.name.constant');
+
+        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_TREE_DATA);
+
+        $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
+        $httpBackend.expectPUT(CLMAppLocations.getPermissionContextTestUrl('repository_container')).respond(permissions);
+        scope.$digest();
+        $httpBackend.flush();
+        $timeout.flush();
+      }));
     });
   }
 

@@ -21,7 +21,7 @@ extends BasePage {
     pageTitle { $('#role-title') }
 
     deleteRole (required: false) { $('#delete-role') }
-    deleteConfirm (required : false) { $('.modal.in .btn-danger') }
+    deleteConfirm (required : false) { $('.modal.in .btn-primary') }
 
     nameEditor { $('input[type=text]') }
     namePopover (required : false) { $('#roleName-popover') }

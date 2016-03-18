@@ -1,11 +1,10 @@
 <div id="cip-policy-violations" load-wrapper="error" reload="doLoad()" error-message="Unable to load policy violation data." loading="!error && !processedPolicyAlerts">
   <script type="text/ng-template" id="add-waiver-modal-tmpl">
   <div id="add-waiver-modal">
-    <div class="modal-header">
-      <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
-      <h3>Add Policy Waiver</h3>
+    <div class="clm-modal-header">
+      <h2>Add Policy Waiver</h2>
     </div>
-    <div class="modal-body">
+    <div class="clm-modal-body">
       <div ng-show="waiverLoading">
         <i class="icon icon-time"></i> Loading...
       </div>
@@ -35,24 +34,23 @@
         <textarea id="waiver-comment" ng-model="waiver.comment" maxlength="1000" style="width: 520px;"></textarea>
       </div>
     </div>
-    <div class="modal-footer">
+    <div class="clm-modal-footer">
       <span class="alert alert-error" ng-show="waiveAssignError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{waiveAssignError}}</span>
-      <button type="button" class="btn" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
       <button type="button" class="btn btn-primary" ng-click="acceptWaiveComponent()" ng-disabled="waiverSaving">Waive</button>
+      <button type="button" class="btn" ng-click="$dismiss()" ng-disabled="waiverSaving">Cancel</button>
     </div>
   </div>
   </script>
   <script type="text/ng-template" id="view-waivers-modal-tmpl">
     <div id="componentExistingWaiverModal">
       <div ng-hide="confirmDelete">
-        <div class="modal-header">
-          <button type="button" class="close" ng-click="$close()" aria-hidden="true">&times;</button>
-          <h3>Component Waivers</h3>
+        <div class="clm-modal-header">
+          <h2>Component Waivers</h2>
         </div>
-        <div class="modal-body" ng-show="waiversLoading">
+        <div class="clm-modal-body" ng-show="waiversLoading">
           <span>Loading data...</span>
         </div>
-        <div class="modal-body" ng-show="!waiversLoading">
+        <div class="clm-modal-body" ng-show="!waiversLoading">
           <div ng-show="!waivers.length"><em id="no-waivers-assigned" style="margin-left:25px;">No waivers assigned</em></div>
           <table ng-show="waivers.length" class="table table-condensed">
             <thead>
@@ -74,45 +72,45 @@
             </tr>
           </table>
         </div>
-        <div class="modal-footer">
+        <div class="clm-modal-footer">
           <span class="alert alert-error" ng-show="appError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{appError}}</span>
-          <button id="close-component-existing-waivers" type="button" class="btn btn-primary" ng-click="$close()">Close</button>
+          <button id="close-component-existing-waivers" type="button" class="btn" ng-click="$close()">Close</button>
         </div>
       </div>
       <div id="confirm-delete-waiver-modal" ng-show="confirmDelete">
-        <div class="modal-header">
-          <h3>Remove Waiver</h3>
+        <div class="clm-modal-header">
+          <h2>Remove Waiver</h2>
         </div>
-        <div class="modal-body" >
+        <div class="clm-modal-body" >
           Removing the waiver for {{confirmDelete.policyName}} will reinstate violations for this component if applicable.
         </div>
-        <div class="modal-footer">
+        <div class="clm-modal-footer">
+          <button id="confirm-remove-waiver" type="button" class="btn btn-primary" ng-click="removeWaiver()">Remove</button>
           <button id="cancel-remove-waiver" type="button" class="btn" ng-click="confirmDelete = null">Cancel</button>
-          <button id="confirm-remove-waiver" type="button" class="btn btn-danger" ng-click="removeWaiver()">Remove</button>
         </div>
       </div>
     </div>
   </script>
   <script type="text/ng-template" id="release-quarantine-tmpl">
     <div id="release-quarantine-modal">
-      <div class="modal-header">
-        <h3>Release Quarantine</h3>
+      <div class="clm-modal-header">
+        <h2>Release Quarantine</h2>
       </div>
       <div ng-if="!vm.error">
-        <div class="modal-body">
+        <div class="clm-modal-body">
           Releasing the quarantine on this component will allow users of this Nexus repository to download and use the artifact.
         </div>
-        <div class="modal-footer">
+        <div class="clm-modal-footer">
           <button class="btn btn-primary" ng-disabled="vm.activeRequest" ng-click="vm.release()">Release</button>
           <button class="btn" ng-click="$dismiss()">Cancel</button>
         </div>
       </div>
       <div ng-if="vm.error">
-        <div class="modal-body modal-error">
+        <div class="clm-modal-body modal-error">
           <i class="icon icon-warning-sign"></i> Failed to release the quarantine. ({{vm.error}})
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-danger" type="button" ng-disabled="vm.activeRequest" ng-click="vm.release()">Retry</button>
+        <div class="clm-modal-footer">
+          <button class="btn btn-primary" type="button" ng-disabled="vm.activeRequest" ng-click="vm.release()">Retry</button>
           <button class="btn" type="button" ng-click="$dismiss()">Cancel</button>
         </div>
       </div>

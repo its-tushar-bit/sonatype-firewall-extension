@@ -131,19 +131,16 @@ describe('CIP Claim Component tests', function() {
       title: 'Revoke Claim',
       body: 'Are you sure you want to revoke the claim on this component?' +
         ' This change will not be reflected until a new policy evaluation is triggered.',
-      buttons: [
-        {
-          name: 'Cancel',
-          type: 'cancel'
-        },
-        {
-          name : 'Revoke',
-          type : 'danger',
-          click : jasmine.any(Function)
-        }
-      ]
+      buttons: [{
+        name : 'Revoke',
+        type : 'primary',
+        click : jasmine.any(Function)
+      }, {
+        name: 'Cancel',
+        type: 'cancel'
+      }]
     });
-    Dialog.open.mostRecentCall.args[0].buttons[1].click();
+    Dialog.open.mostRecentCall.args[0].buttons[0].click();
     $http.flush();
   }));
 

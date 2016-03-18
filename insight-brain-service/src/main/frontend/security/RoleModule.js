@@ -166,12 +166,12 @@
         body : 'Are you sure you want to delete the Role <strong>' + $('<div/>').text($scope.role.name).html() +
                '</strong>?',
         buttons :  [{
+          name: 'Delete',
+          type: 'primary'
+        }, {
           name: 'Cancel',
           type: 'cancel',
           dismiss: true
-        }, {
-          name: 'Delete',
-          type: 'danger'
         }]
       }).result.then(function () {
         RoleStore.get().then(function (roles) {

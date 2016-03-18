@@ -29,7 +29,7 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement deleteConfirmationButton() {
-    return $("#delete-ldap-confirmation button.btn-danger");
+    return $("#delete-ldap-confirmation button.btn-primary");
   }
 
   public static InlineEditor name() {

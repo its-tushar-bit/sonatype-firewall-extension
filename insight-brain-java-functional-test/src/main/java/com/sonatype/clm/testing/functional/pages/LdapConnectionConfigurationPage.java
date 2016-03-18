@@ -29,7 +29,7 @@ public class LdapConnectionConfigurationPage
   }
 
   public static SelenideElement discardChangesButton() {
-    return $("#ldap-unsaved-changes button.btn-danger");
+    return $("#ldap-unsaved-changes button.btn-primary");
   }
 
   public static List<SelenideElement> getRequiredFields() {

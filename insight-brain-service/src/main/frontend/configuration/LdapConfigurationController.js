@@ -59,10 +59,13 @@
     return function() {
       $modal.open({
         backdrop: 'static',
-        template: '<div id="ldap-unsaved-changes"><div class="modal-header"><h3>Unsaved Changes</h3></div>' +
-            '<div class="modal-body">There are unsaved changes, continuing will discard them.</div>' +
-            '<div class="modal-footer"><button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>' +
-            '<button class="btn btn-danger pull-right" ng-click="discardChanges()">' + discardLabel + '</button></div></div>',
+        windowClass: 'clm-modal',
+        template: '<div id="ldap-unsaved-changes"><div class="clm-modal-header"><h2>Unsaved Changes</h2></div>' +
+            '<div class="clm-modal-body">There are unsaved changes, continuing will discard them.</div>' +
+            '<div class="clm-modal-footer">' +
+              '<button class="btn btn-primary" ng-click="discardChanges()">' + discardLabel + '</button>' +
+              '<button class="btn btn-link btn-cancel" ng-click="$close()">Cancel</button>' +
+            '</div></div>',
         controller: [
           '$scope', function(modalScope) {
             modalScope.discardChanges = function() {
@@ -192,12 +195,12 @@
           body : 'Are you sure you want to delete this LDAP configuration?',
           id : 'delete-ldap-confirmation',
           buttons : [{
+            name : 'Delete',
+            type : 'primary',
+            click : $scope.deleteConfiguration
+          }, {
             name : 'Cancel',
             type: 'cancel'
-          },{
-            name : 'Delete',
-            type : 'danger',
-            click : $scope.deleteConfiguration
           }]
         });
       };

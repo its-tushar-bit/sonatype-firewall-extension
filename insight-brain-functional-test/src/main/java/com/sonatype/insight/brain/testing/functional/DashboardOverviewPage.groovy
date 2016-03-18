@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.testing.functional
 import com.sonatype.insight.brain.testing.functional.modules.DashboardTabsModule
 import com.sonatype.insight.brain.testing.functional.modules.ExpandoModule
 import com.sonatype.insight.brain.testing.functional.modules.FilterModule
-import com.sonatype.insight.brain.testing.functional.modules.ModalModule
+import com.sonatype.insight.brain.testing.functional.modules.ClmModalModule
 import com.sonatype.insight.brain.testing.functional.modules.ThreatTableModule
 import geb.Module
 
@@ -58,7 +58,7 @@ class DashboardOverviewPage
 
     filters { module FilterModule, $('#dashboard-filter-panel') }
 
-    applyFilterModal { module ModalModule, title: 'Filter Settings Changed' }
+    applyFilterModal { module ClmModalModule, title: 'Filter Settings Changed' }
 
     viewTrendsButton { $('#show-trend-dialog') }
     viewTrendsDialog { $('#policy-trends-dialog') }

@@ -22,14 +22,13 @@
   <script type="text/ng-template" id="add-modal-service">
     <div id="labelAssignScopeModal"
         load-wrapper="labelAddError" reload="doLoad()" error-message="Unable to load available label contexts." loading="labelLoading">
-      <div class="modal-header">
-        <button type="button" class="close" ng-click="declineAddLabel()" aria-hidden="true">&times;</button>
-        <h3>Label Assignment</h3>
+      <div class="clm-modal-header">
+        <h2>Label Assignment</h2>
       </div>
-      <div class="modal-body" ng-show="labelLoading">
+      <div class="clm-modal-body" ng-show="labelLoading">
         <span>Loading data...</span>
       </div>
-      <div class="modal-body" ng-show="!labelLoading">
+      <div class="clm-modal-body" ng-show="!labelLoading">
         <div ng-repeat="labelOwner in labelOwners">
           <label class="radio">
             <input type="radio" ng-model="label.selectedOwner" name="selectedOwner" value="{{labelOwner.id + '$$' + labelOwner.type}}">
@@ -42,26 +41,26 @@
           </label>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="clm-modal-footer">
         <span class="alert alert-error" ng-show="labelAddError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelAddError}}</span>
-        <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="labelSaving">Cancel</button>
         <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelSaving">Save</button>
+        <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="labelSaving">Cancel</button>
       </div>
     </div>
   </script>
   <script type="text/ng-template" id="delete-modal-service">
     <div id="labelRemoveModal"
         load-wrapper="labelRemoveError" reload="doLoad()" error-message="Failed to remove label." loading="false">
-      <div class="modal-header">
-        <h3>Remove Label</h3>
+      <div class="clm-modal-header">
+        <h2>Remove Label</h2>
       </div>
-      <div class="modal-body">
+      <div class="clm-modal-body">
         Are you sure you want to remove this label?
       </div>
-      <div class="modal-footer">
+      <div class="clm-modal-footer">
         <span class="alert alert-error" ng-show="labelRemoveError" style="float: left; padding-top: 4px; padding-bottom: 4px; margin: 0">{{labelRemoveError}}</span>
+        <button type='button' class="btn btn-primary" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
         <button type='button' class="btn" ng-click="$dismiss()" ng-disabled="labelDeleting">Cancel</button>
-        <button type='button' class="btn btn-danger" ng-click="accept()" ng-disabled="labelDeleting">Remove</button>
       </div>
     </div>
   </script>

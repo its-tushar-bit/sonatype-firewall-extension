@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.insight.brain.testing.functional.modules.ButtonsModule
 import com.sonatype.insight.brain.testing.functional.modules.DropdownMultiSelectModule
-import com.sonatype.insight.brain.testing.functional.modules.ModalModule
+import com.sonatype.insight.brain.testing.functional.modules.ClmModalModule
 
 import geb.Module
 import geb.Page
@@ -41,7 +41,7 @@ extends Page {
     allViolations { $('#policy-violation-filter li a', text: 'All') }
     waivedViolations { $('#policy-violation-filter li a', text: 'Waived') }
     selectedViolationFilter { $('#policy-violation-filter li.active a').text() }
-    revokeClaimModal(required: false) { module ModalModule, title: 'Revoke Claim' }
+    revokeClaimModal(required: false) { module ClmModalModule, title: 'Revoke Claim' }
   }
 }
 

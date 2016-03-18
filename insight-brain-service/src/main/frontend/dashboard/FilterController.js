@@ -223,22 +223,19 @@
           Dialog.open({
             title: 'Filter Settings Changed',
             body: 'Your filter settings have unsaved changes, apply them now?',
-            buttons: [
-              {
-                name: 'Cancel',
-                type: 'cancel',
-                click: function() {
-                  $scope.cancel();
-                }
-              },
-              {
-                name: 'Apply',
-                type: 'primary',
-                click: function() {
-                  $scope.save();
-                }
+            buttons: [{
+              name: 'Apply',
+              type: 'primary',
+              click: function() {
+                $scope.save();
               }
-            ]
+            }, {
+              name: 'Cancel',
+              type: 'cancel',
+              click: function() {
+                $scope.cancel();
+              }
+            }]
           });
         } else {
           $scope.expanded = !$scope.expanded;

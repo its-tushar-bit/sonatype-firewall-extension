@@ -25,7 +25,9 @@
       An error occurred reevaluating the component. ({{::vm.error}})
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger" ng-click="vm.forceReevaluation()">Retry</button>
+      <button class="btn btn-primary" ng-click="vm.forceReevaluation()">
+        <i class="fa fa-refresh"></i>Retry
+      </button>
       <button class="btn" ng-click="$dismiss()">Close</button>
     </div>
   </div>

@@ -26,10 +26,10 @@ class LdapConfigurationPage
 
     //requires confirmation to delete
     delete(required: false) { $('a[title="Remove Configuration"]') }
-    deleteConfirm(required: false) { $('#delete-ldap-confirmation button.btn-danger') }
+    deleteConfirm(required: false) { $('#delete-ldap-confirmation button.btn-primary') }
 
     //requires confirmation to discard changes
-    discard(required: false) { $('#ldap-unsaved-changes button.btn-danger') }
+    discard(required: false) { $('#ldap-unsaved-changes button.btn-primary') }
 
     // in-page navigation
     connectionTab(required: false, to: LdapConnectionConfigurationPage) { $('.tri-pane li:first-child a') }

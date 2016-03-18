@@ -178,6 +178,7 @@ describe('CIP Policy Waiver tests', function() {
           controller : 'AddWaiverController',
           backdrop : 'static',
           keyboard : false,
+          windowClass: 'clm-modal',
           resolve : {
             policy : jasmine.any(Function)
           }
@@ -192,6 +193,7 @@ describe('CIP Policy Waiver tests', function() {
           templateUrl : 'view-waivers-modal-tmpl',
           controller : 'ViewWaiverController',
           backdrop : 'static',
+          windowClass: 'clm-modal',
           keyboard : false
         });
       }));

@@ -252,17 +252,14 @@
           title: 'Revoke Claim',
           body: 'Are you sure you want to revoke the claim on this component?' +
             ' This change will not be reflected until a new policy evaluation is triggered.',
-          buttons: [
-            {
-              name: 'Cancel',
-              type: 'cancel'
-            },
-            {
-              name : 'Revoke',
-              type : 'danger',
-              click : deleteClaim
-            }
-          ]
+          buttons: [{
+            name : 'Revoke',
+            type : 'primary',
+            click : deleteClaim
+          },{
+            name: 'Cancel',
+            type: 'cancel'
+          }]
         });
       };
 

@@ -107,7 +107,7 @@ public class LabelsCIP
     }
 
     public static SelenideElement confirmButton() {
-      return $(createSelector(ROOT, ".btn-danger"));
+      return $(createSelector(ROOT, ".btn-primary"));
     }
   }
 }

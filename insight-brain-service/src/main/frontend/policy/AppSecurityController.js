@@ -87,14 +87,14 @@
           title: 'Unsaved Changes',
           body: 'This role may contain unsaved changes, continuing will discard them.',
           buttons: [{
-            name: 'Cancel',
-            type: 'cancel'
-          }, {
             name: 'Continue',
-            type: 'danger',
+            type: 'primary',
             click: function() {
               $scope.hide();
             }
+          }, {
+            name: 'Cancel',
+            type: 'cancel'
           }]
         });
       } else {

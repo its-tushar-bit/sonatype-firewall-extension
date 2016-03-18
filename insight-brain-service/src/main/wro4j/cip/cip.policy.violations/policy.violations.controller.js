@@ -45,6 +45,7 @@
         controller: 'AddWaiverController',
         backdrop: 'static',
         keyboard: false,
+        windowClass: 'clm-modal',
         resolve: {
           policy: function() {
             return policyAlert;
@@ -58,7 +59,8 @@
         templateUrl: 'release-quarantine-tmpl',
         controller: 'release.quarantine.controller as vm',
         backdrop: 'static',
-        keyboard: false
+        keyboard: false,
+        windowClass: 'clm-modal'
       }).result.then(function() {
         $scope.quarantined = false;
       });
@@ -69,7 +71,8 @@
         templateUrl: 'view-waivers-modal-tmpl',
         controller: 'ViewWaiverController',
         backdrop: 'static',
-        keyboard: false
+        keyboard: false,
+        windowClass: 'clm-modal'
       });
     };
     $scope.alerts = [];

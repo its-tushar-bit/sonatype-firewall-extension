@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.ClmModalModule
-import com.sonatype.insight.brain.testing.functional.modules.ModalModule
 
 class UserManagementPage
     extends BasePage

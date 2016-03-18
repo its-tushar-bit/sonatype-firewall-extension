@@ -21,7 +21,7 @@
         //reports, should a 401 be received in either of these areas, retrieval of the template html will also fail
         //as authz is required to download
         template: '<div id="loginModal" class="clm-modal">' +
-        '<div class="clm-modal-header" ><h3>User Login</h3></div>' +
+        '<div class="clm-modal-header" ><h2>User Login</h2></div>' +
         '<form name="loginForm" class="form-horizontal" ng-submit="vm.signIn()" form-mask="vm.loginMask" ' +
         'mask-message="Signing in">' +
         '<div class="clm-modal-body"><div class="control-group">' +

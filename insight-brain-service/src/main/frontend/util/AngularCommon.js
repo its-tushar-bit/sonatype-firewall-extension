@@ -790,17 +790,17 @@ var AngularStateUtils = {
         config = angular.extend({
           backdrop: 'static',
           keyboard : false,
-          template: '<div id="{{id}}"><div class="modal-header"><button type="button" class="close" ng-click="$close()">&times</button><h3>{{title}}</h3></div>' +
-              '<div class="modal-body"><p ng-bind-html="body"></p></div>' +
-              '<div class="modal-footer">' +
+          template: '<div id="{{id}}"><div class="clm-modal-header"><h2>{{title}}</h2></div>' +
+              '<div class="clm-modal-body" ng-bind-html="body"></div>' +
+              '<div class="clm-modal-footer">' +
                 '<button ng-repeat="button in buttons" ng-click="button.click()" ' +
                 'ng-class="{' +
-                  '\'btn-danger\' : button.type == \'danger\',' +
+                  '\'btn-error\' : button.type == \'danger\',' +
                   '\'btn-primary\' : button.type == \'primary\', ' +
-                  '\'btn-link btn-cancel\' : button.type == \'cancel\',' +
-                  '\'pull-right\' : button.type != \'cancel\' }" ' +
+                  '\'btn-link btn-cancel\' : button.type == \'cancel\'}" ' +
                 'class="btn">{{button.name}}</button>' +
               '</div></div>',
+          windowClass: 'clm-modal',
           controller: ['$scope', function(scope) {
             // Since the buttons need to be set in the controller, the cancel button should appear last. This fixes a
             // browser bug where elements that are dynamically added float: right after others break to a new line

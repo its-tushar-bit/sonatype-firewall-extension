@@ -22,6 +22,7 @@
 
     $scope.$on('policy.imported', doLoad);
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+    $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
     function doLoad() {
       if (vm.isOrg) {
@@ -49,6 +50,10 @@
       if (!inherited) {
         SameOwnerStateNavigationService.goEdit('category', { categoryId: categoryId });
       }
+    }
+
+    function updatedOwnerHandler(event, newOwner) {
+      vm.ownerName = newOwner.name;
     }
   }
 

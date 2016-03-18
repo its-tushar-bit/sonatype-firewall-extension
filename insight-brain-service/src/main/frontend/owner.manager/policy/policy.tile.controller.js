@@ -22,6 +22,7 @@
 
     $scope.$on('policy.imported', doLoad);
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+    $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
     function doLoad() {
       $q.all([
@@ -71,6 +72,10 @@
 
     function editPolicy(policyId) {
       SameOwnerStateNavigationService.goEdit('policy', {policyId: policyId});
+    }
+
+    function updatedOwnerHandler(event, newOwner) {
+      vm.ownerName = newOwner.name;
     }
   }
 

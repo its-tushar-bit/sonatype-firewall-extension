@@ -1,7 +1,9 @@
 describe('access.tile.controller.spec.js', function() {
   var vm,
+      $rootScope,
       $httpBackend,
-      CLMAppLocations;
+      CLMAppLocations,
+      EventNameConstant;
 
   beforeEach(module('owner.manager.module', function($provide) {
     $provide.value('$cookies', {
@@ -9,9 +11,11 @@ describe('access.tile.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $controller, _$httpBackend_, _CLMAppLocations_) {
+  beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_, _CLMAppLocations_) {
         $httpBackend = _$httpBackend_;
         CLMAppLocations = _CLMAppLocations_;
+        EventNameConstant = $injector.get('event.name.constant');
+        $rootScope = _$rootScope_;
 
         vm = $controller('AccessTileController', {
           $scope: $rootScope.$new()
@@ -51,9 +55,7 @@ describe('access.tile.controller.spec.js', function() {
     expect(vm.error).toBeUndefined();
   });
 
-  it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
-    var EventNameConstant = $injector.get('event.name.constant');
-
+  it('Reloads on broadcasted owner summary reload event', function() {
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
 
@@ -61,5 +63,16 @@ describe('access.tile.controller.spec.js', function() {
 
     $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
     $httpBackend.flush();
-  }));
+  });
+
+  it('Updates Owner name on broadcasted updated owner event', function() {
+    $httpBackend.expectGET(CLMAppLocations.getRoleMappingUrl()).respond(AccessMockData.getRoleMappings());
+    $httpBackend.flush();
+
+    expect(vm.ownerName).not.toEqual('Bob');
+
+    $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, {name: 'Bob'});
+
+    expect(vm.ownerName).toEqual('Bob');
+  });
 });

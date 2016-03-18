@@ -2,6 +2,8 @@ describe('label.tile.controller.spec.js', function() {
   var vm,
       scope,
       $httpBackend,
+      $rootScope,
+      EventNameConstant,
       CLMAppLocations;
 
   beforeEach(module('owner.manager.module', function($provide) {
@@ -10,10 +12,12 @@ describe('label.tile.controller.spec.js', function() {
     });
   }));
 
-  beforeEach(inject(function($rootScope, $controller, _$httpBackend_, _CLMAppLocations_) {
-        scope = $rootScope.$new();
+  beforeEach(inject(function(_$rootScope_, $injector, $controller, _$httpBackend_, _CLMAppLocations_) {
+        $rootScope = _$rootScope_;
         $httpBackend = _$httpBackend_;
         CLMAppLocations = _CLMAppLocations_;
+        scope = $rootScope.$new();
+        EventNameConstant = $injector.get('event.name.constant');
 
         vm = $controller('LabelTileController', {
           $scope: scope
@@ -44,9 +48,7 @@ describe('label.tile.controller.spec.js', function() {
     expect(vm.error).toBeDefined();
   });
 
-  it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
-    var EventNameConstant = $injector.get('event.name.constant');
-
+  it('Reloads on broadcasted owner summary reload event', function() {
     $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
     $httpBackend.flush();
 
@@ -54,5 +56,16 @@ describe('label.tile.controller.spec.js', function() {
 
     $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
     $httpBackend.flush();
-  }));
+  });
+
+  it('Updates Owner name on broadcasted updated owner event', function() {
+    $httpBackend.expectGET(CLMAppLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
+    $httpBackend.flush();
+
+    expect(vm.ownerName).not.toEqual('Bob');
+
+    $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, {name: 'Bob'});
+
+    expect(vm.ownerName).toEqual('Bob');
+  });
 });

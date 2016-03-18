@@ -27,7 +27,7 @@
       vm.error = error;
     });
 
-    $scope.$on('owner.updated', function(e, owner, type, isNew) {
+    $scope.$on(EventNameConstant.OWNER_UPDATED, function(e, owner, type, isNew) {
       owner = angular.copy(owner);
       owner.isVisible = true;
       if (isNew) {

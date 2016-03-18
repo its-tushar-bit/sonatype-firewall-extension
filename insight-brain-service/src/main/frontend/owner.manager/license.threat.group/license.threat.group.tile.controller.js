@@ -19,6 +19,7 @@
 
     $scope.$on('policy.imported', doLoad);
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+    $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
     function doLoad() {
       $http.get(CLMAppLocations.getApplicableLicenseGroupsUrl()).then(function(results) {
@@ -39,6 +40,10 @@
       if (!isInherited) {
         SameOwnerStateNavigationService.goEdit('edit-license-threat-group', {licenseThreatGroupId: licenseThreatGroupId});
       }
+    }
+
+    function updatedOwnerHandler(event, newOwner) {
+      vm.ownerName = newOwner.name;
     }
   }
 

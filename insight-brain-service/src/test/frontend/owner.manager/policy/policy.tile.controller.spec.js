@@ -12,8 +12,10 @@ describe('policy.tile.controller.spec.js', function() {
       scope,
       $httpBackend,
       $timeout,
+      $rootScope,
       CLMAppLocations,
       stageTypeStoreDefer,
+      EventNameConstant,
       MonitoredStageService,
       mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore');
 
@@ -22,11 +24,15 @@ describe('policy.tile.controller.spec.js', function() {
       }]
   ));
 
-  beforeEach(inject(function($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_, StageTypeStore) {
+  beforeEach(inject(function(_$rootScope_, $injector, $q, $controller, _$timeout_, _$httpBackend_, _CLMAppLocations_,
+                             StageTypeStore)
+      {
+        $rootScope = _$rootScope_;
         scope = $rootScope.$new();
         $httpBackend = _$httpBackend_;
         $timeout = _$timeout_;
         CLMAppLocations = _CLMAppLocations_;
+        EventNameConstant = $injector.get('event.name.constant');
         stageTypeStoreDefer = $q.defer();
         spyOn(stageTypeStoreDefer.promise, 'then').andCallThrough();
         spyOn(StageTypeStore, 'getActionStages').andReturn(stageTypeStoreDefer.promise);
@@ -94,9 +100,7 @@ describe('policy.tile.controller.spec.js', function() {
 
   });
 
-  it('Reloads on broadcasted owner summary reload event', inject(function($rootScope, $injector) {
-    var EventNameConstant = $injector.get('event.name.constant');
-
+  it('Reloads on broadcasted owner summary reload event', function() {
     $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
     resolveStageTypeStore(MockData.getDashboardStageData());
     $httpBackend.flush();
@@ -108,7 +112,20 @@ describe('policy.tile.controller.spec.js', function() {
     resolveStageTypeStore(MockData.getDashboardStageData());
     $httpBackend.flush();
     $timeout.flush();
-  }));
+  });
+
+  it('Updates Owner name on broadcasted updated owner event', function() {
+    $httpBackend.expectGET(CLMAppLocations.getApplicablePolicies()).respond(PolicyTileMockData.getApplicablePolicies());
+    resolveStageTypeStore(MockData.getDashboardStageData());
+    $httpBackend.flush();
+    $timeout.flush();
+
+    expect(vm.ownerName).not.toEqual('Bob');
+
+    $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, {name: 'Bob'});
+
+    expect(vm.ownerName).toEqual('Bob');
+  });
 
   function resolveStageTypeStore(value) {
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();

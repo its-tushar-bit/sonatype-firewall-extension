@@ -1,5 +1,5 @@
 describe('owner.tree-view.directive.spec.js', function() {
-  var scope, $httpBackend, $state, $timeout, CLMLocations, CLMAppLocations;
+  var scope, $httpBackend, $state, $timeout, CLMLocations, CLMAppLocations, EventNameConstant;
 
   beforeEach(module(function($provide) {
     // $state stub for spying
@@ -26,13 +26,14 @@ describe('owner.tree-view.directive.spec.js', function() {
       var ownerList = SidebarResourceMockData.getOwnerListUrl();
 
       beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
-                                 _CLMAppLocations_)
+                                 _CLMAppLocations_, $injector)
       {
         $timeout = _$timeout_;
         $httpBackend = _$httpBackend_;
         $state = _$state_;
         CLMLocations = _CLMLocations_;
         CLMAppLocations = _CLMAppLocations_;
+        EventNameConstant = $injector.get('event.name.constant');
 
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
@@ -188,7 +189,7 @@ describe('owner.tree-view.directive.spec.js', function() {
           id: 'newOrganizationID',
           name: 'New Organization Name'
         };
-        scope.$broadcast('owner.updated', newOrganization, 'organization', true);
+        scope.$broadcast(EventNameConstant.OWNER_UPDATED, newOrganization, 'organization', true);
         scope.$digest();
 
         expect(scope.vm.organizations).toBeDefined();
@@ -213,7 +214,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       });
 
       it('handles changes to organization', function() {
-        scope.$broadcast('owner.updated', {
+        scope.$broadcast(EventNameConstant.OWNER_UPDATED, {
           id: ownerList.organizations[0].id,
           name: 'foo'
         }, 'organization', false);
@@ -229,7 +230,7 @@ describe('owner.tree-view.directive.spec.js', function() {
           publicId: 'newApplicationPublicId',
           name: 'New Application'
         };
-        scope.$broadcast('owner.updated', newApplication, 'application', true);
+        scope.$broadcast(EventNameConstant.OWNER_UPDATED, newApplication, 'application', true);
         scope.$digest();
 
         expect(scope.vm.organizations).toBeDefined();
@@ -257,7 +258,7 @@ describe('owner.tree-view.directive.spec.js', function() {
       });
 
       it('handles changes to application', function() {
-        scope.$broadcast('owner.updated', {
+        scope.$broadcast(EventNameConstant.OWNER_UPDATED, {
           id: ownerList.organizations[0].applications[0].id,
           organizationId: ownerList.organizations[0].id,
           name: 'foo'

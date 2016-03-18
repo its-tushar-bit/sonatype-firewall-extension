@@ -12,14 +12,26 @@
         scrollspy: '@'
       },
       link: function($scope, element) {
-        element.scrollspy({
-          target: $scope.scrollspy,
-          offset: 0
-        });
+        var offset = 10;
+        function initScrollspy() {
+          if ($($scope.scrollspy + ' .nav li').length) {
+            element.scrollspy({
+              target: $scope.scrollspy,
+              offset: offset
+            });
+          }
+          else {
+            $timeout(function(){
+              initScrollspy();
+            }, 100);
+          }
+        }
+
+        initScrollspy();
 
         var eventHandlerFn = function() {
           var me = $(this);
-          element.scrollTop($(me.attr('data-target')).position().top + element.scrollTop());
+          element.scrollTop($(me.attr('data-target')).position().top + element.scrollTop() - offset);
           $timeout(function() {
             $($scope.scrollspy + ' .nav li').removeClass('active');
             me.parent().addClass('active');

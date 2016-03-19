@@ -154,7 +154,7 @@ public class LabelDAO
       throw new InvalidLabelException("The label color must be assigned.");
     }
 
-    if (Color.isLegacy(color)) {
+    if (color.isLegacy()) {
       throw new InvalidLabelException("The label color " + color.toValue() + " is invalid.");
     }
   }

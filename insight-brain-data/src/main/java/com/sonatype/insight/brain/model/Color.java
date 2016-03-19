@@ -17,8 +17,8 @@ public enum Color
     return this.name().replace('_', '-');
   }
 
-  public static Color getUpdatedColor(Color color) {
-    switch (color) {
+  public Color getUpdatedColor() {
+    switch (this) {
       case black:
         return Color.dark_purple;
       case blue:
@@ -32,12 +32,12 @@ public enum Color
       case white:
         return Color.light_green;
       default:
-        return color;
+        return this;
     }
   }
 
-  public static boolean isLegacy(Color color) {
-    switch (color) {
+  public boolean isLegacy() {
+    switch (this) {
       case black:
       case blue:
       case green:

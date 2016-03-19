@@ -101,7 +101,7 @@ public class TagDAO
       throw new InvalidTagException("The application category color must be assigned.");
     }
 
-    if (Color.isLegacy(color)) {
+    if (color.isLegacy()) {
       throw new InvalidTagException("The application category color " + color.toValue() + " is invalid.");
     }
   }

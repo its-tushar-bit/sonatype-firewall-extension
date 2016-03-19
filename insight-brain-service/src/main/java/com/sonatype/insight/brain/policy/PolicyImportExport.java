@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -301,7 +300,7 @@ public class PolicyImportExport
         if (existingLabel != null) {
           // Existing label, update it with new properties.
           existingLabel.setLabel(label.getLabel());
-          existingLabel.setColor(Color.getUpdatedColor(label.getColor()));
+          existingLabel.setColor(label.getColor().getUpdatedColor());
           existingLabel.setDescription(label.getDescription());
           labelDAO.update(tx, existingLabel);
           idMap.put(labelId, existingLabel.getId());
@@ -310,7 +309,7 @@ public class PolicyImportExport
           // New label, create it.
           label.setId(null);
           label.setOwnerId(applicationId != null ? applicationId : organizationId);
-          label.setColor(Color.getUpdatedColor(label.getColor()));
+          label.setColor(label.getColor().getUpdatedColor());
           labelDAO.insert(tx, label);
           idMap.put(labelId, label.getId());
         }
@@ -347,14 +346,14 @@ public class PolicyImportExport
           // Existing tag, update it
           tag.setId(existingTag.getId());
           tag.setOrganizationId(orgId);
-          tag.setColor(Color.getUpdatedColor(tag.getColor()));
+          tag.setColor(tag.getColor().getUpdatedColor());
           tagDAO.update(tx, tag);
         }
         else {
           // New tag, create it
           tag.setId(null);
           tag.setOrganizationId(orgId);
-          tag.setColor(Color.getUpdatedColor(tag.getColor()));
+          tag.setColor(tag.getColor().getUpdatedColor());
           tagDAO.insert(tx, tag);
         }
         idMap.put(oldId, tag.getId());

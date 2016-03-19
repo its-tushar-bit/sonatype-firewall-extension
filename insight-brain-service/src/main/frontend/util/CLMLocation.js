@@ -248,6 +248,14 @@
          */
         getOwnerListUrl: function() {
           return baseUrl.get() + '/rest/sidebar';
+        },
+
+        getDestinationOrganizationsUrl: function(applicationId) {
+          return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations';
+        },
+
+        getMoveApplicationUrl: function(applicationId, organizationId) {
+          return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations/' + organizationId;
         }
       };
     }

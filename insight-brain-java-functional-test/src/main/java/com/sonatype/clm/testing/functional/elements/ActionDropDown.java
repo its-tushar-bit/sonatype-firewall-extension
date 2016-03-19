@@ -14,6 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+
 public class ActionDropDown
 {
   private static final String ROOT = "#action-dropdown";
@@ -27,15 +28,19 @@ public class ActionDropDown
   }
 
   public static SelenideElement selectContact() {
-    return $(createSelector(ROOT, "#select-contact-link"));
+    return $("#select-contact-link");
   }
 
   public static SelenideElement editOwner() {
-    return $(createSelector(ROOT, "#app-org-link"));
+    return $("#app-org-link");
+  }
+
+  public static SelenideElement moveApplication() {
+    return $("#app-move-link");
   }
 
   public static SelenideElement deleteOwnerButton() {
-    return $(createSelector(ROOT, "#delete-owner-link"));
+    return $("#delete-owner-link");
   }
 
   public static SelenideElement evaluateBinaryButton() {

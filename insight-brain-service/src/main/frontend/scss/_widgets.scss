@@ -68,6 +68,30 @@
   </div>
   ```
 
+  ### Alert Warning
+  ```
+  <div class="clm-alert alert">
+    <div>
+      <i class="fa fa-warning"></i><span>Alert Warning</span>
+    </div>
+  </div>
+  ```
+
+  ### Alert Info
+  ```
+  <div class="clm-alert alert-info">
+    <div>
+      <i class="fa fa-info-circle"></i><span>Alert Info</span>
+    </div>
+  </div>
+
+  <div class="clm-alert alert alert-info">
+    <div>
+      <i class="fa fa-info-circle"></i><span>Alert Info With Border</span>
+    </div>
+  </div>
+  ```
+
   ### Scrollable Alert
   ```
   <div class="clm-alert alert alert-scrollable">
@@ -94,6 +118,16 @@
     color: $fail-fg;
   }
 
+  &.alert-info {
+    border-color: $dark-blue;
+    background-color: $off-white;
+    color: $off-black;
+
+    .fa {
+      color: $dark-blue;
+    }
+  }
+
   .btn {
     margin-top: 24px;
   }
@@ -105,6 +139,35 @@
   &.alert-scrollable{
     max-height: $maximum-alert-scroll-height;
     overflow: auto;
+  }
+}
+
+#move-app-error-modal {
+  .fa-warning {
+    color: $fail-fg;
+  }
+
+  li {
+    list-style: none;
+    line-height:16px;
+    margin-bottom: 12px;
+
+    &:first-child {
+      margin-top: 12px;
+    }
+  }
+}
+
+#move-app-success-modal {
+  li {
+    margin-left: 20px;
+
+    line-height:16px;
+    margin-bottom: 12px;
+
+    &:first-child {
+      margin-top: 12px;
+    }
   }
 }
 

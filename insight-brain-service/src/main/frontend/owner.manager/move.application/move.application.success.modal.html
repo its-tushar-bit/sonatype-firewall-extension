@@ -1,0 +1,25 @@
+<div id="move-app-success-modal">
+  <div class="clm-modal-header">
+    <h2>
+      <i class="fa fa-arrows"></i>Application Moved Successfully!
+    </h2>
+  </div>
+  <div class="clm-modal-body warn">
+    <div class="clm-alert alert-info">
+      <i class="fa size-16px fa-info-circle"></i><span>Please check the following configurations to ensure they do what you expect:</span>
+      <ul>
+        <li>Policy Notifications</li>
+        <li>User Access</li>
+      </ul>
+    </div>
+    <div ng-show="messages" class="clm-alert alert">
+      <i class="fa size-16px fa-warning"></i><span>Policy configurations that differ between the old and new parent:</span>
+      <ul>
+        <li ng-repeat="message in ::messages">{{::message}}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="clm-modal-footer">
+    <button class="btn btn-primary" ng-click="$close()">OK</button>
+  </div>
+</div>

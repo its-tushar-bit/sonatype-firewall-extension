@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.RemoveModal;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
@@ -302,6 +303,15 @@ public class ApplicationSummaryViewTest
     super.testActionDropDown();
 
     testEvaluateApplicationBinary();
+  }
+
+  @Test
+  public void testMoveApplicationLink() {
+    MoveApplicationDialog moveAppModal = new MoveApplicationDialog();
+    moveAppModal.shouldNotBe(visible);
+    ActionDropDown.actionButton().click();
+    ActionDropDown.moveApplication().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
+    moveAppModal.shouldBe(visible);
   }
 
   private void testEvaluateApplicationBinary() {

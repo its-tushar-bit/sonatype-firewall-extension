@@ -1,0 +1,20 @@
+<div id="move-app-error-modal">
+  <div class="clm-modal-header">
+    <h2>
+      <i class="fa fa-arrows"></i>Move Application
+    </h2>
+  </div>
+  <div class="clm-modal-body warn">
+    <div class="clm-alert alert-info alert-scrollable">
+      <h3>
+        <i class="fa size-18px fa-warning"></i>Incompatible Destination
+      </h3>
+      <ul>
+        <li ng-repeat="message in ::messages">{{::message}}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="clm-modal-footer">
+    <button class="btn btn-primary" ng-click="$close()">OK</button>
+  </div>
+</div>

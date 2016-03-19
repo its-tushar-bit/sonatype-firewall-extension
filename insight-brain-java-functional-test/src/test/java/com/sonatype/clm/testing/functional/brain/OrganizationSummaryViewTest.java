@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile.CategoryTileOrgContext;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
@@ -85,6 +86,12 @@ public class OrganizationSummaryViewTest
   public void testApplicationCategoryTile() {
     testApplicationCategoryTile_Empty();
     testApplicationCategoryTile_WithApplicableCategories();
+  }
+
+  @Test
+  public void testMoveApplicationLink() {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.moveApplication().shouldNotBe(visible);
   }
 
   private void testApplicationCategoryTile_Empty() {

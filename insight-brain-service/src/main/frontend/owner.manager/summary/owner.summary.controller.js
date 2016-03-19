@@ -9,7 +9,7 @@
   function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, OwnerEditor, ApplicationStore,
                                   OrganizationStore, CLMLocations, CLMAppLocations, StageTypeStore, DeleteModalService,
                                   SelectApplicationContactService, EvaluateApplicationModalService,
-                                  ImportPolicyModalService, ownerConstant)
+                                  ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant)
   {
     var vm = this;
 
@@ -20,6 +20,7 @@
     vm.stages = undefined;
     vm.doLoad = doLoad;
     vm.edit = edit;
+    vm.moveApplication = moveApplication;
     vm.evaluateApp = evaluateApp;
     vm.importPolicy = importPolicy;
     vm.deleteOwner = deleteOwner;
@@ -45,6 +46,8 @@
           vm.error = error;
         });
       });
+
+      $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
     }
 
     function doLoad() {
@@ -82,6 +85,10 @@
 
     function edit() {
       OwnerEditor.open(vm.owner, type, siblings);
+    }
+
+    function moveApplication() {
+      MoveApplicationModal.open(vm.owner);
     }
 
     function evaluateApp() {
@@ -134,7 +141,7 @@
     '$state', '$scope', '$rootScope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore',
     'OrganizationStore', 'CLMLocations', 'CLMAppLocations', 'StageTypeStore', 'DeleteModalService',
     'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
-    'owner.constant'
+    'owner.constant', 'move.application.modal.service', 'event.name.constant'
   ];
 
   angular//

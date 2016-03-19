@@ -11,6 +11,7 @@
             <li ng-if="vm.isApp"><a id="select-contact-link" ng-click='vm.selectContact(vm.owner)'><i class="fa fa-user fa-fw"/><span>Select Contact</span></a></li>
             <li><a ng-click='vm.edit()' id="app-org-link"><i class="fa fa-pencil fa-fw"/><span>Edit {{:: vm.getShortTypeName()}} Name / Icon</span></a></li>
             <li><a id="import-policies-link" ng-click='vm.importPolicy()'><i class="fa fa-download fa-fw"/><span>Import Policies</span></a></li>
+            <li ng-show="vm.isApp"><a ng-click='vm.moveApplication()' id="app-move-link"><i class="fa fa-arrows fa-fw"/><span>Move {{vm.owner.name}}</span></a></li>
             <li ng-if="::!vm.isRootOrg"><a id="delete-owner-link" ng-click='vm.deleteOwner()'><i class="fa fa-trash fa-fw"/><span>Delete {{vm.owner.name}}</span></a></li>
             <li ng-if="vm.isApp" class="divider"></li>
             <li ng-if="vm.isApp"><a id="eval-binary-link" ng-click="vm.evaluateApp()"><i class="fa fa-upload fa-fw"/><span>Evaluate Binary</span></a></li>
@@ -176,7 +177,7 @@
             <ul>
               <li class="simple clickable" same-owner-edit-sref="monitor-policy">
                 <div class="title">
-                  {{::vm.monitoredStage.stageName}}
+                  {{vm.monitoredStage.stageName}}
                 </div>
                 <i class="fa fa-chevron-right"></i>
               </li>

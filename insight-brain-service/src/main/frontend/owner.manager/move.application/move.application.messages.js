@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+(function(angular) {
+  'use strict';
+
+  var messages = {
+    ERROR_INCOMPATIBLE_DESTINATION: 'Failed to move application due to incompatible destination. Click \'Details\' for more information.',
+    ERROR_NO_DESTINATIONS: 'No available destination organizations.'
+  };
+
+  angular.module('owner.manager.module').constant('move.application.messages.constant', messages);
+}(angular));
+

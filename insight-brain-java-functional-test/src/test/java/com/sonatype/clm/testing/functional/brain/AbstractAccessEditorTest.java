@@ -22,6 +22,7 @@ import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -85,12 +86,14 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.searchButton().shouldBe(enabled).click();
 
     DoubleColumnPicker picker = new DoubleColumnPicker();
-    picker.availableItems().shouldHaveSize(1);
+    picker.availableItems().shouldHaveSize(2);
 
     Item availableItem = picker.availableItem(0);
+    availableItem.label().shouldHave(text("Admin Builtin"));
     availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("CLM admin@localhost"));
     AccessEditorPage.title().hover(); // hide the tooltip
     availableItem.tooltip().shouldNot(exist);
+    picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
 
     picker.checkAllLeft().click();
     AccessEditorPage.saveButton().shouldHave(DISABLED);
@@ -103,7 +106,7 @@ public abstract class AbstractAccessEditorTest
     assertThatRoleNotAvailableInDropdown(roleName);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
-    assertThat(membershipMappings, hasSize(1));
+    assertThat(membershipMappings, hasSize(2));
   }
 
   @Test
@@ -128,14 +131,16 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.searchBox().val("*");
     AccessEditorPage.searchButton().shouldBe(enabled).click();
 
-    picker.availableItems().shouldHaveSize(1);
+    picker.availableItems().shouldHaveSize(2);
     Item availableItem = picker.availableItem(0);
+    availableItem.label().shouldHave(text("Admin Builtin"));
     availableItem.hover().tooltip().shouldBe(visible).shouldHave(text("CLM admin@localhost"));
     AccessEditorPage.title().hover(); // hide the tooltip
     availableItem.tooltip().shouldNot(exist);
+    picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
     picker.checkAllLeft().click();
     picker.pickCheckedItemsButton().shouldBe(enabled).click();
-    picker.pickedItems().shouldHaveSize(3);
+    picker.pickedItems().shouldHaveSize(4);
     // shouldn't submit on enter. Assert by checking that 'save' button is still enabled
     AccessEditorPage.searchBox().pressEnter();
     AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
@@ -143,8 +148,8 @@ public abstract class AbstractAccessEditorTest
     assertCommonInitialStateIsCorrect(picker);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), role.getName());
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
-    picker.pickedItems().shouldHaveSize(3);
-    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(3));
+    picker.pickedItems().shouldHaveSize(4);
+    assertThat(getMembershipMappings(currentOwner.getId(), role.getName()), hasSize(4));
   }
 
   @Test

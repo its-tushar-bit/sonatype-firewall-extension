@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
+import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
@@ -42,6 +43,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -462,5 +464,74 @@ public class UserDirectoryTest
 
   private static Member createGroup(String name) {
     return new Member(MemberType.GROUP, name, null);
+  }
+
+  @Test
+  public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsDisabled() throws Exception {
+    List<Member> members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, false).get();
+    assertThat(members, hasSize(0));
+
+    members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME + "*", false).get();
+    assertThat(members, hasSize(0));
+  }
+
+  @Test
+  public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsEnabled() throws Exception {
+    // Exact name
+    List<Member> members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, true).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+
+    // With wild card
+    members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME + "*", true).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+    members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.substring(0, 5) + "*", true)
+        .get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+
+    // With wild card and special regex chars - should not throw an exception because the regex pattern is incorrect.
+    members = userDirectory
+        .getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.substring(0, 5) + "(*", true).get();
+    assertThat(members, hasSize(0));
+
+    // Case insensitive
+    members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.toLowerCase(Locale.ENGLISH),
+        true).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+    members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME.toUpperCase(Locale.ENGLISH),
+        true).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+  }
+
+  private void assertIsAuthenticatedUsersGroup(Member member) {
+    assertThat(member.getType(), is(MemberType.GROUP));
+    assertThat(member.getDisplayName(), is(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
+    assertThat(member.getInternalName(), is(Group.AUTHENTICATED_USERS_GROUP_ID));
+    assertThat(member.getInternalNameLowerCase(), is(Group.AUTHENTICATED_USERS_GROUP_ID.toLowerCase(Locale.ENGLISH)));
+    assertThat(member.getEmail(), is(nullValue()));
+    assertThat(member.getRealm(), is(InternalRealm.DISPLAY_NAME));
+  }
+
+  @Test
+  public void testGetMembersByName_AuthenticatedUsersGroup() throws Exception {
+    // Exact name
+    List<Member> members = userDirectory.getMembersByName(
+        Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID))).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+
+    // Case insensitive
+    members = userDirectory.getMembersByName(
+        Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID.toLowerCase(Locale.ENGLISH)))).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
+    members = userDirectory.getMembersByName(
+        Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID.toUpperCase(Locale.ENGLISH)))).get();
+    assertThat(members, hasSize(1));
+    assertIsAuthenticatedUsersGroup(members.get(0));
   }
 }

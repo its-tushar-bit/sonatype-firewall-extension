@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapRealm;
 import com.sonatype.insight.brain.ldap.TestLdapServer;
+import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
@@ -182,7 +183,7 @@ public class LdapRealmTest
       assertEmptyPassword("test_sasl_user", null);
       assertEmptyPassword("test_sasl_user", "");
       assertBadCredentials("test_sasl_user", "guest");
-      assertGoodCredentials("test_sasl_user", "Test", "s3cr3t");
+      assertGoodCredentials("test_sasl_user", "Test", "s3cr3t", Group.AUTHENTICATED_USERS_GROUP_ID);
     }
     else {
       assertEmptyPassword("anonymous", null);
@@ -193,7 +194,8 @@ public class LdapRealmTest
       assertEmptyPassword("test_user", null);
       assertEmptyPassword("test_user", "");
       assertBadCredentials("test_user", "guest");
-      assertGoodCredentials("test_user", "Test", "far2simple", "Gamma", "Theta", "Omega");
+      assertGoodCredentials("test_user", "Test", "far2simple", "Gamma", "Theta", "Omega",
+          Group.AUTHENTICATED_USERS_GROUP_ID);
     }
   }
 

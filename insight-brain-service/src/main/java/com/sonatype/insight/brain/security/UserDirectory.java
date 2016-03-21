@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.ldap.LdapGroup;
 import com.sonatype.insight.brain.ldap.LdapManager;
 import com.sonatype.insight.brain.ldap.LdapUser;
+import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
 
@@ -105,12 +107,18 @@ public class UserDirectory
   public QueryResult getMembersByName(Collection<Member> members) {
     QueryResult result = getUsersByName(getNameByType(members, MemberType.USER));
 
+    Set<String> groupNames = getNameByType(members, MemberType.GROUP);
+    purgeNullNames(groupNames);
+    for (String groupName : groupNames) {
+      if (Group.AUTHENTICATED_USERS_GROUP_ID.equalsIgnoreCase(groupName)) {
+        result.get().add(newAuthenticatedUsersGroup());
+        break;
+      }
+    }
+
     if (!result.hasException() && ldapManager.isLdapEnabled()) {
       String ldapName = ldapManager.getLdapServerName();
       if (ldapManager.isGroupSearchEnabled()) {
-        Set<String> groupNames = getNameByType(members, MemberType.GROUP);
-        purgeNullNames(groupNames);
-
         if (!groupNames.isEmpty()) {
           try {
             for (LdapGroup group : ldapManager.getGroups(groupNames.toArray(new String[groupNames.size()]),
@@ -231,10 +239,22 @@ public class UserDirectory
       }
     }
 
+    if (groupsEnabled) {
+      Member group = newAuthenticatedUsersGroup();
+      if (group.getDisplayName().matches("(?i)" + Pattern.quote(query).replace(QUERY_WILDCARD + "", "\\E.*\\Q"))) {
+        groups.put(group.getInternalNameLowerCase(), group);
+      }
+    }
+
     members.addAll(users.values());
     members.addAll(groups.values());
 
     return new QueryResult(members, ldapException);
+  }
+
+  private Member newAuthenticatedUsersGroup() {
+    return new Member(MemberType.GROUP, Group.AUTHENTICATED_USERS_GROUP_ID,
+        Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, null, InternalRealm.DISPLAY_NAME);
   }
 
   public boolean isDynamicGroupSearchDisabled() {

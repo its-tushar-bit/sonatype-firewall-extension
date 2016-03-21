@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.model.security;
 
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class UserPrincipal
@@ -26,7 +26,11 @@ public class UserPrincipal
     this.username = username;
     this.displayName = displayName;
     this.clmUser = clmUser;
-    this.membership = membership != null ? membership : Collections.<String> emptySet();
+    this.membership = new LinkedHashSet<>();
+    if (membership != null) {
+      this.membership.addAll(membership);
+    }
+    this.membership.add(Group.AUTHENTICATED_USERS_GROUP_ID);
   }
 
   public String getUsername() {

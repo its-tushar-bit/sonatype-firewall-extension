@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IntegerValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupLevelConditionType
     extends AbstractComponentConditionType<Integer>
@@ -40,8 +41,10 @@ public class LicenseThreatGroupLevelConditionType
   }
 
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
-    super.validateCondition(condition, ownerId);
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
+    super.validateCondition(tx, condition, ownerId);
 
     try {
       int value = Integer.parseInt(condition.getValue());
@@ -65,7 +68,7 @@ public class LicenseThreatGroupLevelConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
     return asDroolsInteger(value);
   }
 

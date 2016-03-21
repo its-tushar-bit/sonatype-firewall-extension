@@ -10,15 +10,23 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LabelValueType
     implements ConditionValueType<Label>
 {
   public static final String ID = "LabelValueType";
 
+  private final TransactionContext tx;
+
   private final String ownerId;
 
   public LabelValueType(String ownerId) {
+    this(null, ownerId);
+  }
+
+  public LabelValueType(TransactionContext tx, String ownerId) {
+    this.tx = tx;
     this.ownerId = ownerId;
   }
 
@@ -40,6 +48,6 @@ public class LabelValueType
   @Override
   public List<Label> getAvailableValues() {
     final LabelDAO labelDAO = new LabelDAO();
-    return labelDAO.getByOwnerId(ownerId, true);
+    return tx != null ? labelDAO.getByOwnerId(tx, ownerId, true) : labelDAO.getByOwnerId(ownerId, true);
   }
 }

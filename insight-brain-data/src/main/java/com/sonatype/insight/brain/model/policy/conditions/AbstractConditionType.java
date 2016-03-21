@@ -9,12 +9,15 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public abstract class AbstractConditionType
     implements ConditionType
 {
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
     if (condition.getOperator() == null) {
       throw new InvalidConditionException(condition, "Operator is null");
     }
@@ -36,7 +39,7 @@ public abstract class AbstractConditionType
     return getName() + ' ' + condition.getOperator() + (condition.getValue() != null ? ' ' + condition.getValue() : "");
   }
 
-  protected abstract String generateDroolsConditionValue(String value);
+  protected abstract String generateDroolsConditionValue(TransactionContext tx, String value);
 
   protected static String asDroolsComment(String text) {
     return " /* " + text.replace("*/", "").replaceAll("[\r\n]+", " ") + " */";

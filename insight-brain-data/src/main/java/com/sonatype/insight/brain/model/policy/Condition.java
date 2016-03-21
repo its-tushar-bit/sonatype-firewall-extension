@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class Condition
 {
@@ -46,14 +47,14 @@ public class Condition
     this.value = value;
   }
 
-  public ValidationResult validate(String ownerId) {
+  public ValidationResult validate(TransactionContext tx, String ownerId) {
     ConditionType conditionType = ConditionTypes.getById(conditionTypeId);
     if (conditionType == null) {
       return new ValidationResult("Invalid condition type id: '" + conditionTypeId + "'");
     }
 
     try {
-      conditionType.validateCondition(this, ownerId);
+      conditionType.validateCondition(tx, this, ownerId);
     }
     catch (InvalidConditionException e) {
       return new ValidationResult(e);

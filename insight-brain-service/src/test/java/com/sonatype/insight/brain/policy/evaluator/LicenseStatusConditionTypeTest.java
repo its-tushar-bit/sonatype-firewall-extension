@@ -95,7 +95,7 @@ public class LicenseStatusConditionTypeTest
   public void testValidateCondition_ValueNotAStatusId() {
     Condition condition = new Condition(LicenseStatusConditionType.ID, "is", "abc");
     try {
-      new LicenseStatusConditionType().validateCondition(condition, null /* applicationId */);
+      new LicenseStatusConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

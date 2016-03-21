@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public interface ConditionType
 {
@@ -27,11 +28,11 @@ public interface ConditionType
 
   PolicyThreatCategory getThreatCategory();
 
-  String generateDroolsCode(Condition condition);
+  String generateDroolsCode(TransactionContext tx, Condition condition);
 
   String explainCondition(Condition condition);
 
   String explainMatch(Condition condition, Component component);
 
-  void validateCondition(Condition condition, String ownerId) throws InvalidConditionException;
+  void validateCondition(TransactionContext tx, Condition condition, String ownerId) throws InvalidConditionException;
 }

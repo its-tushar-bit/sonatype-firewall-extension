@@ -290,7 +290,7 @@ public class LicenseConditionTypeTest
   public void testValidateCondition_InvalidLicenseId() {
     Condition condition = new Condition(LicenseConditionType.ID, "is", "abc");
     try {
-      new LicenseConditionType().validateCondition(condition, null /* applicationId */);
+      new LicenseConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

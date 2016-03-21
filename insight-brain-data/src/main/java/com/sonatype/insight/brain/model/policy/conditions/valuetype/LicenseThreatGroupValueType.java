@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.ConditionValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupValueType
     implements ConditionValueType<LicenseThreatGroup>
@@ -28,11 +29,18 @@ public class LicenseThreatGroupValueType
     UNASSIGNED_LICENSE_THREAT_GROUP.setName(UNASSIGNED_LICENSE_THREAT_GROUP_NAME);
   }
 
+  private final TransactionContext tx;
+
   private final String ownerId;
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
   public LicenseThreatGroupValueType(String ownerId) {
+    this(null, ownerId);
+  }
+
+  public LicenseThreatGroupValueType(TransactionContext tx, String ownerId) {
+    this.tx = tx;
     this.ownerId = ownerId;
   }
 
@@ -55,8 +63,15 @@ public class LicenseThreatGroupValueType
   public List<LicenseThreatGroup> getAvailableValues() {
     List<LicenseThreatGroup> result = new ArrayList<>();
     LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.addAll(licenseThreatGroupDAO.getByOwnerId(owner.getId()));
+    if (tx != null) {
+      for (Owner owner : ownerDAO.walkHierarchy(tx, ownerId)) {
+        result.addAll(licenseThreatGroupDAO.getByOwnerId(tx, owner.getId()));
+      }
+    }
+    else {
+      for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+        result.addAll(licenseThreatGroupDAO.getByOwnerId(owner.getId()));
+      }
     }
     result.add(UNASSIGNED_LICENSE_THREAT_GROUP);
     return result;

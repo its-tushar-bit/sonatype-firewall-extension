@@ -93,7 +93,7 @@ public class IdentificationSourceConditionTypeTest
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(IdentificationSourceConditionType.ID, "is", "abc");
     try {
-      new IdentificationSourceConditionType().validateCondition(condition, null /* applicationId */);
+      new IdentificationSourceConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

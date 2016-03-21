@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseThreatGroupValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseThreatGroupConditionType
     extends AbstractComponentConditionType<String>
@@ -42,11 +43,13 @@ public class LicenseThreatGroupConditionType
   }
 
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
-    super.validateCondition(condition, ownerId);
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
+    super.validateCondition(tx, condition, ownerId);
 
     String licenseThreatGroupId = condition.getValue();
-    LicenseThreatGroupValueType licenseThreatGroupValueType = new LicenseThreatGroupValueType(ownerId);
+    LicenseThreatGroupValueType licenseThreatGroupValueType = new LicenseThreatGroupValueType(tx, ownerId);
     for (LicenseThreatGroup licenseThreatGroup : licenseThreatGroupValueType.getAvailableValues()) {
       if (licenseThreatGroup.getId().equals(licenseThreatGroupId)) {
         return;
@@ -66,21 +69,22 @@ public class LicenseThreatGroupConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
-    return asDroolsString(value) + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(value));
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
+    return asDroolsString(value) + asDroolsComment("License threat group name: " + getLicenseThreatGroupName(tx, value));
   }
 
   @Override
   public String explainCondition(final Condition condition) {
-    return getName() + ' ' + condition.getOperator() + " '" + getLicenseThreatGroupName(condition.getValue()) + '\'';
+    return getName() + ' ' + condition.getOperator() + " '" + getLicenseThreatGroupName(null, condition.getValue()) + '\'';
   }
 
-  private String getLicenseThreatGroupName(String licenseThreatGroupId) {
+  private String getLicenseThreatGroupName(TransactionContext tx, String licenseThreatGroupId) {
     if (LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID.equals(licenseThreatGroupId)) {
       return LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_NAME;
     }
 
-    LicenseThreatGroup licenseThreatGroup = licenseThreatGroupDAO.getById(licenseThreatGroupId);
+    LicenseThreatGroup licenseThreatGroup = tx != null ? licenseThreatGroupDAO.getById(tx, licenseThreatGroupId)
+        : licenseThreatGroupDAO.getById(licenseThreatGroupId);
     return licenseThreatGroup.getName();
   }
 

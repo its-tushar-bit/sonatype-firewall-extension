@@ -213,7 +213,7 @@ public class RelativePopularityConditionTypeTest
   public void testValidateCondition_ValueNotANumber() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "abc");
     try {
-      new RelativePopularityConditionType().validateCondition(condition, null /* applicationId */);
+      new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
@@ -227,7 +227,7 @@ public class RelativePopularityConditionTypeTest
   public void testValidateCondition_ValueLessThanZero() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "-1");
     try {
-      new RelativePopularityConditionType().validateCondition(condition, null /* applicationId */);
+      new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
@@ -241,7 +241,7 @@ public class RelativePopularityConditionTypeTest
   public void testValidateCondition_ValueGreaterThan100() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "101");
     try {
-      new RelativePopularityConditionType().validateCondition(condition, null /* applicationId */);
+      new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

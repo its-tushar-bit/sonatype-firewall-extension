@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -15,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.AbstractComponentConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AbstractVulnerabilityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,12 @@ public class DroolsGenerator
   }
 
   public static void generate(Policy policy) {
+    try (TransactionContext tx = new LabelDAO().createTransactionContext()) {
+      generate(tx, policy);
+    }
+  }
+
+  public static void generate(TransactionContext tx, Policy policy) {
     long start = System.currentTimeMillis();
 
     final StringBuilder droolsCode = new StringBuilder();
@@ -54,7 +62,7 @@ public class DroolsGenerator
 
         ConditionGenerator conditionGenerator = new ConditionGenerator();
         for (final Condition condition : constraint.getConditions()) {
-          conditionGenerator.add(condition);
+          conditionGenerator.add(tx, condition);
         }
         droolsCode.append(conditionGenerator.generate());
 
@@ -71,7 +79,7 @@ public class DroolsGenerator
           droolsCode.append("when\n");
 
           ConditionGenerator conditionGenerator = new ConditionGenerator();
-          conditionGenerator.add(condition);
+          conditionGenerator.add(tx, condition);
           droolsCode.append(conditionGenerator.generate());
 
           droolsCode.append("then\n");
@@ -108,9 +116,9 @@ public class DroolsGenerator
 
     private final StringBuilder vulnerabilityConditionCode = new StringBuilder();
 
-    public void add(Condition condition) {
+    public void add(TransactionContext tx, Condition condition) {
       ConditionType conditionType = ConditionTypes.getById(condition.getConditionTypeId());
-      String conditionCode = conditionType.generateDroolsCode(condition);
+      String conditionCode = conditionType.generateDroolsCode(tx, condition);
       if (conditionType instanceof AbstractComponentConditionType) {
         append(componentConditionCode, conditionCode);
       }

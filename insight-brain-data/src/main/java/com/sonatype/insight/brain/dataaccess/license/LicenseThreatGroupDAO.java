@@ -65,7 +65,7 @@ public class LicenseThreatGroupDAO
   }
 
   @Override
-  protected LicenseThreatGroup getById(TransactionContext tx, String id) {
+  public LicenseThreatGroup getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM LicenseThreatGroup entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);

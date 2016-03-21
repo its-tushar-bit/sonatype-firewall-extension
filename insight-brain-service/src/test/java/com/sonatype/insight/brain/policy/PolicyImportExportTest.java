@@ -440,7 +440,7 @@ public class PolicyImportExportTest
     Assert.assertEquals(1, policies.size());
     Assert.assertEquals(policy.getName(), policies.get(0).getName());
     Assert.assertNotEquals(policy.getId(), policies.get(0).getId());
-    ValidationResult policyValidationResult = policies.get(0).validate(appId);
+    ValidationResult policyValidationResult = policies.get(0).validate(null, appId);
     assertTrue(policyValidationResult.toMessageString(), policyValidationResult.isValid());
   }
 

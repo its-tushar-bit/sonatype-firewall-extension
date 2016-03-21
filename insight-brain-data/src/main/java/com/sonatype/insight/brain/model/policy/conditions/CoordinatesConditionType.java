@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class CoordinatesConditionType
     extends AbstractComponentConditionType<String>
@@ -44,7 +45,7 @@ public class CoordinatesConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
     return asDroolsString(value);
   }
 

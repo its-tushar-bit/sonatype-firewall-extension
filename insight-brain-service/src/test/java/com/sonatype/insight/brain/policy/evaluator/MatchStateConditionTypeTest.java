@@ -96,7 +96,7 @@ public class MatchStateConditionTypeTest
   public void testValidateCondition_ValueNotAStatusId() {
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "abc");
     try {
-      new MatchStateConditionType().validateCondition(condition, null /* applicationId */);
+      new MatchStateConditionType().validateCondition(null, condition, null /* applicationId */);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

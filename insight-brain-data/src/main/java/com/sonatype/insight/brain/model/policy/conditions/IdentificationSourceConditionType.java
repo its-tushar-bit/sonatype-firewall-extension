@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.component.IdentificationSource;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.IdentificationSourceValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class IdentificationSourceConditionType
     extends AbstractComponentConditionType<String>
@@ -42,7 +43,7 @@ public class IdentificationSourceConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
     return asDroolsString(value);
   }
 
@@ -57,8 +58,10 @@ public class IdentificationSourceConditionType
   }
 
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
-    super.validateCondition(condition, ownerId);
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
+    super.validateCondition(tx, condition, ownerId);
 
     if (IdentificationSource.getById(condition.getValue()) == null) {
       throw new InvalidConditionException(condition, "Value not supported: " + condition.getValue());

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
@@ -135,7 +136,7 @@ public class Policy
     stageActions.add(action);
   }
 
-  public ValidationResult validate(String ownerId) {
+  public ValidationResult validate(TransactionContext tx, String ownerId) {
     log.debug("Validating {}", this);
 
     ValidationResult result = new ValidationResult();
@@ -161,7 +162,7 @@ public class Policy
             constraintNames.add(constraintName);
           }
         }
-        constraintResult.merge(constraint.validate(ownerId));
+        constraintResult.merge(constraint.validate(tx, ownerId));
       }
       if (!constraintResult.isValid()) {
         result.addError("Policy '" + name + "' has invalid constraints:");

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LicenseStatusValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LicenseStatusConditionType
     extends AbstractComponentConditionType<String>
@@ -43,7 +44,7 @@ public class LicenseStatusConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
     return asDroolsString(value);
   }
 
@@ -63,8 +64,10 @@ public class LicenseStatusConditionType
   }
 
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
-    super.validateCondition(condition, ownerId);
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
+    super.validateCondition(tx, condition, ownerId);
 
     try {
       LicenseOverrideStatus.valueOf(condition.getValue());

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.ValidationResult;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class Constraint
 {
@@ -76,7 +77,7 @@ public class Constraint
     conditions.add(condition);
   }
 
-  public ValidationResult validate(String ownerId) {
+  public ValidationResult validate(TransactionContext tx, String ownerId) {
     ValidationResult result = new ValidationResult();
     if (name == null || name.trim().isEmpty()) {
       result.addError("The constraint name must not be null or empty");
@@ -88,7 +89,7 @@ public class Constraint
 
     ValidationResult conditionsResult = new ValidationResult();
     for (Condition condition : conditions) {
-      conditionsResult.merge(condition.validate(ownerId));
+      conditionsResult.merge(condition.validate(tx, ownerId));
     }
 
     if (!conditionsResult.isValid()) {

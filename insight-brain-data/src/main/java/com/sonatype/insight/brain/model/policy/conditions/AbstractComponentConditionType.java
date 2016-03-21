@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * Condition types reasoning about the component in general.
@@ -18,9 +19,9 @@ public abstract class AbstractComponentConditionType<T>
     extends AbstractConditionType
 {
   @Override
-  public final String generateDroolsCode(Condition condition) {
+  public final String generateDroolsCode(TransactionContext tx, Condition condition) {
     return "ConditionTypes." + getClass().getSimpleName() + ".evaluateCondition(this, \"" + condition.getOperator()
-        + "\", " + generateDroolsConditionValue(condition.getValue()) + ")";
+        + "\", " + generateDroolsConditionValue(tx, condition.getValue()) + ")";
   }
 
   protected abstract boolean internalEvaluateCondition(Component component, String operator, T value);

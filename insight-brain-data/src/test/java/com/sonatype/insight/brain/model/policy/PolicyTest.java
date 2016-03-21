@@ -115,7 +115,7 @@ public class PolicyTest
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "The policy name is required.");
   }
 
@@ -126,7 +126,7 @@ public class PolicyTest
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
     policy.setName(" ");
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "The policy name is required.");
   }
 
@@ -137,15 +137,15 @@ public class PolicyTest
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
     policy.setName(" Leading Space");
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result,
         "The policy name must not have leading or trailing spaces, or have two spaces in a row.");
     policy.setName("Trailing Space ");
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result,
         "The policy name must not have leading or trailing spaces, or have two spaces in a row.");
     policy.setName("Multiple  Spaces");
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result,
         "The policy name must not have leading or trailing spaces, or have two spaces in a row.");
   }
@@ -158,7 +158,7 @@ public class PolicyTest
     policy.addConstraint(constraint);
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       policy.setName(name);
-      ValidationResult result = policy.validate(applicationId);
+      ValidationResult result = policy.validate(null, applicationId);
       assertValidationResultHasErrors(result,
           String.format(NameHelper.INVALID_CHAR_MESSAGE, "The policy name", name.charAt(0)));
     }
@@ -172,7 +172,7 @@ public class PolicyTest
     policy.addConstraint(constraint);
     for (String name : NameHelperTest.VALID_NAMES) {
       policy.setName(name);
-      ValidationResult result = policy.validate(applicationId);
+      ValidationResult result = policy.validate(null, applicationId);
       assertValidationResultHasNoErrors(result);
     }
   }
@@ -186,12 +186,12 @@ public class PolicyTest
     policy.addConstraint(constraint);
 
     policy.setName(name + "a");
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "The policy name must be " + NameHelper.MAX_NAME_LENGTH
         + " characters or less.");
 
     policy.setName(name);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
@@ -199,7 +199,7 @@ public class PolicyTest
   public void testValidate_NoConstraints() {
     Policy policy = new Policy();
     policy.setName("Policy Name");
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has no constraints");
   }
 
@@ -212,7 +212,7 @@ public class PolicyTest
     Constraint constraint2 = new Constraint("Constraint Id 2", "Constraint Name", LogicalOperator.AND);
     constraint2.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint2);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid constraints:",
         "Duplicate constraint name 'Constraint Name'");
   }
@@ -223,7 +223,7 @@ public class PolicyTest
     Constraint constraint = new Constraint("Constraint Id 1", null, LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
     policy.addConstraint(constraint);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid constraints:",
         "The constraint name must not be null or empty");
   }
@@ -240,7 +240,7 @@ public class PolicyTest
     invalidStage.put("unknown stage type", Arrays.asList(action));
     policy.setActions(invalidStage);
 
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid stage type id: 'unknown stage type'");
 
@@ -248,7 +248,7 @@ public class PolicyTest
     HashMap<String, List<Action>> validStage = new HashMap<>();
     validStage.put(BuildStageType.ID, Arrays.asList(action));
     policy.setActions(validStage);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
@@ -260,13 +260,13 @@ public class PolicyTest
     policy.addConstraint(constraint);
     Action action = new Action("unknown action type");
     policy.addAction(BuildStageType.ID, action);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action type id: 'unknown action type'");
 
     // Fix the action and validate again
     action.setActionTypeId(FailActionType.ID);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
@@ -279,13 +279,13 @@ public class PolicyTest
     policy.addAction(BuildStageType.ID, new Action(WarnActionType.ID));
     policy.addAction(BuildStageType.ID, new Action(FailActionType.ID));
     policy.addAction(BuildStageType.ID, new Action(NotifyActionType.ID, "foo@bar.com"));
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Ambiguous action types: [warn, fail]");
 
     // Fix the actions and validate again
     policy.getActions(BuildStageType.ID).remove(0);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
@@ -298,13 +298,13 @@ public class PolicyTest
     Action action = new Action(FailActionType.ID);
     action.setTarget("invalid");
     policy.addAction(BuildStageType.ID, action);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid actions:",
         "Invalid action 'Fail': This action does not support targets");
 
     // Fix the actions and validate again
     action.setTarget(null);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
@@ -316,13 +316,13 @@ public class PolicyTest
     policy.addConstraint(constraint);
     NotifyAction notifyAction = new NotifyAction("  " /* email */, null /* targetType */);
     policy.addMonitorNotifyAction(notifyAction);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result, "Policy 'Policy Name' has invalid monitor notification actions:",
         "Invalid action 'Notify': A valid e-mail address is required");
 
     // Fix the action and validate again
     notifyAction.setTarget("tester@sonatype.com");
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 
@@ -335,21 +335,21 @@ public class PolicyTest
 
     policy.setName("testValidate_threatLevelInvalid");
     policy.setThreatLevel(-1);
-    ValidationResult result = policy.validate(applicationId);
+    ValidationResult result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result,
         "Policy 'testValidate_threatLevelInvalid' has threat level outside of valid range 0-10: -1");
 
     policy.setThreatLevel(11);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasErrors(result,
         "Policy 'testValidate_threatLevelInvalid' has threat level outside of valid range 0-10: 11");
 
     policy.setThreatLevel(0);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
 
     policy.setThreatLevel(10);
-    result = policy.validate(applicationId);
+    result = policy.validate(null, applicationId);
     assertValidationResultHasNoErrors(result);
   }
 

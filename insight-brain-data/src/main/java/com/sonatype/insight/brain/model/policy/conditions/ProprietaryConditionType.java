@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class ProprietaryConditionType
     extends AbstractComponentConditionType<String>
@@ -39,7 +40,7 @@ public class ProprietaryConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
     return null;
   }
 

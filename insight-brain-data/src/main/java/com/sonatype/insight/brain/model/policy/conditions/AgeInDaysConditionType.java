@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.AgeInDaysValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.joda.time.Interval;
 import org.joda.time.PeriodType;
@@ -52,7 +53,7 @@ public class AgeInDaysConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
     return asDroolsInteger(value) + asDroolsComment("days");
   }
 
@@ -73,8 +74,10 @@ public class AgeInDaysConditionType
   }
 
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
-    super.validateCondition(condition, ownerId);
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
+    super.validateCondition(tx, condition, ownerId);
 
     try {
       Integer.parseInt(condition.getValue());

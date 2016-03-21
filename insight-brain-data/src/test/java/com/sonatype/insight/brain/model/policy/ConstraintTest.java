@@ -20,7 +20,7 @@ public class ConstraintTest
   public void testValidate_NameNull() {
     Constraint constraint = new Constraint("Constraint Id", null /* name */, LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    ValidationResult result = constraint.validate(ownerId);
+    ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "The constraint name must not be null or empty");
   }
 
@@ -28,14 +28,14 @@ public class ConstraintTest
   public void testValidate_NameEmpty() {
     Constraint constraint = new Constraint("Constraint Id", " " /* name */, LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilityConditionType.ID, "present"));
-    ValidationResult result = constraint.validate(ownerId);
+    ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "The constraint name must not be null or empty");
   }
 
   @Test
   public void testValidate_NoConditions() {
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
-    ValidationResult result = constraint.validate(ownerId);
+    ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "Constraint 'Constraint Name' has no conditions");
   }
 
@@ -43,7 +43,7 @@ public class ConstraintTest
   public void testValidate_InvalidCondition() {
     Constraint constraint = new Constraint("Constraint Id", "Constraint Name", LogicalOperator.AND);
     constraint.addCondition(new Condition(null /* conditionTypeId */, "present"));
-    ValidationResult result = constraint.validate(ownerId);
+    ValidationResult result = constraint.validate(null, ownerId);
     assertValidationResultHasErrors(result, "Constraint 'Constraint Name' has invalid conditions:",
         "Invalid condition type id: 'null'");
   }

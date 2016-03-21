@@ -336,7 +336,7 @@ public class LicenseThreatGroupConditionTypeTest
   public void testValidateCondition_InvalidLicenseThreatGroupId() {
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "abc");
     try {
-      new LicenseThreatGroupConditionType().validateCondition(condition, app.getId());
+      new LicenseThreatGroupConditionType().validateCondition(null, condition, app.getId());
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {
@@ -350,7 +350,7 @@ public class LicenseThreatGroupConditionTypeTest
   public void testValidateCondition_Unassigned() {
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is",
         LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID);
-    new LicenseThreatGroupConditionType().validateCondition(condition, app.getId());
+    new LicenseThreatGroupConditionType().validateCondition(null, condition, app.getId());
   }
 
   @Test

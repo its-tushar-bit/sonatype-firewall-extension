@@ -166,7 +166,7 @@ public class LicenseThreatGroupLevelConditionTypeTest
   public void testValidateCondition_InvalidLicenseThreatGroupLevel() {
     Condition condition = new Condition(LicenseThreatGroupLevelConditionType.ID, "<=", "abc");
     try {
-      new LicenseThreatGroupLevelConditionType().validateCondition(condition, app.getId());
+      new LicenseThreatGroupLevelConditionType().validateCondition(null, condition, app.getId());
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

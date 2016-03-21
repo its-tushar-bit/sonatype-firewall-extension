@@ -173,7 +173,7 @@ public class LabelConditionTypeTest
   public void testValidateCondition_InvalidLabelId() {
     Condition condition = new Condition(LabelConditionType.ID, "is", "abc");
     try {
-      new LabelConditionType().validateCondition(condition, applicationId);
+      new LabelConditionType().validateCondition(null, condition, applicationId);
       Assert.fail("Expected InvalidConditionException");
     }
     catch (InvalidConditionException expected) {

@@ -99,7 +99,7 @@ public class LabelDAO
   }
 
   @Override
-  protected Label getById(TransactionContext tx, String id) {
+  public Label getById(TransactionContext tx, String id) {
     String sQuery = "SELECT label FROM Label label" + //
         " WHERE label.id=?1";
     return get(tx, sQuery, id);

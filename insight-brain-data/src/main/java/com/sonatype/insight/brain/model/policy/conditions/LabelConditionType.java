@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.LabelValueType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class LabelConditionType
     extends AbstractComponentConditionType<String>
@@ -38,11 +39,13 @@ public class LabelConditionType
   }
 
   @Override
-  public void validateCondition(Condition condition, String ownerId) throws InvalidConditionException {
-    super.validateCondition(condition, ownerId);
+  public void validateCondition(TransactionContext tx, Condition condition, String ownerId)
+      throws InvalidConditionException
+  {
+    super.validateCondition(tx, condition, ownerId);
 
     String labelId = condition.getValue();
-    LabelValueType labelValueType = new LabelValueType(ownerId);
+    LabelValueType labelValueType = new LabelValueType(tx, ownerId);
     for (Label label : labelValueType.getAvailableValues()) {
       if (label.getId().equals(labelId)) {
         return;
@@ -62,8 +65,8 @@ public class LabelConditionType
   }
 
   @Override
-  public String generateDroolsConditionValue(String value) {
-    Label label = new LabelDAO().getById(value);
+  public String generateDroolsConditionValue(TransactionContext tx, String value) {
+    Label label = new LabelDAO().getById(tx, value);
     return asDroolsString(value) + asDroolsComment("label: " + label.getLabel());
   }
 

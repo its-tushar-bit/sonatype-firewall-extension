@@ -68,7 +68,7 @@ public class UserDirectoryTest
   private UserDirectory userDirectory;
 
   @Test
-  public void testGetMembersByNames() throws Exception {
+  public void testGetMembersByName() throws Exception {
     // Configure LDAP.
     embeddedLdapServer.start();
     embeddedLdapServer.loadData("/UserDirectoryTest/ldap_users.ldif");
@@ -150,7 +150,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetMembersByNames_WithUserDirectoryError() throws Exception {
+  public void testGetMembersByName_WithUserDirectoryError() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     NamingException namingException = new NamingException("Naming Exception!");
@@ -172,7 +172,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetMembersByNames_noUnnecessaryQueries() throws Exception {
+  public void testGetMembersByName_noUnnecessaryQueries() throws Exception {
     LdapManager mockLdapManager = Mockito.mock(LdapManager.class);
     when(mockLdapManager.isLdapEnabled()).thenReturn(true);
     when(mockLdapManager.isGroupSearchEnabled()).thenReturn(true);
@@ -187,7 +187,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetMembersByNames_WithNullOrEmptyNames() throws Exception {
+  public void testGetMembersByName_WithNullOrEmptyNames() throws Exception {
     // Configure LDAP.
     embeddedLdapServer.start();
 

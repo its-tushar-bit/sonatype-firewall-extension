@@ -14,8 +14,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
-import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -28,50 +26,55 @@ public class PolicySummaryServiceAuthzTest
   @Inject
   private PolicySummaryService policySummaryService;
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetPolicySummary_ExplicitApplicationFilter_Unauthenticated() {
-    policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null);
+    createPolicyViolation(app.getId());
+    assertEmptyResults(
+        policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetPolicySummary_ExplicitApplicationFilter_Unauthorized() {
+    createPolicyViolation(app.getId());
     login();
-    policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null);
+    assertEmptyResults(
+        policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ExplicitApplicationFilter_Authorized() {
+    createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null);
+    assertResults(policySummaryService.getPolicySummary(Collections.singleton(app.getId()), null, null, null, null));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Unauthenticated() {
     createPolicyViolation(app.getId());
-    PolicySummaryDTO policySummaryDTO = policySummaryService.getPolicySummary(null, null, null, null, null);
-    assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(0));
-    assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(0));
-    assertThat(policySummaryDTO.weeklyDeltaUnresolved, hasSize(0));
+    assertEmptyResults(policySummaryService.getPolicySummary(null, null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Unauthorized() {
     createPolicyViolation(app.getId());
     login();
-    PolicySummaryDTO policySummaryDTO = policySummaryService.getPolicySummary(null, null, null, null, null);
-    assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.weeklyDeltaNew.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(0));
-    assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.weeklyDeltaFixed.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(0));
-    assertThat(policySummaryDTO.weeklyDeltaUnresolved, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
-    assertThat(policySummaryDTO.weeklyDeltaUnresolved.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertEmptyResults(policySummaryService.getPolicySummary(null, null, null, null, null));
   }
 
   @Test
   public void testGetPolicySummary_ImplicitApplicationFilter_Authorized() {
     createPolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    PolicySummaryDTO policySummaryDTO = policySummaryService.getPolicySummary(null, null, null, null, null);
+    assertResults(policySummaryService.getPolicySummary(null, null, null, null, null));
+
+  }
+
+  private PolicyViolation createPolicyViolation(String appId) {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
+    return tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
+  }
+
+  private void assertResults(PolicySummaryDTO policySummaryDTO) {
     assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
     assertThat(policySummaryDTO.weeklyDeltaNew.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(1));
     assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
@@ -80,8 +83,12 @@ public class PolicySummaryServiceAuthzTest
     assertThat(policySummaryDTO.weeklyDeltaUnresolved.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(1));
   }
 
-  private PolicyViolation createPolicyViolation(String appId) {
-    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(appId, BuildStageType.ID, "test scan id");
-    return tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app.getId(), "test policy name"));
+  private void assertEmptyResults(PolicySummaryDTO policySummaryDTO) {
+    assertThat(policySummaryDTO.weeklyDeltaNew, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaNew.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertThat(policySummaryDTO.weeklyDeltaFixed, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaFixed.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(0));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved, hasSize(PolicySummaryService.POLICY_SUMMARY_WEEKS));
+    assertThat(policySummaryDTO.weeklyDeltaUnresolved.get(PolicySummaryService.POLICY_SUMMARY_WEEKS - 1), is(0));
   }
 }

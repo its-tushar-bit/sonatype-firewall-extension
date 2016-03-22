@@ -108,9 +108,8 @@ public class ApplicationService
     return applicationDAO.getByPublicId(applicationPublicId);
   }
 
-  @Authorize(permission = Permission.READ)
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  public List<Application> getApplicationsByIdsAndTagIds(@Nullable @AuthzContext(value = AuthzContext.Key.APPLICATION_ID, multiple = true) final Set<String> applicationIds,
+  public List<Application> getApplicationsByIdsAndTagIds(@Nullable final Set<String> applicationIds,
                                                          @Nullable final Set<String> tagIds)
   {
     if (isEmpty(applicationIds) && isEmpty(tagIds)) {

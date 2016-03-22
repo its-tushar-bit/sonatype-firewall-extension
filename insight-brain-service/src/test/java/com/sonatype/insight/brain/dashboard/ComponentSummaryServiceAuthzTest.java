@@ -33,12 +33,12 @@ public class ComponentSummaryServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "ver"));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetComponentSummary_ExplicitApplicationComponent_Unauthenticated() {
     assertThat(getComponentSummaryTotal(false), is(0));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetComponentSummary_ExplicitApplicationComponent_Unauthorized() {
     login();
     assertThat(getComponentSummaryTotal(false), is(0));
@@ -50,7 +50,7 @@ public class ComponentSummaryServiceAuthzTest
     assertThat(getComponentSummaryTotal(false), is(1));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetComponentSummary_ImplicitApplicationComponent_Unauthenticated() {
     assertThat(getComponentSummaryTotal(true), is(0));
   }

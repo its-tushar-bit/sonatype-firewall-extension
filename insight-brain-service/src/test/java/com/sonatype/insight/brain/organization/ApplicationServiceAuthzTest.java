@@ -208,22 +208,28 @@ public class ApplicationServiceAuthzTest
     assertThat(applications, hasSize(2));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetApplicationsByIdsAndTagIds_Unauthenticated() throws Exception {
-    applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId()), null);
+    List<Application> applications = applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId()), null);
+    assertThat(applications, hasSize(0));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetApplicationsByIdsAndTagIds_NotAuthorized() throws Exception {
     login();
-    applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId()), null);
+    List<Application> applications = applicationService
+        .getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId()), null);
+    assertThat(applications, hasSize(0));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetApplicationsByIdsAndTagIds_TwoAppsOneNotAuthorized() throws Exception {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
-    applicationService.getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId(), app2.getId()), null);
+    List<Application> applications = applicationService
+        .getApplicationsByIdsAndTagIds(Sets.newHashSet(app.getId(), app2.getId()), null);
+    assertThat(applications, hasSize(1));
+    assertThat(applications.get(0).getId(), equalTo(app.getId()));
   }
 
   @Test()

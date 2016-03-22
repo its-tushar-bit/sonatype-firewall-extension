@@ -27,24 +27,30 @@ public class NewestRiskServiceAuthzTest
   @Inject
   private NewestRiskService newestRiskService;
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetNewestRisks_ExplicitApplicationFilter_Unauthenticated() {
-    newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+    createFirstOccurrencePolicyViolation(app.getId());
+    assertThat(newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1),
+        hasSize(0));
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test
   public void testGetNewestRisks_ExplicitApplicationFilter_Unauthorized() {
+    createFirstOccurrencePolicyViolation(app.getId());
     login();
-    newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+    assertThat(newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1),
+        hasSize(0));
   }
 
   @Test
   public void testGetNewestRisks_ExplicitApplicationFilter_Authorized() {
+    createFirstOccurrencePolicyViolation(app.getId());
     grantReadPermission(app.getId());
-    newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1);
+    assertThat(newestRiskService.getNewestRisks(Collections.singleton(app.getId()), null, null, null, null, 1),
+        hasSize(1));
   }
 
-  @Test(expected = UnauthenticatedException.class)
+  @Test
   public void testGetNewestRisks_ImplicitApplicationFilter_Unauthenticated() {
     createFirstOccurrencePolicyViolation(app.getId());
     assertThat(newestRiskService.getNewestRisks(null, null, null, null, null, 1), hasSize(0));

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Comparator;
 
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
 public class PolicyViolationComparator
@@ -23,7 +24,9 @@ public class PolicyViolationComparator
     }
 
     // Policy name
-    result = v1.getPolicyName().compareToIgnoreCase(v2.getPolicyName());
+    String v1PolicyName = NameHelper.normalize(v1.getPolicyName());
+    String v2PolicyName = NameHelper.normalize(v2.getPolicyName());
+    result = v1PolicyName.compareTo(v2PolicyName);
     if (result != 0) {
       return result;
     }

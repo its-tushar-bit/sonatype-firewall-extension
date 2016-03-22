@@ -208,12 +208,12 @@ public class PolicyViolationDigesterTest
   }
 
   @Test
-  public void testDigest_PolicyNameCaseChange() {
+  public void testDigest_PolicyNameCaseAndWhiteSpaceChange() {
     final List<PolicyViolation> oldViolations = defaultPolicyViolations();
     final List<PolicyViolation> newViolations = defaultPolicyViolations();
 
-    // Policy name case changes are ignored
-    newViolations.get(0).setPolicyName("policy 4");
+    // Policy name case and white space changes are ignored
+    newViolations.get(0).setPolicyName(" p o l i c y  4 ");
 
     PolicyViolationDiff results = PolicyViolationDigester.digestPolicyViolations(oldViolations, newViolations);
 

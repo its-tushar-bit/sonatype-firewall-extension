@@ -243,6 +243,10 @@
 }
 
 #evaluate-application-modal {
+  input[type="file"] {
+    width: 500px;
+  }
+
   p {
     margin-top: 0;
   }

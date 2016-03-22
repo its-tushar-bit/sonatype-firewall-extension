@@ -220,8 +220,8 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.saveButton().shouldHave(DISABLED);
   }
 
-  private List<MembershipMapping> getMembershipMappings(final String ownersId, final String roleName) {
-    return membershipMappingDAO.getByContextIdAndRoleId(ownersId, roleDAO.getByName(roleName).getId());
+  private List<MembershipMapping> getMembershipMappings(final String ownerId, final String roleName) {
+    return membershipMappingDAO.getByContextIdAndRoleId(ownerId, roleDAO.getByName(roleName).getId());
   }
 
   abstract void goFromSummaryToAddRole();

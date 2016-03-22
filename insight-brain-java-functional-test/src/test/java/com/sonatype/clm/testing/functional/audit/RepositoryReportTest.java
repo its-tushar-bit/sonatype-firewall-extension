@@ -433,7 +433,6 @@ public class RepositoryReportTest
     // Modal
     AddLabelModal.root().shouldBe(visible);
     AddLabelModal.scopes().shouldHaveSize(3);
-    AddLabelModal.radio(1).click();
     AddLabelModal.saveButton().click();
 
     AddLabelModal.root().shouldNotBe(visible);

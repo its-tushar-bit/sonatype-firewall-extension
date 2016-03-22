@@ -31,7 +31,7 @@
       $scope.labelLoading = true;
       $scope.labelAddError = null;
       $scope.label = {
-        selectedOwner: OwnerContext.ownerId + '$$application'
+        selectedOwner: OwnerContext.ownerId + '$$' + OwnerContext.ownerType
       };
       $scope.labelOwners = [];
 

@@ -6,18 +6,45 @@
 (function(angular) {
   'use strict';
 
-  function ScrollSpy($timeout) {
+  function ScrollSpy($timeout, $http, EventNameConstant) {
     return {
       scope: {
         scrollspy: '@'
       },
       link: function($scope, element) {
-        var offset = 10;
+        var scrollspyObject;
+        initScrollspy();
+
+        var eventHandlerFn = function() {
+          pauseScrollspy(scrollspyObject.$scrollElement);
+          var me = $(this);
+          //note the offset is 8 here, as using a higher number will occassionally push us into the next section
+          //and select the wrong pill
+          element.scrollTop($(me.attr('data-target')).position().top + element.scrollTop() - 8);
+          $($scope.scrollspy + ' .nav li').removeClass('active');
+          me.parent().addClass('active');
+          $timeout(function(){
+            unpauseScrollspy(scrollspyObject.$scrollElement);
+          });
+        };
+
+        $(document).on('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
+
+        $scope.$on('$destroy', function() {
+          $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
+        });
+
+        $scope.$on(EventNameConstant.RESIZE_SCROLLABLE_AREA, function(){
+          if (scrollspyObject) {
+            scrollspyObject.refresh();
+          }
+        });
+
         function initScrollspy() {
-          if ($($scope.scrollspy + ' .nav li').length) {
-            element.scrollspy({
+          if ($http.pendingRequests.length === 0 && $($scope.scrollspy + ' .nav li').length) {
+            scrollspyObject = new $.fn.scrollspy.Constructor(element, {
               target: $scope.scrollspy,
-              offset: offset
+              offset: 10
             });
           }
           else {
@@ -27,27 +54,18 @@
           }
         }
 
-        initScrollspy();
+        function pauseScrollspy() {
+          $(element).off('scroll.scroll-spy.data-api');
+        }
 
-        var eventHandlerFn = function() {
-          var me = $(this);
-          element.scrollTop($(me.attr('data-target')).position().top + element.scrollTop() - offset);
-          $timeout(function() {
-            $($scope.scrollspy + ' .nav li').removeClass('active');
-            me.parent().addClass('active');
-          });
-        };
-
-        $(document).on('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
-
-        $scope.$on('$destroy', function() {
-          $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
-        });
+        function unpauseScrollspy() {
+          $(element).on('scroll.scroll-spy.data-api', $.proxy(scrollspyObject.process, scrollspyObject));
+        }
       }
     };
   }
 
-  ScrollSpy.$inject = ['$timeout'];
+  ScrollSpy.$inject = ['$timeout', '$http', 'event.name.constant'];
 
   angular
       .module('utility')

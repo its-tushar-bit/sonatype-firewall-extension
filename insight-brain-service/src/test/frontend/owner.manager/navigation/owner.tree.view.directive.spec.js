@@ -289,9 +289,8 @@ describe('owner.tree-view.directive.spec.js', function() {
     runTestsForOwnerTreeViewDirective([]);
   });
 
-  describe('organization and policy link', function() {
-    var $timeout,
-        options = { location : 'replace' };
+  describe('management.view redirects', function() {
+    var $timeout;
 
     beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$state_, _$timeout_, _$compile_, _CLMLocations_,
                                _CLMAppLocations_)
@@ -314,17 +313,17 @@ describe('owner.tree-view.directive.spec.js', function() {
 
     it('redirects to the root org if accessible', function() {
       doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl());
-      expect($state.go).toHaveBeenCalledWith('.organization', {organizationId: 'ROOT_ORGANIZATION_ID'}, options);
+      expect($state.go).toHaveBeenCalledWith('.organization', {organizationId: 'ROOT_ORGANIZATION_ID'});
     });
 
     it('redirects to the first non-synthetic org', function() {
       doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl_noRoot());
-      expect($state.go).toHaveBeenCalledWith('.organization', {organizationId: 'nonSynthOrgID'}, options);
+      expect($state.go).toHaveBeenCalledWith('.organization', {organizationId: 'nonSynthOrgID'});
     });
 
     it('redirects to the first application if no non-syntehtic orgs present', function() {
       doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
-      expect($state.go).toHaveBeenCalledWith('.application', {applicationPublicId: 'applicationOnePublicID'}, options);
+      expect($state.go).toHaveBeenCalledWith('.application', {applicationPublicId: 'applicationOnePublicID'});
     });
 
     function doLoadWithOwnerList(ownerList) {

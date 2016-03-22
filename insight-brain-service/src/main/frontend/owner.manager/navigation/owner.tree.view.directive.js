@@ -112,24 +112,23 @@
           }
         }
 
-        redirectIfNecessary(true);
+        redirectIfNecessary();
 
         assignSelectedParentOrganization();
       });
     }
 
-    function redirectIfNecessary(replaceLastHistoryRecord) {
+    function redirectIfNecessary() {
       if ($state.is('management.view')) {
         var topOrganization = vm.rootOrganization || vm.organizations.filter(function(org) {
               return !org.synthetic;
             })[0] || vm.organizations[0];
         if (topOrganization) {
-          var options = { location: replaceLastHistoryRecord ? 'replace' : true };
           if (topOrganization.synthetic) {
-            $state.go('.application', {applicationPublicId: topOrganization.applications[0].publicId}, options);
+            $state.go('.application', {applicationPublicId: topOrganization.applications[0].publicId});
           } 
           else {
-            $state.go('.organization', {organizationId: topOrganization.id}, options);
+            $state.go('.organization', {organizationId: topOrganization.id});
           }
         }
       }

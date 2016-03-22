@@ -105,6 +105,10 @@ public class UserDirectory
    *         result contains local user information.
    */
   public QueryResult getMembersByName(Collection<Member> members) {
+    if (members == null || members.isEmpty()) {
+      return new QueryResult(new ArrayList<Member>());
+    }
+
     QueryResult result = getUsersByName(getNameByType(members, MemberType.USER));
 
     Set<String> groupNames = getNameByType(members, MemberType.GROUP);
@@ -152,6 +156,10 @@ public class UserDirectory
    *         result contains local user information.
    */
   public QueryResult getUsersByName(Set<String> origUserNames) {
+    if (origUserNames == null || origUserNames.isEmpty()) {
+      return new QueryResult(new ArrayList<Member>());
+    }
+
     List<Member> members = new LinkedList<>();
     Set<String> userNames = new HashSet<>(origUserNames);
     purgeNullNames(userNames);

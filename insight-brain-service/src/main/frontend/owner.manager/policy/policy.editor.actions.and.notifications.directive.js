@@ -14,7 +14,7 @@
       scope: {
         actions: '=',
         monitorNotifyActions: '=',
-        disabled: '=?ngDisabled'
+        disabled: '=?editorDisabled'
       },
       bindToController: true
     };

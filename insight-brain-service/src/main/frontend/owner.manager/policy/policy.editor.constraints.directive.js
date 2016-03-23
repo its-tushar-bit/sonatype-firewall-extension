@@ -14,7 +14,7 @@
       scope: {
         constraints: '=',
         isNewPolicy: '=',
-        disabled: '=?ngDisabled'
+        disabled: '=?editorDisabled'
       },
       bindToController: true
     };

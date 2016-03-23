@@ -73,12 +73,12 @@
       <div id="policy-edit-constraints" class="editor-section">
         <div class="editor-section-header">Constraints</div>
         <policy-editor-constraints constraints="vm.dirtyPolicy.constraints" is-new-policy="vm.dirtyPolicy.$new"
-                                   ng-disabled="vm.readOnly"></policy-editor-constraints>
+                                   editor-disabled="vm.readOnly"></policy-editor-constraints>
       </div>
       <div id="policy-edit-actions" class="editor-section">
         <div class="editor-section-header">Actions and Notifications</div>
         <policy-editor-actions actions="vm.dirtyPolicy.actions" monitor-notify-actions="vm.dirtyPolicy.monitorNotifyActions"
-                ng-disabled="vm.readOnly"></policy-editor-actions>
+                editor-disabled="vm.readOnly"></policy-editor-actions>
       </div>
       <div id="policy-edit-endofpage" class="editor-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button id="save-policy-button" type="submit" class="btn btn-primary" submit-validation submit-dirty="vm.isPolicyDirty()"

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class PolicyViolationComparatorTest
     PolicyViolation v5 = buildPolicyViolation("1", "Policy1", 1, "hash", componentB);
 
     List<PolicyViolation> sorted = Lists.newArrayList(v1, v2, v3, v4, v5);
-    sorted.sort(comparator);
+    Collections.sort(sorted, comparator);
 
     // should sort in order of policy id, policy name, threat level, hash, component
     List<PolicyViolation> expected = Lists.newArrayList(v5, v4, v3, v2, v1);

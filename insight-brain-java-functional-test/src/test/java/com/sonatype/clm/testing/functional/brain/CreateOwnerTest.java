@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
-import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -131,7 +130,6 @@ public class CreateOwnerTest
 
   @Test
   public void testCreateOrganization() throws Exception {
-    RootOrganizationNode.treeViewElement().shouldBe(visible, enabled).click();
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
     testIconDirtyState();
@@ -169,7 +167,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.robotIcon().click();
 
     UnsavedModal unsavedModal = new UnsavedModal();
-    WebDriverRunner.getWebDriver().navigate().back();
+    refreshOrOpen(OrganizationManagementPage.URL);
     unsavedModal.cancelButton().shouldBe(visible).click();
 
     OwnerEditorDialog.defaultIcon().click();

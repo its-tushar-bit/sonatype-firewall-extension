@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizati
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.OrganizationManagementPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -167,7 +168,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.robotIcon().click();
 
     UnsavedModal unsavedModal = new UnsavedModal();
-    refreshOrOpen(OrganizationManagementPage.URL);
+    refreshOrOpen(ReportListPage.URL);
     unsavedModal.cancelButton().shouldBe(visible).click();
 
     OwnerEditorDialog.defaultIcon().click();

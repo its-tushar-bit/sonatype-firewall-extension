@@ -11,7 +11,7 @@
     </div>
   </div>
 
-  <div class="tile-scroll-container" scrollspy="#repositories-summary">
+  <div class="tile-scroll-container" calc-tile-scroll-height="#repositories-summary" scrollspy="#repositories-summary">
     <div id="repositories-pill-configuration" class="tile"
          ng-controller="repositories.configuration.tile.controller as vm">
       <div load-wrapper="vm.error" loading="!vm.repositories" reload="vm.doLoad()"

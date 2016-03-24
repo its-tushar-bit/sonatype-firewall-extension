@@ -13,7 +13,8 @@
     </ul>
   </div>
 </div>
-<div id="policy-editor" class="tile-editor-container tile-scroll-container" scrollspy="#policy-editor-summary">
+<div id="policy-editor" class="tile-editor-container tile-scroll-container"
+     calc-tile-scroll-height="#policy-editor-summary" scrollspy="#policy-editor-summary">
   <div class="tile" load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
     <form name="vm.policyEditor" class="clm-form" role="form" ng-submit="vm.save()" novalidate
           form-mask="vm.policyEditorMask" mask-attach-to-body>

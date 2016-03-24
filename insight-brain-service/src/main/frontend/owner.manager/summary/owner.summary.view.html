@@ -36,7 +36,7 @@
     </div>
   </div>
 
-  <div class="tile-scroll-container" scrollspy="#owner-summary">
+  <div class="tile-scroll-container" calc-tile-scroll-height="#owner-summary" scrollspy="#owner-summary">
     <div class="tile" id="owner-pill-app-categories">
       <div ng-controller="ApplicationCategoryTileControllerApp as vm">
         <div ng-if="vm.isApp" load-wrapper="vm.error" loading="!(vm.ownerName && vm.appliedCategories)"

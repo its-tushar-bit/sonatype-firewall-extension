@@ -11,10 +11,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -39,8 +37,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Maps;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,50 +166,17 @@ public class DashboardFilterService
 
     FilterSummaryDTO summary = new FilterSummaryDTO();
 
-    Collection<Application> readableApplications = applicationService.getApplications();
-    log.debug("getFilterSummary: Found {} readable applications in {} ms.", readableApplications.size(),
-        System.currentTimeMillis() - start);
-    summary.totalApplications = readableApplications.size();
-
-    Collection<Application> matchedApplications = readableApplications;
-    if (!CollectionUtils.isEmpty(applicationIds) || !CollectionUtils.isEmpty(tagIds)) {
-      Map<String, Application> appsById = Maps.newHashMapWithExpectedSize(readableApplications.size());
-      for (Application app : readableApplications) {
-        appsById.put(app.getId(), app);
-      }
-      if (!CollectionUtils.isEmpty(applicationIds)) {
-        appsById.keySet().retainAll(applicationIds);
-      }
-      if (!CollectionUtils.isEmpty(tagIds)) {
-        matchedApplications = applicationDAO.getByIdsAndTagIds(appsById.keySet(), tagIds);
-      }
-      else {
-        matchedApplications = appsById.values();
-      }
-    }
+    Collection<Application> matchedApplications = applicationService.getApplicationsByIdsAndTagIds(applicationIds, tagIds);
     log.debug("getFilterSummary: Found {} applications filtered by appIds={} and tagIds={} in {} ms.",
         matchedApplications.size(), !isEmpty(applicationIds), !isEmpty(tagIds), System.currentTimeMillis() - start);
     summary.matchedApplications = matchedApplications.size();
 
-    Collection<StageType> allStageTypes = dashboardUtils.getStageTypes(null);
-    summary.totalComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
-        dashboardUtils.getApplicationIds(readableApplications), dashboardUtils.getStageTypeIds(allStageTypes));
     Collection<StageType> matchedStageTypes = dashboardUtils.getStageTypes(stageIds);
     summary.matchedComponents = applicationComponentDAO.getUniqueCountByApplicationIdsAndStageTypeIds(
         dashboardUtils.getApplicationIds(matchedApplications), dashboardUtils.getStageTypeIds(matchedStageTypes));
 
-    Set<String> readablePolicyOwnerIds = getPolicyOwnerIds(readableApplications);
-    List<Policy> readablePolicies = policyDAO.getByOwnerIds(readablePolicyOwnerIds);
-    summary.totalPolicies = readablePolicies.size();
+    Collection<Policy> matchedPolicies = policyDAO.getByOwnerIds(getPolicyOwnerIds(matchedApplications));
 
-    final Set<String> matchedPolicyOwnerIds = getPolicyOwnerIds(matchedApplications);
-    Collection<Policy> matchedPolicies = Collections2.filter(readablePolicies, new Predicate<Policy>()
-    {
-      @Override
-      public boolean apply(@Nullable Policy input) {
-        return input != null && matchedPolicyOwnerIds.contains(input.getOwnerId());
-      }
-    });
     Predicate<Policy> policyFilter = buildPolicyFilter(policyThreatCategoryFilter, policyThreatLevelFilter);
     if (policyFilter != null) {
       matchedPolicies = Collections2.filter(matchedPolicies, policyFilter);

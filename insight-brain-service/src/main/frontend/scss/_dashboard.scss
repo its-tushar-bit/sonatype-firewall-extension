@@ -43,12 +43,25 @@
 */
 .dashboard-viewing-item {
   padding-top: 5px;
+  margin-left: 24px;
+  display: inline-block;
+
+  .fa {
+    vertical-align: middle;
+
+    &.size-18px {
+      text-align: center;
+      line-height: 20px;
+      width: 20px;
+    }
+  }
 }
 
 .dashboard-viewing-item h2 {
   @extend .no-margin;
   display: inline-block;
   margin-left: 5px;
+  vertical-align: middle;
 }
 
 .dashboard-viewing-item h5 {
@@ -58,10 +71,6 @@
 .dashboard-viewing-item p {
   @extend .no-margin;
   @extend .inline-middle;
-}
-
-.dashboard-viewing-item.first {
-  @extend .no-margin;
 }
 
 .dashboard-viewing-icon-box {
@@ -601,9 +610,12 @@ $policy-summary-table-row-height: 25px;
   Secondary Button
   ```
   <div class="dashboard-section-header">
-    <button class="btn pull-right secondary">
-      <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
-    </button>
+    <div class="section-header-item">header part</div>
+    <div class="section-header-item">
+      <button class="btn pull-right secondary">
+        <i class="glyphicons-sonatype calculator"></i>&nbsp;Calculate Trends
+      </button>
+    </div>
   </div>
   ```
 */
@@ -612,11 +624,28 @@ $dashboard-border-width: 2px;
 $dashboard-border: $dashboard-border-width solid #CCC;
 
 .dashboard-section-header {
-  padding-bottom: 5px;
   border-bottom: $dashboard-border;
+
+  .dashboard-section-header-item {
+    display: inline-block;
+    min-height: 50px;
+
+    &:first-child {
+      float: left;
+    }
+
+    &:last-child {
+      float: right;
+    }
+  }
+
+  h1 {
+    margin-bottom: 0px;
+  }
 
   .btn.btn-secondary {
     padding: 0 12px;
+    margin-top: 18px;
 
     i:before {
       vertical-align: middle;

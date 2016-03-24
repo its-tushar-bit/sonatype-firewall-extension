@@ -85,6 +85,6 @@ public class DashboardFilterServiceAuthzTest
 
   private int getFilterSummaryTotalApps(boolean all) {
     return dashboardFilterService.getFilterSummary(all ? null : Collections.singleton(app.getId()), null, null, null,
-        null).totalApplications;
+        null).matchedApplications;
   }
 }

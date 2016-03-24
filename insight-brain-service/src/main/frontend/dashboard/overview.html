@@ -38,63 +38,32 @@
     </div>
   </div>
 </script>
-<script type="text/ng-template" id="dashboard-component-match-results">
-  <div load-wrapper="error" reload="doLoad()">
-    <h5 ng-if="!data && !error" class="dashboard-loading">
-      <i class='icon-time'></i> Loading...
-    </h5>
-    <div id='component-match-results' ng-if="data">
-      <div class="span6">
-        <h4 class="dashboard-section-header">Non-Proprietary Component Match Results</h4>
-        <div class="component-match-content">
-          <div class="component-match-graph-section">
-            <div horizontal-percentage-graph model="data"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</script>
 <script type="text/ng-template" id="dashboard-view-summary">
   <div load-wrapper="error" reload="doLoad()">
     <h5 ng-if="!data && !error" class="dashboard-loading">
       <i class='icon-time'></i> Loading...
     </h5>
     <div id='summary-data' ng-if="data">
-      <div class="span6">
-        <h4 class="dashboard-section-header">Viewing</h4>
-        <form class="form-horizontal" role="form">
-          <div class="form-group dashboard-viewing-item first span2">
-            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-app-icon"></i></div>
-            <h2 id="summary-matched-applications">{{data.matchedApplications}}</h2>
-            <div class="dashboard-viewing-summary">
-              <h5>APPLICATIONS</h5>
-              <p>
-                OF&nbsp;<span id="summary-total-applications">{{data.totalApplications}}</span>&nbsp;(<span id="summary-percent-applications">{{formatPercentage(data.matchedApplications, data.totalApplications)}}%</span>)
-              </p>
-            </div>
-          </div>
-          <div class="form-group dashboard-viewing-item span2">
-            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-policy-icon"></i></div>
-            <h2 id="summary-matched-policies">{{data.matchedPolicies}}</h2>
-            <div class="dashboard-viewing-summary">
-              <h5>POLICIES</h5>
-              <p>
-                OF&nbsp;<span id="summary-total-policies">{{data.totalPolicies}}</span>&nbsp;(<span id="summary-percent-policies">{{formatPercentage(data.matchedPolicies, data.totalPolicies)}}%</span>)
-              </p>
-            </div>
-          </div>
-          <div class="form-group dashboard-viewing-item span2">
-            <div class="dashboard-viewing-icon-box"><i class="sonatype-icons dashboard-component-icon"></i></div>
-            <h2 id="summary-matched-components">{{data.matchedComponents}}</h2>
-            <div class="dashboard-viewing-summary">
-              <h5>COMPONENTS</h5>
-              <p>
-                OF&nbsp;<span id="summary-total-components">{{data.totalComponents}}</span>&nbsp;(<span id="summary-percent-components">{{formatPercentage(data.matchedComponents, data.totalComponents)}}%</span>)
-              </p>
-            </div>
-          </div>
-        </form>
+      <div class="dashboard-viewing-item first">
+        <i class="fa fa-terminal size-18px inverse"></i>
+        <h2 id="summary-matched-applications">{{data.matchedApplications}}</h2>
+        <div class="dashboard-viewing-summary">
+          Applications
+        </div>
+      </div>
+      <div class="dashboard-viewing-item">
+        <i class="fa fa-university size-20px"></i>
+        <h2 id="summary-matched-policies">{{data.matchedPolicies}}</h2>
+        <div class="dashboard-viewing-summary">
+          Policies
+        </div>
+      </div>
+      <div class="dashboard-viewing-item">
+        <i class="fa fa-cube size-22px"></i>
+        <h2 id="summary-matched-components">{{data.matchedComponents}}</h2>
+        <div class="dashboard-viewing-summary">
+          Components
+        </div>
       </div>
     </div>
   </div>
@@ -332,20 +301,17 @@
   <div breadcrumb></div>
   <div class='row'>
     <div class='span12'>
-      <h1 class="left-align-h1 dashboard-section-header">
-        Dashboard
-        <button id="show-trend-dialog" class="btn pull-right btn-secondary" ng-click="showTrendDialog()">
-          <i class="fa fa-calculator"></i>Calculate Trends
-        </button>
-      </h1>
-    </div>
-  </div>
-  <div class='row dashboard-summary-section'>
-    <div class="span6">
-      <div class="row" dashboard-view-summary filters="filters"></div>
-    </div>
-    <div class="span6">
-      <div class='row' dashboard-component-match-results filters="filters"></div>
+      <div class="dashboard-section-header">
+        <div class="dashboard-section-header-item">
+          <h1 class="left-align-h1">Dashboard</h1>
+        </div>
+        <div dashboard-view-summary filters="filters" class="dashboard-section-header-item"></div>
+        <div class="dashboard-section-header-item">
+          <button id="show-trend-dialog" class="btn btn-secondary" ng-click="showTrendDialog()">
+            <i class="fa fa-calculator"></i>Calculate Trends
+          </button>
+        </div>
+      </div>
     </div>
   </div>
   <div load-error='error' reload='doLoad()'></div>

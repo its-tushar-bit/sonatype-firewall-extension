@@ -150,6 +150,11 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
     color: $off-white;
   }
 
+  &.size-22px {
+    font-size: 22px;
+    line-height: 22px;
+  }
+
   &.size-20px {
     font-size: 20px;
     line-height: 20px;
@@ -161,6 +166,21 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
     &.size-fw {
       width: 20px;
+      text-align: center;
+    }
+  }
+
+  &.size-18px {
+    font-size: 18px;
+    line-height: 18px;
+
+    &.inverse {
+      font-size: 90%;
+      padding: 2px;
+    }
+
+    &.size-fw {
+      width: 18px;
       text-align: center;
     }
   }

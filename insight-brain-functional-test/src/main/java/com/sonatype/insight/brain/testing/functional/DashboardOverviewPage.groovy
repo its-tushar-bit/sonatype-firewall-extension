@@ -29,15 +29,9 @@ class DashboardOverviewPage
     tabLinks { module DashboardTabsModule, $('ul.nav.nav-tabs') }
 
     summaryData(required: false) { $('#summary-data') }
-    summaryTotalApplications(required: false) { $('#summary-total-applications') }
     summaryMatchedApplications(required: false) { $('#summary-matched-applications') }
-    summaryPercentApplications(required: false) { $('#summary-percent-applications') }
-    summaryTotalPolicies(required: false) { $('#summary-total-policies') }
     summaryMatchedPolicies(required: false) { $('#summary-matched-policies') }
-    summaryPercentPolicies(required: false) { $('#summary-percent-policies') }
-    summaryTotalComponents(required: false) { $('#summary-total-components') }
     summaryMatchedComponents(required: false) { $('#summary-matched-components') }
-    summaryPercentComponents(required: false) { $('#summary-percent-components') }
 
     unknownComponentPopover(required: false) { $('.popover.pathnames-popover') }
     unknownComponentPopoverTitle(required: false) { $('.popover-title').text() }

@@ -92,11 +92,8 @@ public class DashboardFilterServiceTest
   @Test
   public void testGetFilterSummary_NoFilter() throws Exception {
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null, null);
-    assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(3));
-    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(4));
   }
 
@@ -104,11 +101,8 @@ public class DashboardFilterServiceTest
   public void testGetFilterSummary_FilterByApp() throws Exception {
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(Collections.singleton(app2.getId()), null, null,
         null, null);
-    assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(1));
-    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(2));
-    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(1));
   }
 
@@ -119,11 +113,8 @@ public class DashboardFilterServiceTest
 
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null,
         Collections.singleton(app2Tag.getId()), null, null);
-    assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(1));
-    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(2));
-    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(1));
   }
 
@@ -131,11 +122,8 @@ public class DashboardFilterServiceTest
   public void testGetFilterSummary_FilterByPolicyThreatLevel() throws Exception {
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null, null,
         new PolicyThreatLevelFilter(orgPolicy.getThreatLevel(), orgPolicy.getThreatLevel()));
-    assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(4));
   }
 
@@ -148,11 +136,8 @@ public class DashboardFilterServiceTest
 
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null, null, null,
         new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE), null);
-    assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(1));
-    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(4));
   }
 
@@ -160,11 +145,8 @@ public class DashboardFilterServiceTest
   public void testGetFilterSummary_FilterByStage() throws Exception {
     FilterSummaryDTO summary = dashboardFilterService.getFilterSummary(null,
         Collections.singleton(ReleaseStageType.ID), null, null, null);
-    assertThat(summary.totalApplications, is(2));
     assertThat(summary.matchedApplications, is(2));
-    assertThat(summary.totalPolicies, is(3));
     assertThat(summary.matchedPolicies, is(3));
-    assertThat(summary.totalComponents, is(4));
     assertThat(summary.matchedComponents, is(2));
   }
 

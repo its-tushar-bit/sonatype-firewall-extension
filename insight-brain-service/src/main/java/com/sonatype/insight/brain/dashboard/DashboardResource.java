@@ -40,13 +40,9 @@ public class DashboardResource
 
   public static final String FILTERS_SUMMARY_PATH = "filters/summary";
 
-  public static final String COMPONENTS_SUMMARY_PATH = "components/summary";
-
   private final ApplicationRiskService applicationRiskService;
 
   private final ComponentRiskService componentRiskService;
-
-  private final ComponentSummaryService componentSummaryService;
 
   private final DashboardFilterService dashboardFilterService;
 
@@ -58,13 +54,11 @@ public class DashboardResource
   public DashboardResource(ApplicationRiskService applicationRiskService,
                            DashboardFilterService dashboardFilterService,
                            ComponentRiskService componentRiskService,
-                           ComponentSummaryService componentSummaryService,
                            NewestRiskService newestRiskService,
                            PolicySummaryService policySummaryService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
-    this.componentSummaryService = componentSummaryService;
     this.dashboardFilterService = dashboardFilterService;
     this.newestRiskService = newestRiskService;
     this.policySummaryService = policySummaryService;
@@ -156,18 +150,6 @@ public class DashboardResource
     return dashboardFilterService
         .getFilterSummary(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds,
             risksFilterDTO.policyThreatCategories, risksFilterDTO.policyThreatLevelRange);
-  }
-
-  @POST
-  @Path(COMPONENTS_SUMMARY_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Timed
-  @ExceptionMetered(name = "getComponentSummaryExceptionMeter")
-  public ComponentSummaryDTO getComponentSummary(RisksFilterDTO risksFilterDTO)
-  {
-    return componentSummaryService
-        .getComponentSummary(risksFilterDTO.applicationIds, risksFilterDTO.stageIds, risksFilterDTO.tagIds);
   }
 
   @POST

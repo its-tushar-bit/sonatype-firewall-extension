@@ -872,7 +872,7 @@ extends BaseSpec {
 
     and: 'the filters have been reloaded'
     def newestRiskPage = at NewestRiskDashboardPage
-    waitFor { newestRiskPage.filters.applicationSummary.displayed && componentMatchSection.displayed }
+    waitFor { newestRiskPage.filters.applicationSummary.displayed }
 
     then: 'See proper values set in the filters'
     newestRiskPage.filters.applicationSummary.getTooltipContent() == firstApp.name + '\n' + secondApp.name
@@ -974,59 +974,17 @@ extends BaseSpec {
     def newestRiskPage = at NewestRiskDashboardPage
     waitFor { newestRiskPage.summaryData.displayed }
 
-    then: 'the count of total applications is shown'
-    newestRiskPage.summaryTotalApplications.displayed
-    newestRiskPage.summaryTotalApplications.text() == '2'
-
-    and: 'the count of matched applications is shown'
+    then: 'the count of matched applications is shown'
     newestRiskPage.summaryMatchedApplications.displayed
     newestRiskPage.summaryMatchedApplications.text() == '2'
-
-    and: 'the percentage of matched applications is shown'
-    newestRiskPage.summaryPercentApplications.displayed
-    newestRiskPage.summaryPercentApplications.text() == '100%'
-
-    and: 'the count of total policies is shown'
-    newestRiskPage.summaryTotalPolicies.displayed
-    newestRiskPage.summaryTotalPolicies.text() == '1'
 
     and: 'the count of matched policies is shown'
     newestRiskPage.summaryMatchedPolicies.displayed
     newestRiskPage.summaryMatchedPolicies.text() == '1'
 
-    and: 'the percentage of matched policies is shown'
-    newestRiskPage.summaryPercentPolicies.displayed
-    newestRiskPage.summaryPercentPolicies.text() == '100%'
-
-    and: 'the count of total components is shown'
-    newestRiskPage.summaryTotalComponents.displayed
-    newestRiskPage.summaryTotalComponents.text() == '3'
-
     and: 'the count of matched components is shown'
     newestRiskPage.summaryMatchedComponents.displayed
     newestRiskPage.summaryMatchedComponents.text() == '3'
-
-    and: 'the percentage of matched components is shown'
-    newestRiskPage.summaryPercentComponents.displayed
-    newestRiskPage.summaryPercentComponents.text() == '100%'
-  }
-
-  def 'Dashboard component match summary'() {
-    when: 'the component match summary is shown'
-    def newestRiskPage = at NewestRiskDashboardPage
-    waitFor { newestRiskPage.componentMatchSection.displayed }
-
-    then: 'the count of exact match components is shown'
-    newestRiskPage.componentMatchExactCount.displayed
-    newestRiskPage.componentMatchExactCount.text() == '1 (33%)'
-
-    and: 'the count of similar match components is shown'
-    newestRiskPage.componentMatchSimilarCount.displayed
-    newestRiskPage.componentMatchSimilarCount.text() == '1 (33%)'
-
-    and: 'the count of unknown components is shown'
-    newestRiskPage.componentMatchUnknownCount.displayed
-    newestRiskPage.componentMatchUnknownCount.text() == '1 (33%)'
   }
 
   def 'Heat Map Help Modal'() {

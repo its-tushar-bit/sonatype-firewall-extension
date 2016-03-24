@@ -298,9 +298,6 @@ describe('DashboardModule', function() {
 
     it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
       var data = {
-        totalApplications: 13,
-        totalPolicies: 18,
-        totalComponents: 1843,
         matchedApplications: 2,
         matchedPolicies: 4,
         matchedComponents: 300
@@ -557,54 +554,6 @@ describe('DashboardModule', function() {
       fill = element.find('.fill.up');
       expect(fill.length).toBe(1);
     });
-  });
-
-  describe('Dashboard component match summary', function() {
-    var scope, data = {
-      exact: 13,
-      similar: 18,
-      unknown: 1843,
-      total: 1874
-    }, expectedData = {
-      exact: 13,
-      similar: 18,
-      unknown: 1843,
-      total: 1874,
-      items: [{
-        count : 13,
-        colorCss : 'match-exact',
-        label : 'Exact Match'
-      }, {
-        count : 18,
-        colorCss : 'match-partial',
-        label : 'Similar Match'
-      }, {
-        count : 1843,
-        colorCss : 'match-none',
-        label : 'Unknown'
-      }]
-    };
-
-    beforeEach(inject(function($rootScope, $httpBackend) {
-      scope = $rootScope.$new();
-      scope.filters = commonFilters;
-      $httpBackend.expectGET('dashboard-component-match-results').respond('<div></div>');
-    }));
-
-    it('Data loaded from server into model properly', inject(function($compile, $httpBackend, CLMLocations) {
-      $httpBackend.expectPOST(CLMLocations.getDashboardComponentMatchSummaryUrl()).respond(data);
-      $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
-      $httpBackend.flush();
-      expect(scope.$$childHead.data).toEqual(expectedData);
-      expect(scope.$$childHead.error).toBeNull();
-    }));
-
-    it('Error propogated to scope', inject(function($compile, $httpBackend, CLMLocations) {
-      $httpBackend.expectPOST(CLMLocations.getDashboardComponentMatchSummaryUrl()).respond(404, 'You screwed up');
-      $compile(angular.element('<div dashboard-component-match-results filters="filters"></div>'))(scope);
-      $httpBackend.flush();
-      expect(scope.$$childHead.error).toBeDefined();
-    }));
   });
 
   describe('Value bar chart with both positive and negative values', function(){

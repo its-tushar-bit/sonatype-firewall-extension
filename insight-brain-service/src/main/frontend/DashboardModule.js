@@ -569,46 +569,6 @@
     };
   });
 
-  dashboardModule.directive('dashboardComponentMatchResults', function() {
-    return {
-      restrict: 'A',
-      templateUrl: 'dashboard-component-match-results',
-      scope: {
-        filters: '=filters'
-      },
-      controller: [
-        '$scope', 'CLMLocations', '$http', function($scope, CLMLocations, $http) {
-          $scope.doLoad = function() {
-            $scope.data = null;
-            $scope.error = null;
-            $http.post(CLMLocations.getDashboardComponentMatchSummaryUrl(), filterToParams($scope.filters)
-            ).success(function(data) {
-              $scope.data = data;
-
-              $scope.data.items = [{
-                count: $scope.data.exact,
-                colorCss: 'match-exact',
-                label: 'Exact Match'
-              },{
-                count: $scope.data.similar,
-                colorCss: 'match-partial',
-                label: 'Similar Match'
-              },{
-                count: $scope.data.unknown,
-                colorCss: 'match-none',
-                label: 'Unknown'
-              }];
-            }).error(function() {
-              $scope.error = arguments;
-            });
-          };
-
-          watchFilter($scope);
-        }
-      ]
-    };
-  });
-
   /**
    * expects a model in the following format
    * {

@@ -11,15 +11,9 @@ package com.sonatype.insight.brain.dashboard;
  */
 public class FilterSummaryDTO
 {
-  public int totalApplications;
-
   public int matchedApplications;
 
-  public int totalPolicies;
-
   public int matchedPolicies;
-
-  public int totalComponents;
 
   public int matchedComponents;
 }

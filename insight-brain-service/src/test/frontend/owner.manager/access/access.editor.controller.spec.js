@@ -29,6 +29,9 @@ describe('access.editor.controller.spec.js', function() {
       mockAccessEditor = {
         $setPristine: angular.noop
       },
+      mockSearchEditor = {
+        $setPristine: angular.noop
+      },
       CLMAppLocations;
 
   beforeEach(module('owner.manager.module', function($provide) {
@@ -122,6 +125,7 @@ describe('access.editor.controller.spec.js', function() {
     $httpBackend.flush();
     expect(vm.availableRoles.length).toBe(1);
     vm.accessEditor = mockAccessEditor;
+    vm.accessEditorSearch = mockSearchEditor;
     vm.role = vm.availableRoles[0];
     vm.members = [{internalName: 'testUser', picked: true}];
     vm.accessEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
@@ -134,7 +138,8 @@ describe('access.editor.controller.spec.js', function() {
 
     expect(vm.availableRoles.length).toBe(0);
     expect(mockRootScope.$broadcast).toHaveBeenCalledWith('resource.data.modified');
-    expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-access', { roleId : 'abcdef' });
+    expect(vm.isNew).toBeFalsy();
+    expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-access', {roleId: 'abcdef'});
   });
 
   it('Search in progress flag properly set', function() {

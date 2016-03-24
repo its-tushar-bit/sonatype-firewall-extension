@@ -115,14 +115,18 @@
     }
 
     function save() {
+      var madePristine = false;
+
       if (isValid()) {
         delete vm.submitError;
+
         if (currentlyPicked().length === 0) {
           vm.removeRole('Next time, consider using the "Remove Role" button; it will save you some clicks!');
         }
         else {
           vm.accessEditorMask.wrap($http.put(CLMAppLocations.getRoleMappingUrl(vm.role.roleId),
               currentlyPicked())).then(function() {
+
             if (vm.isNew) {
               $rootScope.$broadcast('resource.data.modified');
               vm.availableRoles.some(function(role, index) {
@@ -131,25 +135,39 @@
                   return true;
                 }
               });
+
               if (vm.availableRoles.length === 0) {
+                vm.isNew = false;
+                makeEditorPristine();
                 SameOwnerStateNavigationService.goEdit('edit-access', {roleId: vm.role.roleId});
-                return;
               }
-              vm.members = [];
-              delete vm.role;
+              else {
+                vm.members = [];
+                delete vm.role;
+              }
             }
-            else {
-              originalMembers = currentlyPicked();
-            }
-            delete vm.query;
-            delete vm.searchError;
-            vm.accessEditor.$setPristine();
-            vm.accessEditorSearch.$setPristine();
-            vm.members.forEach(function(user) {
-              user.checked = false;
-            });
+
+            makeEditorPristine();
           }, function(error) {
             vm.submitError = Messages.getHttpErrorMessage(error);
+          });
+        }
+      }
+
+      function makeEditorPristine() {
+        if (!madePristine) {
+          madePristine = true;
+
+          if (!vm.isNew) {
+            originalMembers = currentlyPicked();
+          }
+
+          delete vm.query;
+          delete vm.searchError;
+          vm.accessEditor.$setPristine();
+          vm.accessEditorSearch.$setPristine();
+          vm.members.forEach(function(user) {
+            user.checked = false;
           });
         }
       }

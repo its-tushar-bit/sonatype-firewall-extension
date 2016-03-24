@@ -95,6 +95,46 @@
   border-radius: 6px;
 }
 
+.multi-dropdown-item-color.yellowLabel {
+  background-color: #f5c648;
+}
+
+.multi-dropdown-item-color.orangeLabel {
+  background-color: #f4861d;
+}
+
+.multi-dropdown-item-color.light-redLabel {
+  background-color: #edb1af;
+}
+
+.multi-dropdown-item-color.dark-redLabel {
+  background-color: #bc012f;
+}
+
+.multi-dropdown-item-color.light-greenLabel {
+  background-color: #b6e9ab;
+}
+
+.multi-dropdown-item-color.dark-greenLabel {
+  background-color: #099843;
+}
+
+.multi-dropdown-item-color.light-purpleLabel {
+  background-color: #dbc6df;
+}
+
+.multi-dropdown-item-color.dark-purpleLabel {
+  background-color: #885195;
+}
+
+.multi-dropdown-item-color.light-blueLabel {
+  background-color: #97cbee;
+}
+
+.multi-dropdown-item-color.dark-blueLabel {
+  background-color: #006bbf;
+}
+
 .multi-dropdown .checkbox.has-owner .multi-dropdown-item-color {
   height: 39px;
   width: 39px;

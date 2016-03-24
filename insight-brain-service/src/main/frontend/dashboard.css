@@ -208,28 +208,28 @@ table.table-risk td.muted-text {
 
 table.table-risk td.critical-risk, span.critical-risk {
   background-color: #E6A29F;
-  color: #880D10;
+  color: #bc012f;
   border-left: 1px solid white;
   border-bottom: 1px solid white;
 }
 
 table.table-risk td.severe-risk, span.severe-risk {
   background-color: #E7C2A1;
-  color: #64460A;
+  color: #f4861d;
   border-left: 1px solid white;
   border-bottom: 1px solid white;
 }
 
 table.table-risk td.moderate-risk, span.moderate-risk {
   background-color: #E8D9A1;
-  color: #968900;
+  color: #f5c648;
   border-left: 1px solid white;
   border-bottom: 1px solid white;
 }
 
 table.table-risk td.low-risk, span.low-risk {
   background-color: #B8D7E8;
-  color: #233894;
+  color: #006bbf;
   border-left: 1px solid white;
   border-bottom: 1px solid white;
 }

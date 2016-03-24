@@ -428,50 +428,50 @@ $pickable-colors: ('light-red', $light-red),
       <tr>
         <td>CRITICAL</td>
         <td>$critical-color</td>
-        <td>#DB2852</td>
-        <td style='background-color: #DB2852'></td>
+        <td>#bc012f</td>
+        <td style='background-color: #bc012f'></td>
       </tr>
       <tr>
         <td>SEVERE</td>
         <td>$severe-color</td>
-        <td>#F2862F</td>
-        <td style='background-color: #F2862F'></td>
+        <td>#f4861d</td>
+        <td style='background-color: #f4861d'></td>
       </tr>
       <tr>
         <td>MODERATE</td>
         <td>$moderate-color</td>
-        <td>#F5C649</td>
-        <td style='background-color: #F5C649'></td>
+        <td>#f5c648</td>
+        <td style='background-color: #f5c648'></td>
       </tr>
       <tr>
         <td>NONE</td>
         <td>$none-color</td>
-        <td>#0047b2</td>
-        <td style='background-color: #0047b2'></td>
+        <td>#006bbf</td>
+        <td style='background-color: #006bbf'></td>
       </tr>
       <tr>
         <td>IGNORE</td>
         <td>$ignore-color</td>
-        <td>#0081c2</td>
-        <td style='background-color: #0081c2'></td>
+        <td>#97cbee</td>
+        <td style='background-color: #97cbee'></td>
       </tr>
       <tr>
         <td>UNSPECIFIED</td>
         <td>$unspecified-color</td>
-        <td>#9D9D9D</td>
-        <td style='background-color: #9D9D9D'></td>
+        <td>#d9dade</td>
+        <td style='background-color: #d9dade'></td>
       </tr>
     </tbody>
   </table>
 */
-$critical-color: #DB2852;
-$severe-color: #F2862F;
-$moderate-color: #F5C649;
-$none-color: #0047b2;
+$critical-color: $dark-red;
+$severe-color: $orange;
+$moderate-color: $yellow;
+$none-color: $dark-blue;
 $low-color: $dark-blue;
 $policy-none-color: $light-blue;
-$ignore-color: #0081c2;
-$unspecified-color: #9D9D9D;
+$ignore-color: $light-blue;
+$unspecified-color: #d9dade;
 
 $threat-levels: ("critical", #FFF, $critical-color, (8, 9, 10)),
         ("severe", #FFF, $severe-color, (4, 5, 6, 7)),

@@ -51,7 +51,7 @@ div,p,a,li,td {
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_yellow.gif); background-size: cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
 												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_dkblue.gif); background-size: cover; background-color: #0047B2; background-repeat: no-repeat;"><span
+													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_dkblue.gif); background-size: cover; background-color: #006bbf; background-repeat: no-repeat;"><span
 													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatDarkBlueCount}</span></td>
 												<td width="60" height="30"
 													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_blue.gif); background-size: cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
@@ -110,7 +110,7 @@ div,p,a,li,td {
 							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 1)>
 						<td bgcolor="#FEDF15" valign="top" height="20" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#elseif (alert.trigger.threatLevel > 0)>
-						<td bgcolor="#0047B2" valign="top" height="20" nowrap="nowrap" align="center" width="20"
+						<td bgcolor="#006bbf" valign="top" height="20" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#else>
 						<td bgcolor="#6D98CF" valign="top" height="20" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> </#if>
@@ -121,35 +121,35 @@ div,p,a,li,td {
 						<td bgcolor="#ED1C24" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #A91113;">
+							<div style="color: #bc012f;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#elseif (alert.trigger.threatLevel > 3)>
 						<td bgcolor="#F7941D" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #CB7A16;">
+							<div style="color: #f4861d;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#elseif (alert.trigger.threatLevel > 1)>
 						<td bgcolor="#FEDF15" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #D4B718;">
+							<div style="color: #f5c648;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#elseif (alert.trigger.threatLevel > 0)>
-						<td bgcolor="#0047B2" valign="top" height="1" nowrap="nowrap" align="center" width="20"
+						<td bgcolor="#006bbf" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #002966;">
+							<div style="color: #006bbf;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> <#else>
 						<td bgcolor="#6D98CF" valign="top" height="1" nowrap="nowrap" align="center" width="20"
 							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
 						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #005399;">
+							<div style="color: #97cbee;">
 								<b>${alert.trigger.policyName}</b>
 							</div>
 						</td> </#if>

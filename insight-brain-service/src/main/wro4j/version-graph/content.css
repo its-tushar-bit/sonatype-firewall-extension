@@ -55,24 +55,24 @@
 }
 
 .clm-chiclet.critical {
-  background-color: #DB2852;
+  background-color: #bc012f;
 }
 
 .clm-chiclet.severe {
-  background-color: #F2862F;
+  background-color: #f4861d;
 }
 
 .clm-chiclet.moderate {
-  background-color: #F5C649;
+  background-color: #f5c648;
   color: black;
 }
 
 .clm-chiclet.none {
-  background-color: #0047b2;
+  background-color: #006bbf;
 }
 
 .clm-chiclet.ignore {
-  background-color: #0081c2;
+  background-color: #97cbee;
 }
 
 .clm-chiclet.unspecified {

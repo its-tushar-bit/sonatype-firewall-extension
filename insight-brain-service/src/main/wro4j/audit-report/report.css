@@ -16,7 +16,7 @@ span.bdg {
 
 .sv-red span.cnt, .pv-red span.bdg {
   color: #5C0C0A;
-  background-color: #F00;
+  background-color: #bc012f;
 }
 
 .sv-orange span.cat {
@@ -25,7 +25,7 @@ span.bdg {
 
 .sv-orange span.cnt, .pv-orange span.bdg {
   color: #5A3D19;
-  background-color: #F7941E;
+  background-color: #f4861d;
 }
 
 .sv-yellow span.cat {
@@ -34,7 +34,7 @@ span.bdg {
 
 .sv-yellow span.cnt, .pv-yellow span.bdg {
   color: #645723;
-  background-color: #FFDE16;
+  background-color: #f5c648;
 }
 
 .sv-blue span.cat {
@@ -43,7 +43,7 @@ span.bdg {
 
 .sv-blue span.cnt, .pv-blue span.bdg {
   color: #222E63;
-  background-color: #6D98D0;
+  background-color: #006bbf;
 }
 /* header */
 .header-container {
@@ -253,19 +253,19 @@ div.popout {
 }
 
 .artifactInfoSecurityCritical {
-  background-color: #ee1b24;
+  background-color: #bc012f;
   border: 1px solid #b71218;
   color: white;
 }
 
 .artifactInfoSecuritySevere {
-  background-color: #f7941d;
+  background-color: #f4861d;
   border: 1px solid #c67a22;
   color: black;
 }
 
 .artifactInfoSecurityModerate {
-  background-color: #fedf15;
+  background-color: #f5c648;
   border: 1px solid #ddbe18;
   color: black;
 }

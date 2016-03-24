@@ -23,17 +23,17 @@
     return !(isIE() || (isFirefox() && ffVersion() < 4));
   }
 
-  var blue = '#0047b2',
-      orange = '#F2862F',
-      yellow = '#F5C649',
-      red = '#DB2852',
+  var blue = '#006bbf',
+      orange = '#f4861d',
+      yellow = '#f5c648',
+      red = '#bc012f',
       grey = '#9D9D9D',
 
-      darkRed = '#b71218',
-      darkOrange = '#c67a22',
-      darkYellow = '#ddbe18',
-      darkBlue = '#6185b7',
-      darkGrey = '#84858a',
+      darkRed = '#bc012f',
+      darkOrange = '#f4861d',
+      darkYellow = '#f5c648',
+      darkBlue = '#006bbf',
+      darkGrey = '#575757',
 
       bgBlue = '#f7fbfe',
       bgBorder = '#eef2fb',
@@ -120,7 +120,7 @@
       config.w = config.width;
       config.visTop = config.h / 2 + 5;
       config.visLeft = config.w / 2 - 3.5;
-      config.fillColors = data.length === 3 ? ['#ed1b24', '#ffde15', blue] : ['#ed1b24', '#f89520', '#ffde15', blue];
+      config.fillColors = data.length === 3 ? [red, yellow, blue] : [red, orange, yellow, blue];
       config.strokeColors = data.length === 3 ? [darkRed, darkYellow, darkBlue] :
           [darkRed, darkOrange, darkYellow, darkBlue];
       config.textColors = data.length === 3 ? ['#9d0c11', '#83740d', 'white'] :

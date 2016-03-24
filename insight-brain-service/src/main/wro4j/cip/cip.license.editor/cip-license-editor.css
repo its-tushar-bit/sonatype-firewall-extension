@@ -68,19 +68,19 @@
 }
 
 .nx-clm-square.severe {
-  border-left-color: #F2862F;
+  border-left-color: #f4861d;
 }
 
 .nx-clm-square.critical {
-  border-left-color: #DB2852;
+  border-left-color: #bc012f;
 }
 
 .nx-clm-square.moderate {
-  border-left-color: #F5C649;
+  border-left-color: #f5c648;
 }
 
 .nx-clm-square.none {
-  border-left-color: #0047b2;
+  border-left-color: #006bbf;
 }
 
 .nx-clm-square.unspecified {

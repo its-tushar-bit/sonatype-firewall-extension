@@ -12,8 +12,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -27,15 +25,11 @@ import static org.junit.Assert.assertThat;
 public class ApplicationRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  private Application app;
-
   @Inject
   private ApplicationRiskService applicationRiskService;
 
   @Before
   public void setup() {
-    Organization org = tempEntity.newOrganization();
-    app = tempEntity.newApplication("app1", "app1", org.getId());
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(tempEntity
         .newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId", new Date(System.currentTimeMillis() - 1000)),
         tempEntity.newPolicy(org.getId(), "policy", 3));

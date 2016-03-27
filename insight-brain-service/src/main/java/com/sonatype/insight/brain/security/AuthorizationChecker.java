@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,7 +22,6 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
 /**
@@ -53,54 +51,9 @@ public class AuthorizationChecker
    * Determines whether the given user has the specified permission in the supplied context or any of its ancestor
    * contexts.
    */
-  public boolean isPermitted(UserPrincipal user,
-                             Permission permission,
-                             Map<AuthzContext.Key, ContextParameter> contextParameters)
+  public boolean isPermitted(UserPrincipal user, Permission permission, Map<AuthzContext.Key, Object> contextParameters)
   {
-    if (contextParameters.size() == 1 && contextParameters.values().iterator().next().multiple) {
-      return checkIsPermittedMultiple(user, permission, contextParameters);
-    }
-    else {
-      return checkIsPermittedSingle(user, permission, contextParameters);
-    }
-  }
-
-  private boolean checkIsPermittedMultiple(final UserPrincipal user,
-                                           final Permission permission,
-                                           final Map<Key, ContextParameter> contextParameters)
-  {
-    ContextParameter parameter = contextParameters.values().iterator().next();
-    if (parameter.object == null) {
-      // anyone can see nothing
-      return true;
-    }
-    else if (parameter.object instanceof Collection<?>) {
-      Collection<?> paramObjects = (Collection<?>) parameter.object;
-      for (Object o : paramObjects) {
-        Map<Key, Object> contextParamMap = new EnumMap<>(Key.class);
-        contextParamMap.put(parameter.key, o);
-        Iterable<String> contextIds = contextResolver.resolveContextIds(contextParamMap);
-        boolean permitted = isPermitted(user, permission, contextIds);
-        if (!permitted) {
-          return false;
-        }
-      }
-      return true;
-    }
-    else {
-      throw new IllegalStateException(parameter.toString() + " is not a Collection, which is required with multiple");
-    }
-  }
-
-  private boolean checkIsPermittedSingle(final UserPrincipal user,
-                                         final Permission permission,
-                                         final Map<Key, ContextParameter> contextParameters)
-  {
-    Map<Key, Object> contextParamMap = new EnumMap<>(Key.class);
-    for (ContextParameter cp : contextParameters.values()) {
-      contextParamMap.put(cp.key, cp.object);
-    }
-    Iterable<String> contextIds = contextResolver.resolveContextIds(contextParamMap);
+    Iterable<String> contextIds = contextResolver.resolveContextIds(contextParameters);
     return isPermitted(user, permission, contextIds);
   }
 

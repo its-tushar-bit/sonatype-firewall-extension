@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,7 +16,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.apache.shiro.subject.Subject;
 
@@ -39,31 +37,30 @@ public class PermissionService
     EnumSet<Permission> result = EnumSet.noneOf(Permission.class);
 
     if (subject.isAuthenticated()) {
-      Map<Key, ContextParameter> contextMap;
+      Map<AuthzContext.Key, Object> contextParameters = new EnumMap<>(AuthzContext.Key.class);
       switch (ownerType) {
         case APPLICATION:
-          contextMap = Collections.singletonMap(Key.APPLICATION_ID, new ContextParameter(Key.APPLICATION_ID, ownerId,
-              false));
+          contextParameters.put(AuthzContext.Key.APPLICATION_ID, ownerId);
           break;
         case ORGANIZATION:
-          contextMap = Collections.singletonMap(Key.ORGANIZATION_ID, new ContextParameter(Key.ORGANIZATION_ID, ownerId,
-              false));
+          contextParameters.put(AuthzContext.Key.ORGANIZATION_ID, ownerId);
           break;
         case REPOSITORY_CONTAINER:
-          contextMap = new HashMap<>();
-          contextMap.put(AuthzContext.Key.ID, new ContextParameter(Key.ID, ownerId, false));
-          contextMap.put(AuthzContext.Key.TYPE, new ContextParameter(Key.TYPE, OwnerType.REPOSITORY_CONTAINER, false));
+          contextParameters.put(AuthzContext.Key.ID, ownerId);
+          contextParameters.put(AuthzContext.Key.TYPE, OwnerType.REPOSITORY_CONTAINER);
           break;
         case REPOSITORY:
-          contextMap = Collections.singletonMap(Key.REPOSITORY_ID, new ContextParameter(Key.REPOSITORY_ID, ownerId,
-              false));
+          contextParameters.put(AuthzContext.Key.REPOSITORY_ID, ownerId);
+          break;
+        case GLOBAL:
           break;
         default:
-          contextMap = Collections.emptyMap();
+          throw new IllegalArgumentException("Unknown owner type: " + ownerType);
       }
 
+      UserPrincipal user = (UserPrincipal) subject.getPrincipal();
       for (Permission permission : permissions) {
-        if (authzChecker.isPermitted((UserPrincipal) subject.getPrincipal(), permission, contextMap)) {
+        if (authzChecker.isPermitted(user, permission, contextParameters)) {
           result.add(permission);
         }
       }

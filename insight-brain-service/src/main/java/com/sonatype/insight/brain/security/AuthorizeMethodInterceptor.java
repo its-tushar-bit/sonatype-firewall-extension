@@ -70,14 +70,14 @@ class AuthorizeMethodInterceptor
     return mi.proceed();
   }
 
-  static Map<AuthzContext.Key, ContextParameter> getContextParameters(MethodInvocation mi) {
-    Map<AuthzContext.Key, ContextParameter> parameters = new EnumMap<>(AuthzContext.Key.class);
+  static Map<AuthzContext.Key, Object> getContextParameters(MethodInvocation mi) {
+    Map<AuthzContext.Key, Object> parameters = new EnumMap<>(AuthzContext.Key.class);
     Annotation[][] paramAnnos = mi.getMethod().getParameterAnnotations();
     for (int i = 0; i < paramAnnos.length; i++) {
       for (Annotation anno : paramAnnos[i]) {
         if (anno instanceof AuthzContext) {
           AuthzContext ac = (AuthzContext) anno;
-          parameters.put(ac.value(), new ContextParameter(ac.value(), mi.getArguments()[i], ac.multiple()));
+          parameters.put(ac.value(), mi.getArguments()[i]);
           break;
         }
       }
@@ -109,7 +109,7 @@ class AuthorizeMethodInterceptor
       throw new UnauthenticatedException("Anonymous access forbidden", newAuthzException(mi));
     }
     UserPrincipal user = (UserPrincipal) principal;
-    Map<AuthzContext.Key, ContextParameter> contextParameters = getContextParameters(mi);
+    Map<AuthzContext.Key, Object> contextParameters = getContextParameters(mi);
     if (!authzChecker.isPermitted(user, anno.permission(), contextParameters)) {
       throw new UnauthorizedException("Insufficient permissions", newAuthzException(mi));
     }

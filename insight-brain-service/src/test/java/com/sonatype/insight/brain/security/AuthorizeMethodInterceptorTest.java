@@ -9,7 +9,6 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.apache.shiro.aop.MethodInvocation;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -88,7 +87,7 @@ public class AuthorizeMethodInterceptorTest
   @Test
   public void testGetContextParameters_None() throws Exception {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
-    Map<AuthzContext.Key, ContextParameter> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
+    Map<AuthzContext.Key, Object> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
     assertThat(params.entrySet(), is(empty()));
   }
 
@@ -97,10 +96,10 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(
         getClass().getMethod("stubSomeContext", String.class, String.class, String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "app", "dev", "foo" });
-    Map<AuthzContext.Key, ContextParameter> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
+    Map<AuthzContext.Key, Object> params = AuthorizeMethodInterceptor.getContextParameters(invoc);
     assertThat(params.keySet(), containsInAnyOrder(AuthzContext.Key.TYPE, AuthzContext.Key.ID));
-    assertThat(params.get(Key.TYPE).object, is((Object) "app"));
-    assertThat(params.get(AuthzContext.Key.ID).object, is((Object) "dev"));
+    assertThat(params.get(AuthzContext.Key.TYPE), is((Object) "app"));
+    assertThat(params.get(AuthzContext.Key.ID), is((Object) "dev"));
   }
 
   @Test
@@ -110,7 +109,7 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.proceed()).thenReturn("test");
     when(
         authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class),
-            anyMapOf(AuthzContext.Key.class, ContextParameter.class))).thenReturn(true);
+            anyMapOf(AuthzContext.Key.class, Object.class))).thenReturn(true);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThat(interceptor.invoke(invoc), is((Object) "test"));
   }

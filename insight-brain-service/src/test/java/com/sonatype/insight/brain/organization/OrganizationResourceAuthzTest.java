@@ -6,13 +6,9 @@
 package com.sonatype.insight.brain.organization;
 
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class OrganizationResourceAuthzTest
     extends AbstractResourceAuthzTest
@@ -45,22 +41,5 @@ public class OrganizationResourceAuthzTest
     HttpRequest request = restRequest().path(OrganizationResource.ICON_PATH).part("organizationId", org.getId())
         .part("hasRobotSource", "false");
     testAuthzPost(request);
-  }
-
-  @Test
-  public void testSetIconSync() throws Exception {
-    grantWritePermission(org.getId());
-
-    HttpRequest request = restRequest().path(OrganizationResource.ICON_PATH_SYNC).part("organizationId", org.getId())
-        .part("hasRobotSource", "false");
-    request.auth(unauthorized.getUsername(), unauthorized.getPassword());
-    HttpResponse response = request.post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Insufficient permissions"));
-
-    request.auth(authorized.getUsername(), authorized.getPassword());
-    response = request.post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("null"));
   }
 }

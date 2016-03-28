@@ -207,19 +207,6 @@ class TagService
     return tagDAO.getByPolicyId(policyId);
   }
 
-  /**
-   * @deprecated The new UI uses {@link #updatePolicyTags(String, String, List)} to manage {@link PolicyTag}. This can
-   *             be removed after the completion of CLM-4528
-   */
-  @Deprecated
-  @Authorize(permission = Permission.WRITE)
-  public Tag addPolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId, String policyId, Tag tag) {
-    final String tagId = tag.getId();
-    PolicyTag policyTag = new PolicyTag(policyId, tag.getId());
-    policyTagDAO.insert(policyTag);
-    return tagDAO.getById(tagId);
-  }
-
   List<Tag> updatePolicyTags(String policyId, final List<Tag> newTags) {
     final Policy policy = policyDAO.getByIdNotNull(policyId);
     return updatePolicyTags(policy.getOwnerId(), policyId, newTags);
@@ -257,25 +244,6 @@ class TagService
     }
 
     return tagDAO.getByPolicyId(policyId);
-  }
-
-  /**
-   * @deprecated The new UI uses {@link #updatePolicyTags(String, String, List)} to manage {@link PolicyTag}. This can
-   *             be removed after the completion of CLM-4528
-   */
-  @Deprecated
-  @Authorize(permission = Permission.WRITE)
-  public void deletePolicyTag(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
-                              String policyId,
-                              String tagId)
-  {
-    PolicyTag policyTag = policyTagDAO.getByPolicyIdAndTagId(policyId, tagId);
-    if (policyTag == null) {
-      throw new NotFoundException(
-          "An application category with id " + tagId + " is not associated with policy with id " + policyId);
-    }
-
-    policyTagDAO.delete(policyTag);
   }
 
   @Authorize(permission = Permission.READ)

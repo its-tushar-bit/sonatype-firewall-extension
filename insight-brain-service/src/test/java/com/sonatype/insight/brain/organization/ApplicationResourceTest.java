@@ -186,48 +186,6 @@ public class ApplicationResourceTest
     assertResponseStatus(404, iconResponse);
   }
 
-  @Test
-  public void testSyncIcon() throws Exception {
-    final String applicationPublicId = "testID";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-
-    byte[] iconBytes = loadDefaultIcon();
-
-    // Test Sync Update Application Icon
-    HttpResponse response = restRequest().path(ApplicationResource.ICON_PATH_SYNC)
-        .part("applicationId", application.getId()).part("hasRobotSource", "false")
-        .part("file", "defaulticon_application.png", iconBytes).post();
-    assertResponseStatus(200, response);
-    Assert.assertEquals("null", response.getBodyText());
-
-    iconBytes = IconUtils.loadInvalidIcon();
-
-    // Test Sync Fail Update Application Icon
-    response = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", application.getId())
-        .part("hasRobotSource", "false").part("file", "defaulticon_application.png", iconBytes).post();
-    assertResponseStatus(200, response);
-    Assert
-        .assertEquals(
-            "\"defaulticon_application.png is not a valid image. Make sure the image is in PNG, JPEG, GIF, BMP, or WBMP format.\"",
-            response.getBodyText());
-  }
-
-  @Test
-  public void testSetIconSync_ValidateCsrfToken() throws Exception {
-    Application application = tempEntity.newApplicationWithParent("test");
-    HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH_SYNC)
-        .part("applicationId", application.getId()).part("hasRobotSource", "false")
-        .part("file", "icon.png", new byte[0]);
-
-    HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("null"));
-
-    response = request.noCsrfToken().post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("\"Invalid cross-site request forgery token\""));
-  }
-
   private byte[] loadDefaultIcon() throws IOException {
     return IconUtils.loadIconFromProductAssets("defaulticon_application.png");
   }

@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzErrorMsg;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
@@ -227,34 +226,6 @@ public class ApplicationResource
   {
     return super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash, uploadedInputStream,
         fileDetail, csrfToken, headers, noFormData);
-  }
-
-  /**
-   * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
-   *
-   *             This is one of two service methods used for editing and adding icons. This method is used by angular
-   *             ng-upload
-   *             and returns an empty string for success and the error message otherwise
-   * 
-   * @return String containing an error message, if any
-   */
-  @Deprecated
-  @POST
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Path(ICON_PATH_SYNC)
-  @Authorize(permission = Permission.WRITE)
-  @AuthzErrorMsg
-  public String setIconSync(@FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                            @Context HttpHeaders headers,
-                            @FormDataParam("applicationId") @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-                            @FormDataParam("hasRobotSource") boolean hasRobotSource,
-                            @FormDataParam("robotHash") String robotHash,
-                            @FormDataParam("file") InputStream uploadedInputStream,
-                            @FormDataParam("file") FormDataContentDisposition fileDetail) throws Exception
-  {
-    Response response = super.setIcon(applicationId, work.getApplicationIconDir(), hasRobotSource, robotHash,
-        uploadedInputStream, fileDetail, csrfToken, headers, true);
-    return (String) response.getEntity();
   }
 
   @POST

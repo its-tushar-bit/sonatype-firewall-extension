@@ -39,8 +39,6 @@ abstract class AbstractResourceWithIcon
 
   public static final String ICON_PATH = "icon";
 
-  public static final String ICON_PATH_SYNC = ICON_PATH + "/sync";
-
   private static final Logger log = LoggerFactory.getLogger(AbstractResourceWithIcon.class);
 
   private final HdsClient client;

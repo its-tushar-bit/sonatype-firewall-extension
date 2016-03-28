@@ -83,21 +83,4 @@ public class ApplicationResourceAuthzTest
         .part("hasRobotSource", "false");
     testAuthzPost(request);
   }
-
-  @Test
-  public void testSetIconSync() throws Exception {
-    grantWritePermission(app.getId());
-
-    HttpRequest request = restRequest().path(ApplicationResource.ICON_PATH_SYNC).part("applicationId", app.getId())
-        .part("hasRobotSource", "false");
-    request.auth(unauthorized.getUsername(), unauthorized.getPassword());
-    HttpResponse response = request.post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Insufficient permissions"));
-
-    request.auth(authorized.getUsername(), authorized.getPassword());
-    response = request.post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("null"));
-  }
 }

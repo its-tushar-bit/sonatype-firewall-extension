@@ -28,7 +28,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
@@ -394,37 +393,6 @@ public class PolicyResourceTest
         applicablePolicies.policiesByOwner.get(2));
     Assert.assertEquals(orgPolicy2.getId(), applicablePolicies.policiesByOwner.get(1).policies.get(0).getId());
     Assert.assertEquals(parentOrgPolicy2.getId(), applicablePolicies.policiesByOwner.get(2).policies.get(0).getId());
-  }
-
-  /**
-   * Expected to return a validation error text response and HTTP 200 in the case of an error uploading to IE.
-   */
-  @Test
-  public void testImportPoliciesForIEReturnsErrorMessage() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("testAppPublicId");
-    PolicyExportResult export = new PolicyExportResult();
-
-    HttpResponse response = restRequest(OwnerType.APPLICATION, app.getPublicId()).path("import/ie")
-        .part("file", "policies.json", export).post();
-    assertResponseStatus(200, response);
-    assertThat(
-        response.getBodyText(),
-        is("The file you selected failed to upload correctly, are you certain it is a properly formatted policy import json file?"));
-  }
-
-  @Test
-  public void testImportPolies_ValidateCsrfTokenInIeMode() throws Exception {
-    Organization org = tempEntity.newOrganization();
-    HttpRequest request = restRequest(OwnerType.ORGANIZATION, org.getId()).path("import/ie").part("file",
-        "policies.json", new PolicyExportResult());
-
-    HttpResponse response = request.csrfToken("nonce", null, "nonce").post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is(not("Invalid cross-site request forgery token")));
-
-    response = request.noCsrfToken().post();
-    assertResponseStatus(200, response);
-    assertThat(response.getBodyText(), is("Invalid cross-site request forgery token"));
   }
 
   @Test

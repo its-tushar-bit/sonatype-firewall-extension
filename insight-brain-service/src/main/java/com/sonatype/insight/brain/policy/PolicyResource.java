@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.jaxrs.error.ErrorResponseGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.sun.jersey.multipart.FormDataParam;
@@ -69,23 +68,15 @@ public class PolicyResource
 
   private final PolicyImportExport policyImportExport;
 
-  private final ErrorResponseGenerator errorResponseGenerator;
-
-  private final AntiCsrfFilter antiCsrfFilter;
-
   private final NgUploadResponseGenerator ngUploadResponseGenerator;
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
   @Inject
   public PolicyResource(PolicyImportExport policyImportExport,
-                        ErrorResponseGenerator errorResponseGenerator,
-                        AntiCsrfFilter antiCsrfFilter,
                         NgUploadResponseGenerator ngUploadResponseGenerator)
   {
     this.policyImportExport = policyImportExport;
-    this.errorResponseGenerator = errorResponseGenerator;
-    this.antiCsrfFilter = antiCsrfFilter;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
   }
 
@@ -234,32 +225,6 @@ public class PolicyResource
         return importPolicies(ownerType, ownerId, is);
       }
     });
-  }
-
-  /**
-   * @deprecated No longer needed after the new UI is merged into the main UI - CLM-4528
-   */
-  @Deprecated
-  @POST
-  @Path("import/ie")
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public String importPolicies(@PathParam("ownerType") final OwnerType ownerType,
-                               @PathParam("ownerId") String ownerId,
-                               @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                               @Context HttpHeaders headers,
-                               @FormDataParam("file") InputStream uploadedInputStream)
-  {
-    String errorMessage = "";
-    try {
-      antiCsrfFilter.validate(csrfToken, headers);
-      importPolicies(ownerType, ownerId, uploadedInputStream);
-    }
-    catch (Exception e) {
-      log.error(e.getMessage(), e);
-      errorMessage = errorResponseGenerator.mapException(e).getMessageBody();
-    }
-
-    return errorMessage;
   }
 
   private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {

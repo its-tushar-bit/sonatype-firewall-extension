@@ -58,17 +58,6 @@ public class AuthorizeMethodInterceptorTest
     return arg0;
   }
 
-  @Authorize(permission = Permission.READ)
-  public String stubErrorMessage(@AuthzErrorMsg boolean forceSuccess) {
-    return "test";
-  }
-
-  @Authorize(permission = Permission.READ)
-  @AuthzErrorMsg
-  public String stubErrorMessage() {
-    return "test";
-  }
-
   @Before
   public void init() {
     invoc = mock(MethodInvocation.class);
@@ -137,37 +126,6 @@ public class AuthorizeMethodInterceptorTest
     catch (UnauthorizedException e) {
       assertThat(e.getMessage(), is("Insufficient permissions"));
     }
-  }
-
-  @Test
-  public void testInvoke_FailWithMessage_ParameterAnno() throws Throwable {
-    when(invoc.getMethod()).thenReturn(getClass().getMethod("stubErrorMessage", Boolean.TYPE));
-    when(invoc.getArguments()).thenReturn(new Object[] { Boolean.TRUE });
-    when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
-        .thenReturn(false);
-    when(subject.getPrincipal()).thenReturn(adminPrincipal());
-    assertThat(interceptor.invoke(invoc), is((Object) "Insufficient permissions"));
-
-    when(invoc.getArguments()).thenReturn(new Object[] { Boolean.FALSE });
-    try {
-      interceptor.invoke(invoc);
-      fail("Should have thrown UnauthorizedException");
-    }
-    catch (UnauthorizedException e) {
-      assertThat(e.getMessage(), is("Insufficient permissions"));
-    }
-  }
-
-  @Test
-  public void testInvoke_FailWithMessage_MethodAnno() throws Throwable {
-    when(invoc.getMethod()).thenReturn(getClass().getMethod("stubErrorMessage"));
-    when(invoc.getArguments()).thenReturn(new Object[] {});
-    when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyListOf(String.class)))
-        .thenReturn(false);
-    when(subject.getPrincipal()).thenReturn(adminPrincipal());
-    assertThat(interceptor.invoke(invoc), is((Object) "Insufficient permissions"));
   }
 
   @Test

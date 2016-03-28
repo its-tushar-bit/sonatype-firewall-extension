@@ -58,15 +58,7 @@ class AuthorizeMethodInterceptor
   @Override
   public Object invoke(MethodInvocation mi) throws Throwable {
     Authorize anno = getAnnotation(mi);
-    try {
-      assertAuthorized(mi, anno);
-    }
-    catch (AuthorizationException e) {
-      if (isErrorMsgRequested(mi)) {
-        return e.getMessage();
-      }
-      throw e;
-    }
+    assertAuthorized(mi, anno);
     return mi.proceed();
   }
 
@@ -83,21 +75,6 @@ class AuthorizeMethodInterceptor
       }
     }
     return parameters;
-  }
-
-  private static boolean isErrorMsgRequested(MethodInvocation mi) {
-    if (mi.getMethod().isAnnotationPresent(AuthzErrorMsg.class)) {
-      return true;
-    }
-    Annotation[][] paramAnnos = mi.getMethod().getParameterAnnotations();
-    for (int i = 0; i < paramAnnos.length; i++) {
-      for (Annotation anno : paramAnnos[i]) {
-        if (anno instanceof AuthzErrorMsg) {
-          return (Boolean) mi.getArguments()[i];
-        }
-      }
-    }
-    return false;
   }
 
   private void assertAuthorized(MethodInvocation mi, Authorize anno) throws AuthorizationException {

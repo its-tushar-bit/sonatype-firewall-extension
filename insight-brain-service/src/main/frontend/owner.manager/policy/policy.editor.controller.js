@@ -102,14 +102,10 @@
         var appliedCategoriesById = vm.hasPolicyCategories ? availableCategories.map(function(category) {
           return category.id;
         }) : [];
-        var owners = categoriesByOwner.filter(function(owner) {
-          return owner.ownerId ===
-              (vm.dirtyPolicy && !vm.dirtyPolicy.$new ? vm.dirtyPolicy.ownerId : $stateParams.organizationId);
-        });
 
-        if (owners.length) {
-          vm.categories = owners[0].tags;
-        }
+        categoriesByOwner.forEach(function(owner) {
+          vm.categories = vm.categories.concat(owner.tags);
+        });
         vm.categories.forEach(function(category) {
           category.isApplied = appliedCategoriesById.indexOf(category.id) > -1;
         });

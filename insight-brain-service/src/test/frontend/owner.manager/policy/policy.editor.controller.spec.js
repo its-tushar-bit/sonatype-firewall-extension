@@ -178,15 +178,19 @@ describe('policy.editor.controller.spec.js', function() {
 
       if (!isApp) {
         expect(vm.ownerName).toEqual(owner.name);
-        expect(vm.categories.length).toBe(2);
-        expect(vm.categories.length).toEqual(mockCategoryOwners.tagsByOwner[0].tags.length);
+        expect(vm.categories.length).toBe(3);
         var mockOrgCategories = mockCategoryOwners.tagsByOwner[0].tags;
-        vm.categories.forEach(function(category, index) {
-          expect(category.name).toEqual(mockOrgCategories[index].name);
-          expect(category.id).toEqual(mockOrgCategories[index].id);
-          expect(category.color).toEqual(mockOrgCategories[index].color);
+        var mockRootCategories = mockCategoryOwners.tagsByOwner[1].tags;
+
+        mockOrgCategories.forEach(function(category, index) {
+          expect(vm.categories[index].name).toEqual(category.name);
+          expect(vm.categories[index].id).toEqual(category.id);
+          expect(vm.categories[index].color).toEqual(category.color);
         });
-        expect(vm.categories.length).toBe(mockPolicyTags.length);
+        expect(vm.categories[2].name).toEqual(mockRootCategories[0].name);
+        expect(vm.categories[2].id).toEqual(mockRootCategories[0].id);
+        expect(vm.categories[2].color).toEqual(mockRootCategories[0].color);
+
         expect(vm.hasPolicyCategories).toBeTruthy();
       }
       else {

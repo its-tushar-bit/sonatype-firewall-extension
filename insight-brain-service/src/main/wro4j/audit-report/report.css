@@ -15,7 +15,7 @@ span.bdg {
 }
 
 .sv-red span.cnt, .pv-red span.bdg {
-  color: #5C0C0A;
+  color: white;
   background-color: #bc012f;
 }
 
@@ -24,7 +24,7 @@ span.bdg {
 }
 
 .sv-orange span.cnt, .pv-orange span.bdg {
-  color: #5A3D19;
+  color: white;
   background-color: #f4861d;
 }
 
@@ -33,7 +33,7 @@ span.bdg {
 }
 
 .sv-yellow span.cnt, .pv-yellow span.bdg {
-  color: #645723;
+  color: white;
   background-color: #f5c648;
 }
 
@@ -42,7 +42,7 @@ span.bdg {
 }
 
 .sv-blue span.cnt, .pv-blue span.bdg {
-  color: #222E63;
+  color: white;
   background-color: #006bbf;
 }
 /* header */

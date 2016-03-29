@@ -7,22 +7,6 @@
 (function() {
   'use strict';
 
-  function useGradients() {
-    function isIE() {
-      return $.browser.msie ? true : false;
-    }
-
-    function isFirefox() {
-      return $.browser.mozilla ? true : false;
-    }
-
-    function ffVersion() {
-      return $.browser.version;
-    }
-
-    return !(isIE() || (isFirefox() && ffVersion() < 4));
-  }
-
   var blue = '#006bbf',
       orange = '#f4861d',
       yellow = '#f5c648',
@@ -40,7 +24,6 @@
       textColor = '#575757',
       pillColor = '#cee8fb',
       gridLine = '#dee6f3',
-      hcPrevLoaded = false, // Used to determine if the gradients have already been appended
       ComponentInformation;
 
   function getAge(reportDate, endDate) {
@@ -263,7 +246,6 @@
     config = $.extend({}, _barChartDefaults, config);
 
     var maxValue = data[0],
-        useGradient = useGradients(),
         stepSize = 0,
         topPadding = 2 * config.fontSize,
         leftPadding = config.fontSize * 5,
@@ -276,19 +258,6 @@
         vis,
         bar,
         ticks;
-
-    if (hcPrevLoaded !== true) {
-      hcPrevLoaded = true;
-      svg = document.createElement('div');
-      svg.setAttribute('style', 'height:0px;width:0px;');
-      svg.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' version='1.1'><defs><linearGradient id='orangebar' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' style='stop-color:rgb(199,122,32);stop-opacity:1'></stop><stop offset='100%' style='stop-color:rgb(248,149,32);stop-opacity:1'></stop></linearGradient><linearGradient id='redbar' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' style='stop-color:rgb(190,31,36);stop-opacity:1'></stop><stop offset='100%' style='stop-color:rgb(235,32,38);stop-opacity:1'></stop></linearGradient><linearGradient id='yellowbar' x1='0%' x2='0%' y1='0%' y2='100%'><stop offset='0%' style='stop-color:rgb(209,186,30);stop-opacity:1'></stop><stop offset='100%' style='stop-color:rgb(255,222,29);stop-opacity:1'></stop></linearGradient></defs></svg>";
-      if (document.body.firstChild) {
-        document.body.insertBefore(svg, document.body.firstChild);
-      }
-      else {
-        document.body.appendChild(svg);
-      }
-    }
 
     for (i = 1; i < data.length; i++) {
       maxValue = Math.max(maxValue, data[i]);
@@ -364,13 +333,13 @@
         .width(x)
         .fillStyle(function() {
           if (this.index < 3) {
-            return useGradient ? 'url(#redbar)' : 'rgb(234,32,44)';
+            return 'rgb(188,1,47)';
           }
           else if (this.index < 7) {
-            return useGradient ? 'url(#orangebar)' : 'rgb(248,149,32)';
+            return 'rgb(244,134,29)';
           }
           else {
-            return useGradient ? 'url(#yellowbar)' : 'rgb(255,222,29)';
+            return 'rgb(254,198,72)';
           }
         });
 

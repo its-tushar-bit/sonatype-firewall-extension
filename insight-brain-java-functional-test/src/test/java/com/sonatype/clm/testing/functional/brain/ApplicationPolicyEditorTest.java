@@ -36,6 +36,11 @@ public class ApplicationPolicyEditorTest
   }
 
   @Override
+  protected void testCreatePolicy_inheritanceSection() {
+    assertInheritanceSectionDoesNotExist();
+  }
+
+  @Override
   protected void testEditPolicy_inheritanceSection() {
     assertInheritanceSectionDoesNotExist();
   }

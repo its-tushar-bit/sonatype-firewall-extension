@@ -90,11 +90,15 @@ public abstract class AbstractPolicyEditorTest
 
   @Test
   public void testCreatePolicy() {
+    if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      tempEntity.newTag(currentOwner.getId());
+    }
     open(OwnerSummaryPage.url(currentOwner.getType().toString(), currentOwner.getPublicId()));
     SummaryTile.addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
     testCreatePolicy_summarySection();
+    testCreatePolicy_inheritanceSection();
     testCreatePolicy_actionsNotificationsSection();
     testCreatePolicy_constraintSection();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED).click();
@@ -158,6 +162,12 @@ public abstract class AbstractPolicyEditorTest
   public void testDisabledPolicy() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();
     Tag[] categories = createCategories(inheritedOwnerId);
+
+    //add a new tag to the existing org as well, so that we can validate that viewing a disabled policy from a parent
+    //doesn't include tags from the child
+    if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      tempEntity.newTag(currentOwner.getId());
+    }
     Policy policy = createPolicy(inheritedOwnerId, categories);
 
     refresh();
@@ -868,6 +878,8 @@ public abstract class AbstractPolicyEditorTest
   }
 
   protected abstract void assertNewPolicyStateIsCorrect_inheritanceSection();
+
+  protected abstract void testCreatePolicy_inheritanceSection();
 
   protected abstract void testEditPolicy_inheritanceSection();
 

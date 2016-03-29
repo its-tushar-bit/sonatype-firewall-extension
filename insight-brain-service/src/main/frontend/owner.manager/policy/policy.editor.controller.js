@@ -103,8 +103,16 @@
           return category.id;
         }) : [];
 
+        var startConcat = false;
         categoriesByOwner.forEach(function(owner) {
-          vm.categories = vm.categories.concat(owner.tags);
+          //we only want to append categories that are actually part of the owner of the policy being shown.  We don't
+          //want to show tags from children when showing a parent policy in read only mode
+          if (vm.dirtyPolicy && (!vm.dirtyPolicy.ownerId || vm.dirtyPolicy.ownerId === owner.ownerId)) {
+            startConcat = true;
+          }
+          if (startConcat) {
+            vm.categories = vm.categories.concat(owner.tags);
+          }
         });
         vm.categories.forEach(function(category) {
           category.isApplied = appliedCategoriesById.indexOf(category.id) > -1;

@@ -59,6 +59,17 @@ public class OrganizationPolicyEditorTest
   }
 
   @Override
+  protected void testCreatePolicy_inheritanceSection() {
+    PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
+    inheritance.allChildrenInheritRadio().click();
+    inheritance.associationEditor().shouldNotBe(visible);
+
+    inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
+    inheritance.associationEditor().shouldBe(visible);
+    inheritance.associationEditor().item(0, 0).checkBox().click();
+  }
+
+  @Override
   protected void testEditPolicy_inheritanceSection() {
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
     inheritance.allChildrenInheritRadio().click();

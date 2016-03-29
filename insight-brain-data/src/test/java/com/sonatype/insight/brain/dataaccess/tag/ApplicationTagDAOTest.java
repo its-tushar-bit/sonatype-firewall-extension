@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * @since 1.9
@@ -52,29 +51,20 @@ public class ApplicationTagDAOTest
     assertThat(appTag, notNullValue());
     assertAppTag(applicationId, tag.getId(), appTag);
 
+    // Update
+    Tag newTag = tempEntity.newTag(organization.getId());
+    appTag.setTagId(newTag.getId());
+    dao.update(appTag);
+    appTag = dao.getById(appTag.getId());
+    assertThat(appTag, notNullValue());
+    assertAppTag(applicationId, newTag.getId(), appTag);
+
     // Delete
     dao.delete(appTag);
 
     // Get
     appTag = dao.getById(appTag.getId());
     assertThat(appTag, nullValue());
-  }
-
-  @Test
-  public void testUpdateNotSupported() throws Exception {
-    ApplicationTag appTag = new ApplicationTag(applicationId, tag.getId());
-    dao.insert(appTag);
-
-    ApplicationTag updatedAppTag = new ApplicationTag("updated_app_id", tag.getId());
-    updatedAppTag.setId(appTag.getId());
-
-    try {
-      dao.update(updatedAppTag);
-      fail("Expected UnsupportedOperationException");
-    }
-    catch (UnsupportedOperationException expected) {
-      // Expected
-    }
   }
 
   @Test

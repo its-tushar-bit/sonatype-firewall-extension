@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -328,5 +329,32 @@ public class PolicyViolationDAOTest
     assertThat(toPolicyViolation.getPolicyId(), is(toPolicy.getId()));
     otherPolicyViolation = dao.getById(otherPolicyViolation.getId());
     assertThat(otherPolicyViolation.getPolicyId(), is(otherPolicy.getId()));
+  }
+
+  @Test
+  public void testReplacePolicyIdForApplication() {
+    Policy fromPolicy = tempEntity.newPolicy(organization.getId(), "From Policy");
+    Policy toPolicy = tempEntity.newPolicy(applicationId, "To Policy");
+    Policy otherPolicy = tempEntity.newPolicy(applicationId, "Other Policy");
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(applicationId, BuildStageType.ID, "scanId");
+    PolicyViolation fromPolicyViolation = tempEntity.newPolicyViolation(evaluation, fromPolicy);
+    PolicyViolation otherPolicyViolation = tempEntity.newPolicyViolation(evaluation, otherPolicy);
+    PolicyEvaluation otherAppEvaluation = tempEntity.newPolicyEvaluation(tempEntity
+        .newApplication(organization.getId()).getId(), BuildStageType.ID, "scanId");
+    PolicyViolation otherAppPolicyViolation = tempEntity.newPolicyViolation(otherAppEvaluation, fromPolicy);
+
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.replacePolicyId(tx, applicationId, fromPolicy.getId(), toPolicy.getId());
+      tx.commit();
+    }
+
+    fromPolicyViolation = dao.getById(fromPolicyViolation.getId());
+    assertThat(fromPolicyViolation.getPolicyId(), is(toPolicy.getId()));
+    otherPolicyViolation = dao.getById(otherPolicyViolation.getId());
+    assertThat(otherPolicyViolation.getPolicyId(), is(otherPolicy.getId()));
+    otherAppPolicyViolation = dao.getById(otherAppPolicyViolation.getId());
+    assertThat(otherAppPolicyViolation.getPolicyId(), is(fromPolicy.getId()));
   }
 }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -36,6 +37,12 @@ public class ComponentLabelDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByLabelId(tx, labelId);
     }
+  }
+
+  public List<ComponentLabel> getByLabelIdAndOwnerIds(TransactionContext tx, String labelId, Set<String> ownerIds) {
+    String sQuery = "SELECT entity FROM ComponentLabel entity" + //
+        " WHERE entity.labelId=?1 AND entity.ownerId IN (?2)";
+    return getList(tx, sQuery, labelId, ownerIds);
   }
 
   public List<ComponentLabel> getByOwnerIdAndHash(String ownerId, String hash) {

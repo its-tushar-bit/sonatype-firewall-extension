@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -103,6 +104,12 @@ public class PolicyWaiverDAO
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.policyId=?1";
     return getList(tx, sQuery, policyId);
+  }
+
+  public List<PolicyWaiver> getByPolicyIdAndOwnerIds(TransactionContext tx, String policyId, Set<String> ownerIds) {
+    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
+        " WHERE entity.policyId=?1 AND entity.ownerId IN (?2)";
+    return getList(tx, sQuery, policyId, ownerIds);
   }
 
   private PolicyWaiver getByHashAndPolicyIdAndOwnerId(TransactionContext tx,

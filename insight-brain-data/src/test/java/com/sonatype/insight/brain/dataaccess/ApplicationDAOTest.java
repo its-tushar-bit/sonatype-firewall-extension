@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -196,6 +197,19 @@ public class ApplicationDAOTest
     catch (InvalidApplicationException expected) {
       assertThat(expected.getMessage(), is("Cannot change the parent organization of an application."));
     }
+  }
+
+  @Test
+  public void testUpdateOrganizationId_Force() {
+    Organization organization1 = tempEntity.newOrganization("testUpdateOrganizationId 1");
+
+    application.setOrganizationId(organization1.getId());
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      applicationDAO.update(tx, application, true);
+      tx.commit();
+    }
+    assertThat(applicationDAO.getById(application.getId()).getOrganizationId(), is(organization1.getId()));
   }
 
   @Test

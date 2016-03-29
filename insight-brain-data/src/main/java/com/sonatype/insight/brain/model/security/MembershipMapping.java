@@ -106,4 +106,14 @@ public class MembershipMapping
   public String toString() {
     return getContextId() + " - " + getRoleId() + " - " + getMemberName();
   }
+
+  public boolean includes(UserPrincipal user) {
+    if (MemberType.USER.equals(getMemberType())) {
+      return getMemberName().equalsIgnoreCase(user.getUsername());
+    }
+    if (MemberType.GROUP.equals(getMemberType())) {
+      return user.getMembership().contains(getMemberName());
+    }
+    return false;
+  }
 }

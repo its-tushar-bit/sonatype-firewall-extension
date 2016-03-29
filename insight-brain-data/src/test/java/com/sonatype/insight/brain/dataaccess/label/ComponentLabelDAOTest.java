@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess.label;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.hamcrest.core.IsEqual;
@@ -18,6 +20,9 @@ import org.hamcrest.core.IsNull;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 
 public class ComponentLabelDAOTest
@@ -178,5 +183,22 @@ public class ComponentLabelDAOTest
   private void assertComponentLabel(Label expected, ComponentLabel actual) {
     assertEquals(expected.getId(), actual.getLabelId());
     assertEquals(expected.getOwnerId(), actual.getOwnerId());
+  }
+
+  @Test
+  public void testGetByLabelIdAndOwnerIds() {
+    Label label1 = tempEntity.newLabel(organization.getId());
+    Label label2 = tempEntity.newLabel(application.getId());
+
+    ComponentLabelDAO dao = new ComponentLabelDAO();
+    ComponentLabel compLabel1 = tempEntity.newComponentLabel(application.getId(), label1.getId(), hash);
+    tempEntity.newComponentLabel(organization.getId(), label1.getId(), hash);
+    tempEntity.newComponentLabel(application.getId(), label2.getId(), hash);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<ComponentLabel> componentLabels = dao.getByLabelIdAndOwnerIds(tx, label1.getId(),
+          Collections.singleton(application.getId()));
+      assertThat(componentLabels, hasSize(1));
+      assertThat(componentLabels.get(0).getId(), is(compLabel1.getId()));
+    }
   }
 }

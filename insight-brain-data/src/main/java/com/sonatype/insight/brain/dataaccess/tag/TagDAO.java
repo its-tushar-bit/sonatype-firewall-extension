@@ -75,9 +75,15 @@ public class TagDAO
    * Retrieve list of Tags applied to specified Application
    */
   public List<Tag> getByApplicationId(String applicationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationId(tx, applicationId);
+    }
+  }
+
+  public List<Tag> getByApplicationId(TransactionContext tx, String applicationId) {
     String sQuery = "SELECT tag FROM ApplicationTag appTag, Tag tag" + //
         " WHERE appTag.tagId=tag.id AND appTag.applicationId=?1";
-    return getList(sQuery, applicationId);
+    return getList(tx, sQuery, applicationId);
   }
 
   /**

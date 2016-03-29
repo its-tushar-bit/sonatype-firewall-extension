@@ -24,11 +24,6 @@ public class ApplicationTagDAO
     return get(tx, sQuery, id);
   }
 
-  @Override
-  public void update(TransactionContext tx, ApplicationTag appTag) {
-    throw new UnsupportedOperationException("ApplicationTag table does not support update operations");
-  }
-
   public List<ApplicationTag> getByApplicationId(String appId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, appId);

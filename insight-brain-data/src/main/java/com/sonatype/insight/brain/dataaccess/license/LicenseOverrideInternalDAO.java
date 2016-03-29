@@ -30,14 +30,6 @@ public class LicenseOverrideInternalDAO
     return get(tx, sQuery, id);
   }
 
-  public LicenseOverrideInternal getByOwnerIdAndComponentIdentifier(String ownerId,
-                                                                    ComponentIdentifier componentIdentifier)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
-    }
-  }
-
   public LicenseOverrideInternal getByOwnerIdAndComponentIdentifier(TransactionContext tx,
                                                                     String ownerId,
                                                                     ComponentIdentifier componentIdentifier)

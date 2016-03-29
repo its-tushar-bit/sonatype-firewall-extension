@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -22,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidPolicyException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
-import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -58,6 +59,10 @@ public class PolicyDAO
 
   public List<Policy> getByOwnerId(TransactionContext tx, String ownerId) {
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerId(tx, ownerId));
+  }
+
+  public Policy getByOwnerIdAndName(TransactionContext tx, String ownerId, String policyName) {
+    return PolicyInternal.toPolicy(policyInternalDAO.getByOwnerIdAndName(tx, ownerId, policyName));
   }
 
   public List<Policy> getAll() {
@@ -179,32 +184,32 @@ public class PolicyDAO
   }
 
   public List<Policy> getApplicableByOwnerId(String ownerId) {
+    try (TransactionContext tx = policyInternalDAO.createTransactionContext()) {
+      return getApplicableByOwnerId(tx, ownerId);
+    }
+  }
+
+  public List<Policy> getApplicableByOwnerId(TransactionContext tx, String ownerId) {
     List<Policy> result = new ArrayList<>();
 
-    List<ApplicationTag> appTags = null;
-    Owner owner = ownerDAO.getById(ownerId);
+    Set<String> tagIds = new HashSet<>();
+    Owner owner = ownerDAO.getById(tx, ownerId);
     if (OwnerType.APPLICATION.equals(owner.getType())) {
       // ownerId is an app id
-      appTags = appTagDAO.getByApplicationId(ownerId);
-      result.addAll(getByOwnerId(ownerId));
+      for (ApplicationTag appTag : appTagDAO.getByApplicationId(tx, ownerId)) {
+        tagIds.add(appTag.getTagId());
+      }
+      result.addAll(getByOwnerId(tx, ownerId));
       ownerId = owner.getParentOwnerId();
     }
 
-    for (Owner currentOwner : ownerDAO.walkHierarchy(ownerId)) {
-      List<Policy> orgPolicies = getByOwnerId(currentOwner.getId());
+    for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
+      List<Policy> orgPolicies = getByOwnerId(tx, currentOwner.getId());
       switch (owner.getType()) {
         case APPLICATION:
-          for (Policy orgPolicy : orgPolicies) {
-            List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
-            if (policyTags.isEmpty() || intersects(policyTags, appTags)) {
-              result.add(orgPolicy);
-            }
-          }
-          break;
         case REPOSITORY:
           for (Policy orgPolicy : orgPolicies) {
-            List<PolicyTag> policyTags = policyTagDAO.getByPolicyId(orgPolicy.getId());
-            if (policyTags.isEmpty()) {
+            if (policyTagDAO.isPolicyApplicable(tx, orgPolicy.getId(), tagIds)) {
               result.add(orgPolicy);
             }
           }
@@ -214,21 +219,6 @@ public class PolicyDAO
       }
     }
     return result;
-  }
-
-  private boolean intersects(List<PolicyTag> policyTags, List<ApplicationTag> appTags) {
-    if (appTags.isEmpty()) {
-      return false;
-    }
-
-    for (PolicyTag policyTag : policyTags) {
-      for (ApplicationTag appTag : appTags) {
-        if (policyTag.getTagId().equals(appTag.getTagId())) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   private void validateNameWithinHierarchy(TransactionContext tx, final String ownerId, final Policy policy)

@@ -63,14 +63,23 @@ public class LicenseOverrideDAO
   }
 
   public LicenseOverride getByOwnerIdAndComponentIdentifier(String ownerId, ComponentIdentifier componentIdentifier) {
-    LicenseOverrideInternal licenseOverride = licenseOverrideInternalDAO.getByOwnerIdAndComponentIdentifier(ownerId,
-        componentIdentifier);
+    try (TransactionContext tx = licenseOverrideInternalDAO.createTransactionContext()) {
+      return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
+    }
+  }
+
+  public LicenseOverride getByOwnerIdAndComponentIdentifier(TransactionContext tx,
+                                                            String ownerId,
+                                                            ComponentIdentifier componentIdentifier)
+  {
+    LicenseOverrideInternal licenseOverride = licenseOverrideInternalDAO.getByOwnerIdAndComponentIdentifier(tx,
+        ownerId, componentIdentifier);
 
     if (licenseOverride == null) {
       return null;
     }
 
-    return new LicenseOverride(licenseOverride, getLicenseIds(licenseOverride.getId()));
+    return new LicenseOverride(licenseOverride, getLicenseIds(tx, licenseOverride.getId()));
   }
 
   public List<LicenseOverride> getByComponentIdentifier(final TransactionContext tx,

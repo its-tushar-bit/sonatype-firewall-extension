@@ -66,7 +66,7 @@ public class MembershipMappingDAO
     return getList(sQuery, contextId, username, MemberType.USER);
   }
 
-  private List<MembershipMapping> getByContextIdAndRoleId(TransactionContext tx, String contextId, String roleId) {
+  public List<MembershipMapping> getByContextIdAndRoleId(TransactionContext tx, String contextId, String roleId) {
     String sQuery = "SELECT entity FROM MembershipMapping entity" + " WHERE entity.contextId=?1 and entity.roleId=?2"
         + " ORDER BY entity.memberName";
     return getList(tx, sQuery, contextId, roleId);

@@ -621,4 +621,21 @@ public class PolicyDAOTest
     policy.setOwnerId(application.getOrganizationId());
     policyDAO.update(policy);
   }
+
+  @Test
+  public void testGetByOwnerIdAndName() throws Exception {
+    Policy policy1 = tempEntity.newPolicy(application.getId(), "Policy 1");
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "Policy 2");
+    tempEntity.newPolicy(organization.getId(), "Policy 3");
+
+    try (TransactionContext tx = new PolicyInternalDAO().createTransactionContext()) {
+      Policy policy = policyDAO.getByOwnerIdAndName(tx, application.getId(), "policy1");
+      assertThat(policy, is(notNullValue()));
+      assertThat(policy.getId(), is(policy1.getId()));
+
+      policy = policyDAO.getByOwnerIdAndName(tx, organization.getId(), "policy2");
+      assertThat(policy, is(notNullValue()));
+      assertThat(policy.getId(), is(policy2.getId()));
+    }
+  }
 }

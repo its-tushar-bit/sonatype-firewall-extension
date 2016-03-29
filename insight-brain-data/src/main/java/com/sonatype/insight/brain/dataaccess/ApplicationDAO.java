@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -27,7 +26,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -192,6 +190,10 @@ public class ApplicationDAO
 
   @Override
   public void update(TransactionContext tx, Application application) {
+    update(tx, application, false);
+  }
+
+  public void update(TransactionContext tx, Application application, boolean changeParent) {
     validate(application);
 
     Application existingApplication = getById(tx, application.getId());
@@ -202,12 +204,9 @@ public class ApplicationDAO
     if (!existingApplication.getPublicId().equals(application.getPublicId())) {
       throw new InvalidApplicationException("Cannot change public ID of existing application.");
     }
-    if (!existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
+    if (!changeParent && !existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
       throw new InvalidApplicationException("Cannot change the parent organization of an application.");
     }
-    Organization organization = new OrganizationDAO().getByIdNotNull(application.getOrganizationId());
-    checkConflictingLicenseThreatGroups(tx, application, organization);
-    checkConflictingLabels(tx, existingApplication, organization);
     existingApplication = getByName(tx, application.getName());
     if (existingApplication != null && !existingApplication.getId().equals(application.getId())) {
       throw new InvalidNameException(application.getName() + " is already used as a name.");
@@ -218,40 +217,6 @@ public class ApplicationDAO
     }
 
     super.update(tx, application);
-  }
-
-  private void checkConflictingLicenseThreatGroups(TransactionContext tx,
-                                                   Application application,
-                                                   Organization organization)
-  {
-    LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
-    List<LicenseThreatGroup> appLicenseThreatGroups = licenseThreatGroupDAO.getByOwnerId(tx, application.getId());
-    for (LicenseThreatGroup appLicenseThreatGroup : appLicenseThreatGroups) {
-      if (licenseThreatGroupDAO.getByOwnerIdAndName(tx, organization.getId(), appLicenseThreatGroup.getName()) != null) {
-        throw new InvalidApplicationException(
-            "Both the application and the organization have a license threat group with the same name '"
-                + appLicenseThreatGroup.getName() + "'.");
-      }
-    }
-  }
-
-  private void checkConflictingLabels(TransactionContext tx, Application application, Organization organization) {
-    final List<Label> conflicts = new ArrayList<>();
-    final LabelDAO labelDAO = new LabelDAO();
-    for (Label appLabel : labelDAO.getByOwnerId(tx, application.getId())) {
-      if (labelDAO.getByOwnerIdAndLabelLowercase(tx, organization.getId(), appLabel.getLabelLowercase()) != null) {
-        conflicts.add(appLabel);
-      }
-    }
-    if (!conflicts.isEmpty()) {
-      final StringBuilder msg = new StringBuilder(
-          "Both the application and the organization have labels with the same names. Conflicting label names :");
-      for (Label conflict : conflicts) {
-        msg.append(" '").append(conflict.getLabelLowercase()).append('\'');
-      }
-      msg.append(".");
-      throw new InvalidApplicationException(msg.toString());
-    }
   }
 
   public void deleteWithIcon(Application application, File iconDirectory) {

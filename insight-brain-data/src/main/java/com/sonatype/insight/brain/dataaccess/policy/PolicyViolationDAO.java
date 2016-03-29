@@ -161,4 +161,13 @@ public class PolicyViolationDAO
     Query query = createQuery(sQuery, fromPolicyId, toPolicyId);
     return query.executeUpdate();
   }
+
+  public int replacePolicyId(TransactionContext tx, String applicationId, String fromPolicyId, String toPolicyId) {
+    String sQuery = "UPDATE PolicyViolation entity" + //
+        " SET entity.policyId=?3" + //
+        " WHERE entity.policyId=?2 AND entity.policyEvaluationId IN" + //
+        " (SELECT evaluation.id FROM PolicyEvaluation evaluation WHERE evaluation.applicationId=?1)";
+    Query query = createQuery(sQuery, applicationId, fromPolicyId, toPolicyId);
+    return query.executeUpdate(tx);
+  }
 }

@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -178,7 +177,7 @@ public class AuthorizationChecker
   private boolean isUserHavingAnyRoleInContext(UserPrincipal user, Set<String> roleIds, String contextId) {
     Collection<MembershipMapping> memberships = membershipDAO.getByContextId(contextId);
     for (MembershipMapping membership : memberships) {
-      if (roleIds.contains(membership.getRoleId()) && isUserIncluded(membership, user)) {
+      if (roleIds.contains(membership.getRoleId()) && membership.includes(user)) {
         return true;
       }
     }
@@ -188,19 +187,9 @@ public class AuthorizationChecker
   private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds) {
     Collection<MembershipMapping> memberships = membershipDAO.getByRoleIds(roleIds);
     for (MembershipMapping membership : memberships) {
-      if (isUserIncluded(membership, user)) {
+      if (membership.includes(user)) {
         return true;
       }
-    }
-    return false;
-  }
-
-  private boolean isUserIncluded(MembershipMapping membership, UserPrincipal user) {
-    if (MemberType.USER.equals(membership.getMemberType())) {
-      return membership.getMemberName().equalsIgnoreCase(user.getUsername());
-    }
-    if (MemberType.GROUP.equals(membership.getMemberType())) {
-      return user.getMembership().contains(membership.getMemberName());
     }
     return false;
   }

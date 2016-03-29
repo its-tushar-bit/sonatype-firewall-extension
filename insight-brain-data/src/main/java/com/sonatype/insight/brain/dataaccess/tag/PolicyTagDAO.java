@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
@@ -66,5 +67,20 @@ public class PolicyTagDAO
     String sQuery = "SELECT entity FROM PolicyTag entity" + //
         " WHERE entity.policyId=?1 AND entity.tagId=?2";
     return get(sQuery, policyId, tagId);
+  }
+
+  public boolean isPolicyApplicable(TransactionContext tx, String policyId, Set<String> tagIds) {
+    List<PolicyTag> policyTags = getByPolicyId(tx, policyId);
+    if (policyTags.isEmpty()) {
+      return true;
+    }
+    if (!tagIds.isEmpty()) {
+      for (PolicyTag policyTag : policyTags) {
+        if (tagIds.contains(policyTag.getTagId())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

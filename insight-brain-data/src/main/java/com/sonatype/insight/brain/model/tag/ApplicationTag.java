@@ -58,4 +58,8 @@ public class ApplicationTag
   public String getTagId() {
     return tagId;
   }
+
+  public void setTagId(String tagId) {
+    this.tagId = tagId;
+  }
 }

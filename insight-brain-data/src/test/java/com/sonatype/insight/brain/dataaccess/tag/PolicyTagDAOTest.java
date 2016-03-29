@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -175,6 +177,21 @@ public class PolicyTagDAOTest
       assertThat(expectedPolicyTag, notNullValue());
       assertThat(policyTag.getTagId(), is(expectedPolicyTag.getTagId()));
       assertThat(policyTag.getPolicyId(), is(expectedPolicyTag.getPolicyId()));
+    }
+  }
+
+  @Test
+  public void testIsPolicyApplicable() throws Exception {
+    Policy policy = tempEntity.newPolicy(organization.getId());
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(true));
+
+      tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(organization.getId()).getId());
+      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(false));
+
+      tempEntity.newPolicyTag(policy.getId(), tag.getId());
+      assertThat(dao.isPolicyApplicable(tx, policy.getId(), Collections.singleton(tag.getId())), is(true));
     }
   }
 }

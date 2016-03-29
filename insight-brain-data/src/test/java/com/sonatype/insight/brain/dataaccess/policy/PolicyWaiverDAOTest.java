@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.WaivedPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -317,5 +319,23 @@ public class PolicyWaiverDAOTest
     new PolicyWaiverDAO().delete(policyWaiver);
     assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
     assertThat(waivedPolicyViolationDAO.getById(waivedPolicyViolation.getId()), notNullValue());
+  }
+
+  @Test
+  public void testGetByPolicyIdAndOwnerIds() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy1 = tempEntity.newPolicy(application.getId(), "policy-1");
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "policy-2");
+    tempEntity.newWaiver(policy1.getId(), application.getId());
+    PolicyWaiver waiver2 = tempEntity.newWaiver(policy2.getId(), application.getId());
+    tempEntity.newWaiver(policy2.getId(), organization.getId());
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> waivers = dao.getByPolicyIdAndOwnerIds(tx, policy2.getId(),
+          Collections.singleton(application.getId()));
+      assertThat(waivers, hasSize(1));
+      assertThat(waivers.get(0).getId(), is(waiver2.getId()));
+    }
   }
 }

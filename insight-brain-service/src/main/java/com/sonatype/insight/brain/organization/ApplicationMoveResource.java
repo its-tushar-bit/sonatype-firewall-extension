@@ -50,9 +50,9 @@ public class ApplicationMoveResource
   @POST
   @Path(DESTINATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public void moveApplication(@PathParam("applicationId") String applicationId,
-                              @PathParam("organizationId") String organizationId)
+  public List<String> moveApplication(@PathParam("applicationId") String applicationId,
+                                      @PathParam("organizationId") String organizationId)
   {
-    applicationMoveService.moveApplication(applicationId, organizationId);
+    return applicationMoveService.moveApplication(applicationId, organizationId);
   }
 }

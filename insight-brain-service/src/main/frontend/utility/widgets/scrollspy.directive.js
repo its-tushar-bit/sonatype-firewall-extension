@@ -34,9 +34,19 @@
           $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
         });
 
-        $scope.$on(EventNameConstant.RESIZE_SCROLLABLE_AREA, function(){
+        $scope.$on(EventNameConstant.UPDATE_SCROLLSPY, function(event, options){
           if (scrollspyObject) {
-            scrollspyObject.refresh();
+            if (options) {
+              if (options.resetScroll) {
+                $($scope.scrollspy + ' .nav li:first-child > a').click();
+              }
+              if (options.refresh) {
+                scrollspyObject.refresh();
+              }
+            }
+            else {
+              scrollspyObject.refresh();
+            }
           }
         });
 

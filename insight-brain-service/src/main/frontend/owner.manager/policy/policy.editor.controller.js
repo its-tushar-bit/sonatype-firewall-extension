@@ -7,7 +7,7 @@
   'use strict';
 
   function PolicyEditorController($scope, $q, $http, $stateParams, PolicyHierarchyStore, DeleteModalService,
-                                  SameOwnerStateNavigationService, CLMAppLocations)
+                                  SameOwnerStateNavigationService, CLMAppLocations, $rootScope, EventNameConstant)
   {
     var vm = this,
         originalCategories,
@@ -143,6 +143,7 @@
           originalCategories = angular.copy(vm.categories);
           originalHasPolicyCategories = vm.hasPolicyCategories;
           vm.policyEditor.$setPristine();
+          $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
         }, submitErrorHandler);
       }
     }
@@ -159,7 +160,7 @@
 
   PolicyEditorController.$inject = [
     '$scope', '$q', '$http', '$stateParams', 'PolicyHierarchyStore', 'DeleteModalService',
-    'SameOwnerStateNavigationService', 'CLMAppLocations'
+    'SameOwnerStateNavigationService', 'CLMAppLocations', '$rootScope', 'event.name.constant'
   ];
 
   angular //

@@ -69,4 +69,28 @@ describe('scrollspy.directive.spec.js', function(){
     $timeout.flush();
     expect(spy).toHaveBeenCalled();
   }));
+
+  it('Validate events are handled as expected',
+      inject(['$compile', '$rootScope', 'event.name.constant', function($compile, $rootScope, EventNameConstant) {
+        var scrollspyObj = {
+          refresh: jasmine.createSpy()
+        };
+
+        spyOn($.fn.scrollspy, 'Constructor').andReturn(scrollspyObj);
+        spyOn($.fn, 'scrollTop');
+
+        $compile(getFullElement())(controllerScope);
+
+        expect(scrollspyObj.refresh).not.toHaveBeenCalled();
+        $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY);
+        expect(scrollspyObj.refresh).toHaveBeenCalled();
+        expect($.fn.scrollTop).not.toHaveBeenCalled();
+        scrollspyObj.refresh.reset();
+        $.fn.scrollTop.reset();
+        expect($.fn.scrollTop).not.toHaveBeenCalled();
+        $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {resetScroll: true});
+        expect(scrollspyObj.refresh).not.toHaveBeenCalled();
+        expect($.fn.scrollTop).toHaveBeenCalled();
+      }])
+  );
 });

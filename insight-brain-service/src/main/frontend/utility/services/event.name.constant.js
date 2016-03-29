@@ -10,7 +10,7 @@
     RELOAD_OWNER_SUMMARY_DATA: 'reload.owner.summary.data',
     RELOAD_OWNER_TREE_DATA: 'reload.owner.tree.data',
     OWNER_UPDATED: 'owner.updated',
-    RESIZE_SCROLLABLE_AREA: 'resize.scrollable.area'
+    UPDATE_SCROLLSPY: 'update.scrollspy'
   };
 
   angular.module('utility').constant('event.name.constant', eventNameConstant);

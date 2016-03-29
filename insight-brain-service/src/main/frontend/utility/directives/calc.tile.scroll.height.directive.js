@@ -35,7 +35,7 @@
           marginTop: element.css('margin-top'),
           marginBottom: element.css('margin-bottom')
         }));
-        scope.$emit(EventNameConstant.RESIZE_SCROLLABLE_AREA);
+        scope.$emit(EventNameConstant.UPDATE_SCROLLSPY);
       }
     }
   }

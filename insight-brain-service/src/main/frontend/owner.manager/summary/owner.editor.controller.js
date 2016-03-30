@@ -105,6 +105,7 @@
           deferred = $q.defer();
 
           $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData).then(function() {
+            originalIconType = vm.icon.type;
             deferred.resolve(result);
           }, function(error) {
             deferred.reject(error);

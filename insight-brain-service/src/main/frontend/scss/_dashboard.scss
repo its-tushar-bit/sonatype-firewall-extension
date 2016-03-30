@@ -643,15 +643,8 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     margin-bottom: 0px;
   }
 
-  .btn.btn-secondary {
-    padding: 0 12px;
-    margin-top: 18px;
-
-    i:before {
-      vertical-align: middle;
-      color: $slate;
-      line-height: 26px;
-    }
+  .btn {
+    margin-top: 14px;
   }
 }
 

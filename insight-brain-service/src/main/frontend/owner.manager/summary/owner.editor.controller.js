@@ -105,7 +105,6 @@
           deferred = $q.defer();
 
           $http.post(CLMAppLocations.getAddIconUrl(ownerType), formData).then(function() {
-            originalIconType = vm.icon.type;
             deferred.resolve(result);
           }, function(error) {
             deferred.reject(error);
@@ -119,6 +118,7 @@
         }
         return deferred.promise;
       })).then(function(updatedOwner) {
+        originalIconType = vm.icon.type;
         $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, updatedOwner, ownerType, isNew);
         if (isNew) {
           $state.go('management.view.' + ownerType, ownerType === 'application' ? {
